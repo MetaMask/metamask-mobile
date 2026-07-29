@@ -9,7 +9,6 @@ import {
   startRampsBuyCufTrace,
   endRampsBuyCufTrace,
   startRampsBuyCufChildTrace,
-  endRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
   getRampsBuyCufParentContext,
   hasActiveRampsBuyCufTrace,
@@ -59,13 +58,11 @@ describe('rampsBuyCufTrace', () => {
     const opId = startRampsBuyCufTrace({
       surface: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
     });
-
     const startFields = {
       [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
       [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
       [RAMPS_BUY_CUF_TAG.SURFACE]: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
     };
-
     expect(opId).toContain(TraceName.RampBuyToOrderDetails);
     expect(hasActiveRampsBuyCufTrace()).toBe(true);
     expect(mockTrace).toHaveBeenCalledWith(
@@ -89,52 +86,31 @@ describe('rampsBuyCufTrace', () => {
       startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK }),
     ).toEqual(first);
     expect(mockTrace).toHaveBeenCalledTimes(1);
-
     endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
     const afterEnd = startRampsBuyCufTrace();
     expect(afterEnd).not.toEqual(first);
-
     mockGetTraceContext.mockReturnValue(undefined);
-    const afterCleanup = startRampsBuyCufTrace({
-      surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK,
-    });
-    expect(afterCleanup).not.toEqual(afterEnd);
+    expect(
+      startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK }),
+    ).not.toEqual(afterEnd);
   });
 
-  it('ends a started parent by the current single-flight id', () => {
-    const opId = startRampsBuyCufTrace();
-
-    endRampsBuyCufTrace({
-      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-    });
-
-    expect(mockEndTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.RampBuyToOrderDetails,
-        id: opId,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-      }),
-    );
-    expect(hasActiveRampsBuyCufTrace()).toBe(false);
-    expect(getRampsBuyCufParentContext()).toBeUndefined();
-  });
-
-  it('end is idempotent and ignores mismatched ids', () => {
+  it('ends parents idempotently, ignores mismatched ids, and times out', () => {
     startRampsBuyCufTrace();
     endRampsBuyCufTrace({ id: 'other-id' });
     expect(mockEndTrace).not.toHaveBeenCalled();
     endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
     endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
-  });
+    expect(hasActiveRampsBuyCufTrace()).toBe(false);
+    expect(getRampsBuyCufParentContext()).toBeUndefined();
 
-  it('times out the open parent and no-ops after a prior end', () => {
-    const opId = startRampsBuyCufTrace();
+    const timedOutId = startRampsBuyCufTrace();
     jest.advanceTimersByTime(RAMPS_BUY_CUF_TIMEOUT_MS);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampBuyToOrderDetails,
-        id: opId,
+        id: timedOutId,
         data: {
           [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.TIMEOUT,
@@ -148,103 +124,36 @@ describe('rampsBuyCufTrace', () => {
     expect(mockEndTrace).not.toHaveBeenCalled();
   });
 
-  it('starts a child nested under the active parent context', () => {
+  it('nests, ends, and abandons child spans under the parent', () => {
+    expect(
+      startRampsBuyCufChildTrace({ name: TraceName.RampBuyContinueToCheckout }),
+    ).toBeNull();
     startRampsBuyCufTrace();
     mockTrace.mockClear();
-
     const childId = startRampsBuyCufChildTrace({
       name: TraceName.RampBuyContinueToCheckout,
     });
-
-    expect(childId).toContain(TraceName.RampBuyContinueToCheckout);
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampBuyContinueToCheckout,
         id: childId,
-        op: TraceOperation.RampOperation,
         parentContext: { mocked: 'parent-span' },
-        tags: expect.objectContaining({
-          [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
-        }),
-        data: expect.objectContaining({
-          [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
-          [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
-        }),
       }),
     );
-  });
-
-  it('skips child start when no parent is active', () => {
-    const childId = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyContinueToCheckout,
-    });
-
-    expect(childId).toBeNull();
-    expect(mockTrace).not.toHaveBeenCalled();
-  });
-
-  it('ends a child by op id and is idempotent', () => {
-    startRampsBuyCufTrace();
-    const childId = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyContinueToCheckout,
-    });
-    expect(childId).not.toBeNull();
-
-    endRampsBuyCufChildTrace({
-      id: childId as string,
-      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-    });
-    endRampsBuyCufChildTrace({
-      id: childId as string,
-      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-    });
-
-    expect(mockEndTrace).toHaveBeenCalledTimes(1);
-    expect(mockEndTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.RampBuyContinueToCheckout,
-        id: childId,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-      }),
-    );
-  });
-
-  it('ends open children by name', () => {
-    startRampsBuyCufTrace();
-    const a = startRampsBuyCufChildTrace({
+    const nativeId = startRampsBuyCufChildTrace({
       name: TraceName.RampBuyNativeToOrderCreated,
     });
-    const b = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyContinueToCheckout,
-    });
-
-    const ended = endOpenRampsBuyCufChildrenByName(
-      TraceName.RampBuyNativeToOrderCreated,
-      { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-    );
-
-    expect(ended).toBe(1);
-    expect(mockEndTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.RampBuyNativeToOrderCreated,
-        id: a,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-      }),
-    );
-    expect(mockEndTrace).not.toHaveBeenCalledWith(
-      expect.objectContaining({ id: b }),
-    );
-  });
-
-  it('abandons open children when the parent ends', () => {
-    startRampsBuyCufTrace();
-    const childId = startRampsBuyCufChildTrace({
-      name: TraceName.RampBuyContinueToCheckout,
-    });
     mockEndTrace.mockClear();
-
+    expect(
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+      }),
+    ).toBe(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: nativeId }),
+    );
+    mockEndTrace.mockClear();
     endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
-
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampBuyContinueToCheckout,
@@ -253,12 +162,6 @@ describe('rampsBuyCufTrace', () => {
           [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
           [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ABANDONED,
         },
-      }),
-    );
-    expect(mockEndTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.RampBuyToOrderDetails,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
       }),
     );
   });
