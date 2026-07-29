@@ -152,6 +152,13 @@ const V2BankDetails = () => {
         [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
         orderId: order.providerOrderId,
       });
+      endOpenRampsBuyCufChildrenByName(
+        TraceName.RampBuyNativeKycAndOrderCreation,
+        {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+          orderId: order.providerOrderId,
+        },
+      );
       // @ts-expect-error navigation prop mismatch
       navigation.replace(Routes.RAMP.RAMPS_ORDER_DETAILS, {
         orderId: order.providerOrderId,

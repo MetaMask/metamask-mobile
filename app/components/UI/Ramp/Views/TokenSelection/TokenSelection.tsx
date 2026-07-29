@@ -46,6 +46,15 @@ import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectMod
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import {
+  startRampsBuyCufChildTrace,
+  endRampsBuyCufChildTrace,
+} from '../../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../../util/trace';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -141,6 +150,31 @@ function TokenSelection() {
     );
   }, [rampType, createEventBuilder, trackEvent]);
 
+  // Token Selection CUF (TRAM-3781): mount → a token is picked, the user
+  // backs out, or (fallback) the screen unmounts some other way (swipe-back,
+  // hardware back, tab switch). The explicit end in the select/back handlers
+  // below covers the common cases; this cleanup is the safety net so an
+  // uncommon exit still closes the span instead of leaking it to Sentry's
+  // own 5-minute force-close.
+  const tokenSelectionCufOpIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    tokenSelectionCufOpIdRef.current = startRampsBuyCufChildTrace({
+      name: TraceName.RampBuyTokenSelection,
+    });
+    return () => {
+      if (tokenSelectionCufOpIdRef.current) {
+        endRampsBuyCufChildTrace({
+          id: tokenSelectionCufOpIdRef.current,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.CANCELLED,
+          },
+        });
+        tokenSelectionCufOpIdRef.current = null;
+      }
+    };
+  }, []);
+
   const prevSearchStringRef = useRef('');
   useEffect(() => {
     if (
@@ -191,6 +225,16 @@ function TokenSelection() {
             })
             .build(),
         );
+      }
+      if (tokenSelectionCufOpIdRef.current) {
+        endRampsBuyCufChildTrace({
+          id: tokenSelectionCufOpIdRef.current,
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+            token_caip19: assetId,
+          },
+        });
+        tokenSelectionCufOpIdRef.current = null;
       }
       setSelectedToken(assetId);
       navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });

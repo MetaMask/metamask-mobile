@@ -9,11 +9,13 @@ import {
   startRampsBuyCufTrace,
   endRampsBuyCufTrace,
   startRampsBuyCufChildTrace,
+  endRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
   startRampsBuyQuoteFetchTrace,
   endRampsBuyQuoteFetchTrace,
   getRampsBuyCufParentContext,
   hasActiveRampsBuyCufTrace,
+  hasOpenRampsBuyCufChildByName,
   surfaceFromBuyFlowOrigin,
   resetRampsBuyCufTraceForTests,
 } from './rampsBuyCufTrace';
@@ -258,6 +260,59 @@ describe('rampsBuyCufTrace', () => {
             [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
           },
         }),
+      );
+    });
+  });
+
+  describe('hasOpenRampsBuyCufChildByName (TRAM-3781)', () => {
+    it('is false when no child of that name is open', () => {
+      expect(
+        hasOpenRampsBuyCufChildByName(
+          TraceName.RampBuyNativeKycAndOrderCreation,
+        ),
+      ).toBe(false);
+    });
+
+    it('is true while a matching child is open, false once it ends', () => {
+      startRampsBuyCufTrace();
+      const opId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeKycAndOrderCreation,
+      });
+
+      expect(
+        hasOpenRampsBuyCufChildByName(
+          TraceName.RampBuyNativeKycAndOrderCreation,
+        ),
+      ).toBe(true);
+      // A different name shouldn't match.
+      expect(hasOpenRampsBuyCufChildByName(TraceName.RampBuyNativeAuth)).toBe(
+        false,
+      );
+
+      endOpenRampsBuyCufChildrenByName(
+        TraceName.RampBuyNativeKycAndOrderCreation,
+        { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+      );
+
+      expect(opId).not.toBeNull();
+      expect(
+        hasOpenRampsBuyCufChildByName(
+          TraceName.RampBuyNativeKycAndOrderCreation,
+        ),
+      ).toBe(false);
+    });
+
+    it('does not re-open after being ended directly by id', () => {
+      startRampsBuyCufTrace();
+      const opId = startRampsBuyCufChildTrace({
+        name: TraceName.RampBuyNativeAuth,
+      });
+      expect(opId).not.toBeNull();
+
+      endRampsBuyCufChildTrace({ id: opId as string });
+
+      expect(hasOpenRampsBuyCufChildByName(TraceName.RampBuyNativeAuth)).toBe(
+        false,
       );
     });
   });

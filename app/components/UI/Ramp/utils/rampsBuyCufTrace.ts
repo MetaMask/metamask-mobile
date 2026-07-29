@@ -307,6 +307,21 @@ export function endOpenRampsBuyCufChildrenByName(
   return ended;
 }
 
+/**
+ * Whether a child CUF with this name is currently open. Used to guard
+ * against restarting a span that spans multiple re-entries into the same
+ * call site (e.g. `routeAfterAuthentication`, which is called again after
+ * each KYC sub-screen completes).
+ */
+export function hasOpenRampsBuyCufChildByName(name: TraceName): boolean {
+  for (const meta of pendingChildMeta.values()) {
+    if (meta[CUF_META.NAME] === name) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function abandonOpenChildTraces(reason: string): void {
   for (const [opId] of Array.from(pendingChildMeta.entries())) {
     endRampsBuyCufChildTrace({
