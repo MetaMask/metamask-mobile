@@ -31,6 +31,9 @@ import {
 } from '../utils/rampsBuyCufTrace';
 import type { RampsBuyCufSurface } from '../constants/rampsBuyCufTags';
 
+/** Prevents concurrent goToBuy from racing past the await and double-starting CUF. */
+let goToBuyInFlight = false;
+
 /**
  * Hook that returns functions to navigate to ramp flows.
  *
@@ -69,104 +72,91 @@ export const useRampNavigation = () => {
         surface?: RampsBuyCufSurface;
       },
     ) => {
-      const { overrideUnifiedRouting = false } = options || {};
-
-      const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
-
-      const startBuyCufIfUnified = () => {
-        if (!isUnifiedRoutingEnabled) {
-          return;
-        }
-        startRampsBuyCufTrace({
-          surface:
-            options?.surface ??
-            surfaceFromBuyFlowOrigin(options?.buyFlowOrigin),
-        });
-      };
-
-      // Resolve the best available geolocation; only the unified path refreshes.
-      let location: string | undefined = geolocationLocation;
-      if (
-        isUnifiedRoutingEnabled &&
-        (!location || location === UNKNOWN_LOCATION)
-      ) {
-        location = await Promise.resolve(
-          Engine.context.GeolocationController?.refreshGeolocation?.(),
-        ).catch(() => undefined);
-      }
-
-      // Region service disruption kill-switch — applies to every buy entry point (including
-      // the deprecated aggregator/reorder path) and takes precedence over the
-      // eligibility/unsupported gating below.
-      if (
-        isRampsServiceDisruptionActive(
-          rampsServiceDisruptionRegions,
-          userRegion,
-          location,
-        )
-      ) {
-        navigateWithDetails(
-          navigation,
-          createRampsServiceDisruptionModalNavigationDetails(),
-        );
+      if (goToBuyInFlight) {
         return;
       }
+      goToBuyInFlight = true;
 
-      // Treat a fully-loaded V2 catalog with no providers or no buyable tokens
-      // as region-unavailable. Only fires once provider/token data has settled
-      // (not loading, no error) so transient states don't trip the modal.
-      const v2CatalogHasLoaded =
-        !overrideUnifiedRouting &&
-        !providersLoading &&
-        !tokensLoading &&
-        !providersError &&
-        !tokensError;
-      const v2CatalogHasNoProviders =
-        v2CatalogHasLoaded && rampsTokens && providers.length === 0;
-      const v2CatalogHasNoBuyableTokens =
-        v2CatalogHasLoaded &&
-        rampsTokens &&
-        !rampsTokens.allTokens.some((token) => token.tokenSupported);
-      const isV2CatalogUnsupported =
-        v2CatalogHasNoProviders || v2CatalogHasNoBuyableTokens;
+      try {
+        const { overrideUnifiedRouting = false } = options || {};
 
-      if (isUnifiedRoutingEnabled) {
-        if (!location || location === UNKNOWN_LOCATION) {
+        const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
+
+        const startBuyCufIfUnified = () => {
+          if (!isUnifiedRoutingEnabled) {
+            return;
+          }
+          startRampsBuyCufTrace({
+            surface:
+              options?.surface ??
+              surfaceFromBuyFlowOrigin(options?.buyFlowOrigin),
+          });
+        };
+
+        // Resolve the best available geolocation; only the unified path refreshes.
+        let location: string | undefined = geolocationLocation;
+        if (
+          isUnifiedRoutingEnabled &&
+          (!location || location === UNKNOWN_LOCATION)
+        ) {
+          location = await Promise.resolve(
+            Engine.context.GeolocationController?.refreshGeolocation?.(),
+          ).catch(() => undefined);
+        }
+
+        // Region service disruption kill-switch — applies to every buy entry point (including
+        // the deprecated aggregator/reorder path) and takes precedence over the
+        // eligibility/unsupported gating below.
+        if (
+          isRampsServiceDisruptionActive(
+            rampsServiceDisruptionRegions,
+            userRegion,
+            location,
+          )
+        ) {
           navigateWithDetails(
             navigation,
-            createEligibilityFailedModalNavigationDetails(),
+            createRampsServiceDisruptionModalNavigationDetails(),
           );
           return;
         }
 
-        if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-          navigateWithDetails(
-            navigation,
-            createRampUnsupportedModalNavigationDetails(),
-          );
-          return;
-        }
+        // Treat a fully-loaded V2 catalog with no providers or no buyable tokens
+        // as region-unavailable. Only fires once provider/token data has settled
+        // (not loading, no error) so transient states don't trip the modal.
+        const v2CatalogHasLoaded =
+          !overrideUnifiedRouting &&
+          !providersLoading &&
+          !tokensLoading &&
+          !providersError &&
+          !tokensError;
+        const v2CatalogHasNoProviders =
+          v2CatalogHasLoaded && rampsTokens && providers.length === 0;
+        const v2CatalogHasNoBuyableTokens =
+          v2CatalogHasLoaded &&
+          rampsTokens &&
+          !rampsTokens.allTokens.some((token) => token.tokenSupported);
+        const isV2CatalogUnsupported =
+          v2CatalogHasNoProviders || v2CatalogHasNoBuyableTokens;
 
-        if (isV2CatalogUnsupported) {
-          navigateWithDetails(
-            navigation,
-            createRampUnsupportedModalNavigationDetails(),
-          );
-          return;
-        }
-      }
+        if (isUnifiedRoutingEnabled) {
+          if (!location || location === UNKNOWN_LOCATION) {
+            navigateWithDetails(
+              navigation,
+              createEligibilityFailedModalNavigationDetails(),
+            );
+            return;
+          }
 
-      if (intent?.assetId && !overrideUnifiedRouting) {
-        const controllerAssetId = resolveRampControllerAssetId(
-          intent.assetId,
-          rampsTokens?.allTokens ?? [],
-        );
+          if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
+            navigateWithDetails(
+              navigation,
+              createRampUnsupportedModalNavigationDetails(),
+            );
+            return;
+          }
 
-        if (rampsTokens) {
-          const matchedToken = rampsTokens.allTokens.find(
-            (tok) => tok.assetId === controllerAssetId,
-          );
-          if (!matchedToken || !matchedToken.tokenSupported) {
+          if (isV2CatalogUnsupported) {
             navigateWithDetails(
               navigation,
               createRampUnsupportedModalNavigationDetails(),
@@ -175,32 +165,54 @@ export const useRampNavigation = () => {
           }
         }
 
-        try {
-          setSelectedToken(controllerAssetId);
-        } catch {
-          // Token may not be in controller's list yet (still loading).
+        if (intent?.assetId && !overrideUnifiedRouting) {
+          const controllerAssetId = resolveRampControllerAssetId(
+            intent.assetId,
+            rampsTokens?.allTokens ?? [],
+          );
+
+          if (rampsTokens) {
+            const matchedToken = rampsTokens.allTokens.find(
+              (tok) => tok.assetId === controllerAssetId,
+            );
+            if (!matchedToken || !matchedToken.tokenSupported) {
+              navigateWithDetails(
+                navigation,
+                createRampUnsupportedModalNavigationDetails(),
+              );
+              return;
+            }
+          }
+
+          try {
+            setSelectedToken(controllerAssetId);
+          } catch {
+            // Token may not be in controller's list yet (still loading).
+          }
+          startBuyCufIfUnified();
+          navigateWithDetails(
+            navigation,
+            createBuildQuoteNavDetails({
+              assetId: controllerAssetId,
+              buyFlowOrigin: options?.buyFlowOrigin,
+            }),
+          );
+          return;
         }
-        startBuyCufIfUnified();
+
+        if (!intent?.assetId && !overrideUnifiedRouting) {
+          startBuyCufIfUnified();
+          navigateWithDetails(navigation, createTokenSelectionNavDetails());
+          return;
+        }
+
         navigateWithDetails(
           navigation,
-          createBuildQuoteNavDetails({
-            assetId: controllerAssetId,
-            buyFlowOrigin: options?.buyFlowOrigin,
-          }),
+          createRampNavigationDetails(AggregatorRampType.BUY, intent),
         );
-        return;
+      } finally {
+        goToBuyInFlight = false;
       }
-
-      if (!intent?.assetId && !overrideUnifiedRouting) {
-        startBuyCufIfUnified();
-        navigateWithDetails(navigation, createTokenSelectionNavDetails());
-        return;
-      }
-
-      navigateWithDetails(
-        navigation,
-        createRampNavigationDetails(AggregatorRampType.BUY, intent),
-      );
     },
     [
       setSelectedToken,

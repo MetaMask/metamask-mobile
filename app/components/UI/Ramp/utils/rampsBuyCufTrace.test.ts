@@ -88,15 +88,15 @@ describe('rampsBuyCufTrace', () => {
     expect(getRampsBuyCufParentContext()).toEqual({ mocked: 'parent-span' });
   });
 
-  it('mints a distinct id for each parent start', () => {
+  it('mints a distinct id for each parent start after the prior ends', () => {
     const a = startRampsBuyCufTrace();
-    // Second start supersedes the first but keeps minting a new op id.
+    endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
     const b = startRampsBuyCufTrace();
 
     expect(a).not.toEqual(b);
   });
 
-  it('supersedes a prior parent when a new Buy E2E starts', () => {
+  it('ignores duplicate parent starts while a Buy E2E is already open', () => {
     const first = startRampsBuyCufTrace({
       surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE,
     });
@@ -105,17 +105,9 @@ describe('rampsBuyCufTrace', () => {
       surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK,
     });
 
-    expect(mockEndTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.RampBuyToOrderDetails,
-        id: first,
-        data: {
-          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
-        },
-      }),
-    );
-    expect(second).not.toEqual(first);
+    expect(second).toEqual(first);
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).not.toHaveBeenCalled();
     expect(hasActiveRampsBuyCufTrace()).toBe(true);
   });
 
@@ -193,16 +185,19 @@ describe('rampsBuyCufTrace', () => {
       },
       1000,
     );
-    // Supersede: first ends as superseded; second becomes active.
-    startRampsBuyCufTrace();
+    // Close the first parent, then open a new one — the short timer must not
+    // touch the newer op (end clears the prior schedule).
+    endRampsBuyCufTrace({
+      data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+    });
+    const second = startRampsBuyCufTrace();
     mockEndTrace.mockClear();
 
     jest.advanceTimersByTime(1000);
 
-    // The short timer was for `first`, which is no longer active.
-    expect(mockEndTrace).not.toHaveBeenCalledWith(
-      expect.objectContaining({ id: first }),
-    );
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(hasActiveRampsBuyCufTrace()).toBe(true);
+    expect(second).not.toEqual(first);
   });
 
   it('starts a child nested under the active parent context', () => {

@@ -301,6 +301,35 @@ describe('useRampNavigation', () => {
       });
     });
 
+    it('ignores a concurrent goToBuy while another is still in flight', async () => {
+      let resolveRefresh: (value: string) => void = () => undefined;
+      mockRefreshGeolocation.mockReturnValue(
+        new Promise<string>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+      );
+      const mockNavDetails = [Routes.RAMP.TOKEN_SELECTION, undefined] as const;
+      mockCreateTokenSelectionNavigationDetails.mockReturnValue(mockNavDetails);
+
+      const { result } = renderUseRampNavigation({
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'UNKNOWN' },
+          },
+        },
+      });
+
+      const first = result.current.goToBuy(undefined, { surface: 'home' });
+      const second = result.current.goToBuy(undefined, { surface: 'home' });
+
+      resolveRefresh('us-ca');
+      await Promise.all([first, second]);
+
+      expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
+      expect(mockStartRampsBuyCufTrace).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
     it('does not navigate to BuildQuote when overrideUnifiedRouting is true', () => {
       const intent = { assetId: 'eip155:1/erc20:0x123' };
       const mockNavDetails = [Routes.RAMP.BUY] as const;

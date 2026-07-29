@@ -19,6 +19,8 @@ export const RAMPS_BUY_CUF_SURFACE = {
   DEEP_LINK: 'deep_link',
   TOKEN_BUY: 'token_buy',
   HOME_TOKEN_LIST: 'home_token_list',
+  /** Homepage action grid Buy / onboarding "Add funds" entry. */
+  HOME: 'home',
   UNKNOWN: 'unknown',
 } as const;
 

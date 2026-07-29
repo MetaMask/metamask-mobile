@@ -23,7 +23,9 @@ import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
  * `RampsOrderDetails` has a known order. Child spans (quote / checkout /
  * native) nest under the parent via `parentContext` when a parent is active.
  *
- * Single-flight: a newer Buy entry supersedes any still-open parent.
+ * Single-flight: while a parent is open, duplicate starts are ignored (keeps
+ * the existing span). A new parent only begins after the prior one ends
+ * (success, bail, timeout, etc.). Quote-fetch children still supersede.
  */
 
 const CUF_META = {
@@ -87,8 +89,10 @@ export interface StartRampsBuyCufTraceOptions {
 }
 
 /**
- * Start the Buy E2E parent span. Supersedes any still-open parent.
+ * Start the Buy E2E parent span.
  * Returns the op id used to end it (also tracked module-level for cross-surface end).
+ * If a parent is already open, returns that id and does not start a new span
+ * (avoids false `superseded` from double-taps / concurrent `goToBuy`).
  */
 export function startRampsBuyCufTrace({
   surface = RAMPS_BUY_CUF_SURFACE.UNKNOWN,
@@ -97,12 +101,7 @@ export function startRampsBuyCufTrace({
   data,
 }: StartRampsBuyCufTraceOptions = {}): string {
   if (parentOpId) {
-    endRampsBuyCufTrace({
-      data: {
-        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
-      },
-    });
+    return parentOpId;
   }
 
   const opId = nextCufOpId(TraceName.RampBuyToOrderDetails);
