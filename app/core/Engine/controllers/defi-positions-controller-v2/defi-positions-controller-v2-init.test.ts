@@ -56,7 +56,7 @@ function getInitRequestMock(
   >
 > {
   const mockInitMessenger = {
-    call: jest.fn().mockReturnValue({ currentCurrency: 'usd' }),
+    call: jest.fn().mockReturnValue({ selectedCurrency: 'usd' }),
   } as unknown as DeFiPositionsControllerV2InitMessenger;
 
   const requestMock = {
@@ -144,7 +144,7 @@ describe('DeFiPositionsControllerV2Init', () => {
   });
 
   describe('getVsCurrency', () => {
-    it('returns currentCurrency from CurrencyRateController', () => {
+    it('returns selectedCurrency from AssetsController', () => {
       const requestMock = getInitRequestMock();
       defiPositionsControllerV2Init(requestMock);
 
@@ -153,7 +153,7 @@ describe('DeFiPositionsControllerV2Init', () => {
 
       expect(getVsCurrency()).toBe('usd');
       expect(requestMock.initMessenger.call).toHaveBeenCalledWith(
-        'CurrencyRateController:getState',
+        'AssetsController:getState',
       );
     });
   });
