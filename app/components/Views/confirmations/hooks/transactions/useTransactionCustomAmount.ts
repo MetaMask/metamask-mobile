@@ -271,9 +271,11 @@ export function useTransactionCustomAmount({
   );
 
   const updatePendingAmountPercentage = useCallback(
-    (percentage: number) => {
+    (percentage: number): boolean => {
       if (!balanceUsd) {
-        return;
+        // No balance to derive a percentage/Max amount from — signal the caller
+        // that nothing was applied so it can avoid submitting the page.
+        return false;
       }
 
       const newAmount = formatFiatAmount(
@@ -331,6 +333,7 @@ export function useTransactionCustomAmount({
       setIsMaxDeposit(isMaxMoneyAccountDeposit);
 
       setAmountFiat(newAmount);
+      return true;
     },
     [
       balanceUsd,
