@@ -19,7 +19,7 @@ export function getMoneyAccountApiDataServiceMessenger(
     MessengerEvents<MoneyAccountApiDataServiceMessenger>
   >,
 ): MoneyAccountApiDataServiceMessenger {
-  const messenger = new Messenger({
+  const messenger: MoneyAccountApiDataServiceMessenger = new Messenger({
     namespace: 'MoneyAccountApiDataService',
     parent: rootMessenger,
   });
