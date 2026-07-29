@@ -863,4 +863,92 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
     });
   });
+
+  describe('About section', () => {
+    const aboutDescription =
+      'Ethereum is a decentralized smart contract platform. It powers DeFi, NFTs, and a large ecosystem of applications secured by proof of stake.';
+
+    it('shows About with Read more when the market has a description, then expands on press', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        initialParams: {
+          market: createEthMarketForViews({
+            description: aboutDescription,
+          }),
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [
+            createEthMarketForViews({ description: aboutDescription }),
+          ],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('About Ethereum')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION,
+        ),
+      ).toHaveTextContent(aboutDescription);
+
+      // Measure text reports more than 3 lines → Read more becomes available.
+      fireEvent(
+        screen.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION}-measure`,
+        ),
+        'textLayout',
+        {
+          nativeEvent: {
+            lines: [
+              { text: 'line 1' },
+              { text: 'line 2' },
+              { text: 'line 3' },
+              { text: 'line 4' },
+            ],
+          },
+        },
+      );
+
+      const readMore = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE,
+      );
+      fireEvent.press(readMore);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(
+            PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_DESCRIPTION)
+          .props.numberOfLines,
+      ).toBeUndefined();
+    });
+
+    it('does not show About when the market has no description', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        initialParams: {
+          market: createEthMarketForViews(),
+        },
+        streamOverrides: {
+          positions: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
+      ).not.toBeOnTheScreen();
+    });
+  });
 });
