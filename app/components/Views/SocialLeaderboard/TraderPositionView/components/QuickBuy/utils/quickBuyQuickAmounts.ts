@@ -9,6 +9,14 @@ export const USD_QUICK_BUY_BASE = [10, 50, 100, 250] as const;
 /** Sell quick-amount pills as balance percentages; 100 maps to the "Max" label. */
 export const SELL_QUICK_PERCENTAGES = [25, 50, 75, 100] as const;
 
+export type QuickBuyAmountTuple = [number, number, number, number];
+
+export type QuickBuySellPercentTuple = [number, number, number, number];
+
+export function getDefaultSellQuickPercentages(): QuickBuySellPercentTuple {
+  return [...SELL_QUICK_PERCENTAGES];
+}
+
 const NICE_AMOUNT_MULTIPLIERS = [1, 1.5, 2, 2.5, 5, 10] as const;
 
 /** Fiat codes that display without fractional units (ISO 4217 minor units = 0). */
@@ -149,8 +157,8 @@ export interface BuyQuickAmountOption {
   value: number;
   /** Pill label in the user's display currency. */
   label: string;
-  /** USD anchor tier for analytics (`preset_value`). */
-  presetTierUsd: number;
+  /** Rounded fiat preset for analytics (`preset_value`). */
+  presetValue: number;
 }
 
 /**
@@ -181,7 +189,41 @@ export function getBuyQuickAmounts(
     return {
       value,
       label: formatQuickBuyPillLabel(value, normalizedCurrency),
-      presetTierUsd,
+      presetValue: Math.round(value),
     };
   });
+}
+
+/**
+ * Maps persisted buy amounts to pill options for the user's display currency.
+ */
+export function resolveBuyQuickAmounts(
+  amounts: readonly [number, number, number, number],
+  currency: string,
+): BuyQuickAmountOption[] {
+  const normalizedCurrency = currency.toUpperCase();
+
+  return amounts.map((value) => ({
+    value,
+    label: formatQuickBuyPillLabel(value, normalizedCurrency),
+    presetValue: Math.round(value),
+  }));
+}
+
+export interface SellQuickAmountOption {
+  percent: number;
+  label: string;
+}
+
+/**
+ * Maps persisted sell percentages to pill options (`100` → localized Max).
+ */
+export function resolveSellQuickPercentages(
+  percentages: readonly [number, number, number, number],
+  maxLabel: string,
+): SellQuickAmountOption[] {
+  return percentages.map((percent) => ({
+    percent,
+    label: percent === 100 ? maxLabel : `${percent}%`,
+  }));
 }

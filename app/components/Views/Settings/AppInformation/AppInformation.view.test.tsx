@@ -15,8 +15,7 @@ import Routes from '../../../../constants/navigation/Routes';
 /**
  * Component View tests for AppInformation (About MetaMask).
  *
- * Mirrors (partial): tests/smoke-appium/settings/contact-us.spec.ts
- * — support links show the consent sheet. This view test renders the real
+ * Covers support links showing the consent sheet. This view test renders the real
  * SupportConsentSheet, so it only asserts the sheet appears; the sheet's own
  * confirm/reject/dismiss mechanics are covered by SupportConsentSheet tests.
  *
