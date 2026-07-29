@@ -40,7 +40,7 @@ jest.mock('../../actions/user', () => ({
 jest.mock('react-native-branch', () => ({
   __esModule: true,
   default: {
-    getFirstReferringParams: jest.fn(),
+    getLatestReferringParams: jest.fn(),
   },
 }));
 
@@ -58,7 +58,8 @@ jest.mock('../Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockGetFirstReferringParams = branch.getFirstReferringParams as jest.Mock;
+const mockGetLatestReferringParams =
+  branch.getLatestReferringParams as jest.Mock;
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 const SET_FIRED = { type: 'SET_APP_INSTALL_EVENT_FIRED' };
@@ -89,7 +90,7 @@ describe('appInstallEvent', () => {
     mockPendingAppInstall = null;
     mockAnalytics.isEnabled.mockReturnValue(false);
     mockAnalytics.trackEvent.mockImplementation(() => undefined);
-    mockGetFirstReferringParams.mockResolvedValue({});
+    mockGetLatestReferringParams.mockResolvedValue({});
     (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
       mockEventBuilder,
     );
@@ -116,6 +117,91 @@ describe('appInstallEvent', () => {
 
       expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
       expect(mockAnalytics.identify).not.toHaveBeenCalled();
+    });
+
+    it('stores Branch attribution when a direct-tap Branch link drove the install', async () => {
+      mockGetLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': true,
+        $deeplink_path: 'buy',
+      });
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+            branchAttribution: { clickedBranchLink: true, deeplinkPath: 'buy' },
+          },
+        },
+      });
+    });
+
+    it('stores Branch attribution for NativeLink (pasted link) install', async () => {
+      mockGetLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': false,
+        $deeplink_path: 'perps-asset?symbol=BTC',
+      });
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+            branchAttribution: {
+              clickedBranchLink: false,
+              deeplinkPath: 'perps-asset?symbol=BTC',
+            },
+          },
+        },
+      });
+    });
+
+    it('stores no branchAttribution for an organic install', async () => {
+      mockGetLatestReferringParams.mockResolvedValue({
+        '+clicked_branch_link': false,
+      });
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+          },
+        },
+      });
+    });
+
+    // Regression: branch.subscribe does not fire on iOS cold start after the new
+    // RN architecture upgrade, so getFirstReferringParams never gets populated.
+    // Attribution must be read via getLatestReferringParams at capture time
+    // (first launch = install session) so it bypasses the subscribe dependency.
+    it('reads Branch attribution via getLatestReferringParams at capture time', async () => {
+      await captureAppInstallOnce();
+
+      expect(mockGetLatestReferringParams).toHaveBeenCalled();
+    });
+
+    it('still captures install date when Branch attribution lookup fails', async () => {
+      mockGetLatestReferringParams.mockRejectedValue(
+        new Error('Branch unavailable'),
+      );
+
+      await captureAppInstallOnce();
+
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_PENDING_APP_INSTALL',
+        payload: {
+          pendingAppInstall: {
+            installDate: expect.any(String),
+          },
+        },
+      });
     });
 
     it('skips when the user already has a wallet', async () => {
@@ -214,11 +300,11 @@ describe('appInstallEvent', () => {
       expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     });
 
-    it('adds install_source and deeplink_path for a deferred deeplink install', async () => {
-      mockGetFirstReferringParams.mockResolvedValue({
-        '+clicked_branch_link': true,
-        $deeplink_path: 'buy',
-      });
+    it('adds install_source and deeplink_path from stored branchAttribution', async () => {
+      mockPendingAppInstall = {
+        installDate: '2026-07-01',
+        branchAttribution: { clickedBranchLink: true, deeplinkPath: 'buy' },
+      };
 
       await replayPendingAppInstall();
 
@@ -228,10 +314,11 @@ describe('appInstallEvent', () => {
       });
     });
 
-    it('omits deeplink_path when Branch does not provide one', async () => {
-      mockGetFirstReferringParams.mockResolvedValue({
-        '+clicked_branch_link': true,
-      });
+    it('adds install_source without deeplink_path when path is absent', async () => {
+      mockPendingAppInstall = {
+        installDate: '2026-07-01',
+        branchAttribution: { clickedBranchLink: true },
+      };
 
       await replayPendingAppInstall();
 
@@ -240,40 +327,38 @@ describe('appInstallEvent', () => {
       });
     });
 
-    it('adds no attribution properties for an organic install', async () => {
-      mockGetFirstReferringParams.mockResolvedValue({
-        '+clicked_branch_link': false,
+    it('adds attribution for NativeLink (pasted link) stored at capture time', async () => {
+      mockPendingAppInstall = {
+        installDate: '2026-07-01',
+        branchAttribution: {
+          clickedBranchLink: false,
+          deeplinkPath: 'perps-asset?symbol=BTC',
+        },
+      };
+
+      await replayPendingAppInstall();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+        deeplink_path: 'perps-asset?symbol=BTC',
       });
+    });
+
+    it('adds no attribution properties for an organic install', async () => {
+      mockPendingAppInstall = { installDate: '2026-07-01' };
 
       await replayPendingAppInstall();
 
       expect(mockEventBuilder.addProperties).not.toHaveBeenCalled();
     });
 
-    // Regression: the install params must come from getFirstReferringParams,
-    // which is stable for the install, not getLatestReferringParams, which is
-    // empty on a cold start that has not finished Branch session init.
-    it('reads install attribution from Branch first referring params', async () => {
+    it('does not call Branch at replay time', async () => {
       await replayPendingAppInstall();
 
-      expect(mockGetFirstReferringParams).toHaveBeenCalled();
+      expect(mockGetLatestReferringParams).not.toHaveBeenCalled();
     });
 
-    it('still emits the event when Branch attribution lookup fails', async () => {
-      const branchError = new Error('Branch unavailable');
-      mockGetFirstReferringParams.mockRejectedValue(branchError);
-
-      await replayPendingAppInstall();
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        branchError,
-        'AppInstall: Error reading Branch install attribution',
-      );
-      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
-      expect(mockStore.dispatch).toHaveBeenCalledWith(SET_FIRED);
-    });
-
-    it('keeps the install pending when emitting throws so it can retry', async () => {
+    it('still emits the event when replay throws', async () => {
       const trackError = new Error('Analytics unavailable');
       mockAnalytics.trackEvent.mockImplementation(() => {
         throw trackError;
@@ -285,6 +370,16 @@ describe('appInstallEvent', () => {
         trackError,
         'AppInstall: Error replaying app install event',
       );
+    });
+
+    it('keeps the install pending when emitting throws so it can retry', async () => {
+      const trackError = new Error('Analytics unavailable');
+      mockAnalytics.trackEvent.mockImplementation(() => {
+        throw trackError;
+      });
+
+      await replayPendingAppInstall();
+
       expect(mockStore.dispatch).not.toHaveBeenCalledWith(SET_FIRED);
       expect(mockStore.dispatch).not.toHaveBeenCalledWith(CLEAR_PENDING);
     });

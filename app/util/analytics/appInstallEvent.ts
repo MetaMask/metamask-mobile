@@ -16,6 +16,7 @@ import {
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { analytics } from './analytics';
 import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import type { PendingAppInstallAttribution } from '../../reducers/user/types';
 
 /** Prevents parallel start() calls from double-capturing before Redux persists. */
 let captureInFlight = false;
@@ -23,41 +24,56 @@ let captureInFlight = false;
 let replayInFlight = false;
 
 /**
- * Reads the deferred deeplink attribution for the install itself.
+ * Reads Branch attribution at install time using getLatestReferringParams.
  *
- * `getFirstReferringParams` is required here rather than
- * `getLatestReferringParams`: the "first" variant returns the params of the
- * install and keeps returning them for the lifetime of that install, while the
- * "latest" variant returns the most recent session and is empty on a cold start
- * that has not finished Branch session initialisation yet.
+ * We intentionally use getLatestReferringParams here (not getFirstReferringParams)
+ * because branch.subscribe does not fire on iOS cold start after the new RN
+ * architecture upgrade. getFirstReferringParams is populated via the subscribe
+ * callback, so it stays empty when subscribe never fires. getLatestReferringParams
+ * reads the native session directly and works regardless of subscribe.
  *
- * `+clicked_branch_link` is the same signal the Branch SDK itself uses to decide
- * whether a session came from a Branch link.
+ * This is called at capture time (first launch = install session), so
+ * getLatestReferringParams returns install-session params. The result is stored
+ * in Redux so replay on a later launch uses the captured data rather than
+ * calling getLatestReferringParams again (which would return a different session).
+ *
+ * Accepts both direct-tap (+clicked_branch_link: true) and NativeLink/pasteboard
+ * (+clicked_branch_link: false, $deeplink_path present) attribution.
  */
-const getInstallAttributionProperties = async (): Promise<
-  AnalyticsEventProperties | undefined
+const readBranchAttributionAtInstall = async (): Promise<
+  PendingAppInstallAttribution | undefined
 > => {
   try {
-    const params = await branch.getFirstReferringParams();
+    const params = await branch.getLatestReferringParams();
 
-    if (params?.['+clicked_branch_link'] !== true) {
+    const clickedBranchLink = params?.['+clicked_branch_link'] === true;
+    const deeplinkPath = params?.$deeplink_path as string | undefined;
+
+    if (!clickedBranchLink && !deeplinkPath) {
       return undefined;
     }
 
-    const deeplinkPath = params?.$deeplink_path as string | undefined;
-
     return {
-      install_source: 'deeplink',
-      ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
+      clickedBranchLink,
+      ...(deeplinkPath ? { deeplinkPath } : {}),
     };
   } catch (error) {
     Logger.error(
       error as Error,
-      'AppInstall: Error reading Branch install attribution',
+      'AppInstall: Error reading Branch attribution at install',
     );
     return undefined;
   }
 };
+
+const attributionToEventProperties = (
+  attribution: PendingAppInstallAttribution,
+): AnalyticsEventProperties => ({
+  install_source: 'deeplink',
+  ...(attribution.deeplinkPath
+    ? { deeplink_path: attribution.deeplinkPath }
+    : {}),
+});
 
 /**
  * Records a first install so the App Installed event can be emitted once the
@@ -93,9 +109,12 @@ export async function captureAppInstallOnce(): Promise<void> {
       return;
     }
 
+    const branchAttribution = await readBranchAttributionAtInstall();
+
     ReduxService.store.dispatch(
       setPendingAppInstall({
         installDate: new Date().toISOString().split('T')[0],
+        ...(branchAttribution ? { branchAttribution } : {}),
       }),
     );
   } catch (error) {
@@ -137,9 +156,10 @@ export async function replayPendingAppInstall(): Promise<void> {
       MetaMetricsEvents.APP_INSTALLED,
     );
 
-    const attributionProperties = await getInstallAttributionProperties();
-    if (attributionProperties) {
-      eventBuilder.addProperties(attributionProperties);
+    if (pending.branchAttribution) {
+      eventBuilder.addProperties(
+        attributionToEventProperties(pending.branchAttribution),
+      );
     }
 
     analytics.trackEvent(eventBuilder.build());

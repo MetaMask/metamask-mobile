@@ -7,9 +7,22 @@ import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChar
  * consent has not been given yet, and the install date must reflect the install
  * rather than the moment consent was granted.
  */
+export interface PendingAppInstallAttribution {
+  clickedBranchLink: boolean;
+  deeplinkPath?: string;
+}
+
 export interface PendingAppInstall {
   /** Install date as yyyy-mm-dd, captured on first launch. */
   installDate: string;
+  /**
+   * Branch attribution captured at install time via getLatestReferringParams.
+   * Stored here because branch.subscribe does not fire on iOS cold start after
+   * the new RN architecture upgrade, so getFirstReferringParams never gets
+   * populated. Reading at capture time (first launch = install session) and
+   * persisting avoids the cold-start race entirely.
+   */
+  branchAttribution?: PendingAppInstallAttribution;
 }
 
 /**
