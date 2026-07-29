@@ -16,18 +16,6 @@ import {
 } from '../constants/rampsBuyCufTags';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
 
-/**
- * Helpers for the Unified Buy user-perceived CUF spans (TRAM-3779).
- *
- * The parent span starts at Buy entry (`goToBuy` / deep link) and ends when
- * `RampsOrderDetails` has a known order. Child spans (quote / checkout /
- * native) nest under the parent via `parentContext` when a parent is active.
- *
- * Single-flight: while a parent is open, duplicate starts are ignored (keeps
- * the existing span). A new parent only begins after the prior one ends
- * (success, bail, timeout, etc.). Quote-fetch children still supersede.
- */
-
 const CUF_META = {
   NAME: 'name',
 } as const;
@@ -53,11 +41,6 @@ export function buildRampsBuyCufStartTags(
   };
 }
 
-/**
- * Mirror start tags onto span `data` so they appear in Sentry's Attributes
- * panel alongside end fields like `success` / `reason`. `trace()` maps
- * `tags` → scope.setTag (transaction filters) and `data` → span attributes.
- */
 function withStartSpanAttributes(
   startTags: Record<string, TraceValue>,
   data?: Record<string, TraceValue>,
@@ -68,7 +51,6 @@ function withStartSpanAttributes(
   };
 }
 
-/** Map BuildQuote `buyFlowOrigin` to a CUF surface tag when callers omit surface. */
 export function surfaceFromBuyFlowOrigin(
   buyFlowOrigin?: BuyFlowOrigin,
 ): RampsBuyCufSurface {
@@ -88,12 +70,6 @@ export interface StartRampsBuyCufTraceOptions {
   data?: Record<string, TraceValue>;
 }
 
-/**
- * Start the Buy E2E parent span.
- * Returns the op id used to end it (also tracked module-level for cross-surface end).
- * If a parent is already open, returns that id and does not start a new span
- * (avoids false `superseded` from double-taps / concurrent `goToBuy`).
- */
 export function startRampsBuyCufTrace({
   surface = RAMPS_BUY_CUF_SURFACE.UNKNOWN,
   tags,
@@ -134,16 +110,11 @@ export function startRampsBuyCufTrace({
 }
 
 export interface EndRampsBuyCufTraceOptions {
-  /** When omitted, ends the current single-flight parent. */
   id?: string;
   data?: Record<string, TraceValue>;
   timestamp?: number;
 }
 
-/**
- * End the Buy E2E parent span. Idempotent: no-ops unless the targeted (or
- * current) parent is still pending. Also abandons any open child spans.
- */
 export function endRampsBuyCufTrace({
   id,
   data,
@@ -170,7 +141,6 @@ export function endRampsBuyCufTrace({
   });
 }
 
-/** Schedule a fallback end; no-ops if the parent already ended. */
 export function endRampsBuyCufTraceAfter(
   options: EndRampsBuyCufTraceOptions,
   delayMs: number,
@@ -187,12 +157,10 @@ export function endRampsBuyCufTraceAfter(
   }, delayMs);
 }
 
-/** Parent span context for nesting child CUF spans. */
 export function getRampsBuyCufParentContext(): TraceContext {
   return parentSpan;
 }
 
-/** Whether a Buy E2E parent span is currently open. */
 export function hasActiveRampsBuyCufTrace(): boolean {
   return parentOpId !== null;
 }
@@ -204,10 +172,6 @@ export interface StartRampsBuyCufChildTraceOptions {
   data?: Record<string, TraceValue>;
 }
 
-/**
- * Start a child CUF span nested under the active Buy E2E parent.
- * Returns null when no parent is active (child is skipped).
- */
 export function startRampsBuyCufChildTrace({
   name,
   tags,
@@ -239,9 +203,6 @@ export interface EndRampsBuyCufChildTraceOptions {
   timestamp?: number;
 }
 
-/**
- * End a child CUF span by op id. Idempotent: no-ops if already ended.
- */
 export function endRampsBuyCufChildTrace({
   id,
   data,
@@ -256,10 +217,6 @@ export function endRampsBuyCufChildTrace({
   endTrace({ name, id, data, timestamp });
 }
 
-/**
- * End every open child with the given name (e.g. supersede prior quote fetch).
- * Returns the number of children ended.
- */
 export function endOpenRampsBuyCufChildrenByName(
   name: TraceName,
   data?: Record<string, TraceValue>,
@@ -286,7 +243,6 @@ function abandonOpenChildTraces(reason: string): void {
   }
 }
 
-/** Test-only: drop parent + child state between tests. */
 export function resetRampsBuyCufTraceForTests(): void {
   if (parentTimeoutId) {
     clearTimeout(parentTimeoutId);

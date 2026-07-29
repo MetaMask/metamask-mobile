@@ -80,7 +80,6 @@ describe('rampsBuyCufTrace', () => {
         name: TraceName.RampBuyToOrderDetails,
         id: opId,
         op: TraceOperation.RampOperation,
-        // tags → transaction filters; data → Attributes panel (with success)
         tags: startFields,
         data: startFields,
       }),
@@ -185,8 +184,6 @@ describe('rampsBuyCufTrace', () => {
       },
       1000,
     );
-    // Close the first parent, then open a new one — the short timer must not
-    // touch the newer op (end clears the prior schedule).
     endRampsBuyCufTrace({
       data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
     });
@@ -283,7 +280,6 @@ describe('rampsBuyCufTrace', () => {
         data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
       }),
     );
-    // Other child remains open until ended explicitly or parent ends.
     expect(mockEndTrace).not.toHaveBeenCalledWith(
       expect.objectContaining({ id: b }),
     );

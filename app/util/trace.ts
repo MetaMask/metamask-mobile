@@ -59,11 +59,8 @@ export enum TraceName {
   LoadDepositExperience = 'Load Deposit Experience',
   DepositContinueFlow = 'Deposit Continue Flow',
   DepositInputOtp = 'Deposit Input OTP',
-  /** Unified Buy E2E CUF: goToBuy → RampsOrderDetails (TRAM-3779). */
   RampBuyToOrderDetails = 'Ramp Buy To Order Details',
-  /** Nested under RampBuyToOrderDetails: Continue (widget) → checkout URL ready. */
   RampBuyContinueToCheckout = 'Ramp Buy Continue To Checkout',
-  /** Nested under RampBuyToOrderDetails: Continue (native) → order created. */
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
@@ -335,7 +332,6 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
-  // Ramp / Buy CUF
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
