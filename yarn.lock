@@ -8183,7 +8183,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:74.4.0":
+"@metamask/bridge-status-controller@npm:^74.4.0":
   version: 74.4.0
   resolution: "@metamask/bridge-status-controller@npm:74.4.0"
   dependencies:
@@ -8464,8 +8464,8 @@ __metadata:
   linkType: hard
 
 "@metamask/design-system-react-native@npm:^0.38.0":
-  version: 0.38.1
-  resolution: "@metamask/design-system-react-native@npm:0.38.1"
+  version: 0.38.0
+  resolution: "@metamask/design-system-react-native@npm:0.38.0"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.31.0"
     react-native-jazzicon: "npm:^0.1.2"
@@ -8480,7 +8480,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/494a94756a0e6da4d64665c99cd88b8ee17bf8a88d2910fdd95d110315387a78099c22c2a15ca6b9728633edcc7a3f4f02fba751b60732583701e1d652197f0c
+  checksum: 10/a04e703065cdef10027491b998bd34051ebddc067e517eecd168cfe24afc3194e1f92d5626f8f23af3ef5fa203d29265f2ff3fdd0d10b84fa4c0b9bc2ee1e804
   languageName: node
   linkType: hard
 
@@ -9858,15 +9858,15 @@ __metadata:
   linkType: hard
 
 "@metamask/ramps-controller@npm:^17.0.0":
-  version: 17.2.0
-  resolution: "@metamask/ramps-controller@npm:17.2.0"
+  version: 17.1.0
+  resolution: "@metamask/ramps-controller@npm:17.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/9fb8e922c2620354386e1d2a84ee6f074abda6b22a6f58594cb71a7d5c66d89e5e003b3164731b90f2e83601aeed05a22a8ccf404a1d3916d7aa87f0a8b10d49
+  checksum: 10/fa4e17571268e1a171be10f643cc8d0c163b0e59021b3067696968e141d39871b0a192ebb207666cff5f4af9397aec2030e6c50a485679b22a1be0a2748494d1
   languageName: node
   linkType: hard
 
@@ -40791,8 +40791,8 @@ __metadata:
   linkType: hard
 
 "react-native-permissions@npm:^5.6.0":
-  version: 5.6.1
-  resolution: "react-native-permissions@npm:5.6.1"
+  version: 5.6.0
+  resolution: "react-native-permissions@npm:5.6.0"
   peerDependencies:
     react: "*"
     react-native: "*"
@@ -40800,7 +40800,7 @@ __metadata:
   peerDependenciesMeta:
     react-native-windows:
       optional: true
-  checksum: 10/482df5cf9da533a16c267afd06698bb86ba4f5a56d88c6ad66cf96f84c6f8c214ed4433d16a92f746b636b175e17e66f7a2083fbc52eb80658d8a090d6db63b5
+  checksum: 10/3c140d9d08b0a266e28fdf5e6e87016080e41864da7a99360c3d5754c56f7a73f983a47fd973b6d3e7cd7a55868ab4a34519bc971a6580dc226fa74ae114181f
   languageName: node
   linkType: hard
 
