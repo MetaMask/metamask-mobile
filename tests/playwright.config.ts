@@ -8,7 +8,9 @@ export default defineConfig({
     ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
     : 3,
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
-  grep: /@Performance/,
+  // Bare @Performance only — excludes @System-only specs that use area tags
+  // like @PerformanceSwaps without the @Performance type tag.
+  grep: /@Performance\b/,
   reporter: [
     [
       'html',
