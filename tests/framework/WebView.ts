@@ -13,6 +13,7 @@ import Matchers from './Matchers.ts';
 import { type PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import { getDriver } from './PlaywrightUtilities.ts';
 
 export type WebViewByIdOptions = AndroidWebViewScrollOptions & {
   /** Required for Appium Chromedriver / iOS WebView context lookups. */
@@ -101,6 +102,75 @@ export default class WebView {
       text = await webElement.getText();
     });
     return text;
+  }
+
+  /**
+   * Select an option in an HTML `<select>` by visible option text.
+   */
+  static async selectOptionById(
+    webId: string,
+    optionText: string,
+    options: WebViewByIdOptions = {},
+  ): Promise<void> {
+    if (PlatformDetector.isAndroidAppium()) {
+      await tapAndroidWebId(webId, options);
+      await Gestures.waitAndTap(Matchers.getElementByText(optionText), {
+        elemDescription: `WebView select option "${optionText}"`,
+      });
+      return;
+    }
+
+    if (FrameworkDetector.isAppium()) {
+      await this.withContext(options.pageUrl, async () => {
+        await getDriver().execute(
+          (id: string, searchText: string) => {
+            const el = document.getElementById(id) as HTMLSelectElement | null;
+            if (!el?.options) {
+              throw new Error(`Select element #${id} not found`);
+            }
+            const option = Array.from(el.options).find((opt) =>
+              opt.text.includes(searchText),
+            );
+            if (!option) {
+              throw new Error(
+                `Option containing "${searchText}" not found in #${id}`,
+              );
+            }
+            el.value = option.value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          },
+          webId,
+          optionText,
+        );
+      });
+      return;
+    }
+
+    // Detox web element — runScript is Detox-only.
+    const webElement = await Matchers.getElementByWebID(
+      options.webviewId ?? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      webId,
+    );
+
+    const source = await webElement.runScript(
+      (el: HTMLSelectElement, searchText: string) => {
+        if (!el?.options) return null;
+        const option = Array.from(el.options).find((opt) =>
+          opt.text.includes(searchText),
+        );
+        return option ? option.value : null;
+      },
+      [optionText],
+    );
+
+    await webElement.runScript(
+      (el: HTMLSelectElement, value: string | null) => {
+        el.value = value ?? '';
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+      [source],
+    );
   }
 
   static async scrollIntoView(

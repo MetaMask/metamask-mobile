@@ -395,45 +395,24 @@ class TestSnaps {
   }
 
   async dismissAlert() {
-    // Matches the native WebView alert on each platform
-    const button = Matchers.getElementByText(
-      PlatformDetector.isIOS() ? 'Ok' : 'OK',
-    );
-    await Gestures.tap(button);
-  }
-
-  async getOptionValueByText(
-    webElement: IndexableWebElement,
-    text: string,
-  ): Promise<string | null> {
-    return await webElement.runScript(
-      (el, searchText) => {
-        if (!el?.options) return null;
-        const option = Array.from(el.options).find((opt: any) =>
-          opt.text.includes(searchText),
-        );
-        return option ? (option as any).value : null;
-      },
-      [text],
-    );
+    try {
+      await Gestures.tap(Matchers.getElementByText(/^OK$/i));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/stale|wasn't found|no such element/i.test(message)) {
+        throw error;
+      }
+    }
   }
 
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
   ): Promise<void> {
-    const webElement = (await this.getTestSnapsWebElement(
+    await WebView.selectOptionById(
       EntropyDropDownSelectorWebIDS[selector],
-    )) as IndexableWebElement;
-
-    const source = await this.getOptionValueByText(webElement, text);
-
-    await webElement.runScript(
-      (el, value) => {
-        el.value = value;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      },
-      [source],
+      text,
+      TEST_SNAPS_WEBVIEW_OPTIONS,
     );
   }
 
