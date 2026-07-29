@@ -159,6 +159,21 @@ describe('HomepageBalanceBreakdown', () => {
     expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
       '4.1% APY',
     );
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ICON('money')).props.name,
+    ).toBe('Musd');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ICON('tokens')).props.name,
+    ).toBe('Ethereum');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ICON('perps')),
+    ).toHaveTextContent('∞');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ICON('predict')).props.name,
+    ).toBe('Predictions');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
+    ).toHaveTextContent('%');
   });
 
   it('renders chevrons without allocation dots for the arrows layout', () => {

@@ -39,12 +39,15 @@ import type { SliceData, SliceKey } from '../../../BalanceBreakdown/types';
 import type { HomepageBalanceBreakdownLayout } from '../../abTestConfig';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 
-const SLICE_ICONS: Record<SliceKey, IconName> = {
-  money: IconName.Bank,
-  tokens: IconName.Coin,
-  perps: IconName.Candlestick,
+const SLICE_ICONS: Partial<Record<SliceKey, IconName>> = {
+  money: IconName.Musd,
+  tokens: IconName.Ethereum,
   predict: IconName.Predictions,
-  defi: IconName.Stake,
+};
+
+const SLICE_ICON_SYMBOLS: Partial<Record<SliceKey, string>> = {
+  perps: '∞',
+  defi: '%',
 };
 
 const SLICE_LABEL_KEYS = {
@@ -90,6 +93,8 @@ const BreakdownRow = ({
   const showIcon = layout === 'icons';
   const showAllocationDot = layout === 'allocation';
   const showArrow = layout === 'arrows';
+  const iconName = SLICE_ICONS[slice.key];
+  const iconSymbol = SLICE_ICON_SYMBOLS[slice.key];
 
   return (
     <Pressable
@@ -109,11 +114,23 @@ const BreakdownRow = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="h-10 w-10 rounded-full bg-muted"
         >
-          <Icon
-            color={IconColor.IconAlternative}
-            name={SLICE_ICONS[slice.key]}
-            size={IconSize.Md}
-          />
+          {iconName ? (
+            <Icon
+              color={IconColor.IconDefault}
+              name={iconName}
+              size={IconSize.Lg}
+              testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
+            />
+          ) : (
+            <Text
+              color={TextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
+              testID={HomepageBalanceBreakdownTestIds.ICON(slice.key)}
+              variant={TextVariant.HeadingMd}
+            >
+              {iconSymbol}
+            </Text>
+          )}
         </Box>
       ) : null}
       <Box twClassName={showIcon ? 'ml-3 min-w-0 flex-1' : 'min-w-0 flex-1'}>
