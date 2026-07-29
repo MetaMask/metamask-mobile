@@ -112,9 +112,11 @@ _dev_list_physical_devices_json() {
   local tmpfile
   tmpfile="$(mktemp /tmp/devicectl-devices.XXXXXX.json)"
   xcrun devicectl list devices --json-output "$tmpfile" > /dev/null 2>&1 || true
-  # Filter to devices that are connected (connectionProperties.transportType present)
+  # Connected (transportType present) iPhones only — a paired Apple Watch or iPad
+  # would otherwise defeat the single-device fallback or be targeted by mistake.
   jq '[.result.devices[] |
-    select(.connectionProperties.transportType != null) |
+    select(.connectionProperties.transportType != null
+           and .hardwareProperties.deviceType == "iPhone") |
     { udid: .hardwareProperties.udid, name: .deviceProperties.name }
   ]' "$tmpfile" 2>/dev/null || echo "[]"
   rm -f "$tmpfile"

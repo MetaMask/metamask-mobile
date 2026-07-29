@@ -230,6 +230,10 @@ download_latest_app_device() {
 launch_device_app_connected_to_metro() {
   echo -e "${BLUE}━━━ Connecting app to Metro ━━━${NC}"
 
+  # The dev_resolve_* calls below load .js.env inside $(...) subshells, so their
+  # exports never reach this shell. Load it here too, or WATCHER_PORT is missed.
+  dev_load_js_env
+
   local device_udid metro_host metro_port metro_url encoded_url payload_url
   device_udid=$(dev_resolve_ios_physical_device_udid)
   metro_host=$(dev_resolve_metro_host)
