@@ -17,11 +17,11 @@ import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHo
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
 import { MoneyWhatYouGetTestIds } from '../../components/MoneyWhatYouGet/MoneyWhatYouGet.testIds';
-import { MoneyFooterTestIds } from '../../components/MoneyFooter/MoneyFooter.testIds';
 import { MoneyActivityListTestIds } from '../../components/MoneyActivityList/MoneyActivityList.testIds';
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
 import { MoneyMusdTokenRowTestIds } from '../../components/MoneyMusdTokenRow/MoneyMusdTokenRow.testIds';
+import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -43,7 +43,6 @@ import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedir
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
-  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
@@ -1056,17 +1055,25 @@ describe('MoneyHomeView', () => {
     expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
+  it.each([
+    ['Activity', MoneyActivityListTestIds.CONTAINER],
+    ['Earn on your crypto', MoneyPotentialEarningsTestIds.CONTAINER],
+    ['MetaMask Card', MoneyMetaMaskCardTestIds.CONTAINER],
+  ])('renders no section header arrow for %s', (_label, containerTestId) => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    const section = getByTestId(containerTestId);
+
+    expect(
+      within(section).queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the what you get section in funded state', () => {
     const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
     expect(
       queryByTestId(MoneyWhatYouGetTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
-  });
-
-  it('renders the footer', () => {
-    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-    expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
   it('navigates to the Money activity screen when View all is pressed', () => {
@@ -1077,13 +1084,10 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 
-  it.each([
-    ['action row Add', MoneyActionButtonRowTestIds.ADD_BUTTON],
-    ['footer Add money', MoneyFooterTestIds.ADD_MONEY_BUTTON],
-  ])('opens the Add money sheet from the %s button', (_label, testId) => {
+  it('opens the Add money sheet from the action row Add button', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    fireEvent.press(getByTestId(testId));
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
@@ -1685,11 +1689,6 @@ describe('MoneyHomeView', () => {
       mockOpenURL.mockRestore();
     });
 
-    it('renders a single bottom Add money footer', () => {
-      const { getAllByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
-    });
-
     it('hides expanded HowItWorks section', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
@@ -1807,11 +1806,6 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the footer', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
-    });
-
     it('delegates to startLinkFlow with the Money home origin when MetaMaskCard link button is tapped', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1925,13 +1919,10 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders a single Add money footer alongside the mUSD token row', () => {
-      const { getAllByTestId, getByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
+    it('renders the mUSD token row', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER)).toBeOnTheScreen();
-      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
     });
 
     it('shows the mUSD token row balance in USD, not the preferred currency', () => {
@@ -1963,23 +1954,6 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyMusdTokenRowTestIds.SUBTITLE)).toHaveTextContent(
         '•'.repeat(6),
       );
-    });
-
-    it('opens the Add money sheet from the empty-state footer', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyFooterTestIds.ADD_MONEY_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'money.footer.add_money',
-        component_name: COMPONENT_NAMES.MONEY_FOOTER,
-        redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
-      });
     });
 
     it('initiates a deposit without preselection when the mUSD row Add button is pressed', () => {
@@ -2266,11 +2240,6 @@ describe('MoneyHomeView', () => {
     it('renders MoneyEarnings when balance is zero but activity exists', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
-    });
-
-    it('renders a single bottom Add money footer', () => {
-      const { getAllByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
     });
 
     it('hides expanded HowItWorks section', () => {
