@@ -334,7 +334,6 @@ export function useContinueWithQuote(
         );
       }
 
-      // Checkout URL ready — success boundary for this child CUF.
       endCheckoutCuf(true);
 
       try {

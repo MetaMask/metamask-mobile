@@ -7,6 +7,7 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import type { Country, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
@@ -21,7 +22,7 @@ jest.mock('../../../../core/redux', () => ({
   __esModule: true,
   default: {
     store: {
-      getState: jest.fn(() => ({})),
+      getState: jest.fn(),
     },
   },
 }));
@@ -148,6 +149,11 @@ describe('handleRampUrl', () => {
     jest.clearAllMocks();
     (NavigationService.navigation.navigate as jest.Mock).mockClear();
     (handleRedirection as jest.Mock).mockClear();
+    jest.mocked(ReduxService.store.getState).mockReturnValue({
+      engine: {
+        backgroundState,
+      },
+    } as ReturnType<typeof ReduxService.store.getState>);
     mockSelectGeolocationLocation.mockReturnValue('us-ca');
     mockSelectUserRegion.mockReturnValue(null);
     mockSelectCountries.mockReturnValue({ data: [] });

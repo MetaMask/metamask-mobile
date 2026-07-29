@@ -65,7 +65,6 @@ export const useRampNavigation = () => {
       options?: {
         overrideUnifiedRouting?: boolean;
         buyFlowOrigin?: BuyFlowOrigin;
-        /** Buy E2E CUF surface tag (TRAM-3779). Falls back from buyFlowOrigin. */
         surface?: RampsBuyCufSurface;
       },
     ) => {

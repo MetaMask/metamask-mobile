@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import useDepositEnabled from '../../../Ramp/hooks/useDepositEnabled';
@@ -220,10 +220,12 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into USDC on Linea')).toBeTruthy();
   });
 
-  it('tracks analytics and trace with UNIFIED_BUY_2 ramp_type when Fund with cash is pressed', () => {
+  it('tracks analytics and trace with UNIFIED_BUY_2 ramp_type when Fund with cash is pressed', async () => {
     const { getByText } = setupComponent();
 
-    fireEvent.press(getByText('Fund with cash'));
+    await act(async () => {
+      fireEvent.press(getByText('Fund with cash'));
+    });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
@@ -248,10 +250,12 @@ describe('AddFundsBottomSheet', () => {
     });
   });
 
-  it('handles swap option press correctly', () => {
+  it('handles swap option press correctly', async () => {
     const { getByText } = setupComponent();
 
-    fireEvent.press(getByText('Fund with crypto'));
+    await act(async () => {
+      fireEvent.press(getByText('Fund with crypto'));
+    });
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
       beforeNavigate: expect.any(Function),
@@ -317,14 +321,13 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into ETH on Linea')).toBeTruthy();
   });
 
-  it('routes Fund with cash through goToBuy (UB2-aware) with the priority token CAIP-19 assetId', () => {
+  it('routes Fund with cash through goToBuy (UB2-aware) with the priority token CAIP-19 assetId', async () => {
     const { getByText } = setupComponent();
 
-    fireEvent.press(getByText('Fund with cash'));
+    await act(async () => {
+      fireEvent.press(getByText('Fund with cash'));
+    });
 
-    // goToBuy is the smart router in useRampNavigation; when V2 is enabled
-    // (default for this suite), it dispatches to UB2 (BuildQuote). See
-    // useRampNavigation.test.ts > 'goToBuy > when unified V2 is enabled'.
     expect(mockGoToBuy).toHaveBeenCalledWith(
       {
         assetId: `${mockPriorityToken.caipChainId}/erc20:${mockPriorityToken.address}`,
@@ -333,9 +336,7 @@ describe('AddFundsBottomSheet', () => {
     );
   });
 
-  it('falls back to goToBuy() with no intent when the priority token has no address', () => {
-    // No assetId → useRampNavigation routes UB2 to TokenSelection
-    // (see useRampNavigation.ts, 'V2: If no assetId and V2 is enabled').
+  it('falls back to goToBuy() with no intent when the priority token has no address', async () => {
     const tokenWithoutAddress: CardFundingToken = {
       ...mockPriorityToken,
       address: null,
@@ -343,7 +344,9 @@ describe('AddFundsBottomSheet', () => {
 
     const { getByText } = setupComponent(tokenWithoutAddress);
 
-    fireEvent.press(getByText('Fund with cash'));
+    await act(async () => {
+      fireEvent.press(getByText('Fund with cash'));
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledWith(undefined, { surface: 'card' });
   });

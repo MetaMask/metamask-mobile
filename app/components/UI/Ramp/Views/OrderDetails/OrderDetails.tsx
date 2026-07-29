@@ -220,7 +220,6 @@ const OrderDetails = () => {
     }
   }, [order, createEventBuilder, trackEvent]);
 
-  // Buy E2E CUF success boundary: order is known and Order Details is shown.
   useEffect(() => {
     if (!order || hasEndedBuyCuf.current) {
       return;
