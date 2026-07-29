@@ -121,61 +121,60 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
 
       const isAddMargin = variant === 'add_margin';
 
+      if (isSuccess) {
+        return (
+          <Animated.View style={{ opacity: fadeAnim }}>
+            <BannerAlert
+              severity={BannerAlertSeverity.Success}
+              iconProps={{
+                testID: PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON,
+              }}
+              title={strings('perps.stop_loss_prompt.success_title')}
+              testID={testID}
+            />
+          </Animated.View>
+        );
+      }
+
       return (
         <Animated.View style={{ opacity: fadeAnim }}>
           <BannerAlert
-            severity={
-              isSuccess
-                ? BannerAlertSeverity.Success
-                : BannerAlertSeverity.Neutral
-            }
-            // Hide severity icon for the prompt; Success keeps the default confirmation icon
-            {...(isSuccess
-              ? {
-                  iconProps: {
-                    testID: PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON,
-                  },
-                }
-              : { startAccessory: undefined })}
+            severity={BannerAlertSeverity.Neutral}
+            // Hide severity icon for the prompt state
+            startAccessory={undefined}
             title={
-              isSuccess
-                ? strings('perps.stop_loss_prompt.success_title')
-                : isAddMargin
-                  ? strings('perps.stop_loss_prompt.near_liquidation_title', {
-                      distance: roundedDistance,
-                    })
-                  : strings('perps.stop_loss_prompt.protect_losses_title')
+              isAddMargin
+                ? strings('perps.stop_loss_prompt.near_liquidation_title', {
+                    distance: roundedDistance,
+                  })
+                : strings('perps.stop_loss_prompt.protect_losses_title')
             }
             description={
-              isSuccess
-                ? undefined
-                : isAddMargin
-                  ? strings('perps.stop_loss_prompt.near_liquidation_subtitle')
-                  : strings('perps.stop_loss_prompt.set_stop_loss_subtitle', {
-                      price: formattedStopLossPrice,
-                      percent: formattedPercent,
-                    })
+              isAddMargin
+                ? strings('perps.stop_loss_prompt.near_liquidation_subtitle')
+                : strings('perps.stop_loss_prompt.set_stop_loss_subtitle', {
+                    price: formattedStopLossPrice,
+                    percent: formattedPercent,
+                  })
             }
-            {...(isSuccess
-              ? {}
-              : {
-                  actionButtonLayout: BannerBaseActionButtonLayout.End,
-                  actionButtonLabel: isAddMargin
-                    ? strings('perps.stop_loss_prompt.add_margin_button')
-                    : strings('perps.stop_loss_prompt.set_button'),
-                  actionButtonOnPress: isAddMargin
-                    ? handleAddMarginPress
-                    : handleSetStopLossPress,
-                  actionButtonProps: {
-                    testID: isAddMargin
-                      ? PerpsStopLossPromptSelectorsIDs.ADD_MARGIN_BUTTON
-                      : PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
-                    isLoading,
-                    isDisabled: isAddMargin
-                      ? isLoading || !onAddMargin
-                      : isLoading || !onSetStopLoss,
-                  },
-                })}
+            actionButtonLayout={BannerBaseActionButtonLayout.End}
+            actionButtonLabel={
+              isAddMargin
+                ? strings('perps.stop_loss_prompt.add_margin_button')
+                : strings('perps.stop_loss_prompt.set_button')
+            }
+            actionButtonOnPress={
+              isAddMargin ? handleAddMarginPress : handleSetStopLossPress
+            }
+            actionButtonProps={{
+              testID: isAddMargin
+                ? PerpsStopLossPromptSelectorsIDs.ADD_MARGIN_BUTTON
+                : PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
+              isLoading,
+              isDisabled: isAddMargin
+                ? isLoading || !onAddMargin
+                : isLoading || !onSetStopLoss,
+            }}
             testID={testID}
           />
         </Animated.View>
