@@ -31,6 +31,7 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
 const LEDGER_OPERATION_TIMEOUT_MS = 10000;
+const INITIAL_BLE_STATE_TIMEOUT_MS = 3000;
 const DEFAULT_SCAN_TIMEOUT_MS = 30000;
 const MAX_DISCONNECT_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
@@ -322,7 +323,16 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       DevLogger.log(
         '[LedgerBluetoothAdapter] Waiting for initial BLE state...',
       );
-      await this.#initialBleStatePromise;
+      try {
+        await this.#withTimeout(
+          this.#initialBleStatePromise,
+          INITIAL_BLE_STATE_TIMEOUT_MS,
+          'Timed out waiting for initial BLE state',
+        );
+      } catch {
+        DevLogger.log('[LedgerBluetoothAdapter] Initial BLE state timed out');
+        return false;
+      }
       DevLogger.log(
         '[LedgerBluetoothAdapter] Initial BLE state received:',
         this.#isBluetoothOn,
@@ -631,6 +641,15 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     this.#bleStateSubscription = TransportBLE.observeState({
       next: (event) => {
+        const isTransientInitialState =
+          !this.#hasReceivedInitialBleState &&
+          (event.type === BleState.Unknown ||
+            event.type === BleState.Resetting);
+
+        if (isTransientInitialState) {
+          return;
+        }
+
         const wasOn = this.#isBluetoothOn;
         const isFirstState = !this.#hasReceivedInitialBleState;
 

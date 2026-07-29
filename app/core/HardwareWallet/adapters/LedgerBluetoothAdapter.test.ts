@@ -1070,6 +1070,129 @@ describe('LedgerBluetoothAdapter', () => {
       expect(result).toBe(true);
     });
 
+    it('waits for a definitive state when initial BLE states are transient', async () => {
+      mockedTransportBLE.observeState.mockImplementationOnce((observer) => {
+        capturedBleStateObserver = observer;
+        return mockBleStateSubscription;
+      });
+      const freshAdapter = new LedgerBluetoothAdapter(mockOptions);
+      let hasResolved = false;
+      const availabilityPromise = freshAdapter
+        .isTransportAvailable()
+        .then((isAvailable) => {
+          hasResolved = true;
+          return isAvailable;
+        });
+
+      capturedBleStateObserver?.next?.({
+        type: 'Unknown',
+        available: false,
+      });
+      capturedBleStateObserver?.next?.({
+        type: 'Resetting',
+        available: false,
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(hasResolved).toBe(false);
+
+      capturedBleStateObserver?.next?.({
+        type: 'PoweredOn',
+        available: true,
+      });
+
+      await expect(availabilityPromise).resolves.toBe(true);
+      freshAdapter.destroy();
+    });
+
+    it('starts the timeout when availability is requested', async () => {
+      jest.useFakeTimers();
+      mockedTransportBLE.observeState.mockImplementationOnce((observer) => {
+        capturedBleStateObserver = observer;
+        return mockBleStateSubscription;
+      });
+      const freshAdapter = new LedgerBluetoothAdapter(mockOptions);
+      try {
+        capturedBleStateObserver?.next?.({
+          type: 'Unknown',
+          available: false,
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        const availabilityPromise = freshAdapter.isTransportAvailable();
+        capturedBleStateObserver?.next?.({
+          type: 'PoweredOn',
+          available: true,
+        });
+
+        await expect(availabilityPromise).resolves.toBe(true);
+      } finally {
+        freshAdapter.destroy();
+        jest.useRealTimers();
+      }
+    });
+
+    it('returns false when an initial transient BLE state does not settle', async () => {
+      jest.useFakeTimers();
+      mockedTransportBLE.observeState.mockImplementationOnce((observer) => {
+        capturedBleStateObserver = observer;
+        return mockBleStateSubscription;
+      });
+      const freshAdapter = new LedgerBluetoothAdapter(mockOptions);
+      try {
+        let availability: boolean | undefined;
+        const availabilityPromise = freshAdapter
+          .isTransportAvailable()
+          .then((isAvailable) => {
+            availability = isAvailable;
+            return isAvailable;
+          });
+
+        capturedBleStateObserver?.next?.({
+          type: 'Unknown',
+          available: false,
+        });
+
+        await jest.advanceTimersByTimeAsync(3000);
+
+        expect(availability).toBe(false);
+        await expect(availabilityPromise).resolves.toBe(false);
+      } finally {
+        freshAdapter.destroy();
+        jest.useRealTimers();
+      }
+    });
+
+    it('allows availability to be retried after an initial-state timeout', async () => {
+      jest.useFakeTimers();
+      mockedTransportBLE.observeState.mockImplementationOnce((observer) => {
+        capturedBleStateObserver = observer;
+        return mockBleStateSubscription;
+      });
+      const freshAdapter = new LedgerBluetoothAdapter(mockOptions);
+      try {
+        capturedBleStateObserver?.next?.({
+          type: 'Unknown',
+          available: false,
+        });
+        const initialAvailability = freshAdapter.isTransportAvailable();
+        await jest.advanceTimersByTimeAsync(3000);
+        await expect(initialAvailability).resolves.toBe(false);
+
+        const retriedAvailability = freshAdapter.isTransportAvailable();
+        capturedBleStateObserver?.next?.({
+          type: 'PoweredOn',
+          available: true,
+        });
+
+        await expect(retriedAvailability).resolves.toBe(true);
+      } finally {
+        freshAdapter.destroy();
+        jest.useRealTimers();
+      }
+    });
+
     it('returns false when Bluetooth is off', async () => {
       // Create a new adapter and manually trigger PoweredOff state
       const newAdapter = new LedgerBluetoothAdapter(mockOptions);
