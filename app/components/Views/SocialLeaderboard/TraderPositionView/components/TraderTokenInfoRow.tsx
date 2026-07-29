@@ -16,8 +16,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- shared Perps stream provider (UI layer, not a route)
+import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -27,6 +29,7 @@ import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import { formatPercent } from '../../utils/formatters';
 import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+import { usePerpMarketNavigationTarget } from '../hooks/usePerpMarketNavigationTarget';
 
 export interface TraderTokenInfoRowProps {
   symbol: string;
@@ -38,6 +41,12 @@ export interface TraderTokenInfoRowProps {
   activeTimePeriodLabel: string;
   onCopyTokenAddress?: () => void;
   copyTokenAddressTestID?: string;
+  /** Raw perp market symbol (may carry a HIP-3 prefix); enables the perp market link. */
+  perpMarketSymbol?: string;
+  /** Called with the resolved xyz market symbol when the perp token box is tapped. */
+  onTokenNavigate?: (targetSymbol: string) => void;
+  /** testID for the perp token nav Pressable. */
+  tokenNavigateTestID?: string;
 }
 
 interface TraderTokenIdentityProps {
@@ -47,7 +56,65 @@ interface TraderTokenIdentityProps {
   activeTimePeriodLabel: string;
   onCopyTokenAddress?: () => void;
   copyTokenAddressTestID?: string;
+  perpMarketSymbol?: string;
+  onTokenNavigate?: (targetSymbol: string) => void;
+  tokenNavigateTestID?: string;
 }
+
+interface TokenIdentityPerpLinkProps {
+  /** Raw perp market symbol used to resolve the tradable market. */
+  symbol: string;
+  /** Display symbol used for the accessibility label. */
+  displaySymbol: string;
+  onTrade: (targetSymbol: string) => void;
+  testID?: string;
+  children: React.ReactNode;
+}
+
+const TokenIdentityPerpLinkInner: React.FC<TokenIdentityPerpLinkProps> = ({
+  symbol,
+  displaySymbol,
+  onTrade,
+  testID,
+  children,
+}) => {
+  const tw = useTailwind();
+  const { targetSymbol, isSupported } = usePerpMarketNavigationTarget(symbol);
+
+  // Mirror the disabled Trade CTA — never link to an unsupported market.
+  if (!isSupported) {
+    return <Box twClassName="flex-1 min-w-0 mr-3">{children}</Box>;
+  }
+
+  return (
+    <Pressable
+      onPress={() => onTrade(targetSymbol)}
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={strings(
+        'social_leaderboard.trader_position.view_market',
+        { symbol: displaySymbol },
+      )}
+      style={({ pressed }) => [
+        tw.style('flex-1 min-w-0 mr-3'),
+        pressed ? { opacity: 0.7 } : null,
+      ]}
+    >
+      {children}
+    </Pressable>
+  );
+};
+
+/**
+ * Wraps the perp token identity in a tap target that navigates to the market
+ * page (same navigation as the Trade CTA). Self-contained PerpsStreamProvider,
+ * mirroring TraderPositionHeaderTokenLink / PerpsTradeButton.
+ */
+const TokenIdentityPerpLink: React.FC<TokenIdentityPerpLinkProps> = (props) => (
+  <PerpsStreamProvider>
+    <TokenIdentityPerpLinkInner {...props} />
+  </PerpsStreamProvider>
+);
 
 const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   symbol,
@@ -56,6 +123,9 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   activeTimePeriodLabel,
   onCopyTokenAddress,
   copyTokenAddressTestID,
+  perpMarketSymbol,
+  onTokenNavigate,
+  tokenNavigateTestID,
 }) => {
   const tw = useTailwind();
   // Perps have no on-chain token address — `tokenAddress` carries the perp
@@ -136,6 +206,21 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
     </Box>
   );
 
+  // Perps: the whole token box links to the market page (same navigation as
+  // the Trade CTA). Only for perps — spot keeps its copy-address affordance.
+  if (isPerp && onTokenNavigate && perpMarketSymbol) {
+    return (
+      <TokenIdentityPerpLink
+        symbol={perpMarketSymbol}
+        displaySymbol={symbol}
+        onTrade={onTokenNavigate}
+        testID={tokenNavigateTestID}
+      >
+        {content}
+      </TokenIdentityPerpLink>
+    );
+  }
+
   if (!canCopyTokenAddress) {
     return <Box twClassName="flex-1 min-w-0 mr-3">{content}</Box>;
   }
@@ -206,6 +291,9 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
   activeTimePeriodLabel,
   onCopyTokenAddress,
   copyTokenAddressTestID,
+  perpMarketSymbol,
+  onTokenNavigate,
+  tokenNavigateTestID,
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -219,6 +307,9 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
       activeTimePeriodLabel={activeTimePeriodLabel}
       onCopyTokenAddress={onCopyTokenAddress}
       copyTokenAddressTestID={copyTokenAddressTestID}
+      perpMarketSymbol={perpMarketSymbol}
+      onTokenNavigate={onTokenNavigate}
+      tokenNavigateTestID={tokenNavigateTestID}
     />
     <TraderHeaderStat
       isPerp={position ? isPerpPosition(position) : false}

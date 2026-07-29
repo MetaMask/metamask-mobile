@@ -693,6 +693,13 @@ const TraderPositionView = () => {
                       copyTokenAddressTestID={
                         TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
                       }
+                      perpMarketSymbol={
+                        isPerp ? displayPosition?.tokenSymbol : undefined
+                      }
+                      onTokenNavigate={isPerp ? handlePerpTrade : undefined}
+                      tokenNavigateTestID={
+                        TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW_LINK
+                      }
                     />
                   </View>
                   {/* Reserves the pinned chart overlay's footprint so the PnL
