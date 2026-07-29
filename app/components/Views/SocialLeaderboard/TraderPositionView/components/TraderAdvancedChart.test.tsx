@@ -301,7 +301,7 @@ describe('TraderAdvancedChart', () => {
     expect(lastCall.visibleToMs).toBe(bars[bars.length - 1].time);
   });
 
-  it('frames the first→last loaded trade with padding instead of a fixed period-wide window', () => {
+  it('frames the first→last loaded trade with padding for a CLOSED position (not a fixed period-wide window)', () => {
     const bars = makeDailyBars(12);
     setOHLCV(bars);
 
@@ -330,6 +330,7 @@ describe('TraderAdvancedChart', () => {
       <TraderAdvancedChart
         {...defaultProps}
         activeTimePeriod="1W"
+        isClosed
         trades={trades}
       />,
     );
@@ -339,11 +340,60 @@ describe('TraderAdvancedChart', () => {
       visibleToMs: number;
     };
     // Window is sized to the trades + padding (not the full 1W `durationMs`),
-    // so a short position fills the screen without a blank gap.
+    // so a short closed position fills the screen without a blank gap. A closed
+    // position wraps to its final trade, so the right edge stays at `maxT + pad`.
     const span = lastTradeTime - firstTradeTime;
     const pad = Math.max(span, 7 * DAY_MS * 0.5) * 0.2;
     expect(lastCall.visibleFromMs).toBe(firstTradeTime - pad);
     expect(lastCall.visibleToMs).toBe(lastTradeTime + pad);
+  });
+
+  it('extends the visible range to the latest candle (now) for an OPEN position', () => {
+    const bars = makeDailyBars(12);
+    setOHLCV(bars);
+
+    const firstTradeTime = bars[2].time;
+    const lastTradeTime = bars[5].time;
+    const trades: Trade[] = [
+      {
+        intent: 'enter',
+        direction: 'buy',
+        tokenAmount: 1,
+        usdCost: 100,
+        timestamp: firstTradeTime / 1000,
+        transactionHash: '0xbuy',
+      },
+      {
+        intent: 'exit',
+        direction: 'sell',
+        tokenAmount: 1,
+        usdCost: 110,
+        timestamp: lastTradeTime / 1000,
+        transactionHash: '0xsell',
+      },
+    ];
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        isClosed={false}
+        trades={trades}
+      />,
+    );
+
+    const lastCall = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      visibleFromMs: number;
+      visibleToMs: number;
+    };
+    // The left edge still frames the first trade (unchanged)...
+    const span = lastTradeTime - firstTradeTime;
+    const pad = Math.max(span, 7 * DAY_MS * 0.5) * 0.2;
+    expect(lastCall.visibleFromMs).toBe(firstTradeTime - pad);
+    // ...but the right edge extends to the latest loaded candle ("now") instead
+    // of stopping at `lastTradeTime + pad`, so the still-live price stays visible.
+    expect(lastCall.visibleToMs).toBe(bars[bars.length - 1].time);
+    expect(lastCall.visibleToMs).not.toBe(lastTradeTime + pad);
   });
 
   it('clamps the viewport to the oldest loaded candle when no older history can be paginated (no blank gap)', () => {
@@ -489,6 +539,68 @@ describe('TraderAdvancedChart', () => {
     );
     expect(mockFocusTime).toHaveBeenCalledTimes(2);
     expect(mockPulseTradeMarker).toHaveBeenCalledTimes(2);
+  });
+
+  it('re-frames the viewport to the default fit range when resetRangeNonce changes', () => {
+    const bars = makeDailyBars(12);
+    setOHLCV(bars);
+
+    const firstTradeTime = bars[2].time;
+    const lastTradeTime = bars[5].time;
+    const trades: Trade[] = [
+      {
+        intent: 'enter',
+        direction: 'buy',
+        tokenAmount: 1,
+        usdCost: 100,
+        timestamp: firstTradeTime / 1000,
+        transactionHash: '0xbuy',
+      },
+      {
+        intent: 'exit',
+        direction: 'sell',
+        tokenAmount: 1,
+        usdCost: 110,
+        timestamp: lastTradeTime / 1000,
+        transactionHash: '0xsell',
+      },
+    ];
+
+    const { rerender } = render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        trades={trades}
+        resetRangeNonce={0}
+      />,
+    );
+    // Mounting at nonce 0 must not fire a reset.
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
+    // The default fit range for this OPEN position: left edge frames the first
+    // trade, right edge extends to the latest candle (now).
+    const span = lastTradeTime - firstTradeTime;
+    const pad = Math.max(span, 7 * DAY_MS * 0.5) * 0.2;
+    const visibleFromMs = firstTradeTime - pad;
+    const visibleToMs = bars[bars.length - 1].time;
+    const spanMs = visibleToMs - visibleFromMs;
+    const center = (visibleFromMs + visibleToMs) / 2;
+
+    rerender(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        trades={trades}
+        resetRangeNonce={1}
+      />,
+    );
+
+    // Bumping the nonce focuses the fit range's midpoint at its full span,
+    // reproducing [visibleFromMs, visibleToMs].
+    expect(mockFocusTime).toHaveBeenCalledWith(center, {
+      spanMs,
+      animate: true,
+    });
   });
 
   it('still focuses a pending trade after the active period changes (not pinned to the tap-time period)', () => {

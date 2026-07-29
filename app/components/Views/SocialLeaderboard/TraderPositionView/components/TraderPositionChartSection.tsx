@@ -39,6 +39,15 @@ export interface TraderPositionChartSectionProps {
   activeTimePeriod: TimePeriod;
   /** Whether the selected period is still controlled by automatic trade framing. */
   shouldAutoRequestTimePeriod?: boolean;
+  /**
+   * Whether the position is closed. Open positions extend the advanced chart's
+   * initial viewport to the latest candle ("now"); closed positions frame the
+   * first→last trade. Only forwarded to the advanced chart (the legacy SVG
+   * fallback has no windowed viewport).
+   */
+  isClosed?: boolean;
+  /** Increment to reset the advanced chart's zoom/pan back to its default fit range. */
+  resetRangeNonce?: number;
   /** Crosshair % change while scrubbing the AdvancedChart. */
   onScrubPercentChange?: (percent: number | null) => void;
   /** When set, the AdvancedChart slides to center this trade. */
@@ -64,6 +73,8 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   isPerp,
   activeTimePeriod,
   shouldAutoRequestTimePeriod,
+  isClosed,
+  resetRangeNonce,
   onScrubPercentChange,
   focusRequest,
   onRequestTimePeriod,
@@ -78,6 +89,8 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           isPerp={isPerp}
           activeTimePeriod={activeTimePeriod}
           shouldAutoRequestTimePeriod={shouldAutoRequestTimePeriod}
+          isClosed={isClosed}
+          resetRangeNonce={resetRangeNonce}
           trades={trades}
           focusRequest={focusRequest}
           onRequestTimePeriod={onRequestTimePeriod}
