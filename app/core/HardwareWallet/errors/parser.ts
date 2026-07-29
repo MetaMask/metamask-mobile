@@ -232,6 +232,61 @@ function parseErrorByName(
 }
 
 /**
+ * Mobile-owned message→ErrorCode patterns for {@link parseErrorByMessage}.
+ *
+ * Fallback: evaluated AFTER the SDK-owned `DMK_MESSAGE_PATTERNS`, so these
+ * only handle legacy/BLE/OS errors DMK doesn't recognise. MUST stay
+ * substring-disjoint from `DMK_MESSAGE_PATTERNS` — overlap would let DMK
+ * shadow these and misroute legacy errors. Guarded by the collision-invariant
+ * test in parser.test.ts.
+ */
+export const LOCAL_MESSAGE_PATTERNS: {
+  patterns: string[];
+  code: ErrorCode;
+  condition?: (msg: string) => boolean;
+}[] = [
+  {
+    patterns: ['disconnect', 'connection lost'],
+    code: ErrorCode.DeviceDisconnected,
+  },
+  { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
+  {
+    patterns: ['locked', 'unlock'],
+    code: ErrorCode.AuthenticationDeviceLocked,
+  },
+  {
+    patterns: ['blind sign', 'contract data'],
+    code: ErrorCode.DeviceStateBlindSignNotSupported,
+  },
+  {
+    patterns: ['eth app', 'ethereum app'],
+    code: ErrorCode.DeviceStateEthAppClosed,
+    condition: (msg) =>
+      msg.includes('open') || msg.includes('launch') || msg.includes('start'),
+  },
+  {
+    patterns: ['rejected', 'cancelled', 'refused'],
+    code: ErrorCode.UserRejected,
+  },
+  {
+    patterns: ['not authorized', 'unauthorized'],
+    code: ErrorCode.PermissionNearbyDevicesDenied,
+    condition: (msg) => msg.includes('bluetooth'),
+  },
+  {
+    patterns: ['bluetooth'],
+    code: ErrorCode.BluetoothDisabled,
+    condition: (msg) => msg.includes('off') || msg.includes('disabled'),
+  },
+  {
+    patterns: ['bluetooth'],
+    code: ErrorCode.BluetoothScanFailed,
+    condition: (msg) => msg.includes('scan'),
+  },
+  { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
+];
+
+/**
  * Parse error by checking common patterns in error messages
  */
 function parseErrorByMessage(
@@ -252,54 +307,12 @@ function parseErrorByMessage(
     );
   }
 
-  // Map message patterns to error codes
+  // SDK-owned DMK patterns first (DMK is source of truth), local fallback.
   const messagePatterns: {
     patterns: string[];
     code: ErrorCode;
     condition?: (msg: string) => boolean;
-  }[] = [
-    {
-      patterns: ['disconnected', 'disconnect', 'connection lost'],
-      code: ErrorCode.DeviceDisconnected,
-    },
-    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
-    {
-      patterns: ['locked', 'unlock'],
-      code: ErrorCode.AuthenticationDeviceLocked,
-    },
-    {
-      patterns: ['blind signing', 'blind sign', 'contract data'],
-      code: ErrorCode.DeviceStateBlindSignNotSupported,
-    },
-    {
-      patterns: ['eth app', 'ethereum app'],
-      code: ErrorCode.DeviceStateEthAppClosed,
-      condition: (msg) =>
-        msg.includes('open') || msg.includes('launch') || msg.includes('start'),
-    },
-    {
-      patterns: ['rejected', 'cancelled', 'refused'],
-      code: ErrorCode.UserRejected,
-    },
-    {
-      patterns: ['not authorized', 'unauthorized'],
-      code: ErrorCode.PermissionNearbyDevicesDenied,
-      condition: (msg) => msg.includes('bluetooth'),
-    },
-    {
-      patterns: ['bluetooth'],
-      code: ErrorCode.BluetoothDisabled,
-      condition: (msg) => msg.includes('off') || msg.includes('disabled'),
-    },
-    {
-      patterns: ['bluetooth'],
-      code: ErrorCode.BluetoothScanFailed,
-      condition: (msg) => msg.includes('scan'),
-    },
-    { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
-    // DMK message patterns — owned by @metamask/hw-wallet-sdk.
-    ...DMK_MESSAGE_PATTERNS,
-  ];
+  }[] = [...DMK_MESSAGE_PATTERNS, ...LOCAL_MESSAGE_PATTERNS];
 
   for (const { patterns, code, condition } of messagePatterns) {
     const matchesPattern = patterns.some((p) => message.includes(p));

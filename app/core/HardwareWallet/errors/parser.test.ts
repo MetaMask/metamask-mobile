@@ -4,8 +4,9 @@ import {
   Severity,
   Category,
   HardwareWalletType,
+  DMK_MESSAGE_PATTERNS,
 } from '@metamask/hw-wallet-sdk';
-import { parseErrorByType } from './parser';
+import { LOCAL_MESSAGE_PATTERNS, parseErrorByType } from './parser';
 import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -627,5 +628,40 @@ describe('parseErrorByType', () => {
 
       expect(result.metadata?.recoveryAction).toBe('acknowledge');
     });
+  });
+});
+
+describe('pattern collision invariant (LOCAL_MESSAGE_PATTERNS vs DMK_MESSAGE_PATTERNS)', () => {
+  // First-match-wins: DMK runs before LOCAL, so substring overlap would let
+  // DMK shadow LOCAL and misroute legacy/BLE errors. This pins disjointness across SDK bumps.
+
+  interface PatternEntry {
+    patterns: readonly string[];
+  }
+  const flatten = (set: readonly PatternEntry[]): string[] =>
+    set.flatMap((entry) => entry.patterns.map((p) => p.toLowerCase()));
+
+  it('LOCAL and DMK pattern substrings are disjoint', () => {
+    const localPatterns = flatten(LOCAL_MESSAGE_PATTERNS);
+    const dmkPatterns = flatten(DMK_MESSAGE_PATTERNS);
+
+    const violations: string[] = [];
+    for (const local of localPatterns) {
+      for (const dmk of dmkPatterns) {
+        if (dmk.includes(local)) {
+          violations.push(
+            `local "${local}" is a substring of DMK "${dmk}" — DMK runs first and would shadow local`,
+          );
+        }
+        if (local.includes(dmk)) {
+          violations.push(
+            `DMK "${dmk}" is a substring of local "${local}" — DMK runs first and would shadow local`,
+          );
+        }
+      }
+    }
+
+    // Empty array = no collisions = first-match-wins ordering is safe.
+    expect(violations).toEqual([]);
   });
 });
