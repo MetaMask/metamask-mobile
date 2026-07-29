@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, within } from '@testing-library/react-native';
 import PerpsProMarketStatsBar from './PerpsProMarketStatsBar';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
@@ -161,10 +161,19 @@ describe('PerpsProMarketStatsBar', () => {
       BTC: { markPrice: '64639' },
     });
 
-    const { getAllByText } = renderComponent();
+    const { getByTestId, getAllByText } = renderComponent();
 
-    // Both Mark and Oracle currently read markPrice (PriceUpdate has no
-    // separate oracle field yet) — assert both items rendered a formatted price.
-    expect(getAllByText(/\$64,639/).length).toBeGreaterThanOrEqual(1);
+    const markItem = getByTestId(
+      PerpsProMarketViewSelectorsIDs.STATS_BAR_MARK_PRICE,
+    );
+    const oracleItem = getByTestId(
+      PerpsProMarketViewSelectorsIDs.STATS_BAR_ORACLE_PRICE,
+    );
+
+    // PriceUpdate has no separate oracle field yet, so both items read
+    // markPrice — each container must still render its own formatted value.
+    expect(within(markItem).getByText(/\$64,639/)).toBeOnTheScreen();
+    expect(within(oracleItem).getByText(/\$64,639/)).toBeOnTheScreen();
+    expect(getAllByText(/\$64,639/)).toHaveLength(2);
   });
 });
