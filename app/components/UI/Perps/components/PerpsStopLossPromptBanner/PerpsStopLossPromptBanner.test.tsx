@@ -228,8 +228,8 @@ describe('PerpsStopLossPromptBanner', () => {
   });
 
   describe('fade-out animation', () => {
-    it('shows success checkmark when isSuccess is true', () => {
-      const { getByTestId } = renderWithProvider(
+    it('shows success banner without action button when isSuccess is true', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
           liquidationDistance={15}
@@ -241,12 +241,13 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
+      expect(getByText('Stop loss set')).toBeOnTheScreen();
       expect(
         getByTestId(PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
-      ).toBeOnTheScreen();
+        queryByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
+      ).toBeNull();
     });
 
     it('calls onFadeOutComplete after success animation', async () => {
