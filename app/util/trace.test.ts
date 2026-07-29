@@ -937,6 +937,38 @@ describe('Trace', () => {
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     });
 
+    it('excludes still-open spans when the journey is abandoned', () => {
+      const journey = createSpanMock();
+      queueSpans([journey, createSpanMock()]);
+
+      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+
+      // Landing screen left mid-animation: this ends as unmounted later, so its
+      // time-to-content never completed.
+      trace({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        startTime: 100,
+      });
+
+      endTrace({
+        name: TraceName.OnboardingJourneyOverall,
+        timestamp: 3_000,
+        data: { success: false },
+      });
+
+      expect(journey.setAttributeMock).toHaveBeenCalledWith(
+        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+        0,
+      );
+
+      endTrace({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        data: { success: false, reason: 'unmounted' },
+      });
+    });
+
     it('does not count a nested span twice', () => {
       const journey = createSpanMock();
       queueSpans([journey, createSpanMock(), createSpanMock()]);

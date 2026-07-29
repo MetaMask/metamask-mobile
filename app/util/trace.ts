@@ -685,9 +685,19 @@ function addOnboardingMachineTime(
  * Creation Time, so without this the slowest wait of that path — vault creation
  * and the SRP backup — would be missing from its own journey's total.
  *
+ * Nothing is credited on an abandoned journey.
+ *
+ * @param request - The end request for the journey span.
  * @param journeyEndTime - The effective end timestamp of the journey span.
  */
-function addOpenOnboardingMachineTime(journeyEndTime: number): void {
+function addOpenOnboardingMachineTime(
+  request: EndTraceRequest,
+  journeyEndTime: number,
+): void {
+  if (request.data?.success === false) {
+    return;
+  }
+
   for (const pendingTrace of tracesByKey.values()) {
     if (!MACHINE_TIME_TRACE_NAMES.has(pendingTrace.request.name)) {
       continue;
@@ -761,7 +771,7 @@ export function endTrace(request: EndTraceRequest): void {
     // the span is finished. Capping is idempotent, so handing the resolved value
     // to finishPendingTrace records the same timestamp without re-reading the clock.
     endTimeRequest = getEffectiveEndTime(pendingTrace, timestamp);
-    addOpenOnboardingMachineTime(endTimeRequest);
+    addOpenOnboardingMachineTime(request, endTimeRequest);
     finalizeOnboardingMachineTime(pendingTrace.span);
   }
 
