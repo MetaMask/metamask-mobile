@@ -1,7 +1,47 @@
-import React from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { RefreshControl, ScrollViewProps, View } from 'react-native';
+import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
+import {
+  selectDeFiPositionsByAddress,
+  selectDefiPositionsByEnabledNetworks,
+} from '../../../selectors/defiPositionsController';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
-import DeFiPositionsListV1 from './DeFiPositionsListV1';
+import styleSheet from './DeFiPositionsList.styles';
+import { GroupedDeFiPositions } from '@metamask/assets-controllers';
+import {
+  selectPrivacyMode,
+  selectTokenSortConfig,
+} from '../../../selectors/preferencesController';
+import { toHex } from '@metamask/controller-utils';
+import { sortAssets } from '../Tokens/util';
+import DeFiPositionsListItem from './DeFiPositionsListItem';
+import DeFiPositionsControlBar from './DeFiPositionsControlBar';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../hooks/useStyles';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import { DefiEmptyState } from '../DefiEmptyState';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Engine from '../../../core/Engine';
+import { useTheme } from '../../../util/theme';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import DeFiPositionsListV2 from './DeFiPositionsListV2';
 
 export interface DeFiPositionsListProps {
@@ -9,22 +49,201 @@ export interface DeFiPositionsListProps {
   isFullView?: boolean;
 }
 
+const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
+  isFullView = false,
+}) => {
+  const { styles } = useStyles(styleSheet, undefined);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedScreenViewRef = useRef(false);
+  const tokenSortConfig = useSelector(selectTokenSortConfig);
+  const defiPositions = useSelector(selectDeFiPositionsByAddress);
+  const defiPositionsByEnabledNetworks = useSelector(
+    selectDefiPositionsByEnabledNetworks,
+  );
+  const privacyMode = useSelector(selectPrivacyMode);
+  const { colors } = useTheme();
+  const tw = useTailwind();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const formattedDeFiPositions = useMemo(() => {
+    if (!defiPositions) {
+      return defiPositions;
+    }
+
+    const chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
+      [key: Hex]: GroupedDeFiPositions;
+    };
+
+    if (!chainFilteredDeFiPositions) {
+      return [];
+    }
+
+    const defiPositionsList = Object.entries(chainFilteredDeFiPositions)
+      .map(([chainId, chainDeFiPositions]) =>
+        Object.entries(chainDeFiPositions.protocols).map(
+          ([protocolId, protocolAggregate]) => ({
+            chainId: toHex(chainId),
+            protocolId,
+            protocolAggregate,
+          }),
+        ),
+      )
+      .flat();
+
+    const defiSortConfig = {
+      ...tokenSortConfig,
+      key:
+        tokenSortConfig.key === 'tokenFiatAmount'
+          ? 'protocolAggregate.aggregatedMarketValue'
+          : 'protocolAggregate.protocolDetails.name',
+    };
+
+    return sortAssets(defiPositionsList, defiSortConfig);
+  }, [defiPositions, tokenSortConfig, defiPositionsByEnabledNetworks]);
+
+  const handleDeFiRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Engine.context.DeFiPositionsController._executePoll();
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  const scrollViewProps = useMemo((): ScrollViewProps => {
+    const base: ScrollViewProps = {
+      testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+    };
+    if (!isFullView) {
+      return base;
+    }
+    const listLength = Array.isArray(formattedDeFiPositions)
+      ? formattedDeFiPositions.length
+      : 0;
+    return {
+      ...base,
+      refreshControl: (
+        <RefreshControl
+          colors={[colors.primary.default]}
+          tintColor={colors.icon.default}
+          refreshing={refreshing}
+          onRefresh={handleDeFiRefresh}
+        />
+      ),
+      ...(listLength === 0 ? { contentContainerStyle: tw`flex-grow` } : {}),
+    };
+  }, [
+    isFullView,
+    formattedDeFiPositions,
+    refreshing,
+    handleDeFiRefresh,
+    colors.primary.default,
+    colors.icon.default,
+    tw,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isFullView ||
+      !Array.isArray(formattedDeFiPositions) ||
+      hasTrackedScreenViewRef.current
+    )
+      return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+        .addProperties({
+          item_count: formattedDeFiPositions.length,
+          location: 'homepage',
+          is_empty: formattedDeFiPositions.length === 0,
+          screen_type: 'defi',
+        })
+        .build(),
+    );
+  }, [isFullView, formattedDeFiPositions, trackEvent, createEventBuilder]);
+
+  if (!formattedDeFiPositions) {
+    if (formattedDeFiPositions === undefined) {
+      // Position data is still loading
+      return (
+        <View style={styles.emptyView}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.loading_positions')}
+          </Text>
+        </View>
+      );
+    } else if (formattedDeFiPositions === null) {
+      // Error fetching position data
+      return (
+        <View style={styles.emptyView}>
+          <Icon
+            name={IconName.Danger}
+            color={IconColor.Alternative}
+            size={IconSize.Md}
+          />
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.error_cannot_load_page')}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('defi_positions.error_visit_again')}
+          </Text>
+        </View>
+      );
+    }
+  }
+
+  const content = (
+    <View testID={WalletViewSelectorsIDs.DEFI_POSITIONS_LIST}>
+      {formattedDeFiPositions.map(
+        ({ chainId, protocolId, protocolAggregate }) => (
+          <DeFiPositionsListItem
+            key={`${chainId}-${protocolAggregate.protocolDetails.name}`}
+            chainId={chainId}
+            protocolId={protocolId}
+            protocolAggregate={protocolAggregate}
+            privacyMode={privacyMode}
+          />
+        ),
+      )}
+    </View>
+  );
+
+  const listBody =
+    formattedDeFiPositions.length > 0 ? (
+      content
+    ) : (
+      <DefiEmptyState twClassName="mx-auto mt-4" />
+    );
+
+  return (
+    <View
+      style={isFullView ? styles.wrapper : undefined}
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
+    >
+      <DeFiPositionsControlBar />
+      <ConditionalScrollView
+        isScrollEnabled={isFullView}
+        scrollViewProps={isFullView ? scrollViewProps : undefined}
+      >
+        {listBody}
+      </ConditionalScrollView>
+    </View>
+  );
+};
+
 /**
  * DeFiPositionsList - homepage / full-view list of DeFi positions.
  *
- * Thin flag-driven wrapper that selects the V1 (polling controller) or V2
- * (on-demand controller) implementation. Both render the same shared list
- * view; only the data source differs.
+ * Feature-flag switch: renders the V2 implementation when the V2 flag is on,
+ * otherwise the (unchanged) V1 implementation.
  */
-const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
-  isFullView = false,
-}) => {
+const DeFiPositionsList: React.FC<DeFiPositionsListProps> = (props) => {
   const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
 
   return isV2Enabled ? (
-    <DeFiPositionsListV2 isFullView={isFullView} />
+    <DeFiPositionsListV2 isFullView={props.isFullView ?? false} />
   ) : (
-    <DeFiPositionsListV1 isFullView={isFullView} />
+    <DeFiPositionsListV1 {...props} />
   );
 };
 

@@ -1,14 +1,37 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import type {
   DeFiProtocolPositionGroup,
   GroupedDeFiPositions,
 } from '@metamask/assets-controllers';
-import { ImageSourcePropType } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
+import { HeaderStandard } from '@metamask/design-system-react-native';
+import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { useParams } from '../../../util/navigation/navUtils';
-import DeFiProtocolPositionDetailsV1 from './DeFiProtocolPositionDetailsV1';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { formatWithThreshold } from '../../../util/assets';
+import I18n from '../../../../locales/i18n';
+import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
+import Summary from '../../Base/Summary';
+import { useSelector } from 'react-redux';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../component-library/components/Texts/SensitiveText';
+import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
+import { useStyles } from '../../hooks/useStyles';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID } from './DeFiProtocolPositionDetailsView';
 import DeFiProtocolPositionDetailsV2 from './DeFiProtocolPositionDetailsV2';
 
-export { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID } from './DeFiProtocolPositionDetailsView';
+export { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID };
 
 export interface DeFiProtocolPositionDetailsParams {
   protocolAggregate?: GroupedDeFiPositions['protocols'][number];
@@ -16,19 +39,89 @@ export interface DeFiProtocolPositionDetailsParams {
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
+const DeFiProtocolPositionDetailsV1: React.FC = () => {
+  const { styles } = useStyles(styleSheet, undefined);
+  const navigation = useNavigation<AppStackNavigationProp>();
+
+  const { protocolAggregate, networkIconAvatar } =
+    useParams<DeFiProtocolPositionDetailsParams>();
+  const privacyMode = useSelector(selectPrivacyMode);
+
+  const handleBack = useCallback(() => {
+    navigation.pop();
+  }, [navigation]);
+
+  // V1 is always opened with a protocolAggregate; guard for the shared
+  // (widened) params type.
+  if (!protocolAggregate) {
+    return null;
+  }
+
+  return (
+    <SafeAreaView
+      edges={['left', 'right', 'bottom']}
+      style={styles.protocolPositionDetailsWrapper}
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
+    >
+      <HeaderStandard
+        title=""
+        onBack={handleBack}
+        includesTopInset
+        backButtonProps={{ testID: CommonSelectorsIDs.BACK_ARROW_BUTTON }}
+      />
+      <View style={styles.protocolPositionDetailsContent}>
+        <View style={styles.detailsWrapper}>
+          <View>
+            <Text variant={TextVariant.DisplayMD}>
+              {protocolAggregate.protocolDetails.name}
+            </Text>
+            <SensitiveText
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
+            >
+              {formatWithThreshold(
+                protocolAggregate.aggregatedMarketValue,
+                0.01,
+                I18n.locale,
+                { style: 'currency', currency: 'USD' },
+              )}
+            </SensitiveText>
+          </View>
+
+          <View>
+            <DeFiAvatarWithBadge
+              networkIconAvatar={networkIconAvatar}
+              avatarName={protocolAggregate.protocolDetails.name}
+              avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
+            />
+          </View>
+        </View>
+        <View style={styles.separatorWrapper}>
+          <Summary.Separator />
+        </View>
+        <DeFiProtocolPositionGroups
+          protocolAggregate={protocolAggregate}
+          networkIconAvatar={networkIconAvatar}
+          privacyMode={privacyMode}
+        />
+      </View>
+    </SafeAreaView>
+  );
+};
+
 /**
  * DeFiProtocolPositionDetails - protocol details screen.
  *
- * Thin wrapper that selects the V1 or V2 implementation based on which shape
- * navigation supplied: the V2 list item passes a `protocolPositionGroup`, the
- * V1 list item passes a `protocolAggregate`. Selecting on the param (rather
- * than the flag) keeps the screen consistent with the data it was opened with.
+ * Feature-flag switch: renders the V2 implementation when the V2 flag is on,
+ * otherwise the (unchanged) V1 implementation.
  */
 const DeFiProtocolPositionDetails: React.FC = () => {
-  const { protocolPositionGroup } =
-    useParams<DeFiProtocolPositionDetailsParams>();
+  const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
 
-  return protocolPositionGroup ? (
+  return isV2Enabled ? (
     <DeFiProtocolPositionDetailsV2 />
   ) : (
     <DeFiProtocolPositionDetailsV1 />
