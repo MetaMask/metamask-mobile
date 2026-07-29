@@ -9,6 +9,7 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { useConfirmActions } from '../useConfirmActions';
 import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
@@ -135,7 +136,7 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
             onReject(undefined, true);
           },
         },

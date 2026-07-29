@@ -125,6 +125,7 @@ import {
   resolveRampOrderTarget,
 } from './utils/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -832,7 +833,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // Continue → Send Transaction flow which ActivityDetails does not.
         if (raw.type === 'rampOrder') {
           if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
             return;
           }
 
