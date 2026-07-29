@@ -45,42 +45,40 @@ const PerpsMarketHoursBanner: React.FC<PerpsMarketHoursBannerProps> = ({
     : strings('perps.market.pay_attention_to_volatility');
 
   return (
-    <Box twClassName="px-4 mb-4">
-      <BannerAlert
-        severity={BannerAlertSeverity.Neutral}
-        startAccessory={
-          <Icon
-            name={IconName.Clock}
-            size={IconSize.Lg}
-            color={IconColor.IconDefault}
+    <BannerAlert
+      severity={BannerAlertSeverity.Neutral}
+      startAccessory={
+        <Icon
+          name={IconName.Clock}
+          size={IconSize.Lg}
+          color={IconColor.IconDefault}
+        />
+      }
+      title={
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {titleText}
+          </Text>
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Sm}
+            onPress={onInfoPress}
+            accessibilityLabel={
+              marketHoursStatus.isOpen
+                ? strings('perps.tooltips.market_hours.title')
+                : strings('perps.tooltips.after_hours_trading.title')
+            }
+            testID={`${testID}-info-button`}
           />
-        }
-        title={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {titleText}
-            </Text>
-            <ButtonIcon
-              iconName={IconName.Info}
-              size={ButtonIconSize.Sm}
-              onPress={onInfoPress}
-              accessibilityLabel={
-                marketHoursStatus.isOpen
-                  ? strings('perps.tooltips.market_hours.title')
-                  : strings('perps.tooltips.after_hours_trading.title')
-              }
-              testID={`${testID}-info-button`}
-            />
-          </Box>
-        }
-        description={subtitleText}
-        testID={testID}
-      />
-    </Box>
+        </Box>
+      }
+      description={subtitleText}
+      testID={testID}
+    />
   );
 };
 
