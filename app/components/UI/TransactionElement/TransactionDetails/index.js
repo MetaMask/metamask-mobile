@@ -196,9 +196,15 @@ const TransactionDetails = ({
         if (!multiLayerL1FeeTotal) {
           multiLayerL1FeeTotal = '0x0'; // Sets it to 0 if it's not available in a txReceipt yet.
         }
-        transactionObject.txParams.multiLayerL1FeeTotal = multiLayerL1FeeTotal;
+        const transactionObjectWithFee = {
+          ...transactionObject,
+          txParams: {
+            ...transactionObject.txParams,
+            multiLayerL1FeeTotal,
+          },
+        };
         const decodedTx = await decodeTransaction({
-          tx: transactionObject,
+          tx: transactionObjectWithFee,
           selectedAddress,
           ticker,
           chainId,
@@ -278,34 +284,30 @@ const TransactionDetails = ({
     transactionObject,
   ]);
 
-  const renderSpeedUpButton = () => {
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={showSpeedUpModal}
-      >
-        {strings('transaction.speedup')}
-      </StyledButton>
-    );
-  };
+  const renderSpeedUpButton = () => (
+    <StyledButton
+      type={'normal'}
+      containerStyle={[
+        styles.actionContainerStyle,
+        styles.speedupActionContainerStyle,
+      ]}
+      style={styles.actionStyle}
+      onPress={showSpeedUpModal}
+    >
+      {strings('transaction.speedup')}
+    </StyledButton>
+  );
 
-  const renderCancelButton = () => {
-    return (
-      <StyledButton
-        type={'cancel'}
-        containerStyle={styles.actionContainerStyle}
-        style={styles.actionStyle}
-        onPress={showCancelModal}
-      >
-        {strings('transaction.cancel')}
-      </StyledButton>
-    );
-  };
+  const renderCancelButton = () => (
+    <StyledButton
+      type={'cancel'}
+      containerStyle={styles.actionContainerStyle}
+      style={styles.actionStyle}
+      onPress={showCancelModal}
+    >
+      {strings('transaction.cancel')}
+    </StyledButton>
+  );
 
   const {
     status,
