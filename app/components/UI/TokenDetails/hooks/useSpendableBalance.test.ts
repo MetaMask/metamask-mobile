@@ -2,7 +2,7 @@ import { XlmScope } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-hooks';
 
-import { getStellarBaseReserveForAccountAsset } from '../../../../selectors/stellar/stellar-assets';
+import { getSpendableForAccount } from '../../../../selectors/stellar/stellar-assets';
 import { useSpendableBalance } from './useSpendableBalance';
 
 jest.mock('react-redux', () => ({
@@ -15,7 +15,8 @@ jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 jest.mock('../../../../selectors/stellar/stellar-assets', () => ({
-  getStellarBaseReserveForAccountAsset: jest.fn(),
+  ...jest.requireActual('../../../../selectors/stellar/stellar-assets'),
+  getSpendableForAccount: jest.fn(),
 }));
 
 const ACCOUNT_ID = 'stellar-account-id';
@@ -23,77 +24,116 @@ const STELLAR_NATIVE_ASSET_ID =
   `${XlmScope.Pubnet}/slip44:148` as CaipAssetType;
 
 describe('useSpendableBalance', () => {
-  const getStellarBaseReserveForAccountAssetMock = jest.mocked(
-    getStellarBaseReserveForAccountAsset,
-  );
+  const getSpendableForAccountMock =
+    getSpendableForAccount as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('returns spendable balance data for supported native assets', () => {
-    getStellarBaseReserveForAccountAssetMock.mockReturnValue('2.5');
+    getSpendableForAccountMock.mockReturnValue({
+      minimumReserveBalance: '2.5',
+      spendableBalance: '247.5',
+    });
 
     const { result } = renderHook(() =>
       useSpendableBalance({
         accountId: ACCOUNT_ID,
         assetId: STELLAR_NATIVE_ASSET_ID,
-        totalBalance: '250',
       }),
     );
 
+    expect(getSpendableForAccountMock).toHaveBeenCalledWith(
+      {},
+      ACCOUNT_ID,
+      STELLAR_NATIVE_ASSET_ID,
+    );
     expect(result.current).toStrictEqual({
-      baseReserve: '2.5',
+      hasSpendableBalance: true,
+      minimumReserveBalance: '2.5',
       spendableBalance: '247.5',
     });
   });
 
-  it('returns undefined values when base reserve is unsupported', () => {
-    getStellarBaseReserveForAccountAssetMock.mockReturnValue(undefined);
+  it('returns hasSpendableBalance false when spendable info is unavailable', () => {
+    getSpendableForAccountMock.mockReturnValue(undefined);
 
     const { result } = renderHook(() =>
       useSpendableBalance({
         accountId: ACCOUNT_ID,
         assetId: STELLAR_NATIVE_ASSET_ID,
-        totalBalance: '250',
       }),
     );
 
     expect(result.current).toStrictEqual({
-      baseReserve: undefined,
+      hasSpendableBalance: false,
+      minimumReserveBalance: undefined,
       spendableBalance: undefined,
     });
   });
 
-  it('skips selector lookup when account id or asset id is missing', () => {
+  it('returns hasSpendableBalance false when account id or asset id is missing', () => {
+    getSpendableForAccountMock.mockReturnValue(undefined);
+
     const { result } = renderHook(() =>
       useSpendableBalance({
         accountId: undefined,
         assetId: undefined,
-        totalBalance: '250',
       }),
     );
 
-    expect(getStellarBaseReserveForAccountAssetMock).not.toHaveBeenCalled();
+    expect(getSpendableForAccountMock).toHaveBeenCalledWith(
+      {},
+      undefined,
+      undefined,
+    );
     expect(result.current).toStrictEqual({
-      baseReserve: undefined,
+      hasSpendableBalance: false,
+      minimumReserveBalance: undefined,
       spendableBalance: undefined,
     });
   });
 
-  it('skips selector lookup for assets that do not support base reserve', () => {
+  it('returns hasSpendableBalance false for assets that do not support spendable balance', () => {
+    getSpendableForAccountMock.mockReturnValue(undefined);
+
     const { result } = renderHook(() =>
       useSpendableBalance({
         accountId: ACCOUNT_ID,
         assetId: 'eip155:1/slip44:60' as CaipAssetType,
-        totalBalance: '250',
       }),
     );
 
-    expect(getStellarBaseReserveForAccountAssetMock).not.toHaveBeenCalled();
+    expect(getSpendableForAccountMock).toHaveBeenCalledWith(
+      {},
+      ACCOUNT_ID,
+      'eip155:1/slip44:60',
+    );
     expect(result.current).toStrictEqual({
-      baseReserve: undefined,
+      hasSpendableBalance: false,
+      minimumReserveBalance: undefined,
       spendableBalance: undefined,
+    });
+  });
+
+  it('returns hasSpendableBalance true when spendable balance is zero', () => {
+    getSpendableForAccountMock.mockReturnValue({
+      minimumReserveBalance: '1',
+      spendableBalance: '0',
+    });
+
+    const { result } = renderHook(() =>
+      useSpendableBalance({
+        accountId: ACCOUNT_ID,
+        assetId: STELLAR_NATIVE_ASSET_ID,
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      hasSpendableBalance: true,
+      minimumReserveBalance: '1',
+      spendableBalance: '0',
     });
   });
 });

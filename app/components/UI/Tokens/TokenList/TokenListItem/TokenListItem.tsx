@@ -86,8 +86,7 @@ import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/Toke
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
-import { getStellarTrustlineAssetInfoForAccount } from '../../../../../selectors/stellar/stellar-assets';
-import { isAssetRequireActivate } from '../../../../../util/multichain/trustline';
+import { getIsAssetRequireActivate } from '../../../../../selectors/stellar/stellar-assets';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
@@ -214,15 +213,7 @@ export const TokenListItem = React.memo(
       if (!account?.id) {
         return false;
       }
-      const assetMetadata = getStellarTrustlineAssetInfoForAccount(
-        state,
-        account.id,
-        asset.address,
-      );
-      return isAssetRequireActivate({
-        assetId: asset.address,
-        assetMetadata,
-      });
+      return getIsAssetRequireActivate(state, account.id, asset.address);
     });
 
     const { isStockToken } = useRWAToken();

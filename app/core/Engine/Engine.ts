@@ -88,7 +88,6 @@ import { multichainAssetsRatesControllerInit } from './controllers/multichain-as
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
-import { stellarAssetsControllerInit } from './controllers/stellar-assets-controller/stellar-assets-controller-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -126,13 +125,11 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
-import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
-import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
@@ -320,7 +317,6 @@ export class Engine {
         AssetsContractController: assetsContractControllerInit,
         AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
-        GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionPayController: TransactionPayControllerInit,
@@ -372,9 +368,7 @@ export class Engine {
         MultichainRoutingService: multichainRoutingServiceInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
-        StellarAssetsController: stellarAssetsControllerInit,
         ///: END:ONLY_INCLUDE_IF
-        SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
@@ -426,15 +420,16 @@ export class Engine {
       messengerClientsByName.AssetsContractController;
     const accountTrackerController =
       messengerClientsByName.AccountTrackerController;
-    const gasFeeController = messengerClientsByName.GasFeeController;
+    const gasFeeController = this.#wallet.getInstance('GasFeeController');
     const signatureController = messengerClientsByName.SignatureController;
     const smartTransactionsController =
       messengerClientsByName.SmartTransactionsController;
     const transactionController = this.#wallet.getInstance(
       'TransactionController',
     );
-    const seedlessOnboardingController =
-      messengerClientsByName.SeedlessOnboardingController;
+    const seedlessOnboardingController = this.#wallet.getInstance(
+      'SeedlessOnboardingController',
+    );
     const geolocationController = messengerClientsByName.GeolocationController;
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
@@ -545,8 +540,6 @@ export class Engine {
     const multichainAccountService =
       messengerClientsByName.MultichainAccountService;
     const snapAccountService = messengerClientsByName.SnapAccountService;
-    const stellarAssetsController =
-      messengerClientsByName.StellarAssetsController;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -634,7 +627,6 @@ export class Engine {
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
       SnapAccountService: snapAccountService,
-      StellarAssetsController: stellarAssetsController,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
@@ -1527,7 +1519,6 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      StellarAssetsController,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
@@ -1605,7 +1596,6 @@ export default {
       MultichainAssetsRatesController: MultichainAssetsRatesController.state,
       MultichainBalancesController: MultichainBalancesController.state,
       MultichainTransactionsController: MultichainTransactionsController.state,
-      StellarAssetsController: StellarAssetsController.state,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,

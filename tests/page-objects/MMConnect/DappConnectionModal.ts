@@ -95,14 +95,45 @@ class DappConnectionModal {
   async tapConnectButton({
     shouldCooldown = false,
     timeToCooldown = 1000,
+    timeout = 15_000,
   }: {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
+    timeout?: number;
   } = {}): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.connectButton);
+    await UnifiedGestures.waitAndTap(this.connectButton, { timeout });
     if (shouldCooldown) {
       await sleep(timeToCooldown);
     }
+  }
+
+  /** Waits for the "Return to app" success toast to appear then dismiss. */
+  async waitForReturnToAppToastToDismiss(): Promise<void> {
+    const toastText = 'Return to the app to continue.';
+    const isVisible = async () =>
+      (await PlaywrightMatchers.countElementsByText(toastText)) > 0;
+
+    const appearDeadline = Date.now() + 30_000;
+    let appeared = false;
+    while (Date.now() < appearDeadline) {
+      if (await isVisible()) {
+        appeared = true;
+        break;
+      }
+      await sleep(250);
+    }
+    if (!appeared) {
+      throw new Error(`"${toastText}" toast did not appear within 30000ms`);
+    }
+
+    const dismissDeadline = Date.now() + 15_000;
+    while (Date.now() < dismissDeadline) {
+      if (!(await isVisible())) {
+        return;
+      }
+      await sleep(250);
+    }
+    throw new Error(`"${toastText}" toast did not dismiss within 15000ms`);
   }
 
   async tapEditAccountsButton(): Promise<void> {

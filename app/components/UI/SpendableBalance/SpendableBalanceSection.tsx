@@ -2,14 +2,14 @@ import React from 'react';
 import {
   Box,
   BoxFlexDirection,
-  FontWeight,
-  Text,
+} from '@metamask/design-system-react-native';
+// design-system-react-native TextVariant is not aligned with the mobile
+// component-library TextVariant, so use the local Text component.
+import Text, {
   TextColor,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import type { CaipAssetType } from '@metamask/utils';
+} from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
-import { useSpendableBalance } from '../TokenDetails/hooks/useSpendableBalance';
 
 export const SpendableBalanceSectionTestIds = {
   CONTAINER: 'spendable-balance-section',
@@ -20,8 +20,8 @@ export const SpendableBalanceSectionTestIds = {
 } as const;
 
 export interface SpendableBalanceSectionProps {
-  accountId?: string;
-  assetId: CaipAssetType;
+  spendableBalance: string;
+  minimumReserveBalance: string;
   totalBalance: string;
   symbol: string;
   fiatValue: string | undefined;
@@ -31,54 +31,42 @@ export interface SpendableBalanceSectionProps {
  * Spendable balance section: breakdown for a native asset (total, spendable, reserved, fiat value).
  *
  * @param params - Spendable balance section parameters
- * @param params.accountId - Optional account id override.
- * @param params.assetId - CAIP asset id for the native asset.
+ * @param params.minimumReserveBalance - minimum reserve balance.
+ * @param params.spendableBalance - spendable balance.
  * @param params.totalBalance - The total balance
  * @param params.symbol - The symbol of the asset
  * @param params.fiatValue - The fiat value
  */
 export const SpendableBalanceSection = ({
-  accountId,
-  assetId,
+  minimumReserveBalance,
+  spendableBalance,
   totalBalance,
   symbol,
   fiatValue,
 }: SpendableBalanceSectionProps) => {
-  const { baseReserve, spendableBalance } = useSpendableBalance({
-    accountId,
-    assetId,
-    totalBalance,
-  });
-
-  if (baseReserve === undefined || spendableBalance === undefined) {
-    return null;
-  }
-
   const totalDisplay = `${totalBalance} ${symbol}`;
   const spendableDisplay = `${spendableBalance} ${symbol}`;
-  const reservedDisplay = `${baseReserve} ${symbol}`;
+  const reservedDisplay = `${minimumReserveBalance} ${symbol}`;
 
   return (
     <Box
       testID={SpendableBalanceSectionTestIds.CONTAINER}
       flexDirection={BoxFlexDirection.Column}
-      twClassName="px-4 py-3 gap-3"
+      twClassName="px-4 py-4 gap-3"
     >
-      <Text variant={TextVariant.HeadingSm}>
-        {strings('asset_spendable_balance.balance')}
+      <Text variant={TextVariant.HeadingMD}>
+        {strings('asset_overview.your_balance')}
       </Text>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
           >
             {strings('asset_spendable_balance.total_balance')}
           </Text>
           <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
+            variant={TextVariant.BodyMDMedium}
             testID={SpendableBalanceSectionTestIds.TOTAL}
           >
             {totalDisplay}
@@ -86,14 +74,13 @@ export const SpendableBalanceSection = ({
         </Box>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
           >
             {strings('asset_spendable_balance.fiat_value')}
           </Text>
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodyMD}
             testID={SpendableBalanceSectionTestIds.FIAT}
           >
             {fiatValue ?? '—'}
@@ -103,15 +90,14 @@ export const SpendableBalanceSection = ({
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
           >
             {strings('asset_spendable_balance.spendable')}
           </Text>
           <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.SuccessDefault}
+            variant={TextVariant.BodyMD}
+            color={TextColor.Success}
             testID={SpendableBalanceSectionTestIds.SPENDABLE}
           >
             {spendableDisplay}
@@ -119,15 +105,14 @@ export const SpendableBalanceSection = ({
         </Box>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
           >
             {strings('asset_spendable_balance.base_reserved')}
           </Text>
           <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.SuccessDefault}
+            variant={TextVariant.BodyMD}
+            color={TextColor.Success}
             testID={SpendableBalanceSectionTestIds.RESERVED}
           >
             {reservedDisplay}

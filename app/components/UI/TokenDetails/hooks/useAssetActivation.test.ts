@@ -3,12 +3,12 @@ import { XlmScope } from '@metamask/keyring-api';
 import { errorCodes } from '@metamask/rpc-errors';
 import type { CaipAssetType } from '@metamask/utils';
 
-import { getStellarTrustlineAssetInfoForAccount } from '../../../../selectors/stellar/stellar-assets';
 import {
   requestStellarChangeTrustOptAdd,
   requestStellarChangeTrustOptDelete,
 } from '../../../../util/stellar/stellar-snap-client-requests';
 import { selectMultichainBalances } from '../../../../selectors/multichain';
+import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
 import { useAssetActivation } from './useAssetActivation';
 
 const ACCOUNT_ID = 'stellar-account-id';
@@ -37,7 +37,8 @@ jest.mock('../../../../selectors/multichain', () => ({
 }));
 
 jest.mock('../../../../selectors/stellar/stellar-assets', () => ({
-  getStellarTrustlineAssetInfoForAccount: jest.fn(),
+  ...jest.requireActual('../../../../selectors/stellar/stellar-assets'),
+  getIsAssetRequireActivate: jest.fn(),
 }));
 
 jest.mock('../../../../util/stellar/stellar-snap-client-requests', () => ({
@@ -61,8 +62,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('useAssetActivation', () => {
-  const getStellarTrustlineAssetInfoForAccountMock = jest.mocked(
-    getStellarTrustlineAssetInfoForAccount,
+  const getIsAssetRequireActivateMock = jest.mocked(
+    getIsAssetRequireActivate,
   );
   const requestAddMock = jest.mocked(requestStellarChangeTrustOptAdd);
   const requestDeleteMock = jest.mocked(requestStellarChangeTrustOptDelete);
@@ -71,9 +72,7 @@ describe('useAssetActivation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     selectMultichainBalancesMock.mockReturnValue({});
-    getStellarTrustlineAssetInfoForAccountMock.mockReturnValue({
-      limit: '10',
-    });
+    getIsAssetRequireActivateMock.mockReturnValue(false);
     requestAddMock.mockResolvedValue({ status: true });
     requestDeleteMock.mockResolvedValue(undefined);
   });
@@ -93,9 +92,7 @@ describe('useAssetActivation', () => {
     });
 
     it('returns false canDeactivate when trustline limit is zero', () => {
-      getStellarTrustlineAssetInfoForAccountMock.mockReturnValue({
-        limit: '0',
-      });
+      getIsAssetRequireActivateMock.mockReturnValue(true);
 
       const { result } = renderHook(() =>
         useAssetActivation(DEFAULT_HOOK_PARAMS),
@@ -117,6 +114,8 @@ describe('useAssetActivation', () => {
 
   describe('activateAsset', () => {
     it('requests trustline add on success', async () => {
+      getIsAssetRequireActivateMock.mockReturnValue(true);
+
       const { result } = renderHook(() =>
         useAssetActivation(DEFAULT_HOOK_PARAMS),
       );
@@ -153,7 +152,22 @@ describe('useAssetActivation', () => {
       expect(actionResult).toEqual({ success: false, errorMessage: null });
     });
 
+    it('does not request add when activation is not required', async () => {
+      const { result } = renderHook(() =>
+        useAssetActivation(DEFAULT_HOOK_PARAMS),
+      );
+
+      let actionResult;
+      await act(async () => {
+        actionResult = await result.current.activateAsset();
+      });
+
+      expect(requestAddMock).not.toHaveBeenCalled();
+      expect(actionResult).toEqual({ success: false, errorMessage: null });
+    });
+
     it('returns an error message when activation fails', async () => {
+      getIsAssetRequireActivateMock.mockReturnValue(true);
       requestAddMock.mockRejectedValue(new Error('activation failed'));
 
       const { result } = renderHook(() =>
@@ -172,6 +186,7 @@ describe('useAssetActivation', () => {
     });
 
     it('returns cancelled result when the user rejects activation', async () => {
+      getIsAssetRequireActivateMock.mockReturnValue(true);
       requestAddMock.mockRejectedValue({
         code: errorCodes.provider.userRejectedRequest,
       });
@@ -189,6 +204,7 @@ describe('useAssetActivation', () => {
     });
 
     it('returns cancelled result when funding prompt is shown', async () => {
+      getIsAssetRequireActivateMock.mockReturnValue(true);
       requestAddMock.mockResolvedValue({ status: false });
 
       const { result } = renderHook(() =>
@@ -225,9 +241,7 @@ describe('useAssetActivation', () => {
     });
 
     it('does nothing when deactivation is not allowed', async () => {
-      getStellarTrustlineAssetInfoForAccountMock.mockReturnValue({
-        limit: '0',
-      });
+      getIsAssetRequireActivateMock.mockReturnValue(true);
 
       const { result } = renderHook(() =>
         useAssetActivation(DEFAULT_HOOK_PARAMS),

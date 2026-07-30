@@ -137,12 +137,12 @@ describe('money-account-override', () => {
       expect(config.isQuoteRequired).toBe(true);
     });
 
-    it('does not set isQuoteRequired when transaction is postQuote', () => {
+    it('sets accountOverride but not isQuoteRequired for a moneyAccountWithdraw transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({
-          metamaskPay: { isPostQuote: true },
-        } as never),
+        buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
       );
+
+      expect(setTransactionConfigMock).toHaveBeenCalled();
 
       const callback = setTransactionConfigMock.mock.calls[0][1];
       const config: { accountOverride?: string; isQuoteRequired?: boolean } =
@@ -151,14 +151,6 @@ describe('money-account-override', () => {
 
       expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
       expect(config.isQuoteRequired).toBeUndefined();
-    });
-
-    it('sets accountOverride for a moneyAccountWithdraw transaction', () => {
-      handleUnapprovedTransactionAddedForMoneyAccount(
-        buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
-      );
-
-      expect(setTransactionConfigMock).toHaveBeenCalled();
     });
 
     it('sets accountOverride for a batch transaction containing a money-account nested tx', () => {

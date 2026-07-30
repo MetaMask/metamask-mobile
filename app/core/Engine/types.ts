@@ -80,12 +80,6 @@ import {
   MultichainTransactionsControllerEvents,
   MultichainTransactionsControllerActions,
 } from './messengers/multichain-transactions-controller-messenger/types';
-import {
-  StellarAssetsController,
-  type StellarAssetsControllerActions,
-  type StellarAssetsControllerEvents,
-  type StellarAssetsControllerState,
-} from './controllers/stellar-assets-controller/stellar-assets-controller';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
@@ -603,7 +597,6 @@ export type GlobalActions =
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
   | SnapAccountServiceActions
-  | StellarAssetsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -700,7 +693,6 @@ export type GlobalEvents =
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
   | SnapAccountServiceEvents
-  | StellarAssetsControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -861,7 +853,6 @@ export type MessengerClients = {
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapAccountService: SnapAccountService;
-  StellarAssetsController: StellarAssetsController;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -958,7 +949,6 @@ export type EngineState = {
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
-  StellarAssetsController: StellarAssetsControllerState;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
   MultichainNetworkController: MultichainNetworkControllerState;
@@ -1046,7 +1036,6 @@ export type MessengerClientsToInitialize =
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
   | 'SnapAccountService'
-  | 'StellarAssetsController'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
@@ -1056,7 +1045,6 @@ export type MessengerClientsToInitialize =
   | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
-  | 'GasFeeController'
   | 'GeolocationController'
   | 'GeolocationApiService'
   | 'MultichainNetworkController'
@@ -1064,7 +1052,6 @@ export type MessengerClientsToInitialize =
   | 'NftDetectionController'
   | 'PhishingController'
   | 'SignatureController'
-  | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
