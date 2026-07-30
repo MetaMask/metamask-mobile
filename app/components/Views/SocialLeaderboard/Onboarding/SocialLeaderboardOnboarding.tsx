@@ -25,6 +25,7 @@ import {
   useRiveTrigger,
   useViewModelInstance,
   type RiveError,
+  type RiveFile,
   type ViewModelInstance,
 } from '@rive-app/react-native';
 
@@ -122,6 +123,30 @@ const FATAL_RIVE_ERROR_TYPES: ReadonlySet<RiveErrorType> = new Set([
 type RiveReferencedAssets = NonNullable<
   Parameters<typeof useRiveFile>[1]
 >['referencedAssets'];
+
+/**
+ * Loads the .riv with the frozen referenced-asset mapping. Extracted into a
+ * render-null child so `useRiveFile`'s FIRST render already has the mapping:
+ * the Nitro runtime installs its asset loader only at file-load time (and the
+ * hook snapshots the mapping in a ref on first render), so a file loaded
+ * before the mapping settles can never bind the avatars/token logos —
+ * `updateReferencedAssets` on an already-loaded file is a silent no-op. The
+ * legacy runtime bound assets at native view mount, which the mount gate below
+ * already covered; Nitro moves that binding to file load, so the load itself
+ * must wait. Mounted only once `referencedAssets` is non-null.
+ */
+const OnboardingRiveFileLoader: React.FC<{
+  referencedAssets: NonNullable<RiveReferencedAssets>;
+  onFile: (file: RiveFile | null) => void;
+}> = ({ referencedAssets, onFile }) => {
+  const { riveFile } = useRiveFile(SocialLeaderboardNuxAnimation, {
+    referencedAssets,
+  });
+  useEffect(() => {
+    onFile(riveFile ?? null);
+  }, [riveFile, onFile]);
+  return null;
+};
 
 interface StepButtons {
   primaryButton: string;
@@ -444,11 +469,9 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     setReferencedAssets(mapping);
   }, [referencedAssets, isLoadingTraders, forceMountAssets]);
 
-  // Load the .riv with the frozen asset mapping; the artboard is only mounted
-  // once file + view-model instance are both ready.
-  const { riveFile } = useRiveFile(SocialLeaderboardNuxAnimation, {
-    referencedAssets: referencedAssets ?? undefined,
-  });
+  // File is loaded by `OnboardingRiveFileLoader` (rendered below) only after
+  // the asset mapping is frozen — see the comment on that component.
+  const [riveFile, setRiveFile] = useState<RiveFile | null>(null);
 
   // The view-model instance replaces the legacy `AutoBind(true)` mode: it is
   // created off the file (async) for this artboard and explicitly bound to the
@@ -872,6 +895,12 @@ const SocialLeaderboardOnboarding: React.FC = () => {
           are ready. Wrapped in a fade layer that starts invisible over the
           gradient and reveals on the view-ready signal so the warmup black
           frame never shows. */}
+      {referencedAssets && (
+        <OnboardingRiveFileLoader
+          referencedAssets={referencedAssets}
+          onFile={setRiveFile}
+        />
+      )}
       {referencedAssets && riveFile && instance && (
         <Animated.View
           style={[StyleSheet.absoluteFillObject, { opacity: riveOpacity }]}
