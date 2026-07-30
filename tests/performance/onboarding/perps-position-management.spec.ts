@@ -76,13 +76,12 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
             asPlaywrightElement(PerpsOnboarding.tutorialTitle),
           );
         });
+        await dismissPerpsOnboardingTutorialIfPresent();
       }
-
-      await dismissPerpsOnboardingTutorialIfPresent();
 
       await selectMarketTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PerpsMarketListView.header),
+          asPlaywrightElement(PerpsMarketListView.withdrawButton),
         );
       });
 
