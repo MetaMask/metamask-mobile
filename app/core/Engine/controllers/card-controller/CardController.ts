@@ -14,6 +14,7 @@ import {
   type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
+  type FetchCardHomeDataOptions,
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
 import {
@@ -85,7 +86,6 @@ import {
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
-/** Matches RewardsController's user-scoped status/balance TTL. */
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 
 const metadata: StateMetadata<CardControllerState> = {
@@ -186,7 +186,6 @@ export class CardController extends BaseController<
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
-  /** Wall-clock of last terminal card-home fetch (success or error). */
   #lastFetchedAt = 0;
 
   constructor({
@@ -259,8 +258,11 @@ export class CardController extends BaseController<
     );
   }
 
-  #fetchCardHomeDataWithLogging(method: string, force = false): void {
-    this.fetchCardHomeData(force).catch((error) =>
+  #fetchCardHomeDataWithLogging(
+    method: string,
+    options: FetchCardHomeDataOptions = {},
+  ): void {
+    this.fetchCardHomeData(options).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card' },
         context: {
@@ -528,10 +530,11 @@ export class CardController extends BaseController<
    * it in controller state. Concurrent callers share the same in-flight
    * request (same ??= pattern as refreshPromise). A generation counter
    * ensures stale responses (from a previous account or session) are dropped.
-   * Automatic callers are no-ops for {@link CARD_HOME_DATA_FRESH_MS} after a
-   * terminal result; pass `force: true` for pull-to-refresh / post-mutation.
    */
-  async fetchCardHomeData(force = false): Promise<void> {
+  async fetchCardHomeData(
+    options: FetchCardHomeDataOptions = {},
+  ): Promise<void> {
+    const { force = false } = options;
     if (
       !force &&
       this.#lastFetchedAt > 0 &&
@@ -1516,7 +1519,7 @@ export class CardController extends BaseController<
     });
 
     try {
-      await this.fetchCardHomeData(true);
+      await this.fetchCardHomeData({ force: true });
     } catch (error) {
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
@@ -1533,7 +1536,7 @@ export class CardController extends BaseController<
     const existing = fromState();
     if (existing) return existing;
 
-    await this.fetchCardHomeData(true);
+    await this.fetchCardHomeData({ force: true });
     return fromState();
   }
 

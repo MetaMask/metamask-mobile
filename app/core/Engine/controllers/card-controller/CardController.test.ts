@@ -1791,7 +1791,7 @@ describe('CardController — fetchCardHomeData', () => {
     const { controller } = buildControllerWithMockMessenger(provider);
 
     await controller.fetchCardHomeData();
-    await controller.fetchCardHomeData(true);
+    await controller.fetchCardHomeData({ force: true });
 
     expect(provider.getCardHomeData).toHaveBeenCalledTimes(2);
   });

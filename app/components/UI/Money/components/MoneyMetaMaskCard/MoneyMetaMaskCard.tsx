@@ -39,21 +39,49 @@ import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
 interface MoneyMetaMaskCardProps {
+  /**
+   * 'upsell' (default): virtual/metal card rows.
+   * 'link': card-linking CTA layout.
+   * 'manage': cardholder management layout with available balance and metal upsell.
+   */
   mode?: 'upsell' | 'link' | 'manage' | 'verifying' | 'loading';
   onGetNowPress: () => void;
+  /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
+  /** When true, disables the link-mode CTA. */
   isLinkDisabled?: boolean;
+  /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
+  /**
+   * Whether the user holds a Metal card. When true, link/manage layouts use the
+   * Metal card image and 3% cashback copy.
+   */
   showMetalCard?: boolean;
+  /** User's available card balance (manage mode only). */
   cardBalance?: string;
+  /** Whether the available card balance should be masked (manage mode only). */
   privacyMode?: boolean;
+  /**
+   * When true, the real-time balance could not be retrieved, so the available
+   * balance is the last known value and is rendered muted (manage mode only).
+   */
   isBalanceStale?: boolean;
+  /**
+   * Live vault APY used to interpolate the link-mode subtitle and the APY
+   * bullet. When `undefined`, the component falls back to APY-less copy
+   * (drops the APY clause from the subtitle and omits the APY bullet).
+   */
   apy?: number;
   analyticsScreen?: CardScreens | string;
   analyticsEntryPoint?: CardEntryPoint;
   analyticsFlow?: string;
   analyticsCardState?: string;
   analyticsReady?: boolean;
+  /**
+   * Link mode only: when true, the card image is omitted and the bullets are
+   * stacked vertically. Used by Card Home where the card image is already
+   * shown elsewhere on the screen.
+   */
   hideCardImage?: boolean;
 }
 

@@ -29,10 +29,11 @@ export const useCardHomeData = () => {
   }, [status]);
 
   const refetch = useCallback(
-    () => Engine.context.CardController.fetchCardHomeData(true),
+    () => Engine.context.CardController.fetchCardHomeData({ force: true }),
     [],
   );
 
+  // One useAssetBalances call covering all known card tokens, deduplicated by key.
   const tokensForBalanceLookup = useMemo(() => {
     const seen = new Set<string>();
     return [
@@ -56,6 +57,7 @@ export const useCardHomeData = () => {
 
   const balanceMap = useAssetBalances(tokensForBalanceLookup);
 
+  // Merge balance info into enriched token objects.
   const primaryToken = useMemo((): CardFundingTokenWithBalance | null => {
     if (!primaryTokenRaw) return null;
     const info = balanceMap.get(getAssetBalanceKey(primaryTokenRaw));

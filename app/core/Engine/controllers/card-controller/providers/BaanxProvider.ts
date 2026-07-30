@@ -422,8 +422,6 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
-        // Rate limits must surface so CardHome can show retry instead of a
-        // false "no card" state from null-swallowed sub-requests.
         if (err instanceof CardApiError && err.statusCode === 429) {
           throw mapApiError(err, logContext);
         }

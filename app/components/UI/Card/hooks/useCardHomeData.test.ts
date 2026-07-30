@@ -254,7 +254,7 @@ describe('useCardHomeData', () => {
       result.current.refetch();
 
       expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
-      expect(mockFetchCardHomeData).toHaveBeenCalledWith(true);
+      expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
     });
   });
 
