@@ -121,14 +121,15 @@ export class BrowserStackProvider extends BaseServiceProvider {
             `${DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS}ms: ${message}`,
         );
         await new Promise((resolve) =>
-          setTimeout(resolve, DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS),
+          setTimeout(
+            resolve,
+            DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS,
+          ),
         );
       }
     }
 
-    throw lastError instanceof Error
-      ? lastError
-      : new Error(String(lastError));
+    throw lastError instanceof Error ? lastError : new Error(String(lastError));
   }
 
   /**
