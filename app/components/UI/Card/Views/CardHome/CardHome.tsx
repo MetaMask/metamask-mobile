@@ -667,7 +667,6 @@ const CardHome = () => {
                 showMetalCard={hasMetalCard}
                 isLinkDisabled={isMoneyAccountLinkInProgress}
                 onGetNowPress={handleLinkMoneyAccountCard}
-                onHeaderPress={handleLinkMoneyAccountCard}
                 onLinkPress={handleLinkMoneyAccountCard}
                 analyticsScreen={CardScreens.HOME}
                 analyticsEntryPoint={
