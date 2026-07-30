@@ -814,22 +814,28 @@ export const usePerpsProOrderForm = ({
       liquidationPrice: hasValidAmount
         ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
         : PERPS_CONSTANTS.FallbackDataDisplay,
-      slippage:
-        estimatedSlippagePctDisplay === null
+      // Limit orders use a fixed default slippage in buildPerpsOrderParams and
+      // the user-configured cap has no effect. Hide the row entirely for limit
+      // orders so the UI matches what is actually sent, consistent with the
+      // lite form which also skips slippage display for limit orders.
+      slippage: isMarketOrder
+        ? estimatedSlippagePctDisplay === null
           ? strings('perps.slippage.row_format_pending', {
               value: bpsToPercent(maxSlippageBps),
             })
           : strings('perps.slippage.row_format', {
               est: estimatedSlippagePctDisplay,
               value: bpsToPercent(maxSlippageBps),
-            }),
+            })
+        : undefined,
+      onSlippagePress: isMarketOrder ? onSlippagePress : undefined,
       fee: hasValidAmount ? estimatedFees : undefined,
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
-      onSlippagePress,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
     }),
     [
+      isMarketOrder,
       marginRequired,
       hasValidAmount,
       liquidationPrice,
