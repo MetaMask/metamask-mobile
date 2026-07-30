@@ -1093,7 +1093,7 @@ describe('useQuickBuyController', () => {
   });
 
   describe('handleSelectSourceToken', () => {
-    it('updates the selected token and resets amount + slider state', () => {
+    it('updates the selected token and preserves the entered amount', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
@@ -1128,7 +1128,7 @@ describe('useQuickBuyController', () => {
       });
 
       expect(result.current.selectedSourceToken).toEqual(usdt);
-      expect(result.current.fiatAmount).toBe('');
+      expect(result.current.fiatAmount).toBe('25');
       expect(result.current.sliderPercent).toBe(0);
     });
 
