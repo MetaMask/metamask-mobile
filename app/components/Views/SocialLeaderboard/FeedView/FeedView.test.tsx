@@ -111,6 +111,7 @@ jest.mock('./hooks/useTraderFeed', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+  useRoute: () => ({ params: { source: 'home_banner' } }),
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -326,8 +327,55 @@ describe('FeedView', () => {
     );
   });
 
+  it('tracks Trader Feed Screen Viewed when the feed becomes active', () => {
+    renderWithProvider(<FeedView isActive />);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      {
+        source: 'home_banner',
+        feed_audience: 'following',
+        feed_type_filter: 'all',
+      },
+    );
+  });
+
+  it('does not track Trader Feed Screen Viewed while the feed tab is inactive', () => {
+    renderWithProvider(<FeedView isActive={false} />);
+
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      expect.anything(),
+    );
+  });
+
+  it('tracks Trader Feed Screen Viewed once when the feed tab becomes active', () => {
+    const { rerender } = renderWithProvider(<FeedView isActive={false} />);
+
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      expect.anything(),
+    );
+
+    rerender(<FeedView isActive />);
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      {
+        source: 'home_banner',
+        feed_audience: 'following',
+        feed_type_filter: 'all',
+      },
+    );
+
+    rerender(<FeedView isActive />);
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+  });
+
   it('navigates to TraderPositionView when a spot position card is pressed', () => {
     renderWithProvider(<FeedView />);
+    mockTrack.mockClear();
 
     fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-1')));
 
@@ -346,6 +394,7 @@ describe('FeedView', () => {
 
   it('navigates to TraderPositionView when a perps position card is pressed', () => {
     renderWithProvider(<FeedView />);
+    mockTrack.mockClear();
 
     fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-2')));
 
@@ -364,6 +413,7 @@ describe('FeedView', () => {
 
   it('tracks chained type filter changes with the correct previous value', () => {
     renderWithProvider(<FeedView />);
+    mockTrack.mockClear();
 
     act(() => {
       handleTypeFilterChange?.('tokens');
