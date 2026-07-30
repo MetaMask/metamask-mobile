@@ -7625,14 +7625,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.5.5, @metamask/account-tree-controller@npm:^7.6.0, @metamask/account-tree-controller@npm:^7.6.1":
-  version: 7.6.1
-  resolution: "@metamask/account-tree-controller@npm:7.6.1"
+"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@7.6.1-preview-514c7466c":
+  version: 7.6.1-preview-514c7466c
+  resolution: "@metamask-previews/account-tree-controller@npm:7.6.1-preview-514c7466c"
   dependencies:
     "@metamask/accounts-controller": "npm:^39.0.7"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/keyring-api": "npm:^24.0.0"
     "@metamask/keyring-controller": "npm:^27.1.1"
+    "@metamask/keyring-sdk": "npm:^3.0.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/multichain-account-service": "npm:^13.0.1"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
@@ -7646,7 +7647,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/7cfc7142ac407d16205420fe79b616b63ef47210fae9fbefa2f2c88608951d7585c88457352d7e79cad9285c66f14e9aac03e52c1ff1fc13915101f05fda2d58
+  checksum: 10/8429bfdd7f867be71b38ff6bb9564284c1a1950dab1485b6f628d2635dcee5bbd5f91a33421976f29284f075419aca65828907d922088f2402d0ad65e4149ed1
   languageName: node
   linkType: hard
 

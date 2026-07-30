@@ -41,12 +41,8 @@ export const qrSyncControllerInit: MessengerClientInitFunction<
   });
 
   controllerMessenger.registerActionHandler(
-    'QrSyncController:importRemainingSecrets',
-    controller.importRemainingSecrets.bind(controller),
-  );
-  controllerMessenger.registerActionHandler(
-    'QrSyncController:enrichProvisioningEntry',
-    controller.enrichProvisioningEntry.bind(controller),
+    'QrSyncController:finalizeVaultCreation',
+    controller.finalizeVaultCreation.bind(controller),
   );
   controllerMessenger.registerActionHandler(
     'QrSyncController:markProvisioningFailed',

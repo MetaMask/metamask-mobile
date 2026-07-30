@@ -1,7 +1,10 @@
+import type {
+  AccountTreePayload,
+  VersionedState,
+} from '@metamask/account-tree-controller';
+
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type {
-  QrSyncProvisioningMetadata,
-  QrSyncSecretImportEntry,
   QrSyncError,
   QrSyncServiceEvent,
   QrSyncSyncCancelledEvent,
@@ -14,8 +17,7 @@ import { parseQrSyncSyncReadyMessage } from './qr-sync-validation';
 export interface QrSyncRoutedMessageResult {
   handled: boolean;
   event: QrSyncServiceEvent;
-  pendingSecretImports?: QrSyncSecretImportEntry[];
-  provisioningMetadata?: QrSyncProvisioningMetadata;
+  pendingPayload?: VersionedState<AccountTreePayload>;
 }
 
 const isRecord = (data: unknown): data is Record<string, unknown> =>
@@ -77,8 +79,7 @@ export function routeIncomingQrSyncMessage(
 
       return {
         handled: true,
-        pendingSecretImports: parseResult.pendingSecretImports,
-        provisioningMetadata: parseResult.provisioningMetadata,
+        pendingPayload: parseResult.pendingPayload,
         event: {
           type: QrSyncActionTypes.SYNC_READY,
         } satisfies QrSyncSyncReadyEvent,

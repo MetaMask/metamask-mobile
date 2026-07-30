@@ -32,7 +32,6 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
-import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 
 const mockQrSyncResetState = jest.fn();
 
@@ -1302,14 +1301,30 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         backgroundState: {
           QrSyncController: {
             ...defaultQrSyncControllerState,
-            pendingSecretImports: [
-              {
-                index: 0,
-                value: qrSyncMnemonic,
-                type: QrSyncSecretTypes.MNEMONIC,
-                isPrimary: true,
+            pendingPayload: {
+              version: 1 as const,
+              data: {
+                wallets: [
+                  {
+                    id: 'wallet:test-primary' as `wallet:${string}`,
+                    type: 'mnemonic' as const,
+                    value: qrSyncMnemonic,
+                    metadata: { name: 'Extension Wallet' },
+                    groups: [
+                      {
+                        id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
+                        groupIndex: 0,
+                        metadata: {
+                          name: 'Account 1',
+                          pinned: false,
+                          hidden: false,
+                        },
+                      },
+                    ],
+                  },
+                ],
               },
-            ],
+            },
           },
         },
       },

@@ -27,8 +27,6 @@ export function dispatchQrSyncCommand(item: {
     controller.applyTestSyncReadyPayload({
       mnemonic:
         typeof item.args.mnemonic === 'string' ? item.args.mnemonic : '',
-      isPrimary:
-        item.args.isPrimary === undefined ? true : Boolean(item.args.isPrimary),
       walletName:
         typeof item.args.walletName === 'string'
           ? item.args.walletName

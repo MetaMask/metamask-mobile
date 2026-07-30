@@ -1,4 +1,3 @@
-import type { EntropySourceId } from '@metamask/keyring-api';
 import type {
   IKeyManager,
   SessionRequest,
@@ -11,7 +10,6 @@ import {
   QrSyncMessageVersion,
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
   QrSyncSyncFlows,
 } from './constants';
 import {
@@ -25,20 +23,7 @@ import {
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import { QR_SYNC_MWP_DEEPLINK_PREFIX } from './services/qr-sync-validation';
 import type { QrSyncSyncReadyMessage } from './types';
-import {
-  QrSyncOperations,
-  QrSyncSurfaces,
-  QrSyncTelemetrySources,
-  reportQrSyncFailure,
-} from './qrSyncTelemetry';
-
 jest.mock('./services/create-qr-sync-wallet-client');
-jest.mock('./qrSyncTelemetry', () => ({
-  ...jest.requireActual('./qrSyncTelemetry'),
-  reportQrSyncFailure: jest.fn(),
-}));
-
-const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 const mockCreateQrSyncWalletClient =
   createQrSyncWalletClient as jest.MockedFunction<
@@ -81,13 +66,32 @@ const createSyncReadyWireMessage = (
       type: QrSyncActionTypes.SYNC_READY,
       version: QrSyncMessageVersion.V1,
       deadline: Date.now() + 60_000,
-      data: [
-        {
-          type: QrSyncSecretTypes.PRIVATE_KEY,
-          privateKey: encodeSecret('0xabc'),
-          name: 'Imported Account 1',
+      data: {
+        version: 1,
+        data: {
+          wallets: [
+            {
+              id: 'wallet:pk' as `wallet:${string}`,
+              type: 'private-key',
+              metadata: { name: 'Imported Accounts' },
+              groups: [
+                {
+                  id: 'wallet:pk/0xabc' as `wallet:${string}/${string}`,
+                  value: {
+                    privateKey: '0xabc',
+                    encoding: 'hexadecimal' as const,
+                  },
+                  metadata: {
+                    name: 'Imported Account 1',
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              ],
+            },
+          ],
         },
-      ],
+      },
     };
   }
 
@@ -95,15 +99,26 @@ const createSyncReadyWireMessage = (
     type: QrSyncActionTypes.SYNC_READY,
     version: QrSyncMessageVersion.V1,
     deadline: Date.now() + 60_000,
-    data: [
-      {
-        type: QrSyncSecretTypes.MNEMONIC,
-        mnemonic: encodeSecret('word1 word2 word3'),
-        name: 'Wallet 1',
-        isPrimary: true,
-        groups: [{ groupIndex: 0, name: 'Account 1' }],
+    data: {
+      version: 1,
+      data: {
+        wallets: [
+          {
+            id: 'wallet:test-primary' as `wallet:${string}`,
+            type: 'mnemonic',
+            value: 'word1 word2 word3',
+            metadata: { name: 'Wallet 1' },
+            groups: [
+              {
+                id: 'wallet:test-primary/0' as `wallet:${string}/${string}`,
+                groupIndex: 0,
+                metadata: { name: 'Account 1', pinned: false, hidden: false },
+              },
+            ],
+          },
+        ],
       },
-    ],
+    },
   };
 };
 
@@ -420,25 +435,18 @@ describe('QrSyncController', () => {
       await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
-      expect(controller.state.pendingSecretImports).toEqual([
-        {
-          index: 0,
-          value: 'word1 word2 word3',
-          type: QrSyncSecretTypes.MNEMONIC,
-          isPrimary: true,
+      expect(controller.state.pendingPayload).toMatchObject({
+        version: 1,
+        data: {
+          wallets: [
+            {
+              type: 'mnemonic',
+              value: 'word1 word2 word3',
+              metadata: { name: 'Wallet 1' },
+              groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
+            },
+          ],
         },
-      ]);
-      expect(controller.state.provisioningMetadata).toEqual({
-        version: QrSyncMessageVersion.V1,
-        entries: [
-          {
-            index: 0,
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: true,
-            name: 'Wallet 1',
-            groups: [{ groupIndex: 0, name: 'Account 1' }],
-          },
-        ],
       });
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
@@ -468,9 +476,9 @@ describe('QrSyncController', () => {
       expect(controller.state.error).toEqual({
         code: 'INVALID_PAYLOAD',
         message:
-          'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+          'QR sync payload must include a primary mnemonic for new-user onboarding.',
       });
-      expect(controller.state.pendingSecretImports).toBeNull();
+      expect(controller.state.pendingPayload).toBeNull();
       expect(controller.state.provisioningStatus).toBeNull();
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
         type: QrSyncActionTypes.SYNC_ERROR,
@@ -478,7 +486,7 @@ describe('QrSyncController', () => {
         data: {
           code: 'INVALID_PAYLOAD',
           message:
-            'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+            'QR sync payload must include a primary mnemonic for new-user onboarding.',
         },
       });
     });
@@ -498,13 +506,10 @@ describe('QrSyncController', () => {
       await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
-      expect(controller.state.pendingSecretImports).toEqual([
-        {
-          index: 0,
-          value: '0xabc',
-          type: QrSyncSecretTypes.PRIVATE_KEY,
-        },
-      ]);
+      expect(controller.state.pendingPayload).toMatchObject({
+        version: 1,
+        data: { wallets: [{ type: 'private-key' }] },
+      });
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
@@ -620,8 +625,7 @@ describe('QrSyncController', () => {
       walletClient.emit('message', createSyncReadyWireMessage());
       await flushPromises();
 
-      expect(controller.state.pendingSecretImports).not.toBeNull();
-      expect(controller.state.provisioningMetadata).not.toBeNull();
+      expect(controller.state.pendingPayload).not.toBeNull();
 
       controller.resetState();
       await flushPromises();
@@ -650,7 +654,7 @@ describe('QrSyncController', () => {
   });
 
   describe('provisioning mutations', () => {
-    it('clears secrets and sets failed via markProvisioningFailed', async () => {
+    it('clears pending payload and sets failed via markProvisioningFailed', async () => {
       const controller = buildController({
         getIsOnboardingCompleted: () => false,
       });
@@ -660,181 +664,43 @@ describe('QrSyncController', () => {
       walletClient.emit('message', createSyncReadyWireMessage());
       await flushPromises();
 
-      const metadataBeforeFailure = controller.state.provisioningMetadata;
+      expect(controller.state.pendingPayload).not.toBeNull();
 
       controller.markProvisioningFailed();
 
-      expect(controller.state.pendingSecretImports).toBeNull();
-      expect(controller.state.provisioningMetadata).toEqual(
-        metadataBeforeFailure,
-      );
+      expect(controller.state.pendingPayload).toBeNull();
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.FAILED,
       );
     });
 
-    it('importRemainingSecrets delegates vault imports to the provisioning service', async () => {
-      const walletClient = buildMockWalletClient();
-      const messenger = buildMessenger();
-      const callSpy = jest
-        .spyOn(messenger, 'call')
-        .mockResolvedValue(undefined);
-
-      const orchestratingController = new QrSyncController({
-        messenger,
-        keyManager: {} as IKeyManager,
-        relayUrl: TEST_RELAY_URL,
+    it('finalizeVaultCreation sets SECRETS_IMPORTED when in AWAITING_PASSWORD', async () => {
+      const controller = buildController({
         getIsOnboardingCompleted: () => false,
       });
+      const walletClient = buildMockWalletClient();
 
-      await startSession(orchestratingController, walletClient);
+      await startSession(controller, walletClient);
       walletClient.emit('message', createSyncReadyWireMessage());
       await flushPromises();
 
-      orchestratingController.enrichPrimaryProvisioningEntry(
-        'primary-entropy' as EntropySourceId,
+      expect(controller.state.provisioningStatus).toBe(
+        QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
-      await orchestratingController.importRemainingSecrets();
 
-      expect(callSpy).toHaveBeenCalledWith(
-        'QrSyncProvisioningService:importSecretsToVault',
-        [],
-      );
-      expect(orchestratingController.state.provisioningStatus).toBe(
+      controller.finalizeVaultCreation();
+
+      expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.SECRETS_IMPORTED,
       );
     });
 
-    it('importRemainingSecrets imports primary mnemonic for existing-user sync', async () => {
-      const walletClient = buildMockWalletClient();
-      const messenger = buildMessenger();
-      const callSpy = jest
-        .spyOn(messenger, 'call')
-        .mockResolvedValue(undefined);
+    it('finalizeVaultCreation is a no-op when not in AWAITING_PASSWORD', () => {
+      const controller = buildController();
 
-      const orchestratingController = new QrSyncController({
-        messenger,
-        keyManager: {} as IKeyManager,
-        relayUrl: TEST_RELAY_URL,
-        getIsOnboardingCompleted: () => true,
-      });
+      controller.finalizeVaultCreation();
 
-      await startSession(orchestratingController, walletClient);
-      walletClient.emit('message', createSyncReadyWireMessage());
-      await flushPromises();
-
-      expect(orchestratingController.state.syncFlow).toBe(
-        QrSyncSyncFlows.EXISTING_USER,
-      );
-
-      await orchestratingController.importRemainingSecrets();
-
-      expect(callSpy).toHaveBeenCalledWith(
-        'QrSyncProvisioningService:importSecretsToVault',
-        [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: true,
-          },
-        ],
-      );
-      expect(orchestratingController.state.provisioningStatus).toBe(
-        QrSyncProvisioningStatuses.SECRETS_IMPORTED,
-      );
-    });
-
-    it('importRemainingSecrets no-ops when not awaiting_password', async () => {
-      const messenger = buildMessenger();
-      const callSpy = jest.spyOn(messenger, 'call');
-
-      const idleController = new QrSyncController({
-        messenger,
-        keyManager: {} as IKeyManager,
-        relayUrl: TEST_RELAY_URL,
-        getIsOnboardingCompleted: () => false,
-      });
-
-      await idleController.importRemainingSecrets();
-
-      expect(callSpy).not.toHaveBeenCalled();
-    });
-
-    it('reports finalize failures when provisioning metadata is missing', async () => {
-      const messenger = buildMessenger();
-      jest.spyOn(messenger, 'call').mockResolvedValue(undefined);
-
-      const orchestratingController = new QrSyncController({
-        messenger,
-        keyManager: {} as IKeyManager,
-        relayUrl: TEST_RELAY_URL,
-        getIsOnboardingCompleted: () => false,
-      });
-      const walletClient = buildMockWalletClient();
-
-      await startSession(orchestratingController, walletClient);
-      walletClient.emit('message', createSyncReadyWireMessage());
-      await flushPromises();
-
-      (
-        orchestratingController as unknown as {
-          update: (
-            fn: (state: typeof orchestratingController.state) => void,
-          ) => void;
-        }
-      ).update((state) => {
-        state.provisioningMetadata = null;
-      });
-
-      await orchestratingController.importRemainingSecrets();
-
-      expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: 'QR sync finalize requires provisioning metadata',
-        }),
-        expect.objectContaining({
-          surface: QrSyncSurfaces.IMPORT,
-          operation: QrSyncOperations.IMPORT_REMAINING_SECRETS_FINALIZE,
-          source: QrSyncTelemetrySources.CONTROLLER_IMPORT_REMAINING,
-        }),
-      );
-    });
-
-    it('reports enrich-primary failures without throwing', async () => {
-      const messenger = buildMessenger();
-      const orchestratingController = new QrSyncController({
-        messenger,
-        keyManager: {} as IKeyManager,
-        relayUrl: TEST_RELAY_URL,
-        getIsOnboardingCompleted: () => false,
-      });
-      const walletClient = buildMockWalletClient();
-
-      await startSession(orchestratingController, walletClient);
-      walletClient.emit('message', createSyncReadyWireMessage());
-      await flushPromises();
-
-      jest
-        .spyOn(orchestratingController, 'enrichProvisioningEntry')
-        .mockImplementation(() => {
-          throw new Error('enrich failed');
-        });
-
-      expect(() =>
-        orchestratingController.enrichPrimaryProvisioningEntry(
-          'primary-entropy' as EntropySourceId,
-        ),
-      ).not.toThrow();
-
-      expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          surface: QrSyncSurfaces.IMPORT,
-          operation: QrSyncOperations.ENRICH_PRIMARY_PROVISIONING_ENTRY,
-          source: QrSyncTelemetrySources.CONTROLLER_ENRICH_PRIMARY,
-        }),
-      );
+      expect(controller.state.provisioningStatus).toBeNull();
     });
   });
 });

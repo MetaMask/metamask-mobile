@@ -618,7 +618,7 @@ class AuthenticationService {
     isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      const primaryEntropySource = await this.newWalletVaultAndRestore(
+      await this.newWalletVaultAndRestore(
         password,
         parsedSeed,
         clearEngine,
@@ -627,10 +627,7 @@ class AuthenticationService {
       await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
-        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
-          primaryEntropySource,
-        );
-        await Engine.context.QrSyncController.importRemainingSecrets();
+        Engine.context.QrSyncController.finalizeVaultCreation();
       }
 
       await this.storePassword(password, authData.currentAuthType, true);

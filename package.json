@@ -227,7 +227,8 @@
     "@react-native/babel-preset@npm:0.83.6": "patch:@react-native/babel-preset@npm%3A0.83.6#~/.yarn/patches/@react-native-babel-preset-npm-0.83.6-90eed53ffb.patch",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@ledgerhq/context-module/ethers": "^6.16.0",
-    "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0"
+    "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0",
+    "@metamask/account-tree-controller": "npm:@metamask-previews/account-tree-controller@7.6.1-preview-514c7466c"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",

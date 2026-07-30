@@ -45,20 +45,12 @@ function stripE2EQrSyncScheme(url: string): string {
   return current;
 }
 
-function parseBoolParam(value: string | null, defaultValue: boolean): boolean {
-  if (value === null || value === '') {
-    return defaultValue;
-  }
-  return value === 'true' || value === '1';
-}
-
 function parseApplySyncReadyPayload(
   queryString: string,
 ): QrSyncTestSyncReadyPayload {
   const params = new URLSearchParams(queryString);
   return {
     mnemonic: params.get('mnemonic') ?? '',
-    isPrimary: parseBoolParam(params.get('isPrimary'), true),
     walletName: params.get('walletName') ?? undefined,
     accountName: params.get('accountName') ?? undefined,
   };

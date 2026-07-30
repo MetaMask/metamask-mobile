@@ -18,7 +18,6 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
-import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 
 interface UseQrSyncImportNavigationOptions {
   enabled: boolean;
@@ -30,12 +29,12 @@ interface UseQrSyncImportNavigationOptions {
 let inFlightImportNavigation: Promise<void> | null = null;
 
 /**
- * Existing-user QR sync after SYNC_READY: import all non-primary secrets via
- * Phase B (`importRemainingSecrets`), then start Phase C metadata layout.
+ * Existing-user QR sync after SYNC_READY: delegates to
+ * `QrSyncProvisioningService.provisionFromMetadata`, which calls
+ * `AccountTreeController:importState` to apply secrets + metadata in one step.
  *
- * Extension never sends the primary mnemonic for existing users, so there is no
- * separate `importNewSecretRecoveryPhrase` path — that would duplicate-import
- * non-primary mnemonics and skip metadata enrichment.
+ * Account count before/after determines whether the user should see the
+ * "already synced" sheet or be navigated to the wallet.
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
@@ -44,12 +43,12 @@ const finishExistingUserSyncWithoutMnemonic = async (
   let importFailed = false;
 
   try {
-    await Engine.context.QrSyncController.importRemainingSecrets();
+    await Engine.context.QrSyncProvisioningService.provisionFromMetadata();
   } catch (error) {
     importFailed = true;
     reportQrSyncFailure(error, {
       surface: QrSyncSurfaces.IMPORT,
-      operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
+      operation: QrSyncOperations.PROVISION_FROM_METADATA,
       source: QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
       syncFlow: QrSyncSyncFlows.EXISTING_USER,
     });
@@ -58,8 +57,6 @@ const finishExistingUserSyncWithoutMnemonic = async (
   const accountsAfter = await Engine.context.KeyringController.getAccounts();
   const addedNewAccounts = accountsAfter.length > accountsBefore.length;
 
-  // Thrown failures are real import errors. Unchanged account count after a
-  // successful importRemainingSecrets call means the secrets were already here.
   if (importFailed && !addedNewAccounts) {
     Engine.context.QrSyncController.resetState();
     navigation.navigate(Routes.WALLET_VIEW);
@@ -74,19 +71,12 @@ const finishExistingUserSyncWithoutMnemonic = async (
     return;
   }
 
-  // Phase C is non-blocking and needs provisioning metadata until
-  // `completeProvisioning` runs. Do NOT resetState here — early reset leaves
-  // only group 0 (Account 1) per wallet because groups 1..N are created in Phase C.
-  // Matches new-user `finalizeOnboardingCompletion` behavior.
-  startExistingUserQrMetadataProvisioning(
-    QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
-  );
   navigation.navigate(Routes.WALLET_VIEW);
 };
 
 /**
  * Drives vault import / onboarding navigation after QR sync Phase A
- * (SYNC_READY → awaiting_password with pending secrets).
+ * (SYNC_READY → awaiting_password with pending payload).
  */
 export const useQrSyncImportNavigation = ({
   enabled,
@@ -113,14 +103,14 @@ export const useQrSyncImportNavigation = ({
 
     if (completedOnboarding) {
       // Prefer live controller state — Redux can lag/strip ephemeral secrets.
-      const pendingSecretImports =
-        Engine.context.QrSyncController.state?.pendingSecretImports;
+      const pendingPayload =
+        Engine.context.QrSyncController.state?.pendingPayload;
 
       hasHandledImportNavigationRef.current = true;
 
-      if (!pendingSecretImports?.length) {
+      if (!pendingPayload?.data.wallets.length) {
         Logger.log(
-          'QR sync existing-user import: no pending secrets in sync data',
+          'QR sync existing-user import: no pending payload in sync data',
         );
         Engine.context.QrSyncController.resetState();
         navigation.navigate(Routes.WALLET_VIEW);
