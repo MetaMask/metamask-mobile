@@ -2552,7 +2552,11 @@
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
       "market_list": "Browse markets",
-      "perp_pair": "{{ticker}}-{{collateral}} perp"
+      "perp_pair": "{{ticker}}-{{collateral}} perp",
+      "back": "Back",
+      "wallet": "Perps home",
+      "add_to_watchlist": "Add to watchlist",
+      "remove_from_watchlist": "Remove from watchlist"
     }
   },
   "market_insights": {

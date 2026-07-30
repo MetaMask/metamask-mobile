@@ -28,7 +28,7 @@ import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottom
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsNavigation } from '../../hooks';
+import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -61,13 +61,6 @@ const PerpsProMarketView = () => {
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
-  const { navigateToMarketList } = usePerpsNavigation();
-
-  const handleMarketListPress = useCallback(() => {
-    navigateToMarketList({
-      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    });
-  }, [navigateToMarketList]);
 
   const handleCollapseOrderBook = useCallback(() => {
     setIsOrderBookCollapsed(true);
@@ -150,6 +143,16 @@ const PerpsProMarketView = () => {
       onAdvancedChartError: handleAdvancedChartError,
     });
 
+  const {
+    perpsMode,
+    isWatchlist,
+    handleBackPress,
+    handleMarketListPress,
+    handleWalletPress,
+    handleFavoritePress,
+    handlePerpsModeChange,
+  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
+
   if (!market?.symbol) {
     return (
       <SafeAreaView
@@ -185,8 +188,14 @@ const PerpsProMarketView = () => {
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
       <PerpsProMarketHeader
-        symbol={symbol}
-        onSymbolPress={handleMarketListPress}
+        market={{ ...market, symbol: market.symbol }}
+        mode={perpsMode}
+        onBackPress={handleBackPress}
+        onIdentityPress={handleMarketListPress}
+        onWalletPress={handleWalletPress}
+        onFavoritePress={handleFavoritePress}
+        isFavorite={isWatchlist}
+        onModeChange={handlePerpsModeChange}
       />
       <ScrollView
         style={styles.scrollView}
