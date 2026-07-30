@@ -313,7 +313,7 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(loadingStopLossButton).toBeDisabled();
     expect(loadingStopLossButton.props.accessibilityState?.busy).toBe(true);
 
-    // Stop-loss success state — button shows check icon
+    // Stop-loss success state — success severity banner, no action button
     await act(async () => {
       cleanup();
     });
@@ -334,8 +334,16 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       await screen.findByTestId(PerpsStopLossPromptSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(
+      screen.getByText(strings('perps.stop_loss_prompt.success_title')),
+    ).toBeOnTheScreen();
+    expect(
       screen.getByTestId(PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
+      ),
+    ).toBeNull();
 
     // ── PHASE 6: Notification prompt ─────────────────────────────────────
     // Trader sees notification bottom sheet: title, description, turn on
