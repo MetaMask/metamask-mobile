@@ -137,6 +137,20 @@ const PerpsClosePositionView: React.FC = () => {
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
   const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input (user input only)
 
+  // Live slider display value for immediate UI feedback while dragging. The
+  // committed `closePercentage` only updates on drag end, since it drives the
+  // expensive fee/rewards/validation recompute pipeline (usePerpsOrderFees et
+  // al.). `displayClosePercentage` is derived (not effect-synced) so every
+  // other input method (keypad, percentage, max) renders the committed
+  // percentage immediately, with no one-render window waiting on a
+  // `useEffect` to catch up.
+  const [liveDragClosePercentage, setLiveDragClosePercentage] =
+    useState(closePercentage);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+  const displayClosePercentage = isDraggingSlider
+    ? liveDragClosePercentage
+    : closePercentage;
+
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
 
@@ -203,6 +217,61 @@ const PerpsClosePositionView: React.FC = () => {
     return currentPrice;
   }, [effectiveOrderType, limitPrice, currentPrice]);
 
+  // Single funnel for "the slider is no longer the source of truth for
+  // displayClosePercentage" — used by drag end/cancel below, and by every
+  // other input method's commit path (keypad, percentage, max) so a gesture
+  // that never fires `onDragEnd` (see handleSliderDragCancel) cannot
+  // permanently wedge displayClosePercentage on a stale
+  // liveDragClosePercentage once the user does anything else. Unlike a
+  // quiet-period timer, this depends only on real "something else just
+  // committed a value" events, so it can never misfire mid-drag (e.g. a
+  // paused-but-still-active hold, where onValueChange legitimately stops
+  // ticking without the gesture ending).
+  const commitClosePercentage = useCallback(
+    (value: number, options?: { syncUsdString?: boolean }) => {
+      setIsDraggingSlider(false);
+      setLiveDragClosePercentage(value);
+      setClosePercentage(value);
+
+      if (options?.syncUsdString === false) {
+        return;
+      }
+      // Update USD input to match calculated value for keypad display consistency
+      const newUSDAmount = (value / 100) * absSize * effectivePrice;
+      setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
+    },
+    [absSize, effectivePrice],
+  );
+
+  const handleSliderValueChange = useCallback((value: number) => {
+    inputMethodRef.current = 'slider';
+    setIsDraggingSlider(true);
+    setLiveDragClosePercentage(value);
+  }, []);
+
+  const handleSliderDragEnd = useCallback(
+    (value: number) => {
+      commitClosePercentage(value);
+    },
+    [commitClosePercentage],
+  );
+
+  // A pan gesture cancelled by competing-gesture arbitration (e.g. a parent
+  // ScrollView taking over) finalizes internally in the design-system Slider
+  // without ever calling `onDragEnd`, and react-native-gesture-handler owns
+  // the touch outside RN's responder system, so this `onTouchCancel` is only
+  // a best-effort signal, not a guarantee. The real safety net is that every
+  // other input method funnels through `commitClosePercentage`, which
+  // unconditionally clears `isDraggingSlider` — so even if this never fires,
+  // the very next keypad/percentage/max edit (or the confirm-close guard
+  // below) self-heals the stuck flag instead of leaving it wedged
+  // indefinitely.
+  const handleSliderDragCancel = useCallback(() => {
+    if (isDraggingSlider) {
+      commitClosePercentage(liveDragClosePercentage);
+    }
+  }, [commitClosePercentage, isDraggingSlider, liveDragClosePercentage]);
+
   // Calculate display values directly from closePercentage for immediate updates
   const { closeAmount, calculatedUSDString } = useMemo(() => {
     // During loading, return '0' as temporary state (not a default - intentional for loading UX)
@@ -237,11 +306,46 @@ const PerpsClosePositionView: React.FC = () => {
     isLoadingMarketData,
   ]);
 
+  // Live counterpart of closeAmount/calculatedUSDString for display only -
+  // cheap synchronous calc, safe to recompute every drag frame off the live
+  // display percentage. closeAmount/calculatedUSDString above stay tied to
+  // the committed closePercentage and keep feeding fees, validation, and
+  // handleConfirm.
+  const {
+    closeAmount: liveCloseAmount,
+    calculatedUSDString: liveCalculatedUSDString,
+  } = useMemo(() => {
+    if (isLoadingMarketData) {
+      return { closeAmount: '0', calculatedUSDString: '0.00' };
+    }
+
+    const szDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+
+    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
+      percentage: displayClosePercentage,
+      positionSize: absSize,
+      currentPrice: effectivePrice,
+      szDecimals,
+    });
+
+    return {
+      closeAmount: tokenAmount.toString(),
+      calculatedUSDString: formatCloseAmountUSD(usdValue),
+    };
+  }, [
+    displayClosePercentage,
+    absSize,
+    effectivePrice,
+    marketData?.szDecimals,
+    isLoadingMarketData,
+  ]);
+
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =
     isInputFocused || isUserInputActive
       ? closeAmountUSDString
-      : calculatedUSDString;
+      : liveCalculatedUSDString;
 
   // Use live position data which includes real-time funding fees
   // HyperLiquid's marginUsed already includes accumulated PnL
@@ -460,6 +564,18 @@ const PerpsClosePositionView: React.FC = () => {
   }, [effectiveOrderType, limitPrice]);
 
   const handleConfirm = async () => {
+    // Guard against submitting a stale committed `closePercentage` while
+    // `isDraggingSlider` is (or is stuck) true — e.g. a cancelled gesture
+    // that never reached commitClosePercentage (see handleSliderDragCancel
+    // above). Flush the last live value and bail; `closePercentage`
+    // reflects it on the next render, so the very next tap confirms the
+    // right amount instead of racing a same-tick confirm against a state
+    // update.
+    if (isDraggingSlider) {
+      commitClosePercentage(liveDragClosePercentage);
+      return;
+    }
+
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
     const isFullClose = closePercentage === 100;
@@ -584,43 +700,30 @@ const PerpsClosePositionView: React.FC = () => {
       const newPercentage =
         positionValue > 0 ? (clampedValue / positionValue) * 100 : 0;
 
-      // Update percentage (amount and token values are calculated automatically)
-      setClosePercentage(newPercentage);
+      // Update percentage (amount and token values are calculated
+      // automatically). `syncUsdString: false` because `closeAmountUSDString`
+      // was just set above from the user's raw typed string (preserving
+      // e.g. a trailing "2." while typing) — commitClosePercentage's own USD
+      // recompute would immediately clobber that with a reformatted value.
+      commitClosePercentage(newPercentage, { syncUsdString: false });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [positionValue, isInputFocused, isUserInputActive, closeAmountUSDString],
   );
 
   const handlePercentagePress = (percentage: number) => {
     inputMethodRef.current = 'percentage';
-    const newPercentage = percentage * 100;
-    setClosePercentage(newPercentage);
-
-    // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = (newPercentage / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
+    commitClosePercentage(percentage * 100);
   };
 
   const handleMaxPress = () => {
     inputMethodRef.current = 'max';
-    setClosePercentage(100);
-
-    // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = absSize * effectivePrice;
-    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
+    commitClosePercentage(100);
   };
 
   const handleDonePress = () => {
     setIsInputFocused(false);
     setIsUserInputActive(false);
-  };
-
-  const handleSliderChange = (value: number) => {
-    inputMethodRef.current = 'slider';
-    setClosePercentage(value);
-
-    // Update USD input to match calculated value for keypad display consistency
-    const newUSDAmount = (value / 100) * absSize * effectivePrice;
-    setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
   // Hide provider-level limit price required error on this UI. Surface the
@@ -708,7 +811,10 @@ const PerpsClosePositionView: React.FC = () => {
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          tokenAmount={formatPositionSize(closeAmount, marketData?.szDecimals)}
+          tokenAmount={formatPositionSize(
+            liveCloseAmount,
+            marketData?.szDecimals,
+          )}
           hasError={filteredErrors.length > 0}
           tokenSymbol={position.symbol}
           showMaxAmount={false}
@@ -717,16 +823,20 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
+            {`${formatPositionSize(liveCloseAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
         </View>
 
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
-          <View style={styles.sliderSection}>
+          <View
+            style={styles.sliderSection}
+            onTouchCancel={handleSliderDragCancel}
+          >
             <PerpsSlider
-              value={closePercentage}
-              onValueChange={handleSliderChange}
+              value={displayClosePercentage}
+              onValueChange={handleSliderValueChange}
+              onDragEnd={handleSliderDragEnd}
               minimumValue={0}
               maximumValue={100}
               step={1}
