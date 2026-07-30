@@ -1,5 +1,6 @@
 import { useCallback, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -45,7 +46,7 @@ export const useImmersveOnboardingRouter = () => {
         if (navigateFromRoot) {
           navigation.navigate(Routes.CARD.ONBOARDING.ROOT, { screen, params });
         } else {
-          navigation.navigate(screen, params);
+          navigateWithDetails(navigation, [screen, params]);
         }
       };
 

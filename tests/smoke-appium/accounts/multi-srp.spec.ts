@@ -50,7 +50,6 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
         async ({ userStorageMockttpController }) => {
           await loginAndOpenAccountList({
             scenarioType: 'e2e',
-            walletTimeout: 15_000,
           });
           await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1);
 
@@ -103,7 +102,6 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
       await withIdentityFixtures(fixtureOptions, async () => {
         await loginAndOpenAccountList({
           scenarioType: 'e2e',
-          walletTimeout: 15_000,
         });
         await openImportSrpFromAccountList();
         await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE_2);
