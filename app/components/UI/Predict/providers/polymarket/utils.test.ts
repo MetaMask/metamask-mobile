@@ -2883,6 +2883,58 @@ describe('polymarket utils', () => {
     expect(parsedMarket.outcomes[0].groupItemTitle).toBe('Knicks 3.5');
   });
 
+  it.each(['map_handicap', 'round_handicap_game_2'])(
+    'keeps the handicap sign in %s titles',
+    (sportsMarketType) => {
+      const handicapMarket = {
+        conditionId: 'handicap-condition',
+        question: 'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
+        description: 'Handicap market',
+        icon: 'icon.png',
+        image: 'image.png',
+        groupItemTitle: 'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
+        sportsMarketType,
+        status: 'open',
+        volumeNum: 100,
+        liquidity: 100,
+        negRisk: false,
+        clobTokenIds: '["token-g1","token-newvis"]',
+        outcomes: '["GenOne","NEW VISION"]',
+        outcomePrices: '["0.5","0.5"]',
+        closed: false,
+        active: true,
+        acceptingOrders: true,
+        resolvedBy: '',
+        orderPriceMinTickSize: 0.01,
+        umaResolutionStatus: '',
+        line: -1.5,
+      } as unknown as PolymarketApiEvent['markets'][number];
+      const event: PolymarketApiEvent = {
+        id: 'handicap-event',
+        slug: 'cs2-g1-newvis-2026-07-28',
+        title: 'GenOne vs. NEW VISION',
+        description: 'Game description',
+        icon: 'icon.png',
+        closed: false,
+        active: true,
+        series: [],
+        markets: [handicapMarket],
+        tags: [],
+        liquidity: 100,
+        volume: 100,
+      };
+
+      const [parsedMarket] = parsePolymarketEvents([event], 'sports');
+
+      expect(parsedMarket.outcomes[0].groupItemTitle).toBe(
+        'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
+      );
+      expect(
+        parsedMarket.outcomes[0].tokens.map((token) => token.title),
+      ).toEqual(['GenOne -1.5', 'NEW VISION +1.5']);
+    },
+  );
+
   it('parses crypto up/down price to beat from event metadata', () => {
     const event: PolymarketApiEvent = {
       id: 'crypto-event',
