@@ -2,9 +2,18 @@
 # Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
 # Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
 #
-# When source_fingerprint is provided, tries to reuse android-apk-main-e2e-bs-* (or
-# variant) artifacts from a prior workflow run with the same @expo/fingerprint hash,
-# then re-uploads those APKs to BrowserStack — same reuse model as build-android-e2e.yml.
+# Fingerprint reuse (test-only / main_branch_only):
+#   When source_fingerprint is set AND main_branch_only is true, try to reuse
+#   android-apk-main-e2e-bs-* (or variant) artifacts from a prior workflow run with
+#   the same @expo/fingerprint hash, then re-upload those APKs to BrowserStack.
+#   This mirrors build-android-e2e.yml's reuse-main-builds-only path, which also
+#   skips @expo/repack-app because only test files changed (app JS is unchanged).
+#
+#   As-is reuse is intentionally NOT used for general fingerprint hits: @expo/fingerprint
+#   ignores JS-only changes, and this workflow does not repack the JS bundle into the
+#   reused APKs. Reusing on a JS-only app change would run performance tests against a
+#   stale binary. Until an E2E-style repack path exists for both BS profiles, non-test-only
+#   runs always take the fresh dual-build path.
 
 name: Build Android Dual Versions and Upload to BrowserStack
 
@@ -32,17 +41,18 @@ on:
         required: false
         type: string
         description: >-
-          @expo/fingerprint hash from native-build-fingerprint. When set, skip
-          fresh dual builds if matching BrowserStack performance APKs exist on a
-          prior ci.yml or run-performance-e2e.yml run.
+          @expo/fingerprint hash from native-build-fingerprint. Used with
+          main_branch_only to reuse BrowserStack performance APKs on test-only
+          PRs (app JS unchanged). Ignored for as-is reuse when main_branch_only
+          is false — see workflow header comment about stale JS / missing repack.
         default: ''
       main_branch_only:
         required: false
         type: boolean
         description: >-
-          When true, fingerprint reuse only searches the base branch (main).
-          Used for test-only PRs as a fallback when BrowserStack custom_id reuse
-          did not resolve apps.
+          When true (test-only PRs), allow as-is fingerprint reuse of prior
+          main-e2e-bs-* APKs. When false, always compile fresh dual builds so
+          JS-only app changes are not tested against a stale binary.
         default: false
     outputs:
       with-srp-browserstack-url:
@@ -115,9 +125,13 @@ jobs:
     name: Resolve fingerprint-reusable BrowserStack APKs
     runs-on: ubuntu-latest
     needs: [check-builds-needed]
+    # As-is APK reuse is safe only when app JS did not change (test-only PRs).
+    # @expo/fingerprint ignores JS-only changes and this workflow does not run
+    # @expo/repack-app, so general fingerprint hits must not reuse prior APKs.
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
-      inputs.source_fingerprint
+      inputs.source_fingerprint &&
+      inputs.main_branch_only
     outputs:
       found: ${{ steps.finalize.outputs.found }}
       run-id: ${{ steps.finalize.outputs.run-id }}
