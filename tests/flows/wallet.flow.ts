@@ -751,7 +751,9 @@ export const loginToAppPlaywright = async (
 
   const dismissPostLoginModals = async (): Promise<void> => {
     await PlaywrightUtilities.wait(500);
-    await dismissPushNotificationExistingUserSheet();
+    // Push "Never miss a move" sheet is not shown for fixture/e2e logins —
+    // probing it burns ~5s per login. Call dismissPushNotificationExistingUserSheet
+    // explicitly from onboarding flows that can show it.
     await dismissExperienceEnhancerModal();
   };
 
