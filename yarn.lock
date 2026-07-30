@@ -8946,7 +8946,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^26.2.4, @metamask/gas-fee-controller@npm:^26.3.0":
+"@metamask/gas-fee-controller@npm:^26.3.0":
   version: 26.3.0
   resolution: "@metamask/gas-fee-controller@npm:26.3.0"
   dependencies:
