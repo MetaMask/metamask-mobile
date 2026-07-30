@@ -1,15 +1,23 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { PerpsMode } from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import Routes from '../../../../constants/navigation/Routes';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
+import { selectPerpsMode } from '../selectors/perpsController';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 const mockDepositWithOrder = jest.fn();
@@ -57,10 +65,20 @@ describe('usePerpsNavigation', () => {
   >;
   const mockUsePerpsEventTracking =
     usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
+    // Default to Pro mode inactive, matching the existing navigateToHome
+    // assertions below which expect the Perps Home screen target.
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsProModeEnabledFlag) return false;
+      if (selector === selectPerpsMode) return PerpsMode.Lite;
+      return undefined;
+    });
     mockDepositWithOrder.mockResolvedValue({ result: Promise.resolve('') });
     mockUsePerpsTrading.mockReturnValue({
       depositWithOrder: mockDepositWithOrder,
@@ -227,6 +245,30 @@ describe('usePerpsNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
         source: 'market_list',
       });
+    });
+
+    it('navigates to the default Pro market instead of home when Pro mode is active', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsProModeEnabledFlag) return true;
+        if (selector === selectPerpsMode) return PerpsMode.Pro;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.navigateToHome('market_list');
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.MARKET_DETAILS,
+        expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'BTC' }),
+          source: 'market_list',
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.PERPS_HOME,
+        expect.anything(),
+      );
     });
 
     it('navigates to market list without params', () => {

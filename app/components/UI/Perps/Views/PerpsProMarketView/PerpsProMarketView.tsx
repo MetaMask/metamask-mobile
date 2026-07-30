@@ -28,6 +28,7 @@ import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottom
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -142,6 +143,16 @@ const PerpsProMarketView = () => {
       onAdvancedChartError: handleAdvancedChartError,
     });
 
+  const {
+    perpsMode,
+    isWatchlist,
+    handleBackPress,
+    handleMarketListPress,
+    handleWalletPress,
+    handleFavoritePress,
+    handlePerpsModeChange,
+  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
+
   if (!market?.symbol) {
     return (
       <SafeAreaView
@@ -176,7 +187,16 @@ const PerpsProMarketView = () => {
       edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsProMarketHeader symbol={symbol} />
+      <PerpsProMarketHeader
+        market={{ ...market, symbol: market.symbol }}
+        mode={perpsMode}
+        onBackPress={handleBackPress}
+        onIdentityPress={handleMarketListPress}
+        onWalletPress={handleWalletPress}
+        onFavoritePress={handleFavoritePress}
+        isFavorite={isWatchlist}
+        onModeChange={handlePerpsModeChange}
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

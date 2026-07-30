@@ -8,9 +8,11 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
   });
 
-  it('renders the toolbar rate-tag skeleton', () => {
+  it('renders the trade-mode toggle skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(screen.getByTestId('quick-buy-skeleton-rate-tag')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-skeleton-trade-mode'),
+    ).toBeOnTheScreen();
   });
 
   it('renders the slider skeleton', () => {
@@ -44,11 +46,9 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not render the keypad placeholder on the treatment (keypad closed by default)', () => {
+  it('renders the keypad placeholder on the treatment (keypad open by default)', () => {
     render(<QuickBuyBottomSheetSkeleton useKeyboard />);
-    expect(
-      screen.queryByTestId('quick-buy-skeleton-keypad'),
-    ).not.toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-skeleton-keypad')).toBeOnTheScreen();
   });
 
   it('hides the slider placeholder on the treatment', () => {
