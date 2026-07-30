@@ -2,7 +2,7 @@ import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import UniswapDapp from '../../page-objects/MMConnect/UniswapDapp';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import { unlockIfLockScreenVisible } from '../mm-connect/utils';
+import { unlockIfLockScreenVisible } from '../../page-objects/MMConnect/unlockHelpers';
 import { PerformanceLogin } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';

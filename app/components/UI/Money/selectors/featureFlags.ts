@@ -154,6 +154,22 @@ export const selectMoneyHubEnabledFlag = createSelector(
 );
 
 /**
+ * Selects whether the realized earnings section is shown on Money Home.
+ * The remote version-gated flag takes precedence over the local environment
+ * fallback.
+ */
+export const selectMoneyEarningSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_EARNING_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarningSectionEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Kill-switch for the first-time deposit Rive animation.
  * Defaults to ON (true).
  */

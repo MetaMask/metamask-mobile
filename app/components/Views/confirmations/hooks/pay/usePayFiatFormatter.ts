@@ -1,5 +1,6 @@
+import { hasTransactionType } from '@metamask/transaction-controller';
+
 import { useTransactionDetails } from '../activity/useTransactionDetails';
-import { hasTransactionType } from '../../utils/transaction';
 import { USER_CURRENCY_TYPES } from '../../constants/confirmations';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 

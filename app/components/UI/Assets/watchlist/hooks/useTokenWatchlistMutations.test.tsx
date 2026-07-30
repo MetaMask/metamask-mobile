@@ -598,6 +598,40 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
     });
   });
 
+  it('does not invalidate hydrated when add is unwatched before add settles', async () => {
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, { assets: [ASSET_A], version: 1 });
+    seedHydratedCache(queryClient, hydratedFor([ASSET_A]));
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+    const { result: add } = renderHook(
+      () => useTokenWatchlistAddItemMutation(),
+      { wrapper: Wrapper },
+    );
+    const { result: remove } = renderHook(
+      () => useTokenWatchlistRemoveItemMutation(),
+      { wrapper: Wrapper },
+    );
+
+    await act(async () => {
+      const pendingAdd = add.current.mutateAsync(ASSET_B);
+      const pendingRemove = remove.current.mutateAsync(ASSET_B);
+      await drainBatcher();
+      await Promise.all([pendingAdd, pendingRemove]);
+    });
+
+    expect(invalidateSpy).not.toHaveBeenCalledWith({
+      queryKey: tokenWatchlistQueryKeys.hydrated,
+    });
+    expect(readCache(queryClient)).toStrictEqual({
+      assets: [ASSET_A],
+      version: 1,
+    });
+    expect(readHydratedCache(queryClient)).toStrictEqual(
+      hydratedFor([ASSET_A]),
+    );
+  });
+
   it('lets a replace op overwrite any add/remove ops submitted before it in the same batch', async () => {
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, { assets: [ASSET_A], version: 1 });

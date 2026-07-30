@@ -31,6 +31,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -55,7 +56,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
   successFlow,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const accountType = useSelector(selectOnboardingAccountType);
   const isBasicFunctionalityEnabled = useSelector(
@@ -182,7 +183,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 };
 
 export const OnboardingSuccess = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>>();
   const successFlow =

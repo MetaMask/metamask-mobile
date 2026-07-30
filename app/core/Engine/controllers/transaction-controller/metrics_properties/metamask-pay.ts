@@ -1,11 +1,11 @@
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionMetrics, TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 import {
   getMetaMaskPayFiatChainTarget,
   normalizeMetaMaskPayPaymentMethod,
@@ -82,6 +82,8 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
         transactionMeta,
         allTransactions,
       );
+
+      addFailedOnStartupMetrics(properties, transactionMeta);
     }
 
     return {
@@ -170,6 +172,30 @@ function addTimeToComplete(
     Math.round(Date.now() - submittedTime) / 1000;
 }
 
+// Error message set by @metamask/transaction-controller when it fails
+// approved/signed transactions that were still in-flight at the last app close.
+const STARTUP_INCOMPLETE_ERROR_PREFIX = 'Transaction incomplete at startup';
+
+/**
+ * Backfills mm_pay_* properties from the persisted transactionMeta.metamaskPay
+ * for transactions failed on startup, when the non-persisted
+ * TransactionPayController.transactionData is no longer available.
+ */
+function addFailedOnStartupMetrics(
+  properties: JsonMap,
+  transactionMeta: TransactionMeta,
+) {
+  const { error, metamaskPay } = transactionMeta;
+
+  if (!error?.message?.startsWith(STARTUP_INCOMPLETE_ERROR_PREFIX)) {
+    return;
+  }
+
+  if (metamaskPay?.fiat) {
+    properties.mm_pay_strategy = 'fiat';
+  }
+}
+
 /**
  * Derives mm_pay_* properties from controller state for PAY_TYPE transactions.
  * Uses transactionMeta.metamaskPay and TransactionPayController.transactionData
@@ -182,28 +208,41 @@ function addPayTypeProperties(
 ) {
   const { metamaskPay, id: transactionId } = transaction;
 
+  if (properties.mm_pay) {
+    return;
+  }
+
+  const chainId = metamaskPay?.chainId;
+  const tokenAddress = metamaskPay?.tokenAddress;
+
   if (
-    !metamaskPay?.chainId ||
-    !metamaskPay?.tokenAddress ||
-    properties.mm_pay
+    !hasTransactionType(transaction, PAY_TYPES) &&
+    (!chainId || !tokenAddress)
   ) {
     return;
   }
 
-  const { chainId, tokenAddress } = metamaskPay;
-
   properties.mm_pay = true;
-  properties.mm_pay_chain_selected = chainId;
   properties.mm_pay_payment_method_selected = 'crypto';
 
+  if (chainId) {
+    properties.mm_pay_chain_selected = chainId;
+  }
+
   const txPayData =
-    state.engine.backgroundState.TransactionPayController?.transactionData?.[
+    state?.engine?.backgroundState?.TransactionPayController?.transactionData?.[
       transactionId
     ];
 
-  properties.mm_pay_token_selected =
+  const tokenSymbol =
     txPayData?.paymentToken?.symbol ??
-    getTokenSymbol(state, chainId, tokenAddress);
+    (chainId && tokenAddress
+      ? getTokenSymbol(state, chainId, tokenAddress)
+      : undefined);
+
+  if (tokenSymbol !== undefined) {
+    properties.mm_pay_token_selected = tokenSymbol;
+  }
 
   for (const [types, useCase] of USE_CASE_MAP) {
     if (hasTransactionType(transaction, types)) {
