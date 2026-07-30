@@ -126,6 +126,91 @@ export const NativeDropdownSelectorWebIDS = {
   snapUIDropdown: 'snap-ui-renderer__dropdown',
 };
 
+/**
+ * Visible button labels for Android UiScrollable fallbacks when resource-id
+ * nodes are virtualized off-screen in the WebView accessibility tree.
+ */
+export const TEST_SNAPS_ANDROID_SCROLL_LABELS: Record<string, string> = {
+  connectbip32: 'Connect to BIP-32 Snap',
+  connectbip44: 'Connect to BIP-44 Snap',
+  'connectbackground-events': 'Connect to Background Events Snap',
+  'connectclient-status': 'Connect to Client Status Snap',
+  connectcronjobs: 'Connect to Cronjobs Snap',
+  connectdialogs: 'Connect to Dialogs Snap',
+  connecterrors: 'Connect to Errors Snap',
+  connectGetEntropySnap: 'Connect to Get Entropy Snap',
+  connectgetfile: 'Connect to Get File Snap',
+  connectimages: 'Connect to Image Snap',
+  'connectinteractive-ui': 'Connect to Interactive UI Snap',
+  connectjsx: 'Connect to JSX Snap',
+  'connectjson-rpc': 'Connect to JSON-RPC Snap',
+  'connectlifecycle-hooks': 'Connect to Lifecycle Hooks Snap',
+  'connectmanage-state': 'Connect to Manage State Snap',
+  'connectmultichain-provider': 'Connect to Multichain Provider Snap',
+  'connectname-lookup': 'Connect to Name Lookup Snap',
+  'connectnetwork-access': 'Connect to Network Access Snap',
+  'connectethereum-provider': 'Connect to Ethereum Provider Snap',
+  connectpreferences: 'Connect to Preferences Snap',
+  connectstate: 'Connect to State Snap',
+  connectwasm: 'Connect to WebAssembly Snap',
+  sendError: 'Send Test to Error Snap',
+  sendAlertButton: 'Alert',
+  // Dialogs section button label is literally "Confirmation"; result/dialog
+  // assertions use the native "Confirmation Dialog" title separately.
+  sendConfirmationButton: 'Confirmation',
+  sendPromptButton: 'Prompt',
+  sendCustomButton: 'Custom',
+  sendClientStatusTest: 'Submit',
+  sendRpc: 'Invoke Snap',
+  sendWasmMessage: 'Calculate',
+  getPreferences: 'Submit',
+  showPreinstalledDialog: 'Show dialog',
+  trackEvent: 'Track event',
+  'messenger-call': 'Messenger call',
+  // Get File — action buttons + nearby label for virtualized result spans.
+  sendGetFileTextButton: 'Get Text',
+  sendGetFileBase64Button: 'Get Base64',
+  sendGetFileHexButton: 'Get Hex',
+  getFileResult: 'Get Text',
+  // State snap actions (encrypted/unencrypted share the same visible labels).
+  sendState: 'Set State',
+  sendUnencryptedState: 'Set State',
+  sendGetState: 'Get State',
+  sendGetUnencryptedState: 'Get State',
+  clearState: 'Clear State',
+  clearStateUnencrypted: 'Clear State',
+  encryptedStateResult: 'Clear State',
+  unencryptedStateResult: 'Clear State',
+  getStateResult: 'Get State',
+  getStateUnencryptedResult: 'Get State',
+  // Network Access — prefer section-unique labels (avoid "Get State", shared with State snap).
+  sendNetworkAccessTest: 'Fetch',
+  startWebSocket: 'Start WebSocket',
+  stopWebSocket: 'Stop WebSocket',
+  getWebSocketState: 'Start WebSocket',
+  networkAccessResult: 'Fetch',
+  // Get Entropy — select has no button text; use section heading / sign CTA as anchors.
+  'get-entropy-entropy-selector': 'Entropy source',
+  entropyMessage: 'Sign Message',
+  signEntropyMessage: 'Sign Message',
+  entropySignResult: 'Sign Message',
+  // Legacy manage-state (Clear Data / Send Data — distinct from State snap Clear State).
+  clearManageState: 'Clear Data',
+  clearUnencryptedManageState: 'Clear Data',
+  sendManageState: 'Send Data',
+  sendUnencryptedManageState: 'Send Data',
+  clearManageStateResult: 'Clear Data',
+  clearUnencryptedManageStateResult: 'Clear Data',
+  sendManageStateResult: 'Send Data',
+  sendUnencryptedManageStateResult: 'Send Data',
+  retrieveManageStateResult: 'Send Data',
+  retrieveManageStateUnencryptedResult: 'Send Data',
+};
+
+export const testSnapsAndroidScrollOptions = {
+  scrollLabels: TEST_SNAPS_ANDROID_SCROLL_LABELS,
+};
+
 export const TestSnapResultSelectorWebIDS = {
   bip44ResultSpan: 'bip44Result',
   bip44SignResultSpan: 'bip44SignResult',
