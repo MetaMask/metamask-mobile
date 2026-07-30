@@ -22,6 +22,7 @@ export type QuickBuyAmountDisplayMode = 'fiat' | 'crypto';
 
 export type QuickBuyScreen =
   | 'amount'
+  | 'editQuickAmounts'
   | 'quoteDetails'
   | 'selectQuote'
   | 'payWith'

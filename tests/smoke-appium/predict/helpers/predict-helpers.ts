@@ -35,7 +35,7 @@ export const remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke =
   () => ({
     predictExtendedSportsMarkets: {
       versions: {
-        '8.5.0': {
+        '8.6.0': {
           enabled: false,
           leagues: [],
           enabledSportsMarketTypes: [],
@@ -48,6 +48,22 @@ export const remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke =
       },
     },
   });
+
+/**
+ * Disables the Predict "withdraw to any token" (MetaMask Pay) flow, forcing the
+ * legacy same-token withdraw path.
+ */
+export const remoteFeatureFlagWithdrawAnyTokenDisabled = () => ({
+  confirmations_pay_post_quote: {
+    versions: {
+      '8.0.0': {
+        overrides: {
+          predictWithdraw: { enabled: false },
+        },
+      },
+    },
+  },
+});
 
 export class PredictHelpers {
   /**

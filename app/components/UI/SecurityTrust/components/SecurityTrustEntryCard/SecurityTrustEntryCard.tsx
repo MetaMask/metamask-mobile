@@ -17,6 +17,7 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { TokenSecurityData } from '../../types';
 import { getFeatureTags, getResultTypeConfig } from '../../utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
@@ -39,7 +40,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   useAmbientColor,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedView = useRef(false);
 
@@ -94,7 +95,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
 
     navigation.navigate(Routes.SECURITY_TRUST, {
       ...token,
-      securityData,
+      securityData: securityData ?? undefined,
       useAmbientColor,
     });
   };

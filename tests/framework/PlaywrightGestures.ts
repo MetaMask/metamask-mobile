@@ -6,6 +6,7 @@ import { boxedStep, getDriver } from './PlaywrightUtilities';
 import {
   createPlaywrightLogger,
   debugElementAction,
+  formatSelector,
 } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('PlaywrightGestures');
@@ -19,6 +20,42 @@ export interface ScrollOptions {
   duration?: number;
   /** WDIO native scrollIntoView limit; default is 10. */
   maxScrolls?: number;
+}
+
+/**
+ * Ensures a Appium element has a resolved `elementId` before any call that
+ * would invoke `getElementRect` (`scrollIntoView`, `getLocation`, `getSize`).
+ */
+export async function assertResolvedElementId(
+  elem: PlaywrightElement,
+  action: string,
+  role: 'target' | 'scrollableElement' = 'target',
+): Promise<string> {
+  const unwrapped = elem.unwrap();
+  let elementId: unknown;
+  try {
+    elementId = await unwrapped.elementId;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Cannot ${action}: failed to read ${role} elementId (${detail})`,
+    );
+  }
+
+  if (elementId === undefined || elementId === null || elementId === '') {
+    let selectorLabel = '';
+    try {
+      selectorLabel = formatSelector(await unwrapped.selector);
+    } catch {
+      // Selector may be unavailable for unresolved/stale elements.
+    }
+    const selectorPart = selectorLabel ? ` (selector: ${selectorLabel})` : '';
+    throw new Error(
+      `Cannot ${action}: ${role} has no valid Appium elementId${selectorPart}. Element was not found or is stale — refusing to call getElementRect.`,
+    );
+  }
+
+  return String(elementId);
 }
 
 /**
@@ -292,6 +329,7 @@ export default class PlaywrightGestures {
     elem: PlaywrightElement,
     duration = 1000,
   ): Promise<void> {
+    await assertResolvedElementId(elem, 'longPress', 'target');
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
 
@@ -346,6 +384,15 @@ export default class PlaywrightGestures {
       duration,
       maxScrolls = 30,
     } = options || {};
+    // Only guard scrollableElement here. The target may be off-screen / not yet
+    // in the hierarchy; WDIO scrolls until it becomes visible.
+    if (scrollableElement) {
+      await assertResolvedElementId(
+        scrollableElement,
+        'scrollIntoView',
+        'scrollableElement',
+      );
+    }
     await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
       direction: scrollParams.direction,
@@ -377,6 +424,8 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) return;
 
+    // Re-check before getLocation/getSize — element may have gone stale after scroll.
+    await assertResolvedElementId(elem, 'scrollIntoViewFullyVisible', 'target');
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
     const windowSize = getWindowSize();
@@ -518,7 +567,13 @@ export default class PlaywrightGestures {
 
     logger.debug('Hiding keyboard');
     if (PlatformDetector.isAndroid()) {
-      await drv.hideKeyboard();
+      try {
+        if (await drv.isKeyboardShown()) {
+          await drv.hideKeyboard();
+        }
+      } catch {
+        // Keyboard already hidden
+      }
     } else {
       // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
       // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs

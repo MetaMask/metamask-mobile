@@ -27,8 +27,10 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SocialService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
+  'MoneyAccountApiDataService',
   'ConfigRegistryApiService',
   'ChompApiService',
+  'SentinelApiService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [

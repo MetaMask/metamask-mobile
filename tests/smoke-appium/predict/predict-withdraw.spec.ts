@@ -30,6 +30,7 @@ import {
   loginForPredictTests,
   remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
+  remoteFeatureFlagWithdrawAnyTokenDisabled,
 } from './helpers/predict-helpers.js';
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
@@ -41,6 +42,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
+    ...remoteFeatureFlagWithdrawAnyTokenDisabled(),
     carouselBanners: false,
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow

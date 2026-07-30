@@ -162,6 +162,7 @@ export interface SignWithdrawParams {
 export interface SignWithdrawResponse {
   callData: Hex;
   amount: number;
+  walletType: AccountState['walletType'];
 }
 
 export interface PredictProvider {

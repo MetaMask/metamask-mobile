@@ -283,7 +283,7 @@ describe('TopTradersSection', () => {
   it('opens the Social Leaderboard (routing through the onboarding gate) when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Weekly Top Traders'));
+    fireEvent.press(screen.getByText('Weekly top traders'));
 
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
       expect.any(Function),
@@ -294,7 +294,7 @@ describe('TopTradersSection', () => {
   it('navigates to the trader profile with correct params when a card is tapped', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.PROFILE,

@@ -1,7 +1,15 @@
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootModalFlowParamList,
+} from '../../../core/NavigationService/types';
 import {
   FlashList,
   type FlashListProps,
@@ -11,6 +19,7 @@ import {
 import React, {
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -24,6 +33,7 @@ import Animated, {
   useAnimatedScrollHandler,
   type SharedValue,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -82,7 +92,6 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
@@ -215,7 +224,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
     ref,
   ) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
     const tw = useTailwind();
@@ -1021,7 +1030,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               transactionDetails,
               showSpeedUpModal: noop,
               showCancelModal: noop,
-            },
+            } as NonNullable<RootModalFlowParamList['TransactionDetailsSheet']>,
           });
         } catch {
           if (activityPressTokenRef.current !== pressToken) return;
@@ -1143,6 +1152,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     );
 
     const listRef = useRef<FlashListRef<GroupedActivityListItem>>(null);
+
+    const { bottom: bottomInset } = useSafeAreaInsets();
+    const tabBarHeight = useContext(BottomTabBarHeightContext);
+    const listContentStyle = useMemo(
+      () => ({ paddingBottom: tabBarHeight ? 0 : bottomInset }),
+      [tabBarHeight, bottomInset],
+    );
 
     const isDomainFilter =
       typeFilter === ActivityTypeFilter.Perps ||
@@ -1301,7 +1317,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   autoscrollToTopThreshold: 100,
                 }}
                 style={baseStyles.flexGrow}
-                contentContainerStyle={tw.style('pb-8')}
+                contentContainerStyle={listContentStyle}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}

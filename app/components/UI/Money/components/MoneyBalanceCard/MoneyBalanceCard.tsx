@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -51,7 +52,7 @@ import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const {
@@ -115,7 +116,7 @@ const MoneyBalanceCard = () => {
   let buttonVariant: ButtonVariant;
   let containerTestId: string;
 
-  if (!hasMoneyAccount || isError || isRetrying) {
+  if (isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
@@ -206,19 +207,7 @@ const MoneyBalanceCard = () => {
   }, [navigation, trackTooltipClicked]);
 
   const renderBalanceSlot = () => {
-    if (!hasMoneyAccount) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          testID={MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT}
-        >
-          {strings('money.balance_no_account')}
-        </Text>
-      );
-    }
-    if (isBalanceLoading || isRetrying) {
+    if (!hasMoneyAccount || isBalanceLoading || isRetrying) {
       return (
         <Skeleton
           height={24}

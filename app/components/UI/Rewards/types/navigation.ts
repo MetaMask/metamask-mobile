@@ -171,6 +171,7 @@ export type RewardsStackParamList = {
   RewardsVipSplashView: undefined;
   RewardsVipView: undefined;
   RewardsVipTiersView: undefined;
+  RewardsVipTransactionsView: undefined;
   RewardsVipRefereeSplashView: undefined;
   RewardsVipRefereeView: undefined;
   RewardsCampaignsView: undefined;
