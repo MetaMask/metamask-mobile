@@ -73,7 +73,10 @@ const eurState = {
         currentCurrency: 'eur',
       },
       // Read instead of `CurrencyRateController` once assets state unifies.
-      AssetsController: { selectedCurrency: 'eur' },
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        selectedCurrency: 'eur' as const,
+      },
     },
   },
 };
