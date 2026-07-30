@@ -11,10 +11,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
@@ -27,10 +26,11 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks';
+import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import {
+  Box,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -39,9 +39,9 @@ import {
   ButtonSize,
   ButtonVariant,
   HelpText,
-  HelpTextSeverity,
   KeyValueRow,
   KeyValueRowVariant,
+  Skeleton,
   Slider,
   SliderMarkColor,
   Text,
@@ -62,6 +62,12 @@ interface PerpsLeverageBottomSheetProps {
   asset?: string;
   limitPrice?: string;
   orderType?: 'market' | 'limit';
+}
+
+interface LeverageSliderEntry {
+  key: number;
+  value: number;
+  role: 'active' | 'incoming';
 }
 
 const leverageToTrackStep = (
@@ -87,13 +93,22 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   limitPrice,
   orderType = 'market',
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [tempLeverage, setTempLeverage] = useState(initialLeverage);
   const [draggingLeverage, setDraggingLeverage] = useState(initialLeverage);
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
+  // After a slider gesture, MMDS can leave drag/echo state stuck so chip
+  // prop updates won't move the thumb. Remount via a hidden "incoming"
+  // instance, then promote it in place (same React key) so the old thumb
+  // stays visible until the new one is laid out — no opacity flash, no
+  // translateX=0 jerk.
+  const [sliderEntries, setSliderEntries] = useState<LeverageSliderEntry[]>([
+    { key: 0, value: initialLeverage, role: 'active' },
+  ]);
+  const hasSliderDraggedRef = useRef(false);
+  const promoteFrameRef = useRef<number | null>(null);
 
   // Cache last valid liquidation price to avoid skeleton blinking when the
   // price updates passively (market price ticks). The cache is intentionally
@@ -188,6 +203,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);
       setLeverageChanged(false);
+      setSliderEntries([{ key: 0, value: initialLeverage, role: 'active' }]);
+      hasSliderDraggedRef.current = false;
+      if (promoteFrameRef.current !== null) {
+        cancelAnimationFrame(promoteFrameRef.current);
+        promoteFrameRef.current = null;
+      }
       lastValidLiquidationPrice.current = null;
       leverageChangeTime.current = 0;
     }
@@ -310,7 +331,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const displayLeverage = isDragging ? draggingLeverage : tempLeverage;
 
+  const syncActiveSliderValue = useCallback((value: number) => {
+    setSliderEntries((prev) =>
+      prev.map((entry) =>
+        entry.role === 'active' ? { ...entry, value } : entry,
+      ),
+    );
+  }, []);
+
   const handleSliderChange = useCallback((value: number) => {
+    hasSliderDraggedRef.current = true;
     setIsDragging(true);
     setDraggingLeverage(value);
   }, []);
@@ -324,10 +354,22 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         lastValidLiquidationPrice.current = null;
       }
       setTempLeverage(value);
+      syncActiveSliderValue(value);
       setInputMethod('slider');
     },
-    [tempLeverage],
+    [syncActiveSliderValue, tempLeverage],
   );
+
+  // ScrollView / gesture arbitration can finalize the MMDS pan without
+  // onDragEnd; clear the parent drag flag so displayLeverage is not wedged.
+  const handleSliderDragCancel = useCallback(() => {
+    if (isDragging) {
+      setIsDragging(false);
+      setTempLeverage(draggingLeverage);
+      syncActiveSliderValue(draggingLeverage);
+      setInputMethod('slider');
+    }
+  }, [draggingLeverage, isDragging, syncActiveSliderValue]);
 
   const handleSliderGrip = useCallback(() => {
     playImpact(ImpactMoment.SliderGrip);
@@ -337,8 +379,30 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     playImpact(ImpactMoment.SliderTick);
   }, []);
 
+  const promoteIncomingSlider = useCallback((incomingKey: number) => {
+    if (promoteFrameRef.current !== null) {
+      cancelAnimationFrame(promoteFrameRef.current);
+    }
+    // Wait until the incoming Slider has applied its layout-driven thumb
+    // position, then promote that same instance (same key) to active.
+    promoteFrameRef.current = requestAnimationFrame(() => {
+      promoteFrameRef.current = requestAnimationFrame(() => {
+        promoteFrameRef.current = null;
+        setSliderEntries((prev) => {
+          const incoming = prev.find((entry) => entry.key === incomingKey);
+          if (!incoming) {
+            return prev;
+          }
+          return [{ key: incoming.key, value: incoming.value, role: 'active' }];
+        });
+      });
+    });
+  }, []);
+
   const handleQuickSelect = useCallback(
     (value: number) => {
+      const shouldRemountSlider = isDragging || hasSliderDraggedRef.current;
+
       setIsDragging(false);
       if (value !== tempLeverage) {
         leverageChangeTime.current = Date.now();
@@ -348,9 +412,24 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setTempLeverage(value);
       setDraggingLeverage(value);
       setInputMethod('preset');
+
+      if (shouldRemountSlider) {
+        hasSliderDraggedRef.current = false;
+        setSliderEntries((prev) => {
+          const active =
+            prev.find((entry) => entry.role === 'active') ?? prev[0];
+          return [
+            { key: active.key, value: active.value, role: 'active' },
+            { key: active.key + 1, value, role: 'incoming' },
+          ];
+        });
+      } else {
+        syncActiveSliderValue(value);
+      }
+
       playSelection();
     },
-    [tempLeverage],
+    [isDragging, syncActiveSliderValue, tempLeverage],
   );
 
   if (!isVisible) return null;
@@ -366,51 +445,87 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
-          <View style={styles.leverageDisplay}>
+        <Box twClassName="pb-4">
+          <Box twClassName="items-center px-4 py-4">
             <Text variant={TextVariant.DisplayLg} color={TextColor.TextDefault}>
               {displayLeverage}x
             </Text>
-          </View>
+          </Box>
 
-          <View style={styles.sliderContainer}>
-            <Slider
-              value={displayLeverage}
-              onValueChange={handleSliderChange}
-              onDragEnd={handleSliderDragEnd}
-              minimumValue={minLeverage}
-              maximumValue={maxLeverage}
-              step={1}
-              marks={sliderMarks}
-              showRangeLabels
-              showRangeDots
-              onGrip={handleSliderGrip}
-              onMark={handleSliderMark}
-            />
-          </View>
+          <Box
+            twClassName="relative px-4"
+            onTouchCancel={handleSliderDragCancel}
+          >
+            {sliderEntries.map((entry) => {
+              const isActive = entry.role === 'active';
+              const sliderValue =
+                isActive && isDragging ? draggingLeverage : entry.value;
 
-          <View style={styles.quickSelectButtons}>
-            {quickSelectValues.map((value) => (
-              <View key={value} style={styles.quickSelectButtonWrapper}>
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Md}
-                  isFullWidth
-                  onPress={() => handleQuickSelect(value)}
-                  testID={`leverage-quick-select-${value}`}
+              return (
+                <Box
+                  key={entry.key}
+                  testID={
+                    isActive
+                      ? undefined
+                      : PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP
+                  }
+                  style={isActive ? undefined : styles.sliderIncoming}
+                  pointerEvents={isActive ? 'auto' : 'none'}
+                  onLayout={
+                    isActive
+                      ? undefined
+                      : () => {
+                          promoteIncomingSlider(entry.key);
+                        }
+                  }
                 >
-                  {`${value}x`}
-                </Button>
-              </View>
-            ))}
-          </View>
+                  <Slider
+                    testID={
+                      isActive
+                        ? PerpsLeverageBottomSheetSelectorsIDs.SLIDER
+                        : PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING
+                    }
+                    value={sliderValue}
+                    onValueChange={isActive ? handleSliderChange : undefined}
+                    onDragEnd={isActive ? handleSliderDragEnd : undefined}
+                    minimumValue={minLeverage}
+                    maximumValue={maxLeverage}
+                    step={1}
+                    marks={sliderMarks}
+                    showRangeLabels
+                    showRangeDots
+                    onGrip={isActive ? handleSliderGrip : undefined}
+                    onMark={isActive ? handleSliderMark : undefined}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
 
-          <View style={styles.helpTextContainer}>
+          <Box twClassName="flex-row justify-between gap-2 px-4 mt-1 mb-4">
+            {quickSelectValues.map((value) => (
+              <Button
+                key={value}
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Md}
+                onPress={() => handleQuickSelect(value)}
+                testID={`${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-${value}`}
+                twClassName="flex-1"
+              >
+                {`${value}x`}
+              </Button>
+            ))}
+          </Box>
+
+          <Box
+            twClassName="items-center justify-center px-4 mb-4"
+            style={styles.helpTextContainer}
+          >
             {isRecalculating ? (
               <Skeleton width="80%" height={14} />
             ) : (
               <HelpText
-                severity={HelpTextSeverity.Info}
+                testID={PerpsLeverageBottomSheetSelectorsIDs.HELP_TEXT}
                 twClassName="w-full justify-center text-center"
               >
                 {strings('perps.order.leverage_modal.liquidation_warning', {
@@ -422,10 +537,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 })}
               </HelpText>
             )}
-          </View>
+          </Box>
 
           {currentPrice ? (
-            <View style={styles.priceInfoContainer}>
+            <Box
+              twClassName="mb-2 justify-center"
+              style={styles.priceInfoContainer}
+            >
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
                 keyLabel={strings(
@@ -450,19 +568,22 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   ranges: PRICE_RANGES_UNIVERSAL,
                 })}
               />
-            </View>
+            </Box>
           ) : (
-            <View style={styles.priceInfoContainer}>
+            <Box
+              twClassName="mb-2 justify-center"
+              style={styles.priceInfoContainer}
+            >
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
-                style={styles.emptyPriceInfo}
+                twClassName="text-center px-4 py-4"
               >
                 {strings('perps.order.leverage_modal.price_unavailable')}
               </Text>
-            </View>
+            </Box>
           )}
-        </View>
+        </Box>
       </ScrollView>
 
       <BottomSheetFooter
@@ -472,7 +593,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           children: strings('perps.order.leverage_modal.set_leverage', {
             leverage: displayLeverage,
           }),
-          style: styles.footerButtonContainer,
+          twClassName: 'mb-4',
         }}
       />
     </BottomSheet>
