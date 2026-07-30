@@ -79,7 +79,7 @@ describe('formatCustomAmountHelpText', () => {
     ).toBe('No quotes available.');
   });
 
-  it('formats deposit in progress as CTA - error', () => {
+  it('formats deposit in progress as title. message', () => {
     const cta = strings('alert_system.signed_or_submitted_perps_deposit.title');
     const error = strings(
       'alert_system.signed_or_submitted_perps_deposit.message',
@@ -92,7 +92,7 @@ describe('formatCustomAmountHelpText', () => {
           message: error,
         }),
       ),
-    ).toBe(`${cta} - ${error}`);
+    ).toBe(`${cta}. ${error}`);
   });
 
   it('formats pending pay token as error only', () => {
@@ -131,15 +131,15 @@ describe('formatCustomAmountHelpText', () => {
     ).toBe('No funds available. Use a different account.');
   });
 
-  it('formats headless buy as CTA - error', () => {
+  it('formats headless buy as error only', () => {
     expect(
       formatCustomAmountHelpText(
         alert({
           key: AlertKeys.HeadlessBuyError,
           title: 'Fiat purchase failed',
-          message: 'Payment provider unavailable',
+          message: 'Payment provider unavailable.',
         }),
       ),
-    ).toBe('Fiat purchase failed - Payment provider unavailable');
+    ).toBe('Payment provider unavailable.');
   });
 });

@@ -343,9 +343,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const resolvedHelpText =
       (showBuySection ? buyEmptyHelpText : undefined) ??
       helpText ??
-      (headlessBuyError
-        ? `${strings('alert_system.headless_buy_error.title')} - ${headlessBuyError}`
-        : undefined);
+      headlessBuyError;
     const hasBlockingErrorEffective =
       Boolean(resolvedHelpText) || hasBlockingError;
     const hideConfirm = Boolean(showBuySection && buyEmptyHelpText);

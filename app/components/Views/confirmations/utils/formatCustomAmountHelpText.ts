@@ -24,7 +24,7 @@ const HELP_TEXT_FORMAT_BY_KEY: Partial<
   [AlertKeys.DepositLimit]: 'cta',
   [AlertKeys.PerpsDepositMinimum]: 'cta',
   [AlertKeys.AccountNoFunds]: 'error',
-  [AlertKeys.HeadlessBuyError]: 'cta_and_error',
+  [AlertKeys.HeadlessBuyError]: 'error',
 };
 
 function asString(
@@ -57,14 +57,17 @@ export function formatCustomAmountHelpText(
   const error = alert.title ? asString(alert.message) : undefined;
   const key = alert.key as AlertKeys;
 
-  // SignedOrSubmitted covers deposit-in-progress (combined) and pending
-  // pay-network (error-only). Distinguish by deposit title copy.
+  // SignedOrSubmitted covers deposit-in-progress (title + message with period)
+  // and pending pay-network (error-only). Distinguish by deposit title copy.
   if (key === AlertKeys.SignedOrSubmitted) {
     const depositTitle = strings(
       'alert_system.signed_or_submitted_perps_deposit.title',
     );
     if (cta === depositTitle) {
-      return joinCtaAndError(cta, error);
+      if (cta && error) {
+        return `${cta}. ${error}`;
+      }
+      return cta ?? error;
     }
     return error ?? cta;
   }
