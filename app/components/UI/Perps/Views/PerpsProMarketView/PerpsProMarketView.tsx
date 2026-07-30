@@ -25,6 +25,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
+import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
@@ -40,7 +41,6 @@ import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
-import PerpsProStatsBar from './components/PerpsProStatsBar';
 import { createStyles } from './PerpsProMarketView.styles';
 
 /**
@@ -194,7 +194,11 @@ const PerpsProMarketView = () => {
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
         />
-        <PerpsProStatsBar />
+        <PerpsProMarketStatsBar
+          symbol={market.symbol}
+          nextFundingTime={market.nextFundingTime}
+          fundingIntervalHours={market.fundingIntervalHours}
+        />
         <PerpsProMarketLayout
           isOrderBookCollapsed={isOrderBookCollapsed}
           onExpandOrderBook={handleExpandOrderBook}
