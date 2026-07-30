@@ -314,7 +314,7 @@
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
     "@metamask/money-account-api-data-service": "^0.4.0",
-    "@metamask/money-account-balance-service": "^2.3.0",
+    "@metamask/money-account-balance-service": "^2.4.0",
     "@metamask/money-account-controller": "^0.2.0",
     "@metamask/money-account-upgrade-controller": "^3.0.0",
     "@metamask/multichain-account-service": "^13.0.0",
