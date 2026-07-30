@@ -1,3 +1,5 @@
+import { hasTransactionType } from '@metamask/transaction-controller';
+
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
@@ -17,7 +19,6 @@ import {
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
 
 export function useNoPayTokenQuotesAlert() {
