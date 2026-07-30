@@ -16,6 +16,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
+import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 
 interface MockRouteParams {
   market?: {
@@ -203,15 +204,18 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
 // tests — mocked (rather than requireActual) to avoid needing a real
 // PerpsStreamProvider in the tree, and overridable per-test via
 // `mockUsePerpsMarketsImpl` for the enrichment test below.
-const mockUsePerpsMarketsImpl = jest.fn(() => ({
-  markets: [] as { symbol: string; maxLeverage: string }[],
-  isLoading: false,
-  error: null,
-  refresh: jest.fn(),
-  isRefreshing: false,
-}));
+const mockUsePerpsMarketsImpl = jest.fn(
+  (_options?: UsePerpsMarketsOptions) => ({
+    markets: [] as { symbol: string; maxLeverage: string }[],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  }),
+);
 jest.mock('../../hooks/usePerpsMarkets', () => ({
-  usePerpsMarkets: (options?: unknown) => mockUsePerpsMarketsImpl(options),
+  usePerpsMarkets: (options?: UsePerpsMarketsOptions) =>
+    mockUsePerpsMarketsImpl(options),
 }));
 
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
