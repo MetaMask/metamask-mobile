@@ -24,6 +24,7 @@ export const normalizeMarketListParams = (
   params: PredictMarketListParams = {},
 ) => {
   const search = params.search?.trim();
+  const customQueryParams = params.customQueryParams?.trim();
 
   return {
     tags: params.tags?.length
@@ -39,6 +40,7 @@ export const normalizeMarketListParams = (
     status: params.status,
     live: params.live === true ? true : undefined,
     search: search || undefined,
+    customQueryParams: customQueryParams || undefined,
     limit: params.limit ?? PREDICT_MARKET_LIST_PAGE_SIZE,
   };
 };

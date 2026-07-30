@@ -651,6 +651,8 @@ export interface PredictMarketListParams {
   // search stays on the same feed endpoint (handled in the provider layer, not
   // the UI). Blank/whitespace is ignored (browse mode).
   search?: string;
+  /** Raw Polymarket query params that override matching generated params. */
+  customQueryParams?: string;
   limit?: number;
   afterCursor?: string | null;
 }
