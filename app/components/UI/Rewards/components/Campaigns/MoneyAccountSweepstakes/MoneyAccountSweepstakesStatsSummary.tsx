@@ -24,7 +24,6 @@ import { ENTRIES_COUNT_PLACEHOLDER } from './constants';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-stats-summary-container',
-  CURRENT_BALANCE: 'money-account-sweepstakes-stats-current-balance',
   ELIGIBLE_BALANCE: 'money-account-sweepstakes-stats-eligible-balance',
   ENTRIES: 'money-account-sweepstakes-stats-entries',
   ELIGIBLE_STATUS_ICON: 'money-account-sweepstakes-stats-eligible-status-icon',
@@ -70,9 +69,6 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
 
   const showSkeleton = isLoading && !stats;
 
-  const currentBalanceDisplay = stats
-    ? formatUsd(stats.currentBalanceUsd)
-    : '—';
   const eligibleBalanceDisplay = stats ? formatUsd(stats.todayMinUsd) : '—';
   const entriesDisplay = stats
     ? localizedText.entriesCountValue.replace(
@@ -135,38 +131,6 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
     >
       <Box flexDirection={BoxFlexDirection.Row}>
         <StatCell
-          label={localizedText.currentBalanceTitle}
-          value={currentBalanceDisplay}
-          isLoading={showSkeleton}
-          testID={
-            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.CURRENT_BALANCE
-          }
-          suffix={
-            !showSkeleton
-              ? infoSuffix(
-                  localizedText.currentBalanceTitle,
-                  localizedText.currentBalanceDescription,
-                )
-              : undefined
-          }
-        />
-        <StatCell
-          label={localizedText.entriesTitle}
-          value={entriesDisplay}
-          isLoading={showSkeleton}
-          testID={MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.ENTRIES}
-          suffix={
-            !showSkeleton
-              ? infoSuffix(
-                  localizedText.entriesTitle,
-                  localizedText.entriesDescription,
-                )
-              : undefined
-          }
-        />
-      </Box>
-      <Box flexDirection={BoxFlexDirection.Row}>
-        <StatCell
           label={localizedText.eligibleBalanceTitle}
           value={eligibleBalanceDisplay}
           isLoading={showSkeleton}
@@ -183,6 +147,20 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
               : undefined
           }
           valueSuffix={!showSkeleton ? eligibleStatusIcon : undefined}
+        />
+        <StatCell
+          label={localizedText.entriesTitle}
+          value={entriesDisplay}
+          isLoading={showSkeleton}
+          testID={MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.ENTRIES}
+          suffix={
+            !showSkeleton
+              ? infoSuffix(
+                  localizedText.entriesTitle,
+                  localizedText.entriesDescription,
+                )
+              : undefined
+          }
         />
       </Box>
     </Box>
