@@ -5,6 +5,7 @@ import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
@@ -12,10 +13,7 @@ import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmo
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import {

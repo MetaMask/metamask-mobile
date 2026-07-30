@@ -3,7 +3,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 
@@ -28,10 +32,7 @@ import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPe
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,

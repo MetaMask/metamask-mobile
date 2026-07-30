@@ -1,11 +1,11 @@
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionMetrics, TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 import {
   getMetaMaskPayFiatChainTarget,
   normalizeMetaMaskPayPaymentMethod,
