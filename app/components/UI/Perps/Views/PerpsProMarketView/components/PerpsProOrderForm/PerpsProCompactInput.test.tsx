@@ -29,7 +29,11 @@ const defaultProps = {
 
 describe('PerpsProCompactInput', () => {
   beforeEach(() => {
-    mockInputFocus.mockClear();
+    // Clears every mock's call history — including `defaultProps.onChangeText`,
+    // which is shared across tests since `defaultProps` is a module-level
+    // constant — not just `mockInputFocus`, so stale call counts can't bleed
+    // between tests.
+    jest.clearAllMocks();
   });
 
   it('focuses the input when the label is pressed', () => {

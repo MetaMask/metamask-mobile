@@ -58,7 +58,9 @@ const mockOrderBook: OrderBookData = {
   spread: '100',
   spreadPercentage: '0.2',
   midPrice: '50050',
-  lastUpdated: Date.now(),
+  // Fixed epoch (2023-11-14T22:13:20.000Z) — no test asserts on this value,
+  // but a pinned constant keeps the fixture deterministic across runs.
+  lastUpdated: 1700000000000,
   maxTotal: '3.5',
 };
 
