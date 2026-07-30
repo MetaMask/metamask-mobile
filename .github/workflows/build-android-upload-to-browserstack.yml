@@ -2,18 +2,12 @@
 # Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
 # Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
 #
-# Fingerprint reuse (test-only / main_branch_only):
-#   When source_fingerprint is set AND main_branch_only is true, try to reuse
-#   android-apk-main-e2e-bs-* (or variant) artifacts from a prior workflow run with
-#   the same @expo/fingerprint hash, then re-upload those APKs to BrowserStack.
-#   This mirrors build-android-e2e.yml's reuse-main-builds-only path, which also
-#   skips @expo/repack-app because only test files changed (app JS is unchanged).
-#
-#   As-is reuse is intentionally NOT used for general fingerprint hits: @expo/fingerprint
-#   ignores JS-only changes, and this workflow does not repack the JS bundle into the
-#   reused APKs. Reusing on a JS-only app change would run performance tests against a
-#   stale binary. Until an E2E-style repack path exists for both BS profiles, non-test-only
-#   runs always take the fresh dual-build path.
+# Fingerprint reuse (same procedure as build-android-e2e.yml):
+#   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
+#   2. On miss → fresh dual Gradle builds (unchanged).
+#   3. On hit + main_branch_only (test-only) → re-upload APKs as-is (app JS unchanged).
+#   4. On hit + app changes → skip Gradle, @expo/repack-app both profiles with current JS,
+#      then upload (avoids stale JS; fingerprint ignores JS-only changes).
 
 name: Build Android Dual Versions and Upload to BrowserStack
 
@@ -41,18 +35,16 @@ on:
         required: false
         type: string
         description: >-
-          @expo/fingerprint hash from native-build-fingerprint. Used with
-          main_branch_only to reuse BrowserStack performance APKs on test-only
-          PRs (app JS unchanged). Ignored for as-is reuse when main_branch_only
-          is false — see workflow header comment about stale JS / missing repack.
+          @expo/fingerprint hash from native-build-fingerprint. When set, try to
+          reuse prior BrowserStack performance APKs (repack JS unless test-only).
         default: ''
       main_branch_only:
         required: false
         type: boolean
         description: >-
-          When true (test-only PRs), allow as-is fingerprint reuse of prior
-          main-e2e-bs-* APKs. When false, always compile fresh dual builds so
-          JS-only app changes are not tested against a stale binary.
+          When true (test-only PRs), search mainly on main and skip JS repack
+          (app JS unchanged). When false, fingerprint hit still reuses native
+          APKs but repacks the JS bundle like E2E.
         default: false
     outputs:
       with-srp-browserstack-url:
@@ -94,6 +86,7 @@ jobs:
       builds-needed: ${{ steps.check-builds.outputs.builds-needed }}
       with-srp-build-name: ${{ steps.names.outputs.with-srp-build-name }}
       without-srp-build-name: ${{ steps.names.outputs.without-srp-build-name }}
+      github-environment: ${{ steps.names.outputs.github-environment }}
 
     steps:
       - name: Check if builds are needed
@@ -113,25 +106,24 @@ jobs:
           if [ "${{ inputs.build_variant }}" = "exp" ]; then
             echo "with-srp-build-name=main-exp-with-srp" >> "$GITHUB_OUTPUT"
             echo "without-srp-build-name=main-exp-without-srp" >> "$GITHUB_OUTPUT"
+            echo "github-environment=build-exp" >> "$GITHUB_OUTPUT"
           elif [ "${{ inputs.build_variant }}" = "rc" ]; then
             echo "with-srp-build-name=main-rc-with-srp" >> "$GITHUB_OUTPUT"
             echo "without-srp-build-name=main-rc-without-srp" >> "$GITHUB_OUTPUT"
+            echo "github-environment=build-rc" >> "$GITHUB_OUTPUT"
           else
             echo "with-srp-build-name=main-e2e-bs-with-srp" >> "$GITHUB_OUTPUT"
             echo "without-srp-build-name=main-e2e-bs-without-srp" >> "$GITHUB_OUTPUT"
+            echo "github-environment=build-e2e" >> "$GITHUB_OUTPUT"
           fi
 
   resolve-fingerprint-reuse:
     name: Resolve fingerprint-reusable BrowserStack APKs
     runs-on: ubuntu-latest
     needs: [check-builds-needed]
-    # As-is APK reuse is safe only when app JS did not change (test-only PRs).
-    # @expo/fingerprint ignores JS-only changes and this workflow does not run
-    # @expo/repack-app, so general fingerprint hits must not reuse prior APKs.
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
-      inputs.source_fingerprint &&
-      inputs.main_branch_only
+      inputs.source_fingerprint
     outputs:
       found: ${{ steps.finalize.outputs.found }}
       run-id: ${{ steps.finalize.outputs.run-id }}
@@ -275,7 +267,23 @@ jobs:
 
   upload-to-browserstack:
     name: Upload APKs to BrowserStack
-    runs-on: ubuntu-latest
+    # Repack needs Android SDK/apksigner (Cirrus). Light as-is/fresh upload can stay on ubuntu.
+    runs-on: >-
+      ${{
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+        inputs.main_branch_only != true &&
+        fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
+        fromJSON('["ubuntu-latest"]')
+      }}
+    # Only the JS-repack path needs build-e2e/rc/exp secrets (ADDITIONAL_SRP_1, etc.).
+    # Fresh/as-is upload only needs repo-level BrowserStack credentials.
+    environment: >-
+      ${{
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+        inputs.main_branch_only != true &&
+        needs.check-builds-needed.outputs.github-environment ||
+        ''
+      }}
     needs:
       [
         check-builds-needed,
@@ -303,6 +311,35 @@ jobs:
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
 
     steps:
+      - name: Checkout (repack path)
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: actions/checkout@v6
+
+      - name: Setup E2E environment for APK repack
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'false'
+          configure-keystores: 'true'
+          install-foundry: 'false'
+          runner_provider: current
+
+      - name: Setup project dependencies (lightweight, repack path)
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios --no-build-android
+
       - name: Download reused with-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
         uses: actions/download-artifact@v4
@@ -337,6 +374,89 @@ jobs:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
 
+      - name: Repack reused APKs with current JS (E2E-style)
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        env:
+          WITH_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          WITHOUT_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          CI: 'true'
+          GITHUB_CI: 'true'
+          PLATFORM: android
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '6'
+        run: |
+          set -euo pipefail
+
+          # Apply builds.yml env + secrets into THIS shell so metro (child of yarn
+          # build:repack) inherits them. set-secrets-from-config only writes GITHUB_ENV
+          # for later steps, which is too late for a same-step metro invoke.
+          export_build_env() {
+            local build_name="$1"
+            eval "$(node scripts/apply-build-config.js "$build_name" --export)"
+            export CONFIG_SECRETS
+            CONFIG_SECRETS="$(node -e "
+              const yaml = require('js-yaml');
+              const fs = require('fs');
+              const build = yaml.load(fs.readFileSync('builds.yml', 'utf8')).builds[process.argv[1]];
+              process.stdout.write(JSON.stringify(build.secrets || {}));
+            " "$build_name")"
+            eval "$(node -e "
+              const mapping = JSON.parse(process.env.CONFIG_SECRETS || '{}');
+              const all = JSON.parse(process.env.ALL_SECRETS || '{}');
+              for (const [envVar, secretName] of Object.entries(mapping)) {
+                const value = all[secretName];
+                if (value != null && value !== '') {
+                  process.stdout.write('export ' + envVar + '=' + JSON.stringify(String(value)) + '\n');
+                } else {
+                  console.error('Warning: secret ' + secretName + ' missing for ' + envVar);
+                }
+              }
+            ")"
+          }
+
+          repack_profile() {
+            local build_name="$1"
+            local src_dir="$2"
+            local out_dir="$3"
+            local label="$4"
+
+            local src_apk
+            src_apk="$(find "$src_dir" -name '*.apk' -type f | head -1)"
+            if [ -z "$src_apk" ]; then
+              echo "❌ No APK found in $src_dir for $label"
+              exit 1
+            fi
+
+            echo "=== Repacking $label from $src_apk using builds.yml profile $build_name ==="
+            mkdir -p "$out_dir" android/app/build/outputs/apk/prod/release "android/app/build/repack-working-$label" sourcemaps/android
+
+            export_build_env "$build_name"
+
+            export REPACK_SOURCE_APK="$src_apk"
+            export REPACK_OUTPUT_APK="android/app/build/outputs/apk/prod/release/app-prod-release-repack-$label.apk"
+            export REPACK_FINAL_APK="$out_dir/app-prod-release.apk"
+            export REPACK_WORKING_DIR="android/app/build/repack-working-$label"
+            export REPACK_SOURCEMAP_PATH="sourcemaps/android/index.android.bundle.$label.map"
+
+            yarn build:repack:android
+            echo "✅ Repacked $label → $REPACK_FINAL_APK ($(du -h "$REPACK_FINAL_APK" | cut -f1))"
+          }
+
+          # with-SRP first (ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD inlined into JS via metro)
+          repack_profile "$WITH_SRP_BUILD_NAME" artifacts/with-srp artifacts/with-srp-repacked with-srp
+
+          # without-SRP: drop with-SRP bake-ins so they are not left in process.env
+          unset ADDITIONAL_SRP_1 PREDEFINED_PASSWORD || true
+          repack_profile "$WITHOUT_SRP_BUILD_NAME" artifacts/without-srp artifacts/without-srp-repacked without-srp
+
+          # Replace staged dirs so the upload step always reads artifacts/{with,without}-srp
+          rm -rf artifacts/with-srp artifacts/without-srp
+          mv artifacts/with-srp-repacked artifacts/with-srp
+          mv artifacts/without-srp-repacked artifacts/without-srp
+
       - name: Upload APKs to BrowserStack
         id: browserstack-upload
         env:
@@ -344,6 +464,7 @@ jobs:
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
           FINGERPRINT_REUSED: ${{ needs.resolve-fingerprint-reuse.outputs.found }}
           REUSED_SOURCE_SHA: ${{ needs.resolve-fingerprint-reuse.outputs.source-sha }}
+          MAIN_BRANCH_ONLY: ${{ inputs.main_branch_only }}
           FRESH_WITH_SRP_VERSION: ${{ needs.build-with-srp.outputs.semantic_version }}
           FRESH_WITHOUT_SRP_VERSION: ${{ needs.build-without-srp.outputs.semantic_version }}
         run: |
@@ -352,9 +473,6 @@ jobs:
 
           BRANCH_NAME="${{ inputs.branch_name || github.ref_name }}"
           BRANCH_SLUG="$(printf '%s' "$BRANCH_NAME" | sed 's/[^A-Za-z0-9._-]/_/g' | cut -c1-40)"
-          # Stable per-branch custom_id (no run_id). BrowserStack overwrites the
-          # previous app for the same custom_id, so resolve can look up
-          # recent_apps/MetaMask-Android-*-main exactly.
           WITH_SRP_CUSTOM_ID="MetaMask-Android-With-SRP-${BRANCH_SLUG}"
           WITHOUT_SRP_CUSTOM_ID="MetaMask-Android-Without-SRP-${BRANCH_SLUG}"
           echo "BrowserStack custom_id branch slug: $BRANCH_SLUG"
@@ -362,16 +480,21 @@ jobs:
           echo "Without-SRP custom_id: $WITHOUT_SRP_CUSTOM_ID"
 
           if [ "$FINGERPRINT_REUSED" = "true" ]; then
-            WITH_SRP_VERSION="fingerprint-reuse-${REUSED_SOURCE_SHA:0:7}"
-            WITHOUT_SRP_VERSION="fingerprint-reuse-${REUSED_SOURCE_SHA:0:7}"
-            echo "APK source: fingerprint reuse (sha=${REUSED_SOURCE_SHA})"
+            if [ "$MAIN_BRANCH_ONLY" = "true" ]; then
+              WITH_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+              echo "APK source: fingerprint reuse as-is (test-only, sha=${REUSED_SOURCE_SHA})"
+            else
+              WITH_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+              echo "APK source: fingerprint reuse + JS repack (sha=${REUSED_SOURCE_SHA})"
+            fi
           else
             WITH_SRP_VERSION="${FRESH_WITH_SRP_VERSION}"
             WITHOUT_SRP_VERSION="${FRESH_WITHOUT_SRP_VERSION}"
             echo "APK source: fresh dual build"
           fi
 
-          # Initialize outputs
           {
             echo "with-srp-apk-uploaded=false"
             echo "without-srp-apk-uploaded=false"
@@ -382,11 +505,9 @@ jobs:
           WITH_SRP_ERROR=""
           WITHOUT_SRP_ERROR=""
 
-          # Find the APK files
           WITH_SRP_APK=$(find artifacts/with-srp -name "*.apk" | head -1)
           WITHOUT_SRP_APK=$(find artifacts/without-srp -name "*.apk" | head -1)
 
-          # Upload with-SRP APK
           if [ -n "$WITH_SRP_APK" ]; then
             echo "Uploading with-SRP APK: $WITH_SRP_APK"
             echo "File size: $(du -h "$WITH_SRP_APK" | cut -f1)"
@@ -419,7 +540,6 @@ jobs:
             echo "❌ With-SRP: $WITH_SRP_ERROR"
           fi
 
-          # Upload without-SRP APK
           if [ -n "$WITHOUT_SRP_APK" ]; then
             echo "Uploading without-SRP APK: $WITHOUT_SRP_APK"
             echo "File size: $(du -h "$WITHOUT_SRP_APK" | cut -f1)"
@@ -452,7 +572,6 @@ jobs:
             echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
           fi
 
-          # Summary
           echo ""
           echo "=== BrowserStack Upload Summary ==="
           if [ -n "$WITH_SRP_APP_URL" ]; then
@@ -466,7 +585,6 @@ jobs:
             echo "❌ Without-SRP: FAILED — ${WITHOUT_SRP_ERROR:-unknown error}"
           fi
 
-          # Fail only if BOTH uploads failed
           if [ -z "$WITH_SRP_APP_URL" ] && [ -z "$WITHOUT_SRP_APP_URL" ]; then
             echo ""
             echo "❌ Both APK uploads failed. Failing step."
