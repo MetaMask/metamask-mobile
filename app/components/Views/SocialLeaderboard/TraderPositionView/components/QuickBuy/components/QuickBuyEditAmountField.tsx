@@ -5,8 +5,8 @@ import {
   TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Pressable, type TextInput } from 'react-native';
 import {
   formatCurrency,
   getCurrencySymbol,
@@ -42,18 +42,44 @@ const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
   testID,
   onPress,
 }) => {
+  const inputRef = useRef<TextInput>(null);
   const displayValue = value || '0';
   const currencySymbol =
     kind === 'buy' && currency ? getCurrencySymbol(currency) : null;
+  const caretPosition = displayValue.length;
+
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+    // Keep the caret at the end while focused so keypad digits append.
+    inputRef.current?.focus();
+    inputRef.current?.setNativeProps({
+      selection: { start: caretPosition, end: caretPosition },
+    });
+  }, [isFocused, caretPosition]);
+
+  const handlePress = () => {
+    onPress();
+    inputRef.current?.focus();
+    inputRef.current?.setNativeProps({
+      selection: { start: caretPosition, end: caretPosition },
+    });
+  };
 
   return (
     <Box twClassName="min-w-0 flex-1">
-      <Pressable accessibilityRole="button" onPress={onPress} testID={testID}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={handlePress}
+        testID={testID}
+      >
         <TextField
           value={displayValue}
           isReadOnly
           isError={isError}
           pointerEvents="none"
+          inputRef={inputRef}
           startAccessory={
             currencySymbol ? (
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
@@ -73,7 +99,10 @@ const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
           }
           inputProps={{
             showSoftInputOnFocus: false,
-            caretHidden: true,
+            caretHidden: !isFocused,
+            selection: isFocused
+              ? { start: caretPosition, end: caretPosition }
+              : undefined,
           }}
         />
       </Pressable>
@@ -105,7 +134,7 @@ export function getQuickBuyEditFieldErrorMessage(
             validationContext.currency,
             validationContext.usdToCurrentCurrencyRate,
           )
-        : 9_999;
+        : 9_999_999;
       return strings(
         'social_leaderboard.quick_buy.edit_quick_amounts_buy_below_max',
         {

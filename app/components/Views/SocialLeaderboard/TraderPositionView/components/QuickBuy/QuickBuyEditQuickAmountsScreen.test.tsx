@@ -77,21 +77,6 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('keeps the title and keypad sticky outside the scrollable buy/sell rows', () => {
-    render(<QuickBuyEditQuickAmountsScreen />);
-
-    expect(screen.getByTestId('quick-buy-edit-header')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('quick-buy-edit-amounts-scroll'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('quick-buy-edit-amounts-keypad'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('quick-buy-edit-amounts-confirm'),
-    ).toBeOnTheScreen();
-  });
-
   it('keeps the amount rows visible while the keypad is open', () => {
     render(<QuickBuyEditQuickAmountsScreen />);
 

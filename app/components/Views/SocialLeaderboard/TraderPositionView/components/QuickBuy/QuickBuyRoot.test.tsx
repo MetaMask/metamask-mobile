@@ -709,7 +709,7 @@ describe('QuickBuyRoot', () => {
       );
     });
 
-    it('keeps the locked height when navigating to editQuickAmounts', () => {
+    it('uses dynamic height when navigating to editQuickAmounts', () => {
       renderWithNavigation();
 
       const container = screen.getByTestId('quick-buy-content-container');
@@ -726,9 +726,7 @@ describe('QuickBuyRoot', () => {
       expect(screen.getByTestId('active-screen')).toHaveTextContent(
         'editQuickAmounts',
       );
-      expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-        height: 480,
-      });
+      expect(StyleSheet.flatten(container.props.style)?.height).toBeUndefined();
     });
   });
 });

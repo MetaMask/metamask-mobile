@@ -198,10 +198,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     activeScreen === 'editQuickAmounts' ||
     activeScreen === 'priceImpactConfirm';
 
-  // Amount stays dynamic only in the keyboard A/B treatment (keypad open).
-  // Every other screen — including editQuickAmounts — uses the locked amount
-  // baseline so navigation doesn't shift sheet height.
-  const isDynamicHeightScreen = useKeyboard && activeScreen === 'amount';
+  // `editQuickAmounts` stays dynamic for its always-open edit keypad (full
+  // intrinsic height). The amount screen is dynamic only in the keyboard A/B
+  // treatment. All other screens use the locked height so sub-screens like
+  // Pay with don't collapse.
+  const isDynamicHeightScreen =
+    activeScreen === 'editQuickAmounts' ||
+    (useKeyboard && activeScreen === 'amount');
   const shouldLockHeight = lockedHeight !== null && !isDynamicHeightScreen;
 
   return (
