@@ -1,12 +1,15 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import AccountGroupBalance from '../../../../UI/Assets/components/Balance/AccountGroupBalance';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SLICE_ORDER } from '../../../BalanceBreakdown/constants';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useBalanceBreakdown } from '../../../BalanceBreakdown/hooks/useBalanceBreakdown';
 import type { HomepageBalanceBreakdownLayout } from '../../abTestConfig';
 import HomepageBalanceBreakdownAllocationBar from './HomepageBalanceBreakdownAllocationBar';
+import HomepageBalanceBreakdownHero from './HomepageBalanceBreakdownHero';
 import HomepageBalanceBreakdownRow from './HomepageBalanceBreakdownRow';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { useHomepageBalanceBreakdownNavigation } from './useHomepageBalanceBreakdownNavigation';
@@ -26,10 +29,17 @@ const HomepageBalanceBreakdown = ({
 }: HomepageBalanceBreakdownProps) => {
   const { hero, slices } = useBalanceBreakdown();
   const { openSlice } = useHomepageBalanceBreakdownNavigation();
+  const isWalletHomeOnboardingActive = useSelector(
+    selectShouldShowWalletHomeOnboardingSteps,
+  );
 
   return (
     <Box testID={HomepageBalanceBreakdownTestIds.CONTAINER}>
-      <AccountGroupBalance {...accountGroupBalanceProps} heroOverride={hero} />
+      {isWalletHomeOnboardingActive ? (
+        <AccountGroupBalance {...accountGroupBalanceProps} />
+      ) : (
+        <HomepageBalanceBreakdownHero hero={hero} />
+      )}
       {children ? <Box twClassName="mt-4 gap-4">{children}</Box> : null}
       {!hideRows ? (
         <Box

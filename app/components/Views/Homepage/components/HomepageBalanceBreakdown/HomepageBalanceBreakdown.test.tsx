@@ -1,6 +1,7 @@
 import React from 'react';
 import { brandColor } from '@metamask/design-tokens';
 import { fireEvent, render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -13,7 +14,12 @@ import type {
 } from '../../../BalanceBreakdown/types';
 /* eslint-enable import-x/no-restricted-paths */
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { mockTheme } from '../../../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -25,6 +31,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
 let mockPrivacyMode = false;
+let mockIsWalletHomeOnboardingActive = false;
 const mockAccountGroupBalance = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -32,7 +39,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: () => mockPrivacyMode,
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useFormatters', () => ({
@@ -80,6 +87,13 @@ jest.mock(
     };
   },
 );
+
+jest.mock('../../../../UI/BalanceEmptyState', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) =>
+    ReactMock.createElement(View, { testID });
+});
 
 jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactMock = jest.requireActual('react');
@@ -136,6 +150,15 @@ describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPrivacyMode = false;
+    mockIsWalletHomeOnboardingActive = false;
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectPrivacyMode) return mockPrivacyMode;
+      if (selector === selectEvmChainId) return '0x1';
+      if (selector === selectShouldShowWalletHomeOnboardingSteps) {
+        return mockIsWalletHomeOnboardingActive;
+      }
+      return undefined;
+    });
     jest.mocked(useBalanceBreakdown).mockReturnValue(breakdown);
   });
 
@@ -144,9 +167,8 @@ describe('HomepageBalanceBreakdown', () => {
       <HomepageBalanceBreakdown layout="icons" />,
     );
 
-    expect(mockAccountGroupBalance).toHaveBeenCalledWith(
-      expect.objectContaining({ heroOverride: breakdown.hero }),
-    );
+    expect(mockAccountGroupBalance).not.toHaveBeenCalled();
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.HERO)).toBeOnTheScreen();
     expect(
       getAllByRole('button')
         .slice(1)
@@ -179,6 +201,67 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
     ).toHaveTextContent('%');
+  });
+
+  it('renders an amount-only aggregate delta without a legacy percentage', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        delta: { amount: 2 },
+      },
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
+    ).toHaveStyle({ color: mockTheme.colors.success.default });
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_PERCENT),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO_PERIOD),
+    ).toHaveTextContent('Today');
+  });
+
+  it('mutes a partially loaded aggregate hero', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        isPartiallyLoaded: true,
+      },
+    });
+
+    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+
+    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
+      color: mockTheme.colors.text.muted,
+    });
+  });
+
+  it('renders the experiment empty state for a settled zero portfolio', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        totalFiat: 0,
+      },
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.HERO),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders allocation segments and colored row dots', () => {
@@ -368,6 +451,8 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('does not render rows during the onboarding checklist flow', () => {
+    mockIsWalletHomeOnboardingActive = true;
+
     const { queryByTestId } = render(
       <HomepageBalanceBreakdown
         hideRows
@@ -380,5 +465,18 @@ describe('HomepageBalanceBreakdown', () => {
       queryByTestId(HomepageBalanceBreakdownTestIds.ROWS),
     ).not.toBeOnTheScreen();
     expect(queryByTestId('aggregate-hero')).toBeOnTheScreen();
+    expect(mockAccountGroupBalance).toHaveBeenCalledWith({});
+  });
+
+  it('keeps the experiment hero when rows are hidden outside onboarding', () => {
+    const { getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown hideRows layout="icons" />,
+    );
+
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.HERO)).toBeOnTheScreen();
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROWS),
+    ).not.toBeOnTheScreen();
+    expect(mockAccountGroupBalance).not.toHaveBeenCalled();
   });
 });

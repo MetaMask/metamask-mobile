@@ -1,12 +1,7 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import {
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
-import { TextVariant as LegacyTextVariant } from '../../../../../component-library/components/Texts/Text';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import styleSheet from './AccountGroupBalanceChange.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -23,16 +18,14 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 
 interface AccountGroupBalanceChangeProps {
   amountChangeInUserCurrency: number;
-  percentChange?: number;
+  percentChange: number;
   userCurrency: string;
-  label?: string;
 }
 
 const AccountGroupBalanceChange = ({
   amountChangeInUserCurrency,
   percentChange,
   userCurrency,
-  label,
 }: AccountGroupBalanceChangeProps) => {
   const { styles } = useStyles(styleSheet, {});
   const amountText = useMemo(
@@ -42,15 +35,12 @@ const AccountGroupBalanceChange = ({
 
   const privacyMode = useSelector(selectPrivacyMode);
   const percentText = useMemo(
-    () =>
-      percentChange === undefined
-        ? undefined
-        : getFormattedPercentageChange(percentChange, 'en-US'),
+    () => getFormattedPercentageChange(percentChange, 'en-US'),
     [percentChange],
   );
   const percentageTextColor = getPercentageTextColor(
     Boolean(privacyMode),
-    percentChange ?? amountChangeInUserCurrency,
+    percentChange,
   );
 
   return (
@@ -59,27 +49,20 @@ const AccountGroupBalanceChange = ({
         isHidden={Boolean(privacyMode)}
         length="10"
         color={percentageTextColor}
-        variant={LegacyTextVariant.BodyMDMedium}
+        variant={TextVariant.BodyMDMedium}
         testID={FORMATTED_VALUE_PRICE_TEST_ID}
       >
         {amountText}
       </SensitiveText>
-      {percentText !== undefined ? (
-        <SensitiveText
-          isHidden={Boolean(privacyMode)}
-          length="10"
-          color={percentageTextColor}
-          variant={LegacyTextVariant.BodyMDMedium}
-          testID={FORMATTED_PERCENTAGE_TEST_ID}
-        >
-          {percentText}
-        </SensitiveText>
-      ) : null}
-      {label ? (
-        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
-          {label}
-        </Text>
-      ) : null}
+      <SensitiveText
+        isHidden={Boolean(privacyMode)}
+        length="10"
+        color={percentageTextColor}
+        variant={TextVariant.BodyMDMedium}
+        testID={FORMATTED_PERCENTAGE_TEST_ID}
+      >
+        {percentText}
+      </SensitiveText>
     </View>
   );
 };

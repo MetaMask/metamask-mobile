@@ -3,6 +3,10 @@ import type { SliceKey } from '../../../BalanceBreakdown/types';
 
 export const HomepageBalanceBreakdownTestIds = {
   CONTAINER: 'homepage-balance-breakdown',
+  HERO: 'homepage-balance-breakdown-hero',
+  HERO_DELTA_AMOUNT: 'homepage-balance-breakdown-hero-delta-amount',
+  HERO_DELTA_PERCENT: 'homepage-balance-breakdown-hero-delta-percent',
+  HERO_PERIOD: 'homepage-balance-breakdown-hero-period',
   ROWS: 'homepage-balance-breakdown-rows',
   ALLOCATION_TITLE: 'homepage-balance-breakdown-allocation-title',
   ALLOCATION_BAR: 'homepage-balance-breakdown-allocation-bar',

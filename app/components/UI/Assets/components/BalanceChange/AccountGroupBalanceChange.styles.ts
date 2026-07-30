@@ -5,7 +5,6 @@ const styleSheet = () =>
     wrapper: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
     },
   });
 

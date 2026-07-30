@@ -6,7 +6,6 @@ import {
   FORMATTED_VALUE_PRICE_TEST_ID,
 } from './constants';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { mockTheme } from '../../../../../util/theme';
 
 const baseState = {
   engine: {
@@ -336,49 +335,6 @@ describe('AccountGroupBalanceChange', () => {
   });
 
   describe('component structure', () => {
-    it('omits the percentage when it is unavailable', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <AccountGroupBalanceChange
-          amountChangeInUserCurrency={12.34}
-          userCurrency="usd"
-        />,
-        { state: baseState },
-      );
-
-      expect(getByTestId(FORMATTED_VALUE_PRICE_TEST_ID)).toHaveStyle({
-        color: mockTheme.colors.success.default,
-      });
-      expect(queryByTestId(FORMATTED_PERCENTAGE_TEST_ID)).not.toBeOnTheScreen();
-    });
-
-    it('uses the amount sign for loss color when percentage is unavailable', () => {
-      const { getByTestId } = renderWithProvider(
-        <AccountGroupBalanceChange
-          amountChangeInUserCurrency={-12.34}
-          userCurrency="usd"
-        />,
-        { state: baseState },
-      );
-
-      expect(getByTestId(FORMATTED_VALUE_PRICE_TEST_ID)).toHaveStyle({
-        color: mockTheme.colors.error.default,
-      });
-    });
-
-    it('renders an optional period label', () => {
-      const { getByText } = renderWithProvider(
-        <AccountGroupBalanceChange
-          amountChangeInUserCurrency={12.34}
-          percentChange={5.67}
-          userCurrency="usd"
-          label="Today"
-        />,
-        { state: baseState },
-      );
-
-      expect(getByText('Today')).toBeOnTheScreen();
-    });
-
     it('renders both amount and percentage elements', () => {
       const { getByTestId } = renderWithProvider(
         <AccountGroupBalanceChange
