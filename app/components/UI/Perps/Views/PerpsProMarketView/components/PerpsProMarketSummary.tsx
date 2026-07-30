@@ -13,6 +13,14 @@ interface PerpsProMarketSummaryProps {
 }
 
 /**
+ * Fixed height of this section, in px (keep in sync with the `h-[76px]`
+ * class below). The Pro header uses this as the scroll threshold for its
+ * price crossfade — once this section has fully scrolled behind the header,
+ * the header swaps its subtitle for a compact live price.
+ */
+export const PRICE_SECTION_HEIGHT = 76;
+
+/**
  * Scroll-contained live market price and 24-hour change.
  */
 const PerpsProMarketSummary = ({
@@ -29,7 +37,7 @@ const PerpsProMarketSummary = ({
       <LivePriceHeader
         symbol={symbol}
         currentPrice={currentPrice}
-        size="large"
+        size="prominent"
         testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
         testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
       />

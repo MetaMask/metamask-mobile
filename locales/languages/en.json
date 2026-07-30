@@ -2554,9 +2554,14 @@
       "market_list": "Browse markets",
       "perp_pair": "{{ticker}}-{{collateral}} perp",
       "back": "Back",
-      "wallet": "Perps home",
+      "wallet": "Perps balance",
       "add_to_watchlist": "Add to watchlist",
       "remove_from_watchlist": "Remove from watchlist"
+    },
+    "balance_bottom_sheet": {
+      "close_button": "Close",
+      "history_button": "View activity",
+      "available": "Available"
     }
   },
   "market_insights": {

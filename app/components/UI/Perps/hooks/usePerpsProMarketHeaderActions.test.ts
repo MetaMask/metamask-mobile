@@ -124,18 +124,6 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
-  it('leaves Perps for the main wallet from the wallet action', () => {
-    const { result } = renderHook(() =>
-      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
-    );
-
-    act(() => {
-      result.current.handleWalletPress();
-    });
-
-    expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
-  });
-
   it('adds the market to the watchlist when it is not favorited', () => {
     mockIsWatchlist = false;
     const { result } = renderHook(() =>

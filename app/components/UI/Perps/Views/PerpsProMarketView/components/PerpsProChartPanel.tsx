@@ -215,7 +215,7 @@ const PerpsProChartPanel = ({
       />
       <Box
         testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
-        twClassName="my-2 h-[344px] px-4 py-2"
+        twClassName="my-2 h-[344px] px-2 py-2"
       >
         <Box
           testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}

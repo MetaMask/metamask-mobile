@@ -308,6 +308,20 @@ describe('LivePriceHeader', () => {
       expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
     });
 
+    it('renders a smaller prominent price for the prominent variant (Pro)', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="prominent" />,
+      );
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const priceText = textElements.find(
+        (el) => el.props.children === '$3,000',
+      );
+
+      expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
+      expect(priceText?.props.color).toBe(TextColor.TextDefault);
+    });
+
     it('shows the absolute change and percentage for the large variant', () => {
       const { UNSAFE_getAllByType } = render(
         <LivePriceHeader symbol="ETH" currentPrice={3000} size="large" />,

@@ -150,32 +150,16 @@ describe('PerpsProOrderBookPanel', () => {
     expect(mockReconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('cycles the view mode when the toggle is pressed', () => {
+  it('hides the buy/sell view-toggle button (ladder only shows ~5 rows/side today)', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
       { state: { engine: { backgroundState } } },
     );
 
-    const toggle = getByTestId(`${testID}-view-toggle`);
-    expect(toggle).toHaveAccessibilityValue({ text: 'Bids and asks' });
-
-    // default → buy (asks hidden)
-    fireEvent.press(toggle);
-    expect(queryByTestId(`${testID}-ask-row-0`)).not.toBeOnTheScreen();
-    expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
-    expect(toggle).toHaveAccessibilityValue({ text: 'Bids only' });
-
-    // buy → sell (bids hidden)
-    fireEvent.press(toggle);
-    expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
-    expect(queryByTestId(`${testID}-bid-row-0`)).not.toBeOnTheScreen();
-    expect(toggle).toHaveAccessibilityValue({ text: 'Asks only' });
-
-    // sell → default (both sides)
-    fireEvent.press(toggle);
+    expect(queryByTestId(`${testID}-view-toggle`)).not.toBeOnTheScreen();
+    // Both sides still render by default with the toggle hidden.
     expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
     expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
-    expect(toggle).toHaveAccessibilityValue({ text: 'Bids and asks' });
   });
 
   it('shows a ladder skeleton while the aggregated book is loading', () => {
