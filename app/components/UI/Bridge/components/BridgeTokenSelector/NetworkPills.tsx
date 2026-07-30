@@ -172,7 +172,6 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
     <ScrollView
       ref={scrollViewRef}
       horizontal
-      testID="network-pills-scroll"
       showsHorizontalScrollIndicator={false}
       style={tw.style('flex-grow-0')}
       contentContainerStyle={tw.style('flex-row items-center gap-2')}
