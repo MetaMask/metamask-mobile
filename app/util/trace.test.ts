@@ -512,160 +512,125 @@ describe('Trace', () => {
       });
     };
 
-    const attributesOf = (name: TraceName) => {
-      const call = startSpanManualMock.mock.calls.find(
+    const attributesOf = (name: TraceName) =>
+      startSpanManualMock.mock.calls.find(
         ([spanOptions]) => spanOptions.name === name,
-      );
+      )?.[0].attributes;
 
-      return call?.[0].attributes;
-    };
+    beforeEach(() => updateCachedConsent(true));
+    afterEach(() => endTrace({ name: TraceName.OnboardingJourneyOverall }));
 
-    beforeEach(() => {
-      updateCachedConsent(true);
-    });
-
-    afterEach(() => {
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-    });
-
-    it('adds the journey account type to spans in an onboarding operation', () => {
+    it('propagates account_type from the journey to onboarding child spans', () => {
       startJourney('metamask_google');
 
-      trace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-        op: TraceOperation.OnboardingSecurityOp,
-      });
-      trace({
-        name: TraceName.OnboardingSocialLoginError,
-        op: TraceOperation.OnboardingError,
-      });
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        op: TraceOperation.OnboardingScreenPerformance,
-        id: 'choose_password',
-      });
+      const childSpans: [TraceName, string, string | undefined][] = [
+        [
+          TraceName.OnboardingOAuthSeedlessAuthenticate,
+          TraceOperation.OnboardingSecurityOp,
+          undefined,
+        ],
+        [
+          TraceName.OnboardingSocialLoginError,
+          TraceOperation.OnboardingError,
+          undefined,
+        ],
+        [
+          TraceName.OnboardingScreenTimeToContent,
+          TraceOperation.OnboardingScreenPerformance,
+          'choose_password',
+        ],
+      ];
 
-      expect(attributesOf(TraceName.OnboardingJourneyOverall)).toStrictEqual({
-        account_type: 'metamask_google',
-      });
-      expect(
-        attributesOf(TraceName.OnboardingOAuthSeedlessAuthenticate),
-      ).toStrictEqual({ account_type: 'metamask_google' });
-      expect(attributesOf(TraceName.OnboardingSocialLoginError)).toStrictEqual({
-        account_type: 'metamask_google',
-      });
-      expect(
-        attributesOf(TraceName.OnboardingScreenTimeToContent),
-      ).toStrictEqual({ account_type: 'metamask_google' });
-
-      endTrace({ name: TraceName.OnboardingOAuthSeedlessAuthenticate });
-      endTrace({ name: TraceName.OnboardingSocialLoginError });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'choose_password',
+      childSpans.forEach(([name, op, id]) => {
+        trace({ name, op, ...(id ? { id } : {}) });
+        expect(attributesOf(name)).toStrictEqual({
+          account_type: 'metamask_google',
+        });
+        endTrace({ name, ...(id ? { id } : {}) });
       });
     });
 
-    it('picks up an account type annotated after the journey span exists', () => {
-      const setAttributeMock = jest.fn();
+    it('picks up account_type annotated after the journey span exists', () => {
       startSpanManualMock.mockImplementationOnce((_, fn) =>
         fn(
-          { setAttribute: setAttributeMock, end: jest.fn() } as unknown as Span,
+          { setAttribute: jest.fn(), end: jest.fn() } as unknown as Span,
           () => {
             // Intentionally empty
           },
         ),
       );
-
-      // The social path creates the journey before the user picks a provider.
       startJourney();
-
       annotateTrace(
         getTraceContext({ name: TraceName.OnboardingJourneyOverall }),
-        {
-          'onboarding.method': 'social',
-          account_type: 'imported_apple',
-        },
+        { account_type: 'imported_apple' },
       );
-
       trace({
         name: TraceName.OnboardingPasswordLoginAttempt,
         op: TraceOperation.OnboardingUserJourney,
       });
-
       expect(
         attributesOf(TraceName.OnboardingPasswordLoginAttempt),
       ).toStrictEqual({ account_type: 'imported_apple' });
-
       endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
     });
 
-    it('keeps an account type the span sets for itself', () => {
+    it('keeps a span-specific account_type over the journey default', () => {
       startJourney('imported_google');
-
       trace({
         name: TraceName.OnboardingSRPAccountImportTime,
         op: TraceOperation.OnboardingUserJourney,
         data: { account_type: 'srp_import' },
       });
-
       expect(
         attributesOf(TraceName.OnboardingSRPAccountImportTime),
       ).toStrictEqual({ account_type: 'srp_import' });
-
       endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
     });
 
-    it('leaves spans outside an onboarding operation untouched', () => {
+    it('does not tag non-onboarding spans or carry account_type into the next journey', () => {
       startJourney('metamask_apple');
-
       trace({ name: TraceName.Login, op: TraceOperation.Login });
-
       expect(attributesOf(TraceName.Login)).toBeUndefined();
-
       endTrace({ name: TraceName.Login });
-    });
-
-    it('does not carry an account type into the next journey', () => {
-      startJourney('metamask_telegram');
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       startJourney();
-
       trace({
         name: TraceName.OnboardingSocialLoginAttempt,
         op: TraceOperation.OnboardingUserJourney,
       });
-
       expect(
         attributesOf(TraceName.OnboardingSocialLoginAttempt),
       ).toBeUndefined();
-
       endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
     });
   });
 
   describe('onboarding machine time', () => {
+    type JourneySpanMock = ReturnType<typeof createSpanMock>;
+
     const createSpanMock = () => {
       const callOrder: string[] = [];
-      const spanEndMock = jest.fn(() => {
-        callOrder.push('end');
-      });
       const setAttributeMock = jest.fn(() => {
         callOrder.push('setAttribute');
       });
-      const spanMock = {
-        end: spanEndMock,
-        setAttribute: setAttributeMock,
-      } as unknown as Span;
+      const spanEndMock = jest.fn(() => {
+        callOrder.push('end');
+      });
 
-      return { callOrder, setAttributeMock, spanEndMock, spanMock };
+      return {
+        callOrder,
+        setAttributeMock,
+        spanEndMock,
+        spanMock: {
+          end: spanEndMock,
+          setAttribute: setAttributeMock,
+        } as unknown as Span,
+      };
     };
 
-    /**
-     * Hand out the given spans to consecutive trace() calls, in order.
-     */
-    const queueSpans = (spans: ReturnType<typeof createSpanMock>[]) => {
+    const queueSpans = (spans: JourneySpanMock[]) => {
       spans.forEach(({ spanMock }) => {
         startSpanManualMock.mockImplementationOnce((_, fn) =>
           fn(spanMock, () => {
@@ -675,12 +640,56 @@ describe('Trace', () => {
       });
     };
 
+    const expectMachineTime = (journey: JourneySpanMock, expected: number) => {
+      expect(journey.setAttributeMock).toHaveBeenCalledWith(
+        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+        expected,
+      );
+    };
+
+    const endScreenTtc = (
+      id: string,
+      start: number,
+      end: number,
+      success = true,
+    ) => {
+      trace({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id,
+        startTime: start,
+      });
+      endTrace({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id,
+        timestamp: end,
+        data: success
+          ? { success: true }
+          : { success: false, reason: 'unmounted' },
+      });
+    };
+
+    const bufferLandingTtc = (duration = 275) => {
+      updateCachedConsent(false);
+      bufferTraceStartCallLocal({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        startTime: 0,
+      });
+      bufferTraceEndCallLocal({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        timestamp: duration,
+        data: { success: true, screen_id: 'onboarding_landing' },
+      });
+      updateCachedConsent(true);
+    };
+
     beforeEach(() => {
       _resetOnboardingMachineTimeForTesting();
       updateCachedConsent(true);
     });
 
-    it('sums the machine-time spans onto the overall journey span', () => {
+    it('sums successful machine-time spans and writes the attribute before end', () => {
       const journey = createSpanMock();
       queueSpans([
         journey,
@@ -688,22 +697,11 @@ describe('Trace', () => {
         createSpanMock(),
         createSpanMock(),
         createSpanMock(),
+        createSpanMock(),
       ]);
 
       trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 0,
-      });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        timestamp: 300,
-        data: { success: true },
-      });
-
+      endScreenTtc('onboarding_landing', 0, 300);
       trace({
         name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
         startTime: 1_000,
@@ -713,7 +711,6 @@ describe('Trace', () => {
         timestamp: 1_700,
         data: { success: true },
       });
-
       trace({
         name: TraceName.OnboardingOAuthSeedlessAuthenticate,
         startTime: 2_000,
@@ -723,7 +720,6 @@ describe('Trace', () => {
         timestamp: 3_200,
         data: { success: true },
       });
-
       trace({
         name: TraceName.OnboardingPasswordLoginAttempt,
         startTime: 4_000,
@@ -732,257 +728,138 @@ describe('Trace', () => {
         name: TraceName.OnboardingPasswordLoginAttempt,
         timestamp: 4_500,
       });
-
+      endScreenTtc('choose_password', 5_000, 5_150);
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        300 + 700 + 1_200 + 500,
-      );
+      expectMachineTime(journey, 300 + 700 + 1_200 + 500 + 150);
+      expect(journey.callOrder).toStrictEqual(['setAttribute', 'end']);
     });
 
-    it('sums every screen that reached its content, across screens', () => {
-      const journey = createSpanMock();
-      queueSpans([journey, createSpanMock(), createSpanMock()]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 0,
-      });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        timestamp: 250,
-        data: { success: true },
-      });
-
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'choose_password',
-        startTime: 5_000,
-      });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'choose_password',
-        timestamp: 5_150,
-        data: { success: true },
-      });
-
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+    it.each([
+      [
+        'failed spans',
         400,
-      );
-    });
-
-    it('excludes spans abandoned or unmounted before completing', () => {
-      const journey = createSpanMock();
-      queueSpans([
-        journey,
-        createSpanMock(),
-        createSpanMock(),
-        createSpanMock(),
-      ]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 0,
-      });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        timestamp: 400,
-        data: { success: true },
-      });
-
-      // Screen popped before its content rendered: duration is capped filler.
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'choose_password',
-        startTime: 1_000,
-      });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'choose_password',
-        timestamp: 1_000 + TRACES_CLEANUP_INTERVAL,
-        data: { success: false, reason: 'unmounted' },
-      });
-
-      // User never returned from the OAuth browser.
-      trace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-        startTime: 2_000,
-      });
-      endTrace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-        timestamp: 2_000 + TRACES_CLEANUP_INTERVAL,
-        data: { success: false, abandoned: true },
-      });
-
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        400,
-      );
-    });
-
-    it('excludes the spans dominated by human time', () => {
-      const journey = createSpanMock();
-      queueSpans([journey, createSpanMock(), createSpanMock()]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      // The user is typing credentials in the external browser.
-      trace({ name: TraceName.OnboardingOAuthProviderLogin, startTime: 0 });
-      endTrace({
-        name: TraceName.OnboardingOAuthProviderLogin,
-        timestamp: 8_000,
-        data: { success: true },
-      });
-
-      // Spans mount -> unmount of ChoosePassword, so mostly typing.
-      trace({ name: TraceName.OnboardingPasswordSetupAttempt, startTime: 0 });
-      endTrace({
-        name: TraceName.OnboardingPasswordSetupAttempt,
-        timestamp: 30_000,
-      });
-
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+        false,
+        (journey: JourneySpanMock) => {
+          queueSpans([
+            journey,
+            createSpanMock(),
+            createSpanMock(),
+            createSpanMock(),
+          ]);
+          trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+          endScreenTtc('onboarding_landing', 0, 400);
+          endScreenTtc(
+            'choose_password',
+            1_000,
+            1_000 + TRACES_CLEANUP_INTERVAL,
+            false,
+          );
+          trace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+            startTime: 2_000,
+          });
+          endTrace({
+            name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+            timestamp: 2_000 + TRACES_CLEANUP_INTERVAL,
+            data: { success: false, abandoned: true },
+          });
+        },
+      ],
+      [
+        'human-dominated spans',
         0,
-      );
-    });
-
-    it('records machine time on an abandoned journey', () => {
-      const journey = createSpanMock();
-      queueSpans([journey, createSpanMock()]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 0,
-      });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        timestamp: 275,
-        data: { success: true },
-      });
-
-      endTrace({
-        name: TraceName.OnboardingJourneyOverall,
-        data: { success: false },
-      });
-
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+        false,
+        (journey: JourneySpanMock) => {
+          queueSpans([journey, createSpanMock(), createSpanMock()]);
+          trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+          trace({ name: TraceName.OnboardingOAuthProviderLogin, startTime: 0 });
+          endTrace({
+            name: TraceName.OnboardingOAuthProviderLogin,
+            timestamp: 8_000,
+            data: { success: true },
+          });
+          trace({
+            name: TraceName.OnboardingPasswordSetupAttempt,
+            startTime: 0,
+          });
+          endTrace({
+            name: TraceName.OnboardingPasswordSetupAttempt,
+            timestamp: 30_000,
+          });
+        },
+      ],
+      [
+        'completed spans on an abandoned journey',
         275,
-      );
-    });
-
-    it('rounds the total to whole milliseconds', () => {
+        true,
+        (journey: JourneySpanMock) => {
+          queueSpans([journey, createSpanMock()]);
+          trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+          endScreenTtc('onboarding_landing', 0, 275);
+        },
+      ],
+      [
+        'still-open spans on an abandoned journey',
+        0,
+        true,
+        (journey: JourneySpanMock) => {
+          queueSpans([journey, createSpanMock()]);
+          trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+          trace({
+            name: TraceName.OnboardingScreenTimeToContent,
+            id: 'onboarding_landing',
+            startTime: 100,
+          });
+        },
+      ],
+    ])('excludes %s', (_label, expected, abandoned, runScenario) => {
       const journey = createSpanMock();
-      queueSpans([journey, createSpanMock()]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      trace({
-        name: TraceName.OnboardingSRPAccountCreationTime,
-        startTime: 1_000.25,
-      });
+      runScenario(journey);
       endTrace({
-        name: TraceName.OnboardingSRPAccountCreationTime,
-        timestamp: 1_900.9,
+        name: TraceName.OnboardingJourneyOverall,
+        ...(abandoned ? { data: { success: false } } : {}),
       });
-
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        901,
-      );
+      if (_label === 'still-open spans on an abandoned journey') {
+        endTrace({
+          name: TraceName.OnboardingScreenTimeToContent,
+          id: 'onboarding_landing',
+          data: { success: false, reason: 'unmounted' },
+        });
+      }
+      expectMachineTime(journey, expected);
     });
 
-    it('counts the part of a still-open span that fell inside the journey', () => {
+    it('counts open spans on a successful journey end', () => {
       const journey = createSpanMock();
       queueSpans([journey, createSpanMock()]);
 
       trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      // The social wallet-creation path ends the journey from inside this span.
       trace({
         name: TraceName.OnboardingSRPAccountCreationTime,
         startTime: 1_000,
       });
-
       endTrace({
         name: TraceName.OnboardingJourneyOverall,
         timestamp: 3_000,
       });
 
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        2_000,
-      );
-
-      endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
-    });
-
-    it('excludes still-open spans when the journey is abandoned', () => {
-      const journey = createSpanMock();
-      queueSpans([journey, createSpanMock()]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      // Landing screen left mid-animation: this ends as unmounted later, so its
-      // time-to-content never completed.
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 100,
-      });
-
+      expectMachineTime(journey, 2_000);
       endTrace({
-        name: TraceName.OnboardingJourneyOverall,
-        timestamp: 3_000,
-        data: { success: false },
-      });
-
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        0,
-      );
-
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        data: { success: false, reason: 'unmounted' },
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        timestamp: 2_500,
       });
     });
 
-    it('does not count a nested span twice', () => {
+    it('does not count nested machine-time spans twice', () => {
       const journey = createSpanMock();
       queueSpans([journey, createSpanMock(), createSpanMock()]);
 
       trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
       trace({
         name: TraceName.OnboardingSRPAccountCreationTime,
         startTime: 1_000,
       });
-      // Runs inside the span above, so its duration is already accounted for.
       trace({
         name: TraceName.OnboardingCreateKeyAndBackupSrp,
         startTime: 1_200,
@@ -996,119 +873,63 @@ describe('Trace', () => {
         name: TraceName.OnboardingSRPAccountCreationTime,
         timestamp: 2_500,
       });
-
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        1_500,
-      );
+      expectMachineTime(journey, 1_500);
+    });
+
+    it('rounds machine time to whole milliseconds', () => {
+      const journey = createSpanMock();
+      queueSpans([journey, createSpanMock()]);
+
+      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+      trace({
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        startTime: 1_000.25,
+      });
+      endTrace({
+        name: TraceName.OnboardingSRPAccountCreationTime,
+        timestamp: 1_900.9,
+      });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      expectMachineTime(journey, 901);
     });
 
     it('seeds a recreated journey with machine time harvested on discard', () => {
       updateCachedConsent(false);
-
-      bufferTraceStartCallLocal({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 0,
-      });
-      bufferTraceEndCallLocal({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        timestamp: 275,
-        data: { success: true, screen_id: 'onboarding_landing' },
-      });
+      bufferLandingTtc();
       bufferTraceStartCallLocal({
         name: TraceName.OnboardingJourneyOverall,
         startTime: 0,
       });
-
       discardBufferedTraces();
 
       const journey = createSpanMock();
       queueSpans([journey, createSpanMock()]);
-
-      updateCachedConsent(true);
       trace({ name: TraceName.OnboardingJourneyOverall, startTime: 300 });
-      trace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'choose_pw',
-        startTime: 300,
-      });
-      endTrace({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'choose_pw',
-        timestamp: 700,
-        data: { success: true, screen_id: 'choose_pw' },
-      });
+      endScreenTtc('choose_pw', 300, 700);
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        675,
-      );
+      expectMachineTime(journey, 675);
     });
 
-    it('applies harvested machine time when the journey span is reused', () => {
+    it.each([
+      ['reused journey with applyPending', true, 275, 1],
+      ['reused journey without applyPending', false, 0, 1],
+    ])('%s', (_label, applyPending, expected, expectedStarts) => {
       const journey = createSpanMock();
       queueSpans([journey]);
-
-      // Consent was already live at mount, so the journey span is real and kept.
       trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      updateCachedConsent(false);
-      bufferTraceStartCallLocal({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 0,
-      });
-      bufferTraceEndCallLocal({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        timestamp: 275,
-        data: { success: true, screen_id: 'onboarding_landing' },
-      });
-
-      updateCachedConsent(true);
+      bufferLandingTtc();
       discardBufferedTraces();
-      applyPendingOnboardingMachineTime();
+      if (applyPending) {
+        applyPendingOnboardingMachineTime();
+      }
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        275,
-      );
-      expect(startSpanManualMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('leaves reused-journey machine time at zero without applyPending', () => {
-      const journey = createSpanMock();
-      queueSpans([journey]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-
-      updateCachedConsent(false);
-      bufferTraceStartCallLocal({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        startTime: 0,
-      });
-      bufferTraceEndCallLocal({
-        name: TraceName.OnboardingScreenTimeToContent,
-        id: 'onboarding_landing',
-        timestamp: 275,
-        data: { success: true, screen_id: 'onboarding_landing' },
-      });
-
-      updateCachedConsent(true);
-      discardBufferedTraces();
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      expect(journey.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        0,
-      );
+      expectMachineTime(journey, expected);
+      expect(startSpanManualMock).toHaveBeenCalledTimes(expectedStarts);
     });
 
     it('starts each journey from zero', () => {
@@ -1143,24 +964,8 @@ describe('Trace', () => {
       });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      expect(firstJourney.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        900,
-      );
-      expect(secondJourney.setAttributeMock).toHaveBeenCalledWith(
-        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-        100,
-      );
-    });
-
-    it('writes the attribute before the journey span is finished', () => {
-      const journey = createSpanMock();
-      queueSpans([journey]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      expect(journey.callOrder).toStrictEqual(['setAttribute', 'end']);
+      expectMachineTime(firstJourney, 900);
+      expectMachineTime(secondJourney, 100);
     });
   });
 

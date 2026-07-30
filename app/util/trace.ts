@@ -344,30 +344,12 @@ const tracesByKey: Map<string, PendingTrace> = new Map();
 const localBufferedTraces: BufferedTrace[] = [];
 
 /**
- * Attribute written to `Onboarding - Overall Journey` holding the summed duration
- * of the spans listed in `MACHINE_TIME_TRACE_NAMES`.
- *
- * The journey's own duration is not comparable between users because it also
- * contains human time — reading the landing screen, typing a password, and the
- * OAuth round trip through the external browser. This isolates the part of the
- * journey the app itself is responsible for.
+ * Summed machine/app wait time on `Onboarding - Overall Journey`, excluding human
+ * interaction (browser OAuth, password typing). See `MACHINE_TIME_TRACE_NAMES`.
  */
 export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
 
-/**
- * Spans summed into `onboarding.machine.ms`. Every onboarding path contributes its
- * own terminal work so the totals stay comparable: social rehydration waits in
- * Password Login Attempt, wallet creation in SRP Account Creation Time, and SRP
- * import in SRP Account Import Time.
- *
- * Members must not overlap in time, or the shared period is counted twice. Create
- * Key and Backup SRP is therefore absent: it runs inside SRP Account Creation
- * Time, as do Fetch SRPs and Authenticate User inside Password Login Attempt.
- *
- * Also absent are the spans dominated by human time: OAuth Provider Login (the
- * user is typing credentials in the browser) and Password Setup Attempt (spans
- * mount → unmount of ChoosePassword, so mostly typing).
- */
+/** Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap. */
 const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
   TraceName.OnboardingScreenTimeToContent,
   TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
@@ -378,27 +360,13 @@ const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
 ]);
 
 let onboardingMachineTimeMs = 0;
-
-/**
- * Machine time harvested from buffered spans that were dropped instead of flushed
- * (social-login opt-in). Applied when the real journey span starts or is reused.
- */
+/** Harvested from buffered spans on social opt-in discard; applied on journey start/reuse. */
 let pendingOnboardingMachineTimeMs = 0;
 
 const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
 const ONBOARDING_OP_PREFIX = 'onboarding.';
 
-/**
- * Account type of the onboarding journey in progress — `metamask_google`,
- * `imported`, and so on. Sourced from the overall-journey span, which is tagged as
- * soon as the user picks a path, and inherited by every span in an onboarding
- * operation so each one can be grouped by account type in Sentry.
- *
- * Held here rather than threaded through call sites because the spans that need it
- * most are started deep inside OAuthService and Authentication, before the account
- * type is known to Redux: `setAccountType` is only dispatched once the OAuth login
- * has resolved, by which point the provider and seedless spans have closed.
- */
+/** Journey account type inherited by onboarding child spans (see `rememberOnboardingAccountType`). */
 let onboardingAccountType: string | undefined;
 
 /**
@@ -656,18 +624,7 @@ export function annotateTrace(
   }
 }
 
-/**
- * Add a finished span's duration to the machine-time total of the current
- * onboarding journey.
- *
- * Spans ended with `success: false` are skipped. An abandoned OAuth call or a
- * screen unmounted before its content rendered is finished with a duration capped
- * at `TRACES_CLEANUP_INTERVAL`, which measures a wait the user never experienced
- * and would dwarf the real total.
- *
- * @param request - The end request for the span that just finished.
- * @param duration - The recorded duration of that span, in milliseconds.
- */
+/** Skip failed spans; capped unmount durations are not real user waits. */
 function addOnboardingMachineTime(
   request: EndTraceRequest,
   duration: number,
@@ -683,19 +640,7 @@ function addOnboardingMachineTime(
   onboardingMachineTimeMs += Math.max(duration, 0);
 }
 
-/**
- * Credit machine-time spans that are still open as the journey ends with the part
- * of their duration that fell inside the journey.
- *
- * The social wallet-creation path ends the journey from inside SRP Account
- * Creation Time, so without this the slowest wait of that path — vault creation
- * and the SRP backup — would be missing from its own journey's total.
- *
- * Nothing is credited on an abandoned journey.
- *
- * @param request - The end request for the journey span.
- * @param journeyEndTime - The effective end timestamp of the journey span.
- */
+/** Credit open machine-time spans on successful journey end (e.g. SRP create path). */
 function addOpenOnboardingMachineTime(
   request: EndTraceRequest,
   journeyEndTime: number,
@@ -723,13 +668,7 @@ function addOpenOnboardingMachineTime(
   }
 }
 
-/**
- * Write the machine-time total to the overall-journey span and clear it for any
- * later journey in the same session. Must run before the span is finished, since
- * attributes set afterwards are not recorded.
- *
- * @param span - The journey span being finished, if it exists.
- */
+/** Write `onboarding.machine.ms` before the journey span finishes. */
 function finalizeOnboardingMachineTime(span?: Span): void {
   // Mirrors the guard around span.end(): the tracing layer must never throw into
   // an onboarding flow because a span implementation is incomplete.
@@ -938,11 +877,7 @@ export function updateCachedConsent(consent: boolean) {
   cachedConsent = consent;
 }
 
-/**
- * Sum durations of completed machine-time spans sitting in the consent buffer.
- * Used before `discardBufferedTraces()` so landing screen time is not lost when
- * social login opts in inline instead of flushing like the SRP path.
- */
+/** Pair buffered start/end machine-time spans before social opt-in discard. */
 function harvestBufferedOnboardingMachineTime(): number {
   const startsByKey = new Map<string, number>();
   let harvestedMs = 0;
@@ -988,11 +923,7 @@ function harvestBufferedOnboardingMachineTime(): number {
   return harvestedMs;
 }
 
-/**
- * Credit machine time harvested by the last `discardBufferedTraces()` call when
- * the overall-journey span is reused rather than recreated (consent was already
- * live at mount, so `startTrace` never runs again to consume the pending total).
- */
+/** Apply pending machine time when the journey span is reused after social opt-in. */
 export function applyPendingOnboardingMachineTime(): void {
   onboardingMachineTimeMs += pendingOnboardingMachineTimeMs;
   pendingOnboardingMachineTimeMs = 0;
@@ -1064,14 +995,6 @@ function startTrace(request: TraceRequest): TraceContext {
   const id = getTraceId(request);
 
   if (name === TraceName.OnboardingJourneyOverall) {
-    // Machine time and account type are scoped to a single journey, and the
-    // social-login path recreates this span once metrics consent is live, so a new
-    // journey span always supersedes what came before it. The account type is
-    // re-seeded from this request, or from the annotation that follows it on paths
-    // that only learn the account type after the span exists.
-    //
-    // Pre-consent landing screen time may have been harvested into pending by
-    // discardBufferedTraces() moments earlier; seed the new journey with it.
     onboardingMachineTimeMs = pendingOnboardingMachineTimeMs;
     pendingOnboardingMachineTimeMs = 0;
     onboardingAccountType = undefined;
