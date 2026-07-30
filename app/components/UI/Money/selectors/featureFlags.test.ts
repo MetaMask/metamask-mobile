@@ -17,11 +17,11 @@ import {
   selectMoneyCardTiltAnimationEnabledFlag,
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
-  selectMoneyEarnBannerTokens,
-  MONEY_EARN_BANNER_TOKENS_FALLBACK,
+  selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+  selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
-  selectMoneyDepositCtaTokens,
+  selectMoneyDepositCtaTokenAddresses,
 } from './featureFlags';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
@@ -272,6 +272,67 @@ describe('selectIsMoneyTokenListItemCtaEnabledFlag', () => {
   });
 });
 
+describe.each([
+  [
+    'selectIsMoneyAssetOverviewFooterCtaEnabledFlag',
+    selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
+    'earnMoneyAssetOverviewFooterCtaEnabled',
+    'MM_MONEY_ASSET_OVERVIEW_FOOTER_CTA_ENABLED',
+  ],
+  [
+    'selectIsMoneyAssetOverviewBalanceCtaEnabledFlag',
+    selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+    'earnMoneyAssetOverviewBalanceCtaEnabled',
+    'MM_MONEY_ASSET_OVERVIEW_BALANCE_CTA_ENABLED',
+  ],
+])('%s', (_name, selector, remoteFlagName, localFlagName) => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false when Money account feature is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(false);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      [remoteFlagName]: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns remote version-gated flag when Money account feature is enabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      [remoteFlagName]: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('falls back to local flag when remote flag is unavailable', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    process.env[localFlagName] = 'true';
+    const state = createState({ _unique: `${remoteFlagName}-local` });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(true);
+  });
+});
+
 describe('selectIsMoneyEarnBannerEnabledFlag', () => {
   const originalEnv = process.env;
 
@@ -352,8 +413,9 @@ describe('selectIsMoneyEarnBannerEnabledFlag', () => {
   });
 });
 
-describe('selectMoneyDepositCtaTokens', () => {
+describe('selectMoneyDepositCtaTokenAddresses', () => {
   const originalEnv = process.env;
+  const ethUsdcAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
   beforeEach(() => {
     process.env = { ...originalEnv };
@@ -363,23 +425,43 @@ describe('selectMoneyDepositCtaTokens', () => {
     process.env = originalEnv;
   });
 
-  it('uses remote configured wildcard token list', () => {
+  it('uses remote configured EVM token addresses', () => {
     const state = createState({
-      earnMoneyDepositCtaTokens: { '*': ['USDC'] },
+      earnMoneyDepositCtaTokenAddresses: {
+        '0x1': [ethUsdcAddress],
+      },
     });
 
-    const result = selectMoneyDepositCtaTokens(state as never);
+    const result = selectMoneyDepositCtaTokenAddresses(state as never);
 
-    expect(result).toEqual({ '*': ['USDC'] });
+    expect(result).toEqual({
+      '0x1': [ethUsdcAddress.toLowerCase()],
+    });
   });
 
-  it('falls back to local wildcard token list when remote config is absent', () => {
-    process.env.MM_MONEY_DEPOSIT_CTA_TOKENS = '{"0x1":["DAI"]}';
-    const state = createState({ _unique: 'token-list-cta-local-tokens' });
+  it('falls back to local EVM token addresses when remote config is absent', () => {
+    process.env.MM_MONEY_DEPOSIT_CTA_TOKEN_ADDRESSES = JSON.stringify({
+      '0x1': [ethUsdcAddress],
+    });
+    const state = createState({
+      _unique: 'token-list-cta-local-addresses-v2',
+    });
 
-    const result = selectMoneyDepositCtaTokens(state as never);
+    const result = selectMoneyDepositCtaTokenAddresses(state as never);
 
-    expect(result).toEqual({ '0x1': ['DAI'] });
+    expect(result).toEqual({
+      '0x1': [ethUsdcAddress.toLowerCase()],
+    });
+  });
+
+  it('returns an empty map when neither configuration source is set', () => {
+    const state = createState({
+      _unique: 'token-list-cta-addresses-v2-unset',
+    });
+
+    const result = selectMoneyDepositCtaTokenAddresses(state as never);
+
+    expect(result).toEqual({});
   });
 });
 
@@ -1397,59 +1479,5 @@ describe('selectMoneyNoFeeDepositTokens', () => {
 
     // Falls back to MONEY_NO_FEE_TOKENS_FALLBACK
     expect(result['0x1']).toContain('USDC');
-  });
-});
-
-describe('selectMoneyEarnBannerTokens', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns the remote wildcard list when configured', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: { '0x1': ['USDC'], '*': ['mUSD'] },
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual({ '0x1': ['USDC'], '*': ['mUSD'] });
-  });
-
-  it('parses a JSON string remote value', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: '{"0x2105":["USDC","aUSDC"]}',
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual({ '0x2105': ['USDC', 'aUSDC'] });
-  });
-
-  it('falls back to the built-in token list when the flag is absent', () => {
-    const state = createState({});
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual(MONEY_EARN_BANNER_TOKENS_FALLBACK);
-  });
-
-  it('falls back to the built-in token list when the flag is structurally invalid', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: { '0x1': 'USDC' },
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual(MONEY_EARN_BANNER_TOKENS_FALLBACK);
-  });
-
-  it('honours a remote kill switch of {"*":[]}', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: { '*': [] },
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual({ '*': [] });
   });
 });

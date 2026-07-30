@@ -3377,8 +3377,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyDepositCtaTokens: {
-    name: 'earnMoneyDepositCtaTokens',
+  earnMoneyDepositCtaTokenAddresses: {
+    name: 'earnMoneyDepositCtaTokenAddresses',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {},
@@ -3393,14 +3393,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMoneyEarnBannerTokens: {
-    name: 'earnMoneyEarnBannerTokens',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {},
     status: FeatureFlagStatus.Active,
   },
 
@@ -3426,6 +3418,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyAssetOverviewFooterCtaEnabled: {
+    name: 'earnMoneyAssetOverviewFooterCtaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyAssetOverviewBalanceCtaEnabled: {
+    name: 'earnMoneyAssetOverviewBalanceCtaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyCardTiltAnimationEnabled: {
     name: 'earnMoneyCardTiltAnimationEnabled',
     type: FeatureFlagType.Remote,
@@ -3433,6 +3447,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
+
   earnMoneyFirstTimeDepositAnimationEnabled: {
     name: 'earnMoneyFirstTimeDepositAnimationEnabled',
     type: FeatureFlagType.Remote,
@@ -3782,6 +3797,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       moneyAccountWithdrawEnabled: false,
       moneyAccountDepositEnabled: false,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccountDepositQuotePipeline: {
+    name: 'moneyAccountDepositQuotePipeline',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -5661,6 +5684,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       position: 'after-world-cup-banner',
       severity: 'info',
       dismissible: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictFeedCarousel: {
+    name: 'predictFeedCarousel',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.6.0',
+      mode: 'live',
+      contentSource: {
+        composition: 'query-results',
+        queryParams: '',
+        excludedMarketIds: [],
+      },
     },
     status: FeatureFlagStatus.Active,
   },

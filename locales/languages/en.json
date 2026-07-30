@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "Type",
+      "placeholder": "Type",
       "all": "All types",
       "tokens": "Tokens",
       "perps": "Perps"
+    },
+    "timeframe_filter": {
+      "title": "Time frame",
+      "7d": "7D",
+      "30d": "30D"
+    },
+    "sort_filter": {
+      "title": "Sort by",
+      "pnl": "P&L",
+      "roi": "P&L %",
+      "win_rate": "Win rate"
     },
     "feed": {
       "title": "Top traders",
@@ -1266,7 +1279,7 @@
       "get_new_quote": "Get new quote",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "includes_mm_fee": "Includes {{fee}}% MetaMask fee",
       "pay_with_no_tokens": "No tokens available to pay with",
       "receive_with_no_tokens": "No tokens available to receive",
       "pay_with_filter_all": "All",
@@ -1281,12 +1294,12 @@
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
       "toast_failed_sell": "Couldn't sell {{symbol}}",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "Confirm",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
+      "edit_quick_amounts_title": "Edit default amounts",
+      "edit_quick_amounts_set_buy": "To buy",
+      "edit_quick_amounts_set_sell": "To sell",
+      "edit_quick_amounts_confirm": "Save",
+      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
+      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
       "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
       "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
     }
@@ -2551,6 +2564,8 @@
     },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
+      "collapse_chart": "Collapse chart",
+      "expand_chart": "Expand chart",
       "market_list": "Browse markets",
       "perp_pair": "{{ticker}}-{{collateral}} perp",
       "back": "Back",
@@ -2722,6 +2737,16 @@
     },
     "outcome_groups": {
       "game_lines": "Game Lines",
+      "map_1": "Map 1",
+      "map_2": "Map 2",
+      "map_3": "Map 3",
+      "map_4": "Map 4",
+      "map_5": "Map 5",
+      "game_1": "Game 1",
+      "game_2": "Game 2",
+      "game_3": "Game 3",
+      "game_4": "Game 4",
+      "game_5": "Game 5",
       "halves": "Halves",
       "first_half": "1st Half",
       "first_set": "1st Set",
@@ -2786,7 +2811,27 @@
       "tennis_match_totals": "Total Games",
       "tennis_first_set_totals": "1st Set Total Games",
       "tennis_first_set_winner": "1st Set Winner",
-      "tennis_completed_match": "Completed Match"
+      "tennis_completed_match": "Completed Match",
+      "child_moneyline": "Winner",
+      "map_handicap": "Handicap",
+      "round_handicap_game": "Rounds Handicap",
+      "round_over_under_game": "Total Rounds",
+      "first_blood_game": "First Blood",
+      "kill_over_under_game": "Total Kills",
+      "map_participant_win_total": "Maps Won",
+      "cs2_odd_even_total_kills": "Odd/Even Total Kills",
+      "cs2_odd_even_total_rounds": "Odd/Even Total Rounds",
+      "lol_both_teams_baron": "Both Teams Slay Baron Nashor",
+      "lol_both_teams_dragon": "Both Teams Slay a Dragon",
+      "lol_both_teams_inhibitors": "Both Teams Destroy Inhibitors",
+      "lol_odd_even_total_kills": "Odd/Even Total Kills",
+      "lol_penta_kill": "Any Player Penta Kill",
+      "lol_quadra_kill": "Any Player Quadra Kill",
+      "dota2_both_teams_barracks": "Both Teams Destroy Barracks",
+      "dota2_both_teams_roshan": "Both Teams Beat Roshan",
+      "dota2_game_ends_daytime": "Ends in Daytime",
+      "dota2_rampage": "Any Player Rampage",
+      "dota2_ultra_kill": "Any Player Ultra Kill"
     },
     "sell_position": "Sell position",
     "odds": "Odds",
@@ -7273,13 +7318,6 @@
     "your_bonus_tooltip_lifetime_bonus": "Lifetime bonus claimed: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
-    "empty_state_cta": {
-      "heading": "Lend {{tokenSymbol}} and earn",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
-    },
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
@@ -10552,7 +10590,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "top_traders": "Weekly top traders",
+      "top_traders": "Top traders",
       "defi": "DeFi",
       "nfts": "NFTs",
       "watchlist": "Watchlist",
@@ -10580,6 +10618,7 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
+    "ai_generated": "AI Generated",
     "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",

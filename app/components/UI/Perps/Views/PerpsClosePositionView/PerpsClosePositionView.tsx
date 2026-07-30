@@ -12,26 +12,28 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  Box,
+  BottomSheetFooter,
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  HelpText,
+  HelpTextSeverity,
   KeyValueRow,
   KeyValueRowVariant,
+  Slider,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -79,11 +81,9 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
-import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../../selectors/featureFlags';
-
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -161,7 +161,6 @@ const PerpsClosePositionView: React.FC = () => {
   const effectiveOrderType: OrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
-
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
     symbols: [position.symbol],
@@ -479,7 +478,6 @@ const PerpsClosePositionView: React.FC = () => {
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
-
   const unrealizedPnlPercent = useMemo(() => {
     const initialMargin = marginUsed - pnl; // Back-calculate initial margin
     return initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
@@ -563,7 +561,7 @@ const PerpsClosePositionView: React.FC = () => {
     }
   }, [effectiveOrderType, limitPrice]);
 
-  const handleConfirm = async () => {
+  const handleConfirm = useCallback(async () => {
     // Guard against submitting a stale committed `closePercentage` while
     // `isDraggingSlider` is (or is stuck) true — e.g. a cancelled gesture
     // that never reached commitClosePercentage (see handleSliderDragCancel
@@ -584,7 +582,6 @@ const PerpsClosePositionView: React.FC = () => {
     if (effectiveOrderType === 'limit' && !limitPrice) {
       return;
     }
-
     // Mark confirmed so the focus-effect cleanup does not emit an abandon event
     hasConfirmedCloseRef.current = true;
 
@@ -626,7 +623,33 @@ const PerpsClosePositionView: React.FC = () => {
             : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
       },
     });
-  };
+  }, [
+    closePercentage,
+    closeAmount,
+    effectiveOrderType,
+    limitPrice,
+    navigation,
+    handleClosePosition,
+    livePosition,
+    feeResults.totalFee,
+    feeResults.metamaskFeeRate,
+    feeResults.feeDiscountPercentage,
+    feeResults.metamaskFee,
+    feeResults.protocolFeeRate,
+    currentPrice,
+    receiveAmount,
+    effectivePnL,
+    rewardsState.estimatedPoints,
+    routeSource,
+    vipTier,
+    priceData,
+    position.symbol,
+    closingValueString,
+    effectivePrice,
+    isDraggingSlider,
+    commitClosePercentage,
+    liveDragClosePercentage,
+  ]);
 
   const handleAmountPress = () => {
     setIsInputFocused(true);
@@ -726,6 +749,14 @@ const PerpsClosePositionView: React.FC = () => {
     setIsUserInputActive(false);
   };
 
+  const handleSliderGrip = useCallback(() => {
+    playImpact(ImpactMoment.SliderGrip);
+  }, []);
+
+  const handleSliderMark = useCallback(() => {
+    playImpact(ImpactMoment.SliderTick);
+  }, []);
+
   // Hide provider-level limit price required error on this UI. Surface the
   // minimum amount error (e.g. minimum $10) and the "limit price too far"
   // band error — both are blocking, so Close must explain why it is disabled.
@@ -747,11 +778,15 @@ const PerpsClosePositionView: React.FC = () => {
     );
   }, [validationResult.errors]);
 
+  const summaryMargin = (closePercentage / 100) * effectiveMargin;
+  const summaryPnl = effectivePnL * (closePercentage / 100);
+  const summaryFees = feeResults.totalFee;
+
   const Summary = (
     <PerpsCloseSummary
-      totalMargin={(closePercentage / 100) * effectiveMargin}
-      totalPnl={effectivePnL * (closePercentage / 100)}
-      totalFees={feeResults.totalFee}
+      totalMargin={summaryMargin}
+      totalPnl={summaryPnl}
+      totalFees={summaryFees}
       originalTotalFees={feeResults.undiscountedTotalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}
       metamaskFeeRate={feeResults.metamaskFeeRate}
@@ -776,6 +811,27 @@ const PerpsClosePositionView: React.FC = () => {
         receiveValue: PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
       }}
     />
+  );
+
+  const isConfirmDisabled =
+    isClosing ||
+    (effectiveOrderType === 'limit' &&
+      (!limitPrice || parseFloat(limitPrice) <= 0)) ||
+    (effectiveOrderType === 'market' && closePercentage === 0) ||
+    !validationResult.isValid;
+
+  const confirmButtonProps = useMemo(
+    () => ({
+      children: isClosing
+        ? strings('perps.close_position.closing')
+        : strings('perps.close_position.button'),
+      onPress: handleConfirm,
+      size: ButtonSize.Lg,
+      isDisabled: isConfirmDisabled,
+      isLoading: isClosing,
+      testID: PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    }),
+    [handleConfirm, isClosing, isConfirmDisabled],
   );
 
   return (
@@ -806,7 +862,6 @@ const PerpsClosePositionView: React.FC = () => {
       >
         {/* Amount Display */}
         <PerpsAmountDisplay
-          label={strings('perps.close_position.select_amount')}
           amount={displayUSDString}
           showWarning={false}
           onPress={handleAmountPress}
@@ -821,35 +876,35 @@ const PerpsClosePositionView: React.FC = () => {
         />
 
         {/* Toggle Button for USD/Token Display */}
-        <View style={styles.toggleContainer}>
+        <Box twClassName="items-center px-4 pt-0 pb-2">
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {`${formatPositionSize(liveCloseAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
-        </View>
+        </Box>
 
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
-          <View
-            style={styles.sliderSection}
-            onTouchCancel={handleSliderDragCancel}
-          >
-            <PerpsSlider
+          <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+            <Slider
               value={displayClosePercentage}
               onValueChange={handleSliderValueChange}
               onDragEnd={handleSliderDragEnd}
               minimumValue={0}
               maximumValue={100}
               step={1}
-              showPercentageLabels
-              disabled={isClosing}
+              showRangeLabels
+              showRangeDots
+              isDisabled={isClosing}
+              onGrip={handleSliderGrip}
+              onMark={handleSliderMark}
             />
-          </View>
+          </Box>
         )}
 
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {effectiveOrderType === 'limit' && !isInputFocused && (
-          <View style={styles.detailsWrapper}>
-            <View style={styles.inputGroupContainer}>
+          <Box twClassName="px-4 pb-0">
+            <Box twClassName="bg-background-section rounded-xl overflow-hidden">
               <TouchableOpacity
                 testID={PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW}
                 onPress={() => setIsLimitPriceVisible(true)}
@@ -866,46 +921,38 @@ const PerpsClosePositionView: React.FC = () => {
                   }
                 />
               </TouchableOpacity>
-            </View>
-          </View>
+            </Box>
+          </Box>
         )}
 
         {/* Order Details moved to footer summary */}
 
         {/* Validation Messages - keep visible while typing */}
         {/* Filter the errors and only show minimum $10 error */}
-        {filteredErrors.length > 0 && (
-          <View style={styles.validationSection}>
-            {filteredErrors.map((error, index) => (
-              <View key={`error-${index}`} style={styles.errorMessage}>
-                <Icon
-                  name={IconName.Danger}
-                  size={IconSize.Sm}
-                  color={IconColor.ErrorDefault}
-                />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                >
-                  {error}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+        <Box style={styles.helpTextContainer}>
+          {filteredErrors.map((error, index) => (
+            <HelpText
+              key={`error-${index}`}
+              severity={HelpTextSeverity.Danger}
+              twClassName="w-full justify-center text-center"
+            >
+              {error}
+            </HelpText>
+          ))}
+        </Box>
       </ScrollView>
 
       {/* Keypad Section - Show when input is focused; keep summary and slider above */}
       {isInputFocused && (
-        <View style={styles.bottomSection}>
+        <Box twClassName="pt-4">
           {/* Summary shown above keypad while editing */}
           {Summary}
-          <View style={styles.percentageButtonsContainer}>
+          <Box twClassName="flex-row justify-between px-4 mb-3 gap-2">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.25)}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               25%
             </Button>
@@ -913,7 +960,7 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.5)}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               50%
             </Button>
@@ -921,7 +968,7 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleMaxPress}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -929,52 +976,31 @@ const PerpsClosePositionView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleDonePress}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               {strings('perps.deposit.done_button')}
             </Button>
-          </View>
+          </Box>
 
-          <Keypad
-            value={closeAmountUSDString}
-            onChange={handleKeypadChange}
-            currency={'USD'}
-            decimals={2}
-            style={styles.keypad}
-          />
-        </View>
+          <Box twClassName="px-4">
+            <Keypad
+              value={closeAmountUSDString}
+              onChange={handleKeypadChange}
+              currency={'USD'}
+              decimals={2}
+            />
+          </Box>
+        </Box>
       )}
 
       {/* Summary + Action Buttons - Always visible (button hidden when keypad active) */}
-      <View style={[styles.footer, styles.footerWithSummary]}>
+      <Box twClassName="w-full pb-4" style={styles.footerWithSummary}>
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <View style={styles.footerButton}>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleConfirm}
-              isDisabled={
-                isClosing ||
-                (effectiveOrderType === 'limit' &&
-                  (!limitPrice || parseFloat(limitPrice) <= 0)) ||
-                (effectiveOrderType === 'market' && closePercentage === 0) ||
-                !validationResult.isValid
-              }
-              isLoading={isClosing}
-              testID={
-                PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
-              }
-            >
-              {isClosing
-                ? strings('perps.close_position.closing')
-                : strings('perps.close_position.button')}
-            </Button>
-          </View>
+          <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
         )}
-      </View>
+      </Box>
 
       {/* Limit Price Bottom Sheet - gated on the derived order type so a
           mid-session flag flip closes it immediately (effectiveOrderType can
@@ -1025,5 +1051,4 @@ const PerpsClosePositionView: React.FC = () => {
     </SafeAreaView>
   );
 };
-
 export default PerpsClosePositionView;

@@ -99,7 +99,7 @@ function computeE2EPlatformFlags(input) {
     nativeBuildNeeded: e2eNeeded ? nativeBuildNeeded : false,
     runSmartE2ESelection,
     message,
-    changedFiles: changed,
+    changedSpecFiles: changed,
   };
 }
 

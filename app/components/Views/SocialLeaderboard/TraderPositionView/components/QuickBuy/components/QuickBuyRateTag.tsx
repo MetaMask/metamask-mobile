@@ -49,7 +49,9 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
       <Text variant={TextVariant.BodySm} color={textColor}>
         {displayLabel}
       </Text>
-      <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={iconColor} />
+      {onPress ? (
+        <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={iconColor} />
+      ) : null}
     </Box>
   );
 
