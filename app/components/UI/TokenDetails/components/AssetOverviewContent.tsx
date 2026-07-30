@@ -36,7 +36,10 @@ import {
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
 import { useComplianceGate } from '../../Compliance';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccountAddress,
+  selectSelectedInternalAccountId,
+} from '../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -77,7 +80,6 @@ import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTra
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
-  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
@@ -89,6 +91,10 @@ import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDe
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
+import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
+import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
+import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
+import { useSpendableBalance } from '../hooks/useSpendableBalance';
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
@@ -260,6 +266,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
+  const isAssetInactive = useSelector((state) =>
+    getIsAssetRequireActivate(state, {
+      assetId: token.address,
+    }),
+  );
+  const spendableBalanceData = useSpendableBalance({
+    assetId: token.address,
+  });
+  const showSpendableBalance = spendableBalanceData.hasSpendableBalance;
 
   const {
     hasPerpsMarket,
@@ -283,6 +298,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const accountId = useSelector(selectSelectedInternalAccountId);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
   const closeEligibilityModal = useCallback(() => {
@@ -596,6 +612,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             )}
 
+          {isAssetInactive ? (
+            <AssetActivateCard token={token} chainName="Stellar" />
+          ) : null}
+
           <Price
             asset={token}
             prices={prices}
@@ -658,7 +678,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
-          {balance != null && (
+          {balance != null && spendableBalanceData.hasSpendableBalance && (
+            <SpendableBalanceSection
+              minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
+              spendableBalance={spendableBalanceData.spendableBalance}
+              totalBalance={String(balance)}
+              symbol={token.symbol}
+              fiatValue={mainBalance}
+            />
+          )}
+          {balance != null && !showSpendableBalance && (
             <Balance
               asset={token}
               mainBalance={mainBalance}
