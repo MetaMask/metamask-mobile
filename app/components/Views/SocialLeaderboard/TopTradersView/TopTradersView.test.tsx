@@ -3,6 +3,7 @@ import React from 'react';
 import { FlatList } from 'react-native';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import Logger from '../../../../util/Logger';
+import { loadingSet } from '../../../../actions/user';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -838,6 +839,25 @@ describe('TopTradersView', () => {
         enabled: false,
       }),
     );
+  });
+
+  it('enables the landing Tokens query when perps hydrate on after mount', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    const { store } = renderWithProvider(<TopTradersView />);
+
+    // Remote flags hydrate `false -> true` after mount. Flip the mock and bump
+    // the store (a real state change) so `useSelector` re-reads the now-enabled
+    // perps flag instead of returning its cached snapshot.
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    act(() => {
+      store.dispatch(loadingSet('hydrating'));
+    });
+
+    expectLatestQueryEnabledStates({
+      all: false,
+      tokens: true,
+      perps: false,
+    });
   });
 
   it('renders the Tokens tab’s traders when the Tokens pill is tapped', () => {

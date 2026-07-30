@@ -42,6 +42,7 @@ import FeedSpotBuyAction, {
   type FeedSpotBuyActionHandle,
 } from '../FeedView/components/FeedSpotBuyAction';
 import TopTradersView from '../TopTradersView';
+import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
 import {
   TabsBar,
@@ -74,8 +75,12 @@ const SocialTradersTabsView: React.FC = () => {
   // Each page scrolls independently, so keep a scroll offset per tab and let a
   // derived value expose whichever one is currently visible. Sharing a single
   // offset would leave the header collapsed after swiping to an unscrolled page.
+  // On tab change the incoming page is scrolled into agreement with the outgoing
+  // one (see `syncIncomingPageScroll`) so the header never flips.
   const leaderboardScrollY = useSharedValue(0);
   const feedScrollY = useSharedValue(0);
+  const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
+  const feedPageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(LEADERBOARD_INDEX);
   const scrollY = useDerivedValue(() =>
     activeIndexSv.value === FEED_INDEX
@@ -102,6 +107,12 @@ const SocialTradersTabsView: React.FC = () => {
   const [tabsHeight, setTabsHeight] = useState(0);
   // Pushes each page's first row below the floating title + tabs at rest.
   const contentTopInset = titleHeight + tabsHeight;
+  // The inset is only known after the overlay's `onLayout` fires (a frame after
+  // first paint). Until then the pages would lay their content out at the top,
+  // under the floating title/tabs, then snap down once measured. Keep the pages
+  // mounted (so their fetches start) but hidden until the inset is real to avoid
+  // that first-frame content jump.
+  const isHeaderMeasured = titleHeight > 0 && tabsHeight > 0;
 
   const handleTitleLayout = useCallback(
     (e: LayoutChangeEvent) => {
@@ -115,6 +126,56 @@ const SocialTradersTabsView: React.FC = () => {
   const handleTabsLayout = useCallback((e: LayoutChangeEvent) => {
     setTabsHeight(e.nativeEvent.layout.height);
   }, []);
+
+  /**
+   * Brings the incoming page's scroll offset into agreement with the outgoing
+   * one over the header's collapse range, so switching tabs never flips the
+   * title between its collapsed and expanded states.
+   *
+   * Only the first `titleHeight` pixels drive the collapse, so that's all we
+   * sync: once the outgoing page is past it the header is fully collapsed and
+   * the incoming page only has to clear the same threshold, which preserves a
+   * deeper reading position instead of yanking it back to the top.
+   */
+  const syncIncomingPageScroll = useCallback(
+    (nextIndex: number) => {
+      const collapseRange = titleHeight;
+      if (collapseRange <= 0) {
+        return;
+      }
+
+      const isFeedIncoming = nextIndex === FEED_INDEX;
+      const outgoingOffset = isFeedIncoming
+        ? leaderboardScrollY.value
+        : feedScrollY.value;
+      const incomingOffset = isFeedIncoming
+        ? feedScrollY.value
+        : leaderboardScrollY.value;
+
+      const target =
+        outgoingOffset >= collapseRange
+          ? Math.max(incomingOffset, collapseRange)
+          : outgoingOffset;
+
+      if (target === incomingOffset) {
+        return;
+      }
+
+      // Write the shared value up front: `scrollY` switches to the incoming page
+      // the moment `activeIndexSv` flips, and the native scroll only reports back
+      // a frame later — without this the header would collapse/expand for that
+      // frame before settling.
+      if (isFeedIncoming) {
+        feedScrollY.value = target;
+      } else {
+        leaderboardScrollY.value = target;
+      }
+
+      const incomingPage = isFeedIncoming ? feedPageRef : leaderboardPageRef;
+      incomingPage.current?.scrollToOffset(target);
+    },
+    [titleHeight, leaderboardScrollY, feedScrollY],
+  );
 
   // Slide the title (and the tabs riding above it) up as the page scrolls,
   // clamped so the tabs settle flush under the header instead of scrolling off.
@@ -231,10 +292,11 @@ const SocialTradersTabsView: React.FC = () => {
       });
 
       playSelection().catch(() => undefined);
+      syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
     },
-    [activeIndex, activeIndexSv, track],
+    [activeIndex, activeIndexSv, syncIncomingPageScroll, track],
   );
 
   const handleTabPress = useCallback(
@@ -320,7 +382,7 @@ const SocialTradersTabsView: React.FC = () => {
       <Box twClassName="flex-1 overflow-hidden">
         <PagerView
           ref={pagerRef}
-          style={tw.style('flex-1')}
+          style={tw.style('flex-1', { opacity: isHeaderMeasured ? 1 : 0 })}
           initialPage={LEADERBOARD_INDEX}
           onPageSelected={handlePageSelected}
           testID={SocialTradersTabsViewSelectorsIDs.PAGER}
@@ -335,6 +397,7 @@ const SocialTradersTabsView: React.FC = () => {
               embeddedInTabs
               onScroll={leaderboardScrollHandler}
               contentTopInset={contentTopInset}
+              pageRef={leaderboardPageRef}
             />
           </View>
           <View
@@ -349,6 +412,7 @@ const SocialTradersTabsView: React.FC = () => {
               onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
               onScroll={feedScrollHandler}
               contentTopInset={contentTopInset}
+              pageRef={feedPageRef}
             />
           </View>
         </PagerView>

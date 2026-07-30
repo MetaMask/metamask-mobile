@@ -2,6 +2,7 @@
 import React, {
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -22,7 +23,12 @@ import {
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { RefreshControl, useWindowDimensions } from 'react-native';
+import {
+  RefreshControl,
+  useWindowDimensions,
+  type FlatList,
+  type ScrollView,
+} from 'react-native';
 import Animated, {
   runOnJS,
   useAnimatedReaction,
@@ -74,6 +80,7 @@ import {
   SPOT_CHAINS,
 } from '../../shared/top-traders-constants';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
 import {
@@ -179,12 +186,19 @@ export interface TopTradersViewProps {
    * parent's floating title + tabs at rest. Only used in `embeddedInTabs` mode.
    */
   contentTopInset?: number;
+  /**
+   * Lets the tabs container drive this page's scroll offset so the collapsing
+   * title stays put when the user switches tabs. Only used in `embeddedInTabs`
+   * mode.
+   */
+  pageRef?: React.Ref<SocialTabPageHandle>;
 }
 
 const TopTradersView: React.FC<TopTradersViewProps> = ({
   embeddedInTabs = false,
   onScroll: onScrollProp,
   contentTopInset = 0,
+  pageRef,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
@@ -237,6 +251,25 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
   const selectedTabRef = useRef<TabFilter>(DEFAULT_TYPE_TAB);
+  // Tracks whether the user has explicitly chosen a tab. Once they have, late
+  // feature-flag hydration must not override their selection with the default.
+  const hasUserSelectedTabRef = useRef(false);
+
+  // Only one of these is mounted at a time (skeletons vs. loaded rows), so the
+  // handle forwards the offset to both and lets the unmounted one no-op.
+  const skeletonScrollRef = useRef<ScrollView>(null);
+  const listRef = useRef<FlatList<RankedTrader>>(null);
+
+  useImperativeHandle(
+    pageRef,
+    () => ({
+      scrollToOffset: (offset: number, animated = false) => {
+        listRef.current?.scrollToOffset({ offset, animated });
+        skeletonScrollRef.current?.scrollTo({ y: offset, animated });
+      },
+    }),
+    [],
+  );
 
   // Render enough skeleton rows to cover the visible list area. Add a couple of
   // extras so users can see the shimmer continue past the fold while scrolling.
@@ -312,12 +345,28 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   }, [isEnabled, navigation]);
 
   useEffect(() => {
-    if (!isPerpsEnabled && selectedTabRef.current !== 'all') {
-      selectedTabRef.current = 'all';
-      setRenderedTab('all');
-      setQueryEnabledTabs((current) =>
-        current.all ? current : { ...current, all: true },
-      );
+    if (!isPerpsEnabled) {
+      if (selectedTabRef.current !== 'all') {
+        selectedTabRef.current = 'all';
+        setRenderedTab('all');
+        setQueryEnabledTabs((current) =>
+          current.all ? current : { ...current, all: true },
+        );
+      }
+      return;
+    }
+    // Remote flags can hydrate `false -> true` after mount. With perps off the
+    // landing state (and the query map) was pinned to the spot-only "all" tab,
+    // so once perps turn on restore the intended `DEFAULT_TYPE_TAB` landing and
+    // enable its query — otherwise the screen stays on "all" with the default
+    // tab's query never switched on. Skip this if the user already picked a tab.
+    if (
+      !hasUserSelectedTabRef.current &&
+      selectedTabRef.current !== DEFAULT_TYPE_TAB
+    ) {
+      selectedTabRef.current = DEFAULT_TYPE_TAB;
+      setRenderedTab(DEFAULT_TYPE_TAB);
+      setQueryEnabledTabs(buildQueryEnabledTabs(DEFAULT_TYPE_TAB));
     }
   }, [isPerpsEnabled]);
 
@@ -347,6 +396,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       if (!isPerpsEnabled && next !== 'all') return;
       const previousTab = selectedTabRef.current;
       if (previousTab === next) return;
+      hasUserSelectedTabRef.current = true;
       selectedTabRef.current = next;
       track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED, {
         [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
@@ -683,6 +733,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     <Box twClassName="flex-1">
       {isLoading && traders.length === 0 ? (
         <Animated.ScrollView
+          ref={skeletonScrollRef}
           // `flex-1` matches FlatList's default behavior so the list area sits
           // directly under the filters and skeletons render top-aligned.
           style={tw.style('flex-1')}
@@ -707,6 +758,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         </Animated.ScrollView>
       ) : (
         <Animated.FlatList<RankedTrader>
+          ref={listRef}
           data={traders}
           keyExtractor={(item) => item.id}
           renderItem={renderTraderRow}

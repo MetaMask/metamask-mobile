@@ -24,6 +24,7 @@ import type { PerpsMarketData } from '@metamask/perps-controller';
 import React, {
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -33,6 +34,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   SectionList,
+  type ScrollView,
   type SectionListData,
   type SectionListRenderItemInfo,
 } from 'react-native';
@@ -68,6 +70,7 @@ import type {
   FeedSection,
   FeedTypeFilter,
 } from './types';
+import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { FeedViewSelectorsIDs } from './FeedView.testIds';
 
 const SKELETON_ROW_COUNT = 6;
@@ -116,6 +119,11 @@ export interface FeedViewProps {
    * parent's floating title + tabs at rest.
    */
   contentTopInset?: number;
+  /**
+   * Lets the tabs container drive this page's scroll offset so the collapsing
+   * title stays put when the user switches tabs.
+   */
+  pageRef?: React.Ref<SocialTabPageHandle>;
 }
 
 /**
@@ -133,6 +141,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   onSpotAvailabilityChange,
   onScroll,
   contentTopInset = 0,
+  pageRef,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -153,6 +162,22 @@ const FeedView: React.FC<FeedViewProps> = ({
   // Fires when the Feed tab first becomes active (pager mounts both pages).
   const hasFiredScreenViewedRef = useRef(false);
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
+
+  // Only one of these is mounted at a time (skeletons vs. loaded sections), so
+  // the handle forwards the offset to both and lets the unmounted one no-op.
+  const skeletonScrollRef = useRef<ScrollView>(null);
+  const listRef = useRef<SectionList<FeedItem, FeedSection>>(null);
+
+  useImperativeHandle(
+    pageRef,
+    () => ({
+      scrollToOffset: (offset: number, animated = false) => {
+        listRef.current?.getScrollResponder()?.scrollTo({ y: offset, animated });
+        skeletonScrollRef.current?.scrollTo({ y: offset, animated });
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     if (!isActive || hasFiredScreenViewedRef.current) {
@@ -488,6 +513,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     if (isLoading && items.length === 0) {
       return (
         <Animated.ScrollView
+          ref={skeletonScrollRef}
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('pb-6', {
             paddingTop: contentTopInset,
@@ -508,6 +534,7 @@ const FeedView: React.FC<FeedViewProps> = ({
 
     return (
       <AnimatedSectionList
+        ref={listRef}
         sections={sections}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
