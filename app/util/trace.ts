@@ -343,6 +343,70 @@ const tracesByKey: Map<string, PendingTrace> = new Map();
 
 const localBufferedTraces: BufferedTrace[] = [];
 
+/**
+ * Summed machine/app wait time on `Onboarding - Overall Journey`, excluding human
+ * interaction (browser OAuth, password typing). See `MACHINE_TIME_TRACE_NAMES`.
+ */
+export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
+
+/** Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap. */
+const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
+  TraceName.OnboardingScreenTimeToContent,
+  TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+  TraceName.OnboardingOAuthSeedlessAuthenticate,
+  TraceName.OnboardingPasswordLoginAttempt,
+  TraceName.OnboardingSRPAccountCreationTime,
+  TraceName.OnboardingSRPAccountImportTime,
+]);
+
+let onboardingMachineTimeMs = 0;
+/** Harvested from buffered spans on social opt-in discard; applied on journey start/reuse. */
+let pendingOnboardingMachineTimeMs = 0;
+
+const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
+const ONBOARDING_OP_PREFIX = 'onboarding.';
+
+/** Journey account type inherited by onboarding child spans (see `rememberOnboardingAccountType`). */
+let onboardingAccountType: string | undefined;
+
+/**
+ * Record the journey's account type when the given tags carry one.
+ *
+ * @param tags - Tags from a journey trace request or annotation.
+ */
+function rememberOnboardingAccountType(
+  tags?: Record<string, TraceValue>,
+): void {
+  const accountType = tags?.[ACCOUNT_TYPE_ATTRIBUTE];
+
+  if (typeof accountType === 'string') {
+    onboardingAccountType = accountType;
+  }
+}
+
+/**
+ * Resolve the attributes a span starts with, adding the journey's account type to
+ * onboarding spans that do not already set one of their own.
+ *
+ * @param request - The trace request being started.
+ * @returns The attributes to open the span with.
+ */
+function getSpanAttributes(
+  request: TraceRequest,
+): Record<string, TraceValue> | undefined {
+  const { data, op } = request;
+
+  if (
+    !op?.startsWith(ONBOARDING_OP_PREFIX) ||
+    onboardingAccountType === undefined ||
+    data?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+  ) {
+    return data;
+  }
+
+  return { ...data, [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType };
+}
+
 export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
@@ -553,9 +617,69 @@ export function annotateTrace(
     return;
   }
 
+  rememberOnboardingAccountType(tags);
+
   for (const [key, value] of Object.entries(tags)) {
     context.setAttribute(key, value);
   }
+}
+
+/** Skip failed spans; capped unmount durations are not real user waits. */
+function addOnboardingMachineTime(
+  request: EndTraceRequest,
+  duration: number,
+): void {
+  if (!MACHINE_TIME_TRACE_NAMES.has(request.name)) {
+    return;
+  }
+
+  if (request.data?.success === false || !Number.isFinite(duration)) {
+    return;
+  }
+
+  onboardingMachineTimeMs += Math.max(duration, 0);
+}
+
+/** Credit open machine-time spans on successful journey end (e.g. SRP create path). */
+function addOpenOnboardingMachineTime(
+  request: EndTraceRequest,
+  journeyEndTime: number,
+): void {
+  if (request.data?.success === false) {
+    return;
+  }
+
+  for (const pendingTrace of tracesByKey.values()) {
+    if (!MACHINE_TIME_TRACE_NAMES.has(pendingTrace.request.name)) {
+      continue;
+    }
+
+    const { startTime } = pendingTrace;
+    const cappedEndTime = Math.min(
+      journeyEndTime,
+      startTime + TRACES_CLEANUP_INTERVAL,
+    );
+
+    if (!Number.isFinite(cappedEndTime - startTime)) {
+      continue;
+    }
+
+    onboardingMachineTimeMs += Math.max(cappedEndTime - startTime, 0);
+  }
+}
+
+/** Write `onboarding.machine.ms` before the journey span finishes. */
+function finalizeOnboardingMachineTime(span?: Span): void {
+  // Mirrors the guard around span.end(): the tracing layer must never throw into
+  // an onboarding flow because a span implementation is incomplete.
+  if (span?.setAttribute !== undefined) {
+    span.setAttribute(
+      ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+      Math.round(onboardingMachineTimeMs),
+    );
+  }
+
+  onboardingMachineTimeMs = 0;
 }
 
 export function endTrace(request: EndTraceRequest): void {
@@ -585,10 +709,23 @@ export function endTrace(request: EndTraceRequest): void {
     }
   }
 
-  const endTime = finishPendingTrace(key, pendingTrace, timestamp);
+  let endTimeRequest = timestamp;
+
+  if (name === TraceName.OnboardingJourneyOverall) {
+    // Resolved here because the machine-time total needs the journey's end before
+    // the span is finished. Capping is idempotent, so handing the resolved value
+    // to finishPendingTrace records the same timestamp without re-reading the clock.
+    endTimeRequest = getEffectiveEndTime(pendingTrace, timestamp);
+    addOpenOnboardingMachineTime(request, endTimeRequest);
+    finalizeOnboardingMachineTime(pendingTrace.span);
+  }
+
+  const endTime = finishPendingTrace(key, pendingTrace, endTimeRequest);
 
   const { request: pendingRequest, startTime } = pendingTrace;
   const duration = endTime - startTime;
+
+  addOnboardingMachineTime(request, duration);
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
 }
@@ -740,8 +877,66 @@ export function updateCachedConsent(consent: boolean) {
   cachedConsent = consent;
 }
 
+/** Pair buffered start/end machine-time spans before social opt-in discard. */
+function harvestBufferedOnboardingMachineTime(): number {
+  const startsByKey = new Map<string, number>();
+  let harvestedMs = 0;
+
+  for (const bufferedItem of localBufferedTraces) {
+    if (bufferedItem.type !== 'start') {
+      continue;
+    }
+
+    const request = bufferedItem.request as TraceRequest;
+    const { name, startTime } = request;
+    if (!MACHINE_TIME_TRACE_NAMES.has(name)) {
+      continue;
+    }
+
+    startsByKey.set(getTraceKey(request), startTime ?? Date.now());
+  }
+
+  for (const bufferedItem of localBufferedTraces) {
+    if (bufferedItem.type !== 'end') {
+      continue;
+    }
+
+    const request = bufferedItem.request as EndTraceRequest;
+    const { name, timestamp, data } = request;
+    if (!MACHINE_TIME_TRACE_NAMES.has(name) || data?.success === false) {
+      continue;
+    }
+
+    const startTime = startsByKey.get(getTraceKey(request));
+    if (startTime === undefined) {
+      continue;
+    }
+
+    const endTime = timestamp ?? Date.now();
+    const duration = endTime - startTime;
+
+    if (Number.isFinite(duration)) {
+      harvestedMs += Math.max(duration, 0);
+    }
+  }
+
+  return harvestedMs;
+}
+
+/** Apply pending machine time when the journey span is reused after social opt-in. */
+export function applyPendingOnboardingMachineTime(): void {
+  onboardingMachineTimeMs += pendingOnboardingMachineTimeMs;
+  pendingOnboardingMachineTimeMs = 0;
+}
+
+export function _resetOnboardingMachineTimeForTesting(): void {
+  onboardingMachineTimeMs = 0;
+  pendingOnboardingMachineTimeMs = 0;
+}
+
 export function discardBufferedTraces() {
-  localBufferedTraces.length = 0; // Clear local buffer as well
+  pendingOnboardingMachineTimeMs += harvestBufferedOnboardingMachineTime();
+  localBufferedTraces.length = 0;
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
@@ -798,6 +993,13 @@ function startTrace(request: TraceRequest): TraceContext {
   const { name, startTime: requestStartTime } = request;
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
+
+  if (name === TraceName.OnboardingJourneyOverall) {
+    onboardingMachineTimeMs = pendingOnboardingMachineTimeMs;
+    pendingOnboardingMachineTimeMs = 0;
+    onboardingAccountType = undefined;
+    rememberOnboardingAccountType(request.tags);
+  }
 
   if (getCachedConsent() !== true) {
     // Extract parent trace name if parentContext exists
@@ -883,11 +1085,11 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { data: attributes, name, parentContext, startTime, op } = request;
+  const { name, parentContext, startTime, op } = request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
-    attributes,
+    attributes: getSpanAttributes(request),
     name,
     op: op || OP_DEFAULT,
     parentSpan,

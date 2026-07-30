@@ -145,6 +145,10 @@ class WalletView {
     // Android: scrollIntoView inside the scroll view works reliably.
     // iOS: scrollIntoView gets stuck on the homepage; use bounded swipe loops instead.
     if (this.isAndroidAppium()) {
+      await Assertions.expectElementToBeVisible(this.walletScrollView, {
+        timeout: resolveE2EWaitTimeoutMs(10_000),
+        description: `wallet-scroll-view for ${description}`,
+      });
       const scrollView = await asPlaywrightElement(this.walletScrollView);
       const element = await asPlaywrightElement(target);
       await PlaywrightGestures.scrollIntoView(element, {
