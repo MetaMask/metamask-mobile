@@ -400,6 +400,14 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    if (
+      doesStopLossRiskLiquidation ||
+      isTakeProfitPriceInvalid ||
+      isStopLossPriceInvalid
+    ) {
+      return;
+    }
+
     isSubmittingRef.current = true;
 
     try {
@@ -529,6 +537,9 @@ export const usePerpsProOrderForm = ({
     estimatedSlippageBps,
     maxSlippageBps,
     maxSlippageSource,
+    doesStopLossRiskLiquidation,
+    isTakeProfitPriceInvalid,
+    isStopLossPriceInvalid,
     orderValidation.isValid,
     orderValidation.errors,
     currentMarketPosition,
@@ -825,7 +836,13 @@ export const usePerpsProOrderForm = ({
   );
 
   const isPlaceOrderDisabled =
-    !orderValidation.isValid || isAtCap || isPlacing || isLoadingMarketData;
+    !orderValidation.isValid ||
+    isAtCap ||
+    isPlacing ||
+    isLoadingMarketData ||
+    doesStopLossRiskLiquidation ||
+    isTakeProfitPriceInvalid ||
+    isStopLossPriceInvalid;
 
   const onDirectionChange = useCallback(
     (direction: PerpsProOrderDirection) => {
