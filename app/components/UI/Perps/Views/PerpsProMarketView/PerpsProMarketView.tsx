@@ -28,6 +28,7 @@ import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottom
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsNavigation } from '../../hooks';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -60,6 +61,13 @@ const PerpsProMarketView = () => {
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+  const { navigateToMarketList } = usePerpsNavigation();
+
+  const handleMarketListPress = useCallback(() => {
+    navigateToMarketList({
+      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    });
+  }, [navigateToMarketList]);
 
   const handleCollapseOrderBook = useCallback(() => {
     setIsOrderBookCollapsed(true);
@@ -176,7 +184,10 @@ const PerpsProMarketView = () => {
       edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsProMarketHeader symbol={symbol} />
+      <PerpsProMarketHeader
+        symbol={symbol}
+        onSymbolPress={handleMarketListPress}
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

@@ -48,6 +48,7 @@ jest.mock('react-native-worklets', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+const mockReset = jest.fn();
 let mockRouteParams: Record<string, unknown> = {
   source: 'main_action_button',
 };
@@ -57,6 +58,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
+    reset: mockReset,
   }),
   useRoute: () => ({
     params: mockRouteParams,
@@ -627,13 +629,24 @@ describe('PerpsHomeView', () => {
     // Act - stubbed toggle switches to Pro on press
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - persists the new mode and lands on the default (BTC) market
+    // Assert - persists the new mode and resets onto the default (BTC)
+    // market, discarding Perps Home from history so it stays unreachable
+    // via back navigation while Pro mode is active.
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        expect.objectContaining({
+          name: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'BTC' }),
+          }),
+        }),
+      ],
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MARKET_DETAILS,
-      expect.objectContaining({
-        market: expect.objectContaining({ symbol: 'BTC' }),
-      }),
+      expect.anything(),
     );
   });
 
@@ -656,6 +669,7 @@ describe('PerpsHomeView', () => {
       Routes.PERPS.MARKET_DETAILS,
       expect.anything(),
     );
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {

@@ -7,6 +7,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import Routes from '../../../../../constants/navigation/Routes';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -105,11 +106,17 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     mockUsePerpsEventTracking(options),
 }));
 
+const mockNavigate = jest.fn();
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useRoute: () => ({ params: mockRouteParams }),
+    useNavigation: () => ({
+      ...actualNav.useNavigation(),
+      navigate: mockNavigate,
+    }),
   };
 });
 
@@ -444,6 +451,19 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
     ).toHaveTextContent(/^TSLA$/);
+  });
+
+  it('navigates to the market list when the header symbol is pressed', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_LIST,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN },
+    });
   });
 
   it('uses the Figma shell heights', () => {

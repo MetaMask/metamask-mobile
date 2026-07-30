@@ -10,6 +10,7 @@ import {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PerpsMode } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { RootState } from '../../../reducers';
@@ -28,7 +29,10 @@ import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
-import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import {
+  selectIsFirstTimePerpsUser,
+  selectPerpsMode,
+} from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
@@ -100,9 +104,15 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
 }));
 
-jest.mock('../../UI/Perps/selectors/perpsController', () => ({
-  selectIsFirstTimePerpsUser: jest.fn(),
-}));
+jest.mock('../../UI/Perps/selectors/perpsController', () => {
+  const { PerpsMode: MockedPerpsMode } = jest.requireActual(
+    '@metamask/perps-controller',
+  );
+  return {
+    selectIsFirstTimePerpsUser: jest.fn(),
+    selectPerpsMode: jest.fn(() => MockedPerpsMode.Lite),
+  };
+});
 
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
@@ -742,13 +752,18 @@ describe('TradeWalletActions', () => {
     await pressActionButton(getByTestId, 'perps-mode-toggle');
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    // No `initial: false`: Perps Home must never be seeded beneath the
+    // default market screen, so it stays unreachable via back navigation.
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: expect.objectContaining({
         market: expect.objectContaining({ symbol: 'BTC' }),
       }),
-      initial: false,
     });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({ initial: false }),
+    );
   });
 
   it('hides the Lite/Pro toggle when the selected account cannot sign transactions', () => {
@@ -1080,6 +1095,46 @@ describe('TradeWalletActions', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: {},
+      });
+    });
+
+    it('navigates to the default Pro market instead of Perps home when Pro mode is already active', async () => {
+      (
+        selectPerpsEnabledFlag as jest.MockedFunction<
+          typeof selectPerpsEnabledFlag
+        >
+      ).mockReturnValue(true);
+      (
+        selectIsFirstTimePerpsUser as jest.MockedFunction<
+          typeof selectIsFirstTimePerpsUser
+        >
+      ).mockReturnValue(false);
+      (
+        selectPerpsProModeEnabledFlag as jest.MockedFunction<
+          typeof selectPerpsProModeEnabledFlag
+        >
+      ).mockReturnValue(true);
+      (
+        selectPerpsMode as jest.MockedFunction<typeof selectPerpsMode>
+      ).mockReturnValue(PerpsMode.Pro);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'BTC' }),
+        }),
       });
     });
 

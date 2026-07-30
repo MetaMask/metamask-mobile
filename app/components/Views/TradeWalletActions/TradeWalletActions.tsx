@@ -1,4 +1,8 @@
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  useNavigation,
+  useFocusEffect,
+  type NavigatorScreenParams,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -81,7 +85,10 @@ import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureF
 import { usePerpsMode } from '../../UI/Perps/hooks';
 import PerpsModeToggle from '../../UI/Perps/components/PerpsModeToggle';
 import { showPerpsModeFlash } from '../../UI/Perps/utils/perpsModeFlash';
-import { buildDefaultProMarket } from '../../UI/Perps/utils/perpsModeSwitch';
+import {
+  buildDefaultProMarket,
+  useGetPerpsHomeNavigationTarget,
+} from '../../UI/Perps/utils/perpsModeSwitch';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -92,6 +99,7 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import type { PerpsStackParamList } from '../../UI/Perps/types/navigation';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
@@ -173,6 +181,7 @@ function TradeWalletActions() {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -236,13 +245,20 @@ function TradeWalletActions() {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
+        const { screen, params } = getPerpsHomeNavigationTarget();
         navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
+          screen,
+          params,
+        } as NavigatorScreenParams<PerpsStackParamList>);
       }
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
+  }, [
+    handleNavigateBack,
+    navigate,
+    isFirstTimePerpsUser,
+    getPerpsHomeNavigationTarget,
+  ]);
 
   const onPerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
@@ -259,15 +275,15 @@ function TradeWalletActions() {
         // Flash the destination mode on top of the Perps stack once it mounts.
         showPerpsModeFlash(nextMode);
         if (nextMode === PerpsMode.Pro) {
-          // Pro lands on the default (BTC) market screen, with Perps home
-          // seeded beneath it (initial: false) so back navigation works.
+          // Pro lands on the default (BTC) market screen. Deliberately no
+          // `initial: false` here: Perps Home must never be seeded beneath
+          // it, so it stays unreachable via back navigation.
           navigate(Routes.PERPS.ROOT, {
             screen: Routes.PERPS.MARKET_DETAILS,
             params: {
               market: buildDefaultProMarket(),
               source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
             },
-            initial: false,
           });
           return;
         }

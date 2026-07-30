@@ -175,11 +175,22 @@ const PerpsHomeView = () => {
       }
       // Flash the destination mode on top of the current screen.
       showPerpsModeFlash(nextMode);
-      // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
+      // Pro lands on the default (BTC) market screen; Lite stays on Perps
+      // home. Home is reset out of history (rather than pushed under the
+      // market screen) so Perps Home is never reachable while Pro mode is
+      // active, including via the back button (TAT-3612).
       if (nextMode === PerpsMode.Pro) {
-        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-          market: buildDefaultProMarket(),
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: buildDefaultProMarket(),
+                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+              },
+            },
+          ],
         });
       }
     },

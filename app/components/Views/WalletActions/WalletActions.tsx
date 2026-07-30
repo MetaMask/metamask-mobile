@@ -2,7 +2,10 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigatorScreenParams,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
@@ -42,6 +45,8 @@ import {
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import { useGetPerpsHomeNavigationTarget } from '../../UI/Perps/utils/perpsModeSwitch';
+import type { PerpsStackParamList } from '../../UI/Perps/types/navigation';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
@@ -68,6 +73,7 @@ const WalletActions = () => {
     sourcePage: 'MainView',
   });
   const { isEligible: isEarnEligible } = useStakingEligibility();
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -120,13 +126,21 @@ const WalletActions = () => {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-          params: { source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON },
+        const { screen, params } = getPerpsHomeNavigationTarget({
+          source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
+        navigate(Routes.PERPS.ROOT, {
+          screen,
+          params,
+        } as NavigatorScreenParams<PerpsStackParamList>);
       }
     });
-  }, [closeBottomSheetAndNavigate, navigate, isFirstTimePerpsUser]);
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    isFirstTimePerpsUser,
+    getPerpsHomeNavigationTarget,
+  ]);
 
   const onPredict = useCallback(() => {
     closeBottomSheetAndNavigate(() => {

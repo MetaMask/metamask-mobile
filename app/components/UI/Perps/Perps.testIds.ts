@@ -457,6 +457,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   SCROLL_VIEW: 'perps-pro-market-scroll-view',
   HEADER: 'perps-pro-market-header',
   HEADER_SYMBOL: 'perps-pro-market-header-symbol',
+  HEADER_SYMBOL_BUTTON: 'perps-pro-market-header-symbol-button',
   MARKET_SUMMARY: 'perps-pro-market-summary',
   MARKET_PRICE: 'perps-pro-market-price',
   MARKET_PRICE_CHANGE: 'perps-pro-market-price-change',
