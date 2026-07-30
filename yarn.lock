@@ -8810,29 +8810,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-snap-keyring@npm:^23.0.0, @metamask/eth-snap-keyring@npm:^23.0.1":
-  version: 23.0.1
-  resolution: "@metamask/eth-snap-keyring@npm:23.0.1"
+"@metamask/eth-snap-keyring@npm:^23.0.0, @metamask/eth-snap-keyring@npm:^23.0.2":
+  version: 23.0.2
+  resolution: "@metamask/eth-snap-keyring@npm:23.0.2"
   dependencies:
     "@ethereumjs/tx": "npm:^5.4.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/keyring-internal-api": "npm:^11.0.1"
-    "@metamask/keyring-internal-snap-client": "npm:^10.0.5"
-    "@metamask/keyring-sdk": "npm:^2.2.0"
-    "@metamask/keyring-snap-sdk": "npm:^9.2.0"
-    "@metamask/keyring-utils": "npm:^3.3.1"
+    "@metamask/keyring-internal-api": "npm:^11.0.2"
+    "@metamask/keyring-internal-snap-client": "npm:^10.0.6"
+    "@metamask/keyring-sdk": "npm:^2.3.0"
+    "@metamask/keyring-snap-sdk": "npm:^9.2.1"
+    "@metamask/keyring-utils": "npm:^4.0.0"
     "@metamask/messenger": "npm:^1.1.1"
     "@metamask/snaps-controllers": "npm:^19.0.1"
     "@metamask/snaps-sdk": "npm:^11.0.0"
     "@metamask/snaps-utils": "npm:^12.2.1"
-    "@metamask/superstruct": "npm:^3.3.0"
+    "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^11.11.0"
     "@types/uuid": "npm:^9.0.8"
     async-mutex: "npm:^0.5.0"
     uuid: "npm:^9.0.1"
   peerDependencies:
     "@metamask/keyring-api": ^23.0.0
-  checksum: 10/9e5ce3f5e6d5747f82f2229d4da77fc680c4533061a733a66810246ab6810c6b9429731883cbebb525bf2d5c341eef93a5a4e1b4773bc02e49f0fd1630697b7a
+  checksum: 10/a8763d5ec3c8863a6a623bd58b3328b06adba6435ea73b5f0b987f6ae2b8fa7a95a9464cc9d9a9ffec11d2183d36b1947251761328d15fb10038f368f6f7ffc5
   languageName: node
   linkType: hard
 
@@ -9105,7 +9105,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-internal-snap-client@npm:^10.0.3, @metamask/keyring-internal-snap-client@npm:^10.0.5":
+"@metamask/keyring-internal-snap-client@npm:^10.0.3, @metamask/keyring-internal-snap-client@npm:^10.0.5, @metamask/keyring-internal-snap-client@npm:^10.0.6":
   version: 10.0.6
   resolution: "@metamask/keyring-internal-snap-client@npm:10.0.6"
   dependencies:
@@ -9118,21 +9118,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-sdk@npm:^2.0.2, @metamask/keyring-sdk@npm:^2.1.1, @metamask/keyring-sdk@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "@metamask/keyring-sdk@npm:2.2.0"
+"@metamask/keyring-sdk@npm:^2.0.2, @metamask/keyring-sdk@npm:^2.1.1, @metamask/keyring-sdk@npm:^2.2.0, @metamask/keyring-sdk@npm:^2.3.0":
+  version: 2.3.0
+  resolution: "@metamask/keyring-sdk@npm:2.3.0"
   dependencies:
     "@ethereumjs/tx": "npm:^5.4.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/keyring-api": "npm:^23.2.0"
-    "@metamask/keyring-utils": "npm:^3.3.1"
+    "@metamask/keyring-api": "npm:^23.6.0"
+    "@metamask/keyring-utils": "npm:^4.0.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
-    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^11.11.0"
     async-mutex: "npm:^0.5.0"
     ethereum-cryptography: "npm:^2.2.1"
     uuid: "npm:^9.0.1"
-  checksum: 10/5cb7f2496f0fc95e85eb97932b69da9c02c232e2310b5f390bfc7c56996bf8516d15db54260e68288f6d6f5604bfacc19b4b82b9b28b7f794a3ab5ee9a1f10d1
+  checksum: 10/38402f3834e0e364e1b17fe30ff64c1a050549239e204260081ddd0fc9228e9632d586819c551f91793d78207fb33f81e06ec3ac24537d511e8b5f1fabe57d21
   languageName: node
   linkType: hard
 
@@ -9152,7 +9152,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-snap-sdk@npm:^9.0.2, @metamask/keyring-snap-sdk@npm:^9.2.0":
+"@metamask/keyring-snap-sdk@npm:^9.0.2, @metamask/keyring-snap-sdk@npm:^9.2.0, @metamask/keyring-snap-sdk@npm:^9.2.1":
   version: 9.2.1
   resolution: "@metamask/keyring-snap-sdk@npm:9.2.1"
   dependencies:
@@ -35863,7 +35863,7 @@ __metadata:
     "@metamask/eth-qr-keyring": "npm:^2.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^8.0.0"
-    "@metamask/eth-snap-keyring": "npm:^23.0.1"
+    "@metamask/eth-snap-keyring": "npm:^23.0.2"
     "@metamask/etherscan-link": "npm:^2.0.0"
     "@metamask/ethjs-contract": "npm:^0.4.1"
     "@metamask/ethjs-query": "npm:^0.7.1"
