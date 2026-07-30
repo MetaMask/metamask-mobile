@@ -584,6 +584,20 @@ jobs:
           printf '%s\n' "${EXPECTED}" > "${CACHE_DIR}/.e2e-apk-cache-marker"
           echo "Namespace APK cache marker + APKs written to ${CACHE_DIR}."
 
+      # DO-NOT-MERGE: debug step to identify what inflates the yarn cache
+      - name: Debug node_modules size breakdown
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          echo "=== total ==="
+          du -sm node_modules || true
+          echo "=== top 25 packages ==="
+          du -sm node_modules/* node_modules/@*/* 2>/dev/null | sort -rn | head -25 || true
+          echo "=== android build/cxx dirs (should be excluded from cache) ==="
+          find node_modules -type d \( -name build -o -name .cxx \) -path '*/android/*' -prune 2>/dev/null | head -40 || true
+          echo "=== biggest dirs at depth 3 (incl hidden) ==="
+          du -sm node_modules/*/* node_modules/*/.[!.]* 2>/dev/null | sort -rn | head -30 || true
+
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.gate.outputs.needs-native-build != 'true' && inputs.reuse-main-builds-only != true }}
         run: |
