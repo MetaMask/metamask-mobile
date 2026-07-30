@@ -40,8 +40,9 @@ so a mismatched task fails instead of reporting empty success.
 
 ## HyperExecute YAML version
 
-Generated configs use **YAML `version: "0.2"`** (TestMu requirement) shaped like the
-official [Playwright Real Device on HyperExecute](https://www.testmuai.com/support/docs/playwright-real-device-on-hyperexecute/) sample:
+Generated configs use **YAML `version: "0.2"`** (TestMu requirement) with the
+Appium framework block TestMu support recommended for Playwright-as-runner →
+Appium driver sessions:
 
 ```yaml
 version: "0.2"
@@ -49,8 +50,8 @@ runson: linux
 framework:
   name: appium
   args:
-    playwrightRD: true
     region: us
+    reservation: false
 testDiscovery:
   type: raw
   mode: static
@@ -60,13 +61,13 @@ testRunnerCommand: bash ./tests/scripts/hyperexecute-run-performance-test.sh $te
 
 Notes:
 
-- `framework.name: appium` + `playwrightRD: true` satisfies YAML 0.2 while keeping
-  AutoSplit `testDiscovery` / `testRunnerCommand` (same as the LT sample).
+- Do **not** set `playwrightRD: true` or `defaultReports: false` for this PoC —
+  those target Playwright Real Device (CDP). We use Playwright only as the test
+  runner and connect to Appium via `TestMuAIProvider`.
 - Discovery is **static** (0.2 drops dynamic/matrix discovery): the CLI host
   materialises `tests/hyperexecute/discovered-*.txt` before upload.
 - Tasks still run on **linux** VMs and open Appium sessions to
-  `mobile-hub.lambdatest.com` via `TestMuAIProvider` (we do not use
-  `runson: android` / CDP Playwright-RD).
+  `mobile-hub.lambdatest.com` (we do not use `runson: android` / CDP Playwright-RD).
 
 ## Provider loading
 

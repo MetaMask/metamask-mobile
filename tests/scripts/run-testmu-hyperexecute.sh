@@ -120,11 +120,12 @@ chmod +x ./tests/scripts/verify-testmu-app-url.sh
 LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
   ./tests/scripts/verify-testmu-app-url.sh "$PRIMARY_APP_URL"
 
-# YAML 0.2 (TestMu requirement) with Playwright Real Device / Appium shape:
-#   framework.name=appium + args.playwrightRD=true
-# Discovery/runner stay custom (AutoSplit raw) — same pattern as the official
-# LambdaTest HyperExecute Playwright-Appium sample. mode=static is required by
-# 0.2 (dynamic/matrix discovery removed). Tasks still run on linux VMs and open
+# YAML 0.2 (TestMu requirement) with Appium framework shape.
+# TestMu support: for Playwright-as-runner → Appium driver, use framework.name=
+# appium with region/reservation only — do NOT set playwrightRD / defaultReports
+# (those target Playwright Real Device / CDP, not Appium-via-Playwright).
+# Discovery/runner stay custom (AutoSplit raw). mode=static is required by 0.2
+# (dynamic/matrix discovery removed). Tasks still run on linux VMs and open
 # Appium sessions to mobile-hub via TestMuAIProvider (not runson: android).
 DISCOVERY_LIST="${HE_WORKDIR}/discovered-${BUILD_TYPE}.txt"
 BUILD_TYPE="$BUILD_TYPE" bash ./tests/scripts/hyperexecute-discover-performance-tests.sh \
@@ -167,10 +168,8 @@ cacheDirectories:
 
 framework:
   name: appium
-  defaultReports: false
   args:
-    playwrightRD: true
-    region: "$(yaml_escape "$HE_REGION")"
+    region: $(yaml_escape "$HE_REGION")
     reservation: false
 
 env:
@@ -229,7 +228,7 @@ echo "Secrets file: (outside workspace, wiped on exit)"
 echo "Primary app env key: $APP_URL_KEY=${!APP_URL_KEY:-<empty>}"
 echo "Device: ${TESTMU_DEVICE:-Pixel 7 Pro} / ${TESTMU_OS_VERSION:-13}"
 echo "Concurrency: $HE_CONCURRENCY"
-echo "YAML version: 0.2 (framework=appium, playwrightRD=true, region=$HE_REGION)"
+echo "YAML version: 0.2 (framework=appium, region=$HE_REGION, reservation=false)"
 
 # Ensure scripts are executable inside the uploaded payload
 chmod +x \
