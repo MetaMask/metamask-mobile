@@ -21,7 +21,7 @@ import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
-import { resolveTestMuDeviceCapabilities } from './services/providers/testmu/TestMuDeviceResolver.ts';
+import { resolveTestMuCatalogDeviceName } from './services/providers/testmu/TestMuDeviceResolver.ts';
 
 const logger = createPlaywrightLogger('PlaywrightUtilities');
 
@@ -457,14 +457,12 @@ class PlaywrightUtilities {
      * CI sets TESTMU_DEVICE to the resolved catalog name (e.g. "Pixel 7 Pro")
      * while device-matrix.json keeps BrowserStack names (e.g. "Google Pixel 7 Pro").
      * Perps/account selection uses currentDeviceDetails.deviceName, so both keys
-     * must resolve to the same account.
+     * must resolve to the same account. Do NOT use availability-regex names
+     * (e.g. "Pixel 7 Pro.*") — those are only for Appium session caps.
      */
     const assignAccount = (deviceName: string, account: string): void => {
       mapping[deviceName] = account;
-      const { deviceName: testMuName } = resolveTestMuDeviceCapabilities(
-        deviceName,
-        '0',
-      );
+      const testMuName = resolveTestMuCatalogDeviceName(deviceName);
       if (testMuName !== deviceName) {
         mapping[testMuName] = account;
       }

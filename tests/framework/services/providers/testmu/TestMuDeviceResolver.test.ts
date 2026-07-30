@@ -1,6 +1,7 @@
 import {
   applyTestMuAvailabilityRegex,
   normalizeTestMuPlatformVersion,
+  resolveTestMuCatalogDeviceName,
   resolveTestMuDeviceCapabilities,
 } from './TestMuDeviceResolver';
 
@@ -30,18 +31,41 @@ describe('TestMuDeviceResolver', () => {
   describe('applyTestMuAvailabilityRegex', () => {
     it('appends .* so TestMu can allocate any matching device/OS', () => {
       delete process.env['TESTMU_DEVICE_EXACT'];
-      expect(applyTestMuAvailabilityRegex('Pixel 7 Pro', '15')).toEqual({
+      expect(applyTestMuAvailabilityRegex('Pixel 7 Pro', '13')).toEqual({
         deviceName: 'Pixel 7 Pro.*',
-        platformVersion: '15.*',
+        platformVersion: '13.*',
       });
     });
 
     it('keeps exact catalog names when TESTMU_DEVICE_EXACT=true', () => {
       process.env['TESTMU_DEVICE_EXACT'] = 'true';
-      expect(applyTestMuAvailabilityRegex('Pixel 7 Pro', '15')).toEqual({
+      expect(applyTestMuAvailabilityRegex('Pixel 7 Pro', '13')).toEqual({
         deviceName: 'Pixel 7 Pro',
-        platformVersion: '15',
+        platformVersion: '13',
       });
+    });
+  });
+
+  describe('resolveTestMuCatalogDeviceName', () => {
+    it('maps BrowserStack names to exact TestMu catalog names without regex', () => {
+      delete process.env['TESTMU_DEVICE_EXACT'];
+      expect(resolveTestMuCatalogDeviceName('Google Pixel 7 Pro')).toBe(
+        'Pixel 7 Pro',
+      );
+      expect(resolveTestMuCatalogDeviceName('Samsung Galaxy S25 Ultra')).toBe(
+        'Galaxy S25 Ultra',
+      );
+    });
+
+    it('is unaffected by TESTMU_DEVICE_EXACT / availability regex', () => {
+      delete process.env['TESTMU_DEVICE_EXACT'];
+      expect(resolveTestMuCatalogDeviceName('Google Pixel 7 Pro')).toBe(
+        'Pixel 7 Pro',
+      );
+      process.env['TESTMU_DEVICE_EXACT'] = 'true';
+      expect(resolveTestMuCatalogDeviceName('Google Pixel 7 Pro')).toBe(
+        'Pixel 7 Pro',
+      );
     });
   });
 

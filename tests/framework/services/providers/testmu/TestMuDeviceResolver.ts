@@ -82,16 +82,28 @@ export function applyTestMuAvailabilityRegex(
 }
 
 /**
+ * Map BrowserStack / matrix device names to the exact TestMu catalog name
+ * (no availability regex). Use this for account mapping and logical labels;
+ * use {@link resolveTestMuDeviceCapabilities} only for Appium session caps.
+ */
+export function resolveTestMuCatalogDeviceName(deviceName: string): string {
+  const mapped = BROWSERSTACK_TO_TESTMU_DEVICE[deviceName];
+  return (
+    mapped?.name ?? deviceName.replace(/^Google /, '').replace(/^Samsung /, '')
+  );
+}
+
+/**
  * Map BrowserStack-oriented device matrix values to TestMu AI capabilities.
  * Keeps logical BS names in reports; only session capabilities use the resolved values.
+ * Applies availability regex unless TESTMU_DEVICE_EXACT=true.
  */
 export function resolveTestMuDeviceCapabilities(
   deviceName: string,
   osVersion: string,
 ): TestMuDeviceCapabilities {
   const mapped = BROWSERSTACK_TO_TESTMU_DEVICE[deviceName];
-  const resolvedName =
-    mapped?.name ?? deviceName.replace(/^Google /, '').replace(/^Samsung /, '');
+  const resolvedName = resolveTestMuCatalogDeviceName(deviceName);
   const resolvedOs =
     mapped?.osVersion ?? normalizeTestMuPlatformVersion(osVersion);
 
