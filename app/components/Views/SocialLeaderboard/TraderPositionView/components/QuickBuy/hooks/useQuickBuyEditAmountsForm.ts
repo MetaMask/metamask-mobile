@@ -51,6 +51,9 @@ export function useQuickBuyEditAmountsForm(
   const [focusedField, setFocusedField] = useState<
     Exclude<QuickBuyEditFocusedField, null>
   >(DEFAULT_FOCUSED_FIELD);
+  // After selecting a field, the next keypad digit replaces the amount
+  // instead of appending. The field keeps showing its current value until then.
+  const [replaceOnNextInput, setReplaceOnNextInput] = useState(true);
   const wasPreferencesLoadedRef = useRef(isPreferencesLoaded);
   const hasUserEditedRef = useRef(false);
 
@@ -91,13 +94,14 @@ export function useQuickBuyEditAmountsForm(
     [buyValues, focusedField, sellValues],
   );
 
-  // Pass the focused amount through to the keypad so digits append at the end
-  // (standard caret-at-end behavior) instead of replacing the whole value.
-  const keypadValue = focusedValue;
+  // Seed the keypad with an empty value while replace mode is active so the
+  // first digit becomes the new amount instead of appending to the old one.
+  const keypadValue = replaceOnNextInput ? '' : focusedValue;
 
   const handleFieldPress = useCallback(
     (kind: 'buy' | 'sell', index: number) => {
       setFocusedField({ kind, index });
+      setReplaceOnNextInput(true);
     },
     [],
   );
@@ -126,6 +130,7 @@ export function useQuickBuyEditAmountsForm(
 
   const handleKeypadChange = useCallback(
     ({ value }: KeypadChangeData) => {
+      setReplaceOnNextInput(false);
       updateFocusedValue(value);
     },
     [updateFocusedValue],

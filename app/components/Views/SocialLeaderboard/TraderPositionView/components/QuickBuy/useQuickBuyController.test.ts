@@ -736,6 +736,32 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('enables Add Funds when keypad entry exceeds the available balance', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('250');
+      });
+
+      expect(result.current.fiatAmount).toBe('250');
+      expect(result.current.isPresetAddFundsMode).toBe(true);
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.quick_buy.add_funds',
+      );
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
     it('routes to Ramp buy when Add Funds is confirmed', async () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '0.1',

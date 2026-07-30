@@ -59,4 +59,18 @@ describe('QuickBuyAmountSection', () => {
 
     expect(onAmountAreaPress).toHaveBeenCalledTimes(1);
   });
+
+  it('shows a blinking cursor when showCursor is true', () => {
+    render(<QuickBuyAmountSection {...baseProps} showCursor />);
+
+    expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+  });
+
+  it('hides the cursor when showCursor is false', () => {
+    render(<QuickBuyAmountSection {...baseProps} />);
+
+    expect(
+      screen.queryByTestId('quick-buy-amount-cursor'),
+    ).not.toBeOnTheScreen();
+  });
 });

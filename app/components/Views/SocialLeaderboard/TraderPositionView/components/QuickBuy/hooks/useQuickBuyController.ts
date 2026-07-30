@@ -1264,7 +1264,6 @@ export function useQuickBuyController(
 
   const handleAmountChange = useCallback(
     (text: string) => {
-      setIsPresetAddFundsMode(false);
       lastInputMethodRef.current =
         QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT;
       const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
@@ -1279,17 +1278,34 @@ export function useQuickBuyController(
         : (sourceToken?.decimals ?? 18);
       if (parts.length === 2 && parts[1].length > maxFractionDigits) return;
       if (hasSourcePrice) {
+        // Match pill behavior: over-balance buy amounts switch the CTA to
+        // Add funds instead of disabled Insufficient funds.
+        const numeric = Number(normalized);
+        const exceedsBalance =
+          tradeMode === 'buy' &&
+          maxSpendFiat > 0 &&
+          Number.isFinite(numeric) &&
+          numeric > maxSpendFiat;
+        setIsPresetAddFundsMode(exceedsBalance);
+
         setFiatAmount(normalized);
         setQuotedFiatAmount(normalized);
         lastCommittedFiatRef.current = normalized;
       } else {
+        setIsPresetAddFundsMode(false);
         setSourceAmountTokens(normalized);
       }
       lastSliderPercentRef.current = 0;
       setSliderPercent(0);
       setIsMaxSourceAmount(false);
     },
-    [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
+    [
+      hasSourcePrice,
+      maxSpendFiat,
+      sourceToken?.decimals,
+      tradeMode,
+      lastInputMethodRef,
+    ],
   );
 
   // Debounced track for custom amount entries — fires once after the user

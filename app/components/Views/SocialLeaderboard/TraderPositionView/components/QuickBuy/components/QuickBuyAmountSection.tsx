@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextInput, TouchableOpacity } from 'react-native';
+import { Animated, TextInput, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -12,6 +12,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
+import { useBlinkingCursor } from '../../../../../../UI/Ramp/hooks/useBlinkingCursor';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
 
@@ -34,6 +35,8 @@ interface QuickBuyAmountSectionProps {
   sourceCryptoAmount?: string;
   /** Source token symbol (unpriced path), e.g. "CAKE". */
   sourceSymbol?: string;
+  /** When true, shows a blinking caret next to the primary amount (keypad open). */
+  showCursor?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
   // the only input path for now, but these props remain on the interface so the
   // controller wiring is preserved for when the keyboard path is restored.
@@ -51,9 +54,11 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   isUnpricedSource = false,
   sourceCryptoAmount,
   sourceSymbol,
+  showCursor = false,
   onAmountAreaPress,
 }) => {
   const tw = useTailwind();
+  const cursorOpacity = useBlinkingCursor(showCursor);
 
   const cryptoAmountLabel = estimatedReceiveAmount
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
@@ -84,13 +89,28 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       twClassName="px-4 pt-6 pb-4"
       testID="quick-buy-amount-area"
     >
-      <Text
-        variant={TextVariant.DisplayMd}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.TextDefault}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
       >
-        {primaryLabel}
-      </Text>
+        <Text
+          variant={TextVariant.DisplayMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+        >
+          {primaryLabel}
+        </Text>
+        {showCursor ? (
+          <Animated.View
+            testID="quick-buy-amount-cursor"
+            style={[
+              tw.style('ml-0.5 w-0.5 h-8 bg-primary-default'),
+              { opacity: cursorOpacity },
+            ]}
+          />
+        ) : null}
+      </Box>
 
       {isQuoteLoading ? (
         <Box
@@ -126,7 +146,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   );
 
   // On the keyboard treatment the headline is tappable to (re)open the keypad.
-  // activeOpacity={1} keeps it visually static — no press feedback/caret.
+  // activeOpacity={1} keeps it visually static — no press feedback.
   if (onAmountAreaPress) {
     return (
       <TouchableOpacity

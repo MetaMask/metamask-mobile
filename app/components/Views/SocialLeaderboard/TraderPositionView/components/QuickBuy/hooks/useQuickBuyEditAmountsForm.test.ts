@@ -128,7 +128,7 @@ describe('useQuickBuyEditAmountsForm', () => {
     expect(result.current.buyValues[1]).toBe('50');
   });
 
-  it('appends digits at the end of the focused amount after field press', () => {
+  it('keeps the current amount on field press and replaces it on the first keypad digit', () => {
     const buy: QuickBuyAmountTuple = [10, 50, 100, 250];
     const sell: QuickBuySellPercentTuple = [25, 50, 75, 100];
 
@@ -143,29 +143,29 @@ describe('useQuickBuyEditAmountsForm', () => {
     expect(result.current.focusedField).toEqual({ kind: 'buy', index: 1 });
     expect(result.current.buyValues).toEqual(['10', '50', '100', '250']);
     expect(result.current.focusedValue).toBe('50');
-    expect(result.current.keypadValue).toBe('50');
+    expect(result.current.keypadValue).toBe('');
 
     act(() => {
       result.current.handleKeypadChange({
-        value: '507',
-        valueAsNumber: 507,
+        value: '7',
+        valueAsNumber: 7,
         pressedKey: Keys.Digit7,
       });
     });
 
-    expect(result.current.buyValues).toEqual(['10', '507', '100', '250']);
-    expect(result.current.focusedValue).toBe('507');
-    expect(result.current.keypadValue).toBe('507');
+    expect(result.current.buyValues).toEqual(['10', '7', '100', '250']);
+    expect(result.current.focusedValue).toBe('7');
+    expect(result.current.keypadValue).toBe('7');
 
     act(() => {
       result.current.handleKeypadChange({
-        value: '5075',
-        valueAsNumber: 5075,
+        value: '75',
+        valueAsNumber: 75,
         pressedKey: Keys.Digit5,
       });
     });
 
-    expect(result.current.buyValues[1]).toBe('5075');
-    expect(result.current.keypadValue).toBe('5075');
+    expect(result.current.buyValues[1]).toBe('75');
+    expect(result.current.keypadValue).toBe('75');
   });
 });
