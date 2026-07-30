@@ -32,6 +32,14 @@ export interface UseTopTradersResult {
 interface UseTopTradersOptions {
   limit?: number;
   chains?: string[];
+  /** Ranking metric forwarded to the API. Defaults to the server's own order. */
+  sort?: FetchLeaderboardOptions['sort'];
+  /**
+   * Which trailing window the reported PnL and ROI come from. The API returns
+   * both windows in one response, so switching this remaps the loaded entries
+   * without refetching.
+   */
+  timeframe?: '7d' | '30d';
   enabled?: boolean;
 }
 
@@ -42,11 +50,14 @@ export const useTopTraders = (
 
   const hasLimit = options?.limit !== undefined;
   const hasChains = options?.chains !== undefined;
+  const hasSort = options?.sort !== undefined;
+  const timeframe = options?.timeframe ?? '7d';
   const fetchOptions: FetchLeaderboardOptions | null =
-    hasLimit || hasChains
+    hasLimit || hasChains || hasSort
       ? {
           ...(hasLimit && { limit: options?.limit }),
           ...(hasChains && { chains: options?.chains }),
+          ...(hasSort && { sort: options?.sort }),
         }
       : null;
 
@@ -65,8 +76,9 @@ export const useTopTraders = (
     () => ({
       limit: options?.limit ?? 0,
       ...(hasChains && { chains: (options?.chains ?? []).join(',') }),
+      ...(hasSort && { sort: options?.sort }),
     }),
-    [options?.limit, options?.chains, hasChains],
+    [options?.limit, options?.chains, options?.sort, hasChains, hasSort],
   );
 
   useLogSocialQueryError(error, {
@@ -85,6 +97,10 @@ export const useTopTraders = (
       return [];
     }
 
+    const is30d = timeframe === '30d';
+    const toWholePercent = (fraction: number | null | undefined) =>
+      fraction == null ? null : fraction * 100;
+
     return data.traders.map((entry) => ({
       id: entry.profileId,
       address: entry.addresses?.[0] ?? '',
@@ -92,14 +108,17 @@ export const useTopTraders = (
       overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
-      // `roiPercent7d` is already a whole-percent value from the API
+      // `roiPercent*` is already a whole-percent value from the API
       // (e.g. 20.98 → "20.98%"); do not multiply by 100.
-      percentageChange: entry.roiPercent7d ?? 0,
-      pnlValue: entry.pnl7d ?? 0,
+      percentageChange: (is30d ? entry.roiPercent30d : entry.roiPercent7d) ?? 0,
+      pnlValue: (is30d ? entry.pnl30d : entry.pnl7d) ?? 0,
+      winRatePercent: toWholePercent(
+        is30d ? entry.winRate30d : entry.winRate7d,
+      ),
       pnlPerChain: entry.pnlPerChain ?? {},
       isFollowing: isFollowing(entry.profileId),
     }));
-  }, [data, isFollowing]);
+  }, [data, isFollowing, timeframe]);
 
   const refresh = useCallback(async () => {
     try {

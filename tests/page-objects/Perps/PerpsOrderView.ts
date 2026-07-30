@@ -41,6 +41,29 @@ class PerpsOrderView {
   }
 
   /**
+   * Fees row value — only mounted after fee loading finishes
+   * Useful readiness signal before tapping Long/Short on Appium.
+   */
+  get feesValue(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsOrderViewSelectorsIDs.FEES_VALUE,
+          { exact: true },
+        ),
+    });
+  }
+
+  async waitForFeesReady(timeout = 30_000): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.feesValue, {
+      timeout,
+      description: 'Perps order fees value (fees finished loading)',
+    });
+  }
+
+  /**
    * Opens Auto close / TPSL from the order form. The row is labeled TP/SL in UI;
    * production uses STOP_LOSS_BUTTON testID on that touchable (see PerpsOrderView.tsx).
    */

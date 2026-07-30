@@ -255,7 +255,6 @@ Flask E2E builds use these key environment variables:
 ```bash
 METAMASK_BUILD_TYPE=flask          # Enables Flask build variant
 METAMASK_ENVIRONMENT=e2e           # Enables E2E-specific configurations
-BRIDGE_USE_DEV_APIS=true          # Enables more snaps funcationality and dev APIs
 ```
 
 **Build Script Architecture:**
@@ -330,23 +329,22 @@ yarn test:e2e:android:flask:run
 
 ### Flask vs Main Build Differences
 
-| Aspect            | Main Build                          | Flask Build                                  |
-| ----------------- | ----------------------------------- | -------------------------------------------- |
-| **Snaps Support** | ❌ Limited                          | ✅ Enabled (with `BRIDGE_USE_DEV_APIS=true`) |
-| **Dev APIs**      | ❌ Limited                          | ✅ Full access                               |
-| **App Icon**      | Standard MetaMask                   | Flask logo                                   |
-| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                          |
-| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                              |
-| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask`        |
+| Aspect            | Main Build                          | Flask Build                           |
+| ----------------- | ----------------------------------- | ------------------------------------- |
+| **Snaps Support** | ❌ Limited                          | ✅ Enabled                            |
+| **Dev APIs**      | ❌ Limited                          | ✅ Full access                        |
+| **App Icon**      | Standard MetaMask                   | Flask logo                            |
+| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                   |
+| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                       |
+| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask` |
 
 ### Flask Troubleshooting
 
 **"Installing Snaps is currently disabled" error:**
 
 1. Check if `.js.env` has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT` - remove them
-2. Verify `BRIDGE_USE_DEV_APIS=true` is set during build
-3. Rebuild the app with `yarn test:e2e:*:flask:build`
-4. Verify Flask build by checking app icon/splash screen
+2. Rebuild the app with `yarn test:e2e:*:flask:build`
+3. Verify Flask build by checking app icon/splash screen
 
 **Metro bundler shows wrong `METAMASK_BUILD_TYPE`:**
 
@@ -429,13 +427,7 @@ export BROWSERSTACK_USERNAME='your_username'
 export BROWSERSTACK_ACCESS_KEY='your_access_key'
 ```
 
-For **MM Connect** performance tests on BrowserStack, you also need the **BrowserStack Local tunnel** running so the cloud device can reach the local Browser Playground dapp. Start the [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) binary, then set:
-
-```bash
-export BROWSERSTACK_LOCAL='true'
-```
-
-Do **not** set `BROWSERSTACK_LOCAL=true` unless the tunnel is running. Other BrowserStack performance suites (for example onboarding) run **without** local testing unless you intentionally enable it.
+MetaMask Connect browser E2E coverage now runs via Appium smoke (`SmokeMMConnect` / `tests/smoke-appium/mm-connect/`), not the performance BrowserStack suite.
 
 Update the config file with the appropriate BrowserStack app URL. You’ll need a BrowserStack URL first. To get it:
 

@@ -18,20 +18,19 @@ import {
   selectAssetsByAccountGroupId,
   selectAssetsBySelectedAccountGroup,
   selectHasEligibleSwapSource,
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
-import {
-  ARC_USDC_TOKEN_ADDRESS,
-  NETWORKS_CHAIN_ID,
-} from '../../constants/network';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import {
   AccountGroupAssets,
   selectAssetsBySelectedAccountGroup as innerSelectAssetsBySelectedAccountGroup,
 } from '@metamask/assets-controllers';
 import I18n from '../../../locales/i18n';
+import { ARC_USDC_ERC20_TOKEN_ADDRESS } from '../../enablement/assets/networks-customization';
 
 // Wrap the inner assets-controllers selector in a jest.fn so the Arc
 // filtering describe block can override its return value without affecting
@@ -1326,6 +1325,24 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIds', () => {
 });
 
 describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
+  it('returns assets for the chain IDs bound to the selector factory', () => {
+    const state = mockState();
+    const chainIds = ['eip155:1', '0xa'];
+    const selectSortedAssets =
+      makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        chainIds,
+      );
+
+    const result = selectSortedAssets(state);
+
+    expect(result).toEqual(
+      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        state,
+        chainIds,
+      ),
+    );
+  });
+
   it('filters assets by explicit chain IDs (same as ForChainIds)', () => {
     const state = mockState();
     const chainIds = ['eip155:1', '0xa'];
@@ -2437,7 +2454,7 @@ describe('selectAssetsBySelectedAccountGroup – Arc USDC ERC-20 filter', () => 
   const innerSelector = jest.mocked(innerSelectAssetsBySelectedAccountGroup);
 
   const ARC = NETWORKS_CHAIN_ID.ARC;
-  const ARC_ERC20 = ARC_USDC_TOKEN_ADDRESS;
+  const ARC_ERC20 = ARC_USDC_ERC20_TOKEN_ADDRESS;
   const NATIVE_ADDR = '0x0000000000000000000000000000000000000000';
   const DAI_ADDR = '0x6b175474e89094c44da98b954eedeac495271d0f';
 

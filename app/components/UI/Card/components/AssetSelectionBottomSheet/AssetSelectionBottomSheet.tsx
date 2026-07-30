@@ -174,7 +174,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_success') }],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -185,7 +184,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
       labelOptions: [{ label: strings('card.asset_selection.update_error') }],
       iconName: IconName.Danger,
       iconColor: theme.colors.error.default,
-      backgroundColor: theme.colors.error.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);

@@ -9,10 +9,12 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
@@ -210,8 +212,6 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_chain_presented =
       automaticPayToken.current?.chainId ?? null;
 
-    properties.mm_pay_payment_token_list_size = availableTokens.length;
-
     properties.mm_pay_quote_requested =
       (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
     properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
@@ -230,6 +230,7 @@ export function useTransactionPayMetrics() {
   }
 
   properties.mm_pay_payment_method_available = availablePaymentMethods;
+  properties.mm_pay_payment_token_list_size = availableTokens.length;
 
   if (presentedPaymentMethodRef.current) {
     properties.mm_pay_payment_method_presented =
