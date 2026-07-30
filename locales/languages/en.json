@@ -2551,6 +2551,8 @@
     },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
+      "collapse_chart": "Collapse chart",
+      "expand_chart": "Expand chart",
       "market_list": "Browse markets",
       "perp_pair": "{{ticker}}-{{collateral}} perp",
       "back": "Back",
