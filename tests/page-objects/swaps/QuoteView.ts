@@ -467,7 +467,6 @@ class QuoteView {
       appium: async () => {
         // Best-effort only: some swap flows never expose "more networks", and
         // forcing scrollIntoView there fails Appium smoke after 30 scrolls.
-        // Detox path stays unchanged — waitAndTap on the network text is enough.
         try {
           const moreNetworks = await asPlaywrightElement(
             this.moreNetworksButton,
