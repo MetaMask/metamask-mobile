@@ -58,6 +58,7 @@ const mockTraders = [
     username: 'alice',
     percentageChange: 96.2,
     pnlValue: 963000,
+    winRatePercent: 92,
     pnlPerChain: { base: 963000 },
     isFollowing: false,
   },

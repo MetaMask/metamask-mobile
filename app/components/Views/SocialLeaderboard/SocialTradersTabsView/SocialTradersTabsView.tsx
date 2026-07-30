@@ -37,9 +37,10 @@ import FeedSpotBuyAction, {
 } from '../FeedView/components/FeedSpotBuyAction';
 import TopTradersView from '../TopTradersView';
 import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
-import SocialTradersTabBar, {
-  type SocialTradersTab,
-} from './SocialTradersTabBar';
+import {
+  TabsBar,
+  type TabItem,
+} from '../../../../component-library/components-temp/Tabs';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
 
 const LEADERBOARD_INDEX = 0;
@@ -127,15 +128,19 @@ const SocialTradersTabsView: React.FC = () => {
     isLoading: isLoadingNotificationPreferences,
   } = useNotificationStoragePreferences();
 
-  const tabs: SocialTradersTab[] = useMemo(
+  // `content` is unused: the pages live in the PagerView below so they stay
+  // swipeable, and TabsBar renders the bar only.
+  const tabs: TabItem[] = useMemo(
     () => [
       {
         key: 'leaderboard',
         label: strings('social_leaderboard.feed.tabs.leaderboard'),
+        content: null,
       },
       {
         key: 'feed',
         label: strings('social_leaderboard.feed.tabs.feed'),
+        content: null,
       },
     ],
     [],
@@ -247,7 +252,7 @@ const SocialTradersTabsView: React.FC = () => {
         </Text>
       </Box>
 
-      <SocialTradersTabBar
+      <TabsBar
         tabs={tabs}
         activeIndex={activeIndex}
         onTabPress={handleTabPress}

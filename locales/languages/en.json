@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "Type",
+      "placeholder": "Type",
       "all": "All types",
       "tokens": "Tokens",
       "perps": "Perps"
+    },
+    "timeframe_filter": {
+      "title": "Time frame",
+      "7d": "7D",
+      "30d": "30D"
+    },
+    "sort_filter": {
+      "title": "Sort by",
+      "pnl": "P&L",
+      "roi": "P&L %",
+      "win_rate": "Win rate"
     },
     "feed": {
       "title": "Top traders",

@@ -1,11 +1,11 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import TypeFilterSheet from './TypeFilterSheet';
+import { TypeFilterSelector, TypeFilterSheet } from './TypeFilter';
 import {
   TypeFilterSelectorsIDs,
   getTypeFilterOptionTestId,
-} from './TypeFilter.testIds';
+} from './Filters.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 
@@ -16,6 +16,47 @@ jest.mock('../../../../../util/haptics', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+describe('TypeFilterSelector', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('falls back to the placeholder when no type is selected', () => {
+    renderWithProvider(<TypeFilterSelector value="all" onPress={jest.fn()} />);
+
+    expect(
+      screen.getByText('social_leaderboard.type_filter.placeholder'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the selected type label', () => {
+    renderWithProvider(
+      <TypeFilterSelector value="perps" onPress={jest.fn()} />,
+    );
+
+    expect(
+      screen.getByText('social_leaderboard.type_filter.perps'),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls onPress when the pill is pressed', () => {
+    const onPress = jest.fn();
+    renderWithProvider(<TypeFilterSelector value="all" onPress={onPress} />);
+
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('supports a custom testID', () => {
+    renderWithProvider(
+      <TypeFilterSelector value="tokens" onPress={jest.fn()} testID="custom" />,
+    );
+
+    expect(screen.getByTestId('custom')).toBeOnTheScreen();
+  });
+});
 
 describe('TypeFilterSheet', () => {
   beforeEach(() => {

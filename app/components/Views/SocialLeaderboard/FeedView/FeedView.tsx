@@ -59,7 +59,7 @@ import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
-import { TypeFilterSelector, TypeFilterSheet } from '../components/TypeFilter';
+import { TypeFilterSelector, TypeFilterSheet } from '../components/Filters';
 import FollowingEmptyState from './components/FollowingEmptyState';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {

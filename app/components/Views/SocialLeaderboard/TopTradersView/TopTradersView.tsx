@@ -12,6 +12,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   HeaderStandardAnimated,
   IconName,
   Text,
@@ -75,13 +76,38 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
 import {
+  DEFAULT_LEADERBOARD_SORT,
+  DEFAULT_TIMEFRAME,
+  SortFilterSelector,
+  SortFilterSheet,
+  TimeframeFilterSelector,
+  TimeframeFilterSheet,
+  TYPE_FILTER_OPTIONS,
   TypeFilterSelector,
   TypeFilterSheet,
+  type LeaderboardSort,
+  type SocialTimeframe,
   type SocialTypeFilter,
-} from '../components/TypeFilter';
+} from '../components/Filters';
 
 type TabFilter = SocialTypeFilter;
+
+/**
+ * Tab the leaderboard lands on. Spot tokens are the broadest surface most users
+ * come here for, so perps and the mixed "all" ranking are opt-in.
+ */
+const DEFAULT_TYPE_TAB: TabFilter = 'tokens';
+
+/** Enables just the landing tab's query; the rest are switched on lazily. */
+const buildQueryEnabledTabs = (
+  landingTab: TabFilter,
+): Record<TabFilter, boolean> => ({
+  all: landingTab === 'all',
+  tokens: landingTab === 'tokens',
+  perps: landingTab === 'perps',
+});
 
 // How long the post-onboarding "turn on notifications" nudge stays up before it
 // auto-dismisses (ms). Long enough to notice and act on after landing here, but
@@ -154,16 +180,20 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
 
-  const [renderedTab, setRenderedTab] = useState<TabFilter>('all');
+  const [renderedTab, setRenderedTab] = useState<TabFilter>(DEFAULT_TYPE_TAB);
+  // Only the landing tab's query starts enabled; the others are switched on
+  // when the user picks them, or by the idle prefetch below. Perps being off
+  // pins the whole screen to the spot-only "all" query.
   const [queryEnabledTabs, setQueryEnabledTabs] = useState<
     Record<TabFilter, boolean>
-  >({
-    all: true,
-    tokens: false,
-    perps: false,
-  });
+  >(() => buildQueryEnabledTabs(isPerpsEnabled ? DEFAULT_TYPE_TAB : 'all'));
+  const [timeframe, setTimeframe] =
+    useState<SocialTimeframe>(DEFAULT_TIMEFRAME);
+  const [sort, setSort] = useState<LeaderboardSort>(DEFAULT_LEADERBOARD_SORT);
   const [, startTabTransition] = useTransition();
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
+  const [isTimeframeSheetOpen, setIsTimeframeSheetOpen] = useState(false);
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   // One-shot nudge shown when onboarding reports the user tapped "Allow
   // notifications" but the OS denied it. Seeded from the route param so it only
@@ -174,7 +204,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
-  const selectedTabRef = useRef<TabFilter>('all');
+  const selectedTabRef = useRef<TabFilter>(DEFAULT_TYPE_TAB);
 
   // Render enough skeleton rows to cover the visible list area. Add a couple of
   // extras so users can see the shimmer continue past the fold while scrolling.
@@ -188,16 +218,22 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const allResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: allChains,
+    sort,
+    timeframe,
     enabled: isEnabled && queryEnabledTabs.all,
   });
   const tokensResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: SPOT_CHAINS,
+    sort,
+    timeframe,
     enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.tokens,
   });
   const perpsResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: PERP_CHAINS,
+    sort,
+    timeframe,
     enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.perps,
   });
 
@@ -212,13 +248,19 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   const activeTab = isPerpsEnabled ? renderedTab : 'all';
   const activeResult = resultsByTab[activeTab];
-  const { traders, isLoading, toggleFollow } = activeResult;
+  const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
+  // The API ranks on its own (30-day) window, so the selected time frame is
+  // only honoured once the loaded page is re-ranked here.
+  const traders = useMemo(
+    () => rankTradersByMetric(loadedTraders, sort),
+    [loadedTraders, sort],
+  );
   const shouldPrefetchSecondaryTabs =
     isEnabled &&
     isPerpsEnabled &&
-    activeTab === 'all' &&
-    !allResult.isLoading &&
-    (!queryEnabledTabs.tokens || !queryEnabledTabs.perps);
+    !activeResult.isLoading &&
+    TYPE_FILTER_OPTIONS.some((tab) => !queryEnabledTabs[tab]);
+  const shouldRefreshAll = queryEnabledTabs.all;
   const shouldRefreshTokens = isPerpsEnabled && queryEnabledTabs.tokens;
   const shouldRefreshPerps = isPerpsEnabled && queryEnabledTabs.perps;
 
@@ -232,6 +274,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     if (!isPerpsEnabled && selectedTabRef.current !== 'all') {
       selectedTabRef.current = 'all';
       setRenderedTab('all');
+      setQueryEnabledTabs((current) =>
+        current.all ? current : { ...current, all: true },
+      );
     }
   }, [isPerpsEnabled]);
 
@@ -240,9 +285,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     hasFiredScreenViewedRef.current = true;
     track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED, {
       [SocialLeaderboardEventProperties.SOURCE]: source,
-      [SocialLeaderboardEventProperties.CHAIN_FILTER]: 'all',
+      [SocialLeaderboardEventProperties.CHAIN_FILTER]: activeTab,
     });
-  }, [isEnabled, source, track]);
+  }, [activeTab, isEnabled, source, track]);
 
   useEffect(() => {
     if (!shouldPrefetchSecondaryTabs) {
@@ -250,11 +295,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     }
 
     return scheduleIdleTask(() => {
-      setQueryEnabledTabs((current) => ({
-        ...current,
-        tokens: true,
-        perps: true,
-      }));
+      setQueryEnabledTabs({ all: true, tokens: true, perps: true });
     });
   }, [shouldPrefetchSecondaryTabs]);
 
@@ -280,6 +321,16 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   const openTypeSheet = useCallback(() => setIsTypeSheetOpen(true), []);
   const closeTypeSheet = useCallback(() => setIsTypeSheetOpen(false), []);
+  const openTimeframeSheet = useCallback(
+    () => setIsTimeframeSheetOpen(true),
+    [],
+  );
+  const closeTimeframeSheet = useCallback(
+    () => setIsTimeframeSheetOpen(false),
+    [],
+  );
+  const openSortSheet = useCallback(() => setIsSortSheetOpen(true), []);
+  const closeSortSheet = useCallback(() => setIsSortSheetOpen(false), []);
 
   const handleFollowPress = useCallback(
     async (traderId: string) => {
@@ -386,7 +437,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         setTimeout(resolve, 1000),
       );
       await Promise.all([
-        allResult.refresh(),
+        ...(shouldRefreshAll ? [allResult.refresh()] : []),
         ...(shouldRefreshTokens ? [tokensResult.refresh()] : []),
         ...(shouldRefreshPerps ? [perpsResult.refresh()] : []),
         minDuration,
@@ -409,6 +460,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     allResult,
     tokensResult,
     perpsResult,
+    shouldRefreshAll,
     shouldRefreshTokens,
     shouldRefreshPerps,
   ]);
@@ -459,6 +511,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     ({ item }: { item: TopTrader }) => (
       <TraderRow
         trader={item}
+        metric={getTraderMetricDisplay(item, sort)}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
         showMute={showMuteChip}
@@ -475,13 +528,70 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       needsNotificationSetup,
       isTraderNotificationEnabled,
       handleMuteToggle,
+      sort,
     ],
   );
 
+  // Standalone mode renders this twice (inline in the list header and in the
+  // bar that pins to the top on scroll), so every selector takes its testID
+  // from the caller to keep the two copies addressable apart.
+  const renderFilterBar = useCallback(
+    (testIDs: { type: string; timeframe: string; sort: string }) => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 pt-3 pb-3"
+      >
+        <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+          {isPerpsEnabled && (
+            <TypeFilterSelector
+              value={activeTab}
+              onPress={openTypeSheet}
+              testID={testIDs.type}
+            />
+          )}
+          <TimeframeFilterSelector
+            value={timeframe}
+            onPress={openTimeframeSheet}
+            testID={testIDs.timeframe}
+          />
+        </Box>
+        <SortFilterSelector
+          value={sort}
+          onPress={openSortSheet}
+          testID={testIDs.sort}
+        />
+      </Box>
+    ),
+    [
+      activeTab,
+      isPerpsEnabled,
+      openSortSheet,
+      openTimeframeSheet,
+      openTypeSheet,
+      sort,
+      timeframe,
+    ],
+  );
+
+  const filterBar = useMemo(
+    () =>
+      renderFilterBar({
+        type: TopTradersViewSelectorsIDs.TYPE_SELECTOR,
+        timeframe: TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR,
+        sort: TopTradersViewSelectorsIDs.SORT_SELECTOR,
+      }),
+    [renderFilterBar],
+  );
+
+  // Inside the tabs the filters sit above the list so they stay put while the
+  // rows scroll, matching the feed tab. Standalone keeps them in the list
+  // header (under the large title) and re-shows them in the pinned bar instead.
   const listHeader = useMemo(
-    () => (
-      <>
-        {!embeddedInTabs && (
+    () =>
+      embeddedInTabs ? null : (
+        <>
           <Box
             twClassName="px-4 pt-2 pb-3"
             testID={TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER}
@@ -495,35 +605,17 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
               {title}
             </Text>
           </Box>
-        )}
 
-        {isPerpsEnabled && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="px-4 pt-3 pb-3"
-          >
-            <TypeFilterSelector
-              value={activeTab}
-              onPress={openTypeSheet}
-              testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
-            />
-          </Box>
-        )}
-      </>
-    ),
-    [
-      activeTab,
-      embeddedInTabs,
-      isPerpsEnabled,
-      openTypeSheet,
-      setTitleSectionHeight,
-      title,
-    ],
+          {filterBar}
+        </>
+      ),
+    [embeddedInTabs, filterBar, setTitleSectionHeight, title],
   );
 
   const listBody = (
     <Box twClassName="flex-1">
+      {embeddedInTabs && filterBar}
+
       {isLoading && traders.length === 0 ? (
         <Animated.ScrollView
           // `flex-1` matches FlatList's default behavior so the list area sits
@@ -572,7 +664,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         />
       )}
 
-      {!embeddedInTabs && isPerpsEnabled && (
+      {!embeddedInTabs && (
         <Animated.View
           pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
           accessibilityElementsHidden={!isFilterBarPinned}
@@ -587,17 +679,11 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           ]}
           testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="px-4 pt-3 pb-3"
-          >
-            <TypeFilterSelector
-              value={activeTab}
-              onPress={openTypeSheet}
-              testID={TopTradersViewSelectorsIDs.PINNED_TYPE_SELECTOR}
-            />
-          </Box>
+          {renderFilterBar({
+            type: TopTradersViewSelectorsIDs.PINNED_TYPE_SELECTOR,
+            timeframe: TopTradersViewSelectorsIDs.PINNED_TIMEFRAME_SELECTOR,
+            sort: TopTradersViewSelectorsIDs.PINNED_SORT_SELECTOR,
+          })}
         </Animated.View>
       )}
 
@@ -606,6 +692,20 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         value={activeTab}
         onChange={handleTabPress}
         onClose={closeTypeSheet}
+      />
+
+      <TimeframeFilterSheet
+        isOpen={isTimeframeSheetOpen}
+        value={timeframe}
+        onChange={setTimeframe}
+        onClose={closeTimeframeSheet}
+      />
+
+      <SortFilterSheet
+        isOpen={isSortSheetOpen}
+        value={sort}
+        onChange={setSort}
+        onClose={closeSortSheet}
       />
     </Box>
   );
