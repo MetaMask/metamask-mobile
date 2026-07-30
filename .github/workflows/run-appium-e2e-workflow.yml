@@ -95,7 +95,7 @@ jobs:
           android-tag: ${{ inputs.android-tag }}
           android-api-level: '36'
           android-abi: x86_64
-          android-device: pixel_5_pro
+          android-device: pixel_5
           configure-keystores: 'false'
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
