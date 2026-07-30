@@ -3,7 +3,6 @@ import { View, type ViewStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
-  FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -31,7 +30,6 @@ const HomepageBalanceBreakdownAllocationBar = ({
 }: HomepageBalanceBreakdownAllocationBarProps) => (
   <Box twClassName="mb-2 gap-3 pt-1">
     <Text
-      fontWeight={FontWeight.SemiBold}
       testID={HomepageBalanceBreakdownTestIds.ALLOCATION_TITLE}
       variant={TextVariant.HeadingMd}
     >
