@@ -74,6 +74,7 @@ import {
   endTrace,
   trace,
   annotateTrace,
+  applyPendingOnboardingMachineTime,
   hasMetricsConsent,
   discardBufferedTraces,
   updateCachedConsent,
@@ -962,6 +963,10 @@ const Onboarding = () => {
           op: TraceOperation.OnboardingUserJourney,
           tags: { ...getTraceTags(store.getState()), ...onboardingPathTags },
         });
+      } else {
+        // Consent was already live at mount, so the journey span is reused rather
+        // than recreated — startTrace never runs to consume harvested landing time.
+        applyPendingOnboardingMachineTime();
       }
       // Always annotate so reused mount journeys (and spans started without path
       // tags) get filterable attributes in Sentry.

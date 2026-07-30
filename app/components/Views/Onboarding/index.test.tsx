@@ -245,6 +245,7 @@ jest.mock('../../../util/trace', () => ({
   annotateTrace: jest.fn(),
   updateCachedConsent: jest.fn(),
   discardBufferedTraces: jest.fn(),
+  applyPendingOnboardingMachineTime: jest.fn(),
 }));
 
 jest.mock('../../../util/sentry/utils', () => ({

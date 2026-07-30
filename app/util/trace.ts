@@ -379,6 +379,12 @@ const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
 
 let onboardingMachineTimeMs = 0;
 
+/**
+ * Machine time harvested from buffered spans that were dropped instead of flushed
+ * (social-login opt-in). Applied when the real journey span starts or is reused.
+ */
+let pendingOnboardingMachineTimeMs = 0;
+
 const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
 const ONBOARDING_OP_PREFIX = 'onboarding.';
 
@@ -932,8 +938,69 @@ export function updateCachedConsent(consent: boolean) {
   cachedConsent = consent;
 }
 
+/**
+ * Sum durations of completed machine-time spans sitting in the consent buffer.
+ * Used before `discardBufferedTraces()` so landing screen time is not lost when
+ * social login opts in inline instead of flushing like the SRP path.
+ */
+function harvestBufferedOnboardingMachineTime(): number {
+  const startsByKey = new Map<string, number>();
+  let harvestedMs = 0;
+
+  for (const bufferedItem of localBufferedTraces) {
+    if (bufferedItem.type !== 'start') {
+      continue;
+    }
+
+    const request = bufferedItem.request as TraceRequest;
+    const { name, startTime } = request;
+    if (!MACHINE_TIME_TRACE_NAMES.has(name)) {
+      continue;
+    }
+
+    startsByKey.set(getTraceKey(request), startTime ?? Date.now());
+  }
+
+  for (const bufferedItem of localBufferedTraces) {
+    if (bufferedItem.type !== 'end') {
+      continue;
+    }
+
+    const request = bufferedItem.request as EndTraceRequest;
+    const { name, timestamp, data } = request;
+    if (!MACHINE_TIME_TRACE_NAMES.has(name) || data?.success === false) {
+      continue;
+    }
+
+    const startTime = startsByKey.get(getTraceKey(request));
+    if (startTime === undefined) {
+      continue;
+    }
+
+    const endTime = timestamp ?? Date.now();
+    const duration = endTime - startTime;
+
+    if (Number.isFinite(duration)) {
+      harvestedMs += Math.max(duration, 0);
+    }
+  }
+
+  return harvestedMs;
+}
+
+/**
+ * Credit machine time harvested by the last `discardBufferedTraces()` call when
+ * the overall-journey span is reused rather than recreated (consent was already
+ * live at mount, so `startTrace` never runs again to consume the pending total).
+ */
+export function applyPendingOnboardingMachineTime(): void {
+  onboardingMachineTimeMs += pendingOnboardingMachineTimeMs;
+  pendingOnboardingMachineTimeMs = 0;
+}
+
 export function discardBufferedTraces() {
-  localBufferedTraces.length = 0; // Clear local buffer as well
+  pendingOnboardingMachineTimeMs += harvestBufferedOnboardingMachineTime();
+  localBufferedTraces.length = 0;
 }
 
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
@@ -997,7 +1064,11 @@ function startTrace(request: TraceRequest): TraceContext {
     // journey span always supersedes what came before it. The account type is
     // re-seeded from this request, or from the annotation that follows it on paths
     // that only learn the account type after the span exists.
-    onboardingMachineTimeMs = 0;
+    //
+    // Pre-consent landing screen time may have been harvested into pending by
+    // discardBufferedTraces() moments earlier; seed the new journey with it.
+    onboardingMachineTimeMs = pendingOnboardingMachineTimeMs;
+    pendingOnboardingMachineTimeMs = 0;
     onboardingAccountType = undefined;
     rememberOnboardingAccountType(request.tags);
   }

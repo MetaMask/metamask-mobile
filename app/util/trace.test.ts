@@ -22,6 +22,7 @@ import {
   bufferTraceStartCallLocal,
   bufferTraceEndCallLocal,
   discardBufferedTraces,
+  applyPendingOnboardingMachineTime,
   updateCachedConsent,
 } from './trace';
 import { AGREED, DENIED } from '../constants/storage';
@@ -999,6 +1000,82 @@ describe('Trace', () => {
       expect(journey.setAttributeMock).toHaveBeenCalledWith(
         ONBOARDING_MACHINE_TIME_ATTRIBUTE,
         1_500,
+      );
+    });
+
+    it('seeds a recreated journey with machine time harvested on discard', () => {
+      updateCachedConsent(false);
+
+      bufferTraceStartCallLocal({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        startTime: 0,
+      });
+      bufferTraceEndCallLocal({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        timestamp: 275,
+        data: { success: true, screen_id: 'onboarding_landing' },
+      });
+      bufferTraceStartCallLocal({
+        name: TraceName.OnboardingJourneyOverall,
+        startTime: 0,
+      });
+
+      discardBufferedTraces();
+
+      const journey = createSpanMock();
+      queueSpans([journey, createSpanMock()]);
+
+      updateCachedConsent(true);
+      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 300 });
+      trace({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'choose_pw',
+        startTime: 300,
+      });
+      endTrace({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'choose_pw',
+        timestamp: 700,
+        data: { success: true, screen_id: 'choose_pw' },
+      });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      expect(journey.setAttributeMock).toHaveBeenCalledWith(
+        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+        675,
+      );
+    });
+
+    it('applies harvested machine time when the journey span is reused', () => {
+      updateCachedConsent(false);
+
+      bufferTraceStartCallLocal({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        startTime: 0,
+      });
+      bufferTraceEndCallLocal({
+        name: TraceName.OnboardingScreenTimeToContent,
+        id: 'onboarding_landing',
+        timestamp: 275,
+        data: { success: true, screen_id: 'onboarding_landing' },
+      });
+
+      discardBufferedTraces();
+
+      const journey = createSpanMock();
+      queueSpans([journey]);
+
+      updateCachedConsent(true);
+      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+      applyPendingOnboardingMachineTime();
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      expect(journey.setAttributeMock).toHaveBeenCalledWith(
+        ONBOARDING_MACHINE_TIME_ATTRIBUTE,
+        275,
       );
     });
 
