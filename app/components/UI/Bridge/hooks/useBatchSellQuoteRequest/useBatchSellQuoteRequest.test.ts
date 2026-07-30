@@ -19,6 +19,7 @@ import {
 let mockWalletAddress: string | undefined =
   '0x1234567890123456789012345678901234567890';
 let mockShouldUseSmartTransaction = false;
+let mockIsSendBundleSupported = false;
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -40,8 +41,14 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn(() => mockShouldUseSmartTransaction),
 }));
 
+jest.mock('../useIsSendBundleSupported', () => ({
+  useIsSendBundleSupported: jest.fn(() => mockIsSendBundleSupported),
+}));
+
 const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
   jest.requireMock('../../../../../selectors/smartTransactionsController');
+const { useIsSendBundleSupported: mockUseIsSendBundleSupported } =
+  jest.requireMock('../useIsSendBundleSupported');
 
 const ethToken: BridgeToken = {
   address: '0x1111111111111111111111111111111111111111',
@@ -91,6 +98,7 @@ describe('useBatchSellQuoteRequest', () => {
     jest.useFakeTimers();
     mockWalletAddress = '0x1234567890123456789012345678901234567890';
     mockShouldUseSmartTransaction = false;
+    mockIsSendBundleSupported = false;
   });
 
   afterEach(() => {
@@ -447,8 +455,9 @@ describe('useBatchSellQuoteRequest', () => {
     );
   });
 
-  it('passes stx_enabled: true in context when smart transactions are enabled', async () => {
+  it('passes stx_enabled: true in context when STX and sendBundle are enabled', async () => {
     mockShouldUseSmartTransaction = true;
+    mockIsSendBundleSupported = true;
 
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
@@ -480,8 +489,9 @@ describe('useBatchSellQuoteRequest', () => {
     );
   });
 
-  it('passes stx_enabled: false in context when smart transactions are disabled', async () => {
+  it('passes stx_enabled: false in context when STX is disabled', async () => {
     mockShouldUseSmartTransaction = false;
+    mockIsSendBundleSupported = true;
 
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
@@ -513,7 +523,41 @@ describe('useBatchSellQuoteRequest', () => {
     );
   });
 
-  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+  it('passes stx_enabled: false in context when sendBundle is not supported', async () => {
+    mockShouldUseSmartTransaction = true;
+    mockIsSendBundleSupported = false;
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        batchSellSourceTokens: [ethToken],
+        batchSellSourceTokenAmounts: {
+          [ethAssetId]: '0.749',
+        },
+        batchSellDestToken: usdcToken,
+        batchSellSlippages: {},
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useBatchSellQuoteRequest(),
+      {
+        state: testState,
+      },
+    );
+
+    result.current.updateBatchSellQuoteParams();
+    await flushQuoteRequestDebounce();
+
+    expect(
+      getBridgeControllerMock().updateBridgeQuoteRequestParams.mock.calls[0][1],
+    ).toEqual(
+      expect.objectContaining({
+        stx_enabled: false,
+      }),
+    );
+  });
+
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction and useIsSendBundleSupported', () => {
     const caipSourceToken: BridgeToken = {
       ...ethToken,
       chainId: 'eip155:1' as unknown as Hex,
@@ -534,9 +578,10 @@ describe('useBatchSellQuoteRequest', () => {
       expect.anything(),
       '0x1',
     );
+    expect(mockUseIsSendBundleSupported).toHaveBeenCalledWith('0x1');
   });
 
-  it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
+  it('passes undefined chain ID to selectShouldUseSmartTransaction and useIsSendBundleSupported when there are no source tokens', () => {
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
         batchSellSourceTokens: [],
@@ -552,5 +597,6 @@ describe('useBatchSellQuoteRequest', () => {
       expect.anything(),
       undefined,
     );
+    expect(mockUseIsSendBundleSupported).toHaveBeenCalledWith(undefined);
   });
 });

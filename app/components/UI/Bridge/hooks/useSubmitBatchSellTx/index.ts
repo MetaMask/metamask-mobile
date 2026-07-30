@@ -15,13 +15,18 @@ import { RootState } from '../../../../../reducers';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getMaybeHexChainId } from '../../../../../util/bridge';
+import { useIsSendBundleSupported } from '../useIsSendBundleSupported';
 
 export function useSubmitBatchSellTx() {
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
   const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
-  const smartTransactionsEnabled = useSelector((state: RootState) =>
+  const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, batchSellChainId),
   );
+  const isSendBundleSupportedForChain =
+    useIsSendBundleSupported(batchSellChainId);
+  const smartTransactionsEnabled =
+    shouldUseSmartTransaction && Boolean(isSendBundleSupportedForChain);
   const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
   const destToken = useSelector(selectBatchSellDestToken);
 

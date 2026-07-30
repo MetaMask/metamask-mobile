@@ -51,8 +51,14 @@ jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn(() => true),
 }));
 
+jest.mock('../useIsSendBundleSupported', () => ({
+  useIsSendBundleSupported: jest.fn(() => true),
+}));
+
 const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
   jest.requireMock('../../../../../selectors/smartTransactionsController');
+const { useIsSendBundleSupported: mockUseIsSendBundleSupported } =
+  jest.requireMock('../useIsSendBundleSupported');
 
 const mockSourceTokens = [
   {
@@ -171,7 +177,7 @@ describe('useSubmitBatchSellTx', () => {
     ).rejects.toThrow('Batch Sell wallet address is not set');
   });
 
-  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction and useIsSendBundleSupported', () => {
     renderHook(() => useSubmitBatchSellTx(), {
       wrapper: createWrapper(),
     });
@@ -180,5 +186,6 @@ describe('useSubmitBatchSellTx', () => {
       expect.anything(),
       '0x1',
     );
+    expect(mockUseIsSendBundleSupported).toHaveBeenCalledWith('0x1');
   });
 });

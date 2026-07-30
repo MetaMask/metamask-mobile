@@ -19,6 +19,15 @@ import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
 import * as bridgeUtils from '../../../../../util/bridge';
 
+let mockIsSendBundleSupported = false;
+
+jest.mock('../useIsSendBundleSupported', () => ({
+  useIsSendBundleSupported: jest.fn(() => mockIsSendBundleSupported),
+}));
+
+const { useIsSendBundleSupported: mockUseIsSendBundleSupported } =
+  jest.requireMock('../useIsSendBundleSupported');
+
 jest.mock('../useBatchSellQuoteRequest', () => ({
   getBatchSellAtomicSourceAmount: jest.fn(
     (_token: BridgeToken, sourceAmount?: string) =>
@@ -226,6 +235,7 @@ describe('useBatchSellQuoteData', () => {
   let selectBatchSellSourceTokenAmountsSpy = jest.SpyInstance;
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsSendBundleSupported = false;
     jest
       .spyOn(bridgeUtils, 'getMaybeHexChainId')
       .mockImplementation(mockGetMaybeHexChainId);
@@ -553,6 +563,7 @@ describe('useBatchSellQuoteData', () => {
 
   it('passes isSmartTransaction=false to updateBatchSellTrades when STX is disabled', () => {
     selectShouldUseSmartTransactionSpy.mockReturnValue(false);
+    mockIsSendBundleSupported = true;
 
     renderHook(() => useBatchSellQuoteData());
 
@@ -561,8 +572,20 @@ describe('useBatchSellQuoteData', () => {
     ).toHaveBeenCalledWith(expect.any(Array), false);
   });
 
-  it('passes isSmartTransaction=true to updateBatchSellTrades when STX is enabled', () => {
+  it('passes isSmartTransaction=false to updateBatchSellTrades when sendBundle is not supported', () => {
     selectShouldUseSmartTransactionSpy.mockReturnValue(true);
+    mockIsSendBundleSupported = false;
+
+    renderHook(() => useBatchSellQuoteData());
+
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledWith(expect.any(Array), false);
+  });
+
+  it('passes isSmartTransaction=true to updateBatchSellTrades when STX and sendBundle are enabled', () => {
+    selectShouldUseSmartTransactionSpy.mockReturnValue(true);
+    mockIsSendBundleSupported = true;
 
     renderHook(() => useBatchSellQuoteData());
 
@@ -932,7 +955,7 @@ describe('useBatchSellQuoteData', () => {
     );
   });
 
-  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction and useIsSendBundleSupported', () => {
     selectBatchSellSourceTokensSpy.mockReturnValue([
       { ...ethToken, chainId: '0x1' as Hex },
     ]);
@@ -944,9 +967,10 @@ describe('useBatchSellQuoteData', () => {
       expect.anything(),
       '0x1',
     );
+    expect(mockUseIsSendBundleSupported).toHaveBeenCalledWith('0x1');
   });
 
-  it('passes undefined chain ID to selectShouldUseSmartTransaction when there are no source tokens', () => {
+  it('passes undefined chain ID to selectShouldUseSmartTransaction and useIsSendBundleSupported when there are no source tokens', () => {
     selectBatchSellSourceTokensSpy.mockReturnValue([]);
 
     renderHook(() => useBatchSellQuoteData());
@@ -956,6 +980,7 @@ describe('useBatchSellQuoteData', () => {
       expect.anything(),
       undefined,
     );
+    expect(mockUseIsSendBundleSupported).toHaveBeenCalledWith(undefined);
   });
 
   it('marks the quote set unavailable when no rows have quotes', () => {

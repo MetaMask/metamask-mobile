@@ -23,6 +23,7 @@ import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 import { RootState } from '../../../../../reducers';
 import { getMaybeHexChainId } from '../../../../../util/bridge';
+import { useIsSendBundleSupported } from '../useIsSendBundleSupported';
 
 export const BATCH_SELL_QUOTE_DEBOUNCE_MS = 300;
 
@@ -202,9 +203,13 @@ export function useBatchSellQuoteRequest() {
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
   const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
-  const smartTransactionsEnabled = useSelector((state: RootState) =>
+  const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, batchSellChainId),
   );
+  const isSendBundleSupportedForChain =
+    useIsSendBundleSupported(batchSellChainId);
+  const smartTransactionsEnabled =
+    shouldUseSmartTransaction && Boolean(isSendBundleSupportedForChain);
 
   const quoteRequestData = useMemo(
     () =>

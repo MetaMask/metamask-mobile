@@ -32,6 +32,7 @@ import type { BridgeToken } from '../../types';
 import { hasValidBatchSellSourceAmounts } from '../useBatchSellQuoteRequest';
 import { getQuoteRefreshRate, isQuoteExpired } from '../../utils/quoteUtils';
 import { getMaybeHexChainId } from '../../../../../util/bridge';
+import { useIsSendBundleSupported } from '../useIsSendBundleSupported';
 
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
@@ -228,9 +229,13 @@ export function useBatchSellQuoteData({
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const batchSellChainId = getMaybeHexChainId(sourceTokens[0]?.chainId);
-  const isSmartTransaction = useSelector((state: RootState) =>
+  const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, batchSellChainId),
   );
+  const isSendBundleSupportedForChain =
+    useIsSendBundleSupported(batchSellChainId);
+  const isSmartTransaction =
+    shouldUseSmartTransaction && Boolean(isSendBundleSupportedForChain);
   const priceImpactWarningThreshold =
     bridgeFeatureFlags?.priceImpactThreshold?.warning ??
     AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD;
