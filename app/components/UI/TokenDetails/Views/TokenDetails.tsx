@@ -345,6 +345,9 @@ const TokenDetails: React.FC<{
     balanceFiatUsd,
     hasBalance: hasBalanceValue,
   });
+  const isMoneyFooterCtaActive =
+    moneyAssetOverviewCtas.isFooterCtaLoading ||
+    moneyAssetOverviewCtas.isFooterCtaVisible;
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -581,8 +584,7 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           hasTokenBalance={hasBalanceValue}
           moneyEarnCta={
-            moneyAssetOverviewCtas.isFooterCtaLoading ||
-            moneyAssetOverviewCtas.isFooterCtaVisible
+            isMoneyFooterCtaActive
               ? {
                   isLoading: moneyAssetOverviewCtas.isFooterCtaLoading,
                   label: moneyAssetOverviewCtas.footerLabelLocalized,
@@ -617,7 +619,7 @@ const TokenDetails: React.FC<{
           onClose={() => setIsShareSheetVisible(false)}
         />
       )}
-      {!moneyAssetOverviewCtas.isFooterCtaEligible && quickBuySheet}
+      {!isMoneyFooterCtaActive && quickBuySheet}
     </View>
   );
 };
