@@ -4,7 +4,10 @@ import renderWithProvider, {
 } from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
-import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
+import type {
+  MetamaskPayMetadata,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import {
   ActivityDetailsPayFeesAndTotal,
   useActivityPayFiat,
@@ -84,7 +87,7 @@ const stateWithLocalPayTransaction = {
             chainId: '0x89',
             hash: 'predict-1',
             metamaskPay: { networkFeeFiat: '1.23', bridgeFeeFiat: '0.09' },
-          },
+          } as unknown as TransactionMeta,
         ],
       },
     },

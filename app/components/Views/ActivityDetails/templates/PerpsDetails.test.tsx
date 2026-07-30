@@ -1,5 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
@@ -71,7 +72,7 @@ const PAY_METADATA = {
   networkFeeFiat: '1.23',
   bridgeFeeFiat: '0.09',
   totalFiat: '1001.24',
-};
+} as const;
 
 /** State where the deposit's local transaction carries MetaMask Pay fees. */
 function stateWithPayTransaction(hash: string) {
@@ -87,7 +88,7 @@ function stateWithPayTransaction(hash: string) {
               chainId: '0xa4b1',
               hash,
               metamaskPay: PAY_METADATA,
-            },
+            } as unknown as TransactionMeta,
           ],
         },
       },
