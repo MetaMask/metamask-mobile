@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   FilterButtonVariant,
   IconName,
   TextVariant,
@@ -27,6 +28,7 @@ import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
+import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
 import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
@@ -47,6 +49,16 @@ import TradingViewChart, {
 import PerpsProMarketSummary from './PerpsProMarketSummary';
 
 const PRO_CHART_HEIGHT = 288;
+/**
+ * Typed button-clicked labels for the Pro chart collapse/expand analytics
+ * (mirrors the local-constant pattern used by e.g. `COMPETITION_BANNER_BUTTON`),
+ * since `@metamask/perps-controller` has no dedicated chart collapse/expand
+ * interaction value.
+ */
+const PRO_CHART_BUTTON = {
+  COLLAPSE_CHART: 'collapse_chart',
+  EXPAND_CHART: 'expand_chart',
+} as const;
 const PRO_CANDLE_PERIODS = [
   { label: '1m', value: CandlePeriod.OneMinute },
   { label: '5m', value: CandlePeriod.FiveMinutes },
@@ -78,6 +90,7 @@ const PerpsProChartPanel = ({
   onChartError,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
+  const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
@@ -88,9 +101,14 @@ const PerpsProChartPanel = ({
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
 
+  // Clear the Advanced Chart's synced price whenever it (un)mounts or changes
+  // subject: symbol/period/flag changes, and collapse/expand. While collapsed
+  // the Advanced Chart is unmounted and can no longer report prices, so the
+  // always-visible summary must fall back to the retained candle price instead
+  // of freezing on the last Advanced Chart value.
   useEffect(() => {
     setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, selectedCandlePeriod, symbol]);
+  }, [isAdvancedChartEnabled, isChartExpanded, selectedCandlePeriod, symbol]);
 
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsProperties(effectiveChartLibrary),
@@ -119,7 +137,9 @@ const PerpsProChartPanel = ({
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
   }, [candleData]);
   const syncedChartCurrentPrice =
-    isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
+    isChartExpanded &&
+    isAdvancedChartEnabled &&
+    advancedChartCurrentPrice !== undefined
       ? advancedChartCurrentPrice
       : chartCurrentPrice;
 
@@ -152,6 +172,22 @@ const PerpsProChartPanel = ({
     }
   }, [candleData, selectedCandlePeriod, visibleCandleCount]);
 
+  const handleToggleChartExpanded = useCallback(
+    (expanded: boolean) => {
+      setChartExpanded(expanded);
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: expanded
+          ? PRO_CHART_BUTTON.EXPAND_CHART
+          : PRO_CHART_BUTTON.COLLAPSE_CHART,
+        [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+        ...chartAnalyticsProperties,
+      });
+    },
+    [chartAnalyticsProperties, setChartExpanded, symbol, track],
+  );
+
   const handleFullscreenChartOpen = useCallback(() => {
     setIsFullscreenChartVisible(true);
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -162,105 +198,131 @@ const PerpsProChartPanel = ({
     });
   }, [chartAnalyticsProperties, symbol, track]);
 
+  let chartContent: React.ReactNode;
+  if (isAdvancedChartEnabled) {
+    chartContent = (
+      <PerpsAdvancedChart
+        symbol={symbol}
+        interval={selectedCandlePeriod}
+        visibleCandleCount={visibleCandleCount}
+        height={PRO_CHART_HEIGHT}
+        tpslLines={tpslLines}
+        positionSize={existingPosition?.size}
+        szDecimals={marketData?.szDecimals}
+        onCrosshairDataChange={setOhlcData}
+        onLatestPriceChange={setAdvancedChartCurrentPrice}
+        onError={onChartError}
+        fallbackCandleData={candleData}
+        fallbackFetchMoreHistory={fetchMoreHistory}
+        paginationDuration={TimeDuration.YearToDate}
+      />
+    );
+  } else if (hasHistoricalData) {
+    chartContent = (
+      <TradingViewChart
+        ref={chartRef}
+        candleData={candleData}
+        height={PRO_CHART_HEIGHT}
+        visibleCandleCount={visibleCandleCount}
+        tpslLines={tpslLines}
+        symbol={symbol}
+        showOverlay={false}
+        coloredVolume
+        onOhlcDataChange={setOhlcData}
+        onNeedMoreHistory={fetchMoreHistory}
+        testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
+      />
+    );
+  } else {
+    chartContent = (
+      <Skeleton
+        height={PRO_CHART_HEIGHT}
+        width="100%"
+        testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
+      />
+    );
+  }
+
   return (
     <>
       <PerpsProMarketSummary
         symbol={symbol}
         currentPrice={syncedChartCurrentPrice}
+        endAccessory={
+          <ButtonIcon
+            iconName={IconName.Candlestick}
+            size={ButtonIconSize.Lg}
+            variant={ButtonIconVariant.Filled}
+            onPress={() => handleToggleChartExpanded(!isChartExpanded)}
+            testID={PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON}
+            accessibilityLabel={strings(
+              isChartExpanded
+                ? 'perps.market_details.collapse_chart'
+                : 'perps.market_details.expand_chart',
+            )}
+            accessibilityState={{ expanded: isChartExpanded }}
+          />
+        }
       />
-      <Box
-        testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
-        twClassName="my-2 h-[344px] px-4 py-2"
-      >
+      {isChartExpanded ? (
         <Box
-          testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
-          twClassName="flex-1 gap-2"
+          testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
+          twClassName="my-2 h-[344px] px-4 py-2"
         >
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+            testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
+            twClassName="flex-1 gap-2"
           >
-            <PerpsCandlePeriodSelector
-              selectedPeriod={selectedCandlePeriod}
-              onPeriodChange={onCandlePeriodChange}
-              onMorePress={onMorePress}
-              visiblePeriods={PRO_CANDLE_PERIODS}
-              twClassName="flex-1 py-0"
-              groupTwClassName="gap-2 justify-start"
-              filterVariant={FilterButtonVariant.Secondary}
-              periodButtonTwClassName="h-7 rounded px-1"
-              moreButtonTwClassName="h-7 rounded px-1"
-              textVariant={TextVariant.BodyXs}
-              testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
-            />
-            <ButtonIcon
-              iconName={IconName.Expand}
-              size={ButtonIconSize.Sm}
-              onPress={handleFullscreenChartOpen}
-              testID={PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON}
-              accessibilityLabel={strings(
-                'perps.market_details.fullscreen_chart',
-              )}
-            />
-          </Box>
-          <ComponentErrorBoundary
-            componentLabel="PerpsProMarketChart"
-            onError={onChartError}
-          >
-            <Box twClassName="relative flex-1">
-              {ohlcData ? (
-                <Box twClassName="absolute left-0 right-0 top-0 z-10">
-                  <PerpsOHLCVBar
-                    open={ohlcData.open}
-                    high={ohlcData.high}
-                    low={ohlcData.low}
-                    close={ohlcData.close}
-                    volume={ohlcData.volume}
-                    testID={PerpsProMarketViewSelectorsIDs.CHART_OHLCV}
-                  />
-                </Box>
-              ) : null}
-              {isAdvancedChartEnabled ? (
-                <PerpsAdvancedChart
-                  symbol={symbol}
-                  interval={selectedCandlePeriod}
-                  visibleCandleCount={visibleCandleCount}
-                  height={PRO_CHART_HEIGHT}
-                  tpslLines={tpslLines}
-                  positionSize={existingPosition?.size}
-                  szDecimals={marketData?.szDecimals}
-                  onCrosshairDataChange={setOhlcData}
-                  onLatestPriceChange={setAdvancedChartCurrentPrice}
-                  onError={onChartError}
-                  fallbackCandleData={candleData}
-                  fallbackFetchMoreHistory={fetchMoreHistory}
-                  paginationDuration={TimeDuration.YearToDate}
-                />
-              ) : hasHistoricalData ? (
-                <TradingViewChart
-                  ref={chartRef}
-                  candleData={candleData}
-                  height={PRO_CHART_HEIGHT}
-                  visibleCandleCount={visibleCandleCount}
-                  tpslLines={tpslLines}
-                  symbol={symbol}
-                  showOverlay={false}
-                  coloredVolume
-                  onOhlcDataChange={setOhlcData}
-                  onNeedMoreHistory={fetchMoreHistory}
-                  testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
-                />
-              ) : (
-                <Skeleton
-                  height={PRO_CHART_HEIGHT}
-                  width="100%"
-                  testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
-                />
-              )}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <PerpsCandlePeriodSelector
+                selectedPeriod={selectedCandlePeriod}
+                onPeriodChange={onCandlePeriodChange}
+                onMorePress={onMorePress}
+                visiblePeriods={PRO_CANDLE_PERIODS}
+                twClassName="flex-1 py-0"
+                groupTwClassName="gap-2 justify-start"
+                filterVariant={FilterButtonVariant.Secondary}
+                periodButtonTwClassName="h-7 rounded px-1"
+                moreButtonTwClassName="h-7 rounded px-1"
+                textVariant={TextVariant.BodyXs}
+                testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
+              />
+              <ButtonIcon
+                iconName={IconName.Expand}
+                size={ButtonIconSize.Sm}
+                onPress={handleFullscreenChartOpen}
+                testID={PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON}
+                accessibilityLabel={strings(
+                  'perps.market_details.fullscreen_chart',
+                )}
+              />
             </Box>
-          </ComponentErrorBoundary>
+            <ComponentErrorBoundary
+              componentLabel="PerpsProMarketChart"
+              onError={onChartError}
+            >
+              <Box twClassName="relative flex-1">
+                {ohlcData ? (
+                  <Box twClassName="absolute left-0 right-0 top-0 z-10">
+                    <PerpsOHLCVBar
+                      open={ohlcData.open}
+                      high={ohlcData.high}
+                      low={ohlcData.low}
+                      close={ohlcData.close}
+                      volume={ohlcData.volume}
+                      testID={PerpsProMarketViewSelectorsIDs.CHART_OHLCV}
+                    />
+                  </Box>
+                ) : null}
+                {chartContent}
+              </Box>
+            </ComponentErrorBoundary>
+          </Box>
         </Box>
-      </Box>
+      ) : null}
       {isTradingHalted && !isLoadingTradingHalted ? (
         <PerpsPriceDeviationWarning
           testID={PerpsProMarketViewSelectorsIDs.CHART_PRICE_DEVIATION_WARNING}
@@ -283,6 +345,7 @@ const PerpsProChartPanel = ({
         symbol={symbol}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
+        fallbackFetchMoreHistory={fetchMoreHistory}
       />
     </>
   );

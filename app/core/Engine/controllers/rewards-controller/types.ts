@@ -93,6 +93,13 @@ export type VipTierDto = {
   name: string;
   tier: number;
   pointsRequirement: number;
+  /**
+   * Lower 30d-points threshold to KEEP this tier once held (vs
+   * `pointsRequirement` to REACH it). `null` when no maintain threshold is
+   * configured for the tier — the reach requirement then also governs keeping
+   * it. Sourced from `/vip/me` (backend PR #737).
+   */
+  maintainPointsRequirement: number | null;
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;

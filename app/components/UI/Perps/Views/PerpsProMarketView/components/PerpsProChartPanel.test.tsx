@@ -10,7 +10,10 @@ import {
   type CandleData,
   type Position,
 } from '@metamask/perps-controller';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 import type { PerpsAdvancedChartProps } from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import PerpsCandlePeriodSelector from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
 import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
@@ -104,9 +107,15 @@ const mockUsePerpsLiveCandles = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockUsePerpsMarketData = jest.fn();
 const mockUsePriceDeviation = jest.fn();
+const mockSetChartExpanded = jest.fn();
+const mockUsePerpsProChartExpanded = jest.fn();
 
 jest.mock('../../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
+jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
+  usePerpsProChartExpanded: () => mockUsePerpsProChartExpanded(),
 }));
 
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
@@ -218,6 +227,10 @@ describe('PerpsProChartPanel', () => {
     mockUsePriceDeviation.mockReturnValue({
       isDeviatedAboveThreshold: false,
       isLoading: false,
+    });
+    mockUsePerpsProChartExpanded.mockReturnValue({
+      isChartExpanded: true,
+      setChartExpanded: mockSetChartExpanded,
     });
   });
 
@@ -435,5 +448,160 @@ describe('PerpsProChartPanel', () => {
     });
 
     expect(mockOnChartError).toHaveBeenCalledWith('WebView failed');
+  });
+
+  describe('collapse and expand', () => {
+    const renderCollapsed = (
+      overrides: Partial<PerpsProChartPanelProps> = {},
+    ) => {
+      mockUsePerpsProChartExpanded.mockReturnValue({
+        isChartExpanded: false,
+        setChartExpanded: mockSetChartExpanded,
+      });
+      return renderChartPanel(overrides);
+    };
+
+    it('keeps the market summary visible while collapsed', () => {
+      renderCollapsed();
+
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
+      ).toBeOnTheScreen();
+    });
+
+    it('unmounts the inline chart and its controls while collapsed', () => {
+      renderCollapsed();
+
+      expect(
+        screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_PANEL),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('mock-perps-advanced-chart'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('unmounts the Lightweight chart WebView while collapsed', () => {
+      renderCollapsed({ isAdvancedChartEnabled: false });
+
+      expect(
+        screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the toggle action in the collapsed state', () => {
+      renderCollapsed();
+
+      const toggleButton = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON,
+      );
+      expect(toggleButton).toBeOnTheScreen();
+      expect(toggleButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ expanded: false }),
+      );
+    });
+
+    it('keeps the toggle action visible in the expanded state', () => {
+      renderChartPanel();
+
+      const toggleButton = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON,
+      );
+      expect(toggleButton).toBeOnTheScreen();
+      expect(toggleButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ expanded: true }),
+      );
+    });
+
+    it('persists chartExpanded=true and tracks analytics when expanding', () => {
+      renderCollapsed();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON),
+      );
+
+      expect(mockSetChartExpanded).toHaveBeenCalledWith(true);
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'expand_chart',
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+        }),
+      );
+    });
+
+    it('persists chartExpanded=false and tracks analytics when collapsing', () => {
+      renderChartPanel();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_TOGGLE_BUTTON),
+      );
+
+      expect(mockSetChartExpanded).toHaveBeenCalledWith(false);
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: 'collapse_chart',
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
+    });
+
+    it('does not open the fullscreen modal while collapsed', () => {
+      renderCollapsed();
+
+      expect(
+        screen.queryByTestId('mock-perps-fullscreen-chart'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('follows the candle price (not the frozen Advanced Chart price) after collapsing', () => {
+      const view = renderChartPanel();
+
+      // Advanced Chart reports a live price while expanded.
+      act(() => {
+        getLastAdvancedChartProps().onLatestPriceChange?.(51000);
+      });
+      expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 51000 }),
+      );
+
+      // Collapse: the Advanced Chart unmounts and can no longer report prices,
+      // so the summary must fall back to the retained candle price (50500).
+      mockUsePerpsProChartExpanded.mockReturnValue({
+        isChartExpanded: false,
+        setChartExpanded: mockSetChartExpanded,
+      });
+      view.rerender(
+        <PerpsProChartPanel
+          symbol="BTC"
+          selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+          isAdvancedChartEnabled
+          effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+          onCandlePeriodChange={mockOnCandlePeriodChange}
+          onMorePress={mockOnMorePress}
+          onChartError={mockOnChartError}
+        />,
+      );
+
+      expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ currentPrice: 50500 }),
+      );
+    });
   });
 });

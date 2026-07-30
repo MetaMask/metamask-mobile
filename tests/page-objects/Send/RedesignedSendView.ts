@@ -5,6 +5,7 @@ import {
   Utilities,
   Assertions,
   EncapsulatedElementType,
+  encapsulated,
 } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
@@ -14,6 +15,7 @@ import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class SendView {
   get ethereumTokenButton(): EncapsulatedElementType {
@@ -21,11 +23,23 @@ class SendView {
   }
 
   get erc20TokenButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('USD Coin');
+    return Matchers.getElementByID(getAssetTestId('USDC'), 0);
+  }
+
+  get amountScreen(): EncapsulatedElementType {
+    return Matchers.getElementByID(RedesignedSendViewSelectorsIDs.SEND_AMOUNT);
   }
 
   get zeroButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('0', 1);
+    return encapsulated({
+      detox: () => Matchers.getElementByText('0', 1),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById('keypad-key-0', { exact: true }),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId('keypad-key-0'),
+      },
+    });
   }
 
   get amountFiveButton(): EncapsulatedElementType {
@@ -106,9 +120,31 @@ class SendView {
   }
 
   async selectERC20Token(): Promise<void> {
-    await Gestures.waitAndTap(this.erc20TokenButton, {
-      elemDescription: 'Select ERC20 token',
-    });
+    // With device.disableSynchronization(), the asset list can still re-render
+    // (duplicate rows hydrating) when Detox taps. The tap may highlight the row
+    // without firing onPress, so we wait for stability and retry until Amount.
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+          return;
+        } catch {
+          // Still on the asset picker
+        }
+
+        await Gestures.waitAndTap(this.erc20TokenButton, {
+          elemDescription: 'Select ERC20 token',
+          checkStability: true,
+          delay: 1000,
+        });
+
+        await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
+      },
+      {
+        timeout: 25000,
+        description: 'Select ERC20 token and open amount screen',
+      },
+    );
   }
 
   async enterZeroAmount(): Promise<void> {
@@ -159,16 +195,19 @@ class SendView {
       },
       appium: async () => {
         const isIOS = await PlatformDetector.isIOS();
-        let el;
         if (isIOS) {
-          // On iOS, the input has AXUniqueId "textfield" instead of "recipient-address-input"
-          el = await PlaywrightMatchers.getElementById('textfield');
+          const wrapper = await PlaywrightMatchers.getElementById('textfield', {
+            exact: true,
+          });
+          await PlaywrightGestures.waitAndTap(wrapper);
+          await PlaywrightGestures.typeViaIosKeyboard(address);
         } else {
-          el = await PlaywrightMatchers.getElementById(
+          const el = await PlaywrightMatchers.getElementById(
             RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+            { exact: true },
           );
+          await el.fill(address);
         }
-        await PlaywrightGestures.typeText(el, address);
         await PlaywrightGestures.hideKeyboard();
       },
     });
@@ -194,7 +233,7 @@ class SendView {
         const el = await PlaywrightMatchers.getElementById(
           RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
         );
-        await PlaywrightGestures.waitAndTap(el);
+        await PlaywrightGestures.waitAndTap(el, { timeout: 20000 });
       },
     });
   }

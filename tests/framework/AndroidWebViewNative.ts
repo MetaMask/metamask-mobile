@@ -1,17 +1,16 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
-import type { EncapsulatedElementType } from './EncapsulatedElement';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
-import Gestures from './Gestures';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { getDriver } from './PlaywrightUtilities';
 import PlaywrightGestures from './PlaywrightGestures';
-import { sleep } from './Utilities';
+import Utilities, { sleep } from './Utilities';
 import { createPlaywrightLogger } from './playwrightLogger';
 
 const logger = createPlaywrightLogger('AndroidWebViewNative');
 
-const SCROLL_ATTEMPTS = 48;
-const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 90_000;
+const SCROLL_ATTEMPTS = 24;
+const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 30_000;
 const IN_PLACE_FIND_TIMEOUT_MS = 5_000;
 
 export interface AndroidWebViewScrollOptions {
@@ -19,12 +18,17 @@ export interface AndroidWebViewScrollOptions {
   scrollLabels?: Record<string, string>;
 }
 
+export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
+  description?: string;
+  timeout?: number;
+};
+
+/** Fill/read share scroll options; Android Appium never uses WebView DOM context. */
+export type AndroidWebViewFillOptions = AndroidWebViewScrollOptions;
+export type AndroidWebViewReadOptions = AndroidWebViewScrollOptions;
+
 function escapeUiAutomatorString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
-
-function asEncapsulated(elem: PlaywrightElement): EncapsulatedElementType {
-  return elem as unknown as EncapsulatedElementType;
 }
 
 async function findNativeWebIdElement(
@@ -162,11 +166,15 @@ async function scrollNativeWebIdIntoViewViaScrollGesture(
 /**
  * Scroll an Android WebView accessibility node (resource-id) into view.
  * Prefer this over Chromedriver WebView context on CI where context switching flakes.
+ * Always switches to NATIVE_APP first so UiAutomator works even if a prior step
+ * left the session in a WEBVIEW context.
  */
 export async function scrollAndroidWebIdIntoView(
   webId: string,
   options: AndroidWebViewScrollOptions = {},
 ): Promise<PlaywrightElement> {
+  await PlaywrightContextHelpers.switchToNativeContext();
+
   // Generous in-place wait: nodes often appear in the current viewport, and a
   // UiScrollable sweep from the top is far costlier than waiting a few seconds.
   const alreadyVisible = await tryFindNativeWebIdElement(
@@ -190,33 +198,59 @@ export async function scrollAndroidWebIdIntoView(
 
 export async function tapAndroidWebId(
   webId: string,
-  options: AndroidWebViewScrollOptions & { description?: string } = {},
+  options: AndroidWebViewTapOptions = {},
 ): Promise<void> {
-  const elem = await scrollAndroidWebIdIntoView(webId, options);
-  await Gestures.tap(asEncapsulated(elem), {
-    elemDescription:
-      options.description ?? `Android native WebView tap: ${webId}`,
-  });
+  logger.debug(options.description ?? `Android native WebView tap: ${webId}`);
+
+  // Re-find until enabled so we don't hold a stale disabled node across React re-renders.
+  let elem!: PlaywrightElement;
+  await Utilities.waitUntil(
+    async () => {
+      elem = await scrollAndroidWebIdIntoView(webId, options);
+      return elem.isEnabled();
+    },
+    { timeout: options.timeout ?? 30_000, interval: 250 },
+  );
+
+  await PlaywrightGestures.waitAndTap(elem);
 }
 
-/**
- * Fill a WebView input via native UiAutomator (avoids Chromedriver context issues).
- * Uses W3C key actions instead of setValue/mobile:type for compatibility.
- */
+/** Type into focused field one character at a time, clearing leftover text first. */
+async function typeAndroidKeysSequentially(
+  value: string,
+  residualText = '',
+): Promise<void> {
+  const BACKSPACE_KEY = '\uE003';
+  const MIN_BACKSPACE_COUNT = 24;
+  // Clear leftover characters and size backspace burst to residual text length
+  const backspaceCount = Math.max(MIN_BACKSPACE_COUNT, residualText.length + 4);
+  await getDriver().keys(BACKSPACE_KEY.repeat(backspaceCount));
+  for (const char of value) {
+    await getDriver().keys(char);
+  }
+}
+
+/** Fill a WebView input via native focus + real key events. */
 export async function fillAndroidWebId(
   webId: string,
   value: string,
-  options: AndroidWebViewScrollOptions = {},
+  options: AndroidWebViewFillOptions = {},
 ): Promise<void> {
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   await elem.click();
-  await getDriver().keys(value.split(''));
+  await elem.clear().catch((error) => {
+    logger.debug(
+      `clear() failed for WebView input "${webId}", continuing with keys: ${String(error)}`,
+    );
+  });
+  const residualText = await elem.getText().catch(() => '');
+  await typeAndroidKeysSequentially(value, residualText);
   await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }
 
 export async function readAndroidWebIdText(
   webId: string,
-  options: AndroidWebViewScrollOptions = {},
+  options: AndroidWebViewReadOptions = {},
 ): Promise<string> {
   const elem = await scrollAndroidWebIdIntoView(webId, options);
   return elem.getText();
