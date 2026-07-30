@@ -98,11 +98,6 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionId),
-  );
-  const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   const musdFiatRate =
@@ -297,21 +292,21 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Do NOT set isMaxAmount=true for perps or money-account flows. TPC's
-      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
-      // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
-      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // vmUSD fiat total). This includes deposits funded from the money
-      // account (e.g. Send to Perps): the pay token is bare mUSD on Monad, so
-      // substituting its raw balance collapses Max to the un-vaulted mUSD
-      // portion instead of the full withdrawable (mUSD + vmUSD). Keeping
-      // isMaxAmount false routes the typed amount through as token.amountRaw.
+      // Do NOT set isMaxAmount=true for perps/money-account withdraw or money
+      // account deposit flows. For those, TPC would substitute an on-chain
+      // balanceRaw that does not match the typed balance (HyperLiquid wallet
+      // USDC vs HL balance; money-account on-chain mUSD vs mUSD + vmUSD).
+      //
+      // Deposits funded from the money account (e.g. Send to Perps) DO set
+      // isMaxAmount=true so quotes use EXACT_INPUT. That is safe once TPC uses
+      // the typed required amount for MoneyAccount max instead of the pay
+      // token's bare mUSD balance (MetaMask/core#9707). Mobile still types the
+      // full withdrawableFiatRaw amount into the required token.
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&
         !isMoneyAccountWithdraw &&
-        !isMoneyAccountDeposit &&
-        !isMoneyPaymentOverride;
+        !isMoneyAccountDeposit;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -348,7 +343,6 @@ export function useTransactionCustomAmount({
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
-      isMoneyPaymentOverride,
       payToken?.balanceRaw,
       payToken?.decimals,
       setIsMax,
