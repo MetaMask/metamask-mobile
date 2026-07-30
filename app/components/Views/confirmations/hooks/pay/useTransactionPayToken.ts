@@ -2,6 +2,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
@@ -15,7 +16,6 @@ import { selectTransactionPaymentTokenByTransactionId } from '../../../../../sel
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
-import { hasTransactionType } from '../../utils/transaction';
 import Logger from '../../../../../util/Logger';
 
 export function useTransactionPayToken(): {
