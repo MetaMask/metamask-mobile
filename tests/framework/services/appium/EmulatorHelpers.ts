@@ -615,7 +615,7 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   logger.info(`Starting Android emulator: ${avdName}`);
 
   // Appium smoke CI uses AOSP (`default` image) — lighter cold boot than google_apis.
-  // Skin matches local Pixel 5 Pro; RAM/CPU flags align with Detox CI; cores overridable via env.
+  // Skin overrides AVD profile resolution; cores via env.
   const args = ['-avd', avdName];
   if (isCI) {
     const cores =
