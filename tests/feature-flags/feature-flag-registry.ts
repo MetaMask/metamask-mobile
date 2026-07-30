@@ -5809,7 +5809,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       id: '',
       title: '',
       description: '',
-      position: 'after-world-cup-banner',
+      position: 'after-featured-carousel',
       severity: 'info',
       dismissible: false,
     },
