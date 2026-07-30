@@ -10,7 +10,6 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import BigNumber from 'bignumber.js';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
@@ -338,7 +337,7 @@ const TokenDetails: React.FC<{
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
-  const hasBalanceValue = new BigNumber(balance ?? 0).gt(0);
+  const hasBalanceValue = Boolean(balance) && balance !== '0';
   const privacyMode = useSelector(selectPrivacyMode);
   const moneyAssetOverviewCtas = useMoneyAssetOverviewCtas({
     asset: token,

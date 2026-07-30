@@ -338,6 +338,97 @@ describe('TokenDetailsStickyFooter', () => {
         queryByText(strings('money.asset_overview.cta.current_apy_disclaimer')),
       ).not.toBeOnTheScreen();
     });
+
+    it('does not start Money deposit before APY label resolves', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{ isLoading: true, onPress }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).not.toHaveBeenCalled();
+      expect(mockTrackStickyFooterTapped).not.toHaveBeenCalled();
+    });
+
+    it('tracks Money deposit CTA type on press', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        ctaType: 'money_deposit',
+        balanceFiatUsd: 50,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+        indicatorsActive: [],
+      });
+    });
+
+    it('invokes Money deposit CTA when token is verified', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('defers Money deposit CTA until onProceed for security warning modal', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+          securityData={
+            {
+              resultType: 'Warning',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).not.toHaveBeenCalled();
+
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('success button logic - single button', () => {

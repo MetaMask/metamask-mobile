@@ -334,7 +334,18 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       }
       textProps={hasTokenBalance ? SUCCESS_TEXT_PROPS : secondaryTextProps}
       isLoading={moneyEarnCta?.isLoading}
-      onPress={moneyEarnCta?.onPress}
+      onPress={() => {
+        if (!moneyEarnCta?.label) return;
+
+        trackStickyFooterTapped({
+          ctaType: 'money_deposit',
+          balanceFiatUsd,
+          tokenAddress: token.address ?? '',
+          chainId: token.chainId ?? '',
+          indicatorsActive,
+        });
+        handleFooterAction(moneyEarnCta.onPress, moneyEarnCta.label);
+      }}
     >
       {moneyEarnCta?.label}
     </Button>
