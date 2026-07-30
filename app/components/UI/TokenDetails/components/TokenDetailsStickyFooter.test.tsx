@@ -6,6 +6,7 @@ import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { strings } from '../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -238,6 +239,195 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
       expect(onStickyButtonsResolved).toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('Money Earn CTA', () => {
+    const moneyEarnCta = {
+      isLoading: false,
+      label: 'Earn 6% APY',
+      onPress: jest.fn(),
+    };
+
+    it('renders Swap and primary Earn actions for a held token', () => {
+      const { getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders secondary Earn and Buy actions for a token without balance', () => {
+      const { getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance={false}
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(getByText('Earn 6% APY')).toBeOnTheScreen();
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Swap')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Earn button alongside Swap for a held token', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(getByText('Swap')).toBeOnTheScreen();
+      expect(getByTestId('money-asset-overview-footer-cta')).toHaveProp(
+        'isLoading',
+        true,
+      );
+      expect(queryByText('Buy')).not.toBeOnTheScreen();
+    });
+
+    it('renders a loading Earn button alongside Buy for a token without balance', () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance={false}
+          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(getByTestId('money-asset-overview-footer-cta')).toHaveProp(
+        'isLoading',
+        true,
+      );
+      expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByText('Swap')).not.toBeOnTheScreen();
+    });
+
+    it('renders disclaimer after the APY resolves', () => {
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={moneyEarnCta}
+        />,
+      );
+
+      expect(
+        getByText(strings('money.asset_overview.cta.current_apy_disclaimer')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides disclaimer while the APY is loading', () => {
+      const { queryByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{ isLoading: true, onPress: jest.fn() }}
+        />,
+      );
+
+      expect(
+        queryByText(strings('money.asset_overview.cta.current_apy_disclaimer')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not start Money deposit before APY label resolves', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{ isLoading: true, onPress }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).not.toHaveBeenCalled();
+      expect(mockTrackStickyFooterTapped).not.toHaveBeenCalled();
+    });
+
+    it('tracks Money deposit CTA type on press', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        ctaType: 'money_deposit',
+        balanceFiatUsd: 50,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+        indicatorsActive: [],
+      });
+    });
+
+    it('invokes Money deposit CTA when token is verified', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('defers Money deposit CTA until onProceed for security warning modal', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          hasTokenBalance
+          moneyEarnCta={{
+            isLoading: false,
+            label: 'Earn 6% APY',
+            onPress,
+          }}
+          securityData={
+            {
+              resultType: 'Warning',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByTestId('money-asset-overview-footer-cta'));
+
+      expect(onPress).not.toHaveBeenCalled();
+
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -61,6 +61,7 @@ type MoneyTokenRowEventProperties = {
   token_position_in_list: number;
   token_chain_id: string;
   tokens_in_list: number;
+  token_has_balance: boolean;
 };
 
 export type MoneyTokenRowButtonClickedEventProperties =
