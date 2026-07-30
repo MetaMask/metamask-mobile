@@ -23,12 +23,12 @@ For a real usage example, see [`ManagePriceAlertsView`](../../app/components/UI/
 
 **Unit-testing a screen that embeds the gate**
 
-The gate calls `useNotificationStoragePreferences`, which uses TanStack `useQuery`. Any unit test that renders a screen containing `<FeatureNotificationsGate />` must either:
+The gate pulls in the whole notification preferences stack: `useNotificationStoragePreferences` needs a TanStack `QueryClientProvider`, and it reads feature flags through `useSelector`, so it needs a Redux store too. Any unit test that renders a screen containing `<FeatureNotificationsGate />` must either:
 
 1. **Mock the gate** (preferred for the host screen's tests — gate behaviour is covered in [`FeatureNotificationsGate.test.tsx`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.test.tsx)), or
-2. Wrap the render tree in a `QueryClientProvider`
+2. Wrap the render tree in **both** a `QueryClientProvider` and a Redux `Provider` (e.g. `renderWithProvider`)
 
-Without one of those, the suite fails with `No QueryClient set, use QueryClientProvider to set one`.
+Otherwise the suite fails with `No QueryClient set, use QueryClientProvider to set one` or `could not find react-redux context value; please ensure the component is wrapped in a <Provider>`. Mocking keeps the host screen's tests from having to track whichever providers the gate depends on next.
 
 ```ts
 jest.mock('.../NotificationsSettings/FeatureNotificationsGate', () => ({
@@ -36,7 +36,9 @@ jest.mock('.../NotificationsSettings/FeatureNotificationsGate', () => ({
 }));
 ```
 
-See [`CreatePriceAlertView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView.test.tsx) for a host-screen example.
+See [`CreatePriceAlertView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView.test.tsx) and [`ManagePriceAlertsView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.test.tsx) for host-screen examples.
+
+Component view tests (`*.view.test.tsx`) need no such change — `tests/component-view/render.tsx` already supplies both providers, and mocking anything beyond Engine and native modules is forbidden there. Those tests exercise the real gate.
 
 ---
 

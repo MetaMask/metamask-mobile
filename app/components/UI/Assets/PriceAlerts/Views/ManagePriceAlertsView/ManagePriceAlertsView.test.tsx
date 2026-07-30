@@ -32,6 +32,14 @@ const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
 const mockNavigate = jest.fn();
 const mockShowToast = jest.fn();
+const mockFeatureGate = jest.fn((_props: unknown) => null);
+
+jest.mock(
+  '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate',
+  () => ({
+    FeatureNotificationsGate: (props: unknown) => mockFeatureGate(props),
+  }),
+);
 
 function WithToast({ children }: { children: React.ReactNode }) {
   const ref = React.useRef({ showToast: mockShowToast, closeToast: jest.fn() });
@@ -207,6 +215,15 @@ describe('ManagePriceAlertsView', () => {
           `${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-alert-2`,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the price alerts notifications gate', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(mockFeatureGate).toHaveBeenCalledWith(
+        expect.objectContaining({ feature: 'priceAlerts' }),
+      );
     });
 
     it('shows the formatted threshold in each row', async () => {
