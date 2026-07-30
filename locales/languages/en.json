@@ -1836,7 +1836,8 @@
       "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
-      "liquidation_distance": "Liquidation distance"
+      "liquidation_distance": "Liquidation distance",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "Auto close",

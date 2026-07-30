@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import Logger from '../../../../../util/Logger';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
 import { type Position } from '@metamask/perps-controller';
+import { PerpsAdjustMarginViewSelectorsIDs } from '../../Perps.testIds';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>
@@ -82,45 +83,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('./PerpsAdjustMarginView.styles', () => ({
-  __esModule: true,
-  default: () => ({
-    container: {},
-    content: {},
-    scrollViewContent: {},
-    scrollViewContentWithKeypad: {},
-    sliderSection: {},
-    summaryContainer: {},
-    changeContainer: {},
-    footer: {},
-    footerWithSummary: {},
-    footerButton: {},
-    bottomSection: {},
-    percentageButtonsContainer: {},
-    percentageButton: {},
-    keypad: {},
-    errorContainer: {},
-  }),
-}));
-
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
-}));
-
-jest.mock('../../Debug/usePerpsClosePositionVisualStatePicker', () => ({
-  usePerpsClosePositionVisualStatePicker: jest.fn(() => ({
-    visualOverrides: null,
-    renderFlask: () => null,
-    sheet: null,
-    openSheet: jest.fn(),
-  })),
 }));
 
 jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
@@ -129,90 +93,13 @@ jest.mock(
   () => 'PerpsBottomSheetTooltip',
 );
 
+// Slider host stub only — needed to fire onValueChange without gesture internals.
+// Other MMDS components keep their real implementations (testIDs attach natively).
 jest.mock('@metamask/design-system-react-native', () => {
-  const ReactModule = jest.requireActual('react');
-  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    ...jest.requireActual('@metamask/design-system-react-native'),
-    __esModule: true,
-    HeaderStandard: ({ title }: { title: string }) =>
-      ReactModule.createElement(Text, null, title),
-    Button: ({
-      label,
-      onPress,
-      isDisabled,
-      isLoading,
-      children,
-      ...props
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    }: any) => (
-      <TouchableOpacity
-        onPress={onPress}
-        disabled={isDisabled}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        {...props}
-      >
-        {!isLoading && <Text>{label ?? children}</Text>}
-      </TouchableOpacity>
-    ),
-    ButtonVariant: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-    },
-    ButtonSize: {
-      Lg: 'Lg',
-      Md: 'Md',
-      Sm: 'Sm',
-    },
-    Slider: ({
-      onValueChange,
-      testID,
-    }: {
-      onValueChange?: (value: number) => void;
-      testID?: string;
-    }) =>
-      ReactModule.createElement(View, {
-        testID: testID ?? 'mock-margin-slider',
-        // @ts-expect-error test helper
-        onValueChange,
-      }),
-    KeyValueRow: ({
-      keyLabel,
-      value,
-    }: {
-      keyLabel: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      value: any;
-    }) =>
-      ReactModule.createElement(
-        View,
-        null,
-        ReactModule.createElement(Text, null, keyLabel),
-        typeof value === 'string' || typeof value === 'number'
-          ? ReactModule.createElement(Text, null, value)
-          : value,
-      ),
-    KeyValueRowVariant: {
-      Summary: 'Summary',
-      Input: 'Input',
-    },
-    Icon: ({
-      name,
-      accessibilityLabel,
-    }: {
-      name: string;
-      accessibilityLabel?: string;
-    }) =>
-      ReactModule.createElement(View, {
-        accessibilityLabel: accessibilityLabel ?? name,
-      }),
-    IconName: {
-      ArrowRight: 'ArrowRight',
-      Info: 'Info',
-    },
-    IconSize: { Sm: 'Sm' },
-    IconColor: { IconAlternative: 'IconAlternative' },
+    ...actual,
+    Slider: 'Slider',
   };
 });
 
@@ -301,7 +188,9 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.adjust_margin.margin_available_to_add'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$1000.00')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE),
+      ).toHaveTextContent('$1000.00');
     });
 
     it('displays liquidation price label', () => {
@@ -324,8 +213,8 @@ describe('PerpsAdjustMarginView', () => {
       render(<PerpsAdjustMarginView />);
 
       expect(
-        screen.getByText('perps.adjust_margin.add_margin'),
-      ).toBeOnTheScreen();
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      ).toHaveTextContent('perps.adjust_margin.add_margin');
     });
   });
 
@@ -372,15 +261,17 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.adjust_margin.margin_available_to_remove'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$200.00')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE),
+      ).toHaveTextContent('$200.00');
     });
 
     it('displays reduce margin button label', () => {
       render(<PerpsAdjustMarginView />);
 
       expect(
-        screen.getByText('perps.adjust_margin.reduce_margin'),
-      ).toBeOnTheScreen();
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      ).toHaveTextContent('perps.adjust_margin.reduce_margin');
     });
   });
 
@@ -477,7 +368,7 @@ describe('PerpsAdjustMarginView', () => {
   });
 
   describe('loading states', () => {
-    it('does not display button text when isAdjusting is true', () => {
+    it('marks confirm button as busy when isAdjusting is true', () => {
       mockRouteParams = {
         position: mockPosition,
         mode: 'add',
@@ -491,13 +382,13 @@ describe('PerpsAdjustMarginView', () => {
 
       render(<PerpsAdjustMarginView />);
 
-      // When loading, button text is not rendered
       expect(
-        screen.queryByText('perps.adjust_margin.add_margin'),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON)
+          .props.accessibilityState.busy,
+      ).toBe(true);
     });
 
-    it('displays button text when not adjusting', () => {
+    it('does not mark confirm button as busy when not adjusting', () => {
       mockRouteParams = {
         position: mockPosition,
         mode: 'add',
@@ -511,9 +402,11 @@ describe('PerpsAdjustMarginView', () => {
 
       render(<PerpsAdjustMarginView />);
 
-      expect(
-        screen.getByText('perps.adjust_margin.add_margin'),
-      ).toBeOnTheScreen();
+      const confirmButton = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
+      );
+      expect(confirmButton.props.accessibilityState?.busy).not.toBe(true);
+      expect(confirmButton).toHaveTextContent('perps.adjust_margin.add_margin');
     });
   });
 
@@ -548,7 +441,9 @@ describe('PerpsAdjustMarginView', () => {
       expect(
         screen.getByText('perps.adjust_margin.margin_available_to_remove'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('$200.00')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE),
+      ).toHaveTextContent('$200.00');
     });
   });
 
@@ -561,11 +456,12 @@ describe('PerpsAdjustMarginView', () => {
     });
 
     it('uses ArrowRight (not Arrow2Right) for liquidation price and distance transition arrows', () => {
-      const { getByTestId } = render(<PerpsAdjustMarginView />);
+      const { UNSAFE_getByType } = render(<PerpsAdjustMarginView />);
 
       // Trigger showTransition by setting a non-zero margin amount via the slider
       // Slider is percentage-based (0–100); 50% of $1000 max = $500
-      fireEvent(getByTestId('mock-margin-slider'), 'valueChange', 50);
+      const slider = UNSAFE_getByType('Slider' as never);
+      fireEvent(slider, 'valueChange', 50);
 
       const arrowIcons = screen.getAllByLabelText('ArrowRight');
       expect(arrowIcons).toHaveLength(2);
