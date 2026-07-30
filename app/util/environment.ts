@@ -12,6 +12,14 @@ const FLASK_BUILD_TYPE = 'flask';
 export const isProduction = (): boolean =>
   process.env.METAMASK_ENVIRONMENT === 'production';
 
+export const isFlaskBuild = process.env.METAMASK_BUILD_TYPE === 'flask';
+
+// main-beta sets METAMASK_ENVIRONMENT='beta' with METAMASK_BUILD_TYPE='main';
+// the legacy metro code-fencing path also recognised a 'beta' build type.
+export const isBetaBuild =
+  process.env.METAMASK_ENVIRONMENT === 'beta' ||
+  process.env.METAMASK_BUILD_TYPE === 'beta';
+
 export const isE2EMockOAuth = (): boolean =>
   process.env.E2E_MOCK_OAUTH === 'true';
 
