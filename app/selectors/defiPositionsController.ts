@@ -154,3 +154,7 @@ export const selectDefiPositionsByChainIds = createDeepEqualSelector(
     return filtered;
   },
 );
+
+export const makeSelectDefiPositionsByChainIds =
+  (chainIds: Hex[] | undefined) => (state: RootState) =>
+    selectDefiPositionsByChainIds(state, chainIds);
