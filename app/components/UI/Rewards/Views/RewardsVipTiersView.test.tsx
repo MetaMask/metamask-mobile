@@ -241,6 +241,7 @@ const dashboardWithTiers: VipDashboardState = {
       swapsBps: 42.5,
       perpsBps: 10,
       referralCarryoverBps: 0,
+      maintainPointsRequirement: null,
       status: 'completed',
     },
     {
@@ -252,6 +253,7 @@ const dashboardWithTiers: VipDashboardState = {
       swapsBps: 11,
       perpsBps: 7,
       referralCarryoverBps: 4242,
+      maintainPointsRequirement: null,
       status: 'current',
     },
   ],

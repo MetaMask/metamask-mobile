@@ -25,9 +25,9 @@ describe('test-infrastructure-paths', () => {
       expect(result).toEqual(changedFiles);
     });
 
-    it('excludes regression spec files from smoke tag selection scope', () => {
+    it('excludes non-smoke paths from smoke tag selection scope', () => {
       const changedFiles = [
-        'tests/regression/accounts/change-account-name.spec.ts',
+        'tests/page-objects/wallet/AccountListBottomSheet.ts',
       ];
 
       const result = getChangedSpecFiles(changedFiles);
