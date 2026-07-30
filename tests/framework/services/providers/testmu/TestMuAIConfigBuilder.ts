@@ -69,8 +69,11 @@ export class TestMuAIConfigBuilder {
     logger.info(
       `TestMu AI tunnel: ${isLocal}, geoLocation: ${isLocal ? 'disabled for tunnel sessions' : geoLocation}`,
     );
+    const appiumVersion =
+      process.env.TESTMU_APPIUM_VERSION?.trim() || '3.0.2';
+
     logger.info(
-      `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, isRealMobile=true` +
+      `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, appiumVersion=${appiumVersion}, isRealMobile=true` +
         (process.env['TESTMU_DEVICE_EXACT']?.toLowerCase() === 'true'
           ? ' (exact match)'
           : ' (availability regex)'),
@@ -83,6 +86,7 @@ export class TestMuAIConfigBuilder {
       platformVersion,
       isRealMobile: true,
       app: appUrl,
+      appiumVersion,
       deviceOrientation: testMuDevice.orientation ?? 'portrait',
       project:
         process.env.TESTMU_PROJECT_NAME || `${projectName} ${platformName}`,
