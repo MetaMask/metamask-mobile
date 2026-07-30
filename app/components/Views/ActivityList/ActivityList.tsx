@@ -4,6 +4,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type {
   AppNavigationProp,
@@ -18,6 +19,7 @@ import {
 import React, {
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -31,6 +33,7 @@ import Animated, {
   useAnimatedScrollHandler,
   type SharedValue,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -1150,6 +1153,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const listRef = useRef<FlashListRef<GroupedActivityListItem>>(null);
 
+    const { bottom: bottomInset } = useSafeAreaInsets();
+    const tabBarHeight = useContext(BottomTabBarHeightContext);
+    const listContentStyle = useMemo(
+      () => ({ paddingBottom: tabBarHeight ? 0 : bottomInset }),
+      [tabBarHeight, bottomInset],
+    );
+
     const isDomainFilter =
       typeFilter === ActivityTypeFilter.Perps ||
       typeFilter === ActivityTypeFilter.Predictions;
@@ -1307,7 +1317,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   autoscrollToTopThreshold: 100,
                 }}
                 style={baseStyles.flexGrow}
-                contentContainerStyle={tw.style('pb-8')}
+                contentContainerStyle={listContentStyle}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}

@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyEarningsInfoSheet from './MoneyEarningsInfoSheet';
 import { MoneyEarningsInfoSheetTestIds } from './MoneyEarningsInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
@@ -25,6 +26,10 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -69,9 +74,12 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+
 describe('MoneyEarningsInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseParams.mockReturnValue({ variant: 'monthly' });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
     });
@@ -85,18 +93,38 @@ describe('MoneyEarningsInfoSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the sheet title', () => {
+  it('renders the monthly earnings title and body', () => {
     const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
     expect(
-      getByText(strings('money.earnings_tooltip.title')),
+      getByText(strings('money.earnings_tooltip.monthly.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings_tooltip.monthly.body')),
     ).toBeOnTheScreen();
   });
 
-  it('renders the body paragraph', () => {
+  it('renders the lifetime earnings title and body', () => {
+    mockUseParams.mockReturnValue({ variant: 'lifetime' });
+
     const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
-    expect(getByText(strings('money.earnings_tooltip.body'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings_tooltip.lifetime.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings_tooltip.lifetime.body')),
+    ).toBeOnTheScreen();
+  });
+
+  it('defaults to monthly copy when variant is missing', () => {
+    mockUseParams.mockReturnValue({});
+
+    const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
+
+    expect(
+      getByText(strings('money.earnings_tooltip.monthly.title')),
+    ).toBeOnTheScreen();
   });
 
   it('does not render a Got It footer button', () => {
@@ -114,11 +142,22 @@ describe('MoneyEarningsInfoSheet', () => {
   });
 
   describe('analytics', () => {
-    it('initialises useMoneyAnalytics with MONEY_EARNINGS_INFO_SHEET bottom_sheet_name', () => {
+    it('initialises useMoneyAnalytics with the monthly bottom sheet name', () => {
       renderWithProvider(<MoneyEarningsInfoSheet />);
 
       expect(useMoneyAnalytics).toHaveBeenCalledWith({
-        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARNINGS_INFO_SHEET,
+        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MONTHLY_EARNINGS_INFO_SHEET,
+      });
+    });
+
+    it('initialises useMoneyAnalytics with the lifetime bottom sheet name', () => {
+      mockUseParams.mockReturnValue({ variant: 'lifetime' });
+
+      renderWithProvider(<MoneyEarningsInfoSheet />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        bottom_sheet_name:
+          BOTTOM_SHEET_NAMES.MONEY_LIFETIME_EARNINGS_INFO_SHEET,
       });
     });
 

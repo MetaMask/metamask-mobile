@@ -464,7 +464,10 @@ function getBestToken({
 
   if (tokens?.length) {
     if (isWithdraw) {
-      return undefined;
+      // Withdraws never guess a token from balances, but the required
+      // destination token is a known, safe default — and the one the pay-with
+      // row already displays.
+      return targetTokenFallback;
     }
 
     return {

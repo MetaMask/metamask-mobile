@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
@@ -37,6 +38,7 @@ import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import {
   AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
+  PrefillCustomAmountInfoSkeleton,
 } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -59,6 +61,7 @@ export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
   AdvancedCustomAmount = 'advancedCustomAmount',
+  PrefillCustomAmount = 'prefillCustomAmount',
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
 }
@@ -77,6 +80,21 @@ export interface ConfirmationParams {
     address: Hex;
     chainId: Hex;
   };
+}
+
+/**
+ * Route params accepted by the full-screen confirmation routes
+ * (`RedesignedConfirmations` / `NoHeaderConfirmations`). This is a superset of
+ * {@link ConfirmationParams} because different entry points pass extra,
+ * feature-specific fields: `amount` (carried by some entry flows for display),
+ * `showPerpsHeader` (Perps deposit+order flow renders a Perps header, read by
+ * the Perps route's header options rather than the confirm component), and
+ * `params` (legacy nested bag passed by some send flows).
+ */
+export interface FullScreenConfirmationParams extends ConfirmationParams {
+  amount?: string;
+  showPerpsHeader?: boolean;
+  params?: ConfirmationParams;
 }
 
 const ConfirmWrapped = ({
@@ -132,7 +150,7 @@ export const Confirm = ({
 }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { onReject } = useConfirmActions();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
@@ -226,6 +244,14 @@ function Loader() {
         loader={loader}
       >
         <AdvancedCustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PrefillCustomAmount) {
+    return (
+      <InfoLoader testId="confirm-loader-prefill-custom-amount" loader={loader}>
+        <PrefillCustomAmountInfoSkeleton />
       </InfoLoader>
     );
   }

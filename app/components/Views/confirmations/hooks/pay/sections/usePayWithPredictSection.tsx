@@ -4,6 +4,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
@@ -32,7 +33,7 @@ export const PAY_WITH_PREDICT_BALANCE_ROW_TEST_ID =
   'pay-with-predict-section-balance-row';
 
 export function usePayWithPredictSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactionMeta = useTransactionMetadataRequest();
   const { onReject } = useApprovalRequest();
   const formatFiat = useFiatFormatter({ currency: 'usd' });

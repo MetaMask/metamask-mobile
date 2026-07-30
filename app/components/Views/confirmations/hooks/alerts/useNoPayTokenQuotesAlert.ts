@@ -11,9 +11,8 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
-  useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
 } from '../pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
@@ -25,9 +24,8 @@ import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
-  const quotes = useTransactionPayQuotes();
+  const quotes = useTransactionPayQuotesRaw();
   const isQuotesLoading = useIsTransactionPayLoading();
-  const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
   const isPostQuote = useTransactionPayIsPostQuote();
   const isMaxAmount = useTransactionPayIsMaxAmount();
@@ -40,27 +38,8 @@ export function useNoPayTokenQuotesAlert() {
     fiatPayment?.selectedPaymentMethodId,
   );
 
-  // For non-post-quote flows, sourceAmount.targetTokenAddress refers to a
-  // required token address, so matching against `requiredTokens` is valid.
-  // For post-quote flows (perps/predict/moneyAccount withdraw, musdConversion),
-  // sourceAmount.targetTokenAddress is the destination token address, so this
-  // lookup is meaningless and can false-match a skipped gas token across
-  // chains (e.g. destination native ETH `0x0…0` vs. Arbitrum native gas
-  // `0x0…0`). See issue #29297.
-  const isOptionalOnly =
-    !isPostQuote &&
-    (sourceAmounts ?? []).every(
-      (t) =>
-        requiredTokens?.find((rt) => rt.address === t.targetTokenAddress)
-          ?.skipIfBalance,
-    );
-
   const shouldShowNonFiatNoQuotesAlert =
-    payToken &&
-    !isQuotesLoading &&
-    sourceAmounts?.length &&
-    !quotes?.length &&
-    !isOptionalOnly;
+    payToken && !isQuotesLoading && !quotes?.length;
 
   const shouldShowFiatNoQuotesAlert =
     hasSelectedFiatPaymentMethod &&
@@ -83,7 +62,6 @@ export function useNoPayTokenQuotesAlert() {
     isPostQuote &&
     Boolean(payToken) &&
     !isQuotesLoading &&
-    sourceAmounts?.length &&
     !quotes?.length &&
     hasPositiveRequiredAmount;
 
