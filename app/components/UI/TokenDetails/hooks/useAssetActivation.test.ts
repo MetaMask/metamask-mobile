@@ -8,7 +8,7 @@ import {
   requestStellarChangeTrustOptDelete,
 } from '../../../../util/stellar/stellar-snap-client-requests';
 import { selectMultichainBalances } from '../../../../selectors/multichain';
-import * as stellarAssetsSelectors from '../../../../selectors/stellar/stellar-assets';
+import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
 import { useAssetActivation } from './useAssetActivation';
 
 const ACCOUNT_ID = 'stellar-account-id';
@@ -63,7 +63,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 describe('useAssetActivation', () => {
   const getIsAssetRequireActivateMock = jest.mocked(
-    stellarAssetsSelectors.getIsAssetRequireActivate,
+    getIsAssetRequireActivate,
   );
   const requestAddMock = jest.mocked(requestStellarChangeTrustOptAdd);
   const requestDeleteMock = jest.mocked(requestStellarChangeTrustOptDelete);

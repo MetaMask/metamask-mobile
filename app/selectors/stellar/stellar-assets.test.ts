@@ -25,13 +25,13 @@ const MINIMUM_RESERVE_BALANCE_STROOPS = '25000000';
 const SPENDABLE_BALANCE_STROOPS = '75000000';
 const STELLAR_DECIMALS = 7;
 
-type AssetsState = {
+interface AssetsState {
   engine: {
     backgroundState: {
       AssetsController: Pick<AssetsControllerState, 'assetsBalance'>;
     };
   };
-};
+}
 
 function createMockState(
   assetsBalance: AssetsControllerState['assetsBalance'],

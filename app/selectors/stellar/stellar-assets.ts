@@ -83,10 +83,10 @@ export type TrustlineAssetInfo = Infer<typeof TrustlineAssetInfoStruct>;
 /**
  * Spendable balance values in display units (after base-unit conversion).
  */
-export type SpendableInfo = {
+export interface SpendableInfo {
   minimumReserveBalance: string;
   spendableBalance: string;
-};
+}
 
 type AssetsBalancesState =
   | RootState

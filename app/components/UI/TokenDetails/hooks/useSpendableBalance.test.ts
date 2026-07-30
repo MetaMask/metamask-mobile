@@ -2,7 +2,7 @@ import { XlmScope } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-hooks';
 
-import * as stellarAssetsSelectors from '../../../../selectors/stellar/stellar-assets';
+import { getSpendableForAccount } from '../../../../selectors/stellar/stellar-assets';
 import { useSpendableBalance } from './useSpendableBalance';
 
 jest.mock('react-redux', () => ({
@@ -25,7 +25,7 @@ const STELLAR_NATIVE_ASSET_ID =
 
 describe('useSpendableBalance', () => {
   const getSpendableForAccountMock =
-    stellarAssetsSelectors.getSpendableForAccount as jest.Mock;
+    getSpendableForAccount as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
