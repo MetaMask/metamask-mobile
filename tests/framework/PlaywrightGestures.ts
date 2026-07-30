@@ -385,9 +385,7 @@ export default class PlaywrightGestures {
       maxScrolls = 30,
     } = options || {};
     // Only guard scrollableElement here. The target may be off-screen / not yet
-    // in the hierarchy; WDIO scrolls until it becomes visible. The malformed
-    // getElementRect cascade comes from swipe() calling
-    // getElementRect(scrollableElement?.elementId) with undefined.
+    // in the hierarchy; WDIO scrolls until it becomes visible.
     if (scrollableElement) {
       await assertResolvedElementId(
         scrollableElement,
