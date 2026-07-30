@@ -6,6 +6,7 @@ import type {
   FailedNetwork,
   NetworkConnectionBannerStatus,
 } from '@metamask/network-connection-banner-controller';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectNetworkConnectionBannerStatus,
   selectNetworkConnectionBannerNetwork,
@@ -44,7 +45,7 @@ const useNetworkConnectionBanner = (): {
    */
   switchToInfura: () => Promise<void>;
 } => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);

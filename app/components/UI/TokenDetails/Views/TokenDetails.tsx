@@ -10,6 +10,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -36,8 +37,6 @@ import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
-import { selectPerpsEnabledFlag } from '../../Perps';
-import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -61,7 +60,6 @@ import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 
@@ -159,14 +157,19 @@ const TokenDetails: React.FC<{
   }) => void;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
   onCtaClicked?: () => void;
+  onPerpsMarketResolved?: (result: {
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }) => void;
 }> = ({
   token,
   onMarketInsightsDisplayResolved,
   onStickyButtonsResolved,
   onCtaClicked,
+  onPerpsMarketResolved,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
@@ -205,7 +208,6 @@ const TokenDetails: React.FC<{
     }
   }, [token.caipAssetId, token.address, token.chainId]);
 
-  const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
   const shareUrl = useMemo(
     () =>
       caip19AssetId
@@ -239,10 +241,8 @@ const TokenDetails: React.FC<{
     trackEvent,
   ]);
 
-  const isPriceAlertsChainSupported = useIsPriceAlertsChainSupported(
-    caip19AssetId,
-    { enabled: isPriceAlertsFeatureEnabled },
-  );
+  const isPriceAlertsChainSupported =
+    useIsPriceAlertsChainSupported(caip19AssetId);
 
   const {
     securityData,
@@ -267,8 +267,6 @@ const TokenDetails: React.FC<{
   );
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
 
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-
   const {
     currentPrice,
     priceDiff,
@@ -283,7 +281,7 @@ const TokenDetails: React.FC<{
   } = useTokenPrice({ token });
 
   const currentPriceUsd = useMemo(() => {
-    if (!isPriceAlertsFeatureEnabled || !Number.isFinite(currentPrice)) {
+    if (!Number.isFinite(currentPrice)) {
       return null;
     }
     return (
@@ -295,7 +293,6 @@ const TokenDetails: React.FC<{
       }) ?? null
     );
   }, [
-    isPriceAlertsFeatureEnabled,
     currentPrice,
     token.chainId,
     networkConfigurationsByChainId,
@@ -389,7 +386,6 @@ const TokenDetails: React.FC<{
         timePeriod={timePeriod}
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
-        isPerpsEnabled={isPerpsEnabled}
         currentCurrency={currentCurrency}
         onBuy={handleBuy}
         onSend={handleSend}
@@ -405,6 +401,7 @@ const TokenDetails: React.FC<{
         useAmbientColor={useAmbientColor}
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
+        onPerpsMarketResolved={onPerpsMarketResolved}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -445,7 +442,6 @@ const TokenDetails: React.FC<{
           />
         }
         onPriceAlertPress={
-          isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&
           (currentPriceUsd ?? 0) > 0 &&
           caip19AssetId
@@ -535,12 +531,14 @@ const TokenDetails: React.FC<{
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const token = route.params as TokenDetailsRouteParams;
 
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const { hasPerpsMarket, isLoading: isPerpsMarketLoading } =
-    usePerpsMarketForAsset(isPerpsEnabled ? token.symbol : null);
+  const [perpsMarket, setPerpsMarket] = useState<{
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }>({ hasPerpsMarket: false, isLoading: true });
+  const { hasPerpsMarket, isLoading: isPerpsMarketLoading } = perpsMarket;
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
@@ -641,6 +639,16 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   const tokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
+  // Reset perps market state when the token changes so stale results from a
+  // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
+  const prevTokenKeyRef = useRef<string | null>(null);
+  if (prevTokenKeyRef.current !== tokenKey) {
+    prevTokenKeyRef.current = tokenKey;
+    if (perpsMarket.hasPerpsMarket || !perpsMarket.isLoading) {
+      setPerpsMarket({ hasPerpsMarket: false, isLoading: true });
+    }
+  }
+
   const handleMarketInsightsDisplayResolved = useCallback(
     (payload: { isDisplayed: boolean; severity: string | undefined }) => {
       setPendingInsights({
@@ -660,7 +668,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       setPendingInsights(null);
       return;
     }
-    if (isPerpsEnabled && isPerpsMarketLoading) {
+    if (isPerpsMarketLoading) {
       return;
     }
     if (resolvedStickyButtons === undefined) {
@@ -670,14 +678,13 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     trackTokenDetailsOpened({
       isMarketInsightsDisplayed: pendingInsights.isDisplayed,
       severity: pendingInsights.severity,
-      hasPerpsMarket: isPerpsEnabled ? hasPerpsMarket : false,
+      hasPerpsMarket,
       stickyButtonsShown: resolvedStickyButtons ?? undefined,
     });
     setPendingInsights(null);
   }, [
     pendingInsights,
     hasPerpsMarket,
-    isPerpsEnabled,
     isPerpsMarketLoading,
     resolvedStickyButtons,
     tokenKey,
@@ -695,6 +702,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
       onStickyButtonsResolved={setResolvedStickyButtons}
       onCtaClicked={handleCtaClicked}
+      onPerpsMarketResolved={setPerpsMarket}
     />
   );
 };

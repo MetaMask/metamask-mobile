@@ -15,6 +15,7 @@ import {
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
 } from '../../constants/flags';
 import { buildPredictWorldCupAllQuery } from '../../utils/worldCup';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -170,10 +171,17 @@ jest.mock('../../components/PredictMarket', () => {
   };
 });
 
+jest.mock('../../components/PredictFeedBanner', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
+
 import PredictMarket from '../../components/PredictMarket';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictEventValues } from '../../constants/eventNames';
 
 const mockPredictMarket = PredictMarket as jest.Mock;
+const mockPredictFeedBanner = PredictFeedBanner as jest.Mock;
 
 const getPredictMarketEntryPoints = () =>
   mockPredictMarket.mock.calls.map(([props]) => props.entryPoint);
@@ -433,6 +441,22 @@ describe('PredictFeed', () => {
       const { queryByPlaceholderText } = render(<PredictFeed />);
 
       expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
+    });
+
+    it('mounts remote banner slots around the existing feed banners', () => {
+      render(<PredictFeed />);
+
+      const positions = mockPredictFeedBanner.mock.calls.map(
+        ([props]) => props.position,
+      );
+
+      expect(positions).toEqual(
+        expect.arrayContaining([
+          PredictFeedBannerPosition.AfterBalance,
+          PredictFeedBannerPosition.AfterFeaturedCarousel,
+          PredictFeedBannerPosition.AfterWorldCupBanner,
+        ]),
+      );
     });
   });
 
@@ -1316,8 +1340,8 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('hideHeader prop', () => {
-    it('renders header nav by default when hideHeader is not provided', () => {
+  describe('header', () => {
+    it('renders header navigation', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       expect(
@@ -1326,56 +1350,6 @@ describe('PredictFeed', () => {
       expect(
         getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
       ).toBeOnTheScreen();
-    });
-
-    it('hides header nav when hideHeader is true', () => {
-      const { queryByTestId } = render(<PredictFeed hideHeader />);
-
-      expect(
-        queryByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
-      ).toBeNull();
-      expect(queryByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON)).toBeNull();
-    });
-
-    it('still renders container, tabs, and pager when hideHeader is true', () => {
-      const { getByTestId } = render(<PredictFeed hideHeader />);
-
-      expect(
-        getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(getByTestId(PredictFeedSelectorsIDs.TABS)).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictFeedMockSelectorsIDs.PAGER_VIEW),
-      ).toBeOnTheScreen();
-    });
-
-    it('passes hideTitle to PredictBalance when hideHeader is true', () => {
-      render(<PredictFeed hideHeader />);
-
-      expect(PredictBalance).toHaveBeenCalledWith(
-        expect.objectContaining({ hideTitle: true }),
-        undefined,
-      );
-    });
-  });
-
-  describe('onHeaderHiddenChange prop', () => {
-    it('passes onHeaderHiddenChange callback to useFeedScrollManager', () => {
-      const onHeaderHiddenChange = jest.fn();
-
-      render(<PredictFeed onHeaderHiddenChange={onHeaderHiddenChange} />);
-
-      expect(mockUseFeedScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ onHeaderHiddenChange }),
-      );
-    });
-
-    it('passes undefined to useFeedScrollManager when onHeaderHiddenChange is not provided', () => {
-      render(<PredictFeed />);
-
-      expect(mockUseFeedScrollManager).toHaveBeenCalledWith(
-        expect.objectContaining({ onHeaderHiddenChange: undefined }),
-      );
     });
   });
 

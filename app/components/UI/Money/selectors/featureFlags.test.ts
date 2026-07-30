@@ -6,12 +6,14 @@ import {
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
+  selectMoneyEarningSectionEnabledFlag,
   selectMoneyDepositMinBalance,
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyCardActivityCashbackMultisendContracts,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
+  selectMoneyCardFlipAnimationEnabledFlag,
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
   selectMoneyEarnBannerTokens,
@@ -439,6 +441,59 @@ describe('selectMoneyHubEnabledFlag', () => {
   });
 });
 
+describe('selectMoneyEarningSectionEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyEarningSectionEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+    const state = createState({
+      earnMoneyEarningSectionEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(false);
+  });
+
+  it('falls back to the local environment flag when remote flag is unavailable', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_EARNING_SECTION_ENABLED = 'true';
+    const state = createState({ _unique: 'earning-section-local-flag' });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(true);
+  });
+
+  it('returns false when remote and local flags are unavailable', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_EARNING_SECTION_ENABLED;
+    const state = createState({ _unique: 'earning-section-no-local-flag' });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(false);
+  });
+});
+
 describe('selectMoneyDepositMinBalance', () => {
   const originalEnv = process.env;
 
@@ -720,6 +775,91 @@ describe('selectMoneyFirstTimeDepositAnimationEnabledFlag', () => {
     const result = selectMoneyFirstTimeDepositAnimationEnabledFlag(
       state as never,
     );
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyCardFlipAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyCardFlipAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyCardFlipAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to true when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED;
+
+    const state = createState({
+      _unique: 'card-flip-default-on',
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when env var is set to false and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED = 'false';
+
+    const state = createState({
+      _unique: 'card-flip-env-false',
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('remote flag takes precedence over env var', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      earnMoneyCardFlipAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
 
     expect(result).toBe(false);
   });

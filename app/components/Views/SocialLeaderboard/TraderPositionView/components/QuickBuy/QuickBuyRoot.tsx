@@ -17,7 +17,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
+import { useABTest } from '../../../../../../hooks/useABTest';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
+import {
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
+} from './abTestConfig';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
@@ -28,6 +34,7 @@ import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 import { QuickBuyProvider } from './QuickBuyContext';
+import QuickBuyEditQuickAmountsScreen from './QuickBuyEditQuickAmountsScreen';
 import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
@@ -56,6 +63,8 @@ function renderActiveScreen(
   }
 
   switch (activeScreen) {
+    case 'editQuickAmounts':
+      return <QuickBuyEditQuickAmountsScreen />;
     case 'payWith':
       return <QuickBuyTokenSelectScreen />;
     case 'quoteDetails':
@@ -100,6 +109,15 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const [isClosing, setIsClosing] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const surfaceClass = useElevatedSurface();
+
+  // Keyboard vs slider A/B test. Resolved here so `Experiment Viewed` fires
+  // once the sheet is actually shown (this component only mounts when visible).
+  const { variant, variantName } = useABTest(
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
+  );
+  const useKeyboard = variant.useKeyboard;
 
   const directionSV = useSharedValue<ScreenDirection>(1);
   // Suppresses the enter animation on the initial screen when the sheet opens;
@@ -157,6 +175,10 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
+      // Capture the first (amount) screen height once so every sub-screen shares
+      // it and doesn't collapse to its own (often short) content height. In the
+      // keyboard treatment the amount screen stays dynamic below, but its
+      // initial (keypad-open) height is still the baseline for the others.
       if (lockedHeight !== null) {
         return;
       }
@@ -172,7 +194,17 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // bottom; the scroll-only screens (quote details / select quote / pay with /
   // receive) sit flush to the edge instead of leaving dead space below.
   const hasBottomCta =
-    activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
+    activeScreen === 'amount' ||
+    activeScreen === 'editQuickAmounts' ||
+    activeScreen === 'priceImpactConfirm';
+
+  // `editQuickAmounts` stays dynamic for its always-open edit keypad; the amount
+  // screen is dynamic only in the keyboard A/B treatment. All other screens use
+  // the locked height so sub-screens like Pay with don't collapse.
+  const isDynamicHeightScreen =
+    activeScreen === 'editQuickAmounts' ||
+    (useKeyboard && activeScreen === 'amount');
+  const shouldLockHeight = lockedHeight !== null && !isDynamicHeightScreen;
 
   return (
     <BottomSheetDialog
@@ -182,18 +214,20 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     >
       {isContentReady ? (
         <QuickBuyProvider
+          key={variantName}
           target={target}
           onClose={requestClose}
           features={features}
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
+          useKeyboard={useKeyboard}
         >
           <Box
             testID="quick-buy-content-container"
             onLayout={handleContentLayout}
             style={
-              lockedHeight !== null
+              shouldLockHeight && lockedHeight !== null
                 ? {
                     // Scroll-only screens reclaim the bottom safe-area inset
                     // that BottomSheetDialog adds, so they sit flush to the
@@ -211,14 +245,14 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
               key={activeScreen}
               entering={hasNavigated ? entering : undefined}
               exiting={isClosing ? undefined : exiting}
-              style={lockedHeight !== null ? tw.style('flex-1') : undefined}
+              style={shouldLockHeight ? tw.style('flex-1') : undefined}
             >
               {renderActiveScreen(activeScreen, children)}
             </Animated.View>
           </Box>
         </QuickBuyProvider>
       ) : (
-        <QuickBuyBottomSheetSkeleton />
+        <QuickBuyBottomSheetSkeleton useKeyboard={useKeyboard} />
       )}
     </BottomSheetDialog>
   );

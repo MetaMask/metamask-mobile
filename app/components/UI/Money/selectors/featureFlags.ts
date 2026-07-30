@@ -154,6 +154,22 @@ export const selectMoneyHubEnabledFlag = createSelector(
 );
 
 /**
+ * Selects whether the realized earnings section is shown on Money Home.
+ * The remote version-gated flag takes precedence over the local environment
+ * fallback.
+ */
+export const selectMoneyEarningSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_EARNING_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarningSectionEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Kill-switch for the first-time deposit Rive animation.
  * Defaults to ON (true).
  */
@@ -164,6 +180,20 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
       remoteFeatureFlags?.earnMoneyFirstTimeDepositAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local =
       process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Kill-switch for the link-card sheet Rive card flip animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardFlipAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardFlipAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED !== 'false';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );

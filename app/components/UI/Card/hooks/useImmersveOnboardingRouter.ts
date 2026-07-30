@@ -1,5 +1,6 @@
 import { useCallback, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -36,8 +37,7 @@ export const useImmersveOnboardingRouter = () => {
 
   return useCallback(
     (action: ImmersveNextAction, ctx: RouteContext = {}) => {
-      const { email, countryKey, showAccountExistsToast, navigateFromRoot } =
-        ctx;
+      const { countryKey, showAccountExistsToast, navigateFromRoot } = ctx;
 
       const goToOnboarding = (
         screen: string,
@@ -46,23 +46,13 @@ export const useImmersveOnboardingRouter = () => {
         if (navigateFromRoot) {
           navigation.navigate(Routes.CARD.ONBOARDING.ROOT, { screen, params });
         } else {
-          navigation.navigate(screen, params);
+          navigateWithDetails(navigation, [screen, params]);
         }
       };
 
       switch (action.type) {
         case 'contact':
-          if (navigateFromRoot) {
-            navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
-              screen: Routes.CARD.ONBOARDING.SIGN_UP,
-            });
-          } else {
-            navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
-              countryKey,
-              immersve: true,
-              email,
-            });
-          }
+          goToOnboarding(Routes.CARD.ONBOARDING.SIGN_UP, {});
           break;
         case 'kyc':
         case 'pending':

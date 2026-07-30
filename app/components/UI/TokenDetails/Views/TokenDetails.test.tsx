@@ -8,14 +8,12 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
-import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
-import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import Routes from '../../../../constants/navigation/Routes';
 import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
@@ -181,6 +179,10 @@ let mockAutoResolveMarketInsights = true;
 let mockLatestMarketInsightsResolver:
   | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
   | undefined;
+let mockAutoResolvePerps = true;
+let mockLatestPerpsResolver:
+  | ((result: { hasPerpsMarket: boolean; isLoading: boolean }) => void)
+  | undefined;
 
 const triggerMarketInsightsResolved = (params: {
   isDisplayed: boolean;
@@ -191,10 +193,20 @@ const triggerMarketInsightsResolved = (params: {
   });
 };
 
+const triggerPerpsResolved = (result: {
+  hasPerpsMarket: boolean;
+  isLoading: boolean;
+}) => {
+  act(() => {
+    mockLatestPerpsResolver?.(result);
+  });
+};
+
 jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
+    onPerpsMarketResolved,
     onPriceDirectionChange,
     onBuy,
     onSend,
@@ -205,6 +217,10 @@ jest.mock('../components/AssetOverviewContent', () => {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
       severity: string | undefined;
+    }) => void;
+    onPerpsMarketResolved?: (result: {
+      hasPerpsMarket: boolean;
+      isLoading: boolean;
     }) => void;
     onPriceDirectionChange?: (isPositive: boolean) => void;
     onBuy?: () => void;
@@ -227,6 +243,10 @@ jest.mock('../components/AssetOverviewContent', () => {
       mockLastUseAmbientColorProp = useAmbientColor;
       mockLatestPriceDirectionChange = onPriceDirectionChange;
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
+      mockLatestPerpsResolver = onPerpsMarketResolved;
+      if (mockAutoResolvePerps) {
+        onPerpsMarketResolved?.({ hasPerpsMarket: false, isLoading: false });
+      }
       if (!mockAutoResolveMarketInsights) {
         return;
       }
@@ -236,6 +256,7 @@ jest.mock('../components/AssetOverviewContent', () => {
       });
     }, [
       onMarketInsightsDisplayResolved,
+      onPerpsMarketResolved,
       onPriceDirectionChange,
       useAmbientColor,
       insightsTokenKey,
@@ -281,22 +302,6 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   })),
 }));
 
-jest.mock('../../Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(() => false),
-}));
-
-const defaultUsePerpsMarketForAssetImpl = (_symbol: string | null) => ({
-  hasPerpsMarket: false,
-  marketData: null,
-  isLoading: false,
-  error: null,
-});
-const mockUsePerpsMarketForAsset = jest.fn(defaultUsePerpsMarketForAssetImpl);
-jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
-  usePerpsMarketForAsset: (symbol: string | null) =>
-    mockUsePerpsMarketForAsset(symbol),
-}));
-
 jest.mock('../../Earn/selectors/featureFlags', () => ({
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
@@ -308,10 +313,6 @@ jest.mock('../../../../reducers/fiatOrders', () => ({
 jest.mock('../../../../selectors/featureFlagController/deposit', () => ({
   selectDepositActiveFlag: jest.fn(() => false),
   selectDepositMinimumVersionFlag: jest.fn(() => null),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
-  selectPriceAlertsEnabled: jest.fn(() => false),
 }));
 
 const mockUseIsPriceAlertsChainSupported = jest.fn<
@@ -418,7 +419,9 @@ describe('TokenDetails', () => {
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
+    mockAutoResolvePerps = true;
     mockLatestMarketInsightsResolver = undefined;
+    mockLatestPerpsResolver = undefined;
     mockLastUseAmbientColorProp = undefined;
     mockLatestPriceDirectionChange = undefined;
     mockLatestOnBuy = undefined;
@@ -448,9 +451,6 @@ describe('TokenDetails', () => {
       networkModal: null,
     });
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
-    mockUsePerpsMarketForAsset.mockImplementation(
-      defaultUsePerpsMarketForAssetImpl,
-    );
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -467,12 +467,10 @@ describe('TokenDetails', () => {
       if (selector === selectCurrencyRates)
         // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
         return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === selectPerpsEnabledFlag) return false;
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectPriceAlertsEnabled) return false;
       return undefined;
     });
   });
@@ -659,25 +657,24 @@ describe('TokenDetails', () => {
 
   it('does not flush stale pending insights after token navigation', async () => {
     mockAutoResolveMarketInsights = false;
+    mockAutoResolvePerps = false;
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
-      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectNetworkConfigurations)
+        return { '0x1': { nativeCurrency: 'ETH' } };
+      if (selector === selectCurrencyRates)
+        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
       return undefined;
     });
-    mockUsePerpsMarketForAsset.mockImplementation((symbol: string | null) => ({
-      hasPerpsMarket: symbol === 'USDC',
-      marketData: null,
-      isLoading: symbol === 'DAI',
-      error: null,
-    }));
 
     const { rerender } = render(<TokenDetails />);
 
+    // DAI: market insights resolved but perps still loading → event must not fire
     triggerMarketInsightsResolved({
       isDisplayed: false,
       severity: 'warning',
@@ -687,6 +684,7 @@ describe('TokenDetails', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
+    // Navigate to USDC before perps resolves for DAI
     mockRouteParams.mockReturnValue({
       address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       chainId: '0x1',
@@ -700,10 +698,13 @@ describe('TokenDetails', () => {
 
     rerender(<TokenDetails />);
 
+    // Stale DAI insights must be discarded
     await waitFor(() => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
+    // USDC: perps resolves first (hasPerpsMarket: true), then market insights
+    triggerPerpsResolved({ hasPerpsMarket: true, isLoading: false });
     triggerMarketInsightsResolved({
       isDisplayed: true,
       severity: undefined,
@@ -772,28 +773,8 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('price alert button gating', () => {
-    const enablePriceAlerts = () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectNetworkConfigurationByChainId)
-          return { name: 'Ethereum' };
-        if (selector === selectNetworkConfigurations)
-          return { '0x1': { nativeCurrency: 'ETH' } };
-        if (selector === selectCurrencyRates)
-          // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
-          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-        if (selector === selectPerpsEnabledFlag) return false;
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
-        if (selector === getRampNetworks) return [];
-        if (selector === selectDepositActiveFlag) return false;
-        if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
-        return undefined;
-      });
-    };
-
-    it('passes onPriceAlertPress to the header when the flag is enabled and currentPrice > 0', () => {
-      enablePriceAlerts();
+  describe('price alert button', () => {
+    it('passes onPriceAlertPress to the header when currentPrice > 0', () => {
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -808,17 +789,7 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('passes undefined onPriceAlertPress when the flag is disabled', () => {
-      // Flag disabled — default mockUseSelector returns false for selectPriceAlertsEnabled
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ onPriceAlertPress: undefined }),
-      );
-    });
-
-    it('passes undefined onPriceAlertPress when currentPrice is 0, even if flag is enabled', () => {
-      enablePriceAlerts();
+    it('passes undefined onPriceAlertPress when currentPrice is 0', () => {
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 0,
@@ -832,7 +803,6 @@ describe('TokenDetails', () => {
     });
 
     it('passes undefined onPriceAlertPress when CAIP-19 asset id cannot be resolved', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -850,7 +820,6 @@ describe('TokenDetails', () => {
     });
 
     it('passes undefined onPriceAlertPress when the chain is not supported for price alerts', () => {
-      enablePriceAlerts();
       mockUseIsPriceAlertsChainSupported.mockReturnValue(false);
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
@@ -872,12 +841,10 @@ describe('TokenDetails', () => {
         if (selector === selectNetworkConfigurations)
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates) return {};
-        if (selector === selectPerpsEnabledFlag) return false;
         if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -893,7 +860,6 @@ describe('TokenDetails', () => {
     });
 
     it('shows the price alert button for a Solana token when the chain is supported', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 150,
@@ -915,7 +881,6 @@ describe('TokenDetails', () => {
     });
 
     it('shows the price alert button for a Bitcoin token using the native currency CAIP-19 fallback', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 60000,
@@ -940,7 +905,6 @@ describe('TokenDetails', () => {
     });
 
     it('navigates with the Bitcoin native CAIP-19 asset id when the price alert button is pressed', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 60000,
@@ -981,12 +945,10 @@ describe('TokenDetails', () => {
           return { '0x1': { nativeCurrency: 'ETH' } };
         if (selector === selectCurrencyRates)
           return { ETH: { conversionRate: 2800, usdConversionRate: 3000 } };
-        if (selector === selectPerpsEnabledFlag) return false;
         if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return true;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1020,7 +982,6 @@ describe('TokenDetails', () => {
     });
 
     it('navigates to MANAGE_PRICE_ALERTS with the correct params when the price alert button is pressed', () => {
-      enablePriceAlerts();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 2500,

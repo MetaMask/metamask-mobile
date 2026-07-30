@@ -4,6 +4,7 @@ import { toHex } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -18,7 +19,6 @@ import {
   updateMoneyAccountWithdrawTokenAmount,
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
-import { hasTransactionType } from '../../utils/transaction';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
@@ -114,7 +114,7 @@ export function useUpdateTransactionPayAmount() {
         return;
       }
 
-      updateTokenAmount(amountHuman);
+      await updateTokenAmount(amountHuman);
     },
     [
       transactionMeta,

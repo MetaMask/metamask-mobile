@@ -1,8 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 
@@ -27,10 +32,7 @@ import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPe
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,
@@ -61,7 +63,7 @@ export const PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID =
   'pay-with-crypto-section-other-assets-row';
 
 export function usePayWithCryptoSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { preferredPaymentToken } = useParams<PayWithCryptoSectionParams>({});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const transactionMeta = useTransactionMetadataRequest();

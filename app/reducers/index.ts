@@ -43,6 +43,7 @@ import rewardsReducer, { RewardsState } from './rewards';
 import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
 import headlessOrderContextsReducer from '../core/redux/slices/headlessOrderContexts';
+import terminalOrderAnalyticsReducer from '../core/redux/slices/terminalOrderAnalytics';
 
 /**
  * Infer state from a reducer
@@ -133,6 +134,9 @@ export interface RootState {
   rewards: RewardsState;
   attribution: StateFromReducer<typeof attributionReducer>;
   headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
+  terminalOrderAnalytics: StateFromReducer<
+    typeof terminalOrderAnalyticsReducer
+  >;
 }
 
 const baseReducers = {
@@ -190,6 +194,7 @@ const rootReducer = combineReducers<RootState, any>({
   ...baseReducers,
   attribution: attributionReducer,
   headlessOrderContexts: headlessOrderContextsReducer,
+  terminalOrderAnalytics: terminalOrderAnalyticsReducer,
 });
 
 export default rootReducer;

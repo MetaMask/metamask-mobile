@@ -18,7 +18,7 @@ on:
         description: 'Whether iOS E2E tests and builds should run (true when iOS-specific or shared files changed)'
         value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
       changed_files:
-        description: 'Space-separated list of changed file paths. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
+        description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
         value: ${{ jobs.detect-changes.outputs.changed_files }}
       block_merge_for_e2e_readiness:
         description: 'Whether merge should be blocked for E2E readiness. True when "pr-not-ready-for-e2e" label is applied AND changes are not ignorable-only (i.e. E2E is actually relevant). Ignorable-only PRs (docs, assets, configs, test files) bypass the block automatically.'
@@ -157,7 +157,7 @@ jobs:
           RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS }}
           E2E_SMOKE_INFRA_COUNT: ${{ steps.filter.outputs.e2e_smoke_infra_count }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
-          ALL_CHANGES_FILES: ${{ github.event_name == 'pull_request' && steps.filter.outputs.all_changes_files || '' }}
+          CHANGED_SPEC_FILES: ${{ github.event_name == 'pull_request' && steps.filter.outputs.e2e_spec_files_files || '' }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
           E2E_TEST_FILES_COUNT: ${{ steps.filter.outputs.e2e_test_files_count }}
           E2E_TEST_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_test_or_ignorable_count }}

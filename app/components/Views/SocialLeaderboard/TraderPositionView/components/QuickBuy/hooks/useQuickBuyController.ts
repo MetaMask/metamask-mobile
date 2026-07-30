@@ -229,7 +229,7 @@ export interface UseQuickBuyControllerResult {
   handleSliderChange: (percent: number) => void;
   handleSliderDragEnd: (percent: number) => void;
   /** Buy-mode preset fiat pill tap — commits amount and fetches quote immediately. */
-  handleQuickAmountPress: (fiatValue: number, presetTierUsd?: number) => void;
+  handleQuickAmountPress: (fiatValue: number, presetValue?: number) => void;
   /** USD → user display currency rate for fallback pill conversion. */
   usdToCurrentCurrencyRate: number | undefined;
   handleAmountAreaPress: () => void;
@@ -243,6 +243,12 @@ export function useQuickBuyController(
   target: QuickBuyTarget,
   onClose: () => void,
   analyticsContext?: QuickBuyAnalyticsContext,
+  /**
+   * Keyboard A/B treatment. When true the amount starts empty (`$0`) and the
+   * user types via the keypad; when false (control) the slider auto-defaults to
+   * 50% of spendable balance on open.
+   */
+  useKeyboard = false,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
@@ -702,6 +708,17 @@ export function useQuickBuyController(
     ],
   );
 
+  // When a buy pill exceeds balance the CTA routes to Ramp (Add funds) and no
+  // quote is ever used, so suppress the amount fed to the quotes hook. Passing
+  // undefined makes useQuickBuyQuotes short-circuit via its `!sourceTokenAmount`
+  // guard (resetQuotesIdle) — no bridge request and no blocking loading state,
+  // so the Add funds button is actionable immediately. The exported
+  // `sourceTokenAmount` is intentionally left untouched (still drives balance
+  // checks, the redux dispatch, and display).
+  const quotesSourceTokenAmount = isPresetAddFundsMode
+    ? undefined
+    : sourceTokenAmount;
+
   const {
     activeQuote,
     sortedQuotes,
@@ -719,7 +736,7 @@ export function useQuickBuyController(
   } = useQuickBuyQuotes({
     sourceToken,
     destToken,
-    sourceTokenAmount,
+    sourceTokenAmount: quotesSourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
     immediateFetchToken,
@@ -781,7 +798,7 @@ export function useQuickBuyController(
     }
     const total = activeQuote.totalNetworkFee?.valueInCurrency;
     if (total != null && isNumberValue(total)) return parseFloat(total);
-    const effective = activeQuote.gasFee?.effective?.valueInCurrency;
+    const effective = activeQuote.gasFee?.total?.valueInCurrency;
     if (effective != null && isNumberValue(effective))
       return parseFloat(effective);
     return null;
@@ -1091,7 +1108,7 @@ export function useQuickBuyController(
   );
 
   const handleQuickAmountPress = useCallback(
-    (fiatValue: number, presetTierUsd?: number) => {
+    (fiatValue: number, presetValue?: number) => {
       if (!Number.isFinite(fiatValue) || fiatValue <= 0) {
         return;
       }
@@ -1125,7 +1142,7 @@ export function useQuickBuyController(
         tradeMode === 'buy' ? sourceToken?.symbol : undefined,
         undefined,
         tradeMode === 'sell' ? destToken?.symbol : undefined,
-        presetTierUsd,
+        presetValue,
       );
     },
     [
@@ -1139,8 +1156,13 @@ export function useQuickBuyController(
     ],
   );
 
-  // Default the slider to 50% once per sheet open when spendable balance is known.
+  // Default the slider to 50% once per sheet open when spendable balance is
+  // known. Skipped on the keyboard treatment, which opens at $0 so the user
+  // types their own amount.
   useEffect(() => {
+    if (useKeyboard) {
+      return;
+    }
     if (hasAppliedOpenDefaultRef.current) {
       return;
     }
@@ -1149,7 +1171,7 @@ export function useQuickBuyController(
     }
     hasAppliedOpenDefaultRef.current = true;
     handleSliderDragEnd(50);
-  }, [hasSourcePrice, maxSpendFiat, handleSliderDragEnd]);
+  }, [useKeyboard, hasSourcePrice, maxSpendFiat, handleSliderDragEnd]);
 
   const handleAmountAreaPress = useCallback(() => {
     // Priced flows are fiat-first, so typing in fiat keeps the keyboard digits
@@ -1591,7 +1613,7 @@ export function useQuickBuyController(
         sourceToken.decimals,
       ).toFixed(0);
       const sent = calcTokenValue(
-        activeQuote.sentAmount.amount,
+        activeQuote.sentAmount?.amount,
         sourceToken.decimals,
       ).toFixed(0);
       return sent === requested;
@@ -1674,7 +1696,10 @@ export function useQuickBuyController(
   }
 
   let confirmButtonState: 'idle' | 'loading' | 'success' = 'idle';
-  if (isConfirmLoading || isBlockingQuoteLoad) {
+  // In add-funds mode the CTA routes to Ramp and never needs a quote, so a rare
+  // mid-flight fetch (tapping an over-balance pill while a prior valid-amount
+  // fetch is still settling) must not spin the Add funds button.
+  if (!isPresetAddFundsMode && (isConfirmLoading || isBlockingQuoteLoad)) {
     confirmButtonState = 'loading';
   }
 

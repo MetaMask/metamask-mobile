@@ -5,6 +5,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   ButtonSize,
   ButtonVariants,
@@ -34,19 +35,14 @@ const ConfirmAddAsset = () => {
   }>();
 
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isImporting, setIsImporting] = useState(false);
 
   /**
-   * Go to wallet page
+   * Return to the View all tokens screen after a successful import.
    */
-  const goToWalletPage = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+  const goToTokensFullView = useCallback(() => {
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
   }, [navigation]);
 
   const handleImport = useCallback(async () => {
@@ -58,12 +54,12 @@ const ConfirmAddAsset = () => {
 
     try {
       await addTokenList();
-      goToWalletPage();
+      goToTokensFullView();
     } catch (error) {
       Logger.error(error as Error, 'ConfirmAddAsset: failed to import tokens');
       setIsImporting(false);
     }
-  }, [addTokenList, goToWalletPage, isImporting]);
+  }, [addTokenList, goToTokensFullView, isImporting]);
 
   return (
     <SafeAreaView
