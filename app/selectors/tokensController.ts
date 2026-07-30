@@ -74,8 +74,9 @@ export const selectTokensByChainIdAndWalletAddress = createDeepEqualSelector(
         ) ?? {}),
 );
 
-const EMPTY_TOKENS_BY_ADDRESS: Readonly<Record<string, never>> =
-  Object.freeze({});
+const EMPTY_TOKENS_BY_ADDRESS: Readonly<Record<string, never>> = Object.freeze(
+  {},
+);
 
 export const selectTokensByAddress = createDeepEqualSelector(
   selectTokens,
