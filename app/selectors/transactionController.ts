@@ -464,6 +464,10 @@ export const selectTransactionMetadataById = createDeepEqualSelector(
   (transactions, id) => transactions.find((tx) => tx.id === id),
 );
 
+export const makeSelectTransactionMetadataById =
+  (id: string) => (state: RootState) =>
+    selectTransactionMetadataById(state, id);
+
 export const selectTransactionBatchMetadataById = createDeepEqualSelector(
   selectTransactionBatchesStrict,
   (_: RootState, id: string) => id,

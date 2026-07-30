@@ -3,6 +3,7 @@ import { BigNumber } from 'bignumber.js';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 import {
@@ -13,7 +14,6 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
-import { hasTransactionType } from '../../utils/transaction';
 import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';

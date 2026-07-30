@@ -16,14 +16,14 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../../util/tra
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
 
 /** One-row placeholder aligned with `PredictMarketRowItem` loading height. */
-const ChampionshipRowSkeleton: React.FC = () => {
+const ChampionshipRowSkeleton: React.FC<{ testID?: string }> = ({ testID }) => {
   const tw = useTailwind();
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       twClassName="items-start py-2 gap-4 w-full"
-      testID="homepage-predict-discovery-championship-row-skeleton"
+      testID={testID ?? 'homepage-predict-discovery-championship-row-skeleton'}
     >
       <Box twClassName="pt-1">
         <Skeleton width={40} height={40} style={tw.style('rounded-full')} />
@@ -53,19 +53,21 @@ interface ChampionshipRowProps {
   state: ChampionshipRowState;
   onPress?: () => void;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  testID?: string;
 }
 
 const ChampionshipRow = ({
   state,
   onPress,
   transactionActiveAbTests,
+  testID,
 }: ChampionshipRowProps) => {
   if (state.kind === 'loading') {
-    return <ChampionshipRowSkeleton />;
+    return <ChampionshipRowSkeleton testID={testID} />;
   }
   if (state.kind === 'empty') {
     return (
-      <Box twClassName="py-4">
+      <Box twClassName="py-4" testID={testID}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings('predict.homepage_discovery.championship_unavailable')}
         </Text>
@@ -83,7 +85,7 @@ const ChampionshipRow = ({
       detailsTitle={state.detailsTitle}
       onPress={onPress}
       transactionActiveAbTests={transactionActiveAbTests}
-      testID="homepage-predict-discovery-championship-row"
+      testID={testID ?? 'homepage-predict-discovery-championship-row'}
     />
   );
 };
