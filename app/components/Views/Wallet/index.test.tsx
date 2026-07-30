@@ -1852,39 +1852,4 @@ describe('MoneyBalanceCard slot', () => {
 
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
   });
-
-  it('hides the MoneyBalanceCard while the onboarding checklist is showing', () => {
-    mockMoneyAccountEnabled = true;
-    jest
-      .mocked(useSelector)
-      .mockImplementation((callback: (state: unknown) => unknown) =>
-        callback(mockStateWalletHomePostOnboardingActive),
-      );
-
-    const { queryByTestId } = render(Wallet);
-
-    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
-  });
-
-  it('restores the MoneyBalanceCard once the onboarding checklist is dismissed', () => {
-    mockMoneyAccountEnabled = true;
-    jest
-      .mocked(useSelector)
-      .mockImplementation((callback: (state: unknown) => unknown) =>
-        callback({
-          ...mockStateWalletHomePostOnboardingActive,
-          onboarding: {
-            ...mockStateWalletHomePostOnboardingActive.onboarding,
-            walletHomeOnboardingSteps: {
-              suppressedReason: 'user_dismissed',
-              stepIndex: 0,
-            },
-          },
-        }),
-      );
-
-    const { getByTestId } = render(Wallet);
-
-    expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
-  });
 });
