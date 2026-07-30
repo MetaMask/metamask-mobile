@@ -14,11 +14,9 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
-} from '@metamask/transaction-controller';
-import {
   hasTransactionType,
-  parseStandardTokenTransactionData,
-} from '../../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 import { Result } from '@ethersproject/abi';
 import { calcTokenAmount } from '../../../../../../util/transactions';
 import { useStyles } from '../../../../../../component-library/hooks';
