@@ -394,6 +394,8 @@ const Wallet = ({
   );
   const isMoneyAccountVisible =
     isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const showMoneyBalanceCard =
+    isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
 
   /**
    * Provider configuration for the current selected network
@@ -1026,7 +1028,7 @@ const Wallet = ({
       {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
-      {isMoneyAccountVisible && <MoneyBalanceCard />}
+      {showMoneyBalanceCard && <MoneyBalanceCard />}
     </View>
   );
 
