@@ -272,11 +272,7 @@ describe('Trace', () => {
     it('starts a new trace when forceTransaction is set without parentContext', () => {
       updateCachedConsent(true);
 
-      trace({
-        id: ID_MOCK,
-        name: NAME_MOCK,
-        forceTransaction: true,
-      });
+      trace({ id: ID_MOCK, name: NAME_MOCK, forceTransaction: true });
       endTrace({ name: NAME_MOCK, id: ID_MOCK });
 
       expect(startNewTraceMock).toHaveBeenCalledTimes(1);

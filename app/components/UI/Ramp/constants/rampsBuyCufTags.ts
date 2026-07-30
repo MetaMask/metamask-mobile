@@ -48,5 +48,5 @@ export const RAMPS_BUY_CUF_END_REASON = {
   ABANDONED: 'abandoned',
   HEADLESS: 'headless',
 } as const;
-/** Must not exceed `TRACES_CLEANUP_INTERVAL` or Sentry ends the span first. */
+/** Aligned with `TRACES_CLEANUP_INTERVAL` so Sentry does not end the span first. */
 export const RAMPS_BUY_CUF_TIMEOUT_MS = TRACES_CLEANUP_INTERVAL;

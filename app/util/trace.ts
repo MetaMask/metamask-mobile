@@ -460,11 +460,7 @@ export interface TraceRequest {
    */
   parentContext?: TraceContext;
 
-  /**
-   * Emit as a root Sentry transaction instead of nesting under the active span.
-   * When set without `parentContext`, also starts a new trace ID so Trace Details
-   * does not open the long-lived app session tree (e.g. Load Scripts).
-   */
+  /** Root transaction; without parentContext also starts a fresh Sentry trace ID. */
   forceTransaction?: boolean;
 
   /**
@@ -1112,9 +1108,6 @@ function startSpan<T>(
   return withIsolationScope((scope) => {
     setScopeTags(scope, request);
 
-    // forceTransaction alone still inherits the active session trace ID, so
-    // Trace Details loads every span under Load Scripts / ui.load. Root CUFs
-    // need a fresh propagation context for a stand-alone waterfall.
     if (forceTransaction && !parentSpan) {
       return startNewTrace(() => callback(spanOptions));
     }
