@@ -11,10 +11,12 @@ import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
+  PerpsBalanceBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
+import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 
 interface MockRouteParams {
   market?: {
@@ -41,6 +43,11 @@ interface MockCandlePeriodBottomSheetProps {
   testID?: string;
 }
 
+interface MockBalanceBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
+}
+
 let mockRouteParams: MockRouteParams | undefined = {
   market: {
     symbol: 'BTC',
@@ -56,7 +63,6 @@ const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
 
 const mockHandleBackPress = jest.fn();
 const mockHandleMarketListPress = jest.fn();
-const mockHandleWalletPress = jest.fn();
 const mockHandleFavoritePress = jest.fn();
 const mockHandlePerpsModeChange = jest.fn();
 const mockHeaderPerpsMode = PerpsMode.Pro;
@@ -106,9 +112,26 @@ const mockCandlePeriodBottomSheet = jest.fn(
     ) : null,
 );
 
+const mockBalanceBottomSheet = jest.fn(
+  ({ isVisible, onClose }: MockBalanceBottomSheetProps) =>
+    isVisible ? (
+      <Box testID={PerpsBalanceBottomSheetSelectorsIDs.CONTAINER}>
+        <ButtonBase testID="mock-balance-sheet-close" onPress={onClose}>
+          <Box />
+        </ButtonBase>
+      </Box>
+    ) : null,
+);
+
 jest.mock('./components/PerpsProChartPanel', () => ({
   __esModule: true,
   default: (props: MockChartPanelProps) => mockPerpsProChartPanel(props),
+}));
+
+jest.mock('../../components/PerpsBalanceBottomSheet', () => ({
+  __esModule: true,
+  default: (props: MockBalanceBottomSheetProps) =>
+    mockBalanceBottomSheet(props),
 }));
 
 jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
@@ -128,7 +151,6 @@ jest.mock('../../hooks/usePerpsProMarketHeaderActions', () => ({
     isWatchlist: false,
     handleBackPress: mockHandleBackPress,
     handleMarketListPress: mockHandleMarketListPress,
-    handleWalletPress: mockHandleWalletPress,
     handleFavoritePress: mockHandleFavoritePress,
     handlePerpsModeChange: mockHandlePerpsModeChange,
   })),
@@ -177,6 +199,25 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   })),
 }));
 
+// The default mock route already has a formatted `maxLeverage` ("40x"), so
+// this enrichment hook's markets list is never actually consulted in most
+// tests — mocked (rather than requireActual) to avoid needing a real
+// PerpsStreamProvider in the tree, and overridable per-test via
+// `mockUsePerpsMarketsImpl` for the enrichment test below.
+const mockUsePerpsMarketsImpl = jest.fn(
+  (_options?: UsePerpsMarketsOptions) => ({
+    markets: [] as { symbol: string; maxLeverage: string }[],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  }),
+);
+jest.mock('../../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: (options?: UsePerpsMarketsOptions) =>
+    mockUsePerpsMarketsImpl(options),
+}));
+
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
   usePerpsMarketStats: jest.fn(() => ({
     high24h: '$50,000.00',
@@ -206,6 +247,13 @@ describe('PerpsProMarketView', () => {
         maxLeverage: '40x',
       },
     };
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
   });
 
   it.each([
@@ -482,6 +530,31 @@ describe('PerpsProMarketView', () => {
     ).toHaveTextContent(/^TSLA$/);
   });
 
+  it('enriches minimal route market data with maxLeverage from usePerpsMarkets', () => {
+    // Some navigation sources (e.g. Recent Activity, deep links) pass
+    // minimal market data without a formatted `maxLeverage`.
+    mockRouteParams = { market: { symbol: 'BTC', name: 'Bitcoin' } };
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [{ symbol: 'BTC', maxLeverage: '40x' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByText } = renderView();
+
+    expect(getByText('40x')).toBeOnTheScreen();
+  });
+
+  it('does not re-fetch markets when route data already has a formatted maxLeverage', () => {
+    renderView();
+
+    expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith(
+      expect.objectContaining({ skipInitialFetch: true }),
+    );
+  });
+
   it('renders the redesigned header controls from Figma', () => {
     const { getByTestId } = renderView();
 
@@ -520,16 +593,34 @@ describe('PerpsProMarketView', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON),
     );
     fireEvent.press(
-      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
-    );
-    fireEvent.press(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
     );
 
     expect(mockHandleBackPress).toHaveBeenCalledTimes(1);
     expect(mockHandleMarketListPress).toHaveBeenCalledTimes(1);
-    expect(mockHandleWalletPress).toHaveBeenCalledTimes(1);
     expect(mockHandleFavoritePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens and closes the balance bottom sheet from the wallet button', () => {
+    const { getByTestId, queryByTestId } = renderView();
+
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('mock-balance-sheet-close'));
+
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('uses the Figma shell heights', () => {

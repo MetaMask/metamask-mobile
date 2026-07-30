@@ -162,7 +162,7 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-4 px-4 py-2"
+        twClassName="gap-4 px-2 py-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -197,7 +197,7 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
         <Tag severity={TagSeverity.Neutral}>{getOrderTypeLabel(order)}</Tag>
       </Box>
 
-      <Box twClassName="px-4">
+      <Box twClassName="px-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -253,7 +253,7 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
         </Box>
       </Box>
 
-      <Box twClassName="px-4">
+      <Box twClassName="px-2">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
