@@ -38,6 +38,8 @@ If notifications are fully set up, nothing renders.
 
 The panel takes a snapshot of the notification state at the moment it opens and keeps it frozen. This prevents sections appearing or disappearing mid-session as the user toggles things.
 
+Nothing renders until the stored preferences have loaded. An unresolved read looks identical to "every channel is off", so deciding earlier would open the panel for users who already have the feature set up.
+
 | State at open                               | Panel contents                        |
 | ------------------------------------------- | ------------------------------------- |
 | Master off + both channels off              | Master toggle + Push & In-App toggles |

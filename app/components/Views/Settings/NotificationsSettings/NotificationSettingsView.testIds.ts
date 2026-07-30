@@ -18,4 +18,6 @@ export const NotificationSettingsViewSelectorsIDs = {
     'notification-settings-account-notifications-select-all',
   ACCOUNT_NOTIFICATION_TOGGLE: (address: string) =>
     `notification-settings-account-notifications-${address}`,
+  FEATURE_GATE_SHEET: 'notification-settings-feature-gate-sheet',
+  FEATURE_GATE_CLOSE_BUTTON: 'notification-settings-feature-gate-close-button',
 };

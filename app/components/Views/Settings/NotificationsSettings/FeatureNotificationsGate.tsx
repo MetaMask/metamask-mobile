@@ -23,6 +23,7 @@ import {
 } from './hooks/useNotificationStoragePreferences';
 import { NotificationSectionContent } from './NotificationSectionContent';
 import { MainNotificationToggle } from './MainNotificationToggle';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { strings } from '../../../../../locales/i18n';
 
 function useFeatureNotificationsStatus(feature: NotificationPreferenceSection) {
@@ -66,7 +67,7 @@ export interface FeatureNotificationsGateProps {
   onDismiss?: () => void;
 }
 
-export const FeatureNotificationsGate = ({
+const FeatureNotificationsGateSheet = ({
   feature,
   onDismiss,
 }: FeatureNotificationsGateProps) => {
@@ -175,8 +176,18 @@ export const FeatureNotificationsGate = ({
   if (!isVisible) return null;
 
   return (
-    <BottomSheet ref={sheetRef} onClose={handleSheetClosed}>
-      <BottomSheetHeader onClose={handleHeaderClose}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={handleSheetClosed}
+      testID={NotificationSettingsViewSelectorsIDs.FEATURE_GATE_SHEET}
+    >
+      <BottomSheetHeader
+        onClose={handleHeaderClose}
+        closeButtonProps={{
+          testID:
+            NotificationSettingsViewSelectorsIDs.FEATURE_GATE_CLOSE_BUTTON,
+        }}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('notifications.feature_gate.title')}
         </Text>
@@ -196,5 +207,21 @@ export const FeatureNotificationsGate = ({
         )}
       </Box>
     </BottomSheet>
+  );
+};
+
+export const FeatureNotificationsGate = ({
+  feature,
+  onDismiss,
+}: FeatureNotificationsGateProps) => {
+  const { isLoading } = useNotificationStoragePreferences();
+
+  // The sheet freezes its layout on first render, so it must not mount until the
+  // preferences query has an answer — an unsettled read is indistinguishable
+  // from "every channel is off".
+  if (isLoading) return null;
+
+  return (
+    <FeatureNotificationsGateSheet feature={feature} onDismiss={onDismiss} />
   );
 };
