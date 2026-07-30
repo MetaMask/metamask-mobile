@@ -609,7 +609,24 @@ class TestSnaps {
    * keyboard input accessory (prev/next/done bar) over the native confirmation footer.
    */
   async blurActiveWebViewInput(): Promise<void> {
-    await WebView.blurActiveElement(TEST_SNAPS_URL);
+    if (FrameworkDetector.isAppium()) {
+      await WebView.blurActiveElement(TEST_SNAPS_URL);
+      return;
+    }
+
+    // Detox path — keep until remaining SmokeSnaps suites finish migrating to Appium.
+    const nativeWebView = Matchers.getWebViewByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
+    const bodyElement = nativeWebView.element(by.web.tag('body'));
+    await bodyElement.runScript(
+      `(el) => {
+        var active = document.activeElement;
+        if (active && typeof active.blur === 'function') {
+          active.blur();
+        }
+      }`,
+    );
   }
 
   async approveNativeConfirmation() {
