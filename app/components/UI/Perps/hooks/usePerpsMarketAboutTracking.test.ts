@@ -3,7 +3,10 @@ import type { LayoutChangeEvent, NativeScrollEvent } from 'react-native';
 import { usePerpsMarketAboutTracking } from './usePerpsMarketAboutTracking';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
+import {
+  MarketCategory,
+  PERPS_EVENT_PROPERTY,
+} from '@metamask/perps-controller';
 import {
   PERPS_MARKET_ABOUT_EVENT_PROPERTY,
   PERPS_MARKET_ABOUT_INTERACTION_TYPE,
@@ -128,7 +131,8 @@ describe('usePerpsMarketAboutTracking', () => {
       const options = getDeclarativeOptions() as { properties: object };
       expect(options.properties).toEqual(
         expect.objectContaining({
-          [PERPS_MARKET_ABOUT_EVENT_PROPERTY.MARKET_TYPE]: 'crypto',
+          [PERPS_MARKET_ABOUT_EVENT_PROPERTY.MARKET_TYPE]:
+            MarketCategory.CryptoCurrency,
         }),
       );
     });

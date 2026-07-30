@@ -1,9 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import PerpsMarketAboutSection, {
-  PERPS_MARKET_ABOUT_COLLAPSED_LINES,
-} from './PerpsMarketAboutSection';
+import PerpsMarketAboutSection from './PerpsMarketAboutSection';
+import { PERPS_MARKET_ABOUT_COLLAPSED_LINES } from './PerpsMarketAboutSection.constants';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../Perps.testIds';
 
 const LONG_DESCRIPTION =

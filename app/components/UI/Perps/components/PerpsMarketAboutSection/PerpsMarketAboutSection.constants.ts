@@ -21,3 +21,6 @@ export const PERPS_MARKET_ABOUT_EVENT_PROPERTY = {
  * "viewed". Mirrors the threshold used by the Perps home section tracking.
  */
 export const PERPS_MARKET_ABOUT_VISIBILITY_THRESHOLD = 0.2;
+
+/** Collapsed description is limited to this many lines before "Read more". */
+export const PERPS_MARKET_ABOUT_COLLAPSED_LINES = 3;

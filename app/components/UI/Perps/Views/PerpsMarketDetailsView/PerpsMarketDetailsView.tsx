@@ -1478,7 +1478,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     () => [
       {
         key: 'about',
-        // Hidden entirely when the market has no description (graceful fallback).
+        // Outer guard avoids mounting the component when there is no
+        // description; the component also returns null defensively for
+        // direct/standalone use.
         visible: hasAboutDescription,
         onLayout: handleAboutLayout,
         content: (

@@ -2036,6 +2036,7 @@
       "about": "About",
       "about_asset": "About {{assetName}}",
       "read_more": "Read more",
+      "read_more_about": "Read more about {{assetName}}",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",

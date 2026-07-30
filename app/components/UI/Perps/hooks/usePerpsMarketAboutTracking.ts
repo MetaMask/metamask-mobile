@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { LayoutChangeEvent, NativeScrollEvent } from 'react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
+import {
+  MarketCategory,
+  PERPS_EVENT_PROPERTY,
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
   PERPS_MARKET_ABOUT_EVENT_PROPERTY,
@@ -75,7 +78,8 @@ export function usePerpsMarketAboutTracking({
   const baseProperties = useMemo(
     () => ({
       [PERPS_MARKET_ABOUT_EVENT_PROPERTY.MARKET_SYMBOL]: symbol,
-      [PERPS_MARKET_ABOUT_EVENT_PROPERTY.MARKET_TYPE]: marketType ?? 'crypto',
+      [PERPS_MARKET_ABOUT_EVENT_PROPERTY.MARKET_TYPE]:
+        marketType ?? MarketCategory.CryptoCurrency,
       [PERPS_MARKET_ABOUT_EVENT_PROPERTY.DESCRIPTION_LENGTH]:
         trimmedDescription.length,
     }),

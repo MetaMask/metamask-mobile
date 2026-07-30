@@ -11,9 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../Perps.testIds';
-
-/** Collapsed description is limited to this many lines before "Read more". */
-export const PERPS_MARKET_ABOUT_COLLAPSED_LINES = 3;
+import { PERPS_MARKET_ABOUT_COLLAPSED_LINES } from './PerpsMarketAboutSection.constants';
 
 const styles = StyleSheet.create({
   /**
@@ -25,7 +23,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     opacity: 0,
     width: '100%',
-    zIndex: -1,
   },
 });
 
@@ -76,18 +73,15 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
    * clamped text itself is unreliable: with `numberOfLines` set, RN caps the
    * reported lines and joined line text often still matches the source, so
    * "Read more" never appears.
+   *
+   * Only mounted while `!hasMeasured`, so this callback does not need a
+   * hasMeasured guard.
    */
-  const handleMeasureTextLayout = useCallback(
-    (event: TextLayoutEvent) => {
-      if (hasMeasured) {
-        return;
-      }
-      const lineCount = event.nativeEvent.lines.length;
-      setIsTruncated(lineCount > PERPS_MARKET_ABOUT_COLLAPSED_LINES);
-      setHasMeasured(true);
-    },
-    [hasMeasured],
-  );
+  const handleMeasureTextLayout = useCallback((event: TextLayoutEvent) => {
+    const lineCount = event.nativeEvent.lines.length;
+    setIsTruncated(lineCount > PERPS_MARKET_ABOUT_COLLAPSED_LINES);
+    setHasMeasured(true);
+  }, []);
 
   const handleReadMorePress = useCallback(() => {
     setIsExpanded(true);
@@ -102,6 +96,9 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
   const title = titleAssetName
     ? strings('perps.market.about_asset', { assetName: titleAssetName })
     : strings('perps.market.about');
+  const readMoreAccessibilityLabel = titleAssetName
+    ? strings('perps.market.read_more_about', { assetName: titleAssetName })
+    : strings('perps.market.read_more');
 
   const showReadMore = !isExpanded && isTruncated;
 
@@ -152,7 +149,7 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
           <Pressable
             onPress={handleReadMorePress}
             accessibilityRole="button"
-            accessibilityLabel={strings('perps.market.read_more')}
+            accessibilityLabel={readMoreAccessibilityLabel}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             testID={PerpsMarketDetailsViewSelectorsIDs.ABOUT_READ_MORE}
           >
