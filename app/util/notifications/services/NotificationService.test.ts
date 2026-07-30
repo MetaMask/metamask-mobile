@@ -548,8 +548,7 @@ describe('NotificationService - displayNotification', () => {
         }),
       }),
     );
-    const displayCall =
-      mocks.mockNotifeeDisplayNotification.mock.calls[0][0];
+    const displayCall = mocks.mockNotifeeDisplayNotification.mock.calls[0][0];
     expect(displayCall.android).not.toHaveProperty('largeIcon');
   });
 });
