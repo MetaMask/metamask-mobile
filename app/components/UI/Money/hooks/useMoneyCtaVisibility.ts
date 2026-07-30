@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { TokenI } from '../../Tokens/types';
-import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
 import { isEvmTokenAddress } from '../utils/erc20TokenAddressList';
 import {
   selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
@@ -11,7 +10,6 @@ import {
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokenAddresses,
-  selectMoneyEarnBannerTokens,
 } from '../selectors/featureFlags';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
@@ -39,7 +37,6 @@ export const useMoneyCtaVisibility = () => {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const isEarnBannerEnabled = useSelector(selectIsMoneyEarnBannerEnabledFlag);
-  const earnBannerTokens = useSelector(selectMoneyEarnBannerTokens);
   const earnBannerDismissedTokens = useSelector(
     selectMoneyEarnBannerDismissedTokens,
   );
@@ -160,16 +157,19 @@ export const useMoneyCtaVisibility = () => {
         return false;
       }
 
-      const chainIdHex = safeFormatChainIdToHex(asset.chainId);
-      if (earnBannerDismissedTokens[getTokenKey(asset.address, chainIdHex)]) {
+      if (
+        earnBannerDismissedTokens[getTokenKey(asset.address, asset.chainId)]
+      ) {
         return false;
       }
 
-      return isTokenInWildcardList(asset.symbol, earnBannerTokens, chainIdHex);
+      return configuredCtaTokenKeys.has(
+        getTokenKey(asset.address, asset.chainId),
+      );
     },
     [
+      configuredCtaTokenKeys,
       earnBannerDismissedTokens,
-      earnBannerTokens,
       isEarnBannerEnabled,
       isGeoEligible,
       isMoneyAccountReady,

@@ -3396,14 +3396,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyEarnBannerTokens: {
-    name: 'earnMoneyEarnBannerTokens',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {},
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMoneyEarningSectionEnabled: {
     name: 'earnMoneyEarningSectionEnabled',
     type: FeatureFlagType.Remote,

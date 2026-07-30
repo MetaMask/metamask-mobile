@@ -16,8 +16,6 @@ import {
   selectMoneyCardFlipAnimationEnabledFlag,
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
-  selectMoneyEarnBannerTokens,
-  MONEY_EARN_BANNER_TOKENS_FALLBACK,
   selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
   selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
@@ -1395,59 +1393,5 @@ describe('selectMoneyNoFeeDepositTokens', () => {
 
     // Falls back to MONEY_NO_FEE_TOKENS_FALLBACK
     expect(result['0x1']).toContain('USDC');
-  });
-});
-
-describe('selectMoneyEarnBannerTokens', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns the remote wildcard list when configured', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: { '0x1': ['USDC'], '*': ['mUSD'] },
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual({ '0x1': ['USDC'], '*': ['mUSD'] });
-  });
-
-  it('parses a JSON string remote value', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: '{"0x2105":["USDC","aUSDC"]}',
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual({ '0x2105': ['USDC', 'aUSDC'] });
-  });
-
-  it('falls back to the built-in token list when the flag is absent', () => {
-    const state = createState({});
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual(MONEY_EARN_BANNER_TOKENS_FALLBACK);
-  });
-
-  it('falls back to the built-in token list when the flag is structurally invalid', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: { '0x1': 'USDC' },
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual(MONEY_EARN_BANNER_TOKENS_FALLBACK);
-  });
-
-  it('honours a remote kill switch of {"*":[]}', () => {
-    const state = createState({
-      earnMoneyEarnBannerTokens: { '*': [] },
-    });
-
-    const result = selectMoneyEarnBannerTokens(state as never);
-
-    expect(result).toEqual({ '*': [] });
   });
 });

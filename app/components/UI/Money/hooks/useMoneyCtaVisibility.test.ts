@@ -1,7 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import type { TokenI } from '../../Tokens/types';
-import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
@@ -10,7 +9,6 @@ import {
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokenAddresses,
-  selectMoneyEarnBannerTokens,
 } from '../selectors/featureFlags';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
@@ -23,16 +21,10 @@ jest.mock('../../../../selectors/moneyAccountController');
 jest.mock('../../../../reducers/user/selectors');
 jest.mock('../selectors/featureFlags');
 jest.mock('../selectors/eligibility');
-jest.mock('../../Earn/utils/wildcardTokenList');
 jest.mock('./useMoneyDepositTokens');
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockIsTokenInWildcardList = jest.mocked(isTokenInWildcardList);
 const mockUseMoneyDepositTokens = jest.mocked(useMoneyDepositTokens);
-
-const actualIsTokenInWildcardList = jest.requireActual<
-  typeof import('../../Earn/utils/wildcardTokenList')
->('../../Earn/utils/wildcardTokenList').isTokenInWildcardList;
 
 const ctaToken = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -52,7 +44,6 @@ interface SelectorState {
   vaultConfig: object | undefined;
   primaryMoneyAccount: { address?: string } | undefined;
   earnBannerEnabled: boolean;
-  earnBannerTokens: Record<string, string[]>;
   earnBannerDismissedTokens: Record<string, boolean>;
 }
 
@@ -63,7 +54,6 @@ const setupSelectors = ({
   ctaTokenAddresses = { '0x1': [ctaToken.address] },
   geoEligible = true,
   earnBannerEnabled = true,
-  earnBannerTokens = { '0x1': ['USDC'] },
   earnBannerDismissedTokens = {},
   ...options
 }: Partial<SelectorState> = {}) => {
@@ -98,9 +88,6 @@ const setupSelectors = ({
     if (selector === selectIsMoneyEarnBannerEnabledFlag) {
       return earnBannerEnabled;
     }
-    if (selector === selectMoneyEarnBannerTokens) {
-      return earnBannerTokens;
-    }
     if (selector === selectMoneyEarnBannerDismissedTokens) {
       return earnBannerDismissedTokens;
     }
@@ -115,7 +102,6 @@ describe('useMoneyCtaVisibility', () => {
     mockUseMoneyDepositTokens.mockReturnValue({
       tokens: [ctaToken],
     } as ReturnType<typeof useMoneyDepositTokens>);
-    mockIsTokenInWildcardList.mockReturnValue(true);
   });
 
   it('returns true for an allowlisted earnable token with different address casing', () => {
@@ -273,17 +259,12 @@ describe('useMoneyCtaVisibility', () => {
   });
 
   describe('shouldShowMoneyEarnBanner', () => {
-    it('returns true for an allowlisted token when the banner is enabled and the account is ready', () => {
+    it('returns true for a configured token address when the banner is enabled and the account is ready', () => {
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
       const isVisible = result.current.shouldShowMoneyEarnBanner(ctaToken);
 
       expect(isVisible).toBe(true);
-      expect(mockIsTokenInWildcardList).toHaveBeenCalledWith(
-        ctaToken.symbol,
-        { '0x1': ['USDC'] },
-        '0x1',
-      );
     });
 
     it('returns false when the earn banner feature flag is disabled', () => {
@@ -328,17 +309,28 @@ describe('useMoneyCtaVisibility', () => {
       expect(result.current.shouldShowMoneyEarnBanner(asset)).toBe(false);
     });
 
-    it('returns false when token symbol is absent from configured wildcard list', () => {
-      mockIsTokenInWildcardList.mockReturnValue(false);
+    it('returns false when no CTA token addresses are configured', () => {
+      setupSelectors({ ctaTokenAddresses: {} });
 
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
       expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(false);
     });
 
-    it('returns false when the token is only listed on another chain', () => {
-      mockIsTokenInWildcardList.mockImplementation(actualIsTokenInWildcardList);
-      setupSelectors({ earnBannerTokens: { '0x2105': ['USDC'] } });
+    it('returns false when the token address is not configured', () => {
+      setupSelectors({
+        ctaTokenAddresses: {
+          '0x1': ['0xdAC17F958D2ee523a2206206994597C13D831ec7'],
+        },
+      });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(false);
+    });
+
+    it('returns false when the token address is configured on another chain', () => {
+      setupSelectors({ ctaTokenAddresses: { '0x2105': [ctaToken.address] } });
 
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
@@ -357,10 +349,7 @@ describe('useMoneyCtaVisibility', () => {
       expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(false);
     });
 
-    it('matches the token symbol case-insensitively', () => {
-      mockIsTokenInWildcardList.mockImplementation(actualIsTokenInWildcardList);
-      setupSelectors({ earnBannerTokens: { '0x1': ['mUSD'] } });
-
+    it('returns true for a configured address with a different token symbol', () => {
       const { result } = renderHook(() => useMoneyCtaVisibility());
 
       const isVisible = result.current.shouldShowMoneyEarnBanner(
@@ -368,15 +357,6 @@ describe('useMoneyCtaVisibility', () => {
       );
 
       expect(isVisible).toBe(true);
-    });
-
-    it('matches tokens listed under the chain wildcard', () => {
-      mockIsTokenInWildcardList.mockImplementation(actualIsTokenInWildcardList);
-      setupSelectors({ earnBannerTokens: { '*': ['USDC'] } });
-
-      const { result } = renderHook(() => useMoneyCtaVisibility());
-
-      expect(result.current.shouldShowMoneyEarnBanner(ctaToken)).toBe(true);
     });
   });
 });
