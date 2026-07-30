@@ -526,9 +526,20 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('summary slippage', () => {
-    it('shows a pending slippage row when no estimate is available', () => {
-      // Arrange: limit order with no live estimate
+    it('hides the slippage row for limit orders', () => {
+      // Arrange: limit orders force DefaultLimitSlippageBps in buildPerpsOrderParams
+      // so the user-configured cap has no effect; the row is hidden to avoid misrepresentation.
       mockOrderForm.type = 'limit';
+      mockEstimatedSlippageBps = null;
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.summary.slippage).toBeUndefined();
+      expect(result.current.summary.onSlippagePress).toBeUndefined();
+    });
+
+    it('shows a pending slippage row for market orders when no estimate is available', () => {
+      // Arrange: market order — estimate not yet available from the order book
       mockEstimatedSlippageBps = null;
       const { result } = renderProForm();
 
