@@ -169,7 +169,9 @@ jobs:
       test_suite_tag: SmokeSnaps
       split_number: ${{ matrix.split }}
       total_splits: 8
-      test-timeout-minutes: 25
+      # Temporary: full login+install per test makes Android snaps shards slow.
+      # Drop back toward 25 once Appium has reloadReactNative (no full login each test).
+      test-timeout-minutes: 40
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
