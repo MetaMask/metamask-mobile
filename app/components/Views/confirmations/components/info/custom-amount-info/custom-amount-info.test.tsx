@@ -1122,6 +1122,52 @@ describe('CustomAmountInfo', () => {
       expect(view.queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
     });
 
+    it('keeps amount input exclusive from loading review when quotes reload after reopen', async () => {
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+      setControllerTransactionData({ isLoading: true });
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([{}] as never);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      await act(async () => {
+        fireEvent.press(view.getByTestId('custom-amount-input'));
+      });
+
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(view.getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(CustomAmountInfoTestIds.REVIEW_ROWS),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId('bridge-fee-row-skeleton'),
+      ).not.toBeOnTheScreen();
+    });
+
     it('restores amount entry and the existing toast after preparation fails', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({

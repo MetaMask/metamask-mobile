@@ -244,6 +244,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const stage = isKeyboardVisible
       ? CustomAmountStage.AmountInput
       : CustomAmountStage.ShowTotals;
+    const reopenAmountInput = useCallback(() => {
+      setHasCommittedAmount(false);
+      setIsKeyboardVisible(true);
+    }, []);
     const setStage = useCallback(
       (
         updater:
@@ -251,16 +255,19 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           | null
           | ((prev: CustomAmountStage | null) => CustomAmountStage | null),
       ) => {
-        setIsKeyboardVisible((prevKeyboard) => {
-          const prevStage = prevKeyboard
-            ? CustomAmountStage.AmountInput
-            : CustomAmountStage.ShowTotals;
-          const next =
-            typeof updater === 'function' ? updater(prevStage) : updater;
-          return next === CustomAmountStage.AmountInput;
-        });
+        const prevKeyboard = isKeyboardVisibleRef.current;
+        const prevStage = prevKeyboard
+          ? CustomAmountStage.AmountInput
+          : CustomAmountStage.ShowTotals;
+        const next =
+          typeof updater === 'function' ? updater(prevStage) : updater;
+        if (next === CustomAmountStage.AmountInput) {
+          reopenAmountInput();
+          return;
+        }
+        setIsKeyboardVisible(false);
       },
-      [],
+      [reopenAmountInput],
     );
     useMMPayNavigation(stage, setStage);
     const isFiatAvailable = useIsFiatPaymentAvailable();
@@ -293,7 +300,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
     const showLoadingReview =
-      isAmountUpdating || (isQuotesLoading && hasCommittedAmount);
+      !isKeyboardVisible &&
+      (isAmountUpdating || (isQuotesLoading && hasCommittedAmount));
     const isResultReady =
       showLoadingReview ||
       isTransactionResultReady ||
@@ -559,9 +567,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [amountFiat, handleDone, isMaxAutoSubmitPending]);
 
-    const handleAmountPress = useCallback(() => {
-      setIsKeyboardVisible(true);
-    }, []);
+    const handleAmountPress = reopenAmountInput;
 
     return (
       <Box twClassName="flex-1 flex-col justify-between">
