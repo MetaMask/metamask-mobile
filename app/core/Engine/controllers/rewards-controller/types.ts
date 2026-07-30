@@ -1213,10 +1213,9 @@ export type PredictThePitchCampaignDetails = CampaignDetails;
 
 // Backend resolveMoneyAccountSweepstakesLocalizedText guarantees every key is
 // populated, so the UI can rely on these strings without a local fallback.
+// Keep in lockstep with Contentful + backend DEFAULT_MONEY_ACCOUNT_SWEEPSTAKES_LOCALIZED_TEXT.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyAccountSweepstakesLocalizedTextDto = {
-  currentBalanceTitle: string;
-  currentBalanceDescription: string;
   eligibleBalanceTitle: string;
   eligibleBalanceDescription: string;
   entriesTitle: string;

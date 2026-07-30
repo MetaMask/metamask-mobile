@@ -59,18 +59,18 @@ jest.mock('../../../utils/formatUtils', () => ({
 const TEST_IDS = MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS;
 
 const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
-  currentBalanceTitle: 'Current balance',
-  currentBalanceDescription: 'Current balance description',
-  eligibleBalanceTitle: 'Eligible balance',
-  eligibleBalanceDescription: 'Eligible balance description',
+  eligibleBalanceTitle: 'Qualifying deposits',
+  eligibleBalanceDescription:
+    "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count.",
   entriesTitle: 'Entries',
-  entriesDescription: 'Entries description',
+  entriesDescription:
+    'One entry for each UTC day your qualifying deposits stayed at $100 or above. Max 7 per week.',
   entriesCountValue: '{count} / 7',
   drawScheduleTitle: 'Draw schedule',
   addFundsTitle: 'Add funds',
-  addFundsNoBalanceTitle: "You don't have any balance yet",
+  addFundsNoBalanceTitle: 'No balance to deposit into Money Account',
   addFundsNoBalanceDescription:
-    'Deposit crypto or mUSD in your wallet before moving them to Money Account',
+    'Deposit crypto or mUSD in your wallet before transferring them to Money Account.',
   weekTitle: 'Week {number}',
   completeLabel: 'Complete',
   activeLabel: 'Active',
@@ -82,7 +82,7 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   formulaLabel: 'Formula',
   drawFormulaLabel: 'Weighted raffle (Efraimidis–Spirakis)',
   drawFormulaDescription:
-    'Each day you held at least $100 in your Money Account earned you an entry.',
+    "Each day your qualifying deposits stayed at $100 or above earned an entry (counted from the day you joined). After the week ended, we locked everyone's entries and published a commitment (the Merkle root) before the random seed existed. The seed is a future block hash nobody can predict. We then run a weighted raffle: more entries improve your odds but don't guarantee a win. Anyone can re-check the commitment, seed, and formula to verify the ranking.",
   seedBlockLabel: 'Seed block number',
   seedBlockHashLabel: 'Seed block hash',
   drawProofEntriesLabel: 'Entries',
@@ -97,7 +97,9 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
     'Money Account already binds to another Rewards profile.',
   onTrackDescription: "You are on track to earn today's entry.",
   notYetQualifiedDescription:
-    "Maintain a balance of $100 or more in your Money Account to earn tomorrow's entry.",
+    "Deposit the shortfall to reach $100 and hold through midnight UTC for today's entry.",
+  lostTodayDescription:
+    "Today's entry is forfeit after dipping below $100. Get back to $100+ to earn again tomorrow.",
 };
 
 const stats: MoneyAccountSweepstakesStatsMeDto = {
@@ -125,7 +127,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     );
 
     expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getByText('Eligible balance')).toBeOnTheScreen();
+    expect(getByText('Qualifying deposits')).toBeOnTheScreen();
     expect(getByText('Entries')).toBeOnTheScreen();
     // Shown against the threshold, not alone: the qualifying figure is net new
     // deposits and is normally lower than the account balance, so a bare number
@@ -145,10 +147,10 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
       />,
     );
 
-    const labels = getAllByText(/^(Eligible balance|Entries)$/);
+    const labels = getAllByText(/^(Qualifying deposits|Entries)$/);
 
     expect(labels.map(({ props }) => props.children)).toEqual([
-      'Eligible balance',
+      'Qualifying deposits',
       'Entries',
     ]);
   });
@@ -257,7 +259,8 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
       Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
       {
         title: 'Entries',
-        description: 'Entries description',
+        description:
+          'One entry for each UTC day your qualifying deposits stayed at $100 or above. Max 7 per week.',
       },
     );
   });
@@ -276,9 +279,9 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
       {
-        title: 'Eligible balance',
+        title: 'Qualifying deposits',
         description:
-          "Eligible balance description You are on track to earn today's entry.",
+          "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count. You are on track to earn today's entry.",
       },
     );
   });
@@ -297,9 +300,9 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
       {
-        title: 'Eligible balance',
+        title: 'Qualifying deposits',
         description:
-          "Eligible balance description Maintain a balance of $100 or more in your Money Account to earn tomorrow's entry.",
+          "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count. Deposit the shortfall to reach $100 and hold through midnight UTC for today's entry.",
       },
     );
   });
