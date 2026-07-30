@@ -325,12 +325,22 @@ runs:
       if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       uses: actions/cache@v4
       with:
+        # Exclude Gradle/CMake build intermediates that Android native builds
+        # write inside node_modules (~5 GB uncompressed, ~900 MB compressed).
+        # They inflated the Android cache to ~1.5 GB vs ~600 MB for iOS and
+        # added ~1 min of download time to every Android E2E job restore.
+        # Gradle reuse is handled by the dedicated Gradle caches instead.
         path: |
           node_modules
+          !node_modules/**/android/build
+          !node_modules/**/android/.cxx
           .yarn/install-state.gz
-        key: ${{ inputs.cache-prefix }}-yarn-v2-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        # v3: bump to drop existing entries that already contain the build
+        # intermediates — a cache hit is never re-saved, so without the bump
+        # the fat archives would keep being served forever.
+        key: ${{ inputs.cache-prefix }}-yarn-v3-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          ${{ inputs.cache-prefix }}-yarn-v2-${{ inputs.platform }}-${{ runner.os }}-
+          ${{ inputs.cache-prefix }}-yarn-v3-${{ inputs.platform }}-${{ runner.os }}-
       continue-on-error: true
 
     - name: Install JavaScript dependencies with retry
