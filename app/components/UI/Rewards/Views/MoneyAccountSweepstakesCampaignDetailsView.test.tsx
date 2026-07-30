@@ -275,7 +275,7 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   bindingConflictDescription:
     'Money Account already binds to another Rewards profile.',
   onTrackDescription: "You are on track to earn today's entry.",
-  belowThresholdDescription:
+  notYetQualifiedDescription:
     "Maintain a balance of $100 or more in your Money Account to earn tomorrow's entry.",
 };
 
@@ -305,7 +305,8 @@ const statsWithBalance: MoneyAccountSweepstakesStatsMeDto = {
   entryCount: 2,
   currentBalanceUsd: 250,
   yieldEarnedUsd: 1.5,
-  todayMinUsd: 100,
+  qualifyingDepositsUsd: 100,
+  qualifyingThresholdUsd: 100,
   todayStatus: 'on_track',
   daysRemaining: 5,
 };

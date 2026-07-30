@@ -96,7 +96,7 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   bindingConflictDescription:
     'Money Account already binds to another Rewards profile.',
   onTrackDescription: "You are on track to earn today's entry.",
-  belowThresholdDescription:
+  notYetQualifiedDescription:
     "Maintain a balance of $100 or more in your Money Account to earn tomorrow's entry.",
 };
 
@@ -104,7 +104,8 @@ const stats: MoneyAccountSweepstakesStatsMeDto = {
   entryCount: 3,
   currentBalanceUsd: 1250.5,
   yieldEarnedUsd: 12.34,
-  todayMinUsd: 1000,
+  qualifyingDepositsUsd: 1000,
+  qualifyingThresholdUsd: 100,
   todayStatus: 'on_track',
   daysRemaining: 4,
 };
@@ -126,8 +127,11 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
     expect(getByText('Eligible balance')).toBeOnTheScreen();
     expect(getByText('Entries')).toBeOnTheScreen();
+    // Shown against the threshold, not alone: the qualifying figure is net new
+    // deposits and is normally lower than the account balance, so a bare number
+    // is not legible on its own.
     expect(getByTestId(TEST_IDS.ELIGIBLE_BALANCE).props.children).toBe(
-      '$1000.00',
+      '$1000.00 / $100.00',
     );
     expect(getByTestId(TEST_IDS.ENTRIES).props.children).toBe('3 / 7');
   });
@@ -163,10 +167,10 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     ).toBe('Check');
   });
 
-  it('shows Danger icon when todayStatus is below_threshold', () => {
+  it('shows Danger icon only when todayStatus is lost_today', () => {
     const { getByTestId } = render(
       <MoneyAccountSweepstakesStatsSummary
-        stats={{ ...stats, todayStatus: 'below_threshold' }}
+        stats={{ ...stats, todayStatus: 'lost_today' }}
         localizedText={localizedText}
         isLoading={false}
       />,
@@ -175,6 +179,22 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     expect(
       getByTestId(TEST_IDS.ELIGIBLE_STATUS_ICON).props.accessibilityLabel,
     ).toBe('Danger');
+  });
+
+  it('does not warn when todayStatus is not_yet_qualified, which is still winnable', () => {
+    // The previous single below_threshold status forced these two to look
+    // identical; only lost_today is unrecoverable, so only it warns.
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesStatsSummary
+        stats={{ ...stats, todayStatus: 'not_yet_qualified' }}
+        localizedText={localizedText}
+        isLoading={false}
+      />,
+    );
+
+    expect(
+      getByTestId(TEST_IDS.ELIGIBLE_STATUS_ICON).props.accessibilityLabel,
+    ).not.toBe('Danger');
   });
 
   it('renders dashes when stats are unavailable', () => {
@@ -214,8 +234,11 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     );
 
     expect(getByTestId(TEST_IDS.ENTRIES).props.children).toBe('3 / 7');
+    // Shown against the threshold, not alone: the qualifying figure is net new
+    // deposits and is normally lower than the account balance, so a bare number
+    // is not legible on its own.
     expect(getByTestId(TEST_IDS.ELIGIBLE_BALANCE).props.children).toBe(
-      '$1000.00',
+      '$1000.00 / $100.00',
     );
   });
 
@@ -260,10 +283,10 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     );
   });
 
-  it('opens eligible balance info with below_threshold status description', () => {
+  it('opens eligible balance info with the not_yet_qualified description', () => {
     const { getAllByTestId } = render(
       <MoneyAccountSweepstakesStatsSummary
-        stats={{ ...stats, todayStatus: 'below_threshold' }}
+        stats={{ ...stats, todayStatus: 'not_yet_qualified' }}
         localizedText={localizedText}
         isLoading={false}
       />,

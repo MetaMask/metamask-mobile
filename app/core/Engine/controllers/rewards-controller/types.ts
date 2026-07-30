@@ -1249,7 +1249,8 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   bindingConflictTitle: string;
   bindingConflictDescription: string;
   onTrackDescription: string;
-  belowThresholdDescription: string;
+  notYetQualifiedDescription: string;
+  lostTodayDescription: string;
 };
 
 export interface MoneyAccountSweepstakesCampaignDetails
@@ -1474,13 +1475,17 @@ export type PredictThePitchPrizePoolState = {
 
 // ─── Money Account Sweepstakes Campaign ───────────────────────────────────
 
-export type MoneyAccountSweepstakesTodayStatus = 'on_track' | 'below_threshold';
+export type MoneyAccountSweepstakesTodayStatus =
+  | 'on_track'
+  | 'not_yet_qualified'
+  | 'lost_today';
 
 export interface MoneyAccountSweepstakesStatsMeDto {
   entryCount: number;
   currentBalanceUsd: number;
   yieldEarnedUsd: number;
-  todayMinUsd: number | null;
+  qualifyingDepositsUsd: number;
+  qualifyingThresholdUsd: number;
   todayStatus: MoneyAccountSweepstakesTodayStatus;
   daysRemaining: number;
 }
@@ -1557,7 +1562,8 @@ export type MoneyAccountSweepstakesStatsMeState = {
   entryCount: number;
   currentBalanceUsd: number;
   yieldEarnedUsd: number;
-  todayMinUsd: number | null;
+  qualifyingDepositsUsd: number;
+  qualifyingThresholdUsd: number;
   todayStatus: MoneyAccountSweepstakesTodayStatus;
   daysRemaining: number;
   lastFetched: number;
