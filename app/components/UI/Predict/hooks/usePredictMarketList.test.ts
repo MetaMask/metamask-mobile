@@ -187,6 +187,30 @@ describe('usePredictMarketList', () => {
     );
   });
 
+  it('forwards filterByVolume into game visibility filtering', async () => {
+    const { Wrapper } = createWrapper();
+    mockListMarkets.mockResolvedValueOnce(createPage(['a'], null));
+
+    const { result } = renderHook(
+      () =>
+        usePredictMarketList(
+          {},
+          { filterStaleGameMarkets: true, filterByVolume: 1000 },
+        ),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.markets.map((m) => m.id)).toEqual(['a']);
+    });
+    expect(mockGetVisiblePredictMarkets).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ id: 'a' })]),
+      { filterStaleGameMarkets: true, filterByVolume: 1000 },
+    );
+  });
+
   it('does not auto-fetch the next page when the current page has no visible markets', async () => {
     const { Wrapper } = createWrapper();
     mockListMarkets.mockResolvedValueOnce(

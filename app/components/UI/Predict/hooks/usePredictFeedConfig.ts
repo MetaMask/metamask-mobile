@@ -38,6 +38,11 @@ export interface PredictFeedRenderFilter {
   params: PredictMarketListParams;
   /** Sports filters can opt into fetching live markets before regular markets. */
   showLiveFirst?: boolean;
+  /**
+   * Optional client-side minimum outcome volume for game-card filtering.
+   * When set, markets below this volume are hidden. When absent, no volume filter.
+   */
+  filterByVolume?: number;
   isDynamic: boolean;
 }
 
@@ -198,6 +203,7 @@ export const usePredictFeedConfig = (
         label: filter.label,
         params: filter.params,
         showLiveFirst: filter.showLiveFirst,
+        filterByVolume: filter.filterByVolume,
         isDynamic: false,
       })),
     [activeTab],

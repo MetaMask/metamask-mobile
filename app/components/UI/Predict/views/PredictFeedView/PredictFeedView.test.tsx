@@ -271,6 +271,35 @@ describe('PredictFeedView', () => {
     );
   });
 
+  it('forwards filterByVolume from the active sports filter', () => {
+    mockRouteParams = { feedId: 'sports' };
+    mockUsePredictFeedConfig.mockReturnValue(
+      feedConfigResult({
+        activeFilter: {
+          id: 'games',
+          titleKey: 'predict.feed.filters.games',
+          params: {},
+          showLiveFirst: true,
+          filterByVolume: 1000,
+          isDynamic: false,
+        },
+      }),
+    );
+
+    render(<PredictFeedView />);
+
+    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+      {},
+      {
+        enabled: true,
+        showLiveFirst: true,
+        autoAdvanceEmptyPages: true,
+        filterStaleGameMarkets: true,
+        filterByVolume: 1000,
+      },
+    );
+  });
+
   it('disables live-first for non-sports feeds', () => {
     mockRouteParams = { feedId: 'politics' };
     mockUsePredictFeedConfig.mockReturnValue(

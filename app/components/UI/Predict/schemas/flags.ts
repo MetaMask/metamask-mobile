@@ -229,6 +229,7 @@ export const PredictSportsFeedChipSchema = type({
   queryParams: optional(string()),
   order: optional(enums(PREDICT_MARKET_LIST_ORDERS)),
   startTimeMinMinutesAgo: optional(union([number(), literal(null)])),
+  filterByVolume: optional(number()),
 });
 
 export const PredictSportsFeedTabSchema = type({

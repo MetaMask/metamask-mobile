@@ -424,6 +424,7 @@ describe('PredictSportsFeedSchema', () => {
               id: 'games',
               kind: 'games',
               titleKey: 'predict.feed.filters.games',
+              filterByVolume: 1000,
             },
             {
               id: 'mls',
@@ -448,6 +449,18 @@ describe('PredictSportsFeedSchema', () => {
     const result = create(input, PredictSportsFeedSchema);
 
     expect(result).toStrictEqual(input);
+  });
+
+  it('sets filterByVolume on the default All games chip only', () => {
+    const allGamesChip = DEFAULT_PREDICT_SPORTS_FEED_FLAG.tabs
+      .find((tab) => tab.id === 'all')
+      ?.chips.find((chip) => chip.id === 'games');
+    const soccerGamesChip = DEFAULT_PREDICT_SPORTS_FEED_FLAG.tabs
+      .find((tab) => tab.id === 'soccer')
+      ?.chips.find((chip) => chip.id === 'games');
+
+    expect(allGamesChip?.filterByVolume).toBe(1000);
+    expect(soccerGamesChip?.filterByVolume).toBeUndefined();
   });
 
   it('tolerates unknown keys in the remote payload', () => {

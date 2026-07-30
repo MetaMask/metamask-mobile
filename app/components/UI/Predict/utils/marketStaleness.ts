@@ -20,6 +20,11 @@ const PREDICT_GAMES_TAG = 'games';
 export interface PredictMarketStalenessOptions {
   now?: Date | number;
   filterStaleGameMarkets?: boolean;
+  /**
+   * Optional client-side minimum outcome volume for game-card filtering.
+   * When set, markets below this volume are hidden. When absent, no volume filter.
+   */
+  filterByVolume?: number;
 }
 
 const getNowMs = (options?: PredictMarketStalenessOptions): number => {
@@ -62,16 +67,27 @@ const getOutcomeVolume = (outcome: PredictOutcome): number => {
   return typeof volume === 'string' ? parseFloat(volume) : volume;
 };
 
-const hasSufficientOutcomeVolume = (outcome: PredictOutcome): boolean => {
+const hasSufficientOutcomeVolume = (
+  outcome: PredictOutcome,
+  filterByVolume?: number,
+): boolean => {
+  if (typeof filterByVolume !== 'number' || !Number.isFinite(filterByVolume)) {
+    return true;
+  }
+
   const volume = getOutcomeVolume(outcome);
-  return Number.isFinite(volume) && volume >= PREDICT_MIN_GAME_OUTCOME_VOLUME;
+  return Number.isFinite(volume) && volume >= filterByVolume;
 };
 
 const isPredictOutcomeDisplayable = (outcome: PredictOutcome): boolean =>
   outcome.status === PredictMarketStatus.OPEN && !isPredictOutcomeDead(outcome);
 
-const isPredictGameOutcomeDisplayable = (outcome: PredictOutcome): boolean =>
-  isPredictOutcomeDisplayable(outcome) && hasSufficientOutcomeVolume(outcome);
+const isPredictGameOutcomeDisplayable = (
+  outcome: PredictOutcome,
+  filterByVolume?: number,
+): boolean =>
+  isPredictOutcomeDisplayable(outcome) &&
+  hasSufficientOutcomeVolume(outcome, filterByVolume);
 
 const isMoneylineOutcome = (outcome: PredictOutcome): boolean =>
   outcome.sportsMarketType?.toLowerCase() === MONEYLINE_MARKET_TYPE;
@@ -125,14 +141,21 @@ const isDailyMarket = (market: PredictMarket): boolean =>
 const isGameMarket = (market: PredictMarket): boolean =>
   Boolean(market.game) || market.tags.includes(PREDICT_GAMES_TAG);
 
-const hasVisibleGameOutcomes = (market: PredictMarket): boolean => {
-  const outcomes = market.outcomes.filter(isPredictGameOutcomeDisplayable);
+const hasVisibleGameOutcomes = (
+  market: PredictMarket,
+  filterByVolume?: number,
+): boolean => {
+  const outcomes = market.outcomes.filter((outcome) =>
+    isPredictGameOutcomeDisplayable(outcome, filterByVolume),
+  );
   const moneylineOutcomes = market.outcomes.filter(isMoneylineOutcome);
 
   return (
     outcomes.length > 0 &&
     (moneylineOutcomes.length === 0 ||
-      moneylineOutcomes.some(isPredictGameOutcomeDisplayable))
+      moneylineOutcomes.some((outcome) =>
+        isPredictGameOutcomeDisplayable(outcome, filterByVolume),
+      ))
   );
 };
 
@@ -269,7 +292,10 @@ export const getVisiblePredictMarket = (
   }
 
   if (isGameMarket(market)) {
-    if (options?.filterStaleGameMarkets && !hasVisibleGameOutcomes(market)) {
+    if (
+      options?.filterStaleGameMarkets &&
+      !hasVisibleGameOutcomes(market, options.filterByVolume)
+    ) {
       return null;
     }
 

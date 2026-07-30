@@ -36,6 +36,11 @@ export interface PredictFeedFilterConfig {
   label?: string;
   params: PredictMarketListParams;
   showLiveFirst?: boolean;
+  /**
+   * Optional client-side minimum outcome volume for game-card filtering.
+   * When set, markets below this volume are hidden. When absent, no volume filter.
+   */
+  filterByVolume?: number;
 }
 
 export interface PredictFeedFiltersConfig {
@@ -151,6 +156,11 @@ const withSportsChipOverrides = (
   return resolvedParams;
 };
 
+const getFilterByVolume = (filterByVolume?: number): number | undefined =>
+  typeof filterByVolume === 'number' && Number.isFinite(filterByVolume)
+    ? filterByVolume
+    : undefined;
+
 const createGamesFilter = (
   params: PredictMarketListParams,
   gamesTagId: string,
@@ -168,6 +178,7 @@ const createGamesFilter = (
     chip,
   ),
   showLiveFirst: true,
+  filterByVolume: getFilterByVolume(chip.filterByVolume),
 });
 
 const createPropsFilter = (
@@ -190,6 +201,7 @@ const createPropsFilter = (
       chip,
     ),
     showLiveFirst: false,
+    filterByVolume: getFilterByVolume(chip.filterByVolume),
   };
 };
 
@@ -220,6 +232,7 @@ const createTagFilter = (
       { applyStartTimeOverride: false },
     ),
     showLiveFirst: true,
+    filterByVolume: getFilterByVolume(chip.filterByVolume),
   };
 };
 

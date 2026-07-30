@@ -103,6 +103,11 @@ export interface PredictSportsFeedChipConfig {
    * start-time lower bound for this chip. Use `null` to disable the lower bound.
    */
   startTimeMinMinutesAgo?: number | null;
+  /**
+   * Optional client-side minimum outcome volume for game-card filtering.
+   * When set, markets below this volume are hidden. When absent, no volume filter.
+   */
+  filterByVolume?: number;
 }
 
 export interface PredictSportsFeedTabConfig {

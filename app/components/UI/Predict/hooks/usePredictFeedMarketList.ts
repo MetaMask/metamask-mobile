@@ -127,6 +127,7 @@ export const usePredictFeedMarketList = (
     showLiveFirst = false,
     autoAdvanceEmptyPages = false,
     filterStaleGameMarkets = false,
+    filterByVolume,
   } = options;
   const [emptyPageAdvanceState, setEmptyPageAdvanceState] =
     useState<EmptyPageAdvanceState>(INITIAL_EMPTY_PAGE_ADVANCE_STATE);
@@ -143,6 +144,7 @@ export const usePredictFeedMarketList = (
   const liveResult = usePredictMarketList(livePhaseParams, {
     enabled: enabled && showLiveFirst,
     filterStaleGameMarkets,
+    filterByVolume,
   });
   const {
     error: liveError,
@@ -164,6 +166,7 @@ export const usePredictFeedMarketList = (
         showLiveFirst,
         autoAdvanceEmptyPages,
         filterStaleGameMarkets,
+        filterByVolume,
       }),
     [
       livePhaseParams,
@@ -172,6 +175,7 @@ export const usePredictFeedMarketList = (
       showLiveFirst,
       autoAdvanceEmptyPages,
       filterStaleGameMarkets,
+      filterByVolume,
     ],
   );
 
@@ -195,6 +199,7 @@ export const usePredictFeedMarketList = (
   const regularResult = usePredictMarketList(regularPhaseParams, {
     enabled: enabled && (!showLiveFirst || liveExhausted),
     filterStaleGameMarkets,
+    filterByVolume,
   });
   const {
     error: regularError,

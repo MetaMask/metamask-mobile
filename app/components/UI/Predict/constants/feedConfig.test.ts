@@ -159,6 +159,7 @@ describe('feedConfig', () => {
       'props',
     ]);
     expect(allTab.filters.static[0].showLiveFirst).toBe(true);
+    expect(allTab.filters.static[0].filterByVolume).toBe(1000);
     expect(allTab.filters.static[0].params).toEqual({
       tagSlugs: ['sports'],
       tags: ['100639'],
@@ -167,6 +168,7 @@ describe('feedConfig', () => {
       startTimeMinMinutesAgo: 180,
     });
     expect(allTab.filters.static[1].showLiveFirst).toBe(false);
+    expect(allTab.filters.static[1].filterByVolume).toBeUndefined();
     expect(allTab.filters.static[1].params).toEqual({
       tagSlugs: ['sports'],
       excludedTags: ['100639'],
@@ -186,6 +188,7 @@ describe('feedConfig', () => {
       'ligue-1',
       'lib',
     ]);
+    expect(soccerTab.filters.static[0].filterByVolume).toBeUndefined();
     expect(soccerTab.filters.static[0].params).toEqual({
       tagSlugs: ['soccer'],
       tags: ['100639'],
@@ -406,6 +409,33 @@ describe('feedConfig', () => {
       queryParams: 'tag_slug=remote-slug&order=startTime',
       startTimeMinMinutesAgo: 15,
     });
+  });
+
+  it('maps chip filterByVolume onto the resolved sports filter', () => {
+    const config = createPredictSportsFeedConfig({
+      enabled: true,
+      minimumVersion: '1.0.0',
+      tabs: [
+        {
+          id: 'football',
+          tagSlug: 'american-football',
+          chips: [
+            {
+              id: 'games',
+              kind: 'games',
+              filterByVolume: 500,
+            },
+            {
+              id: 'props',
+              kind: 'props',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(config.tabs[0].filters.static[0].filterByVolume).toBe(500);
+    expect(config.tabs[0].filters.static[1].filterByVolume).toBeUndefined();
   });
 
   it('preserves chip order overrides on custom query params', () => {

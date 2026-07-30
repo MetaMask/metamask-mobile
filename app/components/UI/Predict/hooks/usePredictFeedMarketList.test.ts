@@ -115,6 +115,38 @@ describe('usePredictFeedMarketList', () => {
     );
   });
 
+  it('passes filterByVolume to both phases when set', () => {
+    renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['sports'] },
+        {
+          showLiveFirst: true,
+          filterStaleGameMarkets: true,
+          filterByVolume: 1000,
+        },
+      ),
+    );
+
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      1,
+      { tagSlugs: ['sports'], live: true, order: 'volume24hr' },
+      {
+        enabled: true,
+        filterStaleGameMarkets: true,
+        filterByVolume: 1000,
+      },
+    );
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      2,
+      { tagSlugs: ['sports'] },
+      {
+        enabled: true,
+        filterStaleGameMarkets: true,
+        filterByVolume: 1000,
+      },
+    );
+  });
+
   it('enables the regular phase after live markets are exhausted', () => {
     liveResult = createMarketListResult({
       markets: [createMarket('shared'), createMarket('live-1')],

@@ -390,8 +390,31 @@ describe('marketStaleness', () => {
         getVisiblePredictMarket(market, {
           now: NOW,
           filterStaleGameMarkets: true,
+          filterByVolume: 1000,
         }),
       ).toBeNull();
+    });
+
+    it('keeps low-volume game markets when filterByVolume is unset', () => {
+      const market = createMarket({
+        id: 'low-volume-moneyline-game-unfiltered',
+        game: createGame('scheduled'),
+        outcomes: [
+          createOutcome({
+            id: 'moneyline',
+            price: 0.5,
+            volume: 999,
+            sportsMarketType: 'moneyline',
+          }),
+        ],
+      });
+
+      expect(
+        getVisiblePredictMarket(market, {
+          now: NOW,
+          filterStaleGameMarkets: true,
+        }),
+      ).toEqual(market);
     });
 
     it('hides games-tagged markets without parsed game metadata when moneyline volume is low', () => {
@@ -418,6 +441,7 @@ describe('marketStaleness', () => {
         getVisiblePredictMarket(market, {
           now: NOW,
           filterStaleGameMarkets: true,
+          filterByVolume: 1000,
         }),
       ).toBeNull();
     });
@@ -446,6 +470,7 @@ describe('marketStaleness', () => {
         getVisiblePredictMarket(market, {
           now: NOW,
           filterStaleGameMarkets: true,
+          filterByVolume: 1000,
         }),
       ).toEqual(market);
     });

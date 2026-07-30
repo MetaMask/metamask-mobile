@@ -12,6 +12,7 @@ import type {
   PredictWimbledonTabFlag,
   PredictWorldCupConfig,
 } from '../types/flags';
+import { PREDICT_MIN_GAME_OUTCOME_VOLUME } from '../utils/marketStaleness';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
@@ -144,12 +145,14 @@ const createSportsFeedTab = ({
   titleKey = `predict.feed.tabs.${id}`,
   tagSlug = id,
   gamesTitleKey = 'predict.feed.filters.games',
+  gamesFilterByVolume,
 }: {
   id: string;
   chips: PredictSportsFeedChipConfig[];
   titleKey?: string;
   tagSlug?: string;
   gamesTitleKey?: string;
+  gamesFilterByVolume?: number;
 }): PredictSportsFeedTabConfig => ({
   id,
   titleKey,
@@ -160,6 +163,7 @@ const createSportsFeedTab = ({
       id: 'games',
       kind: 'games',
       titleKey: gamesTitleKey,
+      filterByVolume: gamesFilterByVolume,
     },
     {
       id: 'props',
@@ -179,6 +183,7 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
       titleKey: 'predict.feed.tabs.all',
       tagSlug: 'sports',
       chips: [],
+      gamesFilterByVolume: PREDICT_MIN_GAME_OUTCOME_VOLUME,
     }),
     createSportsFeedTab({
       id: 'soccer',
