@@ -12,14 +12,7 @@ import {
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../locales/i18n';
 
-interface QuickBuyBottomSheetSkeletonProps {
-  /** Treatment shows a keypad placeholder instead of the slider placeholder. */
-  useKeyboard?: boolean;
-}
-
-const QuickBuyBottomSheetSkeleton: React.FC<
-  QuickBuyBottomSheetSkeletonProps
-> = ({ useKeyboard = false }) => {
+const QuickBuyBottomSheetSkeleton: React.FC = () => {
   const tw = useTailwind();
 
   return (
@@ -54,17 +47,6 @@ const QuickBuyBottomSheetSkeleton: React.FC<
 
       {/* Footer area — mirrors QuickBuyActionFooter */}
       <Box twClassName="px-4 pb-4">
-        {useKeyboard ? null : (
-          <Box twClassName="pt-2 pb-3">
-            <Skeleton
-              width="100%"
-              height={24}
-              style={tw.style('rounded-full')}
-              testID="quick-buy-skeleton-slider"
-            />
-          </Box>
-        )}
-
         <Box twClassName="pb-3">
           <Skeleton
             width="100%"
@@ -99,11 +81,9 @@ const QuickBuyBottomSheetSkeleton: React.FC<
         />
       </Box>
 
-      {useKeyboard ? (
-        <Box twClassName="px-4 py-4" testID="quick-buy-skeleton-keypad">
-          <Skeleton width="100%" height={220} style={tw.style('rounded-xl')} />
-        </Box>
-      ) : null}
+      <Box twClassName="px-4 py-4" testID="quick-buy-skeleton-keypad">
+        <Skeleton width="100%" height={220} style={tw.style('rounded-xl')} />
+      </Box>
     </Box>
   );
 };
