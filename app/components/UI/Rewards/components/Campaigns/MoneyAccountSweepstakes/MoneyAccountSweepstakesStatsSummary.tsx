@@ -43,10 +43,12 @@ function getEligibleStatusDescription(
   switch (todayStatus) {
     case 'on_track':
       return `${base} ${localizedText.onTrackDescription}`;
-    case 'below_threshold':
-      // Covers both "never reached threshold" and "dipped below" — the API
-      // collapses those cases because both are unrecoverable for today.
-      return `${base} ${localizedText.belowThresholdDescription}`;
+    case 'not_yet_qualified':
+      // Still winnable today: depositing the shortfall earns today's entry.
+      return `${base} ${localizedText.notYetQualifiedDescription}`;
+    case 'lost_today':
+      // Reached the threshold and fell below it — today is forfeit.
+      return `${base} ${localizedText.lostTodayDescription}`;
     default:
       return base;
   }
@@ -69,7 +71,18 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
 
   const showSkeleton = isLoading && !stats;
 
-  const eligibleBalanceDisplay = stats ? formatUsd(stats.todayMinUsd) : '—';
+  // The qualifying figure is net new deposits since joining, not the account
+  // balance — it is normally LOWER than the balance, so it is shown against the
+  // threshold rather than alone, and the shortfall is spelled out.
+  // Deposits net of outflows, never re-valued at the current rate — accrued
+  // yield does not count toward the threshold. Outflows ARE valued when they
+  // happen, so they carry the yield earned on the position; withdrawing a
+  // fully-accrued position can leave the total a few cents below zero. Clamped
+  // so the tile never shows a negative figure.
+  const qualifyingUsd = stats ? Math.max(0, stats.qualifyingDepositsUsd) : 0;
+  const qualifyingDisplay = stats
+    ? `${formatUsd(qualifyingUsd)} / ${formatUsd(stats.qualifyingThresholdUsd)}`
+    : '—';
   const entriesDisplay = stats
     ? localizedText.entriesCountValue.replace(
         ENTRIES_COUNT_PLACEHOLDER,
@@ -78,7 +91,11 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
     : '—';
 
   const todayStatus = stats?.todayStatus;
-  const isWarningStatus = todayStatus === 'below_threshold';
+  // `not_yet_qualified` is recoverable today, `lost_today` is not — only the
+  // latter is a warning. Treating them alike is what the previous single
+  // `below_threshold` status forced.
+  const isWarningStatus = todayStatus === 'lost_today';
+  const isRecoverable = todayStatus === 'not_yet_qualified';
   const eligibleValueColor = isWarningStatus
     ? TextColor.WarningDefault
     : TextColor.TextDefault;
@@ -99,6 +116,18 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
         />
       );
     }
+    if (isRecoverable) {
+      return (
+        <Icon
+          name={IconName.Add}
+          size={IconSize.Md}
+          color={IconColor.IconAlternative}
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.ELIGIBLE_STATUS_ICON
+          }
+        />
+      );
+    }
     if (isWarningStatus) {
       return (
         <Icon
@@ -112,7 +141,7 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
       );
     }
     return null;
-  }, [todayStatus, isWarningStatus]);
+  }, [todayStatus, isWarningStatus, isRecoverable]);
 
   const infoSuffix = (title: string, description: string) => (
     <ButtonIcon
@@ -131,7 +160,7 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
       <Box flexDirection={BoxFlexDirection.Row}>
         <StatCell
           label={localizedText.eligibleBalanceTitle}
-          value={eligibleBalanceDisplay}
+          value={qualifyingDisplay}
           isLoading={showSkeleton}
           valueColor={eligibleValueColor}
           testID={
