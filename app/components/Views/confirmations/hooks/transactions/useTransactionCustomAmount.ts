@@ -292,12 +292,16 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
-      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
-      // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
-      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
-      // amount through as token.amountRaw.
+      // Do NOT set isMaxAmount=true for perps/money-account withdraw or money
+      // account deposit flows. For those, TPC would substitute an on-chain
+      // balanceRaw that does not match the typed balance (HyperLiquid wallet
+      // USDC vs HL balance; money-account on-chain mUSD vs mUSD + vmUSD).
+      //
+      // Deposits funded from the money account (e.g. Send to Perps) DO set
+      // isMaxAmount=true so quotes use EXACT_INPUT. That is safe once TPC uses
+      // the typed required amount for MoneyAccount max instead of the pay
+      // token's bare mUSD balance (MetaMask/core#9707). Mobile still types the
+      // full withdrawableFiatRaw amount into the required token.
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&

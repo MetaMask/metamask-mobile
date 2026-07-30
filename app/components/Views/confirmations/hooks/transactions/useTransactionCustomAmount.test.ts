@@ -1434,6 +1434,37 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('750.50');
     });
 
+    it('sets isMaxAmount for Max when payment override is MoneyAccount (e.g. Send to Perps)', async () => {
+      // With TPC MoneyAccount max support (MetaMask/core#9707), isMaxAmount=true
+      // uses the typed required amount (full withdrawable) rather than the pay
+      // token's bare on-chain mUSD balance, enabling EXACT_INPUT Max quotes.
+      useMoneyAccountBalanceMock.mockReturnValue({
+        withdrawableFiatRaw: '4.70',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.perpsDeposit,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' },
+        } as unknown as Partial<TransactionMeta>,
+        stateOverrides: moneyAccountStateOverrides,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      // Full withdrawable balance is shown, not the reduced bare-mUSD figure.
+      expect(result.current.amountFiat).toBe('4.70');
+      expect(setTransactionConfigMock).toHaveBeenCalledTimes(1);
+
+      const config = { isMaxAmount: false };
+      setTransactionConfigMock.mock.calls[0][1](config);
+      expect(config.isMaxAmount).toBe(true);
+    });
+
     it('returns 0 when payment override is MoneyAccount but withdrawableFiatRaw is undefined', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableFiatRaw: undefined,
