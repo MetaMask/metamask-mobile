@@ -270,9 +270,15 @@ export default {
   // wrapping-key `jwtChain`). Values per build target; wire real endpoints when
   // available.
   FRACTAL_ENCRYPTION_URL: {
-    DEV: process.env.FRACTAL_ENCRYPTION_URL_DEV ?? 'https://encryption.staging.sandbox.fractal.id/',
-    UAT: process.env.FRACTAL_ENCRYPTION_URL_UAT ?? 'https://encryption.staging.sandbox.fractal.id/',
-    PRD: process.env.FRACTAL_ENCRYPTION_URL_PRD ?? 'https://encryption.idos.network/',
+    DEV:
+      process.env.FRACTAL_ENCRYPTION_URL_DEV ??
+      'https://enclave.staging.sandbox.fractal.id/',
+    UAT:
+      process.env.FRACTAL_ENCRYPTION_URL_UAT ??
+      'https://enclave.staging.sandbox.fractal.id/',
+    PRD:
+      process.env.FRACTAL_ENCRYPTION_URL_PRD ??
+      'https://encryption.idos.network/',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
