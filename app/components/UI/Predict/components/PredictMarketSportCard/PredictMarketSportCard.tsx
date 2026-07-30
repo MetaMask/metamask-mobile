@@ -20,8 +20,10 @@ import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { isDrawCapableLeague } from '../../constants/sports';
-import { resolvePredictSportCardButtons } from '../../utils/sports';
+import {
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
@@ -83,12 +85,11 @@ const compactButtonItems = (
 const buildButtonItems = (
   market: PredictMarketType,
   game: PredictMarketGame,
-  showDraw: boolean,
 ): SportOutcomeButtonItem[] => {
   const { home, draw, away } = resolvePredictSportCardButtons({
     outcomes: market.outcomes,
     game,
-    showDraw,
+    showDraw: isDrawCapableMarket({ game, outcomes: market.outcomes }),
   });
   const isHomeFirst = getLeagueTeamOrder(game.league) === 'home-away';
 
@@ -163,10 +164,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   });
 
   const buttonItems = useMemo(
-    () =>
-      game
-        ? buildButtonItems(market, game, isDrawCapableLeague(game.league))
-        : [],
+    () => (game ? buildButtonItems(market, game) : []),
     [game, market],
   );
 

@@ -1,4 +1,8 @@
 import { ContractConfig, RoundConfig } from './types';
+import {
+  isEsportsRoundHandicapMarketType,
+  isEsportsRoundOverUnderMarketType,
+} from '../../constants/sports';
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
@@ -102,6 +106,43 @@ export const NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS =
 export const POLYGON_PUSD_CAIP_ASSET_ID =
   `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS_V2.collateral}` as const;
 
+// Seeds the default enabled-market list; runtime matching is unbounded via
+// isEsportsRoundHandicapMarketType / isEsportsRoundOverUnderMarketType.
+const SEEDED_ESPORTS_ROUND_GAMES = 5;
+
+const ESPORTS_ROUND_HANDICAP_MARKET_TYPES = Array.from(
+  { length: SEEDED_ESPORTS_ROUND_GAMES },
+  (_, index) => `round_handicap_game_${index + 1}`,
+);
+
+const ESPORTS_ROUND_OVER_UNDER_MARKET_TYPES = Array.from(
+  { length: SEEDED_ESPORTS_ROUND_GAMES },
+  (_, index) => `round_over_under_game_${index + 1}`,
+);
+
+export const ESPORTS_MARKET_TYPES: readonly string[] = [
+  'child_moneyline',
+  'map_handicap',
+  ...ESPORTS_ROUND_HANDICAP_MARKET_TYPES,
+  ...ESPORTS_ROUND_OVER_UNDER_MARKET_TYPES,
+  'first_blood_game',
+  'kill_over_under_game',
+  'map_participant_win_total',
+  'cs2_odd_even_total_kills',
+  'cs2_odd_even_total_rounds',
+  'lol_both_teams_baron',
+  'lol_both_teams_dragon',
+  'lol_both_teams_inhibitors',
+  'lol_odd_even_total_kills',
+  'lol_penta_kill',
+  'lol_quadra_kill',
+  'dota2_both_teams_barracks',
+  'dota2_both_teams_roshan',
+  'dota2_game_ends_daytime',
+  'dota2_rampage',
+  'dota2_ultra_kill',
+];
+
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   first_half_totals: 'halves',
   second_half_totals: 'halves',
@@ -124,6 +165,9 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   total_corners: 'corners',
   tennis_first_set_winner: 'first_set',
   tennis_first_set_totals: 'first_set',
+  child_moneyline: 'game_lines',
+  map_handicap: 'game_lines',
+  map_participant_win_total: 'game_lines',
 };
 
 export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
@@ -146,7 +190,21 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   'soccer_team_totals',
   'basketball_team_to_score_first',
   'soccer_exact_score',
+  ...ESPORTS_MARKET_TYPES,
 ]);
+
+export const isSupportedSportsMarketType = (type?: string): boolean => {
+  const normalizedType = type?.toLowerCase();
+  if (!normalizedType) {
+    return false;
+  }
+
+  return (
+    SUPPORTED_SPORTS_MARKET_TYPES.has(normalizedType) ||
+    isEsportsRoundHandicapMarketType(normalizedType) ||
+    isEsportsRoundOverUnderMarketType(normalizedType)
+  );
+};
 
 export const GROUP_ORDER: string[] = [
   'game_lines',
@@ -173,11 +231,18 @@ export const DEFAULT_GROUP_KEY = 'game_lines';
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   soccer_team_to_advance: -1,
   moneyline: 0,
+  // Sits between moneyline (0) and spreads (1) so map/game winners sort after
+  // the match winner but before handicap lines. Round handicap / over-under
+  // priorities are resolved dynamically in getSportsMarketTypePriority.
+  child_moneyline: 0.5,
   soccer_halftime_result: 0,
   soccer_second_half_result: 0,
   tennis_first_set_winner: 0,
   spreads: 1,
+  map_handicap: 1,
   totals: 2,
+  kill_over_under_game: 2,
+  map_participant_win_total: 2,
   first_half_totals: 2,
   second_half_totals: 2,
   both_teams_to_score: 3,
