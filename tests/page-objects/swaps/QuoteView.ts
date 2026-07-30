@@ -465,9 +465,18 @@ class QuoteView {
         });
       },
       appium: async () => {
-        await PlaywrightGestures.scrollIntoViewFullyVisible(
-          await asPlaywrightElement(this.moreNetworksButton),
-        );
+        // Best-effort only: some swap flows never expose "more networks", and
+        // forcing scrollIntoView there fails Appium smoke after 30 scrolls.
+        try {
+          const moreNetworks = await asPlaywrightElement(
+            this.moreNetworksButton,
+          );
+          if (await moreNetworks.isExisting()) {
+            await PlaywrightGestures.scrollIntoViewFullyVisible(moreNetworks);
+          }
+        } catch {
+          // Continue — the target network may already be visible without this control.
+        }
         const networkElement =
           await PlaywrightMatchers.getElementByCatchAll(network);
         await PlaywrightAssertions.expectElementToBeVisible(networkElement, {
