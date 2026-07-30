@@ -80,9 +80,7 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
   // fully-accrued position can leave the total a few cents below zero. Clamped
   // so the tile never shows a negative figure.
   const qualifyingUsd = stats ? Math.max(0, stats.qualifyingDepositsUsd) : 0;
-  const qualifyingDisplay = stats
-    ? `${formatUsd(qualifyingUsd)} / ${formatUsd(stats.qualifyingThresholdUsd)}`
-    : '—';
+  const qualifyingDisplay = stats ? `${formatUsd(qualifyingUsd)}` : '—';
   const entriesDisplay = stats
     ? localizedText.entriesCountValue.replace(
         ENTRIES_COUNT_PLACEHOLDER,

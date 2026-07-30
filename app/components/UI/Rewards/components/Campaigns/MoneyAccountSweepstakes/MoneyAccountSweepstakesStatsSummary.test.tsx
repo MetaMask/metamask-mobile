@@ -133,7 +133,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     // deposits and is normally lower than the account balance, so a bare number
     // is not legible on its own.
     expect(getByTestId(TEST_IDS.ELIGIBLE_BALANCE).props.children).toBe(
-      '$1000.00 / $100.00',
+      '$1000.00',
     );
     expect(getByTestId(TEST_IDS.ENTRIES).props.children).toBe('3 / 7');
   });
@@ -240,7 +240,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     // deposits and is normally lower than the account balance, so a bare number
     // is not legible on its own.
     expect(getByTestId(TEST_IDS.ELIGIBLE_BALANCE).props.children).toBe(
-      '$1000.00 / $100.00',
+      '$1000.00',
     );
   });
 
