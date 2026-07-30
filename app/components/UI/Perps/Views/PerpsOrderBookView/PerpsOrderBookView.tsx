@@ -13,6 +13,7 @@ import {
   IconColor,
   IconName,
   ListItemSelect,
+  ListItemVariant,
   SegmentedControl,
   SelectButton,
   SelectButtonVariant,
@@ -806,6 +807,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <ListItemSelect
               key={value}
               title={formatGroupingLabel(value)}
+              variant={ListItemVariant.OneLine}
               isSelected={currentGrouping === value}
               showSelectedIcon
               onPress={() => handleGroupingSelect(value)}

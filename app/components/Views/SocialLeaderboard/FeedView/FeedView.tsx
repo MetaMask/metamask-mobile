@@ -11,11 +11,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import React, {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -109,7 +117,9 @@ const FeedView: React.FC<FeedViewProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const { track } = useSocialLeaderboardAnalytics();
+  const source = route.params?.source ?? 'nav_tab';
 
   // Default to "Following": the backend "leaderboard" scope isn't implemented
   // yet, so the feed opens on the Following scope (the only one the API serves).
@@ -119,7 +129,22 @@ const FeedView: React.FC<FeedViewProps> = ({
   const typeFilterRef = useRef(typeFilter);
   audienceRef.current = audience;
   typeFilterRef.current = typeFilter;
+  // Tracks whether we've already emitted the screen-viewed event this mount.
+  // Fires when the Feed tab first becomes active (pager mounts both pages).
+  const hasFiredScreenViewedRef = useRef(false);
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isActive || hasFiredScreenViewedRef.current) {
+      return;
+    }
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED, {
+      [SocialLeaderboardEventProperties.SOURCE]: source,
+      [SocialLeaderboardEventProperties.FEED_AUDIENCE]: audience,
+      [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: typeFilter,
+    });
+  }, [isActive, source, audience, typeFilter, track]);
 
   const [refreshing, setRefreshing] = useState(false);
 
