@@ -30,7 +30,7 @@ const spotItem: FeedItem = {
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
   action: 'bought',
-  timestamp: Date.now() - 1000,
+  timestamp: 1722470400000 - 1000,
   subHeader: { sizeLabel: '$120K' },
   valueLabel: '$123,000.5',
   pnlLabel: '+12%',
@@ -58,7 +58,7 @@ const perpItem: FeedItem = {
   username: 'aparjey',
   traderAddress: '0x2222222222222222222222222222222222222222',
   action: 'closed',
-  timestamp: Date.now() - 2000,
+  timestamp: 1722470400000 - 2000,
   subHeader: { sizeLabel: '$88K' },
   valueLabel: '$88,000.5',
   pnlLabel: '+12%',
@@ -456,15 +456,15 @@ describe('FeedView', () => {
       expect(refreshControl.props.refreshing).toBe(false);
       expect(typeof refreshControl.props.onRefresh).toBe('function');
 
+      // Await the async onRefresh (J1) and flush the 1s min-duration timer so
+      // the promise can settle under fake timers.
       await act(async () => {
-        refreshControl.props.onRefresh();
+        const refreshPromise = refreshControl.props.onRefresh();
+        jest.runAllTimers();
+        await refreshPromise;
       });
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
     } finally {
       jest.useRealTimers();
     }
