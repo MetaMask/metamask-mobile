@@ -167,7 +167,7 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   lostTodayDescription:
     "You lost today's entry because your balance dipped below $100 today.",
   belowThresholdDescription:
-    "Maintain a balance of $100 or more in your Money Account to earn todays' entry.",
+    "Maintain a balance of $100 or more in your Money Account to earn tomorrow's entry.",
 };
 
 function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
