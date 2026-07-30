@@ -2,6 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import Logger from '../util/Logger';
 import { MetaMetricsEvents } from './Analytics';
 import {
+  AppOpenedPushProvider,
   AppStateEventListener,
   trackAppInstallOnce,
 } from './AppStateEventListener';
@@ -685,6 +686,115 @@ describe('AppStateEventListener', () => {
         appStateManager.setCurrentDeeplink('metamask://promo');
 
         expect(appStateManager.pendingDeeplinkSource).toBeNull();
+      });
+    });
+
+    // Many push payloads carry no deeplink — on-chain activity notifications
+    // commonly have no CTA link — so the tap itself is reported directly.
+    describe('push tap without a deeplink', () => {
+      it('reports push_notification with no deeplink recorded', () => {
+        appStateManager.markOpenedFromPush({
+          provider: AppOpenedPushProvider.Wallet,
+        });
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+          push_provider: 'wallet',
+        });
+      });
+
+      it('outranks an unrelated deeplink left over from in-app navigation', () => {
+        appStateManager.setCurrentDeeplink('metamask://card-home');
+        appStateManager.markOpenedFromPush({
+          provider: AppOpenedPushProvider.Braze,
+        });
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+          push_provider: 'braze',
+        });
+      });
+
+      it('does not describe the next open after the event consumes it', () => {
+        appStateManager.markOpenedFromPush({
+          provider: AppOpenedPushProvider.Wallet,
+        });
+        warmOpen();
+        mockEventBuilder.addProperties.mockClear();
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'direct',
+        });
+      });
+
+      it('reports direct when the tap predates the attribution window', () => {
+        appStateManager.markOpenedFromPush({
+          provider: AppOpenedPushProvider.Wallet,
+        });
+        jest.advanceTimersByTime(6000);
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'direct',
+        });
+      });
+    });
+
+    describe('push provider and notification classification', () => {
+      it('includes the notification type and subtype for wallet pushes', () => {
+        appStateManager.markOpenedFromPush({
+          provider: AppOpenedPushProvider.Wallet,
+          notificationType: 'platform',
+          notificationSubtype: 'eth_received',
+        });
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+          push_provider: 'wallet',
+          notification_type: 'platform',
+          notification_subtype: 'eth_received',
+        });
+      });
+
+      // Braze payloads carry no equivalent, so the props are omitted rather
+      // than sent empty.
+      it('omits type and subtype for Braze pushes', () => {
+        appStateManager.markOpenedFromPush({
+          provider: AppOpenedPushProvider.Braze,
+        });
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+          push_provider: 'braze',
+        });
+      });
+
+      it('omits the provider for a push-tagged deeplink with no reported tap', () => {
+        appStateManager.setCurrentDeeplink('metamask://promo', 'braze');
+
+        warmOpen();
+
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          type: 'warm_start',
+          source: 'push_notification',
+        });
       });
     });
 

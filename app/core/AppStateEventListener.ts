@@ -50,6 +50,31 @@ export enum AppOpenedSource {
 }
 
 /**
+ * Which system delivered the push. Both travel over FCM on Android, so this
+ * names the producer rather than the transport: Braze is marketing, wallet is
+ * the notification backend that sends on-chain activity.
+ */
+export enum AppOpenedPushProvider {
+  Braze = 'braze',
+  Wallet = 'wallet',
+}
+
+export interface PushOpenDetails {
+  provider: AppOpenedPushProvider;
+  /** Wallet notifications only; Braze payloads do not carry these. */
+  notificationType?: string;
+  notificationSubtype?: string;
+}
+
+/** Source-related properties attached to App Opened. */
+interface AppOpenedSourceProperties {
+  source: AppOpenedSource;
+  push_provider?: AppOpenedPushProvider;
+  notification_type?: string;
+  notification_subtype?: string;
+}
+
+/**
  * Fire the App Installed analytics event exactly once on first install.
  * Mirrors the extension's addAppInstalledEvent / onInstall logic:
  * - Sets InstallDateMobile user trait (yyyy-mm-dd)
@@ -127,6 +152,8 @@ export class AppStateEventListener {
   private currentDeeplinkSource: string | null = null;
   // When currentDeeplink was recorded, for DEEPLINK_ATTRIBUTION_TTL_MS.
   private currentDeeplinkSetAt = 0;
+  private openedFromPushAt = 0;
+  private openedFromPush: PushOpenDetails | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
   constructor() {
@@ -168,6 +195,22 @@ export class AppStateEventListener {
   private isPushSource = (source: string | null): boolean =>
     source === AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION ||
     source === AppConstants.DEEPLINKS.ORIGIN_BRAZE;
+
+  /**
+   * Record that the app was opened by a push notification tap.
+   *
+   * Push origin is otherwise only detectable via a deeplink on the payload, and
+   * many notifications carry none — on-chain activity notifications commonly
+   * have no CTA link. Reporting the tap directly means those opens are still
+   * attributed to push rather than falling through to `direct`.
+   *
+   * Callers must only invoke this for genuine user taps, never for pushes that
+   * were merely received.
+   */
+  public markOpenedFromPush(details: PushOpenDetails) {
+    this.openedFromPushAt = Date.now();
+    this.openedFromPush = details;
+  }
 
   public promoteCurrentDeeplinkSource(uri: string, source?: string) {
     if (
@@ -228,15 +271,35 @@ export class AppStateEventListener {
   // it is a leftover from in-app navigation — so it also reports direct. This
   // deliberately does not gate processAttribution, which keeps its existing
   // behavior; only the reported source honors recency.
-  private getAppOpenedSource = (): AppOpenedSource => {
+  private getAppOpenedSourceProperties = (): AppOpenedSourceProperties => {
+    // A reported tap outranks the deeplink, which may be absent on the payload.
+    const openedFromPush =
+      this.openedFromPush !== null &&
+      Date.now() - this.openedFromPushAt <= DEEPLINK_ATTRIBUTION_TTL_MS;
+    if (openedFromPush && this.openedFromPush) {
+      const { provider, notificationType, notificationSubtype } =
+        this.openedFromPush;
+      return {
+        source: AppOpenedSource.PushNotification,
+        push_provider: provider,
+        ...(notificationType ? { notification_type: notificationType } : {}),
+        ...(notificationSubtype
+          ? { notification_subtype: notificationSubtype }
+          : {}),
+      };
+    }
     const isStaleDeeplink =
       Date.now() - this.currentDeeplinkSetAt > DEEPLINK_ATTRIBUTION_TTL_MS;
     if (!this.currentDeeplink || isStaleDeeplink) {
-      return AppOpenedSource.Direct;
+      return { source: AppOpenedSource.Direct };
     }
-    return this.isPushSource(this.currentDeeplinkSource)
-      ? AppOpenedSource.PushNotification
-      : AppOpenedSource.Deeplink;
+    // A push-tagged deeplink with no reported tap still classifies as push, but
+    // the provider is unknown here, so no push_provider is attached.
+    return {
+      source: this.isPushSource(this.currentDeeplinkSource)
+        ? AppOpenedSource.PushNotification
+        : AppOpenedSource.Deeplink,
+    };
   };
 
   private processAppStateChange = (appOpenedType: AppOpenedType) => {
@@ -256,7 +319,7 @@ export class AppStateEventListener {
         MetaMetricsEvents.APP_OPENED,
       ).addProperties({
         type: appOpenedType,
-        source: this.getAppOpenedSource(),
+        ...this.getAppOpenedSourceProperties(),
       });
       if (attribution) {
         const { attributionId, ...utmParams } = attribution;
@@ -272,6 +335,8 @@ export class AppStateEventListener {
       this.currentDeeplink = null;
       this.currentDeeplinkSource = null;
       this.currentDeeplinkSetAt = 0;
+      this.openedFromPushAt = 0;
+      this.openedFromPush = null;
     } catch (error) {
       Logger.error(
         error as Error,
