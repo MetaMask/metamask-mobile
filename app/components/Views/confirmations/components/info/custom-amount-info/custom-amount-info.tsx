@@ -42,11 +42,7 @@ import {
   CustomAmount,
   CustomAmountSkeleton,
 } from '../../transactions/custom-amount';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayFiatPayment,
-  useTransactionPayRequiredTokens,
-} from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayFiatPayment } from '../../../hooks/pay/useTransactionPayData';
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
