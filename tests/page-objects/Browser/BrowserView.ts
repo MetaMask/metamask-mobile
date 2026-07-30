@@ -329,12 +329,9 @@ class Browser {
    * is currently open. Used defensively before tapping any of the top-bar
    * action buttons (network/account avatar, close button, etc.) which are
    * unmounted while the URL editor is focused.
-   *
-   * URL-bar submit / autocomplete select call `dismissEditing()` in-app, so
-   * Cancel is usually already gone after navigation; this remains a fallback.
    */
   async dismissUrlEditorIfOpen(): Promise<void> {
-    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1_000)) {
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000)) {
       await Gestures.waitAndTap(this.cancelUrlInputButton, {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
@@ -523,14 +520,19 @@ class Browser {
       elemDescription: 'URL input submit',
     });
 
-    // After typing the URL + "\n", `onSubmitEditing` navigates and calls
-    // `dismissEditing()` so Cancel should already be gone. Keep a defensive
-    // tap for Detox builds / timing where focus may linger, so top-bar action
-    // buttons (close, network/account avatar) are reachable.
+    // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
+    // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
+    // on Android. The result is that the URL editor "Cancel" button stays
+    // mounted while the navigation completes, and the right-side action
+    // buttons in the top bar (close, network/account avatar) remain hidden.
+    // Defensively tap Cancel to drop the URL bar back into its non-editing
+    // state so subsequent gestures can target those buttons.
     //
-    // Callers can opt-out via `skipUrlEditorDismissal: true` when a Cancel tap
-    // would race with concurrent app work that breaks Detox sync — notably
-    // phishing detection AsyncStorage writes vs `AsyncStorageIdlingResource`.
+    // Callers can opt-out via `skipUrlEditorDismissal: true` when the
+    // dismissal would race with concurrent app work that breaks Detox sync —
+    // notably `browser-phishing.spec.ts`, where phishing detection triggers
+    // AsyncStorage v2 writes that interact badly with Detox's
+    // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
     if (!options.skipUrlEditorDismissal) {
       if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
         await Gestures.waitAndTap(this.cancelUrlInputButton, {
@@ -551,9 +553,14 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    // `dismissEditing()` leaves the submitted URL in the bar (unlike Cancel),
-    // so post-submit dismissal no longer races a reset to the fixture tab URL.
-    await this.navigateToURL(getDappUrl(0));
+    // Cancel dismiss resets the bar to the fixture tab URL (…/health-check) if
+    // navigation has not committed yet — skip until the dapp page has loaded.
+    // Only skip in Appium; Detox needs the dismiss so the top bar controls are
+    // visible after navigation (e.g. the network avatar button).
+    const navigateOptions = FrameworkDetector.isAppium()
+      ? { skipUrlEditorDismissal: true as const }
+      : {};
+    await this.navigateToURL(getDappUrl(0), navigateOptions);
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
