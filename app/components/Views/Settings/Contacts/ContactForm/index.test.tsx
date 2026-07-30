@@ -1,10 +1,10 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
-import ContactForm from '.';
+import ContactForm, { ContactForm as ContactFormComponent } from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -198,6 +198,65 @@ describe('ContactForm', () => {
     });
   });
 
+  it('validates against the latest address book and network state', async () => {
+    const validateAddressOrENSMock = jest.requireMock(
+      '../../../../../util/address',
+    ).validateAddressOrENS;
+    type ValidationProps = Pick<
+      React.ComponentProps<typeof ContactFormComponent>,
+      'addressBook' | 'internalAccounts' | 'chainId'
+    >;
+    const initialProps: ValidationProps = {
+      addressBook: {},
+      internalAccounts: [],
+      chainId: '0x1',
+    };
+    const updatedAddressBook: ValidationProps['addressBook'] = {
+      '0x2': {
+        [MOCK_ADDRESS_2]: {
+          address: MOCK_ADDRESS_2,
+          name: 'Updated contact',
+          chainId: '0x2',
+          memo: '',
+          isEns: false,
+        },
+      },
+    };
+    const updatedInternalAccounts: ValidationProps['internalAccounts'] = [];
+    const renderForm = (props: ValidationProps) => (
+      <ContactFormComponent
+        {...props}
+        navigation={mockNavigation}
+        networkConfigurations={{}}
+        route={{ params: { mode: 'add' } }}
+      />
+    );
+    const { getByTestId, rerender } = renderWithProvider(
+      renderForm(initialProps),
+    );
+
+    fireEvent.changeText(
+      getByTestId(AddContactViewSelectorsIDs.ADDRESS_INPUT),
+      MOCK_ADDRESS_2,
+    );
+    rerender(
+      renderForm({
+        addressBook: updatedAddressBook,
+        internalAccounts: updatedInternalAccounts,
+        chainId: '0x2',
+      }),
+    );
+
+    await waitFor(() => {
+      expect(validateAddressOrENSMock).toHaveBeenCalledWith(
+        MOCK_ADDRESS_2,
+        updatedAddressBook,
+        updatedInternalAccounts,
+        '0x2',
+      );
+    });
+  });
+
   it('saves contact when form is valid', async () => {
     const validateAddressOrENSMock = jest.requireMock(
       '../../../../../util/address',
@@ -370,7 +429,9 @@ describe('ContactForm', () => {
     expect(onEdit).toBeDefined();
 
     // Call the edit function which would toggle editable state
-    onEdit();
+    act(() => {
+      onEdit();
+    });
 
     rerender(
       <ContactForm
