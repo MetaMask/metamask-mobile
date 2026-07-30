@@ -86,14 +86,19 @@ jest.mock('./PerpsAdjustMarginView.styles', () => ({
   __esModule: true,
   default: () => ({
     container: {},
-    scrollView: {},
-    scrollContent: {},
-    amountSection: {},
+    content: {},
+    scrollViewContent: {},
+    scrollViewContentWithKeypad: {},
     sliderSection: {},
-    infoSection: {},
-    infoRow: {},
+    summaryContainer: {},
     changeContainer: {},
     footer: {},
+    footerWithSummary: {},
+    footerButton: {},
+    bottomSection: {},
+    percentageButtonsContainer: {},
+    percentageButton: {},
+    keypad: {},
     errorContainer: {},
   }),
 }));
@@ -109,39 +114,29 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-// Mock PerpsOrderHeader component to render title prop
-jest.mock('../../components/PerpsOrderHeader', () => {
-  const ReactModule = jest.requireActual('react');
-  const RNModule = jest.requireActual('react-native');
-  return function MockPerpsOrderHeader({ title }: { title: string }) {
-    return ReactModule.createElement(RNModule.Text, null, title);
-  };
-});
+jest.mock('../../Debug/usePerpsClosePositionVisualStatePicker', () => ({
+  usePerpsClosePositionVisualStatePicker: jest.fn(() => ({
+    visualOverrides: null,
+    renderFlask: () => null,
+    sheet: null,
+    openSheet: jest.fn(),
+  })),
+}));
+
 jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
 jest.mock(
   '../../components/PerpsBottomSheetTooltip',
   () => 'PerpsBottomSheetTooltip',
 );
-jest.mock('../../components/PerpsSlider', () => {
-  const ReactModule = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return function MockPerpsSlider({
-    onValueChange,
-  }: {
-    onValueChange?: (value: number) => void;
-  }) {
-    return ReactModule.createElement(View, {
-      testID: 'mock-perps-slider',
-      onValueChange,
-    });
-  };
-});
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  const ReactModule = jest.requireActual('react');
+  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     __esModule: true,
+    HeaderStandard: ({ title }: { title: string }) =>
+      ReactModule.createElement(Text, null, title),
     Button: ({
       label,
       onPress,
@@ -167,26 +162,67 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     ButtonSize: {
       Lg: 'Lg',
+      Md: 'Md',
       Sm: 'Sm',
     },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const ReactModule = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ name }: { name: string }) =>
-      ReactModule.createElement(View, { accessibilityLabel: name }),
+    Slider: ({
+      onValueChange,
+      testID,
+    }: {
+      onValueChange?: (value: number) => void;
+      testID?: string;
+    }) =>
+      ReactModule.createElement(View, {
+        testID: testID ?? 'mock-margin-slider',
+        // @ts-expect-error test helper
+        onValueChange,
+      }),
+    KeyValueRow: ({
+      keyLabel,
+      value,
+    }: {
+      keyLabel: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      value: any;
+    }) =>
+      ReactModule.createElement(
+        View,
+        null,
+        ReactModule.createElement(Text, null, keyLabel),
+        typeof value === 'string' || typeof value === 'number'
+          ? ReactModule.createElement(Text, null, value)
+          : value,
+      ),
+    KeyValueRowVariant: {
+      Summary: 'Summary',
+      Input: 'Input',
+    },
+    Icon: ({
+      name,
+      accessibilityLabel,
+    }: {
+      name: string;
+      accessibilityLabel?: string;
+    }) =>
+      ReactModule.createElement(View, {
+        accessibilityLabel: accessibilityLabel ?? name,
+      }),
     IconName: {
       ArrowRight: 'ArrowRight',
       Info: 'Info',
     },
     IconSize: { Sm: 'Sm' },
-    IconColor: { Alternative: 'Alternative' },
+    IconColor: { IconAlternative: 'IconAlternative' },
   };
 });
+
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: {
+    SliderGrip: 'SliderGrip',
+    SliderTick: 'SliderTick',
+  },
+}));
 
 describe('PerpsAdjustMarginView', () => {
   const mockPosition: Position = {
@@ -528,7 +564,8 @@ describe('PerpsAdjustMarginView', () => {
       const { getByTestId } = render(<PerpsAdjustMarginView />);
 
       // Trigger showTransition by setting a non-zero margin amount via the slider
-      fireEvent(getByTestId('mock-perps-slider'), 'valueChange', 100);
+      // Slider is percentage-based (0–100); 50% of $1000 max = $500
+      fireEvent(getByTestId('mock-margin-slider'), 'valueChange', 50);
 
       const arrowIcons = screen.getAllByLabelText('ArrowRight');
       expect(arrowIcons).toHaveLength(2);
