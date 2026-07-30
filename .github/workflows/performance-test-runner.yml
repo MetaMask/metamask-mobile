@@ -179,7 +179,11 @@ jobs:
               ;;
           esac
 
-          # Track-only RC observability: distinct Sentry environment + release version tag.
+          # Track-only RC observability: distinct Sentry environment + release
+          # version tag. RELEASE_VERSION is derived from release/* branches for
+          # filtering; the mm-mobile-rc-* Sentry release bucket is only used when
+          # CI_BUILD_VARIANT is actually rc (avoids polluting RC releases when a
+          # non-RC perf run happens on a release branch).
           RELEASE_VERSION=""
           if [[ "$BRANCH_NAME" =~ ^release/(.+)$ ]]; then
             RELEASE_VERSION="${BASH_REMATCH[1]}"
@@ -189,7 +193,7 @@ jobs:
           fi
 
           SENTRY_RELEASE="mm-mobile-perf-${CI_BUILD_VARIANT}-${{ github.sha }}"
-          if [[ -n "$RELEASE_VERSION" ]]; then
+          if [[ "$CI_BUILD_VARIANT" == "rc" && -n "$RELEASE_VERSION" ]]; then
             SENTRY_RELEASE="mm-mobile-rc-${RELEASE_VERSION}"
           fi
 
