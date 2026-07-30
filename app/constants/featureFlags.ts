@@ -19,6 +19,7 @@ export enum FeatureFlagNames {
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
+  crossmintApplePayCheckout = 'crossmintApplePayCheckout',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

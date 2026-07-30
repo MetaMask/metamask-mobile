@@ -45,6 +45,8 @@ import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
+import useCrossmintApplePayOverlay from '../../hooks/useCrossmintApplePayOverlay';
+import ApplePayCheckoutOverlay from '../../components/ApplePayCheckoutOverlay';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
@@ -635,6 +637,14 @@ function BuildQuote() {
     !selectedQuoteLoading &&
     selectedQuote !== null;
 
+  // Crossmint Apple Pay embedded checkout (crossmintApplePayCheckout flag):
+  // pre-creates the order through the on-ramp API so the hosted Apple Pay
+  // button can replace the Continue button on eligible quotes.
+  const crossmintApplePay = useCrossmintApplePayOverlay(
+    hasSettledQuoteAmount ? selectedQuote : null,
+    debouncedPollingAmount,
+  );
+
   const hasNoQuotes =
     hasAmount &&
     hasSettledQuoteAmount &&
@@ -811,22 +821,30 @@ function BuildQuote() {
             {hasAmount ? (
               <>
                 {actionSectionMessage}
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContinuePress}
-                  isFullWidth
-                  isDisabled={!canContinue}
-                  isLoading={
-                    selectedQuoteLoading ||
-                    isContinueLoading ||
-                    isTokenUnavailable ||
-                    !tokenStateIsSettled
-                  }
-                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                >
-                  {strings('fiat_on_ramp.continue')}
-                </Button>
+                {crossmintApplePay.checkoutUrl ? (
+                  <ApplePayCheckoutOverlay
+                    checkoutUrl={crossmintApplePay.checkoutUrl}
+                    interactive={canContinue}
+                    onMessage={crossmintApplePay.onMessage}
+                  />
+                ) : (
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={handleContinuePress}
+                    isFullWidth
+                    isDisabled={!canContinue}
+                    isLoading={
+                      selectedQuoteLoading ||
+                      isContinueLoading ||
+                      isTokenUnavailable ||
+                      !tokenStateIsSettled
+                    }
+                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                  >
+                    {strings('fiat_on_ramp.continue')}
+                  </Button>
+                )}
               </>
             ) : (
               quickAmounts.length > 0 && (
