@@ -6,6 +6,7 @@ import {
   type SavedGasFees,
   type TransactionMeta,
   type TransactionControllerOptions,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import type { WalletOptions } from '@metamask/wallet';
@@ -16,7 +17,6 @@ import {
   REDESIGNED_TRANSACTION_TYPES,
   RELAY_DEPOSIT_TYPES,
 } from '../../../../components/Views/confirmations/constants/confirmations';
-import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import AppConstants from '../../../../core/AppConstants';
 import { store } from '../../../../store';

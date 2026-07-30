@@ -30,7 +30,7 @@ resolve_github_repo() {
 }
 
 require_gh() {
-  require_cmd gh "Install with: brew install gh (then run: gh auth login)"
+  require_cmd gh "Install with: brew install gh (macOS) / winget install GitHub.cli (Windows), then run: gh auth login"
 
   if ! gh auth status &> /dev/null; then
     echo -e "${RED}❌ gh is not authenticated${NC}"

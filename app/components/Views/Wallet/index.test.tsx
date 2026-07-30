@@ -72,10 +72,6 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   ),
 }));
 
-jest.mock('../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(() => false),
-}));
-
 // Control Money account feature flag per test (default false so existing tests are unaffected)
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
@@ -101,14 +97,13 @@ jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
 });
 
 // Mock NetworkConnectionBanner so the Wallet view's render does not depend on
-// Engine.lookupEnabledNetworks / NetworkController / controllerMessenger APIs.
-// Without this, the banner hook throws during render and the ErrorBoundary
-// swallows the failure, making negative-assert tests pass for the wrong reason.
+// NetworkController / controllerMessenger APIs. Without this, the banner hook
+// throws during render and the ErrorBoundary swallows the failure, making
+// negative-assert tests pass for the wrong reason.
 jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
 
-// Control discovery tabs AB test variant per test (default control so existing tests are unaffected)
-let mockDiscoveryTabsVariantName = 'control';
 let mockDiscoveryPillsVariantName = 'control';
+let mockActionButtonsGridVariantName = 'control';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
   useABTest: jest.fn((flagKey: string) => {
@@ -127,17 +122,34 @@ jest.mock('../../../hooks', () => ({
       };
     }
 
-    return {
-      variantName: mockDiscoveryTabsVariantName,
-      variant: {
-        discoveryTabsEnabled: mockDiscoveryTabsVariantName === 'treatment',
-      },
-      isActive: mockDiscoveryTabsVariantName === 'treatment',
-    };
+    if (flagKey === 'homeTMCU1103AbtestActionButtonsGrid') {
+      if (mockActionButtonsGridVariantName === 'row1Top') {
+        return {
+          variantName: 'row1Top',
+          variant: { layout: 'eightCircular', rowOrder: 'row1Top' },
+          isActive: true,
+        };
+      }
+      if (mockActionButtonsGridVariantName === 'row2Top') {
+        return {
+          variantName: 'row2Top',
+          variant: { layout: 'eightCircular', rowOrder: 'row2Top' },
+          isActive: true,
+        };
+      }
+      return {
+        variantName: 'control',
+        variant: { layout: 'fourSquare' },
+        isActive: true,
+      };
+    }
+
+    throw new Error(`Unexpected A/B test flag: ${flagKey}`);
   }),
 }));
 
 const mockHomepageDiscoveryPills = jest.fn();
+const mockHomepageActionButtonsGrid = jest.fn();
 jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -150,23 +162,20 @@ jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
     },
   };
 });
-
-// Track HomepageDiscoveryTabs renders
-const mockHomepageDiscoveryTabs = jest.fn();
-const mockHomepageDiscoveryTabsRefresh = jest.fn(async () => undefined);
-const mockHomepageDiscoveryTabsGoToPerpsTab = jest.fn();
-jest.mock('../Homepage/components/HomepageDiscoveryTabs', () => {
+jest.mock('../Homepage/components/HomepageActionButtonsGrid', () => {
   const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: React.forwardRef((props: unknown, ref: unknown) => {
-      React.useImperativeHandle(ref, () => ({
-        refresh: mockHomepageDiscoveryTabsRefresh,
-        goToPerpsTab: mockHomepageDiscoveryTabsGoToPerpsTab,
-      }));
-      mockHomepageDiscoveryTabs(props);
-      return null;
-    }),
+    HomepageActionButtonsGrid: (props: {
+      rowOrder: string;
+      onSend: () => void;
+      onReceive: () => void;
+    }) => {
+      mockHomepageActionButtonsGrid(props);
+      return React.createElement(View, {
+        testID: 'homepage-action-buttons-grid-mock',
+      });
+    },
   };
 });
 
@@ -331,7 +340,6 @@ jest.mock('../../../core/Engine', () => {
         '0x0': { amount: '1', unit: 'ETH' },
       },
     }),
-    lookupEnabledNetworks: jest.fn(),
     controllerMessenger: {
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
@@ -1463,15 +1471,11 @@ describe('HomepageScrollContext callbacks', () => {
   });
 });
 
-describe('HomepageDiscoveryTabs AB test', () => {
+describe('Homepage deep links', () => {
   let mockNavigation: NavigationProp<ParamListBase>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDiscoveryTabsVariantName = 'control';
-    mockHomepageDiscoveryTabs.mockClear();
-    mockHomepageDiscoveryTabsRefresh.mockClear();
-    mockHomepageDiscoveryTabsGoToPerpsTab.mockClear();
 
     mockNavigation = {
       navigate: mockNavigate,
@@ -1496,112 +1500,8 @@ describe('HomepageDiscoveryTabs AB test', () => {
       );
   });
 
-  afterEach(() => {
-    mockDiscoveryTabsVariantName = 'control';
-    jest.clearAllMocks();
-  });
-
-  it('renders HomepageDiscoveryTabs when variant is treatment', () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    expect(mockHomepageDiscoveryTabs).toHaveBeenCalled();
-  });
-
-  it('does not render HomepageDiscoveryTabs when variant is control', () => {
-    mockDiscoveryTabsVariantName = 'control';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    expect(mockHomepageDiscoveryTabs).not.toHaveBeenCalled();
-  });
-
-  it('passes portfolioHeader, onPortfolioScroll, and refreshControl to HomepageDiscoveryTabs', () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as Record<
-      string,
-      unknown
-    >;
-    expect(props).toBeDefined();
-    expect(props.portfolioHeader).toBeDefined();
-    expect(typeof props.onPortfolioScroll).toBe('function');
-    expect(props.refreshControl).toBeDefined();
-  });
-
-  it('passes walletHeaderOffset and walletHeaderHeight to HomepageDiscoveryTabs', () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as Record<
-      string,
-      unknown
-    >;
-    expect(typeof props.walletHeaderOffset).toBe('number');
-    expect(typeof props.walletHeaderHeight).toBe('number');
-  });
-
-  it('selects the Perps discovery tab for Perps deeplinks in treatment', () => {
+  it('navigates to Perps screen for Perps deeplinks', () => {
     jest.useFakeTimers();
-    mockDiscoveryTabsVariantName = 'treatment';
-    jest.mocked(useRoute).mockReturnValue({
-      key: 'route',
-      name: 'route',
-      params: { initialTab: 'perps' },
-    });
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const focusCallbacks = jest.mocked(useFocusEffect).mock.calls;
-    focusCallbacks.forEach(([callback]) => callback?.());
-    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
-
-    expect(mockHomepageDiscoveryTabsGoToPerpsTab).toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'deeplink' },
-    });
-
-    jest.useRealTimers();
-  });
-
-  it('navigates to Perps screen for Perps deeplinks in control', () => {
-    jest.useFakeTimers();
-    mockDiscoveryTabsVariantName = 'control';
     jest.mocked(useRoute).mockReturnValue({
       key: 'route',
       name: 'route',
@@ -1654,103 +1554,6 @@ describe('HomepageDiscoveryTabs AB test', () => {
 
     jest.useRealTimers();
   });
-
-  it('refreshes discovery tabs from the wallet refresh control in treatment', async () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
-      refreshControl?: React.ReactElement<{ onRefresh: () => Promise<void> }>;
-    };
-
-    await act(async () => {
-      await props.refreshControl?.props.onRefresh();
-    });
-
-    expect(mockHomepageDiscoveryTabsRefresh).toHaveBeenCalled();
-  });
-
-  it('updates wallet header height from HeaderRoot layout in treatment', () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    const { getByTestId } = renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    fireEvent(
-      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
-      'layout',
-      {
-        nativeEvent: { layout: { height: 120, width: 320, x: 0, y: 0 } },
-      },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
-      walletHeaderHeight?: number;
-    };
-
-    expect(props.walletHeaderHeight).toBe(120);
-  });
-
-  it('logs error when wallet refresh fails in treatment', async () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-    mockHomepageDiscoveryTabsRefresh.mockRejectedValueOnce(
-      new Error('refresh failed'),
-    );
-    const loggerErrorSpy = jest
-      .spyOn(Logger, 'error')
-      .mockImplementation(() => undefined);
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
-      refreshControl?: React.ReactElement<{ onRefresh: () => Promise<void> }>;
-    };
-
-    await act(async () => {
-      await props.refreshControl?.props.onRefresh();
-    });
-
-    expect(loggerErrorSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'refresh failed' }),
-      'Error refreshing wallet',
-    );
-
-    loggerErrorSpy.mockRestore();
-  });
-
-  it('renders Homepage scroll view (not HomepageDiscoveryTabs) when variant is control', () => {
-    mockDiscoveryTabsVariantName = 'control';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    // HomepageDiscoveryTabs must not render; the legacy Homepage mock renders instead
-    expect(mockHomepageDiscoveryTabs).not.toHaveBeenCalled();
-    expect(capturedContext).toBeDefined();
-  });
 });
 
 describe('HomepageDiscoveryPills AB test', () => {
@@ -1758,7 +1561,6 @@ describe('HomepageDiscoveryPills AB test', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDiscoveryTabsVariantName = 'control';
     mockDiscoveryPillsVariantName = 'control';
     mockHomepageDiscoveryPills.mockClear();
 
@@ -1786,8 +1588,8 @@ describe('HomepageDiscoveryPills AB test', () => {
   });
 
   afterEach(() => {
-    mockDiscoveryTabsVariantName = 'control';
     mockDiscoveryPillsVariantName = 'control';
+    mockActionButtonsGridVariantName = 'control';
     jest.clearAllMocks();
   });
 
@@ -1820,10 +1622,47 @@ describe('HomepageDiscoveryPills AB test', () => {
 
     expect(mockHomepageDiscoveryPills).not.toHaveBeenCalled();
   });
+});
 
-  it('does not render discovery pills when discovery tabs treatment is active', () => {
-    mockDiscoveryPillsVariantName = 'grayIcons';
-    mockDiscoveryTabsVariantName = 'treatment';
+describe('HomepageActionButtonsGrid AB test', () => {
+  let mockNavigation: NavigationProp<ParamListBase>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDiscoveryPillsVariantName = 'control';
+    mockActionButtonsGridVariantName = 'control';
+    mockHomepageActionButtonsGrid.mockClear();
+
+    mockNavigation = {
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+      dangerouslyGetParent: jest.fn(() => ({
+        dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+        addListener: jest.fn(() => jest.fn()),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => undefined),
+        })),
+      })),
+    } as unknown as NavigationProp<ParamListBase>;
+
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockActionButtonsGridVariantName = 'control';
+    jest.clearAllMocks();
+  });
+
+  it('renders action buttons grid when row1Top variant is active', () => {
+    mockActionButtonsGridVariantName = 'row1Top';
 
     renderWithProvider(
       <Wallet
@@ -1833,7 +1672,43 @@ describe('HomepageDiscoveryPills AB test', () => {
       { state: mockInitialState },
     );
 
-    expect(mockHomepageDiscoveryPills).not.toHaveBeenCalled();
+    expect(mockHomepageActionButtonsGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rowOrder: 'row1Top',
+        onSend: expect.any(Function),
+        onReceive: expect.any(Function),
+      }),
+    );
+  });
+
+  it('renders action buttons grid when row2Top variant is active', () => {
+    mockActionButtonsGridVariantName = 'row2Top';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageActionButtonsGrid).toHaveBeenCalledWith(
+      expect.objectContaining({ rowOrder: 'row2Top' }),
+    );
+  });
+
+  it('does not render action buttons grid when control variant is active', () => {
+    mockActionButtonsGridVariantName = 'control';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageActionButtonsGrid).not.toHaveBeenCalled();
   });
 });
 

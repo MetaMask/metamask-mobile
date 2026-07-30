@@ -1,14 +1,12 @@
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-// eslint-disable-next-line import-x/no-namespace
-import { processNotification } from '@metamask/notification-services-controller/notification-services';
-import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
 
 import FCMService from './FCMService';
 import { EVENT_NAME } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { NativeModules, Platform } from 'react-native';
+import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 // Firebase Mock
 jest.mock('@react-native-firebase/messaging', () => {
@@ -48,6 +46,12 @@ jest.mock('@react-native-firebase/messaging', () => {
 
 // Notification Services Mock
 jest.mock('@metamask/notification-services-controller/notification-services');
+
+// Session profile ID mock (AuthenticationController identity source)
+jest.mock('../utils/get-session-profile-id', () => ({
+  getSessionProfileId: jest.fn(),
+}));
+const mockGetSessionProfileId = jest.mocked(getSessionProfileId);
 
 const arrangeFirebaseMocks = () => {
   const mockHasPermission = jest.mocked(messaging().hasPermission);
@@ -209,21 +213,13 @@ describe('FCMService - isPushNotificationsEnabled()', () => {
 
 describe('FCMService - listenToPushNotificationsReceived()', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     FCMService.clearRegistration();
+    jest.clearAllMocks();
   });
 
-  const arrangeNotificationServicesMocks = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const identity = (x: any) => x;
-    const mockProcessNotification = jest
-      .mocked(processNotification)
-      .mockImplementation(identity);
-
-    return {
-      mockProcessNotification,
-    };
-  };
+  afterEach(() => {
+    FCMService.clearRegistration();
+  });
 
   const arrangeMocks = () => {
     const firebaseMocks = arrangeFirebaseMocks();
@@ -231,7 +227,7 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
     const mockOnMessageUnsubscribe = jest.fn();
     firebaseMocks.mockOnMessage.mockReturnValue(mockOnMessageUnsubscribe);
 
-    return { firebaseMocks, mockOnMessageUnsubscribe, mockHandler };
+    return { firebaseMocks, mockHandler, mockOnMessageUnsubscribe };
   };
 
   it('sets up listeners for push notifications and returns an unsubscribe handler', async () => {
@@ -241,6 +237,17 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
       await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBeDefined();
     expect(firebaseMocks.mockOnMessage).toHaveBeenCalled();
+  });
+
+  it('registers a new foreground listener after unsubscribe', async () => {
+    const { mockHandler, firebaseMocks } = arrangeMocks();
+    const firstUnsubscribe =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
+
+    firstUnsubscribe?.();
+    await FCMService.listenToPushNotificationsReceived(mockHandler);
+
+    expect(firebaseMocks.mockOnMessage).toHaveBeenCalledTimes(2);
   });
 
   it('returns null if an error occurs while setting up listeners', async () => {
@@ -254,79 +261,36 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
     expect(result).toBe(null);
   });
 
-  describe('FCMService - Process Foreground Messages', () => {
-    const act = async (
-      mocks: ReturnType<typeof arrangeMocks>,
-      overridePayload = {},
-    ) => {
-      const defaultPayload = {
-        data: { data: JSON.stringify(createMockNotificationEthSent()) },
-      } as unknown as FirebaseMessagingTypes.RemoteMessage;
-      const mockPayload = { ...defaultPayload, ...overridePayload };
+  it('passes the raw FCM payload directly to the handler', async () => {
+    const mocks = arrangeMocks();
+    const mockPayload = {
+      notification: { title: 'You received ETH', body: '0.05 ETH' },
+      data: { notification_id: 'abc', notification_type: 'wallet_activity' },
+    } as unknown as FirebaseMessagingTypes.RemoteMessage;
 
-      // Act - Start Listening
-      await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
-      expect(mocks.firebaseMocks.mockOnMessage).toHaveBeenCalled();
+    await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
 
-      // Fake a new remote message has been received
-      const messageHandler =
-        mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
-      await messageHandler?.(mockPayload);
-    };
+    const messageHandler = mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
+    await messageHandler?.(mockPayload);
 
-    it('invokes "processAndHandleNotification" & calls handler param', async () => {
-      const mocks = arrangeMocks();
-      const notificationMocks = arrangeNotificationServicesMocks();
-
-      await act(mocks);
-
-      // Assert - notification was processed
-      expect(notificationMocks.mockProcessNotification).toHaveBeenCalled();
-
-      // Assert - handler callback was invoked
-      expect(mocks.mockHandler).toHaveBeenCalled();
-    });
-
-    it('handles invalid or non-parseable payload', async () => {
-      const mocks = arrangeMocks();
-      arrangeNotificationServicesMocks();
-
-      const invalidPayload = {
-        data: { data: 'invalid json' },
-      } as unknown as FirebaseMessagingTypes.RemoteMessage;
-
-      await act(mocks, invalidPayload);
-
-      expect(mocks.mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('handles errors from notification services', async () => {
-      const mocks = arrangeMocks();
-      const notificationMocks = arrangeNotificationServicesMocks();
-      notificationMocks.mockProcessNotification.mockImplementationOnce(() => {
-        throw new Error('TEST ERROR');
-      });
-
-      await act(mocks);
-
-      expect(mocks.mockHandler).not.toHaveBeenCalled();
-    });
+    expect(mocks.mockHandler).toHaveBeenCalledWith(mockPayload);
   });
 });
 
 // Remote message data only contains string entries
-const createMockPlatformMetaData = (deeplink?: string) => ({
-  ...(deeplink && { deeplink }),
-  metadata: JSON.stringify({
-    kind: 'take_profit_executed',
-    position_type: 'short',
-    asset: 'POL',
-  }),
+const createMockPushAnalyticsFcmData = (
+  overrides?: Record<string, string>,
+) => ({
+  notification_id: 'test-notification-id',
+  notification_type: 'platform',
+  notification_subtype: 'take_profit_executed',
+  ...overrides,
 });
 
 describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   const assertTrackEventCalledWith = (
@@ -345,6 +309,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
     const mockTrackEvent = jest.spyOn(analytics, 'trackEvent');
     const firebaseMocks = arrangeFirebaseMocks();
     const nativeModuleMocks = arrangeNativeModuleMocks();
+    mockGetSessionProfileId.mockResolvedValue('test-profile-id');
     return {
       ...firebaseMocks,
       ...nativeModuleMocks,
@@ -413,29 +378,31 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
       };
 
       it('returns deeplink when notification has deeplink data', async () => {
-        const testData = createMockPlatformMetaData(
-          'https://test.metamask.io/perps-asset?symbol=ETH',
-        );
+        const testData = createMockPushAnalyticsFcmData({
+          deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+        });
         const { result, mocks } = await arrangeAct(testData);
 
         expect(result).toBe('https://test.metamask.io/perps-asset?symbol=ETH');
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
+          notification_id: 'test-notification-id',
+          notification_type: 'platform',
+          notification_subtype: 'take_profit_executed',
           deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-          notification_type: 'take_profit_executed',
-          data: JSON.parse(testData.metadata),
         });
       });
 
       it('tracks click event but does not return deeplink when no deeplink present', async () => {
-        const testData = createMockPlatformMetaData();
+        const testData = createMockPushAnalyticsFcmData();
         const { result, mocks } = await arrangeAct(testData);
 
         expect(result).toBeFalsy();
         assertMockInitialNotificationCalled(mocks);
         assertTrackEventCalledWith(mocks.mockTrackEvent, {
-          notification_type: 'take_profit_executed',
-          data: JSON.parse(testData.metadata),
+          notification_id: 'test-notification-id',
+          notification_type: 'platform',
+          notification_subtype: 'take_profit_executed',
         });
       });
 
@@ -455,6 +422,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
 describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   const assertTrackEventCalledWith = (
@@ -473,6 +441,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     const mockTrackEvent = jest.spyOn(analytics, 'trackEvent');
     const firebaseMocks = arrangeFirebaseMocks();
     const deeplinkCallback = jest.fn();
+    mockGetSessionProfileId.mockResolvedValue('test-profile-id');
     return {
       ...firebaseMocks,
       mockTrackEvent,
@@ -488,7 +457,7 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
       data,
     }) as unknown as FirebaseMessagingTypes.RemoteMessage;
 
-  const arrangeAct = (
+  const arrangeAct = async (
     // Remote Message Data prop only contains string entries
     testData: Record<string, string> | null,
     overrideMocks?: (mocks: ReturnType<typeof arrangeMocks>) => void,
@@ -503,42 +472,44 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
 
     const notificationHandler =
       mocks.mockOnNotificationOpenedApp.mock.calls[0][0];
-    notificationHandler(
+    await notificationHandler(
       mockNotification as FirebaseMessagingTypes.RemoteMessage,
     );
 
     return { mocks, deeplinkCallback: mocks.deeplinkCallback };
   };
 
-  it('calls deeplink callback with deeplink when notification has deeplink data', () => {
-    const testData = createMockPlatformMetaData(
-      'https://test.metamask.io/perps-asset?symbol=ETH',
-    );
-    const { mocks, deeplinkCallback } = arrangeAct(testData);
+  it('calls deeplink callback with deeplink when notification has deeplink data', async () => {
+    const testData = createMockPushAnalyticsFcmData({
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    });
+    const { mocks, deeplinkCallback } = await arrangeAct(testData);
 
     expect(deeplinkCallback).toHaveBeenCalledWith(
       'https://test.metamask.io/perps-asset?symbol=ETH',
     );
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
+      notification_id: 'test-notification-id',
+      notification_type: 'platform',
+      notification_subtype: 'take_profit_executed',
       deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-      notification_type: 'take_profit_executed',
-      data: JSON.parse(testData.metadata),
     });
   });
 
-  it('calls deeplink callback with undefined when notification has no deeplink', () => {
-    const testData = createMockPlatformMetaData();
-    const { mocks, deeplinkCallback } = arrangeAct(testData);
+  it('calls deeplink callback with undefined when notification has no deeplink', async () => {
+    const testData = createMockPushAnalyticsFcmData();
+    const { mocks, deeplinkCallback } = await arrangeAct(testData);
 
     expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
     assertTrackEventCalledWith(mocks.mockTrackEvent, {
-      notification_type: 'take_profit_executed',
-      data: JSON.parse(testData.metadata),
+      notification_id: 'test-notification-id',
+      notification_type: 'platform',
+      notification_subtype: 'take_profit_executed',
     });
   });
 
-  it('calls deeplink callback with undefined when notification has null data', () => {
-    const { mocks, deeplinkCallback } = arrangeAct(null);
+  it('calls deeplink callback with undefined when notification has null data', async () => {
+    const { mocks, deeplinkCallback } = await arrangeAct(null);
 
     expect(deeplinkCallback).toHaveBeenCalledWith(undefined);
     expect(mocks.mockTrackEvent).toHaveBeenCalledWith(
@@ -546,23 +517,23 @@ describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
     );
   });
 
-  it('handles deeplink callback that throws an error gracefully', () => {
-    const testData = createMockPlatformMetaData(
-      'https://test.metamask.io/perps-asset?symbol=ETH',
-    );
-    expect(() => {
-      const { mocks } = arrangeAct(testData, (m) => {
-        m.deeplinkCallback.mockImplementation(() => {
-          throw new Error('Callback error');
-        });
-      });
+  it('handles deeplink callback that throws an error gracefully', async () => {
+    const testData = createMockPushAnalyticsFcmData({
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    });
 
-      // Assert - Analytics should still be tracked even if callback fails
-      assertTrackEventCalledWith(mocks.mockTrackEvent, {
-        deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
-        notification_type: 'take_profit_executed',
-        data: JSON.parse(testData.metadata),
+    const { mocks } = await arrangeAct(testData, (m) => {
+      m.deeplinkCallback.mockImplementation(() => {
+        throw new Error('Callback error');
       });
-    }).not.toThrow();
+    });
+
+    // Assert - Analytics should still be tracked even if callback fails
+    assertTrackEventCalledWith(mocks.mockTrackEvent, {
+      notification_id: 'test-notification-id',
+      notification_type: 'platform',
+      notification_subtype: 'take_profit_executed',
+      deeplink: 'https://test.metamask.io/perps-asset?symbol=ETH',
+    });
   });
 });

@@ -17,6 +17,19 @@ jest.mock('../../../../redux', () => ({
   },
 }));
 jest.mock('../../../../../components/UI/Perps/selectors/perpsController');
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PerpsController: {
+        setAttributionContext: jest.fn(),
+        getAttributionContext: jest.fn(() => ({})),
+        clearAttributionContext: jest.fn(),
+        mergeAttributionContext: jest.fn((props = {}) => props),
+      },
+    },
+  },
+}));
 
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;

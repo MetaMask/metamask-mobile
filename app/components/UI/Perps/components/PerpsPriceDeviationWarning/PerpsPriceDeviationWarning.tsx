@@ -1,19 +1,10 @@
 import React, { memo } from 'react';
 import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
-import { View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsPriceDeviationWarningProps } from './PerpsPriceDeviationWarning.types';
-import styleSheet from './PerpsPriceDeviationWarning.styles';
 
 /**
  * Component that displays a warning when the perps price has deviated too much from the spot price
@@ -28,25 +19,13 @@ import styleSheet from './PerpsPriceDeviationWarning.styles';
  * ```
  */
 const PerpsPriceDeviationWarning: React.FC<PerpsPriceDeviationWarningProps> =
-  memo(({ testID = 'perps-price-deviation-warning' }) => {
-    const { styles } = useStyles(styleSheet, {});
-
-    return (
-      <View style={styles.container} testID={testID}>
-        <Icon
-          name={IconName.Info}
-          size={IconSize.Md}
-          color={IconColor.IconDefault}
-          style={styles.icon}
-        />
-        <View style={styles.textContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('perps.price_deviation_warning.message')}
-          </Text>
-        </View>
-      </View>
-    );
-  });
+  memo(({ testID = 'perps-price-deviation-warning' }) => (
+    <BannerAlert
+      severity={BannerAlertSeverity.Neutral}
+      description={strings('perps.price_deviation_warning.message')}
+      testID={testID}
+    />
+  ));
 
 PerpsPriceDeviationWarning.displayName = 'PerpsPriceDeviationWarning';
 

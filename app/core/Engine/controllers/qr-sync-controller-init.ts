@@ -10,9 +10,11 @@ import {
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
 } from '../../QrSync/controller-types';
+import { registerE2EQrSyncDeepLinkHandler } from '../../QrSync/e2eBridgeQrSync';
 import { KeyManager } from '../../SDKConnectV2/services/key-manager';
 import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 import { store } from '../../../store';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 /**
  * Initializes the QR sync controller with any previously hydrated state.
@@ -54,6 +56,10 @@ export const qrSyncControllerInit: MessengerClientInitFunction<
     'QrSyncController:completeProvisioning',
     controller.completeProvisioning.bind(controller),
   );
+
+  if (hasTestOverrides) {
+    registerE2EQrSyncDeepLinkHandler(() => controller);
+  }
 
   return { controller };
 };

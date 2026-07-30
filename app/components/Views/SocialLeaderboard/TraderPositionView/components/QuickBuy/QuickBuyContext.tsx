@@ -1,8 +1,13 @@
-import React, { createContext, useCallback } from 'react';
+import React, { createContext, useCallback, useState } from 'react';
 import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
+import { useQuickBuyQuickAmountPreferences } from './hooks/useQuickBuyQuickAmountPreferences';
+import type {
+  QuickBuyAmountTuple,
+  QuickBuySellPercentTuple,
+} from './utils/quickBuyQuickAmounts';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
@@ -17,6 +22,13 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
+  buyQuickAmounts: QuickBuyAmountTuple;
+  sellQuickPercentages: QuickBuySellPercentTuple;
+  isQuickAmountPreferencesLoaded: boolean;
+  saveQuickAmountPreferences: (next: {
+    buyAmounts: QuickBuyAmountTuple;
+    sellPercentages: QuickBuySellPercentTuple;
+  }) => Promise<void>;
   /**
    * Called by the Buy button. When the high-price-impact modal feature is
    * enabled and the active quote exceeds the error threshold, this navigates
@@ -24,6 +36,14 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
    * Otherwise it delegates directly to `handleConfirm`.
    */
   handleBuy: () => Promise<void>;
+  /**
+   * Keyboard vs slider A/B assignment (`socialAiTSA905AbtestQuickBuyKeyboard`).
+   * When true (treatment), the numeric keypad replaces the percentage slider.
+   */
+  useKeyboard: boolean;
+  /** Whether the numeric keypad is currently shown (treatment only). */
+  isKeypadOpen: boolean;
+  setIsKeypadOpen: (open: boolean) => void;
 }
 
 export const QuickBuyContext = createContext<QuickBuyContextValue | null>(null);
@@ -35,6 +55,8 @@ interface QuickBuyProviderProps {
   analyticsContext?: QuickBuyAnalyticsContext;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
+  /** A/B assignment: true renders the keypad, false keeps the slider. */
+  useKeyboard?: boolean;
   children: React.ReactNode;
 }
 
@@ -45,11 +67,34 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   analyticsContext,
   activeScreen,
   setActiveScreen,
+  useKeyboard = false,
   children,
 }) => {
-  const controller = useQuickBuyController(target, onClose, analyticsContext);
-  const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
-    controller;
+  const controller = useQuickBuyController(
+    target,
+    onClose,
+    analyticsContext,
+    useKeyboard,
+  );
+  // Keypad starts closed; the user opens it by tapping the amount headline.
+  const [isKeypadOpen, setIsKeypadOpen] = useState(false);
+  const {
+    currentCurrency,
+    usdToCurrentCurrencyRate,
+    isPriceImpactError,
+    isPresetAddFundsMode,
+    handleConfirm,
+  } = controller;
+
+  const {
+    buyAmounts: buyQuickAmounts,
+    sellPercentages: sellQuickPercentages,
+    savePreferences: saveQuickAmountPreferences,
+    isLoaded: isQuickAmountPreferencesLoaded,
+  } = useQuickBuyQuickAmountPreferences({
+    currentCurrency,
+    usdToCurrentCurrencyRate,
+  });
 
   const handleBuy = useCallback(async () => {
     if (!isPresetAddFundsMode && isPriceImpactError) {
@@ -85,7 +130,14 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     activeScreen,
     setActiveScreen,
+    buyQuickAmounts,
+    sellQuickPercentages,
+    isQuickAmountPreferencesLoaded,
+    saveQuickAmountPreferences,
     handleBuy,
+    useKeyboard,
+    isKeypadOpen,
+    setIsKeypadOpen,
   };
 
   return (

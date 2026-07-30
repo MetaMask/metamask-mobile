@@ -262,6 +262,10 @@ export default {
     UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
   },
+  IMMERSVE_API_URL: {
+    DEV: 'https://test.immersve.com',
+    PRD: 'https://api.immersve.com',
+  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

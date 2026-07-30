@@ -30,14 +30,14 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceAccountList}
       await screen1Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(AccountListBottomSheet.accountList),
+            asPlaywrightElement(AccountListBottomSheet.accountList),
           ),
       );
 
       await AccountListBottomSheet.tapAddAccountButton();
       await screen3Timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('SOL')),
+          asPlaywrightElement(WalletView.tokenRow('SOL')),
         );
       });
 

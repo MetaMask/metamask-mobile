@@ -7,6 +7,10 @@ import {
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import ReduxService from '../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
+import {
+  parsePerpsUtmFromPath,
+  setPerpsUtmAttribution,
+} from '../../../../components/UI/Perps/utils/perpsAnalyticsAttribution';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
@@ -264,6 +268,18 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     '[handlePerpsUrl] Starting perps deeplink handling with path:',
     perpsPath,
   );
+
+  // Propagate UTM params into controller attribution context.
+  try {
+    setPerpsUtmAttribution(parsePerpsUtmFromPath(perpsPath));
+    // Attribution is best-effort: Engine/controller may be unavailable during
+    // early deeplink handling; never block navigation if UTM write fails.
+  } catch (attributionError) {
+    DevLogger.log(
+      '[handlePerpsUrl] Failed to set attribution context:',
+      attributionError,
+    );
+  }
 
   try {
     await executeDeeplinkIntent(createPerpsDeeplinkIntent({ perpsPath }));

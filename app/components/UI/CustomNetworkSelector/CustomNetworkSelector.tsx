@@ -5,6 +5,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
@@ -66,7 +67,7 @@ const CustomNetworkSelector = ({
   const { styles } = useStyles(createStyles, {});
   const tw = useTailwind();
   const surfaceClass = useElevatedSurface();
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const safeAreaInsets = useSafeAreaInsets();
 
   // Get the currently active network's chain ID in CAIP format

@@ -52,7 +52,7 @@ import {
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
-import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import { mockNotificationServices } from '../../smoke-appium/notifications/utils/mocks';
 import {
   runAnalyticsExpectations,
   shouldRunAnalyticsExpectations,

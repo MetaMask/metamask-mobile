@@ -2,15 +2,16 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -28,6 +29,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  PERPS_EVENT_VALUE,
   type Order,
 } from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
@@ -39,6 +41,7 @@ import {
   formatOrderCardDate,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
   formatOrderLabel,
   getOrderPositionDirection,
@@ -59,7 +62,7 @@ interface DetailRow {
 }
 
 const PerpsOrderDetailsView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
   const { order } = route.params ?? {};
@@ -214,6 +217,14 @@ const PerpsOrderDetailsView: React.FC = () => {
       const result = await cancelOrder({
         orderId: order.orderId,
         symbol: order.symbol,
+        trackingData: {
+          totalFee,
+          marketPrice: priceMetrics.effectivePrice ?? 0,
+          source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
+          ...toPerpsEntryAttribution({
+            source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
+          }),
+        },
       });
 
       // Show success/failure toast
@@ -236,13 +247,22 @@ const PerpsOrderDetailsView: React.FC = () => {
     } finally {
       setIsCanceling(false);
     }
-  }, [order, canCancel, cancelOrder, navigation, showToast, PerpsToastOptions]);
+  }, [
+    order,
+    canCancel,
+    cancelOrder,
+    navigation,
+    showToast,
+    PerpsToastOptions,
+    totalFee,
+    priceMetrics.effectivePrice,
+  ]);
 
   if (!order) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.errors.order_not_found')}
           </Text>
         </View>
@@ -339,7 +359,7 @@ const PerpsOrderDetailsView: React.FC = () => {
           />
         </View>
         <View style={styles.headerTitleContainer}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {orderDetails.orderTypeLabel}
           </Text>
         </View>
@@ -354,7 +374,7 @@ const PerpsOrderDetailsView: React.FC = () => {
           <View style={styles.assetLogoContainer}>
             <PerpsTokenLogo symbol={order.symbol} size={48} />
           </View>
-          <Text variant={TextVariant.HeadingLG} style={styles.assetName}>
+          <Text variant={TextVariant.HeadingLg} style={styles.assetName}>
             {displaySymbol}
           </Text>
         </View>
@@ -365,14 +385,14 @@ const PerpsOrderDetailsView: React.FC = () => {
             {detailRows.map((detailRow) => (
               <View key={detailRow.key} style={styles.detailRow}>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   style={styles.detailLabel}
                 >
                   {detailRow.label}
                 </Text>
                 <View style={styles.detailValue}>
-                  <Text variant={TextVariant.BodyMD}>{detailRow.value}</Text>
+                  <Text variant={TextVariant.BodyMd}>{detailRow.value}</Text>
                 </View>
               </View>
             ))}

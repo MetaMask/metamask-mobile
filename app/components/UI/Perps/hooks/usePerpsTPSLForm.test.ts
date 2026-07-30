@@ -777,8 +777,8 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleTakeProfitPercentageChange('10.00');
       });
 
-      // When not focused, should show clean magnitude (sign lives on the badge)
-      expect(result.current.display.formattedTakeProfitPercentage).toBe('10');
+      // When not focused, should show clean format with sign (10.00 -> + 10)
+      expect(result.current.display.formattedTakeProfitPercentage).toBe('+ 10');
 
       // When focused, should preserve user input
       act(() => {
@@ -1459,10 +1459,8 @@ describe('usePerpsTPSLForm', () => {
     });
   });
 
-  // The RoE input now carries only an unsigned magnitude — the sign lives on
-  // the badge — so any sign typed into the field is stripped.
-  describe('RoE magnitude input (badge owns the sign)', () => {
-    it('strips a leading plus sign and keeps the magnitude', () => {
+  describe('Signed Input Handling', () => {
+    it('handles positive sign input correctly', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
@@ -1474,10 +1472,10 @@ describe('usePerpsTPSLForm', () => {
       });
 
       // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('15');
+      expect(result.current.formState.takeProfitPercentage).toBe('+15');
     });
 
-    it('strips a leading minus sign and keeps the magnitude', () => {
+    it('handles negative sign input correctly', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
@@ -1489,63 +1487,63 @@ describe('usePerpsTPSLForm', () => {
       });
 
       // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('8');
+      expect(result.current.formState.stopLossPercentage).toBe('-8');
     });
 
-    it('strips duplicate signs', () => {
+    it('handles duplicate signs correctly', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act - Double negative signs
+      // Act - Test double negative signs
       act(() => {
         result.current.handlers.handleStopLossPercentageChange('--5');
       });
 
       // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('5');
+      expect(result.current.formState.stopLossPercentage).toBe('-5');
     });
 
-    it('strips en-dash and em-dash characters', () => {
+    it('handles en-dash and em-dash characters', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act - En-dash (–)
+      // Act - Test en-dash (–) conversion
       act(() => {
         result.current.handlers.handleStopLossPercentageChange('–10');
       });
 
-      // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('10');
+      // Assert - En-dash should be converted to regular minus sign without space
+      expect(result.current.formState.stopLossPercentage).toBe('-10');
     });
 
-    it('strips mixed signs', () => {
+    it('handles mixed signs by keeping only the first sign', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
       });
 
-      // Act
+      // Act - Test mixed signs (+-) should keep first sign
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('+-15');
       });
 
-      // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('15');
+      // Assert - Should keep only the first sign (+)
+      expect(result.current.formState.takeProfitPercentage).toBe('+15');
 
-      // Act
+      // Act - Test mixed signs (-+) should keep first sign
       act(() => {
         result.current.handlers.handleStopLossPercentageChange('-+8');
       });
 
-      // Assert
-      expect(result.current.formState.stopLossPercentage).toBe('8');
+      // Assert - Should keep only the first sign (-)
+      expect(result.current.formState.stopLossPercentage).toBe('-8');
     });
 
-    it('clears to empty when only a sign is entered', () => {
+    it('allows backspacing through signs', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
         wrapper: createWrapper(),
@@ -1555,15 +1553,14 @@ describe('usePerpsTPSLForm', () => {
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('-8');
       });
-      expect(result.current.formState.takeProfitPercentage).toBe('8');
 
-      // Act - Backspace to just the sign (stripped to empty)
+      // Act - Backspace to just the sign
       act(() => {
         result.current.handlers.handleTakeProfitPercentageChange('-');
       });
 
       // Assert
-      expect(result.current.formState.takeProfitPercentage).toBe('');
+      expect(result.current.formState.takeProfitPercentage).toBe('-');
 
       // Act - Backspace to empty
       act(() => {
@@ -1572,169 +1569,6 @@ describe('usePerpsTPSLForm', () => {
 
       // Assert
       expect(result.current.formState.takeProfitPercentage).toBe('');
-    });
-  });
-
-  describe('RoE sign badge', () => {
-    it('defaults to + for take profit and - for stop loss', () => {
-      // Arrange / Act
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
-        wrapper: createWrapper(),
-      });
-
-      // Assert (AC1)
-      expect(result.current.formState.takeProfitSign).toBe('+');
-      expect(result.current.formState.stopLossSign).toBe('-');
-    });
-
-    it('toggles the take profit sign, keeping the value and recomputing the trigger', () => {
-      // Arrange - +25% TP puts the trigger above entry (long)
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
-        wrapper: createWrapper(),
-      });
-      act(() => {
-        result.current.buttons.handleTakeProfitPercentageButton(25);
-      });
-      const priceAbove = Number.parseFloat(
-        result.current.formState.takeProfitPrice,
-      );
-      expect(priceAbove).toBeGreaterThan(defaultParams.currentPrice);
-
-      // Act (AC2) - flip to -
-      act(() => {
-        result.current.buttons.handleTakeProfitSignToggle();
-      });
-
-      // Assert - magnitude kept, sign flipped, trigger now below entry
-      expect(result.current.formState.takeProfitSign).toBe('-');
-      expect(result.current.formState.takeProfitPercentage).toBe('25');
-      const priceBelow = Number.parseFloat(
-        result.current.formState.takeProfitPrice,
-      );
-      expect(priceBelow).toBeGreaterThan(0);
-      expect(priceBelow).toBeLessThan(defaultParams.currentPrice);
-
-      // Act (AC3) - toggle back to +
-      act(() => {
-        result.current.buttons.handleTakeProfitSignToggle();
-      });
-
-      // Assert - back to a positive return, value still kept
-      expect(result.current.formState.takeProfitSign).toBe('+');
-      expect(result.current.formState.takeProfitPercentage).toBe('25');
-      expect(
-        Number.parseFloat(result.current.formState.takeProfitPrice),
-      ).toBeGreaterThan(defaultParams.currentPrice);
-    });
-
-    it('toggles the stop loss sign, keeping the value and recomputing the trigger', () => {
-      // Arrange - -5% SL puts the trigger below entry (long)
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
-        wrapper: createWrapper(),
-      });
-      act(() => {
-        result.current.buttons.handleStopLossPercentageButton(-5);
-      });
-      const priceBelow = Number.parseFloat(
-        result.current.formState.stopLossPrice,
-      );
-      expect(priceBelow).toBeLessThan(defaultParams.currentPrice);
-
-      // Act (AC4) - flip to +
-      act(() => {
-        result.current.buttons.handleStopLossSignToggle();
-      });
-
-      // Assert - magnitude kept, sign flipped, trigger now above entry (floor gain)
-      expect(result.current.formState.stopLossSign).toBe('+');
-      expect(result.current.formState.stopLossPercentage).toBe('5');
-      expect(
-        Number.parseFloat(result.current.formState.stopLossPrice),
-      ).toBeGreaterThan(defaultParams.currentPrice);
-    });
-
-    it('flips the take profit sign to match a tapped preset chip', () => {
-      // Arrange - badge starts +, toggle it to -
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
-        wrapper: createWrapper(),
-      });
-      act(() => {
-        result.current.buttons.handleTakeProfitSignToggle();
-      });
-      expect(result.current.formState.takeProfitSign).toBe('-');
-
-      // Act (AC5) - tap the +25% preset whose natural sign is +
-      act(() => {
-        result.current.buttons.handleTakeProfitPercentageButton(25);
-      });
-
-      // Assert - badge flips back to + and the value is filled
-      expect(result.current.formState.takeProfitSign).toBe('+');
-      expect(result.current.formState.takeProfitPercentage).toBe('25');
-    });
-
-    it('keeps take profit validation error when toggling sign on a manually entered price', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.handlers.handleTakeProfitPriceChange('45000');
-      });
-
-      expect(result.current.validation.takeProfitError).toContain('above');
-
-      act(() => {
-        result.current.buttons.handleTakeProfitSignToggle();
-      });
-
-      expect(result.current.formState.takeProfitPrice).toBe('45000');
-      expect(result.current.validation.takeProfitError).toBe('');
-    });
-
-    it('shows take profit validation error after toggling sign when price is invalid for the new sign', () => {
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
-        wrapper: createWrapper(),
-      });
-
-      act(() => {
-        result.current.handlers.handleTakeProfitPriceChange('50001');
-      });
-
-      expect(result.current.validation.takeProfitError).toBe('');
-
-      act(() => {
-        result.current.buttons.handleTakeProfitSignToggle();
-      });
-
-      expect(result.current.formState.takeProfitPrice).toBe('50001');
-      expect(result.current.validation.takeProfitError).toContain('below');
-    });
-
-    it('applies a negative sign to the take profit trigger price (AC6)', () => {
-      // Arrange - long position; toggle TP badge to -
-      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
-        wrapper: createWrapper(),
-      });
-      act(() => {
-        result.current.buttons.handleTakeProfitSignToggle();
-      });
-
-      // Act - enter a 10% RoE magnitude with the - sign active
-      act(() => {
-        result.current.handlers.handleTakeProfitPercentageChange('10');
-      });
-
-      // Assert - magnitude stored unsigned; trigger price sits below the
-      // entry/current price, i.e. a negative RoE take profit.
-      expect(result.current.formState.takeProfitSign).toBe('-');
-      expect(result.current.formState.takeProfitPercentage).toBe('10');
-      const triggerPrice = Number.parseFloat(
-        result.current.formState.takeProfitPrice,
-      );
-      expect(triggerPrice).toBeGreaterThan(0);
-      expect(triggerPrice).toBeLessThan(defaultParams.currentPrice);
-      expect(result.current.validation.takeProfitError).toBe('');
     });
   });
 
@@ -1794,11 +1628,7 @@ describe('usePerpsTPSLForm', () => {
         result.current.handlers.handleStopLossPercentageChange('-10');
       });
 
-      // RoE sign toggle (TAT-3398): the magnitude is stored unsigned and the
-      // leading sign is captured by stopLossSign (defaults to '-'). Net RoE is
-      // still -10%, so the trigger price computes below entry.
-      expect(result.current.formState.stopLossPercentage).toBe('10');
-      expect(result.current.formState.stopLossSign).toBe('-');
+      expect(result.current.formState.stopLossPercentage).toBe('-10');
       expect(result.current.formState.stopLossPrice).not.toBe('');
     });
 

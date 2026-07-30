@@ -7,11 +7,14 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
-import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
 import {
   MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
 } from '../../Earn/constants/musd';
+import {
+  getWildcardTokenListFromConfig,
+  WildcardTokenList,
+} from '../../Earn/utils/wildcardTokenList';
 import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
   ensureMonadMusdListed,
@@ -104,12 +107,63 @@ export const selectMoneyEnableMoneyAccountFlag = createSelector(
   isMoneyAccountEnabled,
 );
 
+/**
+ * Selects whether Money account deposit CTAs can be displayed in token-list
+ * rows. The Money account feature must be enabled before this CTA can appear.
+ */
+export const selectIsMoneyTokenListItemCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MONEY_TOKEN_LIST_ITEM_CTA === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects stablecoins that can display the Money account deposit CTA.
+ * Remote config takes precedence over the local environment override.
+ */
+export const selectMoneyDepositCtaTokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMoneyDepositCtaTokens,
+      'earnMoneyDepositCtaTokens',
+      process.env.MM_MONEY_DEPOSIT_CTA_TOKENS,
+      'MM_MONEY_DEPOSIT_CTA_TOKENS',
+    ),
+);
+
 export const selectMoneyHubEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const localFlag = process.env.MM_MONEY_HUB_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyHubEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the realized earnings section is shown on Money Home.
+ * The remote version-gated flag takes precedence over the local environment
+ * fallback.
+ */
+export const selectMoneyEarningSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_EARNING_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarningSectionEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
@@ -126,6 +180,20 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
       remoteFeatureFlags?.earnMoneyFirstTimeDepositAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local =
       process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Kill-switch for the link-card sheet Rive card flip animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardFlipAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardFlipAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED !== 'false';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );
@@ -252,6 +320,76 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       Object.keys(catalog).length > 0 ? catalog : MONEY_NO_FEE_TOKENS_FALLBACK;
 
     return ensureMonadMusdListed(result);
+  },
+);
+
+/**
+ * Selects whether the "Earn with Money account" banner can be displayed on
+ * token detail pages. The Money account feature must be enabled before the
+ * banner can appear.
+ */
+export const selectIsMoneyEarnBannerEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MONEY_EARN_BANNER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarnBannerEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Default tokens whose token detail page shows the "Earn with Money account"
+ * banner when the remote flag is not configured (the MUSD-1177 token list).
+ */
+export const MONEY_EARN_BANNER_TOKENS_FALLBACK: WildcardTokenList = {
+  [CHAIN_IDS.MAINNET]: [
+    'USDC',
+    'USDT',
+    'DAI',
+    'mUSD',
+    'aUSDC',
+    'aUSDT',
+    'aDAI',
+  ],
+  [CHAIN_IDS.LINEA_MAINNET]: ['mUSD'],
+  [CHAIN_IDS.ARBITRUM]: ['USDC', 'aUSDC', 'aUSDCN'],
+  [CHAIN_IDS.BASE]: ['USDC', 'aUSDC'],
+  [CHAIN_IDS.BSC]: ['USDC', 'USDT', 'aUSDC', 'aUSDT'],
+  [CHAIN_IDS.MONAD]: ['USDC'],
+};
+
+/**
+ * Selects the tokens whose token detail page shows the "Earn with Money
+ * account" banner, as a wildcard list mapping hex chain IDs (or "*") to token
+ * symbols (or ["*"]).
+ *
+ * Owned by the Earn team and deliberately decoupled from the
+ * confirmations-owned relay fixed-spread flag, so route changes there never
+ * silently change this surface.
+ *
+ * Remote flag takes precedence over the local env var; when neither is
+ * configured, MONEY_EARN_BANNER_TOKENS_FALLBACK applies. Remote kill switch:
+ * {"*":[]}.
+ */
+export const selectMoneyEarnBannerTokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList => {
+    const configured = getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMoneyEarnBannerTokens,
+      'earnMoneyEarnBannerTokens',
+      process.env.MM_MONEY_EARN_BANNER_TOKENS,
+      'MM_MONEY_EARN_BANNER_TOKENS',
+    );
+    return Object.keys(configured).length > 0
+      ? configured
+      : MONEY_EARN_BANNER_TOKENS_FALLBACK;
   },
 );
 

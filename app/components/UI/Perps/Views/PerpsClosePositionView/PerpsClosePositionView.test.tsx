@@ -1,7 +1,13 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import { ORDER_SLIPPAGE_CONFIG } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  ORDER_SLIPPAGE_CONFIG,
+} from '@metamask/perps-controller';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
@@ -58,6 +64,10 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsLivePrices: jest.fn(),
   usePerpsTopOfBook: jest.fn(),
+  // PerpsOrderHeader's own focused-price source; defaults to undefined (set
+  // in beforeEach) so the header falls back to the `price` prop derived from
+  // usePerpsLivePrices, matching existing expectations.
+  usePerpsLiveFocusedPrice: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -151,11 +161,11 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
 
 jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
   const MockReact = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () =>
-      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+      MockReact.createElement(MockView, { testID: 'rewards-vip-badge' }),
   };
 });
 
@@ -205,6 +215,9 @@ describe('PerpsClosePositionView', () => {
   const usePerpsTopOfBookMock = jest.mocked(
     jest.requireMock('../../hooks/stream').usePerpsTopOfBook,
   );
+  const usePerpsLiveFocusedPriceMock = jest.mocked(
+    jest.requireMock('../../hooks/stream').usePerpsLiveFocusedPrice,
+  );
   const usePerpsOrderFeesMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsOrderFees,
   );
@@ -237,6 +250,7 @@ describe('PerpsClosePositionView', () => {
     // Setup navigation mocks
     useNavigationMock.mockReturnValue({
       goBack: mockGoBack,
+      addListener: jest.fn(() => jest.fn()),
     });
 
     // Setup default route params
@@ -253,6 +267,7 @@ describe('PerpsClosePositionView', () => {
     });
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
+    usePerpsLiveFocusedPriceMock.mockReturnValue(undefined);
     usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
@@ -1412,6 +1427,175 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
+  describe('Slider drag commit funnel', () => {
+    it('blocks confirm while a drag is in flight, then confirms once the value is committed', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+      const getConfirmButton = () =>
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        );
+
+      // Act - start (but never end) a drag, then try to confirm immediately
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(40);
+      });
+      fireEvent.press(getConfirmButton());
+
+      // Assert - the in-flight drag is flushed instead of being submitted
+      await waitFor(() => {
+        expect(handleClosePosition).not.toHaveBeenCalled();
+      });
+
+      // Act - press confirm again now that the value has committed
+      fireEvent.press(getConfirmButton());
+
+      // Assert - this second tap goes through
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+    });
+
+    it('commits the live value on drag end', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+
+      // Act
+      act(() => {
+        const { onValueChange, onDragEnd } = getSlider().props as {
+          onValueChange: (v: number) => void;
+          onDragEnd: (v: number) => void;
+        };
+        onValueChange(60);
+        onDragEnd(60);
+      });
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      // Assert - a committed 60% close is a partial close, so a non-empty
+      // size must be sent (unlike the default 100% full close, which omits
+      // size entirely).
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(handleClosePosition.mock.calls[0][0].size).not.toBe('');
+    });
+
+    it('flushes the live drag value forward on cancel instead of discarding it', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+
+      // Act
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(25);
+      });
+      // A gesture cancelled by competing-gesture arbitration never fires
+      // onDragEnd; only the wrapping View's onTouchCancel signals it.
+      act(() => {
+        fireEvent(getSlider().parent as ReactTestInstance, 'touchCancel');
+      });
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      // Assert - the cancelled drag's 25% value must have been flushed
+      // forward (a partial close), not discarded back to the default 100%
+      // full close (which would send an empty size).
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(handleClosePosition.mock.calls[0][0].size).not.toBe('');
+    });
+
+    it('does not commit anything on cancel when the slider was never dragged', () => {
+      // Arrange
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+
+      // Act & Assert - isDraggingSlider is already false, so this is a no-op
+      expect(() => {
+        fireEvent(getSlider().parent as ReactTestInstance, 'touchCancel');
+      }).not.toThrow();
+    });
+  });
+
+  describe('Keypad USD input commit funnel', () => {
+    it('commits a percentage from typed USD input without clobbering the raw typed string', () => {
+      // Arrange
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Focus the USD input so handleKeypadChange treats input as active
+      fireEvent.press(getByTestId('perps-amount-display'));
+      const keypad = UNSAFE_getByType('Keypad' as never);
+
+      // Act - type a trailing decimal point, as a user would mid-entry
+      act(() => {
+        (
+          keypad.props as {
+            onChange: (v: { value: string; valueAsNumber: number }) => void;
+          }
+        ).onChange({ value: '2.', valueAsNumber: 2 });
+      });
+
+      // Assert - commitClosePercentage's own USD recompute must not clobber
+      // the raw typed string ("2.") with a reformatted value; this is what
+      // the `{ syncUsdString: false }` option on the commit call preserves.
+      expect(
+        (UNSAFE_getByType('Keypad' as never).props as { value: string }).value,
+      ).toBe('2.');
+    });
+  });
+
   describe('Input Handling', () => {
     it('handles USD input mode only', () => {
       // Arrange
@@ -1992,31 +2176,33 @@ describe('PerpsClosePositionView', () => {
       // HyperLiquid's marginUsed already includes PnL
       // receivedAmount = marginUsed - fees = 1450 - 45 = 1405
       // realizedPnl = unrealizedPnl = 150 (from defaultPerpsPositionMock)
-      expect(handleClosePosition).toHaveBeenCalledWith({
-        position: defaultPerpsPositionMock,
-        size: '',
-        orderType: 'market',
-        limitPrice: undefined,
-        trackingData: {
-          totalFee: 45,
-          marketPrice: 3000,
-          receivedAmount: 1405,
-          realizedPnl: 150,
-          metamaskFeeRate: 0,
-          metamaskFee: 0,
-          feeDiscountPercentage: undefined,
-          estimatedPoints: undefined,
-          inputMethod: 'default',
-        },
-        marketPrice: '3000.00',
-        // Slippage parameters added in USD-as-source-of-truth refactor
-        // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
-        slippage: {
-          usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
-          priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
-        },
-      });
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          position: defaultPerpsPositionMock,
+          size: '',
+          orderType: 'market',
+          limitPrice: undefined,
+          trackingData: expect.objectContaining({
+            totalFee: 45,
+            marketPrice: 3000,
+            receivedAmount: 1405,
+            realizedPnl: 150,
+            metamaskFeeRate: 0,
+            metamaskFee: 0,
+            feeDiscountPercentage: undefined,
+            estimatedPoints: undefined,
+            inputMethod: 'default',
+          }),
+          marketPrice: '3000.00',
+          // Slippage parameters added in USD-as-source-of-truth refactor
+          // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
+          slippage: {
+            usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
+            priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
+            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
+          },
+        }),
+      );
     });
   });
 
@@ -3045,6 +3231,163 @@ describe('PerpsClosePositionView', () => {
         expect(
           defaultPerpsClosePositionMock.handleClosePosition,
         ).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('abandon order tracking', () => {
+    const abandonInteraction = [
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER,
+      }),
+    ];
+
+    let focusSpy: jest.SpyInstance;
+
+    const setupAbandonNav = (routes: { key: string }[]) => {
+      const listeners: Record<string, (() => void)[]> = {};
+      useNavigationMock.mockReturnValue({
+        goBack: mockGoBack,
+        navigate: jest.fn(),
+        addListener: jest.fn((event: string, cb: () => void) => {
+          (listeners[event] = listeners[event] || []).push(cb);
+          return jest.fn();
+        }),
+        getState: jest.fn(() => ({ routes })),
+        getParent: jest.fn(() => undefined),
+      });
+      return (event: string) => (listeners[event] || []).forEach((cb) => cb());
+    };
+
+    beforeEach(() => {
+      // Run the focus callback so the abandon hook records the focus depth.
+      focusSpy = jest
+        .spyOn(jest.requireMock('@react-navigation/native'), 'useFocusEffect')
+        .mockImplementation((...args: unknown[]) => (args[0] as () => void)());
+    });
+
+    afterEach(() => {
+      focusSpy.mockRestore();
+    });
+
+    it('emits abandon_order on beforeRemove (back / hardware back)', () => {
+      const fire = setupAbandonNav([{ key: 'close' }]);
+      renderWithProvider(<PerpsClosePositionView />);
+
+      act(() => fire('beforeRemove'));
+
+      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+
+    it('emits abandon_order on tab-away (blur with unchanged depth)', () => {
+      const fire = setupAbandonNav([{ key: 'close' }]);
+      renderWithProvider(<PerpsClosePositionView />);
+
+      act(() => fire('blur'));
+
+      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+
+    it('does NOT emit on blur when a child route was pushed (depth increased)', () => {
+      const routes = [{ key: 'close' }];
+      const fire = setupAbandonNav(routes);
+      renderWithProvider(<PerpsClosePositionView />);
+
+      routes.push({ key: 'child' });
+      act(() => fire('blur'));
+
+      expect(defaultPerpsEventTrackingMock.track).not.toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+
+    it('does NOT emit after a confirmed close', () => {
+      const fire = setupAbandonNav([{ key: 'close' }]);
+      const { getByTestId } = renderWithProvider(<PerpsClosePositionView />);
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+      act(() => fire('beforeRemove'));
+
+      expect(defaultPerpsEventTrackingMock.track).not.toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+  });
+
+  describe('position_close entry action (button_clicked)', () => {
+    const expectScreenViewed = (expected: Record<string, unknown>) =>
+      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.POSITION_CLOSE,
+          ...expected,
+        }),
+      );
+
+    it('reports button_clicked=reduce_exposure and source=position_screen when opened via the reduce-exposure entry', () => {
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+        },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+      });
+    });
+
+    it('reports button_clicked=close and source=order_book when opened via the order-book close entry', () => {
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+        },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+      });
+    });
+
+    it('defaults button_clicked=close and source=perp_asset_screen when no entry action is provided', () => {
+      useRouteMock.mockReturnValue({
+        params: { position: defaultPerpsPositionMock },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
       });
     });
   });

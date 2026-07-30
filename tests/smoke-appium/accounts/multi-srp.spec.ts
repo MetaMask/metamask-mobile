@@ -8,7 +8,6 @@ import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   assertAccountCount,
-  inputSrp,
   openImportSrpFromAccountList,
   renameAccountAtIndex,
 } from '../../flows/accounts.flow.js';
@@ -51,7 +50,6 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
         async ({ userStorageMockttpController }) => {
           await loginAndOpenAccountList({
             scenarioType: 'e2e',
-            walletTimeout: 15_000,
           });
           await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1);
 
@@ -72,7 +70,7 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
           await assertAccountCount(SECOND_ACCOUNT_NAME, 1);
 
           await openImportSrpFromAccountList();
-          await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+          await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE_2);
           await ImportSrpView.tapImportButton();
           await waitForWalletHomePlaywright(20_000);
           // Top import-success toast covers the account picker until it dismisses.
@@ -104,10 +102,9 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
       await withIdentityFixtures(fixtureOptions, async () => {
         await loginAndOpenAccountList({
           scenarioType: 'e2e',
-          walletTimeout: 15_000,
         });
         await openImportSrpFromAccountList();
-        await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
+        await ImportSrpView.enterSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
         await waitForWalletHomePlaywright(20_000);
         // Top import-success toast covers the account picker until it dismisses.

@@ -12,7 +12,6 @@ export enum CellVariant {
   MultiSelect = 'MultiSelect',
   Display = 'Display',
   SelectWithMenu = 'SelectWithMenu',
-  MultiSelectWithMenu = 'MultiSelectWithMenu',
 }
 
 /**

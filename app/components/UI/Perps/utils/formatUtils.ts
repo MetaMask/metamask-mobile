@@ -454,6 +454,48 @@ export const formatOrderCardDate = (timestamp: number): string => {
   return `${dateStr} at ${timeStr}`;
 };
 
+const PRO_ORDER_CARD_MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+const padTwoDigits = (value: number): string => String(value).padStart(2, '0');
+
+/**
+ * Formats an open-order placement timestamp for Pro order cards.
+ * Matches Figma: "06 Apr 26 • 19:13:54"
+ *
+ * Built only from Date getters — Hermes `formatToParts` often omits
+ * hour/minute/second and renders as "06 Apr 26 • ::".
+ *
+ * @param timestamp - Unix timestamp in milliseconds
+ */
+export const formatProOrderCardTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const day = padTwoDigits(date.getDate());
+  const month = PRO_ORDER_CARD_MONTHS[date.getMonth()];
+  const year = String(date.getFullYear()).slice(-2);
+  const hours = padTwoDigits(date.getHours());
+  const minutes = padTwoDigits(date.getMinutes());
+  const seconds = padTwoDigits(date.getSeconds());
+
+  return `${day} ${month} ${year} • ${hours}:${minutes}:${seconds}`;
+};
+
 /**
  * Formats a timestamp for transaction section headers
  * @param timestamp - Unix timestamp in milliseconds

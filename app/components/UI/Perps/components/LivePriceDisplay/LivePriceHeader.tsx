@@ -20,8 +20,24 @@ interface LivePriceHeaderProps {
   testIDPrice?: string;
   testIDChange?: string;
   throttleMs?: number;
-  /** Current price from candle stream - syncs header with chart */
+  /**
+   * Current price to display. Source varies by caller — e.g. the candle
+   * stream for chart-synced screens (PerpsMarketInlineHeader,
+   * PerpsOrderBookView), or the focused-price stream for ticket screens
+   * (PerpsOrderHeader) — this component itself is source-agnostic.
+   */
   currentPrice: number;
+  /**
+   * Optional 24h percent change override, bypassing this component's own
+   * price-stream subscription. Pass `null` while the caller's own value is
+   * still loading, or a number once available. Used by callers (e.g.
+   * PerpsOrderHeader) that already source both price and percent change
+   * from a single shared hook, so the two values update together instead of
+   * from two independent subscriptions. When omitted entirely (undefined),
+   * falls back to this component's existing internal subscription — no
+   * behavior change for callers that don't pass it (e.g. market details).
+   */
+  percentChange24h?: number | null;
   /**
    * Visual size of the price/change row.
    * - `default`: compact, muted price (used inside the market header).
@@ -56,8 +72,10 @@ const stackedLayout: ViewStyle = {
 };
 
 /**
- * Component that displays live price and change for header
- * Uses currentPrice prop from candle stream, subscribes to price stream for 24h change only
+ * Component that displays live price and change for header.
+ * Renders the `currentPrice` prop as-is (source-agnostic). Subscribes to the
+ * price stream for 24h change only when the caller doesn't supply its own
+ * `percentChange24h` override.
  */
 const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   symbol,
@@ -65,6 +83,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   testIDChange,
   throttleMs = 1000, // Balanced updates for header (1 update per second)
   currentPrice,
+  percentChange24h: percentChange24hOverride,
   size = 'default',
 }) => {
   const isLarge = size === 'large';
@@ -76,9 +95,13 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   // Match the asset overview screen, which uses a medium-weight change line.
   const changeFontWeight = isLarge ? FontWeight.Medium : FontWeight.Regular;
   const { styles } = useStyles(styleSheet, {});
-  // Subscribe to price stream only for 24h change percentage
+  const hasPercentChangeOverride = percentChange24hOverride !== undefined;
+
+  // Skip this component's own subscription when the caller supplies its own
+  // percent-change value — avoids a redundant duplicate subscription to the
+  // same symbol.
   const prices = usePerpsLivePrices({
-    symbols: [symbol],
+    symbols: hasPercentChangeOverride ? [] : [symbol],
     throttleMs,
   });
 
@@ -87,10 +110,13 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   // Use null to indicate loading state - only use actual values (including 0) when available
   // When we have live price data, only use percentChange from that data - don't fall back
   const displayChange = useMemo(() => {
+    if (hasPercentChangeOverride) {
+      return percentChange24hOverride ?? null;
+    }
     if (!priceData) return null;
     if (priceData.percentChange24h === undefined) return null;
     return Number.parseFloat(priceData.percentChange24h);
-  }, [priceData]);
+  }, [hasPercentChangeOverride, percentChange24hOverride, priceData]);
 
   // Only determine change color when we have actual data (not loading)
   const isPositiveChange = displayChange !== null && displayChange >= 0;

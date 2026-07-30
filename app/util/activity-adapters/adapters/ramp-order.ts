@@ -3,10 +3,12 @@
  * unified Activity list. Lives in mobile until shared
  * `@metamask/activity-adapters` publishes an equivalent.
  */
+import type { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { FiatOrder } from '../../../reducers/fiatOrders/types';
 import type { ActivityListItem } from '../types';
 import {
+  caipChainIdFromAssetId,
   getRampOrderTransactionHash,
   mapRampOrderStatus,
   mapRampOrderType,
@@ -16,6 +18,35 @@ import {
 
 export interface MapRampOrderArgs {
   order: FiatOrder;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+/**
+ * Resolves CAIP-2 for a legacy FiatOrder. Falls through an unparseable
+ * network name string (e.g. `"ethereum"`) to cryptoCurrency metadata.
+ */
+function toFiatOrderCaipChainId(order: FiatOrder): CaipChainId | null {
+  const fromNetwork = toRampOrderCaipChainId(order.network);
+  if (fromNetwork) {
+    return fromNetwork;
+  }
+
+  const cryptoCurrency = asRecord(asRecord(order.data)?.cryptoCurrency);
+  const chainId = cryptoCurrency?.chainId;
+  if (typeof chainId === 'string') {
+    const fromChain = toRampOrderCaipChainId(chainId);
+    if (fromChain) {
+      return fromChain;
+    }
+  }
+
+  const assetId = cryptoCurrency?.assetId;
+  return typeof assetId === 'string' ? caipChainIdFromAssetId(assetId) : null;
 }
 
 /**
@@ -34,7 +65,7 @@ export function mapRampOrder({
     return null;
   }
 
-  const chainId = toRampOrderCaipChainId(order.network);
+  const chainId = toFiatOrderCaipChainId(order);
   if (!chainId) {
     return null;
   }
