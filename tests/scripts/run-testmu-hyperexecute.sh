@@ -169,7 +169,7 @@ cacheDirectories:
 framework:
   name: appium
   args:
-    region: $(yaml_escape "$HE_REGION")
+    region: "$(yaml_escape "$HE_REGION")"
     reservation: false
 
 env:
