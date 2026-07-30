@@ -23,7 +23,10 @@ import {
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
-import { useGetPerpsHomeNavigationTarget } from '../utils/perpsModeSwitch';
+import {
+  navigateToPerpsHomeTarget,
+  useGetPerpsHomeNavigationTarget,
+} from '../utils/perpsModeSwitch';
 
 /**
  * Navigation handler result interface
@@ -148,15 +151,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToHome = useCallback(
     (source?: string) => {
-      const { screen, params } = getPerpsHomeNavigationTarget({ source });
-      // `screen`/`params` are resolved dynamically (Home vs. default Pro
-      // market), so they can't be narrowed to a single navigate() overload.
-      (
-        navigation.navigate as unknown as (
-          screen: string,
-          params?: object,
-        ) => void
-      )(screen, params);
+      const target = getPerpsHomeNavigationTarget({ source });
+      navigateToPerpsHomeTarget(navigation, target);
     },
     [navigation, getPerpsHomeNavigationTarget],
   );

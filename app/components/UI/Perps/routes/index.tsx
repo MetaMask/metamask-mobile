@@ -50,7 +50,6 @@ import { PayWithModal } from '../../../Views/confirmations/components/modals/pay
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
@@ -327,7 +326,6 @@ const PerpsScreenStack = () => {
                   isProModeActive
                     ? {
                         market: buildDefaultProMarket(),
-                        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
                       }
                     : undefined
                 }

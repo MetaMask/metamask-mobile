@@ -2,10 +2,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  useNavigation,
-  type NavigatorScreenParams,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
@@ -45,8 +42,10 @@ import {
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import { useGetPerpsHomeNavigationTarget } from '../../UI/Perps/utils/perpsModeSwitch';
-import type { PerpsStackParamList } from '../../UI/Perps/types/navigation';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../UI/Perps/utils/perpsModeSwitch';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const WalletActions = () => {
@@ -126,13 +125,10 @@ const WalletActions = () => {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        const { screen, params } = getPerpsHomeNavigationTarget({
+        const target = getPerpsHomeNavigationTarget({
           source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON,
         });
-        navigate(Routes.PERPS.ROOT, {
-          screen,
-          params,
-        } as NavigatorScreenParams<PerpsStackParamList>);
+        navigate(Routes.PERPS.ROOT, toPerpsNavigatorScreenParams(target));
       }
     });
   }, [

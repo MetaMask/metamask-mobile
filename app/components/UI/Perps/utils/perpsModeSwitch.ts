@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsMode } from '../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
+import type { PerpsStackParamList } from '../types/navigation';
 
 /**
  * Default market a user lands on when switching to Pro mode (TAT-3551, AC #4).
@@ -101,5 +103,40 @@ export const useGetPerpsHomeNavigationTarget = (): ((
     (extraParams?: Record<string, unknown>) =>
       resolvePerpsHomeNavigationTarget(isProModeActive, extraParams),
     [isProModeActive],
+  );
+};
+
+/**
+ * Casts a resolved {@link PerpsHomeNavigationTarget} into the shape expected
+ * by `navigate(Routes.PERPS.ROOT, ...)`.
+ *
+ * `Routes.PERPS.*` constants are plain `string`s (not `as const` literals),
+ * so TypeScript can't correlate `screen`/`params` through the union without
+ * an assertion — the same trade-off already accepted elsewhere in the
+ * codebase for dynamic screen names (e.g. `PerpsStackParamList` navigation
+ * in `usePerpsNavigationHandlers.ts`, or `app/components/UI/Rewards/utils.ts`).
+ * Centralized here so every "go to Perps home" call site shares one
+ * reviewed assertion instead of repeating it.
+ */
+export const toPerpsNavigatorScreenParams = (
+  target: PerpsHomeNavigationTarget,
+): NavigatorScreenParams<PerpsStackParamList> =>
+  target as unknown as NavigatorScreenParams<PerpsStackParamList>;
+
+/**
+ * Navigates directly (not nested under `Routes.PERPS.ROOT`) to a resolved
+ * {@link PerpsHomeNavigationTarget}. Same rationale as
+ * {@link toPerpsNavigatorScreenParams}: `navigate()`'s overloaded signature
+ * can't be satisfied by a dynamically-resolved screen/params pair, so the
+ * assertion is centralized here (mirrors `navigateWithDetails` in
+ * `app/util/navigation/navUtils.ts`).
+ */
+export const navigateToPerpsHomeTarget = (
+  navigation: { navigate: (...args: never[]) => void },
+  target: PerpsHomeNavigationTarget,
+): void => {
+  (navigation.navigate as unknown as (screen: string, params?: object) => void)(
+    target.screen,
+    target.params,
   );
 };

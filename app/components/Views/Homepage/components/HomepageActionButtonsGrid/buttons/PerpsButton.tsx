@@ -1,8 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  useNavigation,
-  type NavigatorScreenParams,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { IconName } from '@metamask/design-system-react-native';
@@ -11,8 +8,10 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
 import { selectPerpsEnabledFlag } from '../../../../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../../../../UI/Perps/selectors/perpsController';
-import { useGetPerpsHomeNavigationTarget } from '../../../../../UI/Perps/utils/perpsModeSwitch';
-import type { PerpsStackParamList } from '../../../../../UI/Perps/types/navigation';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../../../../UI/Perps/utils/perpsModeSwitch';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   ActionButtonType,
@@ -49,11 +48,10 @@ const PerpsButton = ({
       return;
     }
 
-    const { screen, params } = getPerpsHomeNavigationTarget();
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen,
-      params,
-    } as NavigatorScreenParams<PerpsStackParamList>);
+    navigation.navigate(
+      Routes.PERPS.ROOT,
+      toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
+    );
   }, [
     actionPosition,
     createEventBuilder,

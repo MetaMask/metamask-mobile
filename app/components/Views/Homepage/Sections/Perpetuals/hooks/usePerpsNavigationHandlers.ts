@@ -11,7 +11,10 @@ import {
 } from '@metamask/perps-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectIsFirstTimePerpsUser } from '../../../../../UI/Perps/selectors/perpsController';
-import { useGetPerpsHomeNavigationTarget } from '../../../../../UI/Perps/utils/perpsModeSwitch';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../../../../UI/Perps/utils/perpsModeSwitch';
 import type {
   PerpsNavigationParamList,
   PerpsStackParamList,
@@ -64,20 +67,24 @@ export const usePerpsNavigationHandlers = ({
         : {}),
     };
 
+    // Resolve the Pro-aware target up front (Home vs. default Pro market)
+    // so first-time users are redirected consistently with returning users
+    // once they complete the tutorial (TAT-3612).
+    const target = getPerpsHomeNavigationTarget(homeParams);
+
     if (isFirstTimePerpsUser) {
       navigation.navigate(Routes.PERPS.TUTORIAL, {
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-        redirectScreen: Routes.PERPS.PERPS_HOME,
-        redirectParams: homeParams,
+        redirectScreen: target.screen,
+        redirectParams: target.params,
       });
       return;
     }
 
-    const { screen, params } = getPerpsHomeNavigationTarget(homeParams);
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen,
-      params,
-    } as NavigatorScreenParams<PerpsStackParamList>);
+    navigation.navigate(
+      Routes.PERPS.ROOT,
+      toPerpsNavigatorScreenParams(target),
+    );
   }, [
     isFirstTimePerpsUser,
     navigation,

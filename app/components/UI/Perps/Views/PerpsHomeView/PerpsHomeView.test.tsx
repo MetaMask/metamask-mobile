@@ -662,9 +662,19 @@ describe('PerpsHomeView', () => {
     // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - mode is persisted, but onboarding is not skipped
+    // Assert - mode is persisted, but onboarding is not skipped. The
+    // tutorial redirect still points at the default Pro market (not Perps
+    // Home) so completing onboarding doesn't violate the Pro-mode invariant
+    // (TAT-3612).
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+      source: 'perps_home',
+      redirectScreen: Routes.PERPS.MARKET_DETAILS,
+      redirectParams: {
+        market: { symbol: 'BTC' },
+        source: 'perps_home',
+      },
+    });
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MARKET_DETAILS,
       expect.anything(),

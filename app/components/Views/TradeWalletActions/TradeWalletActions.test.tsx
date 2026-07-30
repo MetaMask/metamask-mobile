@@ -825,9 +825,18 @@ describe('TradeWalletActions', () => {
     await pressActionButton(getByTestId, 'perps-mode-toggle');
 
     // Mode is still persisted, but onboarding is not skipped: the user is sent
-    // to the tutorial instead of the mode-switch/home shortcut.
+    // to the tutorial instead of the mode-switch/home shortcut. The tutorial
+    // redirect still points at the default Pro market (not Perps Home) so
+    // completing onboarding doesn't violate the Pro-mode invariant (TAT-3612).
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+      source: 'trade_menu_action',
+      redirectScreen: Routes.PERPS.MARKET_DETAILS,
+      redirectParams: {
+        market: { symbol: 'BTC' },
+        source: 'trade_menu_action',
+      },
+    });
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.ROOT,
       expect.objectContaining({ screen: Routes.PERPS.MARKET_DETAILS }),

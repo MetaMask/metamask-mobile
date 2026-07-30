@@ -1,16 +1,15 @@
 import { useCallback } from 'react';
-import {
-  useNavigation,
-  type NavigatorScreenParams,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
-import { useGetPerpsHomeNavigationTarget } from '../../../../UI/Perps/utils/perpsModeSwitch';
-import type { PerpsStackParamList } from '../../../../UI/Perps/types/navigation';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../../../UI/Perps/utils/perpsModeSwitch';
 import type { HomepageDiscoveryPillId } from './homepageDiscoveryPills.constants';
 
 export const HOMESCREEN_PILL_SOURCE =
@@ -36,13 +35,13 @@ export function useHomepageDiscoveryPillsNavigation() {
     (pillId: HomepageDiscoveryPillId) => {
       switch (pillId) {
         case 'perpetuals': {
-          const { screen, params } = getPerpsHomeNavigationTarget({
+          const target = getPerpsHomeNavigationTarget({
             source: HOMESCREEN_PILL_SOURCE,
           });
-          navigation.navigate(Routes.PERPS.ROOT, {
-            screen,
-            params,
-          } as NavigatorScreenParams<PerpsStackParamList>);
+          navigation.navigate(
+            Routes.PERPS.ROOT,
+            toPerpsNavigatorScreenParams(target),
+          );
           break;
         }
         case 'predictions':
