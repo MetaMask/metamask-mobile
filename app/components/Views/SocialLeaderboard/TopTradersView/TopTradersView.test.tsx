@@ -721,16 +721,27 @@ describe('TopTradersView', () => {
   });
 
   it('prefetches the remaining queries once the Tokens query settles', () => {
-    const { rerender } = renderWithProvider(<TopTradersView />);
+    jest.useFakeTimers();
+    try {
+      const { rerender } = renderWithProvider(<TopTradersView />);
 
-    setTabResult(LANDING_TAB, { isFetching: false });
-    rerender(<TopTradersView />);
+      setTabResult(LANDING_TAB, { isFetching: false });
+      rerender(<TopTradersView />);
 
-    expectLatestQueryEnabledStates({
-      all: true,
-      tokens: true,
-      perps: true,
-    });
+      // The prefetch is deferred to idle, so flush the scheduled task before
+      // asserting the secondary queries switch on.
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: true,
+        perps: true,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('holds the prefetch back while a warm Tokens cache revalidates', () => {
@@ -748,24 +759,34 @@ describe('TopTradersView', () => {
   });
 
   it('narrows the enabled queries back to the visible tab when the sort changes', () => {
-    setTabResult(LANDING_TAB, { isFetching: false });
-    const { rerender } = renderWithProvider(<TopTradersView />);
-    expectLatestQueryEnabledStates({
-      all: true,
-      tokens: true,
-      perps: true,
-    });
+    jest.useFakeTimers();
+    try {
+      setTabResult(LANDING_TAB, { isFetching: false });
+      const { rerender } = renderWithProvider(<TopTradersView />);
 
-    // Sort is part of the query key, so the visible tab goes back in flight.
-    setTabResult(LANDING_TAB, { isFetching: true });
-    rerender(<TopTradersView />);
-    selectSort('winRate');
+      // Let the deferred prefetch warm every tab first.
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: true,
+        perps: true,
+      });
 
-    expectLatestQueryEnabledStates({
-      all: false,
-      tokens: true,
-      perps: false,
-    });
+      // Sort is part of the query key, so the visible tab goes back in flight.
+      setTabResult(LANDING_TAB, { isFetching: true });
+      rerender(<TopTradersView />);
+      selectSort('winRate');
+
+      expectLatestQueryEnabledStates({
+        all: false,
+        tokens: true,
+        perps: false,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('enables the All query after the All option is selected', () => {

@@ -1,3 +1,4 @@
+// eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import React, {
   useCallback,
   useEffect,
@@ -54,7 +55,6 @@ import NotificationService from '../../../../util/notifications/services/Notific
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
@@ -62,18 +62,17 @@ import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup'
 import {
   TraderRow,
   TraderRowSkeleton,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../Homepage/Sections/TopTraders/components';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import {
+  TRADER_ROW_HEIGHT,
+  type TraderRowMetric,
+} from '../../Homepage/Sections/TopTraders/components/TraderRow';
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import {
   ALL_CHAINS,
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../shared/top-traders-constants';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
@@ -93,6 +92,14 @@ import {
 } from '../components/Filters';
 
 type TabFilter = SocialTypeFilter;
+
+/**
+ * A ranked trader with its display metric precomputed. Attaching the metric to
+ * the item (rather than deriving it per render in `renderItem`) keeps the value
+ * stable across renders so `TraderRow`'s `React.memo` can skip rows whose data
+ * hasn't changed.
+ */
+type RankedTrader = TopTrader & { displayMetric: TraderRowMetric };
 
 /**
  * Tab the leaderboard lands on. Spot tokens are the broadest surface most users
@@ -120,6 +127,35 @@ const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
 const LEADERBOARD_LIMIT = 50;
 const INITIAL_TRADER_ROWS_TO_RENDER = 6;
+const SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS = 1000;
+
+interface IdleCallbackGlobals {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout?: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+}
+
+/**
+ * Defers a low-priority task until the JS thread is idle so it doesn't contend
+ * with scrolling/taps right after the active tab paints. Falls back to a
+ * macrotask where `requestIdleCallback` is unavailable. Returns a cancel
+ * function to tear the pending task down on unmount / dependency change.
+ */
+const scheduleIdleTask = (task: () => void): (() => void) => {
+  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
+
+  if (idleGlobals.requestIdleCallback) {
+    const idleCallbackId = idleGlobals.requestIdleCallback(task, {
+      timeout: SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS,
+    });
+    return () => idleGlobals.cancelIdleCallback?.(idleCallbackId);
+  }
+
+  const timeoutId = setTimeout(task, 0);
+  return () => clearTimeout(timeoutId);
+};
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.FlatList
@@ -247,8 +283,12 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
-  const traders = useMemo(
-    () => rankTradersByMetric(loadedTraders, sort),
+  const traders = useMemo<RankedTrader[]>(
+    () =>
+      rankTradersByMetric(loadedTraders, sort).map((trader) => ({
+        ...trader,
+        displayMetric: getTraderMetricDisplay(trader, sort),
+      })),
     [loadedTraders, sort],
   );
   // The visible tab always fetches alone first; the other two are prefetched
@@ -292,10 +332,14 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   useEffect(() => {
     if (!shouldPrefetchSecondaryTabs) {
-      return;
+      return undefined;
     }
 
-    setQueryEnabledTabs({ all: true, tokens: true, perps: true });
+    // Defer the two extra fetches (and their state updates) to idle so they
+    // don't contend with scrolling or taps right after the active tab paints.
+    return scheduleIdleTask(() => {
+      setQueryEnabledTabs({ all: true, tokens: true, perps: true });
+    });
   }, [shouldPrefetchSecondaryTabs]);
 
   const handleTabPress = useCallback(
@@ -520,10 +564,10 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   );
 
   const renderTraderRow = useCallback(
-    ({ item }: { item: TopTrader }) => (
+    ({ item }: { item: RankedTrader }) => (
       <TraderRow
         trader={item}
-        metric={getTraderMetricDisplay(item, sort)}
+        metric={item.displayMetric}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
         showMute={showMuteChip}
@@ -540,7 +584,6 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       needsNotificationSetup,
       isTraderNotificationEnabled,
       handleMuteToggle,
-      sort,
     ],
   );
 
@@ -553,7 +596,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 pt-3 pb-3"
+        twClassName="px-4 pt-4 pb-4"
       >
         <Box flexDirection={BoxFlexDirection.Row} gap={2}>
           {isPerpsEnabled && (
@@ -663,7 +706,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           ))}
         </Animated.ScrollView>
       ) : (
-        <Animated.FlatList<TopTrader>
+        <Animated.FlatList<RankedTrader>
           data={traders}
           keyExtractor={(item) => item.id}
           renderItem={renderTraderRow}
