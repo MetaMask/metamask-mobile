@@ -1,4 +1,4 @@
-// eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import React, {
   useCallback,
   useEffect,
