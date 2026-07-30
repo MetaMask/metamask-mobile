@@ -9,6 +9,7 @@ const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 let mockIsEligibilityModalVisible = false;
+let mockIsEligible = true;
 
 jest.mock('../../hooks/usePerpsHomeActions', () => ({
   usePerpsHomeActions: jest.fn(() => ({
@@ -16,7 +17,7 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
     handleWithdraw: mockHandleWithdraw,
     isEligibilityModalVisible: mockIsEligibilityModalVisible,
     closeEligibilityModal: mockCloseEligibilityModal,
-    isEligible: true,
+    isEligible: mockIsEligible,
     isProcessing: false,
     error: null,
   })),
@@ -86,6 +87,7 @@ describe('PerpsBalanceBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEligibilityModalVisible = false;
+    mockIsEligible = true;
     mockPerpsAccount = {
       totalBalance: '1234.56',
       spendableBalance: '1000.00',
@@ -176,6 +178,38 @@ describe('PerpsBalanceBottomSheet', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockHandleAddFunds).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not close the sheet when add funds is pressed while geo-blocked, so the eligibility tooltip can still render', () => {
+    mockIsEligible = false;
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({ onClose });
+
+    fireEvent.press(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON),
+    );
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockHandleAddFunds).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the geo-block tooltip visible after add funds is pressed while ineligible', () => {
+    mockIsEligible = false;
+    mockIsEligibilityModalVisible = true;
+    const { getByTestId } = renderSheet();
+
+    fireEvent.press(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('renders the geo-block tooltip when the eligibility modal is visible', () => {

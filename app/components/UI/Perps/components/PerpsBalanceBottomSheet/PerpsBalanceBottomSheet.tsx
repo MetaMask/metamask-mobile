@@ -56,6 +56,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const {
     handleAddFunds,
     handleWithdraw,
+    isEligible,
     isEligibilityModalVisible,
     closeEligibilityModal,
   } = usePerpsHomeActions({
@@ -85,7 +86,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     });
   }, [navigateToActivity]);
 
-  // Withdraw/Add funds both navigate away (to the withdraw screen or into a
+  // Withdraw always navigates away (to the withdraw screen or into a
   // confirmation flow), so close the sheet first — same as History above —
   // instead of leaving it mounted underneath the next screen.
   const handleWithdrawPress = useCallback(() => {
@@ -95,10 +96,20 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   }, [handleWithdraw]);
 
   const handleAddFundsPress = useCallback(() => {
+    if (!isEligible) {
+      // Geo-blocked users never navigate — handleAddFunds only shows the
+      // eligibility tooltip below, in place. That tooltip's visibility is
+      // gated behind `isVisible` (see the early return below), so closing
+      // the sheet first would set `isVisible` to false before the tooltip
+      // ever gets a chance to render.
+      handleAddFunds();
+      return;
+    }
+
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       handleAddFunds();
     });
-  }, [handleAddFunds]);
+  }, [isEligible, handleAddFunds]);
 
   if (!isVisible) return null;
 
