@@ -1,14 +1,12 @@
 /**
  * mUSD Conversion Constants for Earn namespace
  *
- * Shared constants and guards live in `@metamask/money-account-utils`
- * (currently consumed as the `@metamask-previews/money-account-utils` preview
- * build until the first real release) and are re-exported here so existing
- * import paths keep working. Client-specific presentation (icon asset) and
- * configuration stay local.
+ * Shared constants and guards live in `@metamask/money-account-utils` and are
+ * re-exported here so existing import paths keep working. Client-specific
+ * presentation (icon asset) and configuration stay local.
  */
 
-import { MUSD_TOKEN as MUSD_TOKEN_BASE } from '@metamask-previews/money-account-utils';
+import { MUSD_TOKEN as MUSD_TOKEN_BASE } from '@metamask/money-account-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import MusdIcon from '../../../../images/musd-icon-2x.png';
@@ -24,7 +22,7 @@ export {
   getTokenDisplaySymbol,
   isMusdTokenOnChain,
   isMusdOnMoneyAccountChain,
-} from '@metamask-previews/money-account-utils';
+} from '@metamask/money-account-utils';
 
 export const MUSD_TOKEN = {
   ...MUSD_TOKEN_BASE,
