@@ -736,6 +736,48 @@ describe('gameParser', () => {
       expect(result?.awayTeam).toEqual(mapApiTeamToPredictTeam(awayTeam));
     });
 
+    it('prefers cached ball-sport teams over embedded event teams', () => {
+      const embeddedHome = createMockApiTeam({
+        id: 'embedded-den',
+        name: 'Embedded Broncos',
+        abbreviation: 'DEN',
+        league: 'nfl',
+      });
+      const embeddedAway = createMockApiTeam({
+        id: 'embedded-sea',
+        name: 'Embedded Seahawks',
+        abbreviation: 'SEA',
+        league: 'nfl',
+      });
+      const event = createMockEvent({
+        gameId: 'game-123',
+        teams: [embeddedHome, embeddedAway],
+      });
+
+      const result = buildGameData(event, 'nfl', teamLookup);
+
+      expect(result?.homeTeam).toEqual(denTeam);
+      expect(result?.awayTeam).toEqual(seaTeam);
+    });
+
+    it('returns null for ball sports when neither cache nor embedded teams resolve', () => {
+      const event = createMockEvent({
+        gameId: 'game-123',
+        slug: 'nfl-xyz-abc-2025-01-12',
+        teams: [
+          createMockApiTeam({
+            id: 'unrelated',
+            abbreviation: 'OTHER',
+            league: 'nba',
+          }),
+        ],
+      });
+
+      const result = buildGameData(event, 'nfl', teamLookup);
+
+      expect(result).toBeNull();
+    });
+
     it('builds ATP game scores from completed sets won', () => {
       const homeTeam: PredictSportTeam = {
         id: 'team-home',
@@ -944,11 +986,22 @@ describe('gameParser', () => {
       });
     });
 
+    it('parses esports scores without a trailing BoN series length', () => {
+      const result = parseScore('007-005|1-0', 'cs2');
+
+      expect(result).toEqual({
+        away: 0,
+        home: 1,
+        raw: '007-005|1-0',
+      });
+    });
+
     it.each([
-      '007-005|1-0',
       'invalid|1-0|Bo3',
       '007-005|invalid|Bo3',
       '007-005|1-0|3',
+      '007-005',
+      '007-005|1-0|Bo3|extra',
     ])('returns null for malformed esports score %s', (score) => {
       expect(parseScore(score, 'cs2')).toBeNull();
     });

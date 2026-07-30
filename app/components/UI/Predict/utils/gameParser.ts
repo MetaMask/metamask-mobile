@@ -407,9 +407,17 @@ const parseScorePair = (score: string): ParsedScorePair | null => {
   return { first, second };
 };
 
+const ESPORTS_SERIES_LENGTH_PATTERN = /^Bo\d+$/u;
+
 const parseEsportsScore = (score: string): ParsedEsportsScore | null => {
   const segments = score.split('|');
-  if (segments.length !== 3 || !/^Bo\d+$/u.test(segments[2].trim())) {
+  if (segments.length < 2 || segments.length > 3) {
+    return null;
+  }
+  if (
+    segments.length === 3 &&
+    !ESPORTS_SERIES_LENGTH_PATTERN.test(segments[2].trim())
+  ) {
     return null;
   }
 
@@ -652,6 +660,10 @@ export function buildGameData(
     return null;
   }
 
+  // Prefer the teams cache; fall back to teams embedded on the event. Esports
+  // teams are frequently absent from the cache, and consulting event.teams on
+  // a miss avoids dropping otherwise-valid games. The cache remains
+  // authoritative when present, so ball-sport behaviour is unchanged on hits.
   const awayTeam =
     teamLookup(league, parsedSlug.awayAbbreviation) ??
     getEmbeddedEventTeam(event, league, parsedSlug.awayAbbreviation);

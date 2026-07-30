@@ -106,13 +106,17 @@ export const NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS =
 export const POLYGON_PUSD_CAIP_ASSET_ID =
   `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS_V2.collateral}` as const;
 
+// Seeds the default enabled-market list; runtime matching is unbounded via
+// isEsportsRoundHandicapMarketType / isEsportsRoundOverUnderMarketType.
+const SEEDED_ESPORTS_ROUND_GAMES = 5;
+
 const ESPORTS_ROUND_HANDICAP_MARKET_TYPES = Array.from(
-  { length: 5 },
+  { length: SEEDED_ESPORTS_ROUND_GAMES },
   (_, index) => `round_handicap_game_${index + 1}`,
 );
 
 const ESPORTS_ROUND_OVER_UNDER_MARKET_TYPES = Array.from(
-  { length: 5 },
+  { length: SEEDED_ESPORTS_ROUND_GAMES },
   (_, index) => `round_over_under_game_${index + 1}`,
 );
 
@@ -227,21 +231,18 @@ export const DEFAULT_GROUP_KEY = 'game_lines';
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   soccer_team_to_advance: -1,
   moneyline: 0,
+  // Sits between moneyline (0) and spreads (1) so map/game winners sort after
+  // the match winner but before handicap lines. Round handicap / over-under
+  // priorities are resolved dynamically in getSportsMarketTypePriority.
   child_moneyline: 0.5,
   soccer_halftime_result: 0,
   soccer_second_half_result: 0,
   tennis_first_set_winner: 0,
   spreads: 1,
   map_handicap: 1,
-  ...Object.fromEntries(
-    ESPORTS_ROUND_HANDICAP_MARKET_TYPES.map((type) => [type, 1]),
-  ),
   totals: 2,
   kill_over_under_game: 2,
   map_participant_win_total: 2,
-  ...Object.fromEntries(
-    ESPORTS_ROUND_OVER_UNDER_MARKET_TYPES.map((type) => [type, 2]),
-  ),
   first_half_totals: 2,
   second_half_totals: 2,
   both_teams_to_score: 3,

@@ -139,6 +139,24 @@ describe('outcomeGrouping', () => {
         'total-game-10',
       ]);
     });
+
+    it('enables the dynamic family when any numbered round type is present', () => {
+      const outcomes = [
+        createGroupingOutcome('handicap-game-7', 'round_handicap_game_7'),
+        createGroupingOutcome('total-game-10', 'round_over_under_game_10'),
+        createGroupingOutcome('first-blood', 'first_blood_game'),
+      ];
+
+      const result = filterGroupableOutcomes(outcomes, [
+        'round_handicap_game_2',
+        'round_over_under_game_3',
+      ]);
+
+      expect(result.map((outcome) => outcome.id)).toEqual([
+        'handicap-game-7',
+        'total-game-10',
+      ]);
+    });
   });
 
   describe('isLineOutcomeType', () => {

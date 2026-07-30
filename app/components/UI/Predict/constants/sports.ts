@@ -150,18 +150,33 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
 
-const ESPORTS_HANDICAP_MARKET_TYPE_PATTERN =
-  /^(?:map_handicap|round_handicap_game_[1-9]\d*)$/u;
-const ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN =
-  /^(?:kill_over_under_game|round_over_under_game_[1-9]\d*)$/u;
+const ROUND_HANDICAP_GAME_SOURCE = String.raw`round_handicap_game_[1-9]\d*`;
+const ROUND_OVER_UNDER_GAME_SOURCE = String.raw`round_over_under_game_[1-9]\d*`;
+
+const ESPORTS_ROUND_HANDICAP_MARKET_TYPE_PATTERN = new RegExp(
+  `^${ROUND_HANDICAP_GAME_SOURCE}$`,
+  'u',
+);
+const ESPORTS_ROUND_OVER_UNDER_MARKET_TYPE_PATTERN = new RegExp(
+  `^${ROUND_OVER_UNDER_GAME_SOURCE}$`,
+  'u',
+);
+const ESPORTS_HANDICAP_MARKET_TYPE_PATTERN = new RegExp(
+  `^(?:map_handicap|${ROUND_HANDICAP_GAME_SOURCE})$`,
+  'u',
+);
+const ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN = new RegExp(
+  `^(?:kill_over_under_game|${ROUND_OVER_UNDER_GAME_SOURCE})$`,
+  'u',
+);
 
 export const isEsportsRoundHandicapMarketType = (type?: string): boolean =>
   type !== undefined &&
-  /^round_handicap_game_[1-9]\d*$/u.test(type.toLowerCase());
+  ESPORTS_ROUND_HANDICAP_MARKET_TYPE_PATTERN.test(type.toLowerCase());
 
 export const isEsportsRoundOverUnderMarketType = (type?: string): boolean =>
   type !== undefined &&
-  /^round_over_under_game_[1-9]\d*$/u.test(type.toLowerCase());
+  ESPORTS_ROUND_OVER_UNDER_MARKET_TYPE_PATTERN.test(type.toLowerCase());
 
 export const isSpreadLikeMarketType = (type?: string): boolean => {
   const normalizedType = type?.toLowerCase() ?? '';

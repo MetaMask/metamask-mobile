@@ -172,6 +172,15 @@ const outcomeIsDraw = <T extends TeamMatchedOutcome & { title?: string }>(
   isDrawLabel(outcome.title) ||
   outcome.tokens.some(tokenIsDraw);
 
+/**
+ * Detects whether moneyline outcomes expose an explicit Draw option.
+ *
+ * Two Polymarket shapes are supported: a combined moneyline, where one
+ * outcome's tokens include a Draw token, and a split neg-risk moneyline, where
+ * home / draw / away arrive as separate outcomes. The `>= 3` threshold on the
+ * split case avoids treating a two-way winner market (home + away only) as
+ * draw-capable when a token title happens to mention "draw".
+ */
 export const hasExplicitMoneylineDraw = <
   T extends TeamMatchedOutcome & {
     sportsMarketType?: string;
@@ -202,6 +211,13 @@ export const hasExplicitMoneylineDraw = <
   );
 };
 
+/**
+ * Whether a market should render a Draw button / third outcome.
+ *
+ * True when the league is inherently draw-capable (e.g. soccer) or when the
+ * outcomes themselves expose an explicit moneyline draw via
+ * {@link hasExplicitMoneylineDraw} (optional for some esports markets).
+ */
 export const isDrawCapableMarket = <
   T extends TeamMatchedOutcome & {
     sportsMarketType?: string;
@@ -329,6 +345,12 @@ const getSortedDrawOutcomes = <
     (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
   );
 
+/**
+ * Picks the outcome that matches `team` from a candidate list, preferring a
+ * title/abbreviation match. Falls back to `fallbackIndex` (then the first
+ * remaining candidate) so home/away assignment still works when labels are
+ * generic. `excludedOutcomes` prevents the draw outcome from being reused.
+ */
 const getTeamOutcomeFromCandidates = <
   TOutcome extends SportCardOutcome<TToken>,
   TToken extends SportCardToken,

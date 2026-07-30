@@ -319,11 +319,11 @@ export const filterGroupableOutcomes = (
   enabledSportsMarketTypes: string[],
 ): PredictOutcome[] => {
   const enabledSportsMarketTypeSet = new Set(enabledSportsMarketTypes);
-  const dynamicRoundHandicapEnabled = enabledSportsMarketTypeSet.has(
-    'round_handicap_game_1',
+  const dynamicRoundHandicapEnabled = enabledSportsMarketTypes.some(
+    isEsportsRoundHandicapMarketType,
   );
-  const dynamicRoundOverUnderEnabled = enabledSportsMarketTypeSet.has(
-    'round_over_under_game_1',
+  const dynamicRoundOverUnderEnabled = enabledSportsMarketTypes.some(
+    isEsportsRoundOverUnderMarketType,
   );
 
   return outcomes.filter((outcome) => {
