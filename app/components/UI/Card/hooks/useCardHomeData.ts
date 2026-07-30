@@ -23,7 +23,7 @@ export const useCardHomeData = () => {
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
   useEffect(() => {
-    if (status === 'idle') {
+    if (status === 'idle' || status === 'error') {
       Engine.context.CardController.fetchCardHomeData();
     }
   }, [status]);

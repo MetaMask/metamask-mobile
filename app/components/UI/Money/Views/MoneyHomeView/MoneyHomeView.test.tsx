@@ -185,12 +185,18 @@ jest.mock('../../../../../core/NavigationService', () => ({
   },
 }));
 
+const mockFetchCardHomeData = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       PreferencesController: {
         setPrivacyMode: jest.fn(),
+      },
+      CardController: {
+        fetchCardHomeData: (...args: unknown[]) =>
+          mockFetchCardHomeData(...args),
       },
     },
   },
@@ -619,7 +625,7 @@ describe('MoneyHomeView', () => {
   });
 
   describe('pull to refresh', () => {
-    it('refreshes balance and interest when refresh control onRefresh runs', async () => {
+    it('refreshes balance, interest, and card home data when refresh control onRefresh runs', async () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
 
@@ -629,6 +635,7 @@ describe('MoneyHomeView', () => {
 
       expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
       expect(mockRefetchInterest).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
     });
 
     it('logs refresh failure when refetchBalance rejects', async () => {

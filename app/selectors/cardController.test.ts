@@ -544,20 +544,34 @@ describe('selectIsCardStateResolved', () => {
     );
   });
 
-  it('returns true when status is success', () => {
+  it('returns true when status is success with a verification status', () => {
     const state = createMockRootState({
       cardHomeDataStatus: 'success',
       isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'PENDING' },
+      } as unknown as CardControllerState['cardHomeData'],
     });
     expect(selectIsCardStateResolved(state)).toBe(true);
   });
 
-  it('returns true when status is error', () => {
+  it('returns false when status is success but account is missing', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns false when status is error', () => {
     const state = createMockRootState({
       cardHomeDataStatus: 'error',
       isAuthenticated: true,
     });
-    expect(selectIsCardStateResolved(state)).toBe(true);
+    expect(selectIsCardStateResolved(state)).toBe(false);
   });
 
   it('returns true for an unauthenticated non-cardholder even while idle', () => {

@@ -156,6 +156,7 @@ const MoneyHomeView = () => {
         refetchBalance(),
         refetchInterest(),
         refreshMusdFiatRate(),
+        Engine.context.CardController.fetchCardHomeData({ force: true }),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');

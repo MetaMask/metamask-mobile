@@ -118,7 +118,7 @@ describe('useCardHomeData', () => {
     mockGetAssetBalanceKey.mockReturnValue('mock-key');
   });
 
-  describe('useEffect idle-status fetch', () => {
+  describe('useEffect status-driven fetch', () => {
     it("triggers fetchCardHomeData when status is 'idle'", () => {
       setupSelectors(null, 'idle');
       renderHook(() => useCardHomeData());
@@ -137,10 +137,10 @@ describe('useCardHomeData', () => {
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
     });
 
-    it("does NOT trigger fetchCardHomeData when status is 'error'", () => {
+    it("triggers fetchCardHomeData when status is 'error'", () => {
       setupSelectors(null, 'error');
       renderHook(() => useCardHomeData());
-      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
     });
 
     it("triggers fetchCardHomeData when status transitions back to 'idle'", () => {
