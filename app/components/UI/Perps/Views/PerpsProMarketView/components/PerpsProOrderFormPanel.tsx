@@ -204,7 +204,7 @@ const PerpsProOrderFormContent = ({
 };
 
 const PerpsProOrderFormPanel = ({ market }: PerpsProOrderFormPanelProps) => (
-  <PerpsOrderProvider initialAsset={market.symbol}>
+  <PerpsOrderProvider key={market.symbol} initialAsset={market.symbol}>
     <PerpsProOrderFormContent market={market} />
   </PerpsOrderProvider>
 );

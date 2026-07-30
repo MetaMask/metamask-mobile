@@ -230,7 +230,7 @@ export const usePerpsProOrderForm = ({
     orderType: orderForm.type,
     amount: orderForm.amount,
     symbol: orderForm.asset,
-    isClosing: false,
+    isClosing: reduceOnly,
     limitPrice: orderForm.limitPrice,
     direction: orderForm.direction,
     currentAskPrice: currentTopOfBook?.bestAsk
