@@ -94,7 +94,7 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
     additionAssertions,
   } of SIGNATURE_LIST) {
     appiumTest(
-      `should sign ${specName} message`,
+      `signs ${specName} message`,
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
