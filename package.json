@@ -235,8 +235,8 @@
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
     "@react-native/babel-preset@npm:0.83.6": "patch:@react-native/babel-preset@npm%3A0.83.6#~/.yarn/patches/@react-native-babel-preset-npm-0.83.6-90eed53ffb.patch",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
-    "@metamask/bridge-controller@npm:^77.5.0": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
-    "@metamask/bridge-controller@npm:^77.6.0": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch"
+    "@metamask/bridge-controller@npm:^77.5.0": "patch:@metamask/bridge-controller@patch%3A@metamask/bridge-controller@npm%253A77.6.0%23~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch%3A%3Aversion=77.6.0&hash=e36d1e#~/.yarn/patches/@metamask-bridge-controller-patch-997d5d00c5.patch",
+    "@metamask/bridge-controller@npm:^77.6.0": "patch:@metamask/bridge-controller@patch%3A@metamask/bridge-controller@npm%253A77.6.0%23~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch%3A%3Aversion=77.6.0&hash=e36d1e#~/.yarn/patches/@metamask-bridge-controller-patch-997d5d00c5.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -267,7 +267,7 @@
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.14.2",
     "@metamask/bitcoin-wallet-standard": "^1.0.0",
-    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A77.6.0#~/.yarn/patches/@metamask-bridge-controller-npm-77.6.0-2a4ded2811.patch",
+    "@metamask/bridge-controller": "^77.6.0",
     "@metamask/bridge-status-controller": "^74.3.0",
     "@metamask/chain-agnostic-permission": "^1.5.0",
     "@metamask/chomp-api-service": "^4.0.0",
