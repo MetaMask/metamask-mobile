@@ -45,6 +45,7 @@ const asset = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: '0x1',
   symbol: 'USDC',
+  balance: '1',
 } as TokenI;
 
 const tokenContext = {
@@ -198,6 +199,7 @@ describe('useMoneyTokenListCta', () => {
       token_position_in_list: tokenContext.tokenPositionInList,
       token_chain_id: asset.chainId,
       tokens_in_list: tokenContext.tokensInList,
+      token_has_balance: true,
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
@@ -228,8 +230,26 @@ describe('useMoneyTokenListCta', () => {
       token_position_in_list: tokenContext.tokenPositionInList,
       token_chain_id: asset.chainId,
       tokens_in_list: tokenContext.tokensInList,
+      token_has_balance: true,
     });
     expect(mockInitiateDeposit).toHaveBeenCalledWith({ preferredPaymentToken });
+  });
+
+  it('tracks zero raw balance for the token-list CTA', async () => {
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
+
+    await act(async () => {
+      await result.current.tokenListItemCta?.onPress(
+        { ...asset, balance: '0.00' },
+        tokenContext,
+      );
+    });
+
+    expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ token_has_balance: false }),
+    );
   });
 
   it('logs rejected deposits', async () => {

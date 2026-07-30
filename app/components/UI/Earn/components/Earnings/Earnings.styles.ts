@@ -38,6 +38,9 @@ const styleSheet = (params: { theme: Theme }) => {
     keyValueSecondaryText: {
       alignItems: 'flex-end',
     },
+    earningsHistory: {
+      marginTop: 16,
+    },
   });
 };
 

@@ -40,7 +40,7 @@ const styleSheet = (params: {
       paddingBottom: userHasLendingPositions ? 8 : 0,
     },
     earnings: {
-      paddingTop: 16,
+      paddingHorizontal: 16,
     },
   });
 };

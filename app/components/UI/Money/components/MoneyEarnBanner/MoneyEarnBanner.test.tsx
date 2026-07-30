@@ -65,6 +65,7 @@ const MOCK_USDC = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: '0x1',
   image: 'https://example.com/usdc.png',
+  balance: '1',
 } as TokenI;
 
 const MOCK_USDC_TOKEN_KEY = '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -247,6 +248,7 @@ describe('MoneyEarnBanner', () => {
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
         tokens_in_list: 1,
+        token_has_balance: true,
       });
     });
 
@@ -264,6 +266,7 @@ describe('MoneyEarnBanner', () => {
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
         tokens_in_list: 1,
+        token_has_balance: true,
       });
     });
 
@@ -304,7 +307,20 @@ describe('MoneyEarnBanner', () => {
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
         tokens_in_list: 1,
+        token_has_balance: true,
       });
+    });
+
+    it('tracks zero raw balance for the banner CTA', () => {
+      const { getByTestId } = render(
+        <MoneyEarnBanner asset={{ ...MOCK_USDC, balance: '0.0' }} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CTA));
+
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ token_has_balance: false }),
+      );
     });
 
     it('tracks an onboarding button click without depositing when onboarding is needed', () => {
@@ -326,6 +342,7 @@ describe('MoneyEarnBanner', () => {
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
         tokens_in_list: 1,
+        token_has_balance: true,
       });
     });
   });
@@ -343,6 +360,7 @@ describe('MoneyEarnBanner', () => {
         token_position_in_list: 1,
         token_chain_id: MOCK_USDC.chainId,
         tokens_in_list: 1,
+        token_has_balance: true,
       });
       expect(mockDispatch).toHaveBeenCalledWith(
         setMoneyEarnBannerDismissed(MOCK_USDC_TOKEN_KEY),

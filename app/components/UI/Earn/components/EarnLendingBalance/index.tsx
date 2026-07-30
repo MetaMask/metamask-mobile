@@ -26,6 +26,7 @@ import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewC
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
 import {
+  Box,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -34,7 +35,8 @@ import {
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   WITHDRAW_BUTTON: 'withdraw-button',
-  DEPOSIT_BUTTON: 'deposit-button',
+  LENDING_EARNINGS_TOP_DIVIDER: 'lending-earnings-top-divider',
+  LENDING_EARNINGS_BOTTOM_DIVIDER: 'lending-earnings-bottom-divider',
 };
 
 export interface EarnLendingBalanceProps {
@@ -72,27 +74,15 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     [receiptToken?.balanceMinimalUnit],
   );
 
-  const userHasUnderlyingTokensAvailableToLend = useMemo(
-    () => new BigNumber(earnToken?.balanceMinimalUnit ?? '0').gt(0),
-    [earnToken?.balanceMinimalUnit],
-  );
-
   const { styles } = useStyles(styleSheet, {
     userHasLendingPositions,
   });
 
-  const emitLendingActionButtonMetaMetric = (
-    action: 'deposit' | 'withdrawal',
-  ) => {
-    const event =
-      action === 'deposit'
-        ? MetaMetricsEvents.EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED
-        : MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED;
-
+  const emitLendingWithdrawalButtonMetaMetric = () => {
     trackEvent(
-      createEventBuilder(event)
+      createEventBuilder(MetaMetricsEvents.EARN_LENDING_WITHDRAW_BUTTON_CLICKED)
         .addProperties({
-          action_type: action,
+          action_type: 'withdrawal',
           token: earnToken?.symbol,
           network: network?.name,
           user_earn_token_balance: earnToken?.balanceFormatted,
@@ -122,7 +112,7 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
 
   const handleNavigateToWithdrawalInputScreen = async () => {
     trace({ name: TraceName.EarnWithdrawScreen });
-    emitLendingActionButtonMetaMetric('withdrawal');
+    emitLendingWithdrawalButtonMetaMetric();
     const networkClientId = getNetworkClientId(asset);
     if (!networkClientId) return;
     try {
@@ -131,24 +121,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
         screen: Routes.STAKING.UNSTAKE,
         params: {
           token: receiptToken,
-        },
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleNavigateToDepositInputScreen = async () => {
-    trace({ name: TraceName.EarnDepositScreen });
-    emitLendingActionButtonMetaMetric('deposit');
-    const networkClientId = getNetworkClientId(asset);
-    if (!networkClientId) return;
-    try {
-      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE,
-        params: {
-          token: earnToken,
         },
       });
     } catch (error) {
@@ -198,42 +170,44 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   return (
     <View>
       {renderCta()}
-      {/* Buttons */}
-      {userHasLendingPositions && (
-        <View style={[styles.container, styles.buttonsContainer]}>
-          {Boolean(receiptToken) && (
-            <Button
-              variant={ButtonVariant.Secondary}
-              style={styles.button}
-              size={ButtonSize.Md}
-              onPress={handleNavigateToWithdrawalInputScreen}
-              testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
-            >
-              <DesignSystemText>{strings('earn.withdraw')}</DesignSystemText>
-            </Button>
-          )}
-          {userHasUnderlyingTokensAvailableToLend &&
-            !isAssetReceiptToken &&
-            isEligible && (
-              <Button
-                variant={ButtonVariant.Secondary}
-                style={styles.button}
-                size={ButtonSize.Md}
-                onPress={handleNavigateToDepositInputScreen}
-                testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
-              >
-                <DesignSystemText>
-                  {strings('earn.deposit_more')}
-                </DesignSystemText>
-              </Button>
-            )}
-        </View>
-      )}
-      {isAssetReceiptToken && (
-        <View style={styles.earnings}>
-          <Earnings asset={asset} />
-        </View>
-      )}
+      {isAssetReceiptToken &&
+        userHasLendingPositions &&
+        Boolean(receiptToken) && (
+          <>
+            <Box
+              testID={
+                EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_TOP_DIVIDER
+              }
+              twClassName="mt-8 mb-6 h-px bg-border-muted"
+            />
+            <View style={styles.earnings}>
+              <Earnings
+                asset={asset}
+                lendingAction={
+                  <View style={[styles.container, styles.buttonsContainer]}>
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      style={styles.button}
+                      size={ButtonSize.Md}
+                      onPress={handleNavigateToWithdrawalInputScreen}
+                      testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
+                    >
+                      <DesignSystemText>
+                        {strings('earn.withdraw_from_aave')}
+                      </DesignSystemText>
+                    </Button>
+                  </View>
+                }
+              />
+            </View>
+            <Box
+              testID={
+                EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_BOTTOM_DIVIDER
+              }
+              twClassName="mt-8 mb-6 h-px bg-border-muted"
+            />
+          </>
+        )}
     </View>
   );
 };

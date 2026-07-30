@@ -39,7 +39,6 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
-import EarnBalance from '../../Earn/components/EarnBalance';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
@@ -269,7 +268,6 @@ const Balance = ({
         </View>
       </AssetElement>
       {balanceCta}
-      <EarnBalance asset={asset} />
     </View>
   );
 };

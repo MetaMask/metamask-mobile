@@ -20,6 +20,8 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockTrackTooltipClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
 let mockTokens: unknown[] = [];
 
 jest.mock('@react-navigation/native', () => {
@@ -40,6 +42,7 @@ const mockDepositTokens = [
     address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     chainId: '0x1',
     decimals: 6,
+    balance: '5000',
     balanceInSelectedCurrency: '$5,000.00',
     fiat: { balance: 5000 },
   },
@@ -49,6 +52,7 @@ const mockDepositTokens = [
     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     chainId: '0x1',
     decimals: 6,
+    balance: '3000',
     balanceInSelectedCurrency: '$3,000.00',
     fiat: { balance: 3000 },
   },
@@ -58,6 +62,7 @@ const mockDepositTokens = [
     address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     chainId: '0x1',
     decimals: 18,
+    balance: '2000',
     balanceInSelectedCurrency: '$2,000.00',
     fiat: { balance: 2000 },
   },
@@ -67,6 +72,7 @@ const mockDepositTokens = [
     address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     chainId: '0x1',
     decimals: 18,
+    balance: '1500',
     balanceInSelectedCurrency: '$1,500.00',
     fiat: { balance: 1500 },
   },
@@ -76,6 +82,7 @@ const mockDepositTokens = [
     address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
     chainId: '0x1',
     decimals: 18,
+    balance: '800',
     balanceInSelectedCurrency: '$800.00',
     fiat: { balance: 800 },
   },
@@ -85,6 +92,7 @@ const mockDepositTokens = [
     address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
     chainId: '0x1',
     decimals: 18,
+    balance: '400',
     balanceInSelectedCurrency: '$400.00',
     fiat: { balance: 400 },
   },
@@ -138,8 +146,8 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: jest.fn(),
     trackScreenViewed: jest.fn(),
-    trackTokenButtonClicked: jest.fn(),
-    trackTokenSurfaceClicked: jest.fn(),
+    trackTokenButtonClicked: mockTrackTokenButtonClicked,
+    trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
     trackTooltipClicked: mockTrackTooltipClicked,
   })),
 }));
@@ -358,7 +366,7 @@ describe('MoneyPotentialEarningsView', () => {
     expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_VIEW_HEADER,
     });
   });
 
@@ -378,6 +386,18 @@ describe('MoneyPotentialEarningsView', () => {
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
     await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
+  });
+
+  it('tracks positive balance when the bottom Convert CTA is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() =>
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ token_has_balance: true }),
+      ),
+    );
   });
 
   it('disables the Convert CTA when there are no eligible tokens', () => {
@@ -423,5 +443,31 @@ describe('MoneyPotentialEarningsView', () => {
     );
 
     await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
+  });
+
+  it('tracks positive balance when a token row is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(
+      getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
+    );
+
+    await waitFor(() =>
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ token_has_balance: true }),
+      ),
+    );
+  });
+
+  it('tracks positive balance when a token row Add button is pressed', async () => {
+    const { getAllByText } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getAllByText(strings('money.potential_earnings.add'))[0]);
+
+    await waitFor(() =>
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ token_has_balance: true }),
+      ),
+    );
   });
 });

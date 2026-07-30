@@ -25,6 +25,7 @@ const BALANCE_BUTTON_LABEL_KEY = 'money.asset_overview.cta.start_earning';
 export interface UseMoneyAssetOverviewCtasArgs {
   asset: TokenI;
   balanceFiatUsd: number;
+  hasBalance: boolean;
 }
 
 /**
@@ -35,6 +36,7 @@ export interface UseMoneyAssetOverviewCtasArgs {
 export const useMoneyAssetOverviewCtas = ({
   asset,
   balanceFiatUsd,
+  hasBalance,
 }: UseMoneyAssetOverviewCtasArgs) => {
   const {
     shouldShowMoneyAssetOverviewBalanceCta,
@@ -127,6 +129,7 @@ export const useMoneyAssetOverviewCtas = ({
         token_position_in_list: 1,
         token_chain_id: asset.chainId ?? '',
         tokens_in_list: 1,
+        token_has_balance: hasBalance,
       } as const;
 
       if (component === 'footer') {
@@ -160,6 +163,7 @@ export const useMoneyAssetOverviewCtas = ({
       asset.chainId,
       asset.symbol,
       footerEnglishLabel,
+      hasBalance,
       initiateDeposit,
       redirectToOnboardingIfNeeded,
       trackTokenButtonClicked,

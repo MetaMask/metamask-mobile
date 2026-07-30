@@ -44,6 +44,7 @@ const asset = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: '0x1',
   symbol: 'USDC',
+  balance: '1',
 } as TokenI;
 
 describe('useMoneyAssetOverviewCtas', () => {
@@ -79,7 +80,13 @@ describe('useMoneyAssetOverviewCtas', () => {
   });
 
   it('initializes shared analytics for the Asset Overview screen', () => {
-    renderHook(() => useMoneyAssetOverviewCtas({ asset, balanceFiatUsd: 100 }));
+    renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
+    );
 
     expect(mockUseMoneyAnalytics).toHaveBeenCalledTimes(1);
     expect(mockUseMoneyAnalytics).toHaveBeenCalledWith({
@@ -90,7 +97,11 @@ describe('useMoneyAssetOverviewCtas', () => {
   it('tracks footer onboarding with interpolated labels and token context', async () => {
     mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
     const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({ asset, balanceFiatUsd: 100 }),
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
     );
 
     await act(async () => {
@@ -111,13 +122,18 @@ describe('useMoneyAssetOverviewCtas', () => {
       token_position_in_list: 1,
       token_chain_id: asset.chainId,
       tokens_in_list: 1,
+      token_has_balance: true,
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
   it('tracks balance CTA deposit with a static label key and token context', async () => {
     const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({ asset, balanceFiatUsd: 100 }),
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
     );
 
     await act(async () => {
@@ -134,6 +150,7 @@ describe('useMoneyAssetOverviewCtas', () => {
       token_position_in_list: 1,
       token_chain_id: asset.chainId,
       tokens_in_list: 1,
+      token_has_balance: true,
     });
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       preferredPaymentToken: {
@@ -143,6 +160,24 @@ describe('useMoneyAssetOverviewCtas', () => {
     });
   });
 
+  it('tracks zero balance for the footer CTA', async () => {
+    const { result } = renderHook(() =>
+      useMoneyAssetOverviewCtas({
+        asset: { ...asset, balance: '0' },
+        balanceFiatUsd: 0,
+        hasBalance: false,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.onFooterPress();
+    });
+
+    expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ token_has_balance: false }),
+    );
+  });
+
   it('does not track or deposit when the footer APY label is unavailable', async () => {
     mockUseMoneyAccountBalance.mockReturnValue({
       apyDecimal: undefined,
@@ -150,7 +185,11 @@ describe('useMoneyAssetOverviewCtas', () => {
       vaultApyQuery: { isLoading: false },
     } as ReturnType<typeof useMoneyAccountBalance>);
     const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({ asset, balanceFiatUsd: 100 }),
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
     );
 
     await act(async () => {
@@ -168,7 +207,11 @@ describe('useMoneyAssetOverviewCtas', () => {
   it('sends the selected asset to onboarding before tracking footer navigation', async () => {
     mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
     const { result } = renderHook(() =>
-      useMoneyAssetOverviewCtas({ asset, balanceFiatUsd: 100 }),
+      useMoneyAssetOverviewCtas({
+        asset,
+        balanceFiatUsd: 100,
+        hasBalance: true,
+      }),
     );
 
     await act(async () => {
