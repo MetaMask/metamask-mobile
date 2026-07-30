@@ -7,7 +7,7 @@ import {
   mkdirSync,
 } from 'fs';
 import { spawn } from 'child_process';
-import { tmpdir } from 'os';
+import { homedir, tmpdir } from 'os';
 import { join } from 'path';
 
 /** Return only the data rows from the log file (skip the CSV header). */
@@ -318,8 +318,8 @@ describe('plugin-usage-tracking', () => {
 
   describe('maybeTriggerAnonymizer guard', () => {
     let homeDir: string;
-    let savedHome: string | undefined;
     let spawnSpy: jest.SpiedFunction<typeof spawn>;
+    let homedirSpy: jest.SpiedFunction<typeof homedir>;
 
     beforeEach(() => {
       spawnSpy = jest
@@ -328,28 +328,31 @@ describe('plugin-usage-tracking', () => {
           () => ({ unref: jest.fn() }) as ReturnType<typeof spawn>,
         );
       homeDir = mkdtempSync(join(tmpdir(), 'plugin-trigger-home-'));
-      savedHome = process.env.HOME;
-      process.env.HOME = homeDir;
+      // os.homedir() resolves against the real OS environment, which Jest's
+      // per-test copy of process.env cannot influence — without this spy the
+      // guard would read the developer's own state file.
+      homedirSpy = jest
+        .spyOn(require('os'), 'homedir')
+        .mockReturnValue(homeDir);
       delete process.env.CI;
       mkdirSync(join(homeDir, '.tool-usage-collection'), { recursive: true });
     });
 
     afterEach(() => {
       spawnSpy.mockRestore();
+      homedirSpy.mockRestore();
       rmSync(homeDir, { recursive: true, force: true });
-      if (savedHome === undefined) {
-        delete process.env.HOME;
-      } else {
-        process.env.HOME = savedHome;
-      }
     });
 
-    async function runScript(scriptName: string): Promise<void> {
+    async function runScript(
+      scriptName: string,
+      project: unknown = null,
+    ): Promise<void> {
       const { hooks } = loadPlugin().factory();
       const executor = jest.fn().mockResolvedValue(0);
       const wrappedFactory = await hooks!.wrapScriptExecution(
         executor,
-        null,
+        project,
         null,
         scriptName,
       );
@@ -385,6 +388,46 @@ describe('plugin-usage-tracking', () => {
     it('does not spawn for a root postinstall lifecycle script', async () => {
       await runScript('postinstall');
       expect(spawnSpy).not.toHaveBeenCalled();
+    });
+
+    // A `yarn <script>` typed in a subdirectory has a process.cwd() below the
+    // project root, but the binary only exists in the project-root
+    // node_modules — so the path must come from Yarn's project.cwd.
+    it('spawns the binary resolved from the Yarn project root rather than process.cwd()', async () => {
+      const projectRoot = mkdtempSync(join(tmpdir(), 'plugin-project-'));
+      const binPath = join(
+        projectRoot,
+        'node_modules',
+        '@metamask',
+        'tooling-insight',
+        'dist',
+        'daily-anonymizer.mjs',
+      );
+      mkdirSync(join(binPath, '..'), { recursive: true });
+      writeFileSync(binPath, '');
+
+      try {
+        await runScript('test:unit', { cwd: projectRoot });
+
+        expect(spawnSpy).toHaveBeenCalledWith(process.execPath, [binPath], {
+          detached: true,
+          stdio: 'ignore',
+        });
+      } finally {
+        rmSync(projectRoot, { recursive: true, force: true });
+      }
+    });
+
+    it('does not spawn when the binary is missing from the Yarn project root', async () => {
+      const projectRoot = mkdtempSync(join(tmpdir(), 'plugin-project-empty-'));
+
+      try {
+        await runScript('test:unit', { cwd: projectRoot });
+
+        expect(spawnSpy).not.toHaveBeenCalled();
+      } finally {
+        rmSync(projectRoot, { recursive: true, force: true });
+      }
     });
   });
 });

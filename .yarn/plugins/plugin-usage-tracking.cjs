@@ -137,7 +137,7 @@ function maybeTriggerAnonymizer(repoRoot) {
   }
 }
 
-function makeTrackingPlugin(repoRoot) {
+function makeTrackingPlugin() {
   const LOG_FILE =
     process.env.TOOL_USAGE_COLLECTION_LOG_PATH ||
     path.join(os.homedir(), '.tool-usage-collection', 'metamask-mobile-events.log');
@@ -175,7 +175,7 @@ function makeTrackingPlugin(repoRoot) {
       // wrapScriptExecution signature:
       //   (executor, project, locator, scriptName, extra) => Promise<() => Promise<number>>
       // The outer async resolves before the script runs; the inner async IS the script run.
-      wrapScriptExecution: (executor, _project, _locator, scriptName) =>
+      wrapScriptExecution: (executor, project, _locator, scriptName) =>
         Promise.resolve(async () => {
           const shouldLog = isRootProcess && !LIFECYCLE_SCRIPT_NAMES.has(scriptName);
 
@@ -227,7 +227,10 @@ function makeTrackingPlugin(repoRoot) {
                 success: interrupted ? undefined : exitCode === 0,
                 duration_ms: Date.now() - start,
               });
-              maybeTriggerAnonymizer(repoRoot);
+              // Yarn's own project root, not process.cwd(): a script invoked
+              // from a subdirectory must still resolve the anonymizer binary
+              // from the project-root node_modules where it is installed.
+              maybeTriggerAnonymizer(project?.cwd ?? process.cwd());
             }
           }
 
@@ -245,6 +248,6 @@ module.exports = {
     if (process.env.CI || process.env.TOOL_USAGE_COLLECTION_OPT_IN === 'false') {
       return {};
     }
-    return makeTrackingPlugin(process.cwd());
+    return makeTrackingPlugin();
   },
 };

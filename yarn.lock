@@ -3653,7 +3653,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@exodus/bitcoin-wallet-standard@npm:^0.0.0":
+"@exodus/bitcoin-wallet-standard@npm:0.0.0":
   version: 0.0.0
   resolution: "@exodus/bitcoin-wallet-standard@npm:0.0.0"
   dependencies:
@@ -8112,17 +8112,15 @@ __metadata:
   linkType: hard
 
 "@metamask/bitcoin-wallet-standard@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/bitcoin-wallet-standard@npm:1.0.0"
+  version: 1.1.0
+  resolution: "@metamask/bitcoin-wallet-standard@npm:1.1.0"
   dependencies:
-    "@exodus/bitcoin-wallet-standard": "npm:^0.0.0"
-    "@metamask/multichain-api-client": "npm:^0.11.0"
-    "@wallet-standard/base": "npm:^1.1.0"
-    "@wallet-standard/features": "npm:^1.1.0"
-    "@wallet-standard/wallet": "npm:^1.1.0"
-    bs58: "npm:^6.0.0"
-    jsontokens: "npm:^4.0.1"
-  checksum: 10/c0484f16aa4e290a47eab7b6a17afd08028a7b1d3d684b17114865b39f53120ef587aa854567659f5fac520bd2b1a5acf0d88e5528a73ea957e2399a2cb05f03
+    "@exodus/bitcoin-wallet-standard": "npm:0.0.0"
+    "@metamask/multichain-api-client": "npm:0.12.0"
+    "@wallet-standard/base": "npm:1.1.0"
+    "@wallet-standard/features": "npm:1.1.0"
+    "@wallet-standard/wallet": "npm:1.1.0"
+  checksum: 10/d0d381259c0342e3c7993c773cbc99f42235678c2a3aa8522b8a1521b57092904940a8a4bd55158926e07f9f79588b6d29124b58d023d757e62bfee0adc4399a
   languageName: node
   linkType: hard
 
@@ -9409,6 +9407,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/multichain-api-client@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@metamask/multichain-api-client@npm:0.12.0"
+  checksum: 10/79f7b2e53cae25fb825a825650b98bbedf4d700b82b87a4df90c7e5ae62eb1aa8d3089fcdeaa66b104d737fe1ade93f202eae1b2599346599fccbc62d046a5fa
+  languageName: node
+  linkType: hard
+
 "@metamask/multichain-api-client@npm:^0.11.0":
   version: 0.11.0
   resolution: "@metamask/multichain-api-client@npm:0.11.0"
@@ -9843,15 +9848,15 @@ __metadata:
   linkType: hard
 
 "@metamask/ramps-controller@npm:^17.0.0":
-  version: 17.0.0
-  resolution: "@metamask/ramps-controller@npm:17.0.0"
+  version: 17.1.0
+  resolution: "@metamask/ramps-controller@npm:17.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/45980e93d79bf72c00edc44e2cd075a738c44a1c0b3dd695a7bce688f7954f80f28988b56c7a5774b1747e335b66c16f6a7d36833030bf116cefafc7b2e5f223
+  checksum: 10/fa4e17571268e1a171be10f643cc8d0c163b0e59021b3067696968e141d39871b0a192ebb207666cff5f4af9397aec2030e6c50a485679b22a1be0a2748494d1
   languageName: node
   linkType: hard
 
@@ -20595,7 +20600,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/base@npm:^1.0.1, @wallet-standard/base@npm:^1.1.0":
+"@wallet-standard/base@npm:1.1.0, @wallet-standard/base@npm:^1.0.1, @wallet-standard/base@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/base@npm:1.1.0"
   checksum: 10/11dbb8ed80566265916ab193ad5eab1585d55996781a88039d2bc4480428b1e778901b2dcff3e688dcac7de45e8a9272026f37f07f1e75168caff581906c5079
@@ -20627,7 +20632,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/features@npm:^1.0.3, @wallet-standard/features@npm:^1.1.0":
+"@wallet-standard/features@npm:1.1.0, @wallet-standard/features@npm:^1.0.3, @wallet-standard/features@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/features@npm:1.1.0"
   dependencies:
@@ -20636,7 +20641,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/wallet@npm:^1.1.0":
+"@wallet-standard/wallet@npm:1.1.0, @wallet-standard/wallet@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/wallet@npm:1.1.0"
   dependencies:
@@ -34419,7 +34424,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsontokens@npm:4.0.1, jsontokens@npm:^4.0.1":
+"jsontokens@npm:4.0.1":
   version: 4.0.1
   resolution: "jsontokens@npm:4.0.1"
   dependencies:
@@ -42443,12 +42448,12 @@ __metadata:
   linkType: hard
 
 "rive-react-native@npm:^9.8.0":
-  version: 9.8.3
-  resolution: "rive-react-native@npm:9.8.3"
+  version: 9.8.5
+  resolution: "rive-react-native@npm:9.8.5"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/b646d50dfa235965f7c28e0fc036a0f606469e54039ae89330124d2bc1bb7af5313e7c833cab826015ad9c5ae2e0c36ef60f15ae08fb8d564567d3b2f46ccd44
+  checksum: 10/67b47eb920405ed5e1bff4b28e819c86801bf51330feefdfea475992817fd92313837ea890528f097c510cc72ab85a6ba0490f9fa99f6bb18850ce5ba740d147
   languageName: node
   linkType: hard
 
