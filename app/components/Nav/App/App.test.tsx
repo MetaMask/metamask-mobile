@@ -2078,29 +2078,54 @@ describe('App', () => {
     });
 
     it('renders the MultichainAddressList screen', async () => {
+      // Nested navigator shares the ADDRESS_LIST route name; seed child state so
+      // the mocked screen mounts without waiting on navigation effects.
+      // Avoid waitFor: App suite uses fake timers and testSetup mocks Date.now,
+      // so waitFor's timeout never elapses and a slow mount hangs until Jest's
+      // 5s test timeout (flaky CI failures).
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-address-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-address-list')).toBeOnTheScreen();
     });
 
     it('renders the MultichainPrivateKeyList screen', async () => {
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-pk-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
     });
 
     it('renders the LockScreen route', async () => {
