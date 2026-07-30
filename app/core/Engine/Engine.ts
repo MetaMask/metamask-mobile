@@ -88,7 +88,6 @@ import { multichainAssetsRatesControllerInit } from './controllers/multichain-as
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
-import { stellarAssetsControllerInit } from './controllers/stellar-assets-controller/stellar-assets-controller-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -372,7 +371,6 @@ export class Engine {
         MultichainRoutingService: multichainRoutingServiceInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
-        StellarAssetsController: stellarAssetsControllerInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -545,8 +543,6 @@ export class Engine {
     const multichainAccountService =
       messengerClientsByName.MultichainAccountService;
     const snapAccountService = messengerClientsByName.SnapAccountService;
-    const stellarAssetsController =
-      messengerClientsByName.StellarAssetsController;
     ///: END:ONLY_INCLUDE_IF
 
     const networkEnablementController =
@@ -634,7 +630,6 @@ export class Engine {
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
       SnapAccountService: snapAccountService,
-      StellarAssetsController: stellarAssetsController,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
@@ -1527,7 +1522,6 @@ export default {
       MultichainAssetsRatesController,
       MultichainBalancesController,
       MultichainTransactionsController,
-      StellarAssetsController,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
@@ -1605,7 +1599,6 @@ export default {
       MultichainAssetsRatesController: MultichainAssetsRatesController.state,
       MultichainBalancesController: MultichainBalancesController.state,
       MultichainTransactionsController: MultichainTransactionsController.state,
-      StellarAssetsController: StellarAssetsController.state,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,

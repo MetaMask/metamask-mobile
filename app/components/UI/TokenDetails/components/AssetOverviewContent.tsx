@@ -94,7 +94,7 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
 import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
 import { useAssetActivation } from '../hooks/useAssetActivation';
-import { isSupportBaseReserve } from '../../../../util/multichain/spendable-balance';
+import { useSpendableBalance } from '../hooks/useSpendableBalance';
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
@@ -268,7 +268,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     assetId: token.address,
     assetSymbol: token.symbol,
   });
-  const showSpendableBalance = isSupportBaseReserve(token.address);
+  const spendableBalanceData = useSpendableBalance({
+    assetId: token.address,
+  });
+  const showSpendableBalance = spendableBalanceData.hasSpendableBalance;
 
   const {
     hasPerpsMarket,
@@ -673,18 +676,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
-          {
-            balance != null && showSpendableBalance && (
+          {balance != null &&
+            spendableBalanceData.hasSpendableBalance && (
               <SpendableBalanceSection
-                accountId={accountId}
-                assetId={token.address}
+                minimumReserveBalance={
+                  spendableBalanceData.minimumReserveBalance
+                }
+                spendableBalance={spendableBalanceData.spendableBalance}
                 totalBalance={String(balance)}
                 symbol={token.symbol}
                 fiatValue={mainBalance}
               />
-            )
-          }
-          {balance != null && (
+            )}
+          {balance != null && !showSpendableBalance && (
             <Balance
               asset={token}
               mainBalance={mainBalance}

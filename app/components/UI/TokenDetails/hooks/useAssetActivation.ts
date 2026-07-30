@@ -7,14 +7,12 @@ import {
   type CaipAssetType,
 } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainBalances } from '../../../../selectors/multichain';
-import { getStellarTrustlineAssetInfoForAccount } from '../../../../selectors/stellar/stellar-assets';
 import {
-  isAssetRequireActivate,
-  isTrustlineAsset,
-} from '../../../../util/multichain/trustline';
+  getIsAssetRequireActivate,
+  isAssetSupportActivation,
+} from '../../../../selectors/stellar/stellar-assets';
 import {
   requestStellarChangeTrustOptAdd,
   requestStellarChangeTrustOptDelete,
@@ -59,7 +57,6 @@ export const useAssetActivation = ({
     selectSelectedInternalAccountByScope,
   );
 
-  const isAssetIsTrustlineAsset = assetId ? isTrustlineAsset(assetId) : false;
   const chainId =
     assetId && isCaipAssetType(assetId)
       ? parseCaipAssetType(assetId).chainId
@@ -76,26 +73,13 @@ export const useAssetActivation = ({
       ? multichainBalances[resolvedAccountId]?.[assetId]?.amount
       : undefined;
 
-  const requiresActivate = useSelector((state: RootState) => {
-    if (!assetId || !isAssetIsTrustlineAsset || !resolvedAccountId) {
-      return false;
-    }
+  const requiresActivate = useSelector((state) =>
+    getIsAssetRequireActivate(state, resolvedAccountId, assetId),
+  );
 
-    const assetMetadata = getStellarTrustlineAssetInfoForAccount(
-      state,
-      resolvedAccountId,
-      assetId,
-    );
-
-    return isAssetRequireActivate({
-      assetId,
-      assetMetadata,
-    });
-  });
-
+  // Classic asset with an active trustline (not requiring activation).
   const canDeactivate = Boolean(
-    assetId &&
-      isAssetIsTrustlineAsset &&
+    isAssetSupportActivation(assetId) &&
       !requiresActivate &&
       resolvedAccountId &&
       chainId,
@@ -164,12 +148,13 @@ export const useAssetActivation = ({
 
   const activateAsset =
     useCallback(async (): Promise<AssetActivationActionResult> => {
+      // Non-classic / already-active assets have requiresActivate === false.
       if (
         !resolvedAccountId ||
         !chainId ||
         !assetId ||
         !isCaipAssetType(assetId) ||
-        !isAssetIsTrustlineAsset
+        !requiresActivate
       ) {
         return CANCELLED_RESULT;
       }
@@ -201,7 +186,7 @@ export const useAssetActivation = ({
       } finally {
         setIsActivating(false);
       }
-    }, [assetId, chainId, isAssetIsTrustlineAsset, resolvedAccountId]);
+    }, [assetId, chainId, requiresActivate, resolvedAccountId]);
 
   return {
     activateAsset,
