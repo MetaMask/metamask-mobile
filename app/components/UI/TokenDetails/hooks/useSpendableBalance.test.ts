@@ -10,16 +10,11 @@ jest.mock('react-redux', () => ({
     selector({} as State),
 }));
 
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => undefined,
-}));
-
 jest.mock('../../../../selectors/stellar/stellar-assets', () => ({
   ...jest.requireActual('../../../../selectors/stellar/stellar-assets'),
   getSpendableForAccount: jest.fn(),
 }));
 
-const ACCOUNT_ID = 'stellar-account-id';
 const STELLAR_NATIVE_ASSET_ID =
   `${XlmScope.Pubnet}/slip44:148` as CaipAssetType;
 
@@ -39,15 +34,13 @@ describe('useSpendableBalance', () => {
 
     const { result } = renderHook(() =>
       useSpendableBalance({
-        accountId: ACCOUNT_ID,
         assetId: STELLAR_NATIVE_ASSET_ID,
       }),
     );
 
     expect(getSpendableForAccountMock).toHaveBeenCalledWith(
       {},
-      ACCOUNT_ID,
-      STELLAR_NATIVE_ASSET_ID,
+      { assetId: STELLAR_NATIVE_ASSET_ID },
     );
     expect(result.current).toStrictEqual({
       hasSpendableBalance: true,
@@ -61,33 +54,10 @@ describe('useSpendableBalance', () => {
 
     const { result } = renderHook(() =>
       useSpendableBalance({
-        accountId: ACCOUNT_ID,
         assetId: STELLAR_NATIVE_ASSET_ID,
       }),
     );
 
-    expect(result.current).toStrictEqual({
-      hasSpendableBalance: false,
-      minimumReserveBalance: undefined,
-      spendableBalance: undefined,
-    });
-  });
-
-  it('returns hasSpendableBalance false when account id or asset id is missing', () => {
-    getSpendableForAccountMock.mockReturnValue(undefined);
-
-    const { result } = renderHook(() =>
-      useSpendableBalance({
-        accountId: undefined,
-        assetId: undefined,
-      }),
-    );
-
-    expect(getSpendableForAccountMock).toHaveBeenCalledWith(
-      {},
-      undefined,
-      undefined,
-    );
     expect(result.current).toStrictEqual({
       hasSpendableBalance: false,
       minimumReserveBalance: undefined,
@@ -100,15 +70,13 @@ describe('useSpendableBalance', () => {
 
     const { result } = renderHook(() =>
       useSpendableBalance({
-        accountId: ACCOUNT_ID,
-        assetId: 'eip155:1/slip44:60' as CaipAssetType,
+        assetId: 'eip155:1/slip44:60',
       }),
     );
 
     expect(getSpendableForAccountMock).toHaveBeenCalledWith(
       {},
-      ACCOUNT_ID,
-      'eip155:1/slip44:60',
+      { assetId: 'eip155:1/slip44:60' },
     );
     expect(result.current).toStrictEqual({
       hasSpendableBalance: false,
@@ -125,7 +93,6 @@ describe('useSpendableBalance', () => {
 
     const { result } = renderHook(() =>
       useSpendableBalance({
-        accountId: ACCOUNT_ID,
         assetId: STELLAR_NATIVE_ASSET_ID,
       }),
     );

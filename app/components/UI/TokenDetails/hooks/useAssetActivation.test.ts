@@ -18,7 +18,6 @@ const SEP41_ASSET_ID =
   'stellar:pubnet/sep41:CBIJBDNZNF4X35BJ4FFZWCDBSCKOP5NB4PLG4SNENRMLAPYG4P5FM6VN' as CaipAssetType;
 
 const DEFAULT_HOOK_PARAMS = {
-  accountId: ACCOUNT_ID,
   assetId: PUBNET_USDC_ASSET,
   assetSymbol: 'USDC',
 };
@@ -29,7 +28,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => undefined,
+  selectSelectedInternalAccountByScope: () => () => ({ id: ACCOUNT_ID }),
 }));
 
 jest.mock('../../../../selectors/multichain', () => ({
@@ -81,7 +80,6 @@ describe('useAssetActivation', () => {
     it('returns false canDeactivate for non-trustline assets', () => {
       const { result } = renderHook(() =>
         useAssetActivation({
-          accountId: ACCOUNT_ID,
           assetId: SEP41_ASSET_ID,
           assetSymbol: 'SEP41',
         }),
@@ -137,7 +135,6 @@ describe('useAssetActivation', () => {
     it('does not request add for non-trustline assets', async () => {
       const { result } = renderHook(() =>
         useAssetActivation({
-          accountId: ACCOUNT_ID,
           assetId: SEP41_ASSET_ID,
           assetSymbol: 'SEP41',
         }),

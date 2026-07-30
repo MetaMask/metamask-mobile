@@ -10,7 +10,7 @@ describe('AssetInactiveBadge', () => {
   it('renders the inactive label with warning styling', () => {
     const { getByTestId, getByText } = render(<AssetInactiveBadge />);
 
-    expect(getByText(strings('asset_activation.inactive'))).toBeTruthy();
-    expect(getByTestId(AssetInactiveBadgeTestIds.BADGE)).toBeTruthy();
+    expect(getByText(strings('asset_activation.inactive'))).toBeOnTheScreen();
+    expect(getByTestId(AssetInactiveBadgeTestIds.BADGE)).toBeOnTheScreen();
   });
 });

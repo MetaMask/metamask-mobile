@@ -93,7 +93,7 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
 import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
 import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
-import { useAssetActivation } from '../hooks/useAssetActivation';
+import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
 import { useSpendableBalance } from '../hooks/useSpendableBalance';
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -266,10 +266,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
-  const { requiresActivate: isAssetInactive } = useAssetActivation({
-    assetId: token.address,
-    assetSymbol: token.symbol,
-  });
+  const isAssetInactive = useSelector((state) =>
+    getIsAssetRequireActivate(state, {
+      assetId: token.address,
+    }),
+  );
   const spendableBalanceData = useSpendableBalance({
     assetId: token.address,
   });

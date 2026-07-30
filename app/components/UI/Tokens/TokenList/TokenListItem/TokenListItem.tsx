@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CaipAssetType, Hex, isCaipAssetType } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo } from 'react';
@@ -87,7 +87,6 @@ import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
 import { getIsAssetRequireActivate } from '../../../../../selectors/stellar/stellar-assets';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -198,23 +197,9 @@ export const TokenListItem = React.memo(
       }),
     );
 
-    const selectAccountByScope = useSelector(
-      selectSelectedInternalAccountByScope,
+    const isAssetInactive = useSelector((state: RootState) =>
+      getIsAssetRequireActivate(state, { assetId: asset?.address ?? '' }),
     );
-    const isAssetInactive = useSelector((state: RootState) => {
-      if (
-        !asset?.address ||
-        !asset?.chainId ||
-        !isCaipAssetType(asset.address)
-      ) {
-        return false;
-      }
-      const account = selectAccountByScope(asset.chainId);
-      if (!account?.id) {
-        return false;
-      }
-      return getIsAssetRequireActivate(state, account.id, asset.address);
-    });
 
     const { isStockToken } = useRWAToken();
 

@@ -1,12 +1,6 @@
-import {
-  parseCaipAssetType,
-  isCaipAssetType,
-  type CaipAssetType,
-} from '@metamask/utils';
 import { useSelector } from 'react-redux';
 
 import { getSpendableForAccount } from '../../../../selectors/stellar/stellar-assets';
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 type UseSpendableBalanceResult =
   | {
@@ -21,33 +15,19 @@ type UseSpendableBalanceResult =
     };
 
 /**
- * Resolves native spendable balance data for an account/asset pair.
+ * Resolves native spendable balance data for the selected account and asset.
  *
  * @param params - Hook parameters.
- * @param params.accountId - Optional account id override.
- * @param params.assetId - CAIP asset id for the native asset.
+ * @param params.assetId - Asset id for the native asset.
  * @returns Minimum reserve and spendable balance when available.
  */
 export const useSpendableBalance = ({
-  accountId,
   assetId,
 }: {
-  accountId?: string;
-  assetId?: CaipAssetType;
+  assetId: string;
 }): UseSpendableBalanceResult => {
-  const chainId =
-    assetId && isCaipAssetType(assetId)
-      ? parseCaipAssetType(assetId).chainId
-      : undefined;
-  const selectAccountByScope = useSelector(
-    selectSelectedInternalAccountByScope,
-  );
-
-  const resolvedAccountId =
-    accountId ?? (chainId ? selectAccountByScope(chainId)?.id : undefined);
-
   const spendableInfo = useSelector((state) =>
-    getSpendableForAccount(state, resolvedAccountId, assetId),
+    getSpendableForAccount(state, { assetId }),
   );
 
   if (

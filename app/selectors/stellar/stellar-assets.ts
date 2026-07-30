@@ -1,4 +1,5 @@
 import type { AssetsControllerState } from '@metamask/assets-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   type,
   string,
@@ -9,11 +10,17 @@ import {
   number,
   type Infer,
 } from '@metamask/superstruct';
-import type { CaipAssetType } from '@metamask/utils';
+import {
+  parseCaipAssetType,
+  isCaipAssetType,
+  type CaipChainId,
+  type CaipAssetType,
+} from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import { createSelectorCreator, lruMemoize } from 'reselect';
 
 import { getAssetsBalance } from '../assets/assets-controller';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 import { RootState } from '../../reducers';
 
 const ACCOUNT_ASSET_LRU_CACHE_SIZE = 50;
@@ -108,7 +115,7 @@ type AssetBalanceEntry = AssetsControllerState['assetsBalance'][string][string];
  */
 export function isAssetSupportActivation(
   assetId: string | undefined,
-): assetId is StellarClassicAssetId {
+): assetId is StellarClassicAssetId & CaipAssetType {
   return assetId !== undefined && is(assetId, StellarClassicAssetIdStruct);
 }
 
@@ -120,7 +127,7 @@ export function isAssetSupportActivation(
  */
 export function isAssetSupportSpendableBalance(
   assetId: string | undefined,
-): assetId is StellarNativeAssetId {
+): assetId is StellarNativeAssetId & CaipAssetType {
   return assetId !== undefined && is(assetId, StellarNativeAssetIdStruct);
 }
 
@@ -192,34 +199,85 @@ function normalizeAmount(amount: string, decimalPlaces: number): string {
 }
 
 /**
- * Spendable balance breakdown for an account/asset pair.
+ * Resolves an account id from an explicit override, or from the selected
+ * account for the asset's CAIP chain scope.
  *
+ * @param getAccountByScope - Selected-account lookup by scope.
+ * @param accountId - Optional account id override.
+ * @param assetId - CAIP asset id used to derive the scope when needed.
+ * @returns Resolved account id, or `undefined`.
+ */
+function resolveAccountIdForAsset(
+  getAccountByScope: (scope: CaipChainId) => InternalAccount | undefined,
+  accountId: string | undefined,
+  assetId: CaipAssetType,
+): string | undefined {
+  if (accountId) {
+    return accountId;
+  }
+  if (!isCaipAssetType(assetId)) {
+    return undefined;
+  }
+  return getAccountByScope(parseCaipAssetType(assetId).chainId)?.id;
+}
+
+/**
+ * Parameters for account/asset Stellar selectors.
+ */
+export type StellarAccountAssetParams = {
+  accountId?: string;
+  assetId: string;
+};
+
+/**
+ * Spendable balance breakdown for an account/asset pair.
  * Reads `minimumReserveBalance`, `spendableBalance`, and `decimal` from
  * `assetsBalance[accountId][assetId].metadata`, then returns both amounts in
  * display units.
+ * When `accountId` is omitted, falls back to the selected internal account for
+ * the asset's CAIP chain scope.
  *
  * Returns `undefined` when:
- * - `accountId` or `assetId` is missing
- * - the asset does not support spendable balance
+ * - `assetId` is not a CAIP asset type that supports spendable balance
+ * - a resolved `accountId` is missing
  * - native enrichment is missing or fails validation
  *
  * @param state - Redux state with AssetsController balances.
- * @param accountId - Account id, when known.
- * @param assetId - CAIP asset id, when known.
+ * @param params - Account/asset lookup params.
+ * @param params.accountId - Optional account id override.
+ * @param params.assetId - Asset id (CAIP when valid).
  * @returns Display-unit spendable info, or `undefined`.
  */
 export const getSpendableForAccount = createParameterizedSelector(
-  getAssetsBalance as (state: AssetsBalancesState) => AssetsControllerState['assetsBalance'],
-  (_state: AssetsBalancesState, accountId?: string) => accountId,
-  (_state: AssetsBalancesState, _accountId?: string, assetId?: CaipAssetType) =>
-    assetId,
-  (assetsBalance, accountId, assetId) => {
-    if (!accountId || !assetId || !isAssetSupportSpendableBalance(assetId)) {
+  selectSelectedInternalAccountByScope as (
+    state: AssetsBalancesState,
+  ) => (scope: CaipChainId) => InternalAccount | undefined,
+  getAssetsBalance as (
+    state: AssetsBalancesState,
+  ) => AssetsControllerState['assetsBalance'],
+  (
+    _state: AssetsBalancesState,
+    params: StellarAccountAssetParams,
+  ) => params.accountId,
+  (
+    _state: AssetsBalancesState,
+    params: StellarAccountAssetParams,
+  ) => params.assetId,
+  (getAccountByScope, assetsBalance, accountId, assetId) => {
+    if (!isAssetSupportSpendableBalance(assetId)) {
+      return undefined;
+    }
+    const resolvedAccountId = resolveAccountIdForAsset(
+      getAccountByScope,
+      accountId,
+      assetId,
+    );
+    if (!resolvedAccountId) {
       return undefined;
     }
     const nativeInfo = getNativeAssetInfoForAsset(
       assetId,
-      getAssetBalanceMetadata(assetsBalance[accountId]?.[assetId]),
+      getAssetBalanceMetadata(assetsBalance[resolvedAccountId]?.[assetId]),
     );
     if (!nativeInfo) {
       return undefined;
@@ -242,63 +300,99 @@ export const getSpendableForAccount = createParameterizedSelector(
 
 /**
  * Trustline metadata for an account/asset pair.
- *
  * Reads `limit` from `assetsBalance[accountId][assetId].metadata`.
+ * When `accountId` is omitted, falls back to the selected internal account for
+ * the asset's CAIP chain scope.
  *
  * Returns `undefined` when:
- * - `accountId` or `assetId` is missing
- * - the asset does not support activation
+ * - `assetId` is missing or not a CAIP asset type that supports activation
+ * - a resolved `accountId` is missing
  * - trustline enrichment is missing or fails validation
  *
  * @param state - Redux state with AssetsController balances.
- * @param accountId - Account id, when known.
- * @param assetId - CAIP asset id, when known.
+ * @param params - Account/asset lookup params.
+ * @param params.accountId - Optional account id override.
+ * @param params.assetId - Asset id (CAIP when known).
  * @returns Trustline info, or `undefined`.
  */
 export const getTrustlineAssetInfoForAccount = createParameterizedSelector(
-  getAssetsBalance as (state: AssetsBalancesState) => AssetsControllerState['assetsBalance'],
-  (_state: AssetsBalancesState, accountId?: string) => accountId,
+  selectSelectedInternalAccountByScope as (
+    state: AssetsBalancesState,
+  ) => (scope: CaipChainId) => InternalAccount | undefined,
+  getAssetsBalance as (
+    state: AssetsBalancesState,
+  ) => AssetsControllerState['assetsBalance'],
   (
     _state: AssetsBalancesState,
-    _accountId?: string,
-    assetId?: CaipAssetType,
-  ) => assetId,
-  (assetsBalance, accountId, assetId) => {
-    if (!accountId || !assetId || !isAssetSupportActivation(assetId)) {
+    params: StellarAccountAssetParams,
+  ) => params.accountId,
+  (
+    _state: AssetsBalancesState,
+    params: StellarAccountAssetParams,
+  ) => params.assetId,
+  (getAccountByScope, assetsBalance, accountId, assetId) => {
+    if (!isAssetSupportActivation(assetId)) {
+      return undefined;
+    }
+    const resolvedAccountId = resolveAccountIdForAsset(
+      getAccountByScope,
+      accountId,
+      assetId,
+    );
+    if (!resolvedAccountId) {
       return undefined;
     }
     return getTrustlineAssetInfoForAsset(
       assetId,
-      getAssetBalanceMetadata(assetsBalance[accountId]?.[assetId]),
+      getAssetBalanceMetadata(assetsBalance[resolvedAccountId]?.[assetId]),
     );
   },
 );
 
 /**
  * Whether a asset needs trustline activation.
+ * When `accountId` is omitted, falls back to the selected internal account for
+ * the asset's CAIP chain scope.
  *
  * Returns `false` when:
- * - `accountId` or `assetId` is missing
- * - the asset does not support activation
+ * - `assetId` is missing or not a CAIP asset type that supports activation
+ * - a resolved `accountId` is missing
  * - trustline `limit` is present and non-zero (already active)
  *
  * Returns `true` when the asset is support activation and either trustline metadata is
  * missing (e.g. newly imported) or `limit` is `'0'`.
  *
  * @param state - Redux state with AssetsController balances.
- * @param accountId - Account id, when known.
- * @param assetId - CAIP asset id, when known.
+ * @param params - Account/asset lookup params.
+ * @param params.accountId - Optional account id override.
+ * @param params.assetId - Asset id (CAIP when known).
  * @returns `true` when activation is still required.
  */
 export const getIsAssetRequireActivate = createParameterizedSelector(
   getTrustlineAssetInfoForAccount,
-  (_state: AssetsBalancesState, accountId?: string) => accountId,
-  (_state: AssetsBalancesState, _accountId?: string, assetId?: CaipAssetType) =>
-    assetId,
-  (assetMetadata, accountId, assetId) => {
-    if (!accountId || !assetId || !isAssetSupportActivation(assetId)) {
+  selectSelectedInternalAccountByScope as (
+    state: AssetsBalancesState,
+  ) => (scope: CaipChainId) => InternalAccount | undefined,
+  (
+    _state: AssetsBalancesState,
+    params: StellarAccountAssetParams,
+  ) => params.accountId,
+  (
+    _state: AssetsBalancesState,
+    params: StellarAccountAssetParams,
+  ) => params.assetId,
+  (assetMetadata, getAccountByScope, accountId, assetId) => {
+    if (!isAssetSupportActivation(assetId)) {
       return false;
     }
-    return !assetMetadata || assetMetadata.limit === '0';
+    if (assetMetadata) {
+      return assetMetadata.limit === '0';
+    }
+    // Missing metadata is ambiguous (no account vs newly imported).
+    // No account → don’t require activation.
+    // No metadata → require activation (newly imported).
+    return Boolean(
+      resolveAccountIdForAsset(getAccountByScope, accountId, assetId),
+    );
   },
 );

@@ -20,7 +20,6 @@ import Button, {
 import { strings } from '../../../../locales/i18n';
 import type { TokenI } from '../Tokens/types';
 import { useAssetActivation } from '../TokenDetails/hooks/useAssetActivation';
-import type { CaipAssetType } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import NotificationManager from '../../../core/NotificationManager';
 
@@ -39,9 +38,8 @@ export const AssetActivateCard = ({
   chainName,
 }: AssetActivateCardProps) => {
   const navigation = useNavigation();
-  const assetId = token.address as CaipAssetType | undefined;
   const { activateAsset, isActivating } = useAssetActivation({
-    assetId,
+    assetId: token.address,
     assetSymbol: token.symbol,
   });
 

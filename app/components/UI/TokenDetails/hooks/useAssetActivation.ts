@@ -1,11 +1,7 @@
 import { errorCodes } from '@metamask/rpc-errors';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  isCaipAssetType,
-  parseCaipAssetType,
-  type CaipAssetType,
-} from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainBalances } from '../../../../selectors/multichain';
@@ -39,32 +35,28 @@ const CANCELLED_RESULT: AssetActivationActionResult = {
  * Manages trustline activation and deactivation for supported assets (currently Stellar classic tokens).
  *
  * @param params - Hook parameters.
- * @param params.accountId - Optional account id override.
- * @param params.assetId - CAIP asset id for the trustline asset.
+ * @param params.assetId - Asset id for the trustline asset.
  * @param params.assetSymbol - Symbol of the asset.
  * @returns Trustline actions, loading flags, activation requirement, and whether deactivation is allowed.
  */
 export const useAssetActivation = ({
-  accountId,
   assetId,
   assetSymbol,
 }: {
-  accountId?: string;
-  assetId?: CaipAssetType;
+  assetId: string;
   assetSymbol?: string;
 }) => {
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
 
-  const chainId =
-    assetId && isCaipAssetType(assetId)
-      ? parseCaipAssetType(assetId).chainId
-      : undefined;
+  const chainId = isCaipAssetType(assetId)
+    ? parseCaipAssetType(assetId).chainId
+    : undefined;
 
-  const selectedAccountId =
-    !accountId && chainId ? selectAccountByScope(chainId)?.id : undefined;
-  const resolvedAccountId = accountId ?? selectedAccountId;
+  const resolvedAccountId = chainId
+    ? selectAccountByScope(chainId)?.id
+    : undefined;
 
   const multichainBalances = useSelector(selectMultichainBalances);
 
@@ -74,7 +66,7 @@ export const useAssetActivation = ({
       : undefined;
 
   const requiresActivate = useSelector((state) =>
-    getIsAssetRequireActivate(state, resolvedAccountId, assetId),
+    getIsAssetRequireActivate(state, { assetId, accountId: resolvedAccountId }),
   );
 
   // Classic asset with an active trustline (not requiring activation).
@@ -94,7 +86,6 @@ export const useAssetActivation = ({
         !canDeactivate ||
         !resolvedAccountId ||
         !chainId ||
-        !assetId ||
         !isCaipAssetType(assetId)
       ) {
         return CANCELLED_RESULT;
@@ -152,7 +143,6 @@ export const useAssetActivation = ({
       if (
         !resolvedAccountId ||
         !chainId ||
-        !assetId ||
         !isCaipAssetType(assetId) ||
         !requiresActivate
       ) {

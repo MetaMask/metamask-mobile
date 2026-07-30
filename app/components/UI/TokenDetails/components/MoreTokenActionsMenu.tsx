@@ -22,7 +22,6 @@ import {
   Hex,
   isCaipAssetType,
   parseCaipAssetType,
-  type CaipAssetType,
 } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
@@ -93,7 +92,7 @@ const MoreTokenActionsMenu = () => {
 
   const { deactivateAsset, canDeactivate, isDeactivating } = useAssetActivation(
     {
-      assetId: asset.address as CaipAssetType,
+      assetId: asset.address,
       assetSymbol: asset.symbol,
     },
   );
