@@ -331,10 +331,21 @@ class Browser {
    * unmounted while the URL editor is focused.
    */
   async dismissUrlEditorIfOpen(): Promise<void> {
-    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000)) {
+    if (!(await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000))) {
+      return;
+    }
+
+    try {
       await Gestures.waitAndTap(this.cancelUrlInputButton, {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
+    } catch (error) {
+      // After a URL bar submit the app keeps the editor open until the page
+      // commits and then hides it itself, so Cancel can unmount between the
+      // visibility check above and the tap. Only rethrow if it is still open.
+      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000)) {
+        throw error;
+      }
     }
   }
 
