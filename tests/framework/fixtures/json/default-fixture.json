@@ -286,12 +286,6 @@
               "name": "Stellar",
               "nativeCurrency": "stellar:pubnet/slip44:148"
             },
-            "stellar:testnet": {
-              "chainId": "stellar:testnet",
-              "isEvm": false,
-              "name": "Stellar Testnet",
-              "nativeCurrency": "stellar:testnet/slip44:148"
-            },
             "tron:2494104990": {
               "chainId": "tron:2494104990",
               "isEvm": false,

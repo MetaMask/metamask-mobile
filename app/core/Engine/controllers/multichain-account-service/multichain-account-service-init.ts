@@ -49,9 +49,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
 
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
-    providers: [
-      xlmProvider
-    ],
+    providers: [xlmProvider],
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)

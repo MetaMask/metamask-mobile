@@ -62,8 +62,7 @@ export const trxNativeTokenAddress = 'tron:728126428/slip44:195' as CaipAssetId;
 export const xlmAccountId = 'xlmAccountId';
 export const xlmAccountAddress =
   'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
-export const xlmNativeTokenAddress =
-  'stellar:pubnet/slip44:148' as CaipAssetId;
+export const xlmNativeTokenAddress = 'stellar:pubnet/slip44:148' as CaipAssetId;
 
 export const initialState = {
   engine: {

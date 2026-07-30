@@ -495,7 +495,9 @@ describe('stellar-assets selectors', () => {
 
   describe('isAssetSupportSpendableBalance', () => {
     it('returns true for native XLM', () => {
-      expect(isAssetSupportSpendableBalance(STELLAR_NATIVE_ASSET_ID)).toBe(true);
+      expect(isAssetSupportSpendableBalance(STELLAR_NATIVE_ASSET_ID)).toBe(
+        true,
+      );
     });
 
     it('returns false for unsupported assets', () => {

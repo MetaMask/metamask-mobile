@@ -252,10 +252,8 @@ export const getSpendableForAccount = createParameterizedSelector(
     state: AssetsBalancesState,
   ) => AssetsControllerState['assetsBalance'],
   selectResolvedAccountIdForAsset,
-  (
-    _state: AssetsBalancesState,
-    params: StellarAccountAssetParams,
-  ) => params.assetId,
+  (_state: AssetsBalancesState, params: StellarAccountAssetParams) =>
+    params.assetId,
   (assetsBalance, resolvedAccountId, assetId) => {
     if (!isAssetSupportSpendableBalance(assetId) || !resolvedAccountId) {
       return undefined;
@@ -305,10 +303,8 @@ export const getTrustlineAssetInfoForAccount = createParameterizedSelector(
     state: AssetsBalancesState,
   ) => AssetsControllerState['assetsBalance'],
   selectResolvedAccountIdForAsset,
-  (
-    _state: AssetsBalancesState,
-    params: StellarAccountAssetParams,
-  ) => params.assetId,
+  (_state: AssetsBalancesState, params: StellarAccountAssetParams) =>
+    params.assetId,
   (assetsBalance, resolvedAccountId, assetId) => {
     if (!isAssetSupportActivation(assetId) || !resolvedAccountId) {
       return undefined;
@@ -342,10 +338,8 @@ export const getTrustlineAssetInfoForAccount = createParameterizedSelector(
 export const getIsAssetRequireActivate = createParameterizedSelector(
   getTrustlineAssetInfoForAccount,
   selectResolvedAccountIdForAsset,
-  (
-    _state: AssetsBalancesState,
-    params: StellarAccountAssetParams,
-  ) => params.assetId,
+  (_state: AssetsBalancesState, params: StellarAccountAssetParams) =>
+    params.assetId,
   (assetMetadata, resolvedAccountId, assetId) => {
     if (!isAssetSupportActivation(assetId) || !resolvedAccountId) {
       return false;

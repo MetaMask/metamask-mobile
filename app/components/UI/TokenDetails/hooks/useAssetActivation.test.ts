@@ -61,9 +61,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('useAssetActivation', () => {
-  const getIsAssetRequireActivateMock = jest.mocked(
-    getIsAssetRequireActivate,
-  );
+  const getIsAssetRequireActivateMock = jest.mocked(getIsAssetRequireActivate);
   const requestAddMock = jest.mocked(requestStellarChangeTrustOptAdd);
   const requestDeleteMock = jest.mocked(requestStellarChangeTrustOptDelete);
   const selectMultichainBalancesMock = jest.mocked(selectMultichainBalances);

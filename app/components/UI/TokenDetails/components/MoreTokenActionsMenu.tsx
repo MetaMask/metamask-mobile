@@ -18,11 +18,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import {
-  Hex,
-  isCaipAssetType,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';

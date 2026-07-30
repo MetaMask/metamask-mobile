@@ -38,18 +38,18 @@ describe('SpendableBalanceSection', () => {
       getByTestId(SpendableBalanceSectionTestIds.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('Your balance')).toBeOnTheScreen();
-    expect(
-      getByTestId(SpendableBalanceSectionTestIds.TOTAL),
-    ).toHaveTextContent('250 XLM');
+    expect(getByTestId(SpendableBalanceSectionTestIds.TOTAL)).toHaveTextContent(
+      '250 XLM',
+    );
     expect(
       getByTestId(SpendableBalanceSectionTestIds.SPENDABLE),
     ).toHaveTextContent('247.5 XLM');
     expect(
       getByTestId(SpendableBalanceSectionTestIds.RESERVED),
     ).toHaveTextContent('2.5 XLM');
-    expect(
-      getByTestId(SpendableBalanceSectionTestIds.FIAT),
-    ).toHaveTextContent('$105.00');
+    expect(getByTestId(SpendableBalanceSectionTestIds.FIAT)).toHaveTextContent(
+      '$105.00',
+    );
   });
 
   it('renders em dash when fiat value is undefined', () => {
@@ -57,15 +57,13 @@ describe('SpendableBalanceSection', () => {
       <SpendableBalanceSection {...defaultProps} fiatValue={undefined} />,
     );
 
-    expect(
-      getByTestId(SpendableBalanceSectionTestIds.FIAT),
-    ).toHaveTextContent('—');
+    expect(getByTestId(SpendableBalanceSectionTestIds.FIAT)).toHaveTextContent(
+      '—',
+    );
   });
 
   it('renders labels for total, fiat, spendable, and reserved rows', () => {
-    const { getByText } = render(
-      <SpendableBalanceSection {...defaultProps} />,
-    );
+    const { getByText } = render(<SpendableBalanceSection {...defaultProps} />);
 
     expect(getByText('Total balance')).toBeOnTheScreen();
     expect(getByText('Value')).toBeOnTheScreen();

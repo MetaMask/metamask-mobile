@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  BoxFlexDirection,
-} from '@metamask/design-system-react-native';
+import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 // design-system-react-native TextVariant is not aligned with the mobile
 // component-library TextVariant, so use the local Text component.
 import Text, {

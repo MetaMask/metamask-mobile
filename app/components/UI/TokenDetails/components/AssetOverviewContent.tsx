@@ -612,11 +612,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             )}
 
-          {
-            isAssetInactive ? (
-              <AssetActivateCard token={token} chainName="Stellar" />
-            ) : null
-          }
+          {isAssetInactive ? (
+            <AssetActivateCard token={token} chainName="Stellar" />
+          ) : null}
 
           <Price
             asset={token}
@@ -680,18 +678,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
-          {balance != null &&
-            spendableBalanceData.hasSpendableBalance && (
-              <SpendableBalanceSection
-                minimumReserveBalance={
-                  spendableBalanceData.minimumReserveBalance
-                }
-                spendableBalance={spendableBalanceData.spendableBalance}
-                totalBalance={String(balance)}
-                symbol={token.symbol}
-                fiatValue={mainBalance}
-              />
-            )}
+          {balance != null && spendableBalanceData.hasSpendableBalance && (
+            <SpendableBalanceSection
+              minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
+              spendableBalance={spendableBalanceData.spendableBalance}
+              totalBalance={String(balance)}
+              symbol={token.symbol}
+              fiatValue={mainBalance}
+            />
+          )}
           {balance != null && !showSpendableBalance && (
             <Balance
               asset={token}

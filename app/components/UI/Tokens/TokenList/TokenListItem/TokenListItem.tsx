@@ -648,9 +648,7 @@ export const TokenListItem = React.memo(
                       caipAssetId={caipAssetIdForSecurity}
                     />
                   )}
-                {
-                  isAssetInactive ? <AssetInactiveBadge /> : null
-                }
+                {isAssetInactive ? <AssetInactiveBadge /> : null}
               </View>
 
               {renderEarnCta()}
