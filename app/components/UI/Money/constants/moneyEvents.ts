@@ -60,10 +60,7 @@ export enum MONEY_SURFACE_TYPES {
 
 export enum COMPONENT_NAMES {
   // — Section Headers —
-  MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
-  MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
-  MONEY_CARD_SECTION_HEADER = 'money_card_section_header',
 
   // — Onboarding —
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
@@ -113,7 +110,6 @@ export enum COMPONENT_NAMES {
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',
   MONEY_HOME_TAB = 'money_home_tab',
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
-  MONEY_FOOTER = 'money_footer',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
   MONEY_TOKEN_LIST_ITEM_CTA = 'money_token_list_item_cta',
   MONEY_EARN_BANNER = 'money_earn_banner',

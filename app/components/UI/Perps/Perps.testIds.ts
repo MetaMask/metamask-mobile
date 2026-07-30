@@ -334,10 +334,15 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
+  CANCEL_BUTTON: 'perps-tpsl-cancel-button',
   DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
+  TAKE_PROFIT_CLEAR_BUTTON: 'perps-tpsl-tp-clear-button',
+  STOP_LOSS_CLEAR_BUTTON: 'perps-tpsl-sl-clear-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
+  TAKE_PROFIT_PERCENTAGE_INPUT: 'perps-tpsl-tp-percentage-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
+  STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -468,6 +473,13 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_SERVICE_INTERRUPTION_BANNER:
     'perps-pro-market-chart-service-interruption-banner',
   STATS_BAR: 'perps-pro-market-stats-bar',
+  STATS_BAR_SCROLL: 'perps-pro-market-stats-bar-scroll',
+  STATS_BAR_FUNDING_RATE: 'perps-pro-market-stats-funding-rate',
+  STATS_BAR_FUNDING_COUNTDOWN: 'perps-pro-market-stats-funding-countdown',
+  STATS_BAR_VOLUME: 'perps-pro-market-stats-volume',
+  STATS_BAR_OPEN_INTEREST: 'perps-pro-market-stats-open-interest',
+  STATS_BAR_MARK_PRICE: 'perps-pro-market-stats-mark-price',
+  STATS_BAR_ORACLE_PRICE: 'perps-pro-market-stats-oracle-price',
   LAYOUT: 'perps-pro-market-layout',
   LEFT_COLUMN: 'perps-pro-market-left-column',
   RIGHT_COLUMN: 'perps-pro-market-right-column',
