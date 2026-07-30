@@ -1,7 +1,12 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../app/components/Views/NetworkConnect/NetworkConnectMultiSelector.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { Assertions, EncapsulatedElementType } from '../../framework';
+import {
+  Assertions,
+  EncapsulatedElementType,
+  encapsulated,
+} from '../../framework';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class NetworkConnectMultiSelector {
   get updateButton(): EncapsulatedElementType {
@@ -16,8 +21,16 @@ class NetworkConnectMultiSelector {
     );
   }
 
-  getMultiselectElement(label: string): EncapsulatedElementType {
-    return Matchers.getElementByLabel(label);
+  getNetworkRow(networkName: string): EncapsulatedElementType {
+    return encapsulated({
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@content-desc='${networkName}' or @text='${networkName}']`,
+          ),
+        ios: () => PlaywrightMatchers.getElementByAccessibilityId(networkName),
+      },
+    });
   }
 
   async tapUpdateButton(): Promise<void> {
@@ -51,8 +64,7 @@ class NetworkConnectMultiSelector {
   }
 
   async selectNetworkChainPermission(chainName: string): Promise<void> {
-    const el = this.getMultiselectElement(chainName);
-    await Gestures.waitAndTap(el, {
+    await Gestures.waitAndTap(this.getNetworkRow(chainName), {
       elemDescription: `Tap on the network chain permission ${chainName}`,
     });
   }
