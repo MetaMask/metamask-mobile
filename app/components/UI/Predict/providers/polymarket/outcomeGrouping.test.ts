@@ -38,6 +38,7 @@ describe('outcomeGrouping', () => {
         'moneyline',
         'spreads',
         'totals',
+        'first_half_moneyline',
         'both_teams_to_score',
         'both_teams_to_score_first_half',
         'both_teams_to_score_second_half',
@@ -69,6 +70,7 @@ describe('outcomeGrouping', () => {
           'MONEYLINE',
           'spreads',
           'totals',
+          'first_half_moneyline',
           'first_half_totals',
           'soccer_halftime_result',
           'soccer_player_goals',
@@ -78,6 +80,7 @@ describe('outcomeGrouping', () => {
         'moneyline',
         'spreads',
         'totals',
+        'first_half_moneyline',
         'first_half_totals',
         'soccer_halftime_result',
         'soccer_player_goals',
@@ -177,6 +180,21 @@ describe('outcomeGrouping', () => {
   });
 
   describe('buildOutcomeGroups', () => {
+    it('groups first-half moneyline separately from game lines', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('moneyline', 'moneyline'),
+        createGroupingOutcome('first-half-moneyline', 'first_half_moneyline'),
+      ]);
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'game_lines',
+        'first_half',
+      ]);
+      expect(groups[1].outcomes).toEqual([
+        expect.objectContaining({ sportsMarketType: 'first_half_moneyline' }),
+      ]);
+    });
+
     it('groups CS2 markets under game lines and numbered maps', () => {
       const groups = buildOutcomeGroups(
         [
