@@ -8,7 +8,7 @@
 #   App URL env vars used by playwright.testmu.config.ts
 #
 # Optional:
-#   HE_CONCURRENCY          default 1 (one real device at a time for PoC)
+#   HE_CONCURRENCY          default 2 (try modest parallel HE tasks for PoC)
 #   HE_REGION               default us
 #   GREP_TAGS               optional playwright --grep
 #   HE_WORKDIR              default ./tmp/hyperexecute
@@ -28,7 +28,7 @@ LT_USERNAME="${LT_USERNAME:-}"
 LT_ACCESS_KEY="${LT_ACCESS_KEY:-}"
 # PoC org typically has a single Pixel available — parallel HE tasks compete for
 # the same device and hit WebDriver session timeouts. Keep sequential by default.
-HE_CONCURRENCY="${HE_CONCURRENCY:-1}"
+HE_CONCURRENCY="${HE_CONCURRENCY:-2}"
 HE_REGION="${HE_REGION:-us}"
 HE_WORKDIR="${HE_WORKDIR:-./tmp/hyperexecute}"
 GREP_TAGS="${GREP_TAGS:-}"
