@@ -26,7 +26,6 @@ import MusdConversionAssetOverviewCta from '../Musd/MusdConversionAssetOverviewC
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
 import {
-  Box,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -35,8 +34,6 @@ import {
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   WITHDRAW_BUTTON: 'withdraw-button',
-  LENDING_EARNINGS_TOP_DIVIDER: 'lending-earnings-top-divider',
-  LENDING_EARNINGS_BOTTOM_DIVIDER: 'lending-earnings-bottom-divider',
 };
 
 export interface EarnLendingBalanceProps {
@@ -173,40 +170,26 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
       {isAssetReceiptToken &&
         userHasLendingPositions &&
         Boolean(receiptToken) && (
-          <>
-            <Box
-              testID={
-                EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_TOP_DIVIDER
+          <View style={styles.earnings}>
+            <Earnings
+              asset={asset}
+              lendingAction={
+                <View style={[styles.container, styles.buttonsContainer]}>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    style={styles.button}
+                    size={ButtonSize.Md}
+                    onPress={handleNavigateToWithdrawalInputScreen}
+                    testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
+                  >
+                    <DesignSystemText>
+                      {strings('earn.withdraw_from_aave')}
+                    </DesignSystemText>
+                  </Button>
+                </View>
               }
-              twClassName="mt-8 mb-6 h-px bg-border-muted"
             />
-            <View style={styles.earnings}>
-              <Earnings
-                asset={asset}
-                lendingAction={
-                  <View style={[styles.container, styles.buttonsContainer]}>
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      style={styles.button}
-                      size={ButtonSize.Md}
-                      onPress={handleNavigateToWithdrawalInputScreen}
-                      testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
-                    >
-                      <DesignSystemText>
-                        {strings('earn.withdraw_from_aave')}
-                      </DesignSystemText>
-                    </Button>
-                  </View>
-                }
-              />
-            </View>
-            <Box
-              testID={
-                EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_BOTTOM_DIVIDER
-              }
-              twClassName="mt-8 mb-6 h-px bg-border-muted"
-            />
-          </>
+          </View>
         )}
     </View>
   );

@@ -293,14 +293,6 @@ describe('EarnLendingBalance', () => {
     expect(
       getByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_TOP_DIVIDER),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_BOTTOM_DIVIDER,
-      ),
-    ).toBeOnTheScreen();
   });
 
   it('hides lending earnings for receipt tokens without a position', () => {
@@ -330,14 +322,6 @@ describe('EarnLendingBalance', () => {
     expect(queryByText(strings('earn.lending_earnings'))).not.toBeOnTheScreen();
     expect(
       queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_TOP_DIVIDER),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        EARN_LENDING_BALANCE_TEST_IDS.LENDING_EARNINGS_BOTTOM_DIVIDER,
-      ),
     ).not.toBeOnTheScreen();
   });
 
