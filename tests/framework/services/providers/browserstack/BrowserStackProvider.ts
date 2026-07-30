@@ -8,22 +8,45 @@ import {
 import { BrowserStackAPI } from './BrowserStackAPI.ts';
 import { BrowserStackConfigBuilder } from './BrowserStackConfigBuilder.ts';
 
+/**
+ * Only retry busy-grid / transport flakes. Do NOT match generic WDIO session
+ * text like "Failed to create a session" or "wd/hub/session" — those also
+ * appear for permanent failures (bad credentials, invalid app URL, caps).
+ */
 const TRANSIENT_SESSION_ERROR_PATTERNS = [
   'aborted due to timeout',
-  'wd/hub/session',
-  'Failed to create a session',
-  'Could not start a new session',
+  'operation was aborted',
   'ECONNRESET',
   'ETIMEDOUT',
   'ECONNREFUSED',
   'socket hang up',
   'network timeout',
-  'Unable to create new service',
   'All parallel tests are currently in use',
+  'All devices are busy',
+  'DEVICE_QUEUE_TIMEOUT',
+] as const;
+
+const PERMANENT_SESSION_ERROR_PATTERNS = [
+  'Invalid username or password',
+  'Authentication failed',
+  'Unauthorized',
+  'App not found',
+  'Invalid app',
+  'app_url',
+  'BROWSERSTACK_USERNAME',
+  'BROWSERSTACK_ACCESS_KEY',
+  'buildPath is required',
 ] as const;
 
 function isTransientBrowserStackSessionError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
+  if (
+    PERMANENT_SESSION_ERROR_PATTERNS.some((pattern) =>
+      message.includes(pattern),
+    )
+  ) {
+    return false;
+  }
   return TRANSIENT_SESSION_ERROR_PATTERNS.some((pattern) =>
     message.includes(pattern),
   );
