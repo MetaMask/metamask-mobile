@@ -140,7 +140,15 @@ jest.mock('../../../components/PerpsSlippageBottomSheet', () => {
   };
 });
 
-jest.mock('../../../components/PerpsBottomSheetTooltip', () => 'PerpsTooltip');
+jest.mock('../../../components/PerpsBottomSheetTooltip', () => {
+  const { View: V } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({ contentKey }: { contentKey: string }) =>
+      ReactActual.createElement(V, { testID: `mock-tooltip-${contentKey}` }),
+  };
+});
 
 const market = { symbol: 'BTC', name: 'Bitcoin' } as PerpsMarketData;
 
@@ -264,5 +272,27 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onOrderTypeSelect).toHaveBeenCalledWith('limit');
+  });
+
+  it('renders the fees tooltip when a tooltip is selected', () => {
+    // Arrange
+    mockHookResult.selectedTooltip = 'fees';
+
+    // Act
+    renderPanel();
+
+    // Assert
+    expect(screen.getByTestId('mock-tooltip-fees')).toBeOnTheScreen();
+  });
+
+  it('renders the geo-block modal when eligibility is required', () => {
+    // Arrange
+    mockHookResult.isEligibilityModalVisible = true;
+
+    // Act
+    renderPanel();
+
+    // Assert
+    expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
   });
 });

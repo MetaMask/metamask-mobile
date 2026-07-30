@@ -1,10 +1,6 @@
 import {
   DECIMAL_PRECISION_CONFIG,
-  ORDER_SLIPPAGE_CONFIG,
   PERPS_CONSTANTS,
-  calculateMarginRequired,
-  calculatePositionSize,
-  type OrderParams,
   type OrderType,
   type PerpsMarketData,
   type Position,
@@ -18,7 +14,6 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import { BigNumber } from 'bignumber.js';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -52,20 +47,19 @@ import { usePerpsMaxSlippage } from '../../../../hooks/usePerpsMaxSlippage';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
-import { derivePerpsTradeAction } from '../../../../utils/deriveTradeAction';
 import {
   formatPerpsFiat,
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../../utils/formatUtils';
-import { willFlipPosition } from '../../../../utils/orderUtils';
-import { toPerpsEntryAttribution } from '../../../../utils/perpsAnalyticsAttribution';
 import {
-  isStopLossSafeFromLiquidation,
-  isValidStopLossPrice,
-  isValidTakeProfitPrice,
-} from '../../../../utils/tpslValidation';
+  buildPerpsOrderParams,
+  buildPerpsOrderTrackingData,
+} from '../../../../utils/orderParams';
+import { deriveOrderSizing } from '../../../../utils/orderSizing';
+import { willFlipPosition } from '../../../../utils/orderUtils';
+import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
 import type {
   PerpsProOrderDirection,
@@ -279,53 +273,29 @@ export const usePerpsProOrderForm = ({
     typeof estimatedSlippageBps === 'number' &&
     estimatedSlippageBps > maxSlippageBps;
 
-  const effectivePrice = useMemo(() => {
-    if (
-      orderForm.type === 'limit' &&
-      orderForm.limitPrice &&
-      parseFloat(orderForm.limitPrice) > 0
-    ) {
-      return parseFloat(orderForm.limitPrice);
-    }
-    return assetData.price;
-  }, [orderForm.type, orderForm.limitPrice, assetData.price]);
-
-  const positionSize = useMemo(() => {
-    if (isLoadingMarketData) {
-      return PERPS_CONSTANTS.FallbackDataDisplay;
-    }
-    return calculatePositionSize({
-      amount: orderForm.amount,
-      price: effectivePrice,
-      szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
-    });
-  }, [orderForm.amount, effectivePrice, szDecimals, isLoadingMarketData]);
-
-  const marginRequired = useMemo(() => {
-    if (!isLoadingMarketData && orderForm.amount) {
-      const hasValidLimitPrice =
-        orderForm.type === 'limit' &&
-        orderForm.limitPrice &&
-        parseFloat(orderForm.limitPrice) > 0;
-      const priceForMargin = hasValidLimitPrice
-        ? effectivePrice
-        : assetData.markPrice;
-      return calculateMarginRequired({
-        amount: BigNumber(priceForMargin).times(positionSize).toString(),
+  const { effectivePrice, positionSize, marginRequired } = useMemo(
+    () =>
+      deriveOrderSizing({
+        amount: orderForm.amount,
+        orderType: orderForm.type,
+        limitPrice: orderForm.limitPrice,
+        marketPrice: assetData.price,
+        markPrice: assetData.markPrice,
         leverage: orderForm.leverage,
-      });
-    }
-    return undefined;
-  }, [
-    orderForm.amount,
-    orderForm.type,
-    orderForm.limitPrice,
-    effectivePrice,
-    assetData.markPrice,
-    orderForm.leverage,
-    isLoadingMarketData,
-    positionSize,
-  ]);
+        szDecimals,
+        isLoadingMarketData,
+      }),
+    [
+      orderForm.amount,
+      orderForm.type,
+      orderForm.limitPrice,
+      orderForm.leverage,
+      assetData.price,
+      assetData.markPrice,
+      szDecimals,
+      isLoadingMarketData,
+    ],
+  );
 
   const liquidationPriceParams = useMemo(
     () => ({
@@ -359,37 +329,20 @@ export const usePerpsProOrderForm = ({
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
 
-  // TP/SL warning flags (copied from lite 1676-1712)
-  const doesStopLossRiskLiquidation = Boolean(
-    orderForm.stopLossPrice &&
-      !isStopLossSafeFromLiquidation(
-        orderForm.stopLossPrice,
-        liquidationPrice,
-        orderForm.direction,
-      ),
-  );
-  const isLimitWithPrice =
-    orderForm.type === 'limit' && Boolean(orderForm.limitPrice);
-  const validationReferencePrice = isLimitWithPrice
-    ? parseFloat(String(orderForm.limitPrice))
-    : assetData.price;
-  const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
-  const isTakeProfitPriceInvalid = Boolean(
-    orderForm.takeProfitPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidTakeProfitPrice(orderForm.takeProfitPrice, {
-        currentPrice: validationReferencePrice,
-        direction: orderForm.direction,
-      }),
-  );
-  const isStopLossPriceInvalid = Boolean(
-    orderForm.stopLossPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidStopLossPrice(orderForm.stopLossPrice, {
-        currentPrice: validationReferencePrice,
-        direction: orderForm.direction,
-      }),
-  );
+  const {
+    doesStopLossRiskLiquidation,
+    isTakeProfitPriceInvalid,
+    isStopLossPriceInvalid,
+    tpslPriceType,
+  } = getPerpsOrderTpSlWarnings({
+    orderType: orderForm.type,
+    limitPrice: orderForm.limitPrice,
+    direction: orderForm.direction,
+    takeProfitPrice: orderForm.takeProfitPrice,
+    stopLossPrice: orderForm.stopLossPrice,
+    liquidationPrice,
+    marketPrice: assetData.price,
+  });
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: () => {
@@ -488,56 +441,34 @@ export const usePerpsProOrderForm = ({
         return;
       }
 
-      const tpParams = orderForm.takeProfitPrice?.trim()
-        ? { takeProfitPrice: orderForm.takeProfitPrice }
-        : {};
-      const slParams = orderForm.stopLossPrice?.trim()
-        ? { stopLossPrice: orderForm.stopLossPrice }
-        : {};
-
-      const orderParams: OrderParams = {
-        symbol: orderForm.asset,
+      // reduce-only is Pro-specific (TAT-3595); the direct Pro path never
+      // uses pay-with-any-token, so those tracking fields are omitted.
+      const orderParams = buildPerpsOrderParams({
+        asset: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize,
         orderType: orderForm.type,
-        currentPrice: effectivePrice,
+        effectivePrice,
         leverage: orderForm.leverage,
         usdAmount: orderForm.amount,
-        priceAtCalculation: effectivePrice,
-        maxSlippageBps:
-          orderForm.type === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-            : maxSlippageBps,
-        // reduce-only is Pro-specific (TAT-3595); lite omits it
+        maxSlippageBps,
+        limitPrice: orderForm.limitPrice,
+        takeProfitPrice: orderForm.takeProfitPrice,
+        stopLossPrice: orderForm.stopLossPrice,
         reduceOnly,
-        ...(orderForm.type === 'limit' && orderForm.limitPrice
-          ? { price: orderForm.limitPrice }
-          : {}),
-        ...tpParams,
-        ...slParams,
-        trackingData: {
-          marginUsed: Number(marginRequired),
-          totalFee: feeResults.totalFee,
+        trackingData: buildPerpsOrderTrackingData({
+          marginRequired,
+          feeResults,
           marketPrice: assetData.price,
-          metamaskFee: feeResults.metamaskFee,
-          metamaskFeeRate: feeResults.metamaskFeeRate,
-          feeDiscountPercentage: feeResults.feeDiscountPercentage,
-          estimatedPoints: feeResults.estimatedPoints,
           inputMethod: 'default',
           source,
-          ...toPerpsEntryAttribution({ source, sourceSection }),
-          ...(feeResults.protocolFeeRate !== undefined
-            ? { hlFeeRate: feeResults.protocolFeeRate }
-            : {}),
-          tradeAction: derivePerpsTradeAction(
-            currentMarketPosition,
-            orderForm.direction,
-          ),
+          sourceSection,
+          currentMarketPosition,
+          direction: orderForm.direction,
           chartLibrary,
-          vipTier: vipTier ?? undefined,
-          vipDiscount: feeResults.feeDiscountPercentage,
-        } as OrderParams['trackingData'],
-      };
+          vipTier,
+        }),
+      });
 
       showToast(
         PerpsToastOptions.orderManagement[orderForm.type].submitted(
@@ -606,12 +537,7 @@ export const usePerpsProOrderForm = ({
     effectivePrice,
     reduceOnly,
     marginRequired,
-    feeResults.totalFee,
-    feeResults.metamaskFee,
-    feeResults.metamaskFeeRate,
-    feeResults.protocolFeeRate,
-    feeResults.feeDiscountPercentage,
-    feeResults.estimatedPoints,
+    feeResults,
     assetData.price,
     source,
     sourceSection,

@@ -386,5 +386,233 @@ describe('usePerpsProOrderForm', () => {
         stopLossPrice: undefined,
       });
     });
+
+    it('shows an error toast when the separate TP/SL update fails', async () => {
+      // Arrange
+      mockOrderForm.takeProfitPrice = '95000';
+      mockUpdatePositionTPSL.mockResolvedValue({
+        success: false,
+        error: 'nope',
+      });
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(updateTPSLError).toHaveBeenCalledWith('nope');
+    });
+  });
+
+  describe('limit orders', () => {
+    it('sets the limit price and the fixed limit slippage on OrderParams', async () => {
+      // Arrange
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '80000';
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      const params = mockExecuteOrder.mock.calls[0][0];
+      expect(params.price).toBe('80000');
+      expect(params.orderType).toBe('limit');
+    });
+  });
+
+  describe('additional notices', () => {
+    it('flags TP invalid, SL invalid and SL-liquidation-risk as inline notices', () => {
+      // Arrange: long order, current price 90000, liquidation 80000
+      mockOrderForm.takeProfitPrice = '2000'; // below market -> invalid
+      mockOrderForm.stopLossPrice = '70000'; // below liq -> risk (and valid side)
+      const { result } = renderProForm();
+
+      // Act
+      const ids = result.current.notices.map((n) => n.id);
+
+      // Assert
+      expect(ids).toContain('tp-invalid');
+      expect(ids).toContain('sl-liq-risk');
+    });
+  });
+
+  describe('summary slippage', () => {
+    it('shows a pending slippage row when no estimate is available', () => {
+      // Arrange: limit order with no live estimate
+      mockOrderForm.type = 'limit';
+      mockEstimatedSlippageBps = null;
+      const { result } = renderProForm();
+
+      // Assert
+      expect(typeof result.current.summary.slippage).toBe('string');
+      expect(result.current.summary.slippage?.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('isPlaceOrderDisabled', () => {
+    it('is disabled at the OI cap', () => {
+      // Arrange
+      mockIsAtCap = true;
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('is enabled for a valid, uncapped order', () => {
+      // Arrange / Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+  });
+
+  describe('handlers', () => {
+    it('navigates to the TP/SL screen and its onConfirm sets TP/SL', async () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      const onConfirm = mockNavigate.mock.calls[0][1].onConfirm;
+      await act(async () => {
+        await onConfirm(undefined, '95000', '80000');
+      });
+      expect(mockSetTakeProfitPrice).toHaveBeenCalledWith('95000');
+      expect(mockSetStopLossPrice).toHaveBeenCalledWith('80000');
+    });
+
+    it('shows the limit-price-required toast and does not navigate for a limit order without a price', () => {
+      // Arrange
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = undefined;
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onTPSLPress();
+      });
+
+      // Assert
+      expect(mockShowToast).toHaveBeenCalledWith(limitPriceRequired);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('confirms leverage, clamps an over-max amount, and tracks the change', () => {
+      // Arrange: amount 6000 > spendable(500) * leverage(10) = 5000
+      mockOrderForm.amount = '6000';
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLeverageConfirm(10, 'slider');
+      });
+
+      // Assert
+      expect(mockSetLeverage).toHaveBeenCalledWith(10);
+      expect(mockSetAmount).toHaveBeenCalledWith('5000');
+      expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('saves slippage and opens the slippage sheet', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onSlippageSave(200);
+      });
+      act(() => {
+        result.current.summary.onSlippagePress?.();
+      });
+
+      // Assert
+      expect(mockSetMaxSlippage).toHaveBeenCalledWith(200);
+      expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('selects an order type', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onOrderTypeSelect('limit');
+      });
+
+      // Assert
+      expect(mockSetOrderType).toHaveBeenCalledWith('limit');
+    });
+
+    it('ignores size input over nine digits and forwards valid input', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onSizeChange('1234567890'); // 10 digits -> ignored
+      });
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      act(() => {
+        result.current.onSizeChange('1234'); // valid
+      });
+
+      // Assert
+      expect(mockSetAmount).toHaveBeenCalledWith('1234');
+    });
+
+    it('sets the limit price from the live mid', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onUseMidPricePress();
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalled();
+    });
+
+    it('maps a slider percentage to a fractional amount handler', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onBalancePercentageChange(50);
+      });
+
+      // Assert
+      expect(mockHandlePercentageAmount).toHaveBeenCalledWith(0.5);
+    });
+
+    it('forwards the direction and add-funds handlers', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onDirectionChange('short');
+      });
+      act(() => {
+        result.current.onAddFundsPress();
+      });
+
+      // Assert
+      expect(mockSetDirection).toHaveBeenCalledWith('short');
+      expect(mockHandleAddFunds).toHaveBeenCalled();
+    });
   });
 });

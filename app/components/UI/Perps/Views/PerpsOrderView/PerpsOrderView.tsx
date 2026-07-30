@@ -85,14 +85,12 @@ import PerpsSlider from '../../components/PerpsSlider';
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
-  getPerpsDisplaySymbol,
-  calculateMarginRequired,
   calculatePositionSize,
+  getPerpsDisplaySymbol,
   type InputMethod,
   type OrderParams,
   type OrderType,
   type Position,
-  ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
@@ -151,14 +149,16 @@ import {
 } from '../../utils/formatUtils';
 import { willFlipPosition } from '../../utils/orderUtils';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
-import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {
   calculateRoEForPrice,
-  isStopLossSafeFromLiquidation,
-  isValidStopLossPrice,
-  isValidTakeProfitPrice,
+  getPerpsOrderTpSlWarnings,
 } from '../../utils/tpslValidation';
+import { deriveOrderSizing } from '../../utils/orderSizing';
+import {
+  buildPerpsOrderParams,
+  buildPerpsOrderTrackingData,
+} from '../../utils/orderParams';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
@@ -727,76 +727,45 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
   });
 
-  // For limit orders, use the user-set limit price for calculations instead of the market price.
-  // This ensures position size, margin, and max order size correctly reflect the limit price.
-  const effectivePrice = useMemo(() => {
-    if (
-      orderForm.type === 'limit' &&
-      orderForm.limitPrice &&
-      parseFloat(orderForm.limitPrice) > 0
-    ) {
-      return parseFloat(orderForm.limitPrice);
-    }
-    return assetData.price;
-  }, [orderForm.type, orderForm.limitPrice, assetData.price]);
+  // Position size, margin, and effective price are derived together. For limit
+  // orders with a valid limit price, that price is used for sizing/margin;
+  // otherwise the market price (sizing) and oracle mark price (margin) are used.
+  const { effectivePrice, positionSize, marginRequired } = useMemo(
+    () =>
+      deriveOrderSizing({
+        amount: orderForm.amount,
+        orderType: orderForm.type,
+        limitPrice: orderForm.limitPrice,
+        marketPrice: assetData.price,
+        markPrice: assetData.markPrice,
+        leverage: orderForm.leverage,
+        szDecimals,
+        isLoadingMarketData,
+      }),
+    [
+      orderForm.amount,
+      orderForm.type,
+      orderForm.limitPrice,
+      orderForm.leverage,
+      assetData.price,
+      assetData.markPrice,
+      szDecimals,
+      isLoadingMarketData,
+    ],
+  );
 
-  // Committed position size - feeds margin/validation/submission, so it only
-  // recomputes once per commit (orderForm.amount), not once per drag frame.
-  const positionSize = useMemo(() => {
-    // During loading, show '--' placeholder (consistent with other unavailable data displays)
-    if (isLoadingMarketData) {
-      return PERPS_CONSTANTS.FallbackDataDisplay;
-    }
-
-    return calculatePositionSize({
-      amount: orderForm.amount,
-      price: effectivePrice,
-      // Defensive fallback if market data fails to load - prevents crashes
-      // Real szDecimals should come from market data (varies by asset)
-      szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
-    });
-  }, [orderForm.amount, effectivePrice, szDecimals, isLoadingMarketData]);
-
-  // Live position size for the token-size subtitle only - cheap synchronous
+  // Live position size for the token-size subtitle only — cheap synchronous
   // calc, safe to recompute every drag frame off the live display amount.
   const livePositionSize = useMemo(() => {
     if (isLoadingMarketData) {
       return PERPS_CONSTANTS.FallbackDataDisplay;
     }
-
     return calculatePositionSize({
       amount: displayAmount,
       price: effectivePrice,
       szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     });
   }, [displayAmount, effectivePrice, szDecimals, isLoadingMarketData]);
-
-  const marginRequired = useMemo(() => {
-    if (!isLoadingMarketData && orderForm.amount) {
-      // For limit orders with a valid limit price, use that price for margin calculation.
-      // Otherwise use markPrice (oracle price) which is the standard margin basis.
-      const hasValidLimitPrice =
-        orderForm.type === 'limit' &&
-        orderForm.limitPrice &&
-        parseFloat(orderForm.limitPrice) > 0;
-      const priceForMargin = hasValidLimitPrice
-        ? effectivePrice
-        : assetData.markPrice;
-      return calculateMarginRequired({
-        amount: BigNumber(priceForMargin).times(positionSize).toString(),
-        leverage: orderForm.leverage,
-      });
-    }
-  }, [
-    orderForm.amount,
-    orderForm.type,
-    orderForm.limitPrice,
-    effectivePrice,
-    assetData.markPrice,
-    orderForm.leverage,
-    isLoadingMarketData,
-    positionSize,
-  ]);
 
   const hasInsufficientPayTokenBalance = useMemo(() => {
     if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
@@ -1511,14 +1480,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           },
         });
 
-        const tpParams = orderForm.takeProfitPrice?.trim()
-          ? { takeProfitPrice: orderForm.takeProfitPrice }
-          : {};
-
-        const slParams = orderForm.stopLossPrice?.trim()
-          ? { stopLossPrice: orderForm.stopLossPrice }
-          : {};
-
         // Execute order using the new hook
         // Only include TP/SL if they have valid, non-empty values
         //
@@ -1527,60 +1488,33 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // 1. Validate price hasn't moved beyond maxSlippageBps
         // 2. Recalculate size with fresh price from usdAmount
         // 3. Use the recalculated size for order execution
-        const orderParams: OrderParams = {
-          symbol: orderForm.asset,
+        const orderParams: OrderParams = buildPerpsOrderParams({
+          asset: orderForm.asset,
           isBuy: orderForm.direction === 'long',
-          size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
+          size: positionSize,
           orderType: orderForm.type,
-          currentPrice: effectivePrice,
+          effectivePrice,
           leverage: orderForm.leverage,
-          // USD as source of truth (hybrid approach)
-          usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
-          priceAtCalculation: effectivePrice, // Price snapshot when size was calculated (for slippage validation)
-          maxSlippageBps:
-            orderForm.type === 'limit'
-              ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders (fixed)
-              : maxSlippageBps, // User-configured for market orders (already in bps)
-          // Only add TP/SL/Limit if they are truthy and/or not empty strings
-          ...(orderForm.type === 'limit' && orderForm.limitPrice
-            ? { price: orderForm.limitPrice }
-            : {}),
-          ...tpParams,
-          ...slParams,
-          // Add tracking data for MetaMetrics events (controller owns emission)
-          trackingData: {
-            marginUsed: Number(marginRequired),
-            totalFee: feeResults.totalFee,
+          usdAmount: orderForm.amount,
+          maxSlippageBps,
+          limitPrice: orderForm.limitPrice,
+          takeProfitPrice: orderForm.takeProfitPrice,
+          stopLossPrice: orderForm.stopLossPrice,
+          trackingData: buildPerpsOrderTrackingData({
+            marginRequired,
+            feeResults,
             marketPrice: assetData.price,
-            metamaskFee: feeResults.metamaskFee,
-            metamaskFeeRate: feeResults.metamaskFeeRate,
-            feeDiscountPercentage: feeResults.feeDiscountPercentage,
-            estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
-            ...toPerpsEntryAttribution({ source, sourceSection }),
-            ...(feeResults.protocolFeeRate !== undefined
-              ? { hlFeeRate: feeResults.protocolFeeRate }
-              : {}),
-            tradeAction: derivePerpsTradeAction(
-              currentMarketPosition,
-              orderForm.direction,
-            ),
+            sourceSection,
+            currentMarketPosition,
+            direction: orderForm.direction,
             chartLibrary,
-            tradeWithToken: hasCustomTokenSelected,
-            ...(hasCustomTokenSelected &&
-              payToken && {
-                mmPayTokenSelected: payToken.symbol ?? '',
-                mmPayNetworkSelected: String(payToken.chainId ?? ''),
-              }),
-            vipTier: vipTier ?? undefined,
-            vipDiscount: feeResults.feeDiscountPercentage,
-            // Cast needed only because the installed perps-controller 9.2.1
-            // TradeAction type is narrow (create_position | increase_exposure)
-            // and does not yet include the flip values. The next release widens
-            // it, after which this cast can be dropped.
-          } as OrderParams['trackingData'],
-        };
+            vipTier,
+            hasCustomTokenSelected,
+            payToken,
+          }),
+        });
 
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].submitted(
@@ -1662,12 +1596,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,
-      feeResults.totalFee,
-      feeResults.metamaskFee,
-      feeResults.metamaskFeeRate,
-      feeResults.protocolFeeRate,
-      feeResults.feeDiscountPercentage,
-      feeResults.estimatedPoints,
+      feeResults,
       source,
       sourceSection,
       chartLibrary,
@@ -1767,41 +1696,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         asset: getPerpsDisplaySymbol(orderForm.asset),
       });
 
-  const doesStopLossRiskLiquidation = Boolean(
-    orderForm.stopLossPrice &&
-      !isStopLossSafeFromLiquidation(
-        orderForm.stopLossPrice,
-        liquidationPrice,
-        orderForm.direction,
-      ),
-  );
-
-  const isLimitWithPrice =
-    orderForm.type === 'limit' && Boolean(orderForm.limitPrice);
-
-  const validationReferencePrice = isLimitWithPrice
-    ? parseFloat(String(orderForm.limitPrice))
-    : assetData.price;
-
-  const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
-
-  const isTakeProfitPriceInvalid = Boolean(
-    orderForm.takeProfitPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidTakeProfitPrice(orderForm.takeProfitPrice, {
-        currentPrice: validationReferencePrice,
-        direction: orderForm.direction,
-      }),
-  );
-
-  const isStopLossPriceInvalid = Boolean(
-    orderForm.stopLossPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidStopLossPrice(orderForm.stopLossPrice, {
-        currentPrice: validationReferencePrice,
-        direction: orderForm.direction,
-      }),
-  );
+  const {
+    doesStopLossRiskLiquidation,
+    isTakeProfitPriceInvalid,
+    isStopLossPriceInvalid,
+    tpslPriceType,
+  } = getPerpsOrderTpSlWarnings({
+    orderType: orderForm.type,
+    limitPrice: orderForm.limitPrice,
+    direction: orderForm.direction,
+    takeProfitPrice: orderForm.takeProfitPrice,
+    stopLossPrice: orderForm.stopLossPrice,
+    liquidationPrice,
+    marketPrice: assetData.price,
+  });
 
   const hasInvalidTPSL = isTakeProfitPriceInvalid || isStopLossPriceInvalid;
 
