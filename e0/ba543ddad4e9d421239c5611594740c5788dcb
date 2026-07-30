@@ -1,0 +1,14 @@
+tests/llm-workflow/metamask-provider.ts
+  h_d6a04d82b61d5e 32-33,44-57,107-108,110-115,119,121,197-199,201,209-228,230-253,257-264,268-271,275-280,282-288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e0ba543ddad4e9d421239c5611594740c5788dcb",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
