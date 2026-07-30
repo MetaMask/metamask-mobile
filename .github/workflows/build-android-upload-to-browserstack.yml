@@ -444,29 +444,15 @@ jobs:
           retry_wait_seconds: 30
           command: yarn setup:github-ci --no-build-ios --no-build-android
 
-      - name: Download reused with-SRP APK
-        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+      # Artifacts are always on this run: either re-staged by resolve-fingerprint-reuse
+      # after a validated prior-run download, or produced by the fresh dual builds.
+      - name: Download with-SRP APK
         uses: actions/download-artifact@v4
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
-      - name: Download reused without-SRP APK
-        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
-          path: artifacts/without-srp
-
-      - name: Download with-SRP APK from current build
-        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
-          path: artifacts/with-srp
-
-      - name: Download without-SRP APK from current build
-        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
+      - name: Download without-SRP APK
         uses: actions/download-artifact@v4
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
