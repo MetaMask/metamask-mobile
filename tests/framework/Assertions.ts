@@ -25,16 +25,24 @@ export default class Assertions {
       | WebElement
       | DetoxMatcher
       | IndexableNativeElement
-      | EncapsulatedElementType,
+      | EncapsulatedElementType
+      | (() => EncapsulatedElementType),
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
+      // Switch context BEFORE resolving the matcher so its findElement is
+      // minted against UiAutomator2, not the webview automator. Passing a
+      // thunk defers the find until after the switch, avoiding a cross-engine
+      // request-shape error on the confirmation screen post webview sign.
       await PlaywrightContextHelpers.switchToNativeContext();
+      const resolved = typeof elem === 'function' ? elem() : elem;
       return PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
+        asPlaywrightElement(resolved as EncapsulatedElementType),
         options,
       );
     }
+
+    const target = typeof elem === 'function' ? elem() : elem;
 
     const {
       timeout = BASE_DEFAULTS.timeout,
@@ -43,7 +51,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Awaited<
+        const el = (await target) as Awaited<
           DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement
         >;
         const isWebElement = Utilities.isWebElement(el);
@@ -72,15 +80,20 @@ export default class Assertions {
       | WebElement
       | DetoxMatcher
       | IndexableNativeElement
-      | EncapsulatedElementType,
+      | EncapsulatedElementType
+      | (() => EncapsulatedElementType),
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+      const resolved = typeof elem === 'function' ? elem() : elem;
       return PlaywrightAssertions.expectElementToNotBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
+        asPlaywrightElement(resolved as EncapsulatedElementType),
         options,
       );
     }
+
+    const target = typeof elem === 'function' ? elem() : elem;
 
     const {
       timeout = BASE_DEFAULTS.timeout,
@@ -89,7 +102,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Awaited<
+        const el = (await target) as Awaited<
           DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement
         >;
         const isWebElement = Utilities.isWebElement(el);
@@ -783,7 +796,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if element is disabled
-   * @deprecated Use Utilities.waitForElementToBeEnabled() with negated logic instead
+   * @deprecated Use Utilities.waitForElementToBeDisabled() instead for better retry handling
    */
   static async checkIfDisabled(
     elem: EncapsulatedElementType,
