@@ -392,7 +392,9 @@ export default class PlaywrightAssertions {
       if (
         error instanceof Error &&
         (error.message.includes('No elements found for XPath') ||
-          error.message.includes('No elements found'))
+          error.message.includes('No elements found') ||
+          error.message.includes('returned only 0 elements') ||
+          error.message.includes('Index out of bounds'))
       ) {
         return;
       }
