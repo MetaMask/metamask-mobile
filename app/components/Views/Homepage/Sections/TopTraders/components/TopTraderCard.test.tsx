@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TopTraderCard from './TopTraderCard';
@@ -116,7 +117,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
     expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
@@ -149,7 +150,7 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
     expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 50);
   });
@@ -159,7 +160,7 @@ describe('TopTraderCard', () => {
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
@@ -177,6 +178,44 @@ describe('TopTraderCard', () => {
 
     expect(mockOnFollowPress).toHaveBeenCalledWith('trader-1');
     expect(mockOnTraderPress).not.toHaveBeenCalled();
+  });
+
+  // The whole card is a single Pressable whose `style` render-prop swaps the
+  // background between pressed / not-pressed. getByTestId returns the resolved
+  // host View, so climb to the Pressable that owns the style *function* and
+  // invoke it for each state to compare the resolved backgroundColor.
+  const cardBackgroundColor = (pressed: boolean) => {
+    let node = screen.getByTestId('top-trader-card-trader-1') as {
+      props: { style?: unknown };
+      parent: unknown;
+    } | null;
+    while (node && typeof node.props?.style !== 'function') {
+      node = node.parent as typeof node;
+    }
+    const styleFn = node?.props.style as (state: {
+      pressed: boolean;
+    }) => StyleProp<ViewStyle>;
+    return StyleSheet.flatten(styleFn({ pressed })).backgroundColor;
+  };
+
+  it('applies a pressed background to the whole card when pressed', () => {
+    renderWithProvider(
+      <TopTraderCard
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
+    );
+
+    expect(cardBackgroundColor(true)).not.toBe(cardBackgroundColor(false));
+  });
+
+  it('does not apply the pressed background when the card is not interactive', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+
+    expect(cardBackgroundColor(true)).toBe(cardBackgroundColor(false));
   });
 
   it('displays negative PnL values with correct sign', () => {

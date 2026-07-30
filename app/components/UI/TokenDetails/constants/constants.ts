@@ -31,6 +31,8 @@ export enum TokenDetailsSource {
   MoversSwaps = 'movers-swaps',
   /** Swap discovery feed — stocks section */
   RwasStocksSwaps = 'rwas_stocks-swaps',
+  /** Robinhood Chain promo banner on the Swaps screen */
+  BannerRobinhoodSwaps = 'banner-robinhood-swaps',
   /** Swap/Bridge token selector */
   Swap = 'swap',
   /** Price alert notification deeplink */

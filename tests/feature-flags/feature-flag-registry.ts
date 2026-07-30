@@ -272,12 +272,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          tracesEnabled: false,
           deprecatedControllers: [],
         },
         '8.3.0': {
           enabled: true,
           featureVersion: '1',
           minimumVersion: '8.3.0',
+          tracesEnabled: false,
           deprecatedControllers: [],
         },
       },
@@ -3399,6 +3401,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarningSectionEnabled: {
+    name: 'earnMoneyEarningSectionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
