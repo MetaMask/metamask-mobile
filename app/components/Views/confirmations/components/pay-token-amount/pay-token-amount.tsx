@@ -18,11 +18,11 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../hooks/pay/useTransactionPayData';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import {
+  TransactionType,
   hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../utils/transaction';
-import { TransactionType } from '@metamask/transaction-controller';
+} from '@metamask/transaction-controller';
 
 export interface PayTokenAmountProps {
   amountHuman: string;

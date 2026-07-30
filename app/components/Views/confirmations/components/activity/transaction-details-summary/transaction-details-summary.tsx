@@ -14,8 +14,8 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
 import { SourceHashSummaryLine } from './source-hash-summary-line';

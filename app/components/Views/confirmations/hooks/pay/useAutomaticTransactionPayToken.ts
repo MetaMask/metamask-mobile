@@ -12,6 +12,7 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
@@ -22,7 +23,6 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { AssetType } from '../../types/token';
 import {
   getPostQuoteTransactionType,
-  hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { useSelector } from 'react-redux';

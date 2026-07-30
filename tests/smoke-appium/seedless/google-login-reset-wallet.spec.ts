@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeSeedlessOnboardingExtended } from '../../tags.js';
+import { SmokeSeedlessOnboarding } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { PlatformDetector } from '../../framework/PlatformLocator.js';
@@ -12,7 +12,7 @@ import {
 } from './helpers/seedless-helpers.js';
 
 appiumTest.describe(
-  SmokeSeedlessOnboardingExtended('Google Login - Reset Wallet'),
+  SmokeSeedlessOnboarding('Google Login - Reset Wallet'),
   () => {
     appiumTest(
       'onboards with Google login, locks, and resets the wallet',
