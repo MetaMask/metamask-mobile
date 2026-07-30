@@ -297,54 +297,12 @@ runs:
 
     ## Node.js & JavaScript Dependencies Setup ##
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v6
+    - name: Setup JavaScript dependencies
+      uses: ./.github/actions/setup-e2e-js-deps
       with:
         node-version: ${{ inputs.node-version }}
-
-    ## Yarn Setup & Cache Management
-
-    - name: Get Corepack install command
-      id: get-corepack-command
-      env:
-        YARN_VERSION: ${{ inputs.yarn-version }}
-      shell: bash
-      run: |
-        echo "COREPACK_COMMAND=corepack enable && corepack prepare yarn@$YARN_VERSION --activate" >> "$GITHUB_OUTPUT"
-
-    - name: Corepack
-      id: corepack
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-      with:
-        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
-        max_attempts: 3
-        retry_wait_seconds: 30
-        command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
-
-    - name: Restore Yarn cache
-      if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
-      uses: actions/cache@v4
-      with:
-        path: |
-          node_modules
-          .yarn/install-state.gz
-        key: ${{ inputs.cache-prefix }}-yarn-v2-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-        restore-keys: |
-          ${{ inputs.cache-prefix }}-yarn-v2-${{ inputs.platform }}-${{ runner.os }}-
-      continue-on-error: true
-
-    - name: Install JavaScript dependencies with retry
-      id: yarn-install
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-      with:
-        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
-        max_attempts: 3
-        retry_wait_seconds: 30
-        on_retry_command: echo "⚠️ yarn install failed — likely a transient network issue on the self-hosted runner. Retrying..."
-        command: yarn install --immutable
-      env:
-        NODE_OPTIONS: --max-old-space-size=4096
-        YARN_ENABLE_GLOBAL_CACHE: 'true'
+        yarn-version: ${{ inputs.yarn-version }}
+        retry-timeout-minutes: ${{ inputs.js-retry-timeout-minutes }}
 
     - name: Install Foundry
       if: ${{ inputs.install-foundry == 'true' }}

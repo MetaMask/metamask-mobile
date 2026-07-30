@@ -1,0 +1,69 @@
+name: 'Setup E2E JS dependencies'
+description: >-
+  Installs Node.js, activates the pinned Yarn through Corepack, and runs
+  `yarn install --immutable`.
+
+  Shared by `setup-e2e-env` (Android, and iOS on the native-build path) and by
+  the iOS reuse-hit path in `build-ios-e2e.yml`, so every E2E build job installs
+  JavaScript dependencies the same way and at the same cost. Keep this as the
+  single place where E2E jobs set up `node_modules`.
+
+inputs:
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '24.16.0'
+  yarn-version:
+    description: Yarn version to activate with Corepack
+    required: false
+    default: '3.8.7'
+  retry-timeout-minutes:
+    description: >-
+      Per-attempt timeout (minutes) for the Corepack and yarn install retry
+      steps. Namespace E2E matrix jobs often need more headroom (INFRA-3596).
+    required: false
+    default: '15'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Get Corepack install command
+      id: get-corepack-command
+      env:
+        YARN_VERSION: ${{ inputs.yarn-version }}
+      shell: bash
+      run: |
+        echo "COREPACK_COMMAND=corepack enable && corepack prepare yarn@$YARN_VERSION --activate" >> "$GITHUB_OUTPUT"
+
+    - name: Corepack
+      id: corepack
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: ${{ fromJSON(inputs.retry-timeout-minutes) }}
+        max_attempts: 3
+        retry_wait_seconds: 30
+        command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
+
+    # No `node_modules` cache here on purpose. The archive is ~1.5 GB and Cirrus
+    # runners reach the GitHub cache service at ~19 MB/s, so restoring it cost
+    # 92s on Android plus 70s to re-upload, and 89s to upload on iOS — against a
+    # cold `yarn install` of 20-58s. Namespace runners keep their own
+    # local-volume cache (see `nscloud-cache-action` in the caller workflows).
+
+    - name: Install JavaScript dependencies with retry
+      id: yarn-install
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: ${{ fromJSON(inputs.retry-timeout-minutes) }}
+        max_attempts: 3
+        retry_wait_seconds: 30
+        on_retry_command: echo "⚠️ yarn install failed — likely a transient network issue on the self-hosted runner. Retrying..."
+        command: yarn install --immutable
+      env:
+        NODE_OPTIONS: --max-old-space-size=4096
+        YARN_ENABLE_GLOBAL_CACHE: 'true'

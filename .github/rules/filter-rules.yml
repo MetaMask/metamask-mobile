@@ -91,6 +91,8 @@ e2e_test_or_ignorable:
   - *ci_files
   - *e2e_test_files
 
+# CI files that drive E2E builds/tests. Matching any of these overrides
+# `ci_files` above, so E2E is never skipped as "ignorable-only".
 e2e_relevant_workflows:
   - '.github/workflows/ci.yml'
   - '.github/workflows/get-requirements.yml'
@@ -101,6 +103,7 @@ e2e_relevant_workflows:
   - '.github/workflows/update-e2e-fixtures.yml'
   - '.github/workflows/build.yml'
   - '.github/scripts/e2e-*.mjs'
+  - '.github/actions/setup-e2e-*/**'
 
 android:
   - 'android/**'

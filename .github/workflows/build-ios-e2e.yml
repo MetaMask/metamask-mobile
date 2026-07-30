@@ -410,38 +410,11 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      - name: Setup Node.js (reuse-hit path)
+      # Same shared action `setup-e2e-env` uses on the native-build path, so both
+      # paths — and both platforms — install JavaScript dependencies identically.
+      - name: Setup JavaScript dependencies (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24.16.0'
-
-      - name: Enable corepack (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        run: |
-          corepack enable
-          corepack prepare yarn@3.8.7 --activate
-        shell: bash
-
-      - name: Restore yarn cache (reuse-hit path)
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-          key: e2e-yarn-ios-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-      - name: Install JS dependencies (reuse-hit path)
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-          YARN_ENABLE_GLOBAL_CACHE: 'true'
+        uses: ./.github/actions/setup-e2e-js-deps
 
       - name: Restore .metamask folder (reuse-hit path)
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
