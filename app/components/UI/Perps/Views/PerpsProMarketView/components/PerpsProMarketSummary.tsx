@@ -40,7 +40,7 @@ const PerpsProMarketSummary = ({
     alignItems={BoxAlignItems.Center}
     twClassName="h-[76px] gap-4 px-4"
   >
-    <Box twClassName="h-full flex-1 justify-start py-1">
+    <Box twClassName="h-full flex-1 justify-start py-2">
       <LivePriceHeader
         symbol={symbol}
         currentPrice={currentPrice}

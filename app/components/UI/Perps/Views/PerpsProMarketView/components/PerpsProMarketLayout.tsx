@@ -1,6 +1,12 @@
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import React, { type ReactNode } from 'react';
 import { StyleSheet } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 
 interface PerpsProMarketLayoutProps {
@@ -39,6 +45,9 @@ const styles = StyleSheet.create({
   orderBookColumn: {
     width: PRO_ORDER_BOOK_COLUMN_WIDTH,
   },
+  orderBookGroup: {
+    flexDirection: 'row',
+  },
 });
 
 /**
@@ -70,15 +79,23 @@ const PerpsProMarketLayout = ({
     twClassName="px-2"
     style={styles.container}
   >
-    <Box
+    <Animated.View
       testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
       style={styles.orderFormColumn}
+      layout={LinearTransition.duration(AnimationDuration.Fast)}
     >
       {orderForm}
-    </Box>
-    {/* Omit the column while collapsed: unmount disconnects subscriptions. */}
+    </Animated.View>
+    {/* Omit the column while collapsed: unmount disconnects subscriptions.
+        The fade in/out is purely visual — Reanimated still lets React unmount
+        the column immediately, it just keeps the last frame on screen for the
+        exit animation's duration. */}
     {!isOrderBookCollapsed ? (
-      <>
+      <Animated.View
+        style={styles.orderBookGroup}
+        entering={FadeIn.duration(AnimationDuration.Fast)}
+        exiting={FadeOut.duration(AnimationDuration.Fast)}
+      >
         <Box
           testID={PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER}
           twClassName="items-center"
@@ -95,7 +112,7 @@ const PerpsProMarketLayout = ({
         >
           {orderBook}
         </Box>
-      </>
+      </Animated.View>
     ) : null}
   </Box>
 );

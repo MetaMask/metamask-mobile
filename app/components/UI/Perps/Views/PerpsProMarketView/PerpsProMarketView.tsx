@@ -15,11 +15,12 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated from 'react-native-reanimated';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -255,31 +256,38 @@ const PerpsProMarketView = () => {
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
         />
-        <PerpsProMarketStatsBar
-          symbol={market.symbol}
-          nextFundingTime={market.nextFundingTime}
-          fundingIntervalHours={market.fundingIntervalHours}
-        />
-        <PerpsProMarketLayout
-          isOrderBookCollapsed={isOrderBookCollapsed}
-          orderForm={
-            <PerpsProOrderFormPanel
-              orderType={orderType}
-              onOrderTypeButtonPress={handleOrderTypeButtonPress}
-              isOrderBookCollapsed={isOrderBookCollapsed}
-              onExpandOrderBook={handleExpandOrderBook}
-            />
-          }
-          orderBook={
-            <PerpsProOrderBookPanel
-              symbol={market.symbol}
-              marketPrice={marketPrice}
-              onCollapse={handleCollapseOrderBook}
-            />
-          }
-        />
-        <SectionDivider marginVertical={0} />
-        <PerpsProPositionsPanel symbol={symbol} />
+        {/* The chart's own height (`PerpsProChartPanel`) animates when
+            expanded/collapsed above this point — wrap everything that would
+            otherwise jump when that happens so it slides into place. */}
+        <Animated.View
+          layout={LinearTransition.duration(AnimationDuration.Fast)}
+        >
+          <PerpsProMarketStatsBar
+            symbol={market.symbol}
+            nextFundingTime={market.nextFundingTime}
+            fundingIntervalHours={market.fundingIntervalHours}
+          />
+          <PerpsProMarketLayout
+            isOrderBookCollapsed={isOrderBookCollapsed}
+            orderForm={
+              <PerpsProOrderFormPanel
+                orderType={orderType}
+                onOrderTypeButtonPress={handleOrderTypeButtonPress}
+                isOrderBookCollapsed={isOrderBookCollapsed}
+                onExpandOrderBook={handleExpandOrderBook}
+              />
+            }
+            orderBook={
+              <PerpsProOrderBookPanel
+                symbol={market.symbol}
+                marketPrice={marketPrice}
+                onCollapse={handleCollapseOrderBook}
+              />
+            }
+          />
+          <SectionDivider marginVertical={0} />
+          <PerpsProPositionsPanel symbol={symbol} />
+        </Animated.View>
       </Animated.ScrollView>
       <PerpsCandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
