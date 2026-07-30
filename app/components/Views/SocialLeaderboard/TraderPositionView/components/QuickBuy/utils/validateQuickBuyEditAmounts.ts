@@ -4,7 +4,7 @@ export const QUICK_BUY_EDIT_AMOUNT_COUNT = 4 as const;
 
 export const BUY_AMOUNT_MIN_EXCLUSIVE = 0;
 /** Max valid buy preset in USD — other currencies scale via conversion rate. */
-export const BUY_AMOUNT_MAX_VALID_USD = 9_999;
+export const BUY_AMOUNT_MAX_VALID_USD = 9_999_999;
 
 export const SELL_PERCENT_MIN_EXCLUSIVE = 0;
 export const SELL_PERCENT_MAX = 100;

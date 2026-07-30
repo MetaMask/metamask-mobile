@@ -129,22 +129,42 @@ describe('QuickBuyQuickAmounts', () => {
     });
   });
 
-  it('does not dismiss the keypad when a buy pill is tapped on the keyboard treatment', async () => {
+  it('dismisses the keypad when a buy pill is tapped on the keyboard treatment', async () => {
+    const setIsKeypadOpen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       useKeyboard: true,
+      setIsKeypadOpen,
     });
 
-    renderWithProvider(
-      <QuickBuyQuickAmounts showDone onDonePress={jest.fn()} />,
-    );
+    renderWithProvider(<QuickBuyQuickAmounts />);
 
-    fireEvent.press(screen.getByText('$50'));
+    fireEvent.press(screen.getByTestId('quick-buy-buy-pill-50'));
 
     await waitFor(() => {
       expect(baseContext.handleQuickAmountPress).toHaveBeenCalledWith(50, 50);
     });
-    expect(baseContext.setIsKeypadOpen).not.toHaveBeenCalled();
+    expect(setIsKeypadOpen).toHaveBeenCalledWith(false);
+  });
+
+  it('dismisses the keypad when a sell pill is tapped on the keyboard treatment', async () => {
+    const setIsKeypadOpen = jest.fn();
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      tradeMode: 'sell',
+      useKeyboard: true,
+      setIsKeypadOpen,
+    });
+
+    renderWithProvider(<QuickBuyQuickAmounts />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-sell-pill-75'));
+
+    await waitFor(() => {
+      expect(baseContext.handleSliderChange).toHaveBeenCalledWith(75);
+      expect(baseContext.handleSliderDragEnd).toHaveBeenCalledWith(75);
+    });
+    expect(setIsKeypadOpen).toHaveBeenCalledWith(false);
   });
 
   it('renders the Done button when showDone is true', () => {
@@ -161,7 +181,7 @@ describe('QuickBuyQuickAmounts', () => {
   it('does not toggle the keypad on the slider control variant', async () => {
     renderWithProvider(<QuickBuyQuickAmounts />);
 
-    fireEvent.press(screen.getByText('$50'));
+    fireEvent.press(screen.getByTestId('quick-buy-buy-pill-50'));
 
     await waitFor(() => {
       expect(baseContext.handleQuickAmountPress).toHaveBeenCalledWith(50, 50);

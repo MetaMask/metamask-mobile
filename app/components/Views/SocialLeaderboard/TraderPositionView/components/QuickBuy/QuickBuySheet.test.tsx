@@ -485,7 +485,7 @@ describe('QuickBuy.Root', () => {
       expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
     });
 
-    it('does not render the keypad by default on the keyboard treatment', () => {
+    it('renders the keypad by default on the keyboard treatment', () => {
       mockUseKeyboard = true;
       setMockQuickBuyController({ isUnsupportedChain: false });
 
@@ -501,10 +501,11 @@ describe('QuickBuy.Root', () => {
         storedOnOpenCallback?.();
       });
 
-      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
+      expect(screen.queryByTestId('quick-buy-keypad-done')).toBeNull();
     });
 
-    it('opens the keypad when the amount headline is tapped on the treatment', () => {
+    it('keeps the keypad open when the amount headline is tapped on the treatment', () => {
       mockUseKeyboard = true;
       setMockQuickBuyController({ isUnsupportedChain: false });
 
@@ -523,7 +524,6 @@ describe('QuickBuy.Root', () => {
       fireEvent.press(screen.getByTestId('quick-buy-amount-area-pressable'));
 
       expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
-      expect(screen.getByTestId('quick-buy-keypad-done')).toBeOnTheScreen();
     });
 
     it('remounts input state when the keyboard A/B assignment flips to treatment', () => {
@@ -573,7 +573,7 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
       const lastCall = (useQuickBuyController as jest.Mock).mock.calls.at(-1);
       expect(lastCall?.[3]).toBe(true);
       expect(mockControllerState.getResult().fiatAmountLabel).toBe('$0.00');

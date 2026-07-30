@@ -40,7 +40,7 @@ export interface UsePerpsProMarketHeaderActionsResult {
 export const usePerpsProMarketHeaderActions = ({
   symbol,
 }: UsePerpsProMarketHeaderActionsParams): UsePerpsProMarketHeaderActionsResult => {
-  const { navigateBack, navigateToHome, navigateToMarketList, canGoBack } =
+  const { navigateBack, navigateToWallet, navigateToMarketList, canGoBack } =
     usePerpsNavigation();
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const { track } = usePerpsEventTracking();
@@ -58,9 +58,12 @@ export const usePerpsProMarketHeaderActions = ({
     if (canGoBack) {
       navigateBack();
     } else {
-      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
+      // No back stack (e.g. this is the Pro-mode stack root): "home" while
+      // Pro mode is active is itself a market screen, so falling back to it
+      // here would often be a no-op. Leave Perps entirely instead.
+      navigateToWallet();
     }
-  }, [canGoBack, navigateBack, navigateToHome]);
+  }, [canGoBack, navigateBack, navigateToWallet]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
@@ -83,8 +86,8 @@ export const usePerpsProMarketHeaderActions = ({
   }, [symbol, track, navigateToMarketList]);
 
   const handleWalletPress = useCallback(() => {
-    navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
-  }, [navigateToHome]);
+    navigateToWallet();
+  }, [navigateToWallet]);
 
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {

@@ -8,6 +8,10 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
 import { selectPerpsEnabledFlag } from '../../../../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../../../../UI/Perps/selectors/perpsController';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../../../../UI/Perps/utils/perpsModeSwitch';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   ActionButtonType,
@@ -29,6 +33,7 @@ const PerpsButton = ({
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const label = strings('homepage.action_buttons.perps');
   const isDisabled = !isPerpsEnabled || !canSignTransactions;
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const handlePress = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -43,10 +48,10 @@ const PerpsButton = ({
       return;
     }
 
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: {},
-    });
+    navigation.navigate(
+      Routes.PERPS.ROOT,
+      toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
+    );
   }, [
     actionPosition,
     createEventBuilder,
@@ -54,6 +59,7 @@ const PerpsButton = ({
     label,
     navigation,
     trackEvent,
+    getPerpsHomeNavigationTarget,
   ]);
 
   return (
