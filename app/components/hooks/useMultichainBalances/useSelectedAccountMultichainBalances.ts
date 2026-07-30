@@ -12,14 +12,12 @@ import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCros
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import useIsOriginalNativeTokenSymbol from '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { UseSelectedAccountMultichainBalancesHook } from './useMultichainBalances.types';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   selectMultichainShouldShowFiat,
   selectMultichainBalances,
   selectMultichainAssets,
   selectMultichainAssetsRates,
 } from '../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 import { useMemo } from 'react';
 import {
   getAccountBalanceData,
@@ -62,12 +60,10 @@ const useSelectedAccountMultichainBalances =
       type,
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
     const multichainBalances = useSelector(selectMultichainBalances);
     const multichainAssets = useSelector(selectMultichainAssets);
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-    ///: END:ONLY_INCLUDE_IF
 
     const selectedAccountMultichainBalance = useMemo(() => {
       if (selectedInternalAccount && isOriginalNativeEvmTokenSymbol !== null) {
@@ -76,12 +72,10 @@ const useSelectedAccountMultichainBalances =
           currentCurrency,
           totalFiatBalancesCrossEvmChain,
           isOriginalNativeEvmTokenSymbol,
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           multichainBalances,
           multichainAssets,
           multichainAssetsRates,
           shouldShowFiat,
-          ///: END:ONLY_INCLUDE_IF
         );
         return {
           displayBalance: accountBalanceData.displayBalance,
@@ -108,12 +102,10 @@ const useSelectedAccountMultichainBalances =
       currentCurrency,
       isOriginalNativeEvmTokenSymbol,
       totalFiatBalancesCrossEvmChain,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssets,
       multichainAssetsRates,
       multichainBalances,
       shouldShowFiat,
-      ///: END:ONLY_INCLUDE_IF
     ]);
     return {
       selectedAccountMultichainBalance,

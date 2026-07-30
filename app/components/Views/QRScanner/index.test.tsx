@@ -1479,7 +1479,6 @@ describe('QrScanner', () => {
       });
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     describe('Solana Address Scanning', () => {
       beforeEach(() => {
         const solanaModule = jest.requireMock('@solana/addresses');
@@ -1734,7 +1733,6 @@ describe('QrScanner', () => {
         });
       });
     });
-    ///: END:ONLY_INCLUDE_IF
 
     describe('Callback-based origin handling', () => {
       beforeEach(() => {

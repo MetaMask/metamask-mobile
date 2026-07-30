@@ -601,7 +601,6 @@ const QRScanner = ({
             return;
           }
 
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           // Handle non-EVM addresses when keyring-snaps is enabled (Solana, Bitcoin)
           if (
             predefinedRecipient &&
@@ -625,7 +624,6 @@ const QRScanner = ({
             });
             return;
           }
-          ///: END:ONLY_INCLUDE_IF
 
           // If non-EVM and keyring-snaps is disabled, show error
           if (

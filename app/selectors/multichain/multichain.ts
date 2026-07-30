@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /* eslint-disable arrow-body-style */
 import { RootState } from '../../reducers';
 import {
@@ -750,5 +749,3 @@ export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
     }, {});
   },
 );
-
-///: END:ONLY_INCLUDE_IF

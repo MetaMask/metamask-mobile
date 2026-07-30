@@ -247,8 +247,6 @@ export const selectHasCreatedSolanaMainnetAccount = createSelector(
   (accounts) => accounts.some((account) => isSolanaAccount(account)),
 );
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
 /**
  * A selector that returns the solana account address
  * @param state - Root redux state
@@ -263,8 +261,6 @@ export const selectSolanaAccount = createSelector(
   selectInternalAccounts,
   (accounts) => accounts.find((account) => isSolanaAccount(account)),
 );
-
-///: END:ONLY_INCLUDE_IF
 
 /**
  * A memoized selector that returns all internal accounts that are valid for a given scope.

@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../hooks/useStyles';
@@ -159,4 +158,3 @@ const SnapDialogApproval = () => {
 };
 
 export default SnapDialogApproval;
-///: END:ONLY_INCLUDE_IF

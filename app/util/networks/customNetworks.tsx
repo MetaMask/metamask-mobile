@@ -2,16 +2,7 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Network } from '../../components/Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  BtcScope,
-  SolScope,
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-  XlmScope,
-} from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -257,14 +248,12 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
       return require('../../images/bitcoin-testnet-logo.png');
     case BtcScope.Signet:
       return require('../../images/bitcoin-signet-logo.svg');
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     case TrxScope.Mainnet:
       return require('../../images/tron.png');
     case TrxScope.Nile:
       return require('../../images/tron.png');
     case TrxScope.Shasta:
       return require('../../images/tron.png');
-    ///: END:ONLY_INCLUDE_IF(tron)
     case XlmScope.Pubnet:
       return require('../../images/xlm.png');
     default:

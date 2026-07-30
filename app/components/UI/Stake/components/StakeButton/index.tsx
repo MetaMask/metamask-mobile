@@ -33,12 +33,10 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { Hex } from '@metamask/utils';
 import { trace, TraceName } from '../../../../../util/trace';
 import { earnSelectors } from '../../../../../selectors/earnController/earn';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { isTronChainId } from '../../../../../core/Multichain/utils';
 import useTronStakeApy from '../../../Earn/hooks/useTronStakeApy';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
-///: END:ONLY_INCLUDE_IF
 import BigNumber from 'bignumber.js';
 import { MINIMUM_BALANCE_FOR_EARN_CTA } from '../../../Earn/constants/token';
 import useEarnToken from '../../../Earn/hooks/useEarnToken';
@@ -62,12 +60,10 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTronNative =
     earnToken?.isNative && isTronChainId(earnToken.chainId as Hex);
   const { apyPercent: tronApyPercent } = useTronStakeApy();
-  ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, earnToken?.chainId as Hex),
   );
@@ -80,7 +76,6 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     !isPooledStakingEnabled && !isStablecoinLendingEnabled;
 
   const handleStakeRedirect = async () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled) {
       // Track analytics before eligibility check to preserve behavior
       trackEvent(
@@ -105,7 +100,6 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
       });
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
 
     if (!isStakingSupportedChain) {
       await Engine.context.MultichainNetworkController.setActiveNetwork(
@@ -166,11 +160,9 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
         ? strings('stake.stake')
         : strings('stake.earn');
 
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled && tronApyPercent) {
       return `${ctaLabel} ${tronApyPercent}`;
     }
-    ///: END:ONLY_INCLUDE_IF
 
     const aprNumber = Number(earnToken?.experience?.apr);
     const aprText =

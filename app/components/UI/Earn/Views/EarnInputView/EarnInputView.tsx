@@ -27,9 +27,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import ResourceToggle from '../../components/Tron/ResourceToggle';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
@@ -82,13 +80,11 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import useTronStake from '../../hooks/useTronStake';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { ComputeFeeResult } from '../../utils/tron-staking-snap';
 import { handleTronStakingNavigationResult } from '../../utils/tron';
-///: END:ONLY_INCLUDE_IF
 
 const EarnInputView = () => {
   // navigation hooks
@@ -131,7 +127,6 @@ const EarnInputView = () => {
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     isTronNative,
     isTronEnabled,
@@ -144,13 +139,10 @@ const EarnInputView = () => {
     tronAccountId,
   } = useTronStake({ token });
   useTronStakeApy();
-  ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
   let showTronStakingUI = false;
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   showTronStakingUI = isTronEnabled;
-  ///: END:ONLY_INCLUDE_IF
 
   const earnToken = getEarnToken(token);
 
@@ -244,7 +236,6 @@ const EarnInputView = () => {
 
   // Debounced fee computation that reacts to amount/resourceType changes from any input method.
   // resourceType is captured implicitly via tronValidateStakeAmount's dependency on it.
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   useEffect(() => {
     if (!isTronEnabled || !isNonZeroAmount) return undefined;
 
@@ -255,7 +246,6 @@ const EarnInputView = () => {
 
     return () => clearTimeout(timer);
   }, [amountToken, isTronEnabled, isNonZeroAmount, tronValidateStakeAmount]);
-  ///: END:ONLY_INCLUDE_IF
 
   const navigateToLearnMoreModal = useCallback(() => {
     const tokenExperience = earnToken?.experience?.type;
@@ -263,7 +253,6 @@ const EarnInputView = () => {
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
 
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       // Navigate to TRX staking learn more modal
       if (isTronNative) {
         navigation.navigate('StakeModals', {
@@ -271,7 +260,6 @@ const EarnInputView = () => {
         });
         return;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
@@ -286,13 +274,7 @@ const EarnInputView = () => {
         params: { asset: earnToken },
       });
     }
-  }, [
-    earnToken,
-    navigation,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTronNative,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [earnToken, navigation, isTronNative]);
 
   const handleQuickAmountPressWithTracking = useCallback(
     ({ value }: { value: number }) => {
@@ -662,7 +644,6 @@ const EarnInputView = () => {
   ]);
 
   const handleEarnPress = useCallback(async () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronEnabled) {
       const result = await tronConfirmStake?.(amountToken);
       handleTronStakingNavigationResult(
@@ -673,7 +654,6 @@ const EarnInputView = () => {
       );
       return;
     }
-    ///: END:ONLY_INCLUDE_IF
 
     // Stablecoin Lending Flow
     if (
@@ -690,12 +670,10 @@ const EarnInputView = () => {
     earnToken?.experience?.type,
     isStablecoinLendingEnabled,
     amountToken,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronEnabled,
     navigation,
     tronConfirmStake,
     tronAccountId,
-    ///: END:ONLY_INCLUDE_IF
     handlePooledStakingFlow,
     handleLendingFlow,
   ]);
@@ -815,12 +793,10 @@ const EarnInputView = () => {
   );
 
   const getButtonLabel = () => {
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     // Tron staking has a simpler flow - just show "Stake"
     if (isTronEnabled) {
       return strings('stake.stake');
     }
-    ///: END:ONLY_INCLUDE_IF
 
     if (!isNonZeroAmount) {
       return strings('stake.enter_amount');
@@ -978,10 +954,8 @@ const EarnInputView = () => {
     (isTronNative ? isTronStakeValidating : isLoadingEarnGasFee) ||
     isSubmittingStakeDepositTransaction;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const shouldShowTronReviewButton =
     isTronEnabled && isTronNative && isPreviewVisible && isNonZeroAmount;
-  ///: END:ONLY_INCLUDE_IF
 
   const renderReviewButton = (isDisabled: boolean) => (
     <View style={styles.reviewButtonContainer}>
@@ -1010,13 +984,9 @@ const EarnInputView = () => {
         }
         includesTopInset
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronEnabled && (
-          <ResourceToggle value={resourceType} onChange={setResourceType} />
-        )
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {isTronEnabled && (
+        <ResourceToggle value={resourceType} onChange={setResourceType} />
+      )}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -1050,19 +1020,12 @@ const EarnInputView = () => {
             ) : null)}
         </View>
       </ScrollView>
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronEnabled &&
-          isTronNative &&
-          isPreviewVisible &&
-          isNonZeroAmount && (
-            <TronStakePreview
-              stakeAmount={amountToken}
-              fee={tronPreview?.fee as ComputeFeeResult}
-            />
-          )
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {isTronEnabled && isTronNative && isPreviewVisible && isNonZeroAmount && (
+        <TronStakePreview
+          stakeAmount={amountToken}
+          fee={tronPreview?.fee as ComputeFeeResult}
+        />
+      )}
       {!isPreviewVisible && (
         <>
           <QuickAmounts
@@ -1080,11 +1043,7 @@ const EarnInputView = () => {
           />
         </>
       )}
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        shouldShowTronReviewButton && renderReviewButton(isReviewButtonDisabled)
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {shouldShowTronReviewButton && renderReviewButton(isReviewButtonDisabled)}
       {!isTronEnabled && renderReviewButton(isReviewButtonDisabled)}
     </ScreenLayout>
   );

@@ -55,14 +55,12 @@ const Engine = ImportedEngine as any;
 
 let appVersion = '';
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
   confirmAccountCreation: 'snap_manageAccounts:confirmAccountCreation',
   confirmAccountRemoval: 'snap_manageAccounts:confirmAccountRemoval',
   showSnapAccountRedirect: 'snap_manageAccounts:showSnapAccountRedirect',
   showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
 };
-///: END:ONLY_INCLUDE_IF
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -77,11 +75,9 @@ export enum ApprovalTypes {
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   SNAP_DIALOG = 'snap_dialog',
-  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface RPCMethodsMiddleParameters {

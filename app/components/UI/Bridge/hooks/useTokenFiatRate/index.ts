@@ -4,9 +4,7 @@ import { calcTokenFiatRate } from '../../utils/exchange-rates';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
 export const useTokenFiatRate = (token?: BridgeToken) => {
   const evmMultiChainMarketData = useSelector(selectTokenMarketData);
@@ -16,9 +14,7 @@ export const useTokenFiatRate = (token?: BridgeToken) => {
   );
 
   let nonEvmMultichainAssetRates = {};
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
-  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
   return calcTokenFiatRate({
     token,

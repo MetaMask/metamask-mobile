@@ -1088,11 +1088,9 @@ export type RootStackParamList = {
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
   SmartAccountDetails: SmartAccountParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
   SnapsSettingsList: undefined;
   SnapSettings: SnapSettingsParams | undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   // Misc routes
   FoxLoader: FoxLoaderParams | undefined;

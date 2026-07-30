@@ -18,11 +18,9 @@ import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
 import CHZ from './chiliz.png';
-///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import BTC_TESTNET from './bitcoin-testnet-logo.png';
 import BTC_MUTINYNET from './bitcoin-mutinynet-logo.png';
 import BTC_SIGNET from './bitcoin-signet-logo.svg';
-///: END:ONLY_INCLUDE_IF
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 import HL from './HL_symbol_mint_green.png';
@@ -66,9 +64,7 @@ import TEMPO_NATIVE from './tempo-native.png';
 import ARC_NATIVE from './arc-native-token-logo.png';
 import ROBINHOOD from './robinhood.png';
 import GNOSIS_NATIVE from './gnosis-native-token-logo.png';
-/// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
-/// END:ONLY_INCLUDE_IF
 import STELLAR from './xlm.png';
 
 export default {
@@ -94,18 +90,14 @@ export default {
   SOLANA_DEVNET,
   FOX_LOGO,
   BTC,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON,
   TRX: TRON,
   sTRX: TRON,
-  ///: END:ONLY_INCLUDE_IF
   STELLAR,
   XLM: STELLAR,
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
   'BTC-SIGNET': BTC_SIGNET,
-  ///: END:ONLY_INCLUDE_IF
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   'MEGAETH-TESTNET-V2': MEGAETH_TESTNET,

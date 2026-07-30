@@ -1285,10 +1285,8 @@ export function getStakingNavbar(
   themeColors,
   navBarOptions,
   metricsOptions,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   earnToken = null,
   aprOverride = null,
-  ///: END:ONLY_INCLUDE_IF
 ) {
   const {
     hasBackButton = true,
@@ -1361,40 +1359,34 @@ export function getStakingNavbar(
     }
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
   const apr =
     parsedOverride > 0
       ? aprOverride
       : `${parseFloat(earnToken?.experience?.apr ?? '0').toFixed(1)}%`;
-  ///: END:ONLY_INCLUDE_IF
 
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
         <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(tron)
-          earnToken && (
-            <View style={innerStyles.headerTitleBalanceAndAPR}>
-              <MorphText
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {earnToken.balanceFormatted}
-              </MorphText>
-              <MorphText
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Success}
-              >
-                {`${apr} ${strings('earn.apr')}`}
-              </MorphText>
-            </View>
-          )
-          ///: END:ONLY_INCLUDE_IF
-        }
+        {earnToken && (
+          <View style={innerStyles.headerTitleBalanceAndAPR}>
+            <MorphText
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {earnToken.balanceFormatted}
+            </MorphText>
+            <MorphText
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Success}
+            >
+              {`${apr} ${strings('earn.apr')}`}
+            </MorphText>
+          </View>
+        )}
       </View>
     ),
     headerStyle: innerStyles.headerStyle,

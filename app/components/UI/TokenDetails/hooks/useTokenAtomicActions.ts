@@ -354,9 +354,7 @@ export const useHandleOnSend = ({ token }: { token: TokenActionInput }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigateToSendPage } = useSendNavigation();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const { sendNonEvmAsset } = useSendNonEvmAsset({ asset: token });
-  ///: END:ONLY_INCLUDE_IF
 
   return useCallback(async () => {
     trackEvent(

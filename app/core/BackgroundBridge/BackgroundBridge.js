@@ -25,10 +25,8 @@ import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
-///: END:ONLY_INCLUDE_IF
 import {
   PermissionDoesNotExistError,
   SubjectType,
@@ -89,10 +87,8 @@ import { getAuthorizedScopes } from '../../selectors/permissions';
 import {
   SolAccountType,
   SolScope,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   TrxAccountType,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
@@ -163,9 +159,7 @@ export class BackgroundBridge extends EventEmitter {
     this.multichainMiddlewareManager = null;
 
     this.lastSelectedSolanaAccountAddress = null;
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     this.lastSelectedTronAccountAddress = null;
-    ///: END:ONLY_INCLUDE_IF
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
@@ -541,7 +535,6 @@ export class BackgroundBridge extends EventEmitter {
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
       );
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       controllerMessenger.tryUnsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleTronAccountChangedFromScopeChanges,
@@ -554,7 +547,6 @@ export class BackgroundBridge extends EventEmitter {
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleTronAccountChangedFromSelectedAccountGroupChanges,
       );
-      ///: END:ONLY_INCLUDE_IF
 
       controllerMessenger.tryUnsubscribe(
         `${AccountTreeController.name}:selectedAccountGroupChange`,
@@ -604,9 +596,7 @@ export class BackgroundBridge extends EventEmitter {
     // messages before attempting to establish the connection meaning that it will
     // have listeners ready for this Solana and Tron accountChanged event below.
     this.notifySolanaAccountChangedForCurrentAccount();
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     this.notifyTronAccountChangedForCurrentAccount();
-    ///: END:ONLY_INCLUDE_IF
 
     const filterStream = createDupeReqFilterStream();
 
@@ -658,7 +648,6 @@ export class BackgroundBridge extends EventEmitter {
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // These Snaps RPC methods are disabled in WalletConnect and SDK for now
     if (this.isMMSDK || this.isWalletConnect) {
       engine.push((req, _res, next, end) => {
@@ -670,9 +659,7 @@ export class BackgroundBridge extends EventEmitter {
         return next();
       });
     }
-    ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // The Snaps middleware is disabled in WalletConnect and SDK for now.
     if (!this.isMMSDK && !this.isWalletConnect) {
       engine.push(
@@ -684,7 +671,6 @@ export class BackgroundBridge extends EventEmitter {
         ),
       );
     }
-    ///: END:ONLY_INCLUDE_IF
 
     // Origin throttling middleware for spam filtering
     engine.push(createOriginThrottlingMiddleware(this.navigation));
@@ -956,7 +942,6 @@ export class BackgroundBridge extends EventEmitter {
     } catch {
       // noop
     }
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     try {
       this.lastSelectedTronAccountAddress =
         AccountsController.getSelectedMultichainAccount(
@@ -965,7 +950,6 @@ export class BackgroundBridge extends EventEmitter {
     } catch {
       // noop
     }
-    ///: END:ONLY_INCLUDE_IF
 
     // wallet_sessionChanged and eth_subscription setup/teardown
     controllerMessenger.subscribe(
@@ -992,7 +976,6 @@ export class BackgroundBridge extends EventEmitter {
       this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     // wallet_notify for Tron accountChanged when permission changes
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
@@ -1010,7 +993,6 @@ export class BackgroundBridge extends EventEmitter {
       `${AccountTreeController.name}:selectedAccountGroupChange`,
       this.handleTronAccountChangedFromSelectedAccountGroupChanges,
     );
-    ///: END:ONLY_INCLUDE_IF
 
     // wallet_sessionChanged when selected account group changes (account ordering update)
     controllerMessenger.subscribe(
@@ -1244,7 +1226,6 @@ export class BackgroundBridge extends EventEmitter {
     return solanaAccount;
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   handleTronAccountChangedFromScopeChanges = (currentValue, previousValue) => {
     const previousTronAccountChangedNotificationsEnabled = Boolean(
       previousValue?.sessionProperties?.[
@@ -1369,7 +1350,6 @@ export class BackgroundBridge extends EventEmitter {
     );
     return tronAccount;
   }
-  ///: END:ONLY_INCLUDE_IF
 
   sendNotificationEip1193(payload) {
     DevLogger.log(`BackgroundBridge::sendNotificationEip1193: `, payload);
@@ -1584,7 +1564,6 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   /**
    * For origins with a Tron scope permitted, sends a wallet_notify -> metamask_accountChanged
    * event to fire for the Tron scope with the currently selected Tron account if any are
@@ -1651,7 +1630,6 @@ export class BackgroundBridge extends EventEmitter {
       }
     }
   }
-  ///: END:ONLY_INCLUDE_IF
 
   _notifyMultichainAccountChange(value, scope) {
     this.sendNotificationMultichain({

@@ -183,9 +183,7 @@ export const TokenListItem = React.memo(
     const tokenMarketData = useSelector(selectTokenMarketData);
     const currencyRates = useSelector(selectCurrencyRates);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-    ///: END:ONLY_INCLUDE_IF
 
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
@@ -273,14 +271,12 @@ export const TokenListItem = React.memo(
         return undefined;
       }
 
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
       const multichainRate =
         multichainAssetsRates?.[asset.address as CaipAssetType]?.rate;
       if (multichainRate !== undefined) {
         return multichainRate;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       // EVM: convert token price from native currency to fiat
       if (!nativeCurrency) {
@@ -323,9 +319,7 @@ export const TokenListItem = React.memo(
       currencyRates,
       nativeCurrency,
       showFiatOnTestnets,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssetsRates,
-      ///: END:ONLY_INCLUDE_IF
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {

@@ -515,12 +515,10 @@ const Routes = {
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',
   },
-  ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
   SEEDPHRASE_MODAL: 'SeedphraseModal',
   SET_PASSWORD_FLOW: {

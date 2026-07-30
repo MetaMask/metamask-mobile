@@ -4,32 +4,26 @@ import { RootState } from '../../../../reducers';
 import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   selectTronSpecialAssetsBySelectedAccountGroup,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../util/address';
 import {
   selectCurrencyRateForChainId,
   selectUSDConversionRateByChainId,
 } from '../../../../selectors/currencyRateController';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import I18n from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
-///: END:ONLY_INCLUDE_IF
 
 export interface UseTokenBalanceResult {
   balance: string | undefined;
   fiatBalance: string | undefined;
   tokenFormattedBalance: string | undefined;
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   isTronNative: boolean;
   stakedTrxAsset: TokenI | undefined;
   inLockPeriodBalance: string | undefined;
   readyForWithdrawalBalance: string | undefined;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface UseTokenBalanceWithUsdResult extends UseTokenBalanceResult {
@@ -68,7 +62,6 @@ export function useTokenBalance(
       : undefined,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     stakedTrxForEnergy,
     stakedTrxForBandwidth,
@@ -112,7 +105,6 @@ export function useTokenBalance(
           maximumFractionDigits: 5,
         }) || undefined
       : undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   const balance = processedAsset?.balance;
 
@@ -122,12 +114,10 @@ export function useTokenBalance(
     tokenFormattedBalance: balance
       ? `${balance} ${processedAsset.symbol}`
       : undefined,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronNative,
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
-    ///: END:ONLY_INCLUDE_IF
   };
 
   if (!options?.calculateUsdBalance) {
