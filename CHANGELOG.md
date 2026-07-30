@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.6.0]
 
+### Uncategorized
+
+- chore(navigation): point React Navigation's global `RootParamList` at the app's real `RootStackParamList` (Phase 5) (#33745)
+- chore(money): opt in useNavigation to AppNavigationProp (Phase 4) (#33622)
+- chore(navigation): opt remaining small teams into AppNavigationProp (phase 4) (#33678)
+- chore(multichain accounts): opt in useNavigation to AppNavigationProp (Phase 4) (#33627)
+- chore(confirmation): opt in useNavigation to AppNavigationProp (Phase 4) (#33558)
+- chore(navigation): opt unowned surfaces into AppNavigationProp (Phase 4) (#33740)
+- chore(core): opt in useNavigation to AppNavigationProp (Phase 4) (#33666)
+- chore(assets): opt in useNavigation to AppNavigationProp (Phase 4) (#33628)
+- chore(perps): opt in useNavigation to AppNavigationProp (Phase 4) (#33385)
+- chore(predict): opt in useNavigation to AppNavigationProp (Phase 4) (#33458)
+- chore(rewards): opt in useNavigation to AppNavigationProp (Phase 4) (#33453)
+- chore(bridge): opt in useNavigation to AppNavigationProp (Phase 4) (#33547)
+- chore(card): opt in useNavigation to AppNavigationProp(Phase 4) (#33441)
+- chore(ramp): opt in useNavigation to AppNavigationProp (Phase 4) (#33439)
+- chore: bump axios to ^1.18.0 to resolve moderate security advisories (#33541)
+- chore: migrate Jest preset to @react-native/jest-preset (#33201)
+- chore(nav): type wallet, asset, and settings shell navigators (Phase 3) (#33306)
+- chore(nav): type Money and Ramp nested navigators with NavigatorScreenParams (phase 3) (#33227)
+
 ### Added
 
 - Added Money Account deposit CTAs for eligible stablecoin assets (#34022)
@@ -85,7 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed token imports to return to the full token list after completion (#34039)
 - Fixed Money activity filters so card transactions appear only in the appropriate tabs (#33862)
 - Fixed stale destination exchange rates in Swap and Bridge quotes (#33955)
-- Updated in-app toast styling for consistency (#33766) (#33767) (#33769) (#33770) (#33771) (#33772) (#33773) (#33774) (#33775)
+- Updated in-app toast styling for consistency (#33766, #33767, #33769, #33770, #33771, #33772, #33773, #33774, #33775)
 - Fixed fullscreen Perps charts so older price history can load when using the fallback chart (#33881)
 - Fixed Android push notifications showing the MetaMask fox icon twice (#34065)
 - Fixed Perps Home being reachable while Pro mode is active; Pro-mode users now always land on a market page instead (#34052)
