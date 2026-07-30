@@ -21,8 +21,8 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   type SharedValue,
+  useAnimatedReaction,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -183,14 +183,25 @@ const PerpsProMarketHeader = ({
   const scrollYSv = scrollY ?? fallbackScrollY;
   const priceSectionHeightSv = priceSectionHeight ?? fallbackPriceSectionHeight;
 
-  const compactProgress = useDerivedValue(() => {
-    const hasMeasured = priceSectionHeightSv.value > 0;
-    const isCompact =
-      hasMeasured && scrollYSv.value >= priceSectionHeightSv.value;
-    return withTiming(isCompact ? 1 : 0, {
-      duration: AnimationDuration.Fast,
-    });
-  });
+  const compactProgress = useSharedValue(0);
+
+  // Only start a new `withTiming` when the compact/expanded state actually
+  // flips, not on every scroll frame — `scrollYSv` updates continuously
+  // while scrolling, and re-triggering `withTiming` towards the same target
+  // on every frame kept restarting the crossfade, causing it to stutter/lag
+  // instead of completing once.
+  useAnimatedReaction(
+    () => {
+      const hasMeasured = priceSectionHeightSv.value > 0;
+      return hasMeasured && scrollYSv.value >= priceSectionHeightSv.value;
+    },
+    (isCompact, previousIsCompact) => {
+      if (isCompact === previousIsCompact) return;
+      compactProgress.value = withTiming(isCompact ? 1 : 0, {
+        duration: AnimationDuration.Fast,
+      });
+    },
+  );
 
   const subtitleLayerStyle = useAnimatedStyle(() => ({
     opacity: 1 - compactProgress.value,

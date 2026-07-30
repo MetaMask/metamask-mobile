@@ -154,23 +154,27 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(mockNavigateToActivity).toHaveBeenCalledTimes(1);
   });
 
-  it('invokes handleWithdraw when the withdraw button is pressed', () => {
-    const { getByTestId } = renderSheet();
+  it('closes the sheet and invokes handleWithdraw when the withdraw button is pressed', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({ onClose });
 
     fireEvent.press(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
     );
 
+    expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockHandleWithdraw).toHaveBeenCalledTimes(1);
   });
 
-  it('invokes handleAddFunds when the add funds button is pressed', () => {
-    const { getByTestId } = renderSheet();
+  it('closes the sheet and invokes handleAddFunds when the add funds button is pressed', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({ onClose });
 
     fireEvent.press(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON),
     );
 
+    expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockHandleAddFunds).toHaveBeenCalledTimes(1);
   });
 

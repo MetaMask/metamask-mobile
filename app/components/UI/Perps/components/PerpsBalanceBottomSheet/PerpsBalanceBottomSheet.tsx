@@ -85,6 +85,21 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     });
   }, [navigateToActivity]);
 
+  // Withdraw/Add funds both navigate away (to the withdraw screen or into a
+  // confirmation flow), so close the sheet first — same as History above —
+  // instead of leaving it mounted underneath the next screen.
+  const handleWithdrawPress = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      handleWithdraw();
+    });
+  }, [handleWithdraw]);
+
+  const handleAddFundsPress = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      handleAddFunds();
+    });
+  }, [handleAddFunds]);
+
   if (!isVisible) return null;
 
   return (
@@ -192,13 +207,13 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
           buttonsAlignment={ButtonsAlignment.Horizontal}
           secondaryButtonProps={{
             children: strings('perps.withdraw'),
-            onPress: handleWithdraw,
+            onPress: handleWithdrawPress,
             size: ButtonSize.Lg,
             testID: PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON,
           }}
           primaryButtonProps={{
             children: strings('perps.add_funds'),
-            onPress: handleAddFunds,
+            onPress: handleAddFundsPress,
             size: ButtonSize.Lg,
             testID: PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
           }}
