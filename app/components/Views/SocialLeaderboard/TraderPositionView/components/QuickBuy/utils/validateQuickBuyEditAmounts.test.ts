@@ -47,17 +47,21 @@ describe('validateQuickBuyEditAmounts', () => {
       }),
     ).toBe('buy_below_max');
     expect(
-      validateQuickBuyEditField('buy', 9_999_999, {
-        currency: 'USD',
-        usdToCurrentCurrencyRate: 1,
-      }),
-    ).toBe('buy_below_max');
-    expect(
       validateQuickBuyEditField('buy', BUY_AMOUNT_MAX_VALID_USD, {
         currency: 'USD',
         usdToCurrentCurrencyRate: 1,
       }),
     ).toBeNull();
+  });
+
+  it('accepts USD buy amounts up to 9999999', () => {
+    expect(
+      validateQuickBuyEditField('buy', 9_999_999, {
+        currency: 'USD',
+        usdToCurrentCurrencyRate: 1,
+      }),
+    ).toBeNull();
+    expect(BUY_AMOUNT_MAX_VALID_USD).toBe(9_999_999);
   });
 
   it('scales the buy max for non-USD currencies', () => {

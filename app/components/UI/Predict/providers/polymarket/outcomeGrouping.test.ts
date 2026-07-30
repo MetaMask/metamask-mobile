@@ -1,7 +1,9 @@
 import type { PredictOutcome } from '../../types';
-import { POLYMARKET_PROVIDER_ID } from './constants';
+import { ESPORTS_MARKET_TYPES, POLYMARKET_PROVIDER_ID } from './constants';
 import {
   buildOutcomeGroups,
+  filterGroupableOutcomes,
+  isLineOutcomeType,
   normalizeEnabledSportsMarketTypes,
   normalizeSportsMarketTypes,
 } from './outcomeGrouping';
@@ -53,6 +55,7 @@ describe('outcomeGrouping', () => {
         'soccer_team_totals',
         'basketball_team_to_score_first',
         'soccer_exact_score',
+        ...ESPORTS_MARKET_TYPES,
       ]);
     });
 
@@ -100,6 +103,80 @@ describe('outcomeGrouping', () => {
         ]),
       ).toEqual(['soccer_team_to_advance']);
     });
+
+    it('keeps every supported esports market type', () => {
+      const result = normalizeSportsMarketTypes(ESPORTS_MARKET_TYPES);
+
+      expect(result).toEqual(ESPORTS_MARKET_TYPES);
+    });
+
+    it('keeps dynamic numbered esports round market types', () => {
+      const result = normalizeSportsMarketTypes([
+        'round_handicap_game_7',
+        'round_over_under_game_10',
+        'round_handicap_game_0',
+      ]);
+
+      expect(result).toEqual([
+        'round_handicap_game_7',
+        'round_over_under_game_10',
+      ]);
+    });
+  });
+
+  describe('filterGroupableOutcomes', () => {
+    it('keeps dynamic numbered esports round market types when the family is enabled', () => {
+      const outcomes = [
+        createGroupingOutcome('handicap-game-7', 'round_handicap_game_7'),
+        createGroupingOutcome('total-game-10', 'round_over_under_game_10'),
+        createGroupingOutcome('first-blood', 'first_blood_game'),
+      ];
+
+      const result = filterGroupableOutcomes(outcomes, [
+        'round_handicap_game_1',
+        'round_over_under_game_1',
+      ]);
+
+      expect(result.map((outcome) => outcome.id)).toEqual([
+        'handicap-game-7',
+        'total-game-10',
+      ]);
+    });
+
+    it('enables the dynamic family when any numbered round type is present', () => {
+      const outcomes = [
+        createGroupingOutcome('handicap-game-7', 'round_handicap_game_7'),
+        createGroupingOutcome('total-game-10', 'round_over_under_game_10'),
+        createGroupingOutcome('first-blood', 'first_blood_game'),
+      ];
+
+      const result = filterGroupableOutcomes(outcomes, [
+        'round_handicap_game_2',
+        'round_over_under_game_3',
+      ]);
+
+      expect(result.map((outcome) => outcome.id)).toEqual([
+        'handicap-game-7',
+        'total-game-10',
+      ]);
+    });
+  });
+
+  describe('isLineOutcomeType', () => {
+    it.each([
+      'map_handicap',
+      'round_handicap_game_1',
+      'round_over_under_game_5',
+      'round_over_under_game_10',
+      'kill_over_under_game',
+      'map_participant_win_total',
+    ])('returns true for esports line market %s', (type) => {
+      expect(isLineOutcomeType(type)).toBe(true);
+    });
+
+    it('returns false for an esports binary prop', () => {
+      expect(isLineOutcomeType('dota2_rampage')).toBe(false);
+    });
   });
 
   describe('buildOutcomeGroups', () => {
@@ -116,6 +193,180 @@ describe('outcomeGrouping', () => {
       expect(groups[1].outcomes).toEqual([
         expect.objectContaining({ sportsMarketType: 'first_half_moneyline' }),
       ]);
+    });
+
+    it('groups CS2 markets under game lines and numbered maps', () => {
+      const groups = buildOutcomeGroups(
+        [
+          createGroupingOutcome('match-winner', 'moneyline'),
+          createGroupingOutcome('series-handicap', 'map_handicap', -1.5),
+          createGroupingOutcome('series-total', 'totals', 2.5),
+          createGroupingOutcome(
+            'map-1-winner',
+            'child_moneyline',
+            undefined,
+            'GenOne',
+            'Map 1 Winner',
+          ),
+          createGroupingOutcome(
+            'map-1-handicap',
+            'round_handicap_game_1',
+            -3.5,
+            'GenOne -3.5',
+            'Map 1 Rounds Handicap',
+          ),
+          createGroupingOutcome(
+            'map-1-total',
+            'round_over_under_game_1',
+            21.5,
+            'O 21.5',
+            'Map 1 Total Rounds',
+          ),
+          createGroupingOutcome(
+            'map-1-kills',
+            'cs2_odd_even_total_kills',
+            undefined,
+            'Odd',
+            'Map 1: Odd/Even Total Kills',
+          ),
+          createGroupingOutcome(
+            'map-2-winner',
+            'child_moneyline',
+            undefined,
+            'GenOne',
+            'Map 2 Winner',
+          ),
+          createGroupingOutcome(
+            'map-5-rounds',
+            'cs2_odd_even_total_rounds',
+            undefined,
+            'Odd',
+            'Map 5: Odd/Even Total Rounds',
+          ),
+          createGroupingOutcome(
+            'map-10-total',
+            'round_over_under_game_10',
+            21.5,
+            'O 21.5',
+            'Map 10 Total Rounds',
+          ),
+          createGroupingOutcome(
+            'map-7-handicap',
+            'round_handicap_game_7',
+            -3.5,
+            'GenOne -3.5',
+            'Map 7 Rounds Handicap',
+          ),
+        ],
+        'cs2',
+      );
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'game_lines',
+        'map_1',
+        'map_2',
+        'map_5',
+        'map_7',
+        'map_10',
+      ]);
+      expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+        'moneyline',
+        'map_handicap',
+        'totals',
+      ]);
+      expect(groups[1].subgroups?.map((group) => group.key)).toEqual([
+        'child_moneyline',
+        'round_handicap_game_1',
+        'round_over_under_game_1',
+        'cs2_odd_even_total_kills',
+      ]);
+      expect(groups[2].outcomes).toEqual([
+        expect.objectContaining({ id: 'map-2-winner' }),
+      ]);
+    });
+
+    it('groups LoL markets under numbered games', () => {
+      const groups = buildOutcomeGroups(
+        [
+          createGroupingOutcome('match-winner', 'moneyline'),
+          createGroupingOutcome(
+            'game-1-winner',
+            'child_moneyline',
+            undefined,
+            'T1',
+            'Game 1 Winner',
+          ),
+          createGroupingOutcome(
+            'game-1-first-blood',
+            'first_blood_game',
+            undefined,
+            'Yes',
+            'First Blood in Game 1?',
+          ),
+          createGroupingOutcome(
+            'game-2-kills',
+            'kill_over_under_game',
+            30.5,
+            'Over',
+            'Total Kills Over/Under 30.5 in Game 2?',
+          ),
+          createGroupingOutcome(
+            'game-3-baron',
+            'lol_both_teams_baron',
+            undefined,
+            'Yes',
+            'Game 3: Both Teams Slay Baron Nashor?',
+          ),
+          createGroupingOutcome(
+            'game-10-kills',
+            'kill_over_under_game',
+            30.5,
+            'Over',
+            'Total Kills Over/Under 30.5 in Game 10?',
+          ),
+          createGroupingOutcome(
+            'game-7-first-blood',
+            'first_blood_game',
+            undefined,
+            'Yes',
+            'First Blood in Game 7?',
+          ),
+        ],
+        'lol',
+      );
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'game_lines',
+        'game_1',
+        'game_2',
+        'game_3',
+        'game_7',
+        'game_10',
+      ]);
+      expect(groups[1].subgroups?.map((group) => group.key)).toEqual([
+        'child_moneyline',
+        'first_blood_game',
+      ]);
+      expect(groups[2].outcomes).toEqual([
+        expect.objectContaining({ id: 'game-2-kills' }),
+      ]);
+    });
+
+    it('keeps numbered questions in game lines for non-esports leagues', () => {
+      const groups = buildOutcomeGroups(
+        [
+          createGroupingOutcome(
+            'numbered-market',
+            'child_moneyline',
+            undefined,
+            'Team A',
+            'Game 1 Winner',
+          ),
+        ],
+        'nba',
+      );
+
+      expect(groups.map((group) => group.key)).toEqual(['game_lines']);
     });
 
     it('groups full-tie-outcome markets in game lines below moneyline', () => {
@@ -283,6 +534,30 @@ describe('outcomeGrouping', () => {
       ]);
     });
 
+    it('orders soccer half totals by line without changing half market order', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('h2-total-2.5', 'second_half_totals', 2.5),
+        createGroupingOutcome('h1-total-1.5', 'first_half_totals', 1.5),
+        createGroupingOutcome('h2-result', 'soccer_second_half_result'),
+        createGroupingOutcome('h1-total-0.5', 'first_half_totals', 0.5),
+        createGroupingOutcome('h1-result', 'soccer_halftime_result'),
+        createGroupingOutcome('h2-total-0.5', 'second_half_totals', 0.5),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].key).toBe('halves');
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'first_half_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['h1-total-0.5', 'h1-total-1.5']);
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'second_half_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['h2-total-0.5', 'h2-total-2.5']);
+    });
+
     it('splits soccer team totals into one line subgroup per team', () => {
       const groups = buildOutcomeGroups([
         createGroupingOutcome(
@@ -338,6 +613,54 @@ describe('outcomeGrouping', () => {
           ],
         }),
       ]);
+    });
+
+    it('orders tennis totals by line without moving first set totals out of the first set group', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('match-total-22.5', 'tennis_match_totals', 22.5),
+        createGroupingOutcome('set-total-1.5', 'tennis_set_totals', 1.5),
+        createGroupingOutcome(
+          'first-set-total-10.5',
+          'tennis_first_set_totals',
+          10.5,
+        ),
+        createGroupingOutcome('match-total-18.5', 'tennis_match_totals', 18.5),
+        createGroupingOutcome('first-set-winner', 'tennis_first_set_winner'),
+        createGroupingOutcome('set-total-0.5', 'tennis_set_totals', 0.5),
+        createGroupingOutcome(
+          'first-set-total-8.5',
+          'tennis_first_set_totals',
+          8.5,
+        ),
+      ]);
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'game_lines',
+        'first_set',
+      ]);
+      expect(groups[0].subgroups?.map((subgroup) => subgroup.key)).toEqual([
+        'tennis_set_totals',
+        'tennis_match_totals',
+      ]);
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'tennis_set_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['set-total-0.5', 'set-total-1.5']);
+      expect(
+        groups[0].subgroups
+          ?.find((subgroup) => subgroup.key === 'tennis_match_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['match-total-18.5', 'match-total-22.5']);
+      expect(groups[1].subgroups?.map((subgroup) => subgroup.key)).toEqual([
+        'tennis_first_set_winner',
+        'tennis_first_set_totals',
+      ]);
+      expect(
+        groups[1].subgroups
+          ?.find((subgroup) => subgroup.key === 'tennis_first_set_totals')
+          ?.outcomes.map((outcome) => outcome.id),
+      ).toEqual(['first-set-total-8.5', 'first-set-total-10.5']);
     });
 
     it('groups supported half markets under halves', () => {
