@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
-///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AppState,
@@ -105,6 +102,7 @@ import {
   EngineState,
   EngineContext,
   getRootExtendedMessenger,
+  MessengerClientInitFunctionsByMessengerClientName,
 } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -199,6 +197,19 @@ import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
+
+/**
+ * Initializes the `SamplePetnamesController`. Only enabled in dev/test builds
+ * via `INCLUDE_SAMPLE_FEATURE=true`; otherwise this is a no-op so
+ * `@metamask/sample-controllers` and `app/features/SampleFeature/` are
+ * dead-code-eliminated out of production bundles.
+ */
+const samplePetnamesControllerInit: MessengerClientInitFunctionsByMessengerClientName['SamplePetnamesController'] =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps sample feature dev tooling out of prod bundles
+      require('../../features/SampleFeature/controllers/sample-petnames-controller-init')
+        .samplePetnamesControllerInit
+    : () => ({ controller: undefined });
 
 /**
  * Core controller responsible for composing other metamask controllers together
@@ -369,9 +380,7 @@ export class Engine {
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
         // AssetsController must be initialized before ClientController so it
         // subscribes to ClientController:stateChange before ClientController can emit.
@@ -641,9 +650,7 @@ export class Engine {
       GeolocationController: geolocationController,
       DeFiPositionsController: messengerClientsByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -1333,7 +1340,8 @@ export class Engine {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
-      if (controller.destroy) {
+      // SamplePetnamesController is undefined unless INCLUDE_SAMPLE_FEATURE=true.
+      if (controller?.destroy) {
         controller.destroy();
       }
     });
@@ -1453,9 +1461,7 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTrackerController,
       AccountTreeController,
@@ -1527,9 +1533,12 @@ export default {
     } = instance.context;
 
     return {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: SamplePetnamesController.state,
-      ///: END:ONLY_INCLUDE_IF
+      // Omitted entirely (rather than set to `undefined`) unless
+      // INCLUDE_SAMPLE_FEATURE=true, so consumers can rely on `in`/property
+      // presence checks matching real production (fenced-out) behavior.
+      ...(SamplePetnamesController && {
+        SamplePetnamesController: SamplePetnamesController.state,
+      }),
       AccountsController: AccountsController.state,
       AccountTrackerController: AccountTrackerController.state,
       AccountTreeController: AccountTreeController.state,

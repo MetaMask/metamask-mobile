@@ -315,19 +315,14 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SampleFeature screen in the navigation stack', () => {
-    // Given the initial app state
-    // When rendering the MainNavigator
-    const container = renderWithProvider(<MainNavigator />, {
-      state: initialRootState,
-    });
-
-    // Then it should contain the SampleFeature screen with correct configuration
-    interface ScreenChild {
-      name: string;
-      component: { name: string };
-    }
-    const screenProps: ScreenChild[] = container.root.children
+  interface SampleFeatureScreenChild {
+    name: string;
+    component: { name: string };
+  }
+  const getSampleFeatureScreenProps = (
+    container: ReturnType<typeof renderWithProvider>,
+  ) =>
+    container.root.children
       .filter(
         (child): child is ReactTestInstance =>
           typeof child === 'object' &&
@@ -338,14 +333,28 @@ describe('MainNavigator', () => {
       .map((child) => ({
         name: child.props.name,
         component: child.props.component,
-      }));
+      })) as SampleFeatureScreenChild[];
 
-    const sampleFeatureScreen = screenProps?.find(
+  // The SampleFeature screen is gated behind `INCLUDE_SAMPLE_FEATURE=true`,
+  // read once at module-load time (see MainNavigator.js) so that
+  // `app/features/SampleFeature` is dead-code-eliminated out of builds that
+  // don't set the flag. Re-requiring the module with the flag flipped would
+  // pull in a second React instance and break context, so only the default
+  // (flag unset) behavior is covered here; the enabled path is exercised by
+  // the SampleFeature feature's own component tests.
+  it('excludes the SampleFeature screen by default', () => {
+    // Given the initial app state, with INCLUDE_SAMPLE_FEATURE unset
+    // When rendering the MainNavigator
+    const container = renderWithProvider(<MainNavigator />, {
+      state: initialRootState,
+    });
+
+    // Then it should not contain the SampleFeature screen
+    const sampleFeatureScreen = getSampleFeatureScreenProps(container).find(
       (screen) => screen?.name === Routes.SAMPLE_FEATURE,
     );
 
-    expect(sampleFeatureScreen).toBeDefined();
-    expect(sampleFeatureScreen?.component.name).toBe('SampleFeatureFlow');
+    expect(sampleFeatureScreen).toBeUndefined();
   });
 
   it('includes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is not production', () => {

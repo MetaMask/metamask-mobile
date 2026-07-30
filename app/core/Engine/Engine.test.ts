@@ -266,8 +266,16 @@ describe('Engine', () => {
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
+    // SamplePetnamesController is only registered when
+    // INCLUDE_SAMPLE_FEATURE=true (unset in this test run), so `Engine.state`
+    // omits it entirely even though the fixture has a default value for it.
+    const {
+      SamplePetnamesController: _unusedSamplePetnamesController,
+      ...restBackgroundState
+    } = backgroundState;
+
     const expectedState = {
-      ...backgroundState,
+      ...restBackgroundState,
       // Update application version here, so that we don't have to update
       // `initial-background-state.json` every release
       AppMetadataController: {
@@ -1104,6 +1112,9 @@ describe('Engine', () => {
       const controllersWithState = Object.entries(Engine.context)
         .filter(
           ([controllerName, controller]) =>
+            // SamplePetnamesController is undefined unless
+            // INCLUDE_SAMPLE_FEATURE=true.
+            Boolean(controller) &&
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
