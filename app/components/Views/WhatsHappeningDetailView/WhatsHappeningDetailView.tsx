@@ -310,10 +310,12 @@ const WhatsHappeningDetailView = () => {
                   ))}
               </ScrollView>
 
-              <WhatsHappeningAIGeneratedLabel
-                onInfoPress={handleAIDisclaimerPress}
-                twClassName="mt-1 mb-4 justify-center"
-              />
+              {items.length > 0 && (
+                <WhatsHappeningAIGeneratedLabel
+                  onInfoPress={handleAIDisclaimerPress}
+                  twClassName="mt-1 mb-4 justify-center"
+                />
+              )}
 
               <PageIndicator count={items.length} activeIndex={currentIndex} />
             </>

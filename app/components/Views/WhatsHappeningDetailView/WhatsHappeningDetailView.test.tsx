@@ -465,6 +465,20 @@ describe('WhatsHappeningDetailView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render the AI Generated row when items are empty', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    expect(screen.queryByText('AI Generated')).toBeNull();
+    expect(
+      screen.queryByTestId('whats-happening-ai-disclaimer-button'),
+    ).toBeNull();
+  });
+
   it('shows the AI disclaimer bottom sheet when the AI info button is pressed', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
