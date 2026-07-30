@@ -33,6 +33,10 @@ export {
   ActivityDetailsTotalRow,
 } from './ActivityDetailsFees';
 export {
+  ActivityDetailsPayFeesAndTotal,
+  hasActivityPayFiat,
+} from './ActivityDetailsPayFees';
+export {
   ActivityDetailsFooter,
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsBridgeExplorerButtons,
