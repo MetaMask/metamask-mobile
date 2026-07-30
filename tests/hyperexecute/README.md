@@ -4,7 +4,16 @@ Branch-local PoC that keeps the existing Playwright + WebDriverIO Appium provide
 (`TestMuAIProvider` → `mobile-hub.lambdatest.com`) and moves **orchestration** from
 GitHub Actions `yarn playwright` to [HyperExecute](https://www.lambdatest.com/support/docs/hyperexecute-appium-testing/).
 
-Compare against `MMQA-2042-TestMU-PoC` (direct GHA → TestMu hub).
+## Parallel PoCs (both stay alive)
+
+| Branch | Orchestration | Purpose |
+| --- | --- | --- |
+| `MMQA-2042-TestMU-PoC` | Direct GHA → TestMu hub | Baseline TestMu provider PoC |
+| `MMQA-TestMu-PoC-HyperExecute` | GHA → HyperExecute → TestMu hub | Same provider, HE orchestration |
+
+Do **not** merge one into the other as a replacement — dispatch both and compare.
+This HyperExecute PR targets `main` for landing readiness; that does not retire
+`MMQA-2042-TestMU-PoC`.
 
 ## What runs
 
