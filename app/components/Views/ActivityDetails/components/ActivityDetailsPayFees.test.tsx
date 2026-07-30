@@ -1,10 +1,13 @@
 import React from 'react';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
+import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
 import {
   ActivityDetailsPayFeesAndTotal,
-  hasActivityPayFiat,
+  useActivityPayFiat,
 } from './ActivityDetailsPayFees';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
@@ -32,7 +35,7 @@ function payItem(
   } as unknown as ActivityListItem;
 }
 
-/** A provider-backed row — no local `TransactionMeta`, so no Pay metadata. */
+/** A provider-backed row — its Pay metadata lives on the local tx behind `hash`. */
 const providerItem = {
   type: 'predictionPlaced',
   chainId: 'eip155:137',
@@ -42,6 +45,11 @@ const providerItem = {
   data: {},
   raw: { type: 'predictActivity', data: { id: 'predict-1' } },
 } as unknown as ActivityListItem;
+
+/** Pay metadata as the component receives it, already resolved by the hook. */
+function pay(metamaskPay: Record<string, string>): MetamaskPayMetadata {
+  return metamaskPay as MetamaskPayMetadata;
+}
 
 const USDC_MAINNET = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const ACCOUNT = '0x0000000000000000000000000000000000000001';
@@ -58,6 +66,26 @@ const stateWithPayToken = {
             [ACCOUNT]: [{ address: USDC_MAINNET, symbol: 'USDC', decimals: 6 }],
           },
         },
+      },
+    },
+  },
+};
+
+/** The local transaction a provider-backed row's hash points at. */
+const stateWithLocalPayTransaction = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      TransactionController: {
+        ...backgroundState.TransactionController,
+        transactions: [
+          {
+            id: 'tx-1',
+            chainId: '0x89',
+            hash: 'predict-1',
+            metamaskPay: { networkFeeFiat: '1.23', bridgeFeeFiat: '0.09' },
+          },
+        ],
       },
     },
   },
@@ -85,7 +113,7 @@ describe('ActivityDetailsPayFeesAndTotal', () => {
   it('renders network fee, bridge fee and total', () => {
     const { getByText, getByTestId } = renderWithProvider(
       <ActivityDetailsPayFeesAndTotal
-        item={payItem({
+        pay={pay({
           networkFeeFiat: '0',
           bridgeFeeFiat: '0.04',
           totalFiat: '0.14',
@@ -103,18 +131,31 @@ describe('ActivityDetailsPayFeesAndTotal', () => {
     expect(getByText('$0.14')).toBeOnTheScreen();
   });
 
+  it('labels the network fee row from networkFeeLabel', () => {
+    // Perps calls the same value "Transaction fee".
+    const { getByText, queryByText } = renderWithProvider(
+      <ActivityDetailsPayFeesAndTotal
+        pay={pay({ networkFeeFiat: '1.23' })}
+        networkFeeLabel="Transaction fee"
+      />,
+    );
+
+    expect(getByText('Transaction fee')).toBeOnTheScreen();
+    expect(queryByText('Network fee')).toBeNull();
+  });
+
   it('formats in USD even when the display currency is not USD', () => {
     // Pay's values are USD amounts; reformatting them as EUR would relabel the
     // same number as a different currency.
     const { getByText, queryByText } = renderWithProvider(
       <ActivityDetailsPayFeesAndTotal
-        item={payItem({ bridgeFeeFiat: '0.04', totalFiat: '0.14' })}
+        pay={pay({ bridgeFeeFiat: '0.04', totalFiat: '0.14' })}
       />,
       { state: eurState },
     );
 
     expect(getByText('$0.04')).toBeOnTheScreen();
-    expect(queryByText('€0.04')).toBeNull();
+    expect(queryByText('\u20ac0.04')).toBeNull();
   });
 
   it('denominates the network fee in the payment chain native asset and the bridge fee in the payment token', () => {
@@ -122,7 +163,7 @@ describe('ActivityDetailsPayFeesAndTotal', () => {
     // the user paid with.
     const { getByText } = renderWithProvider(
       <ActivityDetailsPayFeesAndTotal
-        item={payItem({
+        pay={pay({
           chainId: '0x1',
           tokenAddress: USDC_MAINNET,
           networkFeeFiat: '1.23',
@@ -140,7 +181,7 @@ describe('ActivityDetailsPayFeesAndTotal', () => {
   it('denominates both fees in the native asset when the user paid with it', () => {
     const { getAllByText } = renderWithProvider(
       <ActivityDetailsPayFeesAndTotal
-        item={payItem({
+        pay={pay({
           chainId: '0x1',
           tokenAddress: '0x0000000000000000000000000000000000000000',
           networkFeeFiat: '1.23',
@@ -156,7 +197,7 @@ describe('ActivityDetailsPayFeesAndTotal', () => {
     // An untracked payment token has no symbol, so no nameless avatar.
     const { getByText, queryByText } = renderWithProvider(
       <ActivityDetailsPayFeesAndTotal
-        item={payItem({
+        pay={pay({
           chainId: '0x1',
           tokenAddress: USDC_MAINNET,
           bridgeFeeFiat: '0.09',
@@ -170,42 +211,47 @@ describe('ActivityDetailsPayFeesAndTotal', () => {
 
   it('renders the total alone when Pay recorded no fees', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
-      <ActivityDetailsPayFeesAndTotal item={payItem({ totalFiat: '0.14' })} />,
+      <ActivityDetailsPayFeesAndTotal pay={pay({ totalFiat: '0.14' })} />,
     );
 
     expect(getByTestId(TOTAL_ROW)).toBeOnTheScreen();
     expect(queryByTestId(NETWORK_FEE_ROW)).toBeNull();
     expect(queryByTestId(BRIDGE_FEE_ROW)).toBeNull();
   });
-
-  it('renders nothing when the transaction has no Pay metadata', () => {
-    const { toJSON } = renderWithProvider(
-      <ActivityDetailsPayFeesAndTotal item={payItem(undefined)} />,
-    );
-
-    expect(toJSON()).toBeNull();
-  });
-
-  it('renders nothing for a row with no local transaction', () => {
-    const { toJSON } = renderWithProvider(
-      <ActivityDetailsPayFeesAndTotal item={providerItem} />,
-    );
-
-    expect(toJSON()).toBeNull();
-  });
 });
 
-describe('hasActivityPayFiat', () => {
-  it.each([
-    ['is true for a recorded zero fee', { networkFeeFiat: '0' }, true],
-    ['is true for a total with no fees', { totalFiat: '0.14' }, true],
-    ['is false for empty Pay metadata', {}, false],
-  ])('%s', (_name, metamaskPay, expected) => {
-    expect(hasActivityPayFiat(payItem(metamaskPay))).toBe(expected);
+describe('useActivityPayFiat', () => {
+  const renderPayFiat = (item: ActivityListItem, state?: object) =>
+    renderHookWithProvider(() => useActivityPayFiat(item), { state }).result
+      .current;
+
+  it('reads Pay metadata straight off a local row', () => {
+    expect(
+      renderPayFiat(payItem({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' })),
+    ).toMatchObject({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' });
   });
 
-  it('is false without Pay metadata or a local transaction', () => {
-    expect(hasActivityPayFiat(payItem(undefined))).toBe(false);
-    expect(hasActivityPayFiat(providerItem)).toBe(false);
+  it('resolves Pay metadata for a provider-backed row from the local transaction behind its hash', () => {
+    // Perps rows come from the HyperLiquid feed and carry no `metamaskPay`;
+    // only the on-chain hash ties them back to the local transaction.
+    expect(
+      renderPayFiat(providerItem, stateWithLocalPayTransaction),
+    ).toMatchObject({ networkFeeFiat: '1.23', bridgeFeeFiat: '0.09' });
+  });
+
+  it('is undefined for a provider-backed row with no matching local transaction', () => {
+    expect(renderPayFiat(providerItem)).toBeUndefined();
+  });
+
+  it.each([
+    ['a recorded zero fee resolves', { networkFeeFiat: '0' }, true],
+    ['a total with no fees resolves', { totalFiat: '0.14' }, true],
+    ['empty Pay metadata does not', {}, false],
+  ])('%s', (_name, metamaskPay, resolved) => {
+    expect(Boolean(renderPayFiat(payItem(metamaskPay)))).toBe(resolved);
+  });
+
+  it('is undefined when the local transaction has no Pay metadata', () => {
+    expect(renderPayFiat(payItem(undefined))).toBeUndefined();
   });
 });

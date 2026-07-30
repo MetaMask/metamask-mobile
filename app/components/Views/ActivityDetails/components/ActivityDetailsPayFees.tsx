@@ -6,6 +6,7 @@ import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTransactionMetadataByHash } from '../../../../selectors/transactionController';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityListItem,
@@ -34,7 +35,7 @@ interface PayFeeToken {
  * Pay-routed rows carry no token-denominated `data.fees`, so this is their only
  * fee source — the same one the legacy details screen reads.
  */
-function getActivityPayMetadata(
+function getLocalPayMetadata(
   item: ActivityListItem,
 ): MetamaskPayMetadata | undefined {
   return item.raw?.type === 'localTransaction'
@@ -42,14 +43,32 @@ function getActivityPayMetadata(
     : undefined;
 }
 
-/**
- * Whether {@link ActivityDetailsPayFeesAndTotal} renders anything, so templates
- * can decide up front whether to add its divider. Fiat rather than fees: a row
- * carrying only `totalFiat` still renders a section.
- */
-export function hasActivityPayFiat(item: ActivityListItem): boolean {
-  const pay = getActivityPayMetadata(item);
+function hasPayFiat(pay: MetamaskPayMetadata | undefined): boolean {
   return Boolean(pay?.networkFeeFiat || pay?.bridgeFeeFiat || pay?.totalFiat);
+}
+
+/**
+ * A row's Pay fiat metadata, or `undefined` when there is nothing to render —
+ * so templates can decide up front whether to add the section's divider. Fiat
+ * rather than fees: a row carrying only `totalFiat` still renders a section.
+ *
+ * Local rows carry `metamaskPay` directly. Provider-backed rows (Perps, whose
+ * HyperLiquid feed entry dedups the local EVM copy away) carry only the on-chain
+ * hash, so their metadata is resolved from the local transaction it belongs to.
+ */
+export function useActivityPayFiat(
+  item: ActivityListItem,
+): MetamaskPayMetadata | undefined {
+  const localPay = getLocalPayMetadata(item);
+  const { hash } = item;
+  const payByHash = useSelector((state: RootState) =>
+    localPay
+      ? undefined
+      : selectTransactionMetadataByHash(state, hash)?.metamaskPay,
+  );
+  const pay = localPay ?? payByHash;
+
+  return hasPayFiat(pay) ? pay : undefined;
 }
 
 /**
@@ -122,38 +141,45 @@ function PayFeeValue({
 }
 
 /**
- * Network fee / bridge fee / total for a MetaMask Pay-routed transaction. Rows
- * with no recorded value are omitted; a recorded zero still shows (`$0`).
+ * Network fee / bridge fee / total for a MetaMask Pay-routed transaction, from
+ * the metadata {@link useActivityPayFiat} resolved. Rows with no recorded value
+ * are omitted; a recorded zero still shows (`$0`).
+ *
+ * `networkFeeLabel` exists because Perps labels the same value "Transaction
+ * fee" where Predict labels it "Network fee".
  */
 export function ActivityDetailsPayFeesAndTotal({
-  item,
+  pay,
+  networkFeeLabel = strings('activity_details.network_fee'),
 }: {
-  item: ActivityListItem;
+  pay: MetamaskPayMetadata;
+  networkFeeLabel?: string;
 }) {
   const formatFiat = useFiatFormatter({ currency: PAY_FIAT_CURRENCY });
-  const pay = getActivityPayMetadata(item);
   const { networkFeeToken, bridgeFeeToken } = usePayFeeTokens(pay);
 
-  if (!hasActivityPayFiat(item)) {
+  // Callers get `pay` from `useActivityPayFiat`, which already screens this
+  // out; the guard keeps a direct caller from rendering an empty section.
+  if (!hasPayFiat(pay)) {
     return null;
   }
 
   const formatPayFiat = (value: string | undefined) =>
     value ? formatFiat(new BigNumber(value)) : undefined;
 
-  const networkFee = formatPayFiat(pay?.networkFeeFiat);
-  const bridgeFee = formatPayFiat(pay?.bridgeFeeFiat);
+  const networkFee = formatPayFiat(pay.networkFeeFiat);
+  const bridgeFee = formatPayFiat(pay.bridgeFeeFiat);
 
   return (
     <ActivityDetailSection>
       <ActivityDetailRow
-        label={strings('activity_details.network_fee')}
+        label={networkFeeLabel}
         value={
           networkFee ? (
             <PayFeeValue
               value={networkFee}
               token={networkFeeToken}
-              chainId={pay?.chainId}
+              chainId={pay.chainId}
             />
           ) : undefined
         }
@@ -166,7 +192,7 @@ export function ActivityDetailsPayFeesAndTotal({
             <PayFeeValue
               value={bridgeFee}
               token={bridgeFeeToken}
-              chainId={pay?.chainId}
+              chainId={pay.chainId}
             />
           ) : undefined
         }
@@ -174,7 +200,7 @@ export function ActivityDetailsPayFeesAndTotal({
       />
       <ActivityDetailRow
         label={strings('activity_details.total_amount')}
-        value={formatPayFiat(pay?.totalFiat)}
+        value={formatPayFiat(pay.totalFiat)}
         testID={ActivityDetailsSelectorsIDs.TOTAL_ROW}
       />
     </ActivityDetailSection>
