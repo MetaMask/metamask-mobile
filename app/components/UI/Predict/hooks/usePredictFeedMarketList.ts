@@ -136,9 +136,11 @@ export const usePredictFeedMarketList = (
     () => createLivePhaseParams(params),
     [params],
   );
+  // Only strip/force non-live when this hook is in sports live-first mode.
+  // Otherwise pass filter params through unchanged (e.g. Live feed keeps live: true).
   const regularPhaseParams = useMemo(
-    () => createRegularPhaseParams(params),
-    [params],
+    () => (showLiveFirst ? createRegularPhaseParams(params) : params),
+    [params, showLiveFirst],
   );
 
   const liveResult = usePredictMarketList(livePhaseParams, {

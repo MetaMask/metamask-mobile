@@ -76,6 +76,21 @@ describe('usePredictFeedMarketList', () => {
     ]);
   });
 
+  it('preserves live filter params when live-first is disabled', () => {
+    renderHook(() =>
+      usePredictFeedMarketList(
+        { live: true, order: 'volume24hr', limit: 10 },
+        { showLiveFirst: false },
+      ),
+    );
+
+    expect(mockUsePredictMarketList).toHaveBeenNthCalledWith(
+      2,
+      { live: true, order: 'volume24hr', limit: 10 },
+      { enabled: true, filterStaleGameMarkets: false },
+    );
+  });
+
   it('leaves raw query mutation to the provider query builder', () => {
     const queryParams = 'tag_slug=sports&live=false&order=startTime';
 
