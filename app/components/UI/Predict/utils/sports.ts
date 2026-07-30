@@ -1,4 +1,5 @@
 import {
+  isDrawCapableLeague,
   isTeamToAdvanceMarketType,
   WORLD_CUP_LEAGUE,
 } from '../constants/sports';
@@ -11,20 +12,25 @@ import type {
 } from '../types';
 
 interface TeamMatchedOutcome {
+  id?: string;
   groupItemTitle?: string;
   tokens: { title?: string; shortTitle?: string }[];
 }
 
 export interface SportCardOutcome<TToken extends SportCardToken> {
   id: string;
+  title?: string;
   sportsMarketType?: string;
   groupItemThreshold?: number;
+  groupItemTitle?: string;
+  negRisk?: boolean;
   tokens: TToken[];
 }
 
 export interface SportCardToken {
   id: string;
   title?: string;
+  shortTitle?: string;
 }
 
 export interface SportCardBetSide<
@@ -146,6 +152,90 @@ export const getPrimaryMoneylineOutcomes = <
   return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
 };
 
+const getExplicitMoneylineOutcomes = <T extends { sportsMarketType?: string }>(
+  outcomes: T[],
+): T[] =>
+  outcomes.filter(
+    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+
+const isDrawLabel = (value?: string): boolean =>
+  value?.trim().toLowerCase() === 'draw';
+
+const tokenIsDraw = (token: { title?: string; shortTitle?: string }): boolean =>
+  isDrawLabel(token.title) || isDrawLabel(token.shortTitle);
+
+const outcomeIsDraw = <T extends TeamMatchedOutcome & { title?: string }>(
+  outcome: T,
+): boolean =>
+  isDrawLabel(outcome.groupItemTitle) ||
+  isDrawLabel(outcome.title) ||
+  outcome.tokens.some(tokenIsDraw);
+
+/**
+ * Detects whether moneyline outcomes expose an explicit Draw option.
+ *
+ * Two Polymarket shapes are supported: a combined moneyline, where one
+ * outcome's tokens include a Draw token, and a split neg-risk moneyline, where
+ * home / draw / away arrive as separate outcomes. The `>= 3` threshold on the
+ * split case avoids treating a two-way winner market (home + away only) as
+ * draw-capable when a token title happens to mention "draw".
+ */
+export const hasExplicitMoneylineDraw = <
+  T extends TeamMatchedOutcome & {
+    sportsMarketType?: string;
+    title?: string;
+    negRisk?: boolean;
+  },
+>(
+  outcomes: T[],
+): boolean => {
+  const moneylineOutcomes = getExplicitMoneylineOutcomes(outcomes);
+  if (moneylineOutcomes.length === 0) {
+    return false;
+  }
+
+  const combinedMoneylineHasDraw = moneylineOutcomes.some((outcome) =>
+    outcome.tokens.some(tokenIsDraw),
+  );
+  if (combinedMoneylineHasDraw) {
+    return true;
+  }
+
+  const negRiskMoneylineOutcomes = moneylineOutcomes.filter(
+    (outcome) => outcome.negRisk,
+  );
+  return (
+    negRiskMoneylineOutcomes.length >= 3 &&
+    negRiskMoneylineOutcomes.some(outcomeIsDraw)
+  );
+};
+
+/**
+ * Whether a market should render a Draw button / third outcome.
+ *
+ * True when the league is inherently draw-capable (e.g. soccer) or when the
+ * outcomes themselves expose an explicit moneyline draw via
+ * {@link hasExplicitMoneylineDraw} (optional for some esports markets).
+ */
+export const isDrawCapableMarket = <
+  T extends TeamMatchedOutcome & {
+    sportsMarketType?: string;
+    title?: string;
+    negRisk?: boolean;
+  },
+>({
+  game,
+  outcomes,
+}: {
+  game?: PredictMarketGame;
+  outcomes: T[];
+}): boolean =>
+  Boolean(
+    game &&
+      (isDrawCapableLeague(game.league) || hasExplicitMoneylineDraw(outcomes)),
+  );
+
 export const getPrimarySportsCardOutcomes = <
   T extends { sportsMarketType?: string },
 >(
@@ -243,8 +333,41 @@ const getTeamToken = <TToken extends SportCardToken>(
 
 const getDrawToken = <TToken extends SportCardToken>(
   tokens: TToken[],
-): TToken | undefined =>
-  tokens.find((token) => token.title?.toLowerCase() === 'draw');
+): TToken | undefined => tokens.find(tokenIsDraw);
+
+const getSortedDrawOutcomes = <
+  TOutcome extends SportCardOutcome<TToken>,
+  TToken extends SportCardToken,
+>(
+  outcomes: TOutcome[],
+): TOutcome[] =>
+  [...outcomes].sort(
+    (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
+  );
+
+/**
+ * Picks the outcome that matches `team` from a candidate list, preferring a
+ * title/abbreviation match. Falls back to `fallbackIndex` (then the first
+ * remaining candidate) so home/away assignment still works when labels are
+ * generic. `excludedOutcomes` prevents the draw outcome from being reused.
+ */
+const getTeamOutcomeFromCandidates = <
+  TOutcome extends SportCardOutcome<TToken>,
+  TToken extends SportCardToken,
+>(
+  outcomes: TOutcome[],
+  team: PredictSportTeam,
+  fallbackIndex: number,
+  excludedOutcomes: TOutcome[] = [],
+): TOutcome | undefined => {
+  const excludedIds = new Set(excludedOutcomes.map((outcome) => outcome.id));
+  const candidates = outcomes.filter((outcome) => !excludedIds.has(outcome.id));
+  return (
+    candidates.find((outcome) => outcomeMatchesTeam(outcome, team)) ??
+    candidates[fallbackIndex] ??
+    candidates[0]
+  );
+};
 
 export const resolveSportCardButtons = <
   TOutcome extends SportCardOutcome<TToken>,
@@ -275,22 +398,49 @@ export const resolveSportCardButtons = <
 
   const sortedDrawOutcomes =
     showDraw && !isTeamToAdvance && primaryOutcomes.length >= 3
-      ? [...primaryOutcomes].sort(
-          (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-        )
+      ? getSortedDrawOutcomes(primaryOutcomes)
       : null;
 
   if (sortedDrawOutcomes) {
-    const [homeOutcome, drawOutcome, awayOutcome] = sortedDrawOutcomes;
-    const homeToken = getTeamToken(homeOutcome.tokens, game.homeTeam);
+    const drawOutcome =
+      sortedDrawOutcomes.find(outcomeIsDraw) ?? sortedDrawOutcomes[1];
+    if (!drawOutcome) {
+      return fallbackResult;
+    }
+
+    const homeOutcome = getTeamOutcomeFromCandidates(
+      sortedDrawOutcomes,
+      game.homeTeam,
+      0,
+      [drawOutcome],
+    );
+    const awayOutcome = getTeamOutcomeFromCandidates(
+      sortedDrawOutcomes,
+      game.awayTeam,
+      1,
+      [drawOutcome, homeOutcome].filter((outcome): outcome is TOutcome =>
+        Boolean(outcome),
+      ),
+    );
+    const homeToken = homeOutcome
+      ? getTeamToken(homeOutcome.tokens, game.homeTeam)
+      : undefined;
     const drawToken = getDrawToken(drawOutcome.tokens) ?? drawOutcome.tokens[0];
-    const awayToken = getTeamToken(awayOutcome.tokens, game.awayTeam);
+    const awayToken = awayOutcome
+      ? getTeamToken(awayOutcome.tokens, game.awayTeam)
+      : undefined;
 
     return {
       ...fallbackResult,
-      home: homeToken ? { outcome: homeOutcome, token: homeToken } : undefined,
+      home:
+        homeOutcome && homeToken
+          ? { outcome: homeOutcome, token: homeToken }
+          : undefined,
       draw: drawToken ? { outcome: drawOutcome, token: drawToken } : undefined,
-      away: awayToken ? { outcome: awayOutcome, token: awayToken } : undefined,
+      away:
+        awayOutcome && awayToken
+          ? { outcome: awayOutcome, token: awayToken }
+          : undefined,
     };
   }
 
