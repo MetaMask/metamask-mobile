@@ -1,0 +1,38 @@
+diff --git a/lib/module/fetch.js b/lib/module/fetch.js
+index be1800295cbd240ba44a54ace1ee350ad9b7e9b1..54aa28cfda8c3e3b47462ac5ed93090521a13b23 100644
+--- a/lib/module/fetch.js
++++ b/lib/module/fetch.js
+@@ -16,6 +16,6 @@ function headersToPairs(headers) {
+   if (!headers) return undefined;
+   const pairs = [];
+-  if (headers instanceof Headers) {
++  if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+     headers.forEach((v, k) => pairs.push({
+       key: k,
+       value: v
+diff --git a/src/fetch.js b/src/fetch.js
+index 7209c6c14cb60ff22a699e409f67d61411229340..aaaab72c846b41daa4c2234d4422b8069ddc3751 100644
+--- a/src/fetch.js
++++ b/src/fetch.js
+@@ -13,7 +13,7 @@ function headersToPairs(headers) {
+   'worklet';
+   if (!headers) return undefined;
+   const pairs = [];
+-  if (headers instanceof Headers) {
++  if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+     headers.forEach((v, k) => pairs.push({ key: k, value: v }));
+     return pairs;
+   }
+diff --git a/src/fetch.ts b/src/fetch.ts
+index 5b0a0a931aaf31783e11a31850ecb87e594ece45..5125521df6c960a4ec3b5daae8a9e9621a73100e 100644
+--- a/src/fetch.ts
++++ b/src/fetch.ts
+@@ -23,7 +23,7 @@ function headersToPairs(headers?: HeadersInit): NitroHeader[] | undefined {
+   'worklet';
+   if (!headers) return undefined;
+   const pairs: NitroHeader[] = [];
+-  if (headers instanceof Headers) {
++  if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+     headers.forEach((v, k) => pairs.push({ key: k, value: v }));
+     return pairs;
+   }

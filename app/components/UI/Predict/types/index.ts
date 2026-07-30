@@ -204,7 +204,12 @@ export type PredictSportsLeague =
   | 'fifwc'
   | 'atp'
   | 'wta'
-  | 'itf';
+  | 'itf'
+  | 'cs2'
+  | 'lol'
+  | 'dota2'
+  | 'val'
+  | 'r6siege';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -787,6 +792,8 @@ export interface ConnectionStatus {
   marketConnected: boolean;
   rtdsConnected: boolean;
 }
+
+export type ConnectionStatusCallback = (status: ConnectionStatus) => void;
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;

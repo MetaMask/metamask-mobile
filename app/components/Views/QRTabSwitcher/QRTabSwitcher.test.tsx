@@ -13,7 +13,6 @@ import {
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import type { RootState } from '../../../reducers';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
-import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
 
 const { ButtonIcon } = jest.requireActual(
   '@metamask/design-system-react-native',
@@ -45,17 +44,36 @@ jest.mock('../../../util/trace', () => ({
     QRTabSwitcher: 'QRTabSwitcher',
   },
 }));
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    QrSyncController: {
-      resetState: jest.fn(),
+jest.mock('../../../core/Engine', () => {
+  const { defaultQrSyncControllerState: mockDefaultQrSyncControllerState } =
+    jest.requireActual('../../../core/QrSync/QrSyncController');
+
+  return {
+    context: {
+      KeyringController: {
+        getAccounts: jest.fn(() => Promise.resolve([])),
+      },
+      QrSyncController: {
+        state: { ...mockDefaultQrSyncControllerState },
+        resetState: jest.fn(),
+        importRemainingSecrets: jest.fn(() => Promise.resolve()),
+      },
+      QrSyncProvisioningService: {
+        provisionFromMetadata: jest.fn(() => Promise.resolve()),
+      },
     },
-  },
-}));
+  };
+});
 
 import Engine from '../../../core/Engine';
 
 const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
+const mockImportRemainingSecrets = Engine.context.QrSyncController
+  .importRemainingSecrets as jest.Mock;
+const mockGetAccounts = Engine.context.KeyringController
+  .getAccounts as jest.Mock;
+const mockProvisionFromMetadata = Engine.context.QrSyncProvisioningService
+  .provisionFromMetadata as jest.Mock;
 
 jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
   const actual = jest.requireActual(
@@ -69,14 +87,6 @@ jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
 
 const mockShowExtensionCancelledErrorSheet = jest.mocked(
   showExtensionCancelledErrorSheet,
-);
-
-jest.mock('../../../core/QrSync/completeExistingUserQrSyncImport', () => ({
-  completeExistingUserQrSyncImport: jest.fn(() => Promise.resolve()),
-}));
-
-const mockCompleteExistingUserQrSyncImport = jest.mocked(
-  completeExistingUserQrSyncImport,
 );
 
 jest.mock('react-redux', () => {
@@ -109,6 +119,13 @@ const renderWithQrSyncState = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState>,
   completedOnboarding = false,
 ) => {
+  const nextQrSyncState = {
+    ...defaultQrSyncControllerState,
+    ...qrSyncState,
+  };
+
+  Engine.context.QrSyncController.state = nextQrSyncState;
+
   const reactReduxModule = jest.requireMock('react-redux') as {
     useSelector: jest.Mock;
   };
@@ -117,10 +134,7 @@ const renderWithQrSyncState = (
       selector({
         engine: {
           backgroundState: {
-            QrSyncController: {
-              ...defaultQrSyncControllerState,
-              ...qrSyncState,
-            },
+            QrSyncController: nextQrSyncState,
           },
         },
         onboarding: {
@@ -270,12 +284,16 @@ describe('QRTabSwitcher', () => {
         },
       );
     });
-    expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
+    expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
   });
 
-  it('auto-imports and navigates home when awaiting password for existing users', async () => {
+  it('imports remaining secrets and navigates home for existing users', async () => {
     const mnemonic =
       'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
+
+    mockGetAccounts
+      .mockResolvedValueOnce(['0xold'])
+      .mockResolvedValueOnce(['0xold', '0xnew']);
 
     renderAddDeviceFlow(
       {
@@ -293,11 +311,11 @@ describe('QRTabSwitcher', () => {
     );
 
     await waitFor(() => {
-      expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
-        expect.objectContaining({ navigate: mockNavigate }),
-        mnemonic,
-      );
+      expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockResetState).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
       expect.anything(),
@@ -317,8 +335,16 @@ describe('QRTabSwitcher', () => {
       useSelector: jest.Mock;
     };
 
+    const syncError = {
+      code: 'INVALID_PAYLOAD' as const,
+      message:
+        'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+    };
+
     let phase: (typeof defaultQrSyncControllerState)['phase'] =
       QrSyncPhases.AWAITING_SYNC_READY;
+    let error: (typeof defaultQrSyncControllerState)['error'] = null;
+
     reactReduxModule.useSelector.mockImplementation(
       (selector: (state: RootState) => unknown) =>
         selector({
@@ -327,6 +353,7 @@ describe('QRTabSwitcher', () => {
               QrSyncController: {
                 ...defaultQrSyncControllerState,
                 phase,
+                error,
               },
             },
           },
@@ -336,11 +363,20 @@ describe('QRTabSwitcher', () => {
         } as RootState),
     );
 
-    const { rerender } = render(<QRTabSwitcher />);
+    const { getByTestId, rerender } = render(<QRTabSwitcher />);
 
-    phase = QrSyncPhases.IDLE;
+    expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
+
+    phase = QrSyncPhases.FAILED;
+    error = syncError;
     rerender(<QRTabSwitcher />);
 
     expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledTimes(1);
+    expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledWith(
+      expect.anything(),
+      { errorMessage: syncError.message },
+    );
+    // Waiting UI must stay mounted so the cancel sheet is not over the camera.
+    expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
   });
 });

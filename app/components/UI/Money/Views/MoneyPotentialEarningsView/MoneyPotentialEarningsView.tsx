@@ -1,7 +1,8 @@
-import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -24,7 +25,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
+import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
@@ -50,12 +51,12 @@ import {
 } from '../../constants/moneyEvents';
 
 const MoneyPotentialEarningsView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
   });
 
@@ -183,6 +184,87 @@ const MoneyPotentialEarningsView = () => {
     [eligibleTokens.length, initiateDeposit, trackTokenSurfaceClicked],
   );
 
+  const listHeader = useMemo(
+    () => (
+      <Box twClassName="px-4 py-3 gap-3">
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('money.potential_earnings.title')}
+        </Text>
+
+        {isPositiveNumber(projectedAmount) &&
+        isPositiveNumber(totalAssetsFiat) ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+            testID={MoneyPotentialEarningsViewTestIds.DESCRIPTION}
+          >
+            {`${strings(
+              'money.potential_earnings.description_with_amounts_prefix',
+            )} `}
+            <SensitiveText
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              testID={MoneyPotentialEarningsViewTestIds.TOTAL}
+            >
+              {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
+            </SensitiveText>
+            {` ${strings(
+              'money.potential_earnings.description_with_amounts_middle',
+            )} `}
+            <SensitiveText
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={MoneyPotentialEarningsViewTestIds.PROJECTED}
+            >
+              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
+            </SensitiveText>
+            {` ${strings(
+              'money.potential_earnings.description_with_amounts_suffix',
+            )}`}
+          </Text>
+        ) : (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+            testID={MoneyPotentialEarningsViewTestIds.DESCRIPTION}
+          >
+            {strings('money.potential_earnings.description')}
+          </Text>
+        )}
+      </Box>
+    ),
+    [projectedAmount, totalAssetsFiat, currency, privacyMode],
+  );
+
+  const renderTokenRow = useCallback(
+    ({ item, index }: { item: AssetType; index: number }) => (
+      <PotentialEarningsTokenRow
+        token={item}
+        hasSubsidizedFee={isNoFeeToken(item)}
+        apyDecimal={apyDecimalForProjection}
+        onCardPress={handleTokenCardPress(item, index)}
+        onButtonPress={handleTokenButtonPress(item, index)}
+        testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}
+        privacyMode={privacyMode}
+      />
+    ),
+    [
+      isNoFeeToken,
+      apyDecimalForProjection,
+      handleTokenCardPress,
+      handleTokenButtonPress,
+      privacyMode,
+    ],
+  );
+
   return (
     <Box
       style={[styles.safeArea, { paddingTop: insets.top }]}
@@ -208,78 +290,16 @@ const MoneyPotentialEarningsView = () => {
           testID={MoneyPotentialEarningsViewTestIds.INFO_BUTTON}
         />
       </Box>
-      <ScrollView
-        testID={MoneyPotentialEarningsViewTestIds.SCROLL_VIEW}
-        showsVerticalScrollIndicator={false}
-      >
-        <Box twClassName="px-4 py-3 gap-3">
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('money.potential_earnings.title')}
-          </Text>
-
-          {isPositiveNumber(projectedAmount) &&
-          isPositiveNumber(totalAssetsFiat) ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Regular}
-              color={TextColor.TextAlternative}
-              testID={MoneyPotentialEarningsViewTestIds.DESCRIPTION}
-            >
-              {`${strings(
-                'money.potential_earnings.description_with_amounts_prefix',
-              )} `}
-              <SensitiveText
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextAlternative}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                testID={MoneyPotentialEarningsViewTestIds.TOTAL}
-              >
-                {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
-              </SensitiveText>
-              {` ${strings(
-                'money.potential_earnings.description_with_amounts_middle',
-              )} `}
-              <SensitiveText
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-                testID={MoneyPotentialEarningsViewTestIds.PROJECTED}
-              >
-                {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
-              </SensitiveText>
-              {` ${strings(
-                'money.potential_earnings.description_with_amounts_suffix',
-              )}`}
-            </Text>
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Regular}
-              color={TextColor.TextAlternative}
-              testID={MoneyPotentialEarningsViewTestIds.DESCRIPTION}
-            >
-              {strings('money.potential_earnings.description')}
-            </Text>
-          )}
-        </Box>
-
-        {eligibleTokens.map((token, index) => (
-          <PotentialEarningsTokenRow
-            key={`${token.address}-${token.chainId}`}
-            token={token}
-            hasSubsidizedFee={isNoFeeToken(token)}
-            apyDecimal={apyDecimalForProjection}
-            onCardPress={handleTokenCardPress(token, index)}
-            onButtonPress={handleTokenButtonPress(token, index)}
-            testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}
-            privacyMode={privacyMode}
-          />
-        ))}
-      </ScrollView>
+      <Box twClassName="flex-1">
+        <FlashList
+          testID={MoneyPotentialEarningsViewTestIds.SCROLL_VIEW}
+          data={eligibleTokens}
+          renderItem={renderTokenRow}
+          keyExtractor={(token) => `${token.address}-${token.chainId}`}
+          ListHeaderComponent={listHeader}
+          showsVerticalScrollIndicator={false}
+        />
+      </Box>
       <Box
         twClassName="px-4 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}

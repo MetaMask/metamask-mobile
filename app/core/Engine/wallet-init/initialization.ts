@@ -4,15 +4,27 @@ import { getApprovalControllerInstanceOptions } from './instance-options/approva
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
+import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
+import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
 import {
   getNetworkControllerInstanceOptions,
   setupRpcEndpointMetrics,
 } from './instance-options/network-controller';
+import {
+  getTransactionControllerInstanceOptions,
+  setupTransactionControllerListeners,
+} from './instance-options/transaction-controller';
+import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
  * client-specific options live in its own builder under `./instance-options/`.
+ *
+ * @param request - The wallet initialization request.
+ * @param request.messenger - The root messenger.
+ * @param request.state - The persisted controller state.
+ * @returns The constructed `Wallet`.
  */
 export function initializeWallet({
   messenger,
@@ -21,12 +33,21 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
-  const wallet = new Wallet({
-    messenger,
+  const transactionControllerInitMessenger =
+    getTransactionControllerInitMessenger(messenger);
+
+  const wallet: Wallet = new Wallet({
+    // Mobile's root messenger carries a superset action/event union (all app
+    // controllers) vs. the wallet's narrower DefaultActions/DefaultEvents.
+    // `Messenger` isn't covariant in those params, so the superset messenger
+    // isn't assignable to the wallet's type despite being the same runtime
+    // 'Root' bus that already carries everything Wallet needs.
+    messenger: messenger as NonNullable<WalletOptions['messenger']>,
     state,
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),
+      gasFeeController: getGasFeeControllerInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger),
       networkController: getNetworkControllerInstanceOptions(),
       remoteFeatureFlagController:
@@ -34,13 +55,21 @@ export function initializeWallet({
           messenger,
           state,
         }),
+      seedlessOnboardingController:
+        getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
+      transactionController: getTransactionControllerInstanceOptions({
+        initMessenger: transactionControllerInitMessenger,
+      }),
     },
   });
 
   setupRpcEndpointMetrics(messenger);
+  setupTransactionControllerListeners({
+    messenger: transactionControllerInitMessenger,
+  });
 
-  wallet.init().catch((error) => console.error(error));
+  wallet.init().catch((error: unknown) => console.error(error));
 
   return wallet;
 }

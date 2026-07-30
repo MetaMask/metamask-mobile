@@ -313,6 +313,9 @@ function extractTagsFromSpecFile(
   }
 }
 
+/** English locale file consumed by UI copy and by E2E text/label selectors (enContent). */
+const EN_LOCALE_FILE = 'locales/languages/en.json';
+
 const HARD_RULES: HardRule[] = [
   {
     name: 'controller-version-update',
@@ -342,6 +345,23 @@ const HARD_RULES: HardRule[] = [
 
       const reason = `@metamask controller package version updated in package.json: ${updatedControllers.join(', ')}`;
       return makeConservativeResult('controller-version-update', reason);
+    },
+  },
+  {
+    name: 'en-locale-change',
+    description:
+      'Changes to locales/languages/en.json — copy feeds UI and E2E text/label selectors; not cosmetic',
+    check: (changedFiles) => {
+      const localeChanged = changedFiles.some(
+        (file) =>
+          file.replace(/\\/g, '/').replace(/^\.\//, '') === EN_LOCALE_FILE,
+      );
+      if (!localeChanged) return null;
+
+      return makeConservativeResult(
+        'en-locale-change',
+        `${EN_LOCALE_FILE} changed — UI strings and E2E text/label selectors may diverge (including platform casing like Android textAllCaps)`,
+      );
     },
   },
   {

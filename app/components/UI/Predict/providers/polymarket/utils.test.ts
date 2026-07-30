@@ -3,7 +3,13 @@ import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { Side, type OrderPreview, type PredictOutcome } from '../../types';
+import {
+  Side,
+  type OrderPreview,
+  type PredictMarket,
+  type PredictOutcome,
+  type PredictSportsLeague,
+} from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
@@ -15,6 +21,7 @@ import {
 import {
   buildMarketListQueryParams,
   calculateConservativeBuyMarketFee,
+  calculateConservativeSellMarketFee,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
   createApiKey,
@@ -234,6 +241,95 @@ describe('polymarket utils', () => {
     ended: false,
   });
 
+  const createEsportsTeam = (
+    abbreviation: string,
+    name: string,
+    league: string,
+  ): PolymarketApiTeam => ({
+    id: `team-${abbreviation}`,
+    name,
+    logo: `${abbreviation}.png`,
+    abbreviation,
+    color: 'red',
+    alias: name,
+    league,
+  });
+
+  const createEsportsGameEvent = ({
+    league,
+    slug,
+    tagSlug,
+    seriesSlug,
+    teams,
+    markets,
+  }: {
+    league: PredictSportsLeague;
+    slug: string;
+    tagSlug: string;
+    seriesSlug: string;
+    teams: [PolymarketApiTeam, PolymarketApiTeam];
+    markets: PolymarketApiEvent['markets'];
+  }): PolymarketApiEvent => ({
+    id: `${league}-game-event`,
+    slug,
+    title: `${teams[0].name} vs ${teams[1].name}`,
+    description: `${league} game`,
+    icon: 'icon.png',
+    closed: false,
+    active: true,
+    series: [
+      {
+        id: `${league}-series`,
+        slug: seriesSlug,
+        title: seriesSlug,
+        recurrence: 'daily',
+      },
+    ],
+    markets,
+    tags: [
+      { id: 'games', label: 'Games', slug: 'games' },
+      { id: league, label: league, slug: tagSlug },
+    ],
+    teams,
+    liquidity: 100,
+    volume: 100,
+    gameId: `${league}-game-1`,
+    startTime: '2026-07-28T20:00:00.000Z',
+    live: false,
+    ended: false,
+    score: '000-000|0-0|Bo3',
+    period: '0/3',
+  });
+
+  const createEsportsMarket = ({
+    id,
+    sportsMarketType,
+    question,
+    line,
+  }: {
+    id: string;
+    sportsMarketType: string;
+    question: string;
+    line?: number;
+  }): PolymarketApiEvent['markets'][number] =>
+    createSportsMarket({
+      id,
+      sportsMarketType,
+      overrides: {
+        question,
+        groupItemTitle: question,
+        ...(line !== undefined && { line }),
+      },
+    });
+
+  const getGroupedOutcomeIds = (market: PredictMarket): string[] =>
+    market.outcomeGroups?.flatMap((group) => [
+      ...group.outcomes.map((outcome) => outcome.id),
+      ...(group.subgroups?.flatMap((subgroup) =>
+        subgroup.outcomes.map((outcome) => outcome.id),
+      ) ?? []),
+    ]) ?? [];
+
   it('parses activity with deterministic ids when transaction hash is missing', () => {
     const rawActivity = createRawActivity({
       transactionHash: undefined as unknown as string,
@@ -378,6 +474,201 @@ describe('polymarket utils', () => {
         ],
       }),
     ]);
+  });
+
+  it('parses every supported CS2 market into one match with map groups', () => {
+    const homeTeam = createEsportsTeam('g1', 'GenOne', 'csgo');
+    const awayTeam = createEsportsTeam('newvis', 'NEW VISION', 'csgo');
+    const markets = [
+      createEsportsMarket({
+        id: 'map-2-rounds',
+        sportsMarketType: 'cs2_odd_even_total_rounds',
+        question: 'Map 2: Odd/Even Total Rounds?',
+      }),
+      createEsportsMarket({
+        id: 'match-winner',
+        sportsMarketType: 'moneyline',
+        question: 'Counter-Strike: GenOne vs NEW VISION (BO3)',
+      }),
+      createEsportsMarket({
+        id: 'series-total',
+        sportsMarketType: 'totals',
+        question: 'Games Total: O/U 2.5',
+        line: 2.5,
+      }),
+      createEsportsMarket({
+        id: 'series-handicap',
+        sportsMarketType: 'map_handicap',
+        question: 'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
+        line: -1.5,
+      }),
+      ...[1, 2, 3, 7].flatMap((map) => [
+        createEsportsMarket({
+          id: `map-${map}-winner`,
+          sportsMarketType: 'child_moneyline',
+          question: `Counter-Strike: GenOne vs NEW VISION - Map ${map} Winner`,
+        }),
+        createEsportsMarket({
+          id: `map-${map}-handicap`,
+          sportsMarketType: `round_handicap_game_${map}`,
+          question: `Map ${map} Rounds Handicap: GenOne (-3.5) vs NEW VISION (+3.5)`,
+          line: -3.5,
+        }),
+        createEsportsMarket({
+          id: `map-${map}-total`,
+          sportsMarketType: `round_over_under_game_${map}`,
+          question: `Map ${map} Total Rounds: Over/Under 21.5`,
+          line: 21.5,
+        }),
+      ]),
+      createEsportsMarket({
+        id: 'map-1-kills',
+        sportsMarketType: 'cs2_odd_even_total_kills',
+        question: 'Map 1: Odd/Even Total Kills?',
+      }),
+    ];
+    const event = createEsportsGameEvent({
+      league: 'cs2',
+      slug: 'cs2-g1-newvis-2026-07-28',
+      tagSlug: 'counter-strike-2',
+      seriesSlug: 'counter-strike',
+      teams: [homeTeam, awayTeam],
+      markets,
+    });
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'sports',
+      teamLookup: () => undefined,
+      extendedSportsMarketsLeagues: ['cs2'],
+    });
+
+    expect(market.game).toMatchObject({
+      league: 'cs2',
+      homeTeam: { abbreviation: 'g1' },
+      awayTeam: { abbreviation: 'newvis' },
+    });
+    expect(market.outcomes).toHaveLength(markets.length);
+    expect(market.outcomes[0].sportsMarketType).toBe('moneyline');
+    expect(market.outcomeGroups?.map((group) => group.key)).toEqual([
+      'game_lines',
+      'map_1',
+      'map_2',
+      'map_3',
+      'map_7',
+    ]);
+    expect(new Set(getGroupedOutcomeIds(market))).toEqual(
+      new Set(markets.map((item) => item.conditionId)),
+    );
+  });
+
+  it('parses every supported LoL market into one match with game groups', () => {
+    const homeTeam = createEsportsTeam('bar', 'Barça eSports', 'lol');
+    const awayTeam = createEsportsTeam('gxp', 'GIANTX Pride', 'lol');
+    const markets = [
+      createEsportsMarket({
+        id: 'game-2-inhibitors',
+        sportsMarketType: 'lol_both_teams_inhibitors',
+        question: 'Game 2: Both Teams Destroy Inhibitors?',
+      }),
+      createEsportsMarket({
+        id: 'match-winner',
+        sportsMarketType: 'moneyline',
+        question: 'LoL: Barça eSports vs GIANTX Pride (BO3)',
+      }),
+      createEsportsMarket({
+        id: 'series-total',
+        sportsMarketType: 'totals',
+        question: 'Games Total: O/U 2.5',
+        line: 2.5,
+      }),
+      createEsportsMarket({
+        id: 'series-handicap',
+        sportsMarketType: 'map_handicap',
+        question: 'Game Handicap: Barça eSports (-1.5) vs GIANTX Pride (+1.5)',
+        line: -1.5,
+      }),
+      ...[1, 2, 3, 7].map((game) =>
+        createEsportsMarket({
+          id: `game-${game}-winner`,
+          sportsMarketType: 'child_moneyline',
+          question: `LoL: Barça eSports vs GIANTX Pride - Game ${game} Winner`,
+        }),
+      ),
+      createEsportsMarket({
+        id: 'game-1-first-blood',
+        sportsMarketType: 'first_blood_game',
+        question: 'First Blood in Game 1?',
+      }),
+      createEsportsMarket({
+        id: 'game-2-kills',
+        sportsMarketType: 'kill_over_under_game',
+        question: 'Total Kills Over/Under 30.5 in Game 2?',
+        line: 30.5,
+      }),
+      createEsportsMarket({
+        id: 'game-1-baron',
+        sportsMarketType: 'lol_both_teams_baron',
+        question: 'Game 1: Both Teams Slay Baron Nashor?',
+      }),
+      createEsportsMarket({
+        id: 'game-2-dragon',
+        sportsMarketType: 'lol_both_teams_dragon',
+        question: 'Game 2: Both Teams Slay a Dragon?',
+      }),
+      createEsportsMarket({
+        id: 'game-3-kills-odd-even',
+        sportsMarketType: 'lol_odd_even_total_kills',
+        question: 'Game 3: Odd/Even Total Kills?',
+      }),
+      createEsportsMarket({
+        id: 'game-1-penta',
+        sportsMarketType: 'lol_penta_kill',
+        question: 'Game 1: Any Player Penta Kill?',
+      }),
+      createEsportsMarket({
+        id: 'game-2-quadra',
+        sportsMarketType: 'lol_quadra_kill',
+        question: 'Game 2: Any Player Quadra Kill?',
+      }),
+      createEsportsMarket({
+        id: 'series-map-wins',
+        sportsMarketType: 'map_participant_win_total',
+        question: 'Will Barça eSports win at least 2 maps?',
+        line: 1.5,
+      }),
+    ];
+    const event = createEsportsGameEvent({
+      league: 'lol',
+      slug: 'lol-bar-gxp-2026-07-28',
+      tagSlug: 'league-of-legends',
+      seriesSlug: 'league-of-legends',
+      teams: [homeTeam, awayTeam],
+      markets,
+    });
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'sports',
+      teamLookup: () => undefined,
+      extendedSportsMarketsLeagues: ['lol'],
+    });
+
+    expect(market.game).toMatchObject({
+      league: 'lol',
+      homeTeam: { abbreviation: 'bar' },
+      awayTeam: { abbreviation: 'gxp' },
+    });
+    expect(market.outcomes).toHaveLength(markets.length);
+    expect(market.outcomes[0].sportsMarketType).toBe('moneyline');
+    expect(market.outcomeGroups?.map((group) => group.key)).toEqual([
+      'game_lines',
+      'game_1',
+      'game_2',
+      'game_3',
+      'game_7',
+    ]);
+    expect(new Set(getGroupedOutcomeIds(market))).toEqual(
+      new Set(markets.map((item) => item.conditionId)),
+    );
   });
 
   it('builds player goal subgroups per player', () => {
@@ -1758,6 +2049,43 @@ describe('polymarket utils', () => {
         normalizeRelatedTagsToFilterOptions([], { source: 'hot-tags' }),
       ).toEqual([]);
     });
+
+    it('skips tags with activeEventsCount of 0 (empty chips like "Other")', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Other', slug: 'other', activeEventsCount: 0 },
+          { id: '2', label: 'NBA', slug: 'nba', activeEventsCount: 4 },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba']);
+    });
+
+    it('keeps tags with a missing activeEventsCount (fail-open)', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NFL', slug: 'nfl', activeEventsCount: 2 },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
+
+    it('does not let empty tags consume a limit slot', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Other', slug: 'other', activeEventsCount: 0 },
+          { id: '2', label: 'NBA', slug: 'nba', activeEventsCount: 4 },
+          { id: '3', label: 'NFL', slug: 'nfl', activeEventsCount: 3 },
+        ],
+        { source: 'hot-tags', limit: 2 },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
   });
 
   it('searches events via public-search endpoint', async () => {
@@ -2207,6 +2535,30 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('calculateConservativeSellMarketFee', () => {
+    it('uses the maximum fee in the sell slippage interval', () => {
+      const preview: OrderPreview = {
+        ...buyPreview,
+        side: Side.SELL,
+        maxAmountSpent: 20,
+        minAmountReceived: 12,
+        slippage: 0.5,
+      };
+
+      const fee = calculateConservativeSellMarketFee({
+        preview,
+        marketInfo: {
+          fd: {
+            r: 0.05,
+            e: 1,
+          },
+        },
+      });
+
+      expect(fee).toBe(0.25);
+    });
+  });
+
   it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -2369,11 +2721,22 @@ describe('polymarket utils', () => {
     );
   });
 
-  it('does not fetch CLOB market info for sell previews', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue(orderBook),
-    });
+  it('previews sell orders with the CLOB market fee', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.05,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
 
     const preview = await previewOrder({
       marketId: 'market-1',
@@ -2390,12 +2753,20 @@ describe('polymarket utils', () => {
         outcomeTokenId: 'token-1',
         feeRateBps: '0',
         side: Side.SELL,
+        fees: expect.objectContaining({
+          marketFee: 0.12495,
+        }),
       }),
     );
-    expect(preview.fees).toBeDefined();
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,
+      { method: 'GET' },
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       { method: 'GET' },
     );
   });
@@ -2511,6 +2882,58 @@ describe('polymarket utils', () => {
 
     expect(parsedMarket.outcomes[0].groupItemTitle).toBe('Knicks 3.5');
   });
+
+  it.each(['map_handicap', 'round_handicap_game_2'])(
+    'keeps the handicap sign in %s titles',
+    (sportsMarketType) => {
+      const handicapMarket = {
+        conditionId: 'handicap-condition',
+        question: 'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
+        description: 'Handicap market',
+        icon: 'icon.png',
+        image: 'image.png',
+        groupItemTitle: 'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
+        sportsMarketType,
+        status: 'open',
+        volumeNum: 100,
+        liquidity: 100,
+        negRisk: false,
+        clobTokenIds: '["token-g1","token-newvis"]',
+        outcomes: '["GenOne","NEW VISION"]',
+        outcomePrices: '["0.5","0.5"]',
+        closed: false,
+        active: true,
+        acceptingOrders: true,
+        resolvedBy: '',
+        orderPriceMinTickSize: 0.01,
+        umaResolutionStatus: '',
+        line: -1.5,
+      } as unknown as PolymarketApiEvent['markets'][number];
+      const event: PolymarketApiEvent = {
+        id: 'handicap-event',
+        slug: 'cs2-g1-newvis-2026-07-28',
+        title: 'GenOne vs. NEW VISION',
+        description: 'Game description',
+        icon: 'icon.png',
+        closed: false,
+        active: true,
+        series: [],
+        markets: [handicapMarket],
+        tags: [],
+        liquidity: 100,
+        volume: 100,
+      };
+
+      const [parsedMarket] = parsePolymarketEvents([event], 'sports');
+
+      expect(parsedMarket.outcomes[0].groupItemTitle).toBe(
+        'Map Handicap: GenOne (-1.5) vs NEW VISION (+1.5)',
+      );
+      expect(
+        parsedMarket.outcomes[0].tokens.map((token) => token.title),
+      ).toEqual(['GenOne -1.5', 'NEW VISION +1.5']);
+    },
+  );
 
   it('parses crypto up/down price to beat from event metadata', () => {
     const event: PolymarketApiEvent = {

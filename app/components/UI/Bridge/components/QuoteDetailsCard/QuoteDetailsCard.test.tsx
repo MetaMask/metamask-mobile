@@ -6,7 +6,7 @@ import QuoteDetailsCard from './QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from './QuoteDetailsCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
+import mockQuotes from '../../_mocks_/mock-quotes-sol-sol';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';

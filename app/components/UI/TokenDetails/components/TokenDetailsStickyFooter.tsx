@@ -9,6 +9,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import { useTokenChartPreferences } from '../../AssetOverview/Price/hooks/useTok
 import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
+import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -27,7 +29,6 @@ import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
-import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -87,8 +88,6 @@ interface TokenStickyFooterProps {
   quickBuyTestID?: string;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
-  /** When true, use success (green) accent; when false, use error (red) accent. Null means not yet resolved. */
-  isPricePositive?: boolean | null;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
 }
@@ -108,21 +107,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onQuickBuyPress,
   quickBuyTestID,
   sourcePage,
-  isPricePositive = null,
   useAmbientColor = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
   const { indicators: indicatorsActive } = useTokenChartPreferences();
 
-  const useErrorAccent = useAmbientColor && isPricePositive === false;
+  const geolocation = useSelector(getDetectedGeolocation);
+  const useErrorAccent =
+    useAmbientColor && isAsiaGeolocationLocation(geolocation);
 
-  const getSuccessClass = (prefix: string, defaultClass: string) => {
+  const getAccentClass = (prefix: string, defaultClass: string) => {
     if (useErrorAccent) {
-      return `${prefix}-[${AMBIENT_NEGATIVE_COLOR}]`;
+      return `${prefix}-error-default`;
     }
     if (isLightMode) {
       return `${prefix}-[${LIGHT_MODE_SUCCESS_GREEN}]`;
@@ -130,12 +130,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     return defaultClass;
   };
 
-  const successBg = getSuccessClass('bg', 'bg-success-default');
-  const successBorder = getSuccessClass('border', 'border-success-default');
-  const successText = getSuccessClass('text', 'text-success-default');
+  const successBg = getAccentClass('bg', 'bg-success-default');
+  const successBorder = getAccentClass('border', 'border-success-default');
+  const successText = getAccentClass('text', 'text-success-default');
 
   const successColorHex = useErrorAccent
-    ? AMBIENT_NEGATIVE_COLOR
+    ? colors.error.default
     : isLightMode
       ? LIGHT_MODE_SUCCESS_GREEN
       : colors.success.default;
@@ -160,7 +160,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
 
-  const geolocation = useSelector(getDetectedGeolocation);
   const isRwaGeoRestricted = useMemo(() => {
     if (!isStockToken(token as BridgeToken)) return false;
     if (__DEV__) return false;

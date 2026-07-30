@@ -1,11 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-  type OrderParams,
-  type Position,
-} from '@metamask/perps-controller';
+import { type OrderParams, type Position } from '@metamask/perps-controller';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
 import {
@@ -18,10 +12,6 @@ import {
   PERPS_CUF_STREAM_TIMEOUT_MS,
 } from '../constants/perpsCufTags';
 import { endTrace, TraceName } from '../../../../util/trace';
-import {
-  PERPS_EVENT_PROPERTY as PERPS_CHART_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE as PERPS_CHART_EVENT_VALUE,
-} from '@metamask/perps-controller/constants';
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../util/trace', () => {
@@ -48,10 +38,6 @@ jest.mock('../providers/PerpsStreamManager', () => ({
       getLastDeliveredAt: mockOrdersLastDeliveredAt,
     },
   }),
-}));
-const mockTrack = jest.fn();
-jest.mock('./usePerpsEventTracking', () => ({
-  usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 jest.mock('./usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
@@ -81,7 +67,6 @@ describe('usePerpsOrderExecution', () => {
     // Clear the CUF singleton's pending map/place-order state so armed ops from
     // one test can't leak into the next (these tests drive the real module).
     resetPerpsCufTraceForTests();
-    mockTrack.mockClear();
     mockEndTrace.mockClear();
     mockGetPositionsSnapshot.mockReturnValue([]); // Loaded, no positions by default
     mockGetOrdersSnapshot.mockReturnValue([]); // Loaded, no orders by default
@@ -328,6 +313,15 @@ describe('usePerpsOrderExecution', () => {
           handlePerpsCufOrdersDelivered([{ orderId: 'lim1' }]);
         });
 
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
         // Flush the scheduled fallback so no timer leaks past the test.
         act(() => {
           jest.runOnlyPendingTimers();
@@ -554,7 +548,7 @@ describe('usePerpsOrderExecution', () => {
       });
     });
 
-    it('tracks partially filled event with trackingData when filledSize is between 0 and order size', async () => {
+    it('forwards trackingData to controller on partial fill without client trade analytics', async () => {
       const onSuccess = jest.fn();
       const paramsWithTracking: OrderParams = {
         ...mockOrderParams,
@@ -565,9 +559,6 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
-          chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -585,55 +576,8 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]:
-            PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
-          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
-            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
-          [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
-        }),
-      );
-    });
-
-    it('tracks success with mm_pay_token_selected Perps Balance when trackingData has tradeWithToken false', async () => {
-      const onSuccess = jest.fn();
-      const paramsWithPerpsBalance: OrderParams = {
-        ...mockOrderParams,
-        size: '0.2',
-        trackingData: {
-          totalFee: 0,
-          marketPrice: 50000,
-          tradeWithToken: false,
-        },
-      };
-
-      mockPlaceOrderSuccessWithRender({ filledSize: '0.1' });
-
-      const { result } = renderHook(() =>
-        usePerpsOrderExecution({ onSuccess, onError: jest.fn() }),
-      );
-
-      await act(async () => {
-        await result.current.placeOrder(paramsWithPerpsBalance);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isPlacing).toBe(false);
-      });
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: false,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]:
-            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
-        }),
-      );
+      expect(onSuccess).toHaveBeenCalledWith(mockPosition);
+      expect(mockPlaceOrder).toHaveBeenCalledWith(paramsWithTracking);
     });
   });
 
@@ -694,7 +638,7 @@ describe('usePerpsOrderExecution', () => {
       );
     });
 
-    it('tracks failed order with trade_with_token and mm_pay fields when trackingData is set', async () => {
+    it('forwards trackingData to controller on failed order without client trade analytics', async () => {
       const onError = jest.fn();
       const paramsWithTracking: OrderParams = {
         ...mockOrderParams,
@@ -704,9 +648,6 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
-          chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -725,55 +666,8 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
-          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
-            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
-          [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
-        }),
-      );
-    });
-
-    it('tracks failed order with mm_pay_token_selected Perps Balance when trackingData has tradeWithToken false', async () => {
-      const onError = jest.fn();
-      const paramsWithPerpsBalance: OrderParams = {
-        ...mockOrderParams,
-        trackingData: {
-          totalFee: 0,
-          marketPrice: 50000,
-          tradeWithToken: false,
-        },
-      };
-
-      mockPlaceOrder.mockResolvedValue({
-        success: false,
-        error: 'Insufficient margin',
-      });
-
-      const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
-
-      await act(async () => {
-        await result.current.placeOrder(paramsWithPerpsBalance);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isPlacing).toBe(false);
-      });
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: false,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]:
-            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
-        }),
-      );
+      expect(onError).toHaveBeenCalledWith('Insufficient margin');
+      expect(mockPlaceOrder).toHaveBeenCalledWith(paramsWithTracking);
     });
 
     it('calls onError with unknown error when order returns success false without error', async () => {
@@ -816,7 +710,7 @@ describe('usePerpsOrderExecution', () => {
       expect(result.current.error).toBe('Network timeout');
     });
 
-    it('tracks exception with trade_with_token and mm_pay fields when placeOrder rejects and trackingData is set', async () => {
+    it('forwards trackingData to controller when placeOrder rejects without client trade analytics', async () => {
       const onError = jest.fn();
       const paramsWithTracking: OrderParams = {
         ...mockOrderParams,
@@ -826,9 +720,6 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
-          chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -844,52 +735,8 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
-          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
-            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
-          [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
-        }),
-      );
-    });
-
-    it('tracks exception with mm_pay_token_selected Perps Balance when placeOrder rejects and trackingData has tradeWithToken false', async () => {
-      const onError = jest.fn();
-      const paramsWithPerpsBalance: OrderParams = {
-        ...mockOrderParams,
-        trackingData: {
-          totalFee: 0,
-          marketPrice: 50000,
-          tradeWithToken: false,
-        },
-      };
-
-      mockPlaceOrder.mockRejectedValue(new Error('Network timeout'));
-
-      const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
-
-      await act(async () => {
-        await result.current.placeOrder(paramsWithPerpsBalance);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isPlacing).toBe(false);
-      });
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_TRADE_TRANSACTION,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
-          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: false,
-          [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]:
-            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
-        }),
-      );
+      expect(onError).toHaveBeenCalledWith('Network timeout');
+      expect(mockPlaceOrder).toHaveBeenCalledWith(paramsWithTracking);
     });
   });
 

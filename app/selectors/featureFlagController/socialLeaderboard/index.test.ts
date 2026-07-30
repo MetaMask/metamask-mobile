@@ -1,7 +1,9 @@
 import {
+  selectAiSocialAusCacheRefreshEnabled,
   selectAiSocialLeaderboardOnboardingEnabled,
   selectSocialAIQuickBuyStreamQuotesEnabled,
   selectSocialLeaderboardEnabled,
+  selectSocialLeaderboardOptFlowEnabled,
   selectSocialLeaderboardPerpsEnabled,
 } from '.';
 // eslint-disable-next-line import-x/no-namespace
@@ -61,6 +63,74 @@ describe('selectSocialLeaderboardEnabled', () => {
   it('returns false when remote flag has an invalid shape', () => {
     const result = selectSocialLeaderboardEnabled.resultFunc({
       aiSocialLeaderboardEnabled: { enabled: 'invalid', minimumVersion: 123 },
+    });
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectSocialLeaderboardOptFlowEnabled', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    const result = selectSocialLeaderboardOptFlowEnabled.resultFunc({
+      aiSocialLeaderboardOptFlowEnabled: {
+        enabled: true,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    const result = selectSocialLeaderboardOptFlowEnabled.resultFunc({
+      aiSocialLeaderboardOptFlowEnabled: {
+        enabled: false,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    const result = selectSocialLeaderboardOptFlowEnabled.resultFunc({
+      aiSocialLeaderboardOptFlowEnabled: {
+        enabled: true,
+        minimumVersion: '99.0.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag is absent', () => {
+    const result = selectSocialLeaderboardOptFlowEnabled.resultFunc({});
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag has an invalid shape', () => {
+    const result = selectSocialLeaderboardOptFlowEnabled.resultFunc({
+      aiSocialLeaderboardOptFlowEnabled: {
+        enabled: 'invalid',
+        minimumVersion: 123,
+      },
     });
 
     expect(result).toBe(false);
@@ -266,6 +336,63 @@ describe('selectSocialAIQuickBuyStreamQuotesEnabled', () => {
         minimumVersion: 123,
       },
     });
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectAiSocialAusCacheRefreshEnabled', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    const result = selectAiSocialAusCacheRefreshEnabled.resultFunc({
+      aiSocialAusCacheRefreshEnabled: {
+        enabled: true,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    const result = selectAiSocialAusCacheRefreshEnabled.resultFunc({
+      aiSocialAusCacheRefreshEnabled: {
+        enabled: false,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    const result = selectAiSocialAusCacheRefreshEnabled.resultFunc({
+      aiSocialAusCacheRefreshEnabled: {
+        enabled: true,
+        minimumVersion: '99.0.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag is absent', () => {
+    const result = selectAiSocialAusCacheRefreshEnabled.resultFunc({});
 
     expect(result).toBe(false);
   });

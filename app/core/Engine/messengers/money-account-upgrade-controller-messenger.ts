@@ -39,6 +39,7 @@ export function getMoneyAccountUpgradeControllerMessenger(
       'ChompApiService:associateAddress',
       'ChompApiService:createIntents',
       'ChompApiService:createUpgrade',
+      'ChompApiService:getAssociatedAddresses',
       'ChompApiService:getIntentsByAddress',
       'ChompApiService:getServiceDetails',
       'ChompApiService:verifyDelegation',
