@@ -163,7 +163,6 @@ jobs:
 
       - name: Diagnose - expo export in isolation
         env:
-          SKIP_TRANSFORM_LINT: 'true'
           NODE_OPTIONS: '--max_old_space_size=8192'
           EXPO_DEBUG: '1'
         run: |
@@ -181,7 +180,6 @@ jobs:
 
       - name: Build & Push EAS Update via build.sh
         env:
-          SKIP_TRANSFORM_LINT: 'true'
           NODE_OPTIONS: '--max_old_space_size=8192'
           # Verbose Expo/EAS logging so a stalled asset upload shows where it hangs.
           EXPO_DEBUG: '1'

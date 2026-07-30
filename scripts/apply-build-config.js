@@ -3,7 +3,7 @@
  * Loads build configuration from builds.yml and exports non-secret env vars.
  * Runs at workflow runtime (during the "Apply build config" step).
  *
- * Exports: env, code_fencing. Does NOT handle secrets
+ * Exports: env. Does NOT handle secrets
  * (those are injected by the "Set secrets" step via set-secrets-from-config.js,
  * which reads all secrets via toJSON(secrets) — no explicit per-secret list needed).
  *
@@ -45,11 +45,6 @@ function applyConfig(buildName) {
     });
   }
 
-  // Set code fencing features
-  if (config.code_fencing) {
-    process.env.CODE_FENCING_FEATURES = JSON.stringify(config.code_fencing);
-  }
-
   return config;
 }
 
@@ -62,12 +57,6 @@ function exportForShell(buildName) {
     Object.entries(config.env).forEach(([key, value]) => {
       lines.push(`export ${key}="${String(value)}"`);
     });
-  }
-
-  if (config.code_fencing) {
-    lines.push(
-      `export CODE_FENCING_FEATURES='${JSON.stringify(config.code_fencing)}'`,
-    );
   }
 
   return lines.join('\n');
@@ -98,10 +87,6 @@ function exportForGitHubEnv(buildName) {
     Object.entries(config.env).forEach(([key, value]) => {
       appendVar(key, value);
     });
-  }
-
-  if (config.code_fencing) {
-    appendVar('CODE_FENCING_FEATURES', JSON.stringify(config.code_fencing));
   }
 
   return lines.join('\n');
@@ -148,10 +133,6 @@ function writeBuildEnvJson(buildName) {
         buildEnv.env[key] = String(config.env[key]);
       }
     });
-  }
-
-  if (config.code_fencing) {
-    buildEnv.codeFencing = config.code_fencing;
   }
 
   fs.writeFileSync(BUILD_ENV_PATH, JSON.stringify(buildEnv, null, 2));

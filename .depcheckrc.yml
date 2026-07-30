@@ -51,6 +51,10 @@ ignores:
   # transitively via @expo/metro-config + Metro, so we don't declare it as a
   # direct dependency.
   - 'babel-preset-expo'
+  # Reached through `react-native-svg-transformer/expo` (see metro.config.js),
+  # which delegates non-SVG files to @expo/metro-config/babel-transformer.
+  # Nothing imports it by name since metro.transform.js was removed.
+  - '@expo/metro-config'
 
   # tsconfig path alias pointing to app/controllers/perps (not an npm package)
   - '@metamask/perps-controller'

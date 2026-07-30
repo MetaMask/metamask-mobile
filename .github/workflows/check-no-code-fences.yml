@@ -1,0 +1,30 @@
+name: Check No Code Fences
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-no-code-fences:
+    name: Verify no code-fence markers were reintroduced
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Invoked directly rather than through `yarn test:no-code-fences`: the
+      # checker only needs `git` and `grep`, so it can skip the Node/Yarn setup
+      # and install that Yarn 4 would otherwise require to run a script.
+      - name: Check for ONLY_INCLUDE_IF code-fence markers
+        run: ./scripts/check-no-code-fences.sh
