@@ -43,9 +43,9 @@ function getEligibleStatusDescription(
   switch (todayStatus) {
     case 'on_track':
       return `${base} ${localizedText.onTrackDescription}`;
-    case 'lost_today':
-      return `${base} ${localizedText.lostTodayDescription}`;
     case 'below_threshold':
+      // Covers both "never reached threshold" and "dipped below" — the API
+      // collapses those cases because both are unrecoverable for today.
       return `${base} ${localizedText.belowThresholdDescription}`;
     default:
       return base;
@@ -78,8 +78,7 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
     : '—';
 
   const todayStatus = stats?.todayStatus;
-  const isWarningStatus =
-    todayStatus === 'lost_today' || todayStatus === 'below_threshold';
+  const isWarningStatus = todayStatus === 'below_threshold';
   const eligibleValueColor = isWarningStatus
     ? TextColor.WarningDefault
     : TextColor.TextDefault;

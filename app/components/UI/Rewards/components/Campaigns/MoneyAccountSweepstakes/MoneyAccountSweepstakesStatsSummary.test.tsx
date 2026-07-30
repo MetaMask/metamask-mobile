@@ -99,7 +99,7 @@ const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
   lostTodayDescription:
     "You lost today's entry because your balance dipped below $100 today.",
   belowThresholdDescription:
-    "Maintain a balance of $100 or more in your Money Account to earn todays' entry.",
+    "Maintain a balance of $100 or more in your Money Account to earn tomorrow's entry.",
 };
 
 const stats: MoneyAccountSweepstakesStatsMeDto = {
@@ -165,10 +165,10 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     ).toBe('Check');
   });
 
-  it('shows Danger icon when todayStatus is lost_today', () => {
+  it('shows Danger icon when todayStatus is below_threshold', () => {
     const { getByTestId } = render(
       <MoneyAccountSweepstakesStatsSummary
-        stats={{ ...stats, todayStatus: 'lost_today' }}
+        stats={{ ...stats, todayStatus: 'below_threshold' }}
         localizedText={localizedText}
         isLoading={false}
       />,
@@ -262,10 +262,10 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
     );
   });
 
-  it('opens eligible balance info with lost_today status description', () => {
+  it('opens eligible balance info with below_threshold status description', () => {
     const { getAllByTestId } = render(
       <MoneyAccountSweepstakesStatsSummary
-        stats={{ ...stats, todayStatus: 'lost_today' }}
+        stats={{ ...stats, todayStatus: 'below_threshold' }}
         localizedText={localizedText}
         isLoading={false}
       />,
@@ -278,7 +278,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
       {
         title: 'Eligible balance',
         description:
-          "Eligible balance description You lost today's entry because your balance dipped below $100 today.",
+          "Eligible balance description Maintain a balance of $100 or more in your Money Account to earn tomorrow's entry.",
       },
     );
   });
