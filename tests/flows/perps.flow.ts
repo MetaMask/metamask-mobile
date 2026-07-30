@@ -291,6 +291,9 @@ export const openPosition = async (
   direction: PerpsPositionDirection,
 ): Promise<void> => {
   await navigateToPerpsOrderEntry(symbol, direction);
+  // Wait for order screen + fees row before tap
+  await waitForOrderScreenVisible();
+  await PerpsOrderView.waitForFeesReady();
   await PerpsOrderView.tapPlaceOrderButton();
   await dismissPerpsNotificationTooltipIfPresent();
   await PerpsMarketDetailsView.waitForScreenReady();

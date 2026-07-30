@@ -25,8 +25,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
+import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -40,7 +42,6 @@ import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
-import PerpsProStatsBar from './components/PerpsProStatsBar';
 import { createStyles } from './PerpsProMarketView.styles';
 
 /**
@@ -142,6 +143,16 @@ const PerpsProMarketView = () => {
       onAdvancedChartError: handleAdvancedChartError,
     });
 
+  const {
+    perpsMode,
+    isWatchlist,
+    handleBackPress,
+    handleMarketListPress,
+    handleWalletPress,
+    handleFavoritePress,
+    handlePerpsModeChange,
+  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
+
   if (!market?.symbol) {
     return (
       <SafeAreaView
@@ -176,7 +187,16 @@ const PerpsProMarketView = () => {
       edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsProMarketHeader symbol={symbol} />
+      <PerpsProMarketHeader
+        market={{ ...market, symbol: market.symbol }}
+        mode={perpsMode}
+        onBackPress={handleBackPress}
+        onIdentityPress={handleMarketListPress}
+        onWalletPress={handleWalletPress}
+        onFavoritePress={handleFavoritePress}
+        isFavorite={isWatchlist}
+        onModeChange={handlePerpsModeChange}
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -194,7 +214,11 @@ const PerpsProMarketView = () => {
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
         />
-        <PerpsProStatsBar />
+        <PerpsProMarketStatsBar
+          symbol={market.symbol}
+          nextFundingTime={market.nextFundingTime}
+          fundingIntervalHours={market.fundingIntervalHours}
+        />
         <PerpsProMarketLayout
           isOrderBookCollapsed={isOrderBookCollapsed}
           onExpandOrderBook={handleExpandOrderBook}

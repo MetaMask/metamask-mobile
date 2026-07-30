@@ -13,6 +13,7 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 
 const baseContext = {
   setActiveScreen: jest.fn(),
+  onClose: jest.fn(),
   isQuickAmountPreferencesLoaded: true,
   features: {
     tradeModes: ['buy'] as ('buy' | 'sell')[],
@@ -24,12 +25,14 @@ const baseContext = {
 
 describe('QuickBuyToolbar', () => {
   const setActiveScreen = jest.fn();
+  const onClose = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
+      onClose,
     });
   });
 
@@ -40,7 +43,7 @@ describe('QuickBuyToolbar', () => {
       screen.getByText('social_leaderboard.quick_buy.buy_label'),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('quick-buy-trade-mode-sell'),
+      screen.queryByTestId('quick-buy-trade-mode-buy'),
     ).not.toBeOnTheScreen();
   });
 
@@ -48,6 +51,7 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
+      onClose,
       features: { tradeModes: ['buy', 'sell'], quickAmountPills: true },
       hasSellableBalance: true,
     });
@@ -66,6 +70,7 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
+      onClose,
       features: { tradeModes: ['buy'], quickAmountPills: false },
     });
     render(<QuickBuyToolbar />);
@@ -82,6 +87,7 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
+      onClose,
       isQuickAmountPreferencesLoaded: false,
     });
 
@@ -90,5 +96,11 @@ describe('QuickBuyToolbar', () => {
     expect(screen.getByTestId('quick-buy-edit-amounts-button')).toBeDisabled();
     fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
     expect(setActiveScreen).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose when the close button is pressed', () => {
+    render(<QuickBuyToolbar />);
+    fireEvent.press(screen.getByTestId('quick-buy-close-button'));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

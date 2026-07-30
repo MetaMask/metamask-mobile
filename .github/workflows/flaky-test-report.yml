@@ -55,4 +55,5 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           slack-webhook: ${{ secrets.SLACK_WEBHOOK_PLAYWRIGHT_HEALTH_REPORT }}
           lookback-days: ${{ github.event_name == 'workflow_dispatch' && inputs.lookback_days || '1' }}
+          top-n: '10'
           report-title: Playwright Test Health Report (Mobile Appium)
