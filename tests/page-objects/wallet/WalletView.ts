@@ -905,45 +905,27 @@ class WalletView {
       return;
     }
 
-    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
-      overshootSwipe: options.overshootSwipe ?? {
-        direction:
-          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
-        percentage: 0.15,
-      },
-      timeout: 60_000,
-    });
+    const fallbackDirection = direction === 'down' ? 'up' : 'down';
 
-    const scrollAndTapWithFallback = async () => {
-      try {
-        await this.scrollAndTapSection(
+    await this.tryScrollDirections(
+      (scrollDirection) =>
+        this.scrollAndTapSection(
           this.predictionsSectionHeader,
           'Predictions section',
-          direction,
-          getScrollOptions(direction),
-        );
-      } catch {
-        const fallbackDirection = direction === 'down' ? 'up' : 'down';
-        await this.scrollAndTapSection(
-          this.predictionsSectionHeader,
-          'Predictions section',
-          fallbackDirection,
-          getScrollOptions(fallbackDirection),
-        );
-      }
-    };
-
-    await encapsulatedAction({
-      detox: scrollAndTapWithFallback,
-      appium: async () => {
-        await this.scrollAndTapSection(
-          this.predictionsSectionHeader,
-          'Predictions section',
-          direction,
-          getScrollOptions(direction),
-        );
-      },
-    });
+          scrollDirection,
+          {
+            overshootSwipe: options.overshootSwipe ?? {
+              direction:
+                scrollDirection === 'down'
+                  ? ('up' as const)
+                  : ('down' as const),
+              percentage: 0.15,
+            },
+            timeout: 60_000,
+          },
+        ),
+      [direction, fallbackDirection],
+    );
   }
 
   private async scrollPredictionsSectionIntoView(

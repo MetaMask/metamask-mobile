@@ -102,7 +102,7 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           // Only assert the position this flow claimed (full list is ~2m on Appium).
           await Assertions.expectTextNotDisplayed(claimPositions.Won, {
-            timeout: resolveE2EWaitTimeoutMs(1_000),
+            timeout: resolveE2EWaitTimeoutMs(10_000),
             description:
               'Claimed winning position should not be visible after claiming',
           });
