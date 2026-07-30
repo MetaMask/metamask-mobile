@@ -204,12 +204,15 @@ interface UseTopTradersHookOptions {
   enabled?: boolean;
 }
 
+// Queries default to in-flight (`isFetching`), which is the state a tab is in
+// on arrival and which holds back the secondary-tab prefetch. Tests that care
+// about the prefetch settle the visible tab explicitly.
 const buildResult = (
   overrides: Partial<UseTopTradersResult> = {},
 ): UseTopTradersResult => ({
   traders: fixtureTraders,
   isLoading: false,
-  isFetching: false,
+  isFetching: true,
   error: null,
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
@@ -717,8 +720,46 @@ describe('TopTradersView', () => {
     expect(screen.queryByText('+43.00%')).not.toBeOnTheScreen();
   });
 
-  it('enables only the Tokens query on mount', () => {
+  it('prefetches the remaining queries once the Tokens query settles', () => {
+    const { rerender } = renderWithProvider(<TopTradersView />);
+
+    setTabResult(LANDING_TAB, { isFetching: false });
+    rerender(<TopTradersView />);
+
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: true,
+      perps: true,
+    });
+  });
+
+  it('holds the prefetch back while a warm Tokens cache revalidates', () => {
+    // A cached-but-stale tab reports `isLoading: false` with `isFetching: true`,
+    // so gating on `isLoading` alone would release the prefetch too early.
+    setTabResult(LANDING_TAB, { isLoading: false, isFetching: true });
+
     renderWithProvider(<TopTradersView />);
+
+    expectLatestQueryEnabledStates({
+      all: false,
+      tokens: true,
+      perps: false,
+    });
+  });
+
+  it('narrows the enabled queries back to the visible tab when the sort changes', () => {
+    setTabResult(LANDING_TAB, { isFetching: false });
+    const { rerender } = renderWithProvider(<TopTradersView />);
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: true,
+      perps: true,
+    });
+
+    // Sort is part of the query key, so the visible tab goes back in flight.
+    setTabResult(LANDING_TAB, { isFetching: true });
+    rerender(<TopTradersView />);
+    selectSort('winRate');
 
     expectLatestQueryEnabledStates({
       all: false,
@@ -836,7 +877,7 @@ describe('TopTradersView', () => {
   });
 
   describe('embedded in the Leaderboard | Feed tabs', () => {
-    it('pins the filters above the list instead of scrolling them with the rows', () => {
+    it('scrolls the filters with the rows by placing them in the list header', () => {
       renderWithProvider(<TopTradersView embeddedInTabs />);
 
       expect(
@@ -845,7 +886,7 @@ describe('TopTradersView', () => {
       expect(
         screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props
           .ListHeaderComponent,
-      ).toBeNull();
+      ).not.toBeNull();
     });
 
     it('drops the large title and the scroll-pinned bar, which the tabs header replaces', () => {

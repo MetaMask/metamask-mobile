@@ -100,13 +100,17 @@ type TabFilter = SocialTypeFilter;
  */
 const DEFAULT_TYPE_TAB: TabFilter = 'tokens';
 
-/** Enables just the landing tab's query; the rest are switched on lazily. */
+/**
+ * Enables just one tab's query; the rest are switched on lazily. Used both for
+ * the landing state and whenever the sort changes, since sort is part of the
+ * query key and would otherwise refetch every enabled tab at once.
+ */
 const buildQueryEnabledTabs = (
-  landingTab: TabFilter,
+  activeTab: TabFilter,
 ): Record<TabFilter, boolean> => ({
-  all: landingTab === 'all',
-  tokens: landingTab === 'tokens',
-  perps: landingTab === 'perps',
+  all: activeTab === 'all',
+  tokens: activeTab === 'tokens',
+  perps: activeTab === 'perps',
 });
 
 // How long the post-onboarding "turn on notifications" nudge stays up before it
@@ -114,45 +118,37 @@ const buildQueryEnabledTabs = (
 // still transient so it never becomes permanent chrome.
 const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
-interface IdleCallbackGlobals {
-  requestIdleCallback?: (
-    callback: () => void,
-    options?: { timeout?: number },
-  ) => number;
-  cancelIdleCallback?: (handle: number) => void;
-}
-
 const LEADERBOARD_LIMIT = 50;
 const INITIAL_TRADER_ROWS_TO_RENDER = 6;
-const SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS = 1000;
 
-const scheduleIdleTask = (task: () => void) => {
-  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
-
-  if (!idleGlobals.requestIdleCallback) {
-    return undefined;
-  }
-
-  const idleCallbackId = idleGlobals.requestIdleCallback(task, {
-    timeout: SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS,
-  });
-
-  return () => {
-    idleGlobals.cancelIdleCallback?.(idleCallbackId);
-  };
-};
+type AnimatedScrollHandler = React.ComponentProps<
+  typeof Animated.FlatList
+>['onScroll'];
 
 export interface TopTradersViewProps {
   /**
    * When true, renders only the leaderboard body (filter row + list) without
    * its own SafeAreaView, animated header, large title, or pinned filter bar,
-   * so it can be embedded as a page inside the Leaderboard | Feed tabs.
+   * so it can be embedded as a page inside the Leaderboard | Feed tabs. The
+   * filter row scrolls with the rows; the parent owns the collapsing title.
    */
   embeddedInTabs?: boolean;
+  /**
+   * Scroll handler forwarded by the tabs container so the page's scroll drives
+   * the parent's collapsing title. Only used in `embeddedInTabs` mode.
+   */
+  onScroll?: AnimatedScrollHandler;
+  /**
+   * Top padding applied to the scroll content so the first row sits below the
+   * parent's floating title + tabs at rest. Only used in `embeddedInTabs` mode.
+   */
+  contentTopInset?: number;
 }
 
 const TopTradersView: React.FC<TopTradersViewProps> = ({
   embeddedInTabs = false,
+  onScroll: onScrollProp,
+  contentTopInset = 0,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
@@ -255,10 +251,15 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     () => rankTradersByMetric(loadedTraders, sort),
     [loadedTraders, sort],
   );
+  // The visible tab always fetches alone first; the other two are prefetched
+  // behind it so switching pills is instant. Gate on `isFetching` rather than
+  // `isLoading`: arriving with a warm cache (the homepage carousel shares the
+  // Tokens query key) leaves `isLoading` false while the tab still revalidates,
+  // which would let the secondary fetches ride along instead of waiting.
   const shouldPrefetchSecondaryTabs =
     isEnabled &&
     isPerpsEnabled &&
-    !activeResult.isLoading &&
+    !activeResult.isFetching &&
     TYPE_FILTER_OPTIONS.some((tab) => !queryEnabledTabs[tab]);
   const shouldRefreshAll = queryEnabledTabs.all;
   const shouldRefreshTokens = isPerpsEnabled && queryEnabledTabs.tokens;
@@ -291,12 +292,10 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   useEffect(() => {
     if (!shouldPrefetchSecondaryTabs) {
-      return undefined;
+      return;
     }
 
-    return scheduleIdleTask(() => {
-      setQueryEnabledTabs({ all: true, tokens: true, perps: true });
-    });
+    setQueryEnabledTabs({ all: true, tokens: true, perps: true });
   }, [shouldPrefetchSecondaryTabs]);
 
   const handleTabPress = useCallback(
@@ -317,6 +316,19 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       });
     },
     [isPerpsEnabled, startTabTransition, track],
+  );
+
+  // Sort is part of the query key, so a change invalidates every tab at once.
+  // Narrow back down to the visible tab in the same update that applies the sort
+  // and let the prefetch re-warm the others once that tab has settled.
+  const handleSortChange = useCallback(
+    (next: LeaderboardSort) => {
+      setSort(next);
+      setQueryEnabledTabs(
+        buildQueryEnabledTabs(isPerpsEnabled ? selectedTabRef.current : 'all'),
+      );
+    },
+    [isPerpsEnabled],
   );
 
   const openTypeSheet = useCallback(() => setIsTypeSheetOpen(true), []);
@@ -585,12 +597,15 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [renderFilterBar],
   );
 
-  // Inside the tabs the filters sit above the list so they stay put while the
-  // rows scroll, matching the feed tab. Standalone keeps them in the list
-  // header (under the large title) and re-shows them in the pinned bar instead.
+  // Inside the tabs the filters ride in the list header so they scroll away
+  // with the rows (the parent owns the collapsing title + pinned tabs).
+  // Standalone keeps the large title above them and re-shows the filters in the
+  // pinned bar on scroll instead.
   const listHeader = useMemo(
     () =>
-      embeddedInTabs ? null : (
+      embeddedInTabs ? (
+        filterBar
+      ) : (
         <>
           <Box
             twClassName="px-4 pt-2 pb-3"
@@ -612,18 +627,25 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [embeddedInTabs, filterBar, setTitleSectionHeight, title],
   );
 
+  const scrollHandler =
+    embeddedInTabs && onScrollProp ? onScrollProp : onScroll;
+  const contentContainerStyle = tw.style('pb-6', {
+    paddingTop: embeddedInTabs ? contentTopInset : 0,
+  });
+  const refreshProgressViewOffset = embeddedInTabs
+    ? contentTopInset
+    : undefined;
+
   const listBody = (
     <Box twClassName="flex-1">
-      {embeddedInTabs && filterBar}
-
       {isLoading && traders.length === 0 ? (
         <Animated.ScrollView
           // `flex-1` matches FlatList's default behavior so the list area sits
           // directly under the filters and skeletons render top-aligned.
           style={tw.style('flex-1')}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-6')}
-          onScroll={onScroll}
+          contentContainerStyle={contentContainerStyle}
+          onScroll={scrollHandler}
           scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
@@ -631,6 +653,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={handleRefresh}
+              progressViewOffset={refreshProgressViewOffset}
             />
           }
         >
@@ -646,12 +669,12 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           renderItem={renderTraderRow}
           ListHeaderComponent={listHeader}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-6')}
+          contentContainerStyle={contentContainerStyle}
           testID={TopTradersViewSelectorsIDs.TRADER_LIST}
           initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
           maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
           windowSize={5}
-          onScroll={onScroll}
+          onScroll={scrollHandler}
           scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
@@ -659,6 +682,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={handleRefresh}
+              progressViewOffset={refreshProgressViewOffset}
             />
           }
         />
@@ -704,7 +728,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       <SortFilterSheet
         isOpen={isSortSheetOpen}
         value={sort}
-        onChange={setSort}
+        onChange={handleSortChange}
         onClose={closeSortSheet}
       />
     </Box>

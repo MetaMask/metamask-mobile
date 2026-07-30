@@ -32,11 +32,11 @@ import React, {
 import {
   ActivityIndicator,
   RefreshControl,
-  ScrollView,
   SectionList,
   type SectionListData,
   type SectionListRenderItemInfo,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   ImpactMoment,
@@ -76,6 +76,14 @@ const SKELETON_KEYS = Array.from(
   (_, i) => `feed-skeleton-${i}`,
 );
 
+const AnimatedSectionList = Animated.createAnimatedComponent(
+  SectionList<FeedItem, FeedSection>,
+);
+
+type AnimatedScrollHandler = React.ComponentProps<
+  typeof Animated.ScrollView
+>['onScroll'];
+
 export interface FeedViewProps {
   /**
    * Whether the Feed tab is the active page. The feed fetch only fires when
@@ -98,6 +106,16 @@ export interface FeedViewProps {
    * feeds never expose the experiment.
    */
   onSpotAvailabilityChange?: (hasSpotItem: boolean) => void;
+  /**
+   * Scroll handler forwarded by the tabs container so the feed's scroll drives
+   * the parent's collapsing title. Omitting it keeps standalone behavior.
+   */
+  onScroll?: AnimatedScrollHandler;
+  /**
+   * Top padding applied to the scroll content so the first row sits below the
+   * parent's floating title + tabs at rest.
+   */
+  contentTopInset?: number;
 }
 
 /**
@@ -113,6 +131,8 @@ const FeedView: React.FC<FeedViewProps> = ({
   isActive = true,
   onQuickBuy,
   onSpotAvailabilityChange,
+  onScroll,
+  contentTopInset = 0,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -379,9 +399,16 @@ const FeedView: React.FC<FeedViewProps> = ({
         tintColor={colors.icon.default}
         refreshing={refreshing}
         onRefresh={handleRefresh}
+        progressViewOffset={contentTopInset}
       />
     ),
-    [colors.primary.default, colors.icon.default, refreshing, handleRefresh],
+    [
+      colors.primary.default,
+      colors.icon.default,
+      refreshing,
+      handleRefresh,
+      contentTopInset,
+    ],
   );
 
   const renderListEmpty = useCallback(() => {
@@ -436,37 +463,68 @@ const FeedView: React.FC<FeedViewProps> = ({
     loadMore,
   ]);
 
+  // The filter row rides inside the scroll (as the list header) so it scrolls
+  // away with the feed rows instead of staying pinned.
+  const filterRow = useMemo(
+    () => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 py-3"
+        gap={3}
+      >
+        <TypeFilterSelector
+          value={typeFilter}
+          onPress={() => setIsTypeSheetOpen(true)}
+        />
+        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
+      </Box>
+    ),
+    [typeFilter, audience, handleAudienceChange],
+  );
+
   const content = useMemo(() => {
     if (isLoading && items.length === 0) {
       return (
-        <ScrollView
+        <Animated.ScrollView
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('pb-6')}
+          contentContainerStyle={tw.style('pb-6', {
+            paddingTop: contentTopInset,
+          })}
           showsVerticalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
           refreshControl={refreshControl}
           testID={FeedViewSelectorsIDs.LOADING}
         >
+          {filterRow}
           {SKELETON_KEYS.map((key) => (
             <FeedItemRowSkeleton key={key} />
           ))}
-        </ScrollView>
+        </Animated.ScrollView>
       );
     }
 
     return (
-      <SectionList
+      <AnimatedSectionList
         sections={sections}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
+        ListHeaderComponent={filterRow}
         ItemSeparatorComponent={renderItemSeparator}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderListEmpty}
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={tw.style('pb-6 flex-grow')}
+        contentContainerStyle={tw.style('pb-6 flex-grow', {
+          paddingTop: contentTopInset,
+        })}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -482,6 +540,9 @@ const FeedView: React.FC<FeedViewProps> = ({
     renderItemSeparator,
     renderFooter,
     handleEndReached,
+    filterRow,
+    onScroll,
+    contentTopInset,
     tw,
   ]);
 
@@ -490,20 +551,6 @@ const FeedView: React.FC<FeedViewProps> = ({
       twClassName="flex-1 bg-default"
       testID={FeedViewSelectorsIDs.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-4 py-3"
-        gap={3}
-      >
-        <TypeFilterSelector
-          value={typeFilter}
-          onPress={() => setIsTypeSheetOpen(true)}
-        />
-        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
-      </Box>
-
       {content}
 
       <TypeFilterSheet
