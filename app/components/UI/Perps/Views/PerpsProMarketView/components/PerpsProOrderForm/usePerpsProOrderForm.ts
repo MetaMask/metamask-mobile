@@ -216,9 +216,9 @@ export const usePerpsProOrderForm = ({
     if (!currentPrice) {
       return { price: 0, change: 0, markPrice: 0 };
     }
-    const price = parseFloat(currentPrice.price || '0');
-    const markPrice = parseFloat(currentPrice.markPrice || '0');
-    const change = parseFloat(currentPrice.percentChange24h || '0');
+    const price = Number.parseFloat(currentPrice.price || '0');
+    const markPrice = Number.parseFloat(currentPrice.markPrice || '0');
+    const change = Number.parseFloat(currentPrice.percentChange24h || '0');
     return {
       price: Number.isNaN(price) ? 0 : price,
       markPrice: Number.isNaN(markPrice) ? 0 : markPrice,
@@ -244,10 +244,10 @@ export const usePerpsProOrderForm = ({
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
 
   const isMarketOrder = orderForm.type === 'market';
-  const hasValidAmount = parseFloat(orderForm.amount) > 0;
+  const hasValidAmount = Number.parseFloat(orderForm.amount) > 0;
 
   const orderUsdAmount = useMemo(
-    () => parseFloat(orderForm.amount) || 0,
+    () => Number.parseFloat(orderForm.amount) || 0,
     [orderForm.amount],
   );
   const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
@@ -316,7 +316,10 @@ export const usePerpsProOrderForm = ({
     positionSize,
     assetPrice: assetData.price,
     spendableBalance,
-    marginRequired: marginRequired || '0',
+    // Reduce-only orders release margin from the existing position; they don't
+    // draw from spendableBalance. Pass '0' so the balance gate is not triggered
+    // for a valid close/reduce when free collateral is low.
+    marginRequired: reduceOnly ? '0' : marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: false,
     originalUsdAmount: orderForm.amount,
@@ -361,6 +364,15 @@ export const usePerpsProOrderForm = ({
     },
   });
 
+  const hasTpslBlocker =
+    doesStopLossRiskLiquidation ||
+    isTakeProfitPriceInvalid ||
+    isStopLossPriceInvalid;
+  const directionTrackingValue =
+    orderForm.direction === 'long'
+      ? PERPS_EVENT_VALUE.DIRECTION.LONG
+      : PERPS_EVENT_VALUE.DIRECTION.SHORT;
+
   const handlePlaceOrder = useCallback(async () => {
     if (isSubmittingRef.current) {
       return;
@@ -372,10 +384,7 @@ export const usePerpsProOrderForm = ({
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
         PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
     });
 
     if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
@@ -400,11 +409,7 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
-    if (
-      doesStopLossRiskLiquidation ||
-      isTakeProfitPriceInvalid ||
-      isStopLossPriceInvalid
-    ) {
+    if (hasTpslBlocker) {
       return;
     }
 
@@ -544,9 +549,8 @@ export const usePerpsProOrderForm = ({
     estimatedSlippageBps,
     maxSlippageBps,
     maxSlippageSource,
-    doesStopLossRiskLiquidation,
-    isTakeProfitPriceInvalid,
-    isStopLossPriceInvalid,
+    hasTpslBlocker,
+    directionTrackingValue,
     orderValidation.isValid,
     orderValidation.errors,
     currentMarketPosition,
@@ -616,7 +620,7 @@ export const usePerpsProOrderForm = ({
     (leverage: number, inputMethod?: 'slider' | 'preset') => {
       setLeverage(leverage);
 
-      const currentAmount = parseFloat(orderForm.amount || '0');
+      const currentAmount = Number.parseFloat(orderForm.amount || '0');
       const newMaxAmount = spendableBalance * leverage;
       if (currentAmount > newMaxAmount) {
         setAmount(Math.floor(newMaxAmount).toString());
@@ -730,7 +734,8 @@ export const usePerpsProOrderForm = ({
       ? Math.min(
           100,
           Math.round(
-            (parseFloat(orderForm.amount || '0') / maxPossibleAmount) * 100,
+            (Number.parseFloat(orderForm.amount || '0') / maxPossibleAmount) *
+              100,
           ),
         )
       : 0;
@@ -803,8 +808,24 @@ export const usePerpsProOrderForm = ({
     tpslPriceType,
   ]);
 
-  const summary = useMemo<PerpsProOrderSummaryProps>(
-    () => ({
+  const summary = useMemo<PerpsProOrderSummaryProps>(() => {
+    // Limit orders use a fixed default slippage in buildPerpsOrderParams and
+    // the user-configured cap has no effect. Hide the row entirely for limit
+    // orders so the UI matches what is actually sent, consistent with the
+    // lite form which also skips slippage display for limit orders.
+    let slippage: string | undefined;
+    if (isMarketOrder) {
+      slippage =
+        estimatedSlippagePctDisplay === null
+          ? strings('perps.slippage.row_format_pending', {
+              value: bpsToPercent(maxSlippageBps),
+            })
+          : strings('perps.slippage.row_format', {
+              est: estimatedSlippagePctDisplay,
+              value: bpsToPercent(maxSlippageBps),
+            });
+    }
+    return {
       margin:
         marginRequired !== undefined && marginRequired !== null
           ? formatPerpsFiat(marginRequired, {
@@ -814,39 +835,25 @@ export const usePerpsProOrderForm = ({
       liquidationPrice: hasValidAmount
         ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
         : PERPS_CONSTANTS.FallbackDataDisplay,
-      // Limit orders use a fixed default slippage in buildPerpsOrderParams and
-      // the user-configured cap has no effect. Hide the row entirely for limit
-      // orders so the UI matches what is actually sent, consistent with the
-      // lite form which also skips slippage display for limit orders.
-      slippage: isMarketOrder
-        ? estimatedSlippagePctDisplay === null
-          ? strings('perps.slippage.row_format_pending', {
-              value: bpsToPercent(maxSlippageBps),
-            })
-          : strings('perps.slippage.row_format', {
-              est: estimatedSlippagePctDisplay,
-              value: bpsToPercent(maxSlippageBps),
-            })
-        : undefined,
+      slippage,
       onSlippagePress: isMarketOrder ? onSlippagePress : undefined,
       fee: hasValidAmount ? estimatedFees : undefined,
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
-    }),
-    [
-      isMarketOrder,
-      marginRequired,
-      hasValidAmount,
-      liquidationPrice,
-      estimatedSlippagePctDisplay,
-      maxSlippageBps,
-      estimatedFees,
-      undiscountedEstimatedFees,
-      feeResults.feeDiscountPercentage,
-      onSlippagePress,
-    ],
-  );
+    };
+  }, [
+    isMarketOrder,
+    marginRequired,
+    hasValidAmount,
+    liquidationPrice,
+    estimatedSlippagePctDisplay,
+    maxSlippageBps,
+    estimatedFees,
+    undiscountedEstimatedFees,
+    feeResults.feeDiscountPercentage,
+    onSlippagePress,
+  ]);
 
   const isPlaceOrderDisabled =
     !orderValidation.isValid ||

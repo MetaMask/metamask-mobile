@@ -156,7 +156,7 @@ export const getPerpsOrderTpSlWarnings = ({
 
   const isLimitWithPrice = orderType === 'limit' && Boolean(limitPrice);
   const validationReferencePrice = isLimitWithPrice
-    ? parseFloat(String(limitPrice))
+    ? Number.parseFloat(String(limitPrice))
     : marketPrice;
   const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
 
