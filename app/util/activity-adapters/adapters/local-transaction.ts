@@ -524,18 +524,15 @@ export function mapLocalTransaction(
   }
 
   /**
-   * Perps deposits/withdrawals submitted from this device. Unlike Predict, the
-   * HyperLiquid feed does return these, and its copy wins the hash dedup (see
-   * adapters/dedup.ts) — the Activity list also drops local perps groups
-   * outright while Perps is enabled. This mapping is what the *details* screen
-   * resolves when opened by `TransactionMeta.id` before the feed has caught up,
-   * e.g. from the funding toast's "Track", so the row lands on the Perps
-   * funding template instead of a generic contract interaction.
+   * Perps deposits/withdrawals submitted from this device. The Activity list
+   * never shows these — the HyperLiquid feed's copy wins the hash dedup, and
+   * the list drops local perps groups outright. This is for the details screen,
+   * which resolves by `TransactionMeta.id` before the feed catches up (the
+   * funding toast's "Track"), so the row lands on the Perps funding template
+   * rather than a generic contract interaction.
    *
-   * The type sits on the transaction itself rather than a nested call (Pay puts
-   * the source-chain leg in a separate transaction linked by
-   * `requiredTransactionIds`), so both shapes are checked. `originalType` is
-   * included because the confirmation flow can rewrite `type`, mirroring
+   * Checks the transaction and its nested calls, plus `originalType` since the
+   * confirmation flow can rewrite `type` — mirroring
    * `isPerpsWalletTransactionGroup` in the Activity list.
    */
   const getPerpsFundsActivity = (): ActivityListItem | undefined => {

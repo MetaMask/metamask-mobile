@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import type { Hex } from '@metamask/utils';
 import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
@@ -48,24 +49,26 @@ function hasPayFiat(pay: MetamaskPayMetadata | undefined): boolean {
 }
 
 /**
- * A row's Pay fiat metadata, or `undefined` when there is nothing to render —
- * so templates can decide up front whether to add the section's divider. Fiat
- * rather than fees: a row carrying only `totalFiat` still renders a section.
- *
- * Local rows carry `metamaskPay` directly. Provider-backed rows (Perps, whose
- * HyperLiquid feed entry dedups the local EVM copy away) carry only the on-chain
- * hash, so their metadata is resolved from the local transaction it belongs to.
+ * A row's Pay fiat metadata, or `undefined` when nothing would render — what
+ * templates gate their divider on. Fiat rather than fees: a `totalFiat`-only
+ * row still renders. Provider-backed rows (Perps) carry no `metamaskPay`, so
+ * theirs comes from the local transaction behind the row's hash.
  */
 export function useActivityPayFiat(
   item: ActivityListItem,
 ): MetamaskPayMetadata | undefined {
   const localPay = getLocalPayMetadata(item);
-  const { hash } = item;
-  const payByHash = useSelector((state: RootState) =>
-    localPay
-      ? undefined
-      : selectTransactionMetadataByHash(state, hash)?.metamaskPay,
-  );
+  const { hash, chainId } = item;
+  const payByHash = useSelector((state: RootState) => {
+    if (localPay) {
+      return undefined;
+    }
+    // Scoped to the row's chain, since the selector matches on hash alone.
+    const meta = selectTransactionMetadataByHash(state, hash);
+    return meta && toEvmCaipChainId(meta.chainId) === chainId
+      ? meta.metamaskPay
+      : undefined;
+  });
   const pay = localPay ?? payByHash;
 
   return hasPayFiat(pay) ? pay : undefined;
@@ -141,12 +144,9 @@ function PayFeeValue({
 }
 
 /**
- * Network fee / bridge fee / total for a MetaMask Pay-routed transaction, from
- * the metadata {@link useActivityPayFiat} resolved. Rows with no recorded value
- * are omitted; a recorded zero still shows (`$0`).
- *
- * `networkFeeLabel` exists because Perps labels the same value "Transaction
- * fee" where Predict labels it "Network fee".
+ * Network fee / bridge fee / total from {@link useActivityPayFiat}'s metadata.
+ * Unrecorded values omit their row; a recorded zero still shows (`$0`).
+ * `networkFeeLabel` is for Perps, which calls it "Transaction fee".
  */
 export function ActivityDetailsPayFeesAndTotal({
   pay,
@@ -158,8 +158,6 @@ export function ActivityDetailsPayFeesAndTotal({
   const formatFiat = useFiatFormatter({ currency: PAY_FIAT_CURRENCY });
   const { networkFeeToken, bridgeFeeToken } = usePayFeeTokens(pay);
 
-  // Callers get `pay` from `useActivityPayFiat`, which already screens this
-  // out; the guard keeps a direct caller from rendering an empty section.
   if (!hasPayFiat(pay)) {
     return null;
   }

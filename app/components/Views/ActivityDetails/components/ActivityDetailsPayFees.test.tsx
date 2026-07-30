@@ -246,6 +246,29 @@ describe('useActivityPayFiat', () => {
     expect(renderPayFiat(providerItem)).toBeUndefined();
   });
 
+  it('ignores a hash match on a different chain', () => {
+    const otherChainState = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          TransactionController: {
+            ...backgroundState.TransactionController,
+            transactions: [
+              {
+                id: 'tx-1',
+                chainId: '0x1',
+                hash: 'predict-1',
+                metamaskPay: { networkFeeFiat: '1.23' },
+              } as unknown as TransactionMeta,
+            ],
+          },
+        },
+      },
+    };
+
+    expect(renderPayFiat(providerItem, otherChainState)).toBeUndefined();
+  });
+
   it.each([
     ['a recorded zero fee resolves', { networkFeeFiat: '0' }, true],
     ['a total with no fees resolves', { totalFiat: '0.14' }, true],

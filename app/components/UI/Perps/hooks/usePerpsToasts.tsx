@@ -311,10 +311,6 @@ const usePerpsToasts = (): {
         perpsFilter?: PerpsActivityFilter,
       ) => {
         toastRef?.current?.closeToast();
-        // Read at press time rather than through `useSelector`: the values are
-        // only needed on press, the toast can outlive the state it was built
-        // from, and subscribing here would require a redux Provider around
-        // every screen that shows a Perps toast.
         const state = store.getState();
         const depositMeta = selectTransactionMetadataById(state, transactionId);
         navigateToTransactionDetails(navigation, {

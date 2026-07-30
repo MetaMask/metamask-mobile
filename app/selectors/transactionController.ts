@@ -473,7 +473,7 @@ export const makeSelectTransactionMetadataById =
  * hold a hash — e.g. provider-backed activity rows (Perps) whose feed entry
  * carries the tx hash but none of the local metadata.
  */
-export const selectTransactionMetadataByHash = createDeepEqualSelector(
+export const selectTransactionMetadataByHash = createSelector(
   selectTransactionsStrict,
   (_: RootState, hash: string | undefined) => hash?.toLowerCase(),
   (transactions, hash) =>
