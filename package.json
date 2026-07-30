@@ -182,7 +182,8 @@
     ]
   },
   "resolutions": {
-    "@metamask/network-controller": "34.0.0",
+    "@metamask/network-controller": "npm:@metamask-previews/network-controller@34.0.0-preview-937b1a1",
+    "@metamask/wallet": "npm:@metamask-previews/wallet@8.1.0-preview-937b1a1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",
