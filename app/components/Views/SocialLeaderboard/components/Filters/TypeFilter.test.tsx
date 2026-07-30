@@ -22,11 +22,11 @@ describe('TypeFilterSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('falls back to the placeholder when no type is selected', () => {
+  it('renders the "all" label when the all type is selected', () => {
     renderWithProvider(<TypeFilterSelector value="all" onPress={jest.fn()} />);
 
     expect(
-      screen.getByText('social_leaderboard.type_filter.placeholder'),
+      screen.getByText('social_leaderboard.type_filter.all'),
     ).toBeOnTheScreen();
   });
 

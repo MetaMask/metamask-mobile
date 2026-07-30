@@ -25,9 +25,6 @@ export interface TypeFilterSelectorProps {
  * "Type" pill that opens the {@link TypeFilterSheet}. Shared by the leaderboard
  * (`TopTradersView`) and the feed (`FeedView`); the sheet is rendered by the
  * host screen so it anchors to the screen bottom rather than to this row.
- *
- * `all` is the unfiltered default, so it reads as the "Type" placeholder rather
- * than as a selected value.
  */
 export const TypeFilterSelector: React.FC<TypeFilterSelectorProps> = ({
   value,
@@ -37,7 +34,7 @@ export const TypeFilterSelector: React.FC<TypeFilterSelectorProps> = ({
   <SelectButton
     size={SelectButtonSize.Md}
     placeholder={strings('social_leaderboard.type_filter.placeholder')}
-    value={value === 'all' ? null : getTypeFilterLabel(value)}
+    value={getTypeFilterLabel(value)}
     onPress={onPress}
     testID={testID}
   />
