@@ -4,9 +4,6 @@ import { defineConfig } from './framework/config';
 export default defineConfig({
   testDir: './',
   fullyParallel: false,
-  // Session acquisition on a busy BrowserStack grid fails more often than
-  // product flakes; keep more Playwright retries than the shared CI default (2).
-  retries: process.env.CI === 'true' ? 4 : 0,
   workers: process.env.PLAYWRIGHT_WORKERS
     ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
     : 3,
