@@ -4,9 +4,7 @@ import { BridgeTimeRow } from '../../rows/bridge-time-row';
 import { TotalRow } from '../../rows/total-row';
 import { ReceiveRow } from '../../rows/receive-row';
 import { InfoRowSkeleton } from '../../UI/info-row/info-row';
-import {
-  CustomAmountStage,
-} from '../../../hooks/custom-amount/useCustomAmountStage';
+import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 
 function PaymentDetailsSkeleton() {
   return (

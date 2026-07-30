@@ -50,12 +50,9 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../locales/i18n';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import {
-  ConfirmationParams,
-} from '../../confirm/confirm-component';
+import { ConfirmationParams } from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import EngineService from '../../../../../../core/EngineService';

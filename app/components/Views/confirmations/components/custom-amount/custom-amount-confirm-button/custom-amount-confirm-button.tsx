@@ -21,9 +21,7 @@ import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
-import {
-  CustomAmountStage,
-} from '../../../hooks/custom-amount/useCustomAmountStage';
+import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
