@@ -1,17 +1,28 @@
-import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import {
+  test as appiumTest,
+  CurrentDeviceDetails,
+} from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
+async function withManageStateSnap(
+  currentDeviceDetails: CurrentDeviceDetails,
+  testFn: () => Promise<void>,
+): Promise<void> {
+  await withSnapsFixtures(currentDeviceDetails, {}, async () => {
+    await loginAndOpenTestSnaps();
+    await TestSnaps.installSnap('connectStateButton');
+    await testFn();
+  });
+}
+
 appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
   appiumTest(
-    'connects to the State Snap and manages new encrypted and unencrypted state',
+    'manages new encrypted state',
     async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(currentDeviceDetails, {}, async () => {
-        await loginAndOpenTestSnaps();
-        await TestSnaps.installSnap('connectStateButton');
-
+      await withManageStateSnap(currentDeviceDetails, async () => {
         await TestSnaps.fillMessage('dataStateInput', '"bar"');
         await TestSnaps.fillMessage('setStateKeyInput', 'foo');
         await TestSnaps.tapButton('sendStateButton');
@@ -25,7 +36,14 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
 
         await TestSnaps.tapButton('clearStateButton');
         await TestSnaps.checkResultSpan('encryptedStateResultSpan', 'null');
+      });
+    },
+  );
 
+  appiumTest(
+    'manages new unencrypted state',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withManageStateSnap(currentDeviceDetails, async () => {
         await TestSnaps.fillMessage('dataUnencryptedStateInput', '"bar"');
         await TestSnaps.fillMessage('setStateKeyUnencryptedInput', 'foo');
         await TestSnaps.tapButton('sendUnencryptedStateButton');
@@ -47,12 +65,9 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
   );
 
   appiumTest(
-    'manages legacy encrypted and unencrypted state',
+    'manages legacy encrypted state',
     async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(currentDeviceDetails, {}, async () => {
-        await loginAndOpenTestSnaps();
-        await TestSnaps.installSnap('connectStateButton');
-
+      await withManageStateSnap(currentDeviceDetails, async () => {
         await TestSnaps.fillMessage('dataManageStateInput', '23');
         await TestSnaps.tapButton('sendManageStateButton');
         await TestSnaps.checkResultSpan('sendManageStateResultSpan', 'true');
@@ -65,7 +80,14 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
         await TestSnaps.checkResultJson('retrieveManageStateResultSpan', {
           items: [],
         });
+      });
+    },
+  );
 
+  appiumTest(
+    'manages legacy unencrypted state',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withManageStateSnap(currentDeviceDetails, async () => {
         await TestSnaps.fillMessage('dataUnencryptedManageStateInput', '23');
         await TestSnaps.tapButton('sendUnencryptedManageStateButton');
         await TestSnaps.checkResultJson(
