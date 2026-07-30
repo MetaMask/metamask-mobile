@@ -119,7 +119,13 @@ const PerpsProOrderFormContent = ({
       */}
       {isOrderTypeVisible && (
         <View>
-          <Modal visible transparent animationType="fade" statusBarTranslucent>
+          <Modal
+            visible
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+            onRequestClose={closeOrderType}
+          >
             <PerpsOrderTypeBottomSheetView
               isVisible
               onClose={closeOrderType}
@@ -133,7 +139,13 @@ const PerpsProOrderFormContent = ({
       )}
       {isLeverageVisible && (
         <View>
-          <Modal visible transparent animationType="fade" statusBarTranslucent>
+          <Modal
+            visible
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+            onRequestClose={closeLeverage}
+          >
             <PerpsLeverageBottomSheet
               isVisible
               onClose={closeLeverage}
@@ -152,7 +164,13 @@ const PerpsProOrderFormContent = ({
       )}
       {isSlippageVisible && (
         <View>
-          <Modal visible transparent animationType="fade" statusBarTranslucent>
+          <Modal
+            visible
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+            onRequestClose={closeSlippage}
+          >
             <PerpsSlippageBottomSheet
               isVisible
               currentValueBps={maxSlippageBps}
@@ -164,7 +182,13 @@ const PerpsProOrderFormContent = ({
       )}
       {selectedTooltip && (
         <View>
-          <Modal visible transparent animationType="fade" statusBarTranslucent>
+          <Modal
+            visible
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+            onRequestClose={closeTooltip}
+          >
             <PerpsBottomSheetTooltip
               isVisible
               onClose={closeTooltip}
@@ -190,7 +214,13 @@ const PerpsProOrderFormContent = ({
       {isEligibilityModalVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
-          <Modal visible transparent animationType="none" statusBarTranslucent>
+          <Modal
+            visible
+            transparent
+            animationType="none"
+            statusBarTranslucent
+            onRequestClose={closeEligibilityModal}
+          >
             <PerpsBottomSheetTooltip
               isVisible
               onClose={closeEligibilityModal}
