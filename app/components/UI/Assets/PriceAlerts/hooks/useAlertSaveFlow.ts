@@ -12,6 +12,10 @@ import type { AppStackNavigationProp } from '../../../../../core/NavigationServi
 import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  getWatchlistAssetType,
+  WatchlistAnalytics,
+} from '../../watchlist/constants/watchlistAnalytics';
 import { useTokenWatchlistAddItemMutation } from '../../watchlist/hooks/useTokenWatchlistMutations';
 import { priceAlertsQueryKey } from '../api';
 import {
@@ -137,7 +141,17 @@ const useAlertSaveFlow = ({
         await submit();
 
         if (!editingAlert && shouldAutoWatchlistOnCreate) {
+          const watchlistAnalyticsProperties = {
+            source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
+            asset_type: getWatchlistAssetType(assetId),
+          };
+
           addToWatchlist(assetId as CaipAssetType);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+              .addProperties(watchlistAnalyticsProperties)
+              .build(),
+          );
         }
 
         if (editingAlert && patch) {

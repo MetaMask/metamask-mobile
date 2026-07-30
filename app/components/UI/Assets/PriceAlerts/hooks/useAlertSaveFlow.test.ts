@@ -4,6 +4,7 @@ import { ToastContext } from '../../../../../component-library/components/Toast'
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { WatchlistAnalytics } from '../../watchlist/constants/watchlistAnalytics';
 import { type AbsolutePriceAlert, PriceAlertAnalytics } from '../constants';
 import useAlertSaveFlow from './useAlertSaveFlow';
 
@@ -244,6 +245,7 @@ describe('useAlertSaveFlow', () => {
   });
 
   it('adds the asset to the watchlist after creating the first alert', async () => {
+    const analytics = mockAnalytics();
     const { result } = renderSaveFlow({
       shouldAutoWatchlistOnCreate: true,
     });
@@ -256,6 +258,16 @@ describe('useAlertSaveFlow', () => {
     });
 
     expect(mockAddToWatchlistMutate).toHaveBeenCalledWith('eip155:1/slip44:60');
+    expect(analytics.createEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WATCHLIST_TOKEN_ADDED,
+    );
+    expect(
+      builderForEvent(analytics, MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+        .addProperties,
+    ).toHaveBeenCalledWith({
+      source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
+      asset_type: 'native',
+    });
   });
 
   it('keeps the watchlist unchanged when creating an alert for an asset with existing alerts', async () => {
