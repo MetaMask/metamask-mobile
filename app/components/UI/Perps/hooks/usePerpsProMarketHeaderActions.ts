@@ -91,12 +91,16 @@ export const usePerpsProMarketHeaderActions = ({
       return;
     }
 
+    // Fire-and-forget: watchlist actions apply an optimistic Redux update and
+    // swallow their own errors (toast on failure). Do not await here.
     if (isWatchlist) {
-      removeFromWatchlist(symbol);
+      // eslint-disable-next-line no-void
+      void removeFromWatchlist(symbol);
       return;
     }
 
-    addToWatchlist(symbol);
+    // eslint-disable-next-line no-void
+    void addToWatchlist(symbol);
   }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
 
   const handlePerpsModeChange = useCallback(

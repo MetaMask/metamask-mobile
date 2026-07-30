@@ -170,6 +170,39 @@ describe('PerpsProMarketHeader', () => {
     expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
   });
 
+  it('omits the mode pill when mode is not provided', () => {
+    const { queryByTestId } = renderHeader({
+      mode: undefined,
+      onModeChange: jest.fn(),
+    });
+
+    expect(
+      queryByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('exposes accessibility labels on back, wallet, and favorite buttons', () => {
+    const { getByLabelText } = renderHeader({
+      onBackPress: jest.fn(),
+      onWalletPress: jest.fn(),
+      onFavoritePress: jest.fn(),
+      isFavorite: false,
+    });
+
+    expect(getByLabelText('Back')).toBeOnTheScreen();
+    expect(getByLabelText('Perps home')).toBeOnTheScreen();
+    expect(getByLabelText('Add to watchlist')).toBeOnTheScreen();
+  });
+
+  it('uses a state-aware accessibility label for the favorite toggle', () => {
+    const { getByLabelText } = renderHeader({
+      onFavoritePress: jest.fn(),
+      isFavorite: true,
+    });
+
+    expect(getByLabelText('Remove from watchlist')).toBeOnTheScreen();
+  });
+
   it('omits end actions when their handlers are not provided', () => {
     const { queryByTestId } = renderHeader();
 
