@@ -1,4 +1,5 @@
-import { Hex } from '@metamask/utils';
+import { Hex, parseCaipAssetType } from '@metamask/utils';
+import { getAssetId } from '@metamask/assets-controllers';
 import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 import { TraceName, endTrace, trace } from '../../util/trace';
@@ -99,8 +100,20 @@ const useTokenHistoricalPrices = ({
           caipChainId = asset.chainId as string;
           assetIdentifier = asset.address.split('/')[1];
         } else {
-          caipChainId = `eip155:${getDecimalChainId(chainId)}`;
-          assetIdentifier = `erc20:${address}`;
+          // Trying to use same getAssetId logic as for spot-prices
+          const caipAssetType = getAssetId({
+            chainId,
+            tokenAddress: asset.address,
+          });
+          if (caipAssetType) {
+            const parsedCaipAsset = parseCaipAssetType(caipAssetType);
+            caipChainId = parsedCaipAsset.chainId;
+            assetIdentifier = `${parsedCaipAsset.assetNamespace}:${parsedCaipAsset.assetReference}`;
+          } else {
+            // Fallback into legacy way of building URL params
+            caipChainId = `eip155:${getDecimalChainId(chainId)}`;
+            assetIdentifier = `erc20:${address}`;
+          }
         }
 
         const uri = new URL(

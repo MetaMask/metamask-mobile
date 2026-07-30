@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -19,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
@@ -42,9 +44,10 @@ const SocialLoginErrorSheet = ({
   error,
   accountType,
 }: SocialLoginErrorSheetProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   useEffect(() => {
     trackEvent(
@@ -87,8 +90,11 @@ const SocialLoginErrorSheet = ({
         })
         .build(),
     );
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [trackEvent, createEventBuilder, accountType]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  }, [trackEvent, createEventBuilder, accountType, openSupportWithConsent]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-alternative')}>

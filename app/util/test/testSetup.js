@@ -678,6 +678,8 @@ jest.mock('@braze/react-native-sdk', () => ({
     requestImmediateDataFlush: jest.fn(),
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
+    enableSDK: jest.fn(),
+    wipeData: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
     getBanner: jest.fn().mockResolvedValue(null),
