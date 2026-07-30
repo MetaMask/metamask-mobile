@@ -168,7 +168,18 @@ describe('HomepageBalanceBreakdown', () => {
     );
 
     expect(mockAccountGroupBalance).not.toHaveBeenCalled();
-    expect(getByTestId(HomepageBalanceBreakdownTestIds.HERO)).toBeOnTheScreen();
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.HERO)).toHaveStyle({
+      alignItems: 'flex-start',
+      backgroundColor: 'transparent',
+      flexDirection: 'column',
+    });
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO_CONTENT),
+    ).toHaveStyle({
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+      gap: 4,
+    });
     expect(
       getAllByRole('button')
         .slice(1)

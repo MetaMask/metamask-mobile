@@ -53,9 +53,13 @@ const HomepageBalanceBreakdownHero = ({
 
   return (
     <ButtonBase
+      contentWrapperProps={{
+        testID: HomepageBalanceBreakdownTestIds.HERO_CONTENT,
+        twClassName: 'w-full flex-col items-start gap-1',
+      }}
       onPress={togglePrivacy}
       testID={HomepageBalanceBreakdownTestIds.HERO}
-      twClassName="mx-4 items-start gap-1"
+      twClassName="mx-4 h-auto self-stretch flex-col items-start justify-start overflow-visible rounded-none bg-transparent p-0"
     >
       <Skeleton hideChildren={isLoading}>
         <Animated.View style={animatedBalanceStyle}>

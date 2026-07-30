@@ -4,6 +4,7 @@ import type { SliceKey } from '../../../BalanceBreakdown/types';
 export const HomepageBalanceBreakdownTestIds = {
   CONTAINER: 'homepage-balance-breakdown',
   HERO: 'homepage-balance-breakdown-hero',
+  HERO_CONTENT: 'homepage-balance-breakdown-hero-content',
   HERO_DELTA_AMOUNT: 'homepage-balance-breakdown-hero-delta-amount',
   HERO_DELTA_PERCENT: 'homepage-balance-breakdown-hero-delta-percent',
   HERO_PERIOD: 'homepage-balance-breakdown-hero-period',

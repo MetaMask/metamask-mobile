@@ -31,7 +31,7 @@ const HomepageBalanceBreakdownAllocationBar = ({
 }: HomepageBalanceBreakdownAllocationBarProps) => (
   <Box twClassName="mb-2 gap-3 pt-1">
     <Text
-      fontWeight={FontWeight.Medium}
+      fontWeight={FontWeight.SemiBold}
       testID={HomepageBalanceBreakdownTestIds.ALLOCATION_TITLE}
       variant={TextVariant.HeadingMd}
     >
