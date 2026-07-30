@@ -6,7 +6,7 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
     const { result } = renderHook(() =>
       useTreatmentDiscoveryFeedsLoading({
         isTreatmentDiscovery: false,
-        isWorldCupFetching: true,
+        isDiscoveryFetching: true,
       }),
     );
 
@@ -20,7 +20,7 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
       {
         initialProps: {
           isTreatmentDiscovery: true,
-          isWorldCupFetching: true,
+          isDiscoveryFetching: true,
         },
       },
     );
@@ -29,7 +29,7 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
 
     rerender({
       isTreatmentDiscovery: true,
-      isWorldCupFetching: false,
+      isDiscoveryFetching: false,
     });
 
     expect(result.current).toBe(false);
@@ -42,7 +42,7 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
       {
         initialProps: {
           isTreatmentDiscovery: true,
-          isWorldCupFetching: false,
+          isDiscoveryFetching: false,
         },
       },
     );
@@ -51,19 +51,19 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
 
     rerender({
       isTreatmentDiscovery: false,
-      isWorldCupFetching: false,
+      isDiscoveryFetching: false,
     });
 
     rerender({
       isTreatmentDiscovery: true,
-      isWorldCupFetching: true,
+      isDiscoveryFetching: true,
     });
 
     expect(result.current).toBe(true);
 
     rerender({
       isTreatmentDiscovery: true,
-      isWorldCupFetching: false,
+      isDiscoveryFetching: false,
     });
 
     expect(result.current).toBe(false);
