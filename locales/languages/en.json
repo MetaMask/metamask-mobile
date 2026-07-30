@@ -1358,7 +1358,8 @@
       "add_margin_button": "Add",
       "protect_losses_title": "Protect against further losses",
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
-      "set_button": "Set"
+      "set_button": "Set",
+      "success_title": "Stop loss set"
     },
     "confirm": "Confirm",
     "deposit": {
