@@ -5710,8 +5710,9 @@ export class RewardsController extends BaseController<
         entryCount: 0,
         currentBalanceUsd: 0,
         yieldEarnedUsd: 0,
-        todayMinUsd: null,
-        todayStatus: 'below_threshold',
+        qualifyingDepositsUsd: 0,
+        qualifyingThresholdUsd: 0,
+        todayStatus: 'not_yet_qualified',
         daysRemaining: 0,
       };
     }
@@ -5732,7 +5733,8 @@ export class RewardsController extends BaseController<
             entryCount: cached.entryCount,
             currentBalanceUsd: cached.currentBalanceUsd,
             yieldEarnedUsd: cached.yieldEarnedUsd,
-            todayMinUsd: cached.todayMinUsd,
+            qualifyingDepositsUsd: cached.qualifyingDepositsUsd,
+            qualifyingThresholdUsd: cached.qualifyingThresholdUsd,
             todayStatus: cached.todayStatus,
             daysRemaining: cached.daysRemaining,
           },
