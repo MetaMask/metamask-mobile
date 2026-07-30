@@ -14,6 +14,8 @@ export const ActivityDetailsSelectorsIDs = {
   TRANSACTION_ID_ROW: 'activity-details-transaction-id-row',
   TRANSACTION_ID_COPY: 'activity-details-transaction-id-copy',
   FEE_ROW: 'activity-details-fee-row',
+  NETWORK_FEE_ROW: 'activity-details-network-fee-row',
+  BRIDGE_FEE_ROW: 'activity-details-bridge-fee-row',
   TOTAL_ROW: 'activity-details-total-row',
   FOOTER: 'activity-details-footer',
   BLOCK_EXPLORER_BUTTON: 'activity-details-block-explorer-button',
