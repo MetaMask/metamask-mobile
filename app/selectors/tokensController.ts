@@ -74,13 +74,25 @@ export const selectTokensByChainIdAndWalletAddress = createDeepEqualSelector(
         ) ?? {}),
 );
 
-export const selectTokensByAddress = createSelector(
+const EMPTY_TOKENS_BY_ADDRESS: { [address: string]: Token } = Object.freeze(
+  {} as { [address: string]: Token },
+) as { [address: string]: Token };
+
+export const selectTokensByAddress = createDeepEqualSelector(
   selectTokens,
-  (tokens: Token[]) =>
-    tokens?.reduce((tokensMap: { [address: string]: Token }, token: Token) => {
-      tokensMap[token.address] = token;
-      return tokensMap;
-    }, {}),
+  (tokens: Token[]): { [address: string]: Token } => {
+    if (!tokens?.length) {
+      return EMPTY_TOKENS_BY_ADDRESS;
+    }
+
+    return tokens.reduce(
+      (tokensMap: { [address: string]: Token }, token: Token) => {
+        tokensMap[token.address] = token;
+        return tokensMap;
+      },
+      {} as { [address: string]: Token },
+    );
+  },
 );
 
 export const selectTokensLength = createSelector(
