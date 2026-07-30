@@ -3,6 +3,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
 import { merge } from 'lodash';
 
+// MMQA-1667 verification: test-only PR should reuse main builds (no native compile / no JS repack).
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
