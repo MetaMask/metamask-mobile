@@ -73,7 +73,7 @@ on:
         required: false
         type: string
         default: '1'
-        description: 'HyperExecute autosplit concurrency (1 = sequential; use when only one real device is available)'
+        description: 'HyperExecute autosplit concurrency (default 2; set 1 if device allocation times out)'
     secrets:
       LT_ACCESS_KEY:
         required: true
@@ -191,7 +191,7 @@ jobs:
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
             echo "E2E_PERFORMANCE_CLOUD_PROVIDER=testmu"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
-            echo "HE_CONCURRENCY=${{ inputs.he_concurrency || '1' }}"
+            echo "HE_CONCURRENCY=${{ inputs.he_concurrency || '2' }}"
             echo "TESTMU_LOCAL=${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}"
           } >> "$GITHUB_ENV"
 
@@ -200,11 +200,11 @@ jobs:
         continue-on-error: true
         env:
           GREP_TAGS: ${{ inputs.grep_tags }}
-          # Sequential by default — one real device; parallel HE tasks time out waiting for allocation.
-          HE_CONCURRENCY: ${{ inputs.he_concurrency || '1' }}
+          # Default 2 for PoC speed; set he_concurrency=1 if device allocation times out.
+          HE_CONCURRENCY: ${{ inputs.he_concurrency || '2' }}
         working-directory: '.'
         run: |
-          echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} (HE_CONCURRENCY=${HE_CONCURRENCY:-1}) ==="
+          echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} (HE_CONCURRENCY=${HE_CONCURRENCY:-2}) ==="
           chmod +x ./tests/scripts/run-testmu-hyperexecute.sh
           ./tests/scripts/run-testmu-hyperexecute.sh
 
