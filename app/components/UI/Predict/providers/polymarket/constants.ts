@@ -144,6 +144,7 @@ export const ESPORTS_MARKET_TYPES: readonly string[] = [
 ];
 
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
+  first_half_moneyline: 'first_half',
   first_half_totals: 'halves',
   second_half_totals: 'halves',
   team_totals: 'team_totals',
@@ -174,6 +175,7 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'spreads',
   'totals',
+  'first_half_moneyline',
   'both_teams_to_score',
   'both_teams_to_score_first_half',
   'both_teams_to_score_second_half',
