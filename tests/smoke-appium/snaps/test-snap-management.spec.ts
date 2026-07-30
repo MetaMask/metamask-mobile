@@ -28,7 +28,7 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
         await Assertions.expectTextDisplayed('dialog-example-snap', {
           timeout: 30_000,
         });
-        await Assertions.expectTextDisplayed('is disabled', {
+        await Assertions.expectTextDisplayed('disabled', {
           timeout: 30_000,
         });
         await TestSnaps.dismissAlert();

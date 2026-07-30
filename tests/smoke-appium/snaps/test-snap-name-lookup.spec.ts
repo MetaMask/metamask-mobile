@@ -16,8 +16,6 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 const TOKEN = 'ETH';
 
 appiumTest.describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
-  appiumTest.describe.configure({ timeout: 150_000 });
-
   appiumTest(
     'displays the resolved recipient address in the send flow',
     async ({ driver: _driver, currentDeviceDetails }) => {

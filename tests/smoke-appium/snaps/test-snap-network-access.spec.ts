@@ -8,8 +8,6 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Network Access Snap Tests'), () => {
-  appiumTest.describe.configure({ timeout: 150_000 });
-
   appiumTest(
     'can use fetch and WebSockets',
     async ({ driver: _driver, currentDeviceDetails }) => {
