@@ -7,7 +7,6 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
-import { toCaipAssetType } from '@metamask/utils';
 import {
   TransactionType,
   hasTransactionType,
@@ -15,10 +14,6 @@ import {
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
-import { BridgeFeeRow } from '../../rows/bridge-fee-row';
-import { BridgeTimeRow } from '../../rows/bridge-time-row';
-import { TotalRow } from '../../rows/total-row';
-import { ReceiveRow } from '../../rows/receive-row';
 import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
@@ -59,34 +54,21 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
-import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
   ConfirmationParams,
-  PayWithOption,
 } from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
-import { useAlerts } from '../../../context/alert-system-context';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
-import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { prefixError } from '../../../../../../util/transactions/error-prefix';
-import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
@@ -96,11 +78,10 @@ import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
-import { InfoRowSkeleton } from '../../UI/info-row/info-row';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
-import { CustomAmountBuy } from '../../custom-amount/CustomAmountBuy';
-import { CustomAmountTotals } from '../../custom-amount/CustomAmountTotals';
-import { CustomAmountConfirmButton } from '../../custom-amount/CustomAmountConfirmButton';
+import { CustomAmountBuy } from '../../custom-amount/custom-amount-buy';
+import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
+import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { CustomAmountBuy } from './index';
+import { CustomAmountBuy } from './custom-amount-buy';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';

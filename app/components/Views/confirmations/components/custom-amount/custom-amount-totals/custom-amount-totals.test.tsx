@@ -1,7 +1,7 @@
 import React from 'react';
 import { merge } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { CustomAmountTotals } from './index';
+import { CustomAmountTotals } from './custom-amount-totals';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
@@ -15,13 +15,19 @@ jest.mock('../../rows/bridge-time-row', () => ({
   BridgeTimeRow: () => null,
 }));
 
-jest.mock('../../rows/total-row', () => ({
-  TotalRow: () => null,
-}));
+jest.mock('../../rows/total-row', () => {
+  const { View } = require('react-native');
+  return {
+    TotalRow: () => <View testID="total-row" />,
+  };
+});
 
-jest.mock('../../rows/receive-row', () => ({
-  ReceiveRow: () => null,
-}));
+jest.mock('../../rows/receive-row', () => {
+  const { View } = require('react-native');
+  return {
+    ReceiveRow: () => <View testID="receive-row" />,
+  };
+});
 
 function render(props: {
   amountFiat?: string;
@@ -69,23 +75,23 @@ describe('CustomAmountTotals', () => {
     expect(queryByTestId('total-row-skeleton')).toBeNull();
   });
 
-  it('renders without skeletons when canSelectWithdrawToken is true and stage is ShowTotals', () => {
-    const { queryByTestId } = render({
+  it('renders ReceiveRow when canSelectWithdrawToken is true and stage is ShowTotals', () => {
+    const { getByTestId, queryByTestId } = render({
       stage: CustomAmountStage.ShowTotals,
       canSelectWithdrawToken: true,
     });
 
-    expect(queryByTestId('bridge-fee-row-skeleton')).toBeNull();
-    expect(queryByTestId('total-row-skeleton')).toBeNull();
+    expect(getByTestId('receive-row')).toBeOnTheScreen();
+    expect(queryByTestId('total-row')).toBeNull();
   });
 
-  it('renders without skeletons when canSelectWithdrawToken is false and stage is ShowTotals', () => {
-    const { queryByTestId } = render({
+  it('renders TotalRow when canSelectWithdrawToken is false and stage is ShowTotals', () => {
+    const { getByTestId, queryByTestId } = render({
       stage: CustomAmountStage.ShowTotals,
       canSelectWithdrawToken: false,
     });
 
-    expect(queryByTestId('bridge-fee-row-skeleton')).toBeNull();
-    expect(queryByTestId('total-row-skeleton')).toBeNull();
+    expect(getByTestId('total-row')).toBeOnTheScreen();
+    expect(queryByTestId('receive-row')).toBeNull();
   });
 });
