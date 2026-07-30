@@ -28,7 +28,6 @@ import { useMusdCtaVisibility } from '../../hooks/useMusdCtaVisibility';
 import {
   Button,
   ButtonVariant,
-  ButtonSize,
   Text as DesignSystemText,
 } from '@metamask/design-system-react-native';
 
@@ -178,7 +177,6 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
                   <Button
                     variant={ButtonVariant.Secondary}
                     style={styles.button}
-                    size={ButtonSize.Md}
                     onPress={handleNavigateToWithdrawalInputScreen}
                     testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
                   >
