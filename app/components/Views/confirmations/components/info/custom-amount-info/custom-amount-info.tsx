@@ -98,6 +98,9 @@ import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFia
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { InfoRowSkeleton } from '../../UI/info-row/info-row';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import { CustomAmountBuy } from '../../custom-amount/CustomAmountBuy';
+import { CustomAmountTotals } from '../../custom-amount/CustomAmountTotals';
+import { CustomAmountConfirmButton } from '../../custom-amount/CustomAmountConfirmButton';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -447,7 +450,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <PayWithRow isResultReady />
               )}
               {!hasAccountNoFunds && (
-                <Quote
+                <CustomAmountTotals
                   amountFiat={amountFiat}
                   canSelectWithdrawToken={canSelectWithdrawToken}
                   stage={stage}
@@ -486,9 +489,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             )}
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
-            !isDepositPrefillEnabled && <BuySection />}
+            !isDepositPrefillEnabled && <CustomAmountBuy />}
           {stage !== CustomAmountStage.AmountInput && (
-            <ConfirmButton
+            <CustomAmountConfirmButton
               alertTitle={alertTitle}
               isDisabled={
                 disableConfirm || isAccountSelectionNeeded || isPrefillPending
@@ -589,195 +592,4 @@ export function AdvancedCustomAmountInfoSkeleton() {
       </View>
     </View>
   );
-}
-
-function BuySection() {
-  const transactionMeta = useTransactionMetadataRequest();
-  const tokens = useAccountTokens({ includeNoBalance: true });
-  const requiredTokens = useTransactionPayRequiredTokens();
-
-  const primaryRequiredToken = requiredTokens.find(
-    (token) => token.address !== getNativeTokenAddress(token.chainId),
-  );
-
-  const asset = tokens.find(
-    (token) =>
-      token.address?.toLowerCase() ===
-        primaryRequiredToken?.address.toLowerCase() &&
-      token.chainId === primaryRequiredToken?.chainId,
-  );
-
-  const assetId = toCaipAssetType(
-    'eip155',
-    Number(primaryRequiredToken?.chainId ?? '0x0').toString(),
-    'erc20',
-    asset?.assetId ?? '0x0',
-  );
-
-  const { goToBuy } = useRampNavigation();
-
-  const handleBuyPress = useCallback(() => {
-    goToBuy({ assetId });
-  }, [assetId, goToBuy]);
-
-  let message: string | undefined;
-
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    message = strings('confirm.custom_amount.buy_perps');
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    message = strings('confirm.custom_amount.buy_predict');
-  }
-
-  return (
-    <Box alignItems={AlignItems.center} gap={20}>
-      {message && (
-        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-          {message}
-        </Text>
-      )}
-      <Button
-        variant={ButtonVariant.Primary}
-        onPress={handleBuyPress}
-        isFullWidth
-        size={ButtonSize.Lg}
-      >
-        {strings('confirm.custom_amount.buy_button')}
-      </Button>
-    </Box>
-  );
-}
-
-function Quote({
-  amountFiat,
-  canSelectWithdrawToken,
-  stage,
-}: Readonly<{
-  amountFiat: string;
-  canSelectWithdrawToken: boolean;
-  stage: CustomAmountStage;
-}>) {
-  if (stage === CustomAmountStage.Loading) {
-    return <PaymentDetailsSkeleton />;
-  }
-
-  if (stage === CustomAmountStage.NoQuote) {
-    return null;
-  }
-
-  return (
-    <>
-      <BridgeFeeRow />
-      <BridgeTimeRow />
-      {canSelectWithdrawToken ? (
-        <ReceiveRow inputAmountUsd={amountFiat} />
-      ) : (
-        <TotalRow />
-      )}
-    </>
-  );
-}
-
-function PaymentDetailsSkeleton() {
-  return (
-    <>
-      <InfoRowSkeleton testId="bridge-fee-row-skeleton" />
-      <InfoRowSkeleton testId="bridge-time-row-skeleton" />
-      <InfoRowSkeleton testId="total-row-skeleton" />
-    </>
-  );
-}
-
-function ConfirmButton({
-  alertTitle,
-  isDisabled,
-  onContinue,
-  stage,
-}: Readonly<{
-  alertTitle: string | undefined;
-  isDisabled: boolean;
-  onContinue?: () => void;
-  stage: CustomAmountStage;
-}>) {
-  const { styles } = useStyles(styleSheet, {});
-  const { hasBlockingAlerts } = useAlerts();
-  const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
-    useConfirmationContext();
-  const { onConfirm } = useConfirmActions();
-
-  const handleConfirm = useCallback(async () => {
-    setIsConfirmationSubmitting(true);
-    onContinue?.();
-
-    try {
-      await onConfirm();
-    } catch (error) {
-      setIsConfirmationSubmitting(false);
-      throw error;
-    }
-  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
-
-  const disabled =
-    isDisabled ||
-    stage !== CustomAmountStage.ShowTotals ||
-    hasBlockingAlerts ||
-    isHeadlessBuyInProgress;
-
-  const enabledButtonLabel = useButtonLabel();
-
-  const buttonLabel =
-    stage === CustomAmountStage.Loading
-      ? enabledButtonLabel
-      : (alertTitle ?? enabledButtonLabel);
-
-  return (
-    <Button
-      style={[disabled && styles.disabledButton]}
-      size={ButtonSize.Lg}
-      variant={ButtonVariant.Primary}
-      isFullWidth
-      isDisabled={disabled}
-      isLoading={isHeadlessBuyInProgress}
-      loadingText={strings('confirm.preparing_order')}
-      onPress={handleConfirm}
-      testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-    >
-      {buttonLabel}
-    </Button>
-  );
-}
-
-function useButtonLabel() {
-  const transaction = useTransactionMetadataRequest();
-  const { payWithOption } = useParams<ConfirmationParams>({});
-
-  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
-  }
-
-  if (
-    hasTransactionType(transaction, [
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-  ) {
-    return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirm');
-  }
-
-  if (
-    payWithOption === PayWithOption.MoneyAccount &&
-    hasTransactionType(transaction, [
-      TransactionType.perpsDeposit,
-      TransactionType.predictDeposit,
-    ])
-  ) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
-  }
-
-  return strings('confirm.deposit_edit_amount_done');
 }
