@@ -597,7 +597,8 @@ export function getTestDappLocalUrl() {
 
 /**
  * Gets the Anvil port for use during test execution.
- * Automatically handles platform differences (Android uses fallback port, iOS uses actual allocated port).
+ * Android uses the fallback port (mapped via adb reverse); iOS uses the
+ * actual PortManager-allocated port.
  *
  * @returns The Anvil port to use in tests (8545 on Android, allocated port on iOS)
  *
@@ -606,10 +607,9 @@ export function getTestDappLocalUrl() {
  * const wsUrl = `ws://localhost:${getAnvilPortForTest()}`;
  */
 export function getAnvilPortForTest(): number {
-  const isAndroid = FrameworkDetector.isDetox()
-    ? device.getPlatform() === 'android'
-    : true;
-  return isAndroid ? DEFAULT_ANVIL_PORT : getServerPort(ResourceType.ANVIL);
+  return PlatformDetector.isAndroid()
+    ? DEFAULT_ANVIL_PORT
+    : getServerPort(ResourceType.ANVIL);
 }
 
 export function getGanachePort(): number {

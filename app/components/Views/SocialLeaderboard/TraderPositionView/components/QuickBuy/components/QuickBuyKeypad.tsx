@@ -1,27 +1,22 @@
 import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
 import Keypad, { type KeypadChangeData } from '../../../../../../Base/Keypad';
 import useCurrency from '../../../../../../Base/Keypad/useCurrency';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import CollapsibleReveal from './CollapsibleReveal';
-import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 
 const UNPRICED_KEYPAD_CURRENCY = 'native';
 
 /**
- * Numeric keypad for the Quick Buy keyboard A/B treatment. When open, renders
- * quick-amount pills + Done above the shared `Base/Keypad`. Pay with / CTA are
- * collapsed in the footer while this is visible.
+ * Numeric keypad for the Quick Buy keyboard A/B treatment. Opens by default
+ * with the amount footer still visible (taller sheet). Quick-amount pills live
+ * in the footer above Pay with / Total / CTA — not duplicated here.
  *
- * Height is animated via CollapsibleReveal (same curve as the footer collapse)
- * so the bottom-anchored sheet lerps between closed and open height — no dip.
- * Mount is deferred until the first open so the sheet open animation isn't
- * competing with keypad layout work.
+ * Height is animated via CollapsibleReveal so the bottom-anchored sheet can
+ * still lerp if the keypad is dismissed. Mount is deferred until the first
+ * open so the sheet open animation isn't competing with keypad layout work.
  */
 const QuickBuyKeypad: React.FC = () => {
-  const tw = useTailwind();
   const {
     useKeyboard,
     isKeypadOpen,
@@ -30,12 +25,10 @@ const QuickBuyKeypad: React.FC = () => {
     fiatAmount,
     sourceAmountTokens,
     handleAmountChange,
-    setIsKeypadOpen,
-    features,
   } = useQuickBuyContext();
 
   // Defer mounting until the first open so flash-icon sheet open stays smooth.
-  // After that, stay mounted (height 0) to keep expand/collapse in sync with footer.
+  // After that, stay mounted (height 0) to keep expand/collapse available.
   const [hasOpenedOnce, setHasOpenedOnce] = useState(false);
   useEffect(() => {
     if (isKeypadOpen) {
@@ -64,22 +57,6 @@ const QuickBuyKeypad: React.FC = () => {
     [handleAmountChange],
   );
 
-  const handleDonePress = useCallback(() => {
-    const amount = (hasSourcePrice ? fiatAmount : sourceAmountTokens) ?? '';
-    // `fiatAmount` is normalized to "." in the controller; unpriced token
-    // amounts use the native keypad rule (also ".").
-    if (amount.endsWith('.')) {
-      handleAmountChange(amount.slice(0, -1));
-    }
-    setIsKeypadOpen(false);
-  }, [
-    fiatAmount,
-    handleAmountChange,
-    hasSourcePrice,
-    setIsKeypadOpen,
-    sourceAmountTokens,
-  ]);
-
   if (!useKeyboard || (!hasOpenedOnce && !isKeypadOpen)) {
     return null;
   }
@@ -87,15 +64,10 @@ const QuickBuyKeypad: React.FC = () => {
   return (
     <CollapsibleReveal
       expanded={isKeypadOpen}
-      snapExpandedOnMount={false}
+      snapExpandedOnMount
       unmountWhenCollapsed={false}
       testID="quick-buy-keypad-reveal"
     >
-      {features.quickAmountPills ? (
-        <View style={tw.style('px-4 pt-1')}>
-          <QuickBuyQuickAmounts showDone onDonePress={handleDonePress} />
-        </View>
-      ) : null}
       <Box twClassName="px-4 py-4" testID="quick-buy-keypad">
         <Keypad
           value={keypadValue}

@@ -168,6 +168,7 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
+import { useGetPerpsHomeNavigationTarget } from '../../UI/Perps/utils/perpsModeSwitch';
 import {
   selectPredictEnabledFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
@@ -774,12 +775,14 @@ const Wallet = ({
 
   const isPerpsEnabled = isPerpsFlagEnabled;
 
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
   const handlePerpsTabDeepLink = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'deeplink' },
+    const { screen, params } = getPerpsHomeNavigationTarget({
+      source: 'deeplink',
     });
-  }, [navigation]);
+    navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+  }, [navigation, getPerpsHomeNavigationTarget]);
 
   const handleNetworkSelectorDeepLink = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

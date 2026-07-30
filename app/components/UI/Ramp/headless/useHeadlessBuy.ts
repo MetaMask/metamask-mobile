@@ -2,14 +2,12 @@ import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { CaipChainId } from '@metamask/utils';
-
 import ReduxService from '../../../../core/redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 import useRampsController from '../hooks/useRampsController';
-
 import {
   closeSession,
   createSession,

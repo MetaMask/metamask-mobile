@@ -2,6 +2,7 @@ import '../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import Routes from '../../../constants/navigation/Routes';
+import Engine from '../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
@@ -12,19 +13,26 @@ import {
   ACTIVITY_CV_ACCOUNT,
   ACTIVITY_CV_NFT_COLLECTION_NAME,
   ACTIVITY_CV_NFT_CONTRACT,
+  ACTIVITY_CV_PREDICT_MARKET_TITLE,
   ACTIVITY_CV_RECIPIENT,
   activityCvBridgeHistoryEntry,
   activityCvCrossChainSwapBridgeHistoryEntry,
   activityLineaNetworkOverride,
+  activityPredictTradingEnabledFlag,
   buildConfirmedLocalBridgeTransaction,
   buildConfirmedLocalContractInteractionTransaction,
   buildConfirmedLocalCrossChainSwapTransaction,
+  buildConfirmedLocalPredictDepositTransaction,
+  buildConfirmedLocalPredictWithdrawTransaction,
   buildConfirmedLocalSendTransaction,
   buildConfirmedLocalUsdcApproveTransaction,
   buildConfirmedLocalUsdcIncreaseAllowanceTransaction,
   buildConfirmedLocalUsdcRevokeTransaction,
   buildConfirmedLocalUsdcSendTransaction,
   buildConfirmedLocalUsdcUnlimitedApproveTransaction,
+  buildPredictBuyActivity,
+  buildPredictClaimActivity,
+  buildPredictSellActivity,
   initialStateActivityWithAccountsApi,
   initialStateActivityWithLocalTransactions,
 } from '../../../../tests/component-view/presets/activity';
@@ -1052,6 +1060,248 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
 
     expect(
       await findByTestId(activityListRowAvatarSingleTestId(mintHash)),
+    ).toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — prediction rows', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+    (
+      Engine.context.PredictController.getActivity as jest.Mock
+    ).mockResolvedValue([]);
+  });
+
+  it('shows Account funded under Predictions with balance subtitle, + fiat, and USDC secondary', async () => {
+    const deposit = buildConfirmedLocalPredictDepositTransaction();
+    const depositHash = deposit.hash as string;
+    const state = initialStateActivityWithLocalTransactions([deposit])
+      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
+      .build();
+
+    const { findByTestId, getAllByText, queryByTestId } =
+      renderActivityScreenView({
+        state,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(depositHash)),
+    ).toHaveTextContent(
+      strings('transactions.activity_prediction_account_funded'),
+    );
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(depositHash)),
+    ).toHaveTextContent(strings('transactions.activity_predictions_balance'));
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(depositHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+/);
+    expect(primaryAmount).toHaveTextContent(/USD|\$/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(depositHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/4,?000 USDC/);
+    expect(secondaryAmount).not.toHaveTextContent(/^\+/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(depositHash)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(activityListRowAvatarStackTestId(depositHash)),
+    ).toBeNull();
+  });
+
+  it('shows Prediction withdrawal under Predictions with balance subtitle and negative amounts', async () => {
+    const withdraw = buildConfirmedLocalPredictWithdrawTransaction();
+    const withdrawHash = withdraw.hash as string;
+    const state = initialStateActivityWithLocalTransactions([withdraw])
+      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
+      .build();
+
+    const { findByTestId, getAllByText } = renderActivityScreenView({
+      state,
+      params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+    });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    expect(
+      await findByTestId(activityListRowTitleTestId(withdrawHash)),
+    ).toHaveTextContent(strings('transactions.activity_prediction_withdrawal'));
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(withdrawHash)),
+    ).toHaveTextContent(strings('transactions.activity_predictions_balance'));
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(withdrawHash),
+    );
+    expect(primaryAmount).toHaveTextContent(/^-/);
+    expect(primaryAmount).toHaveTextContent(/USD|\$/);
+
+    const secondaryAmount = await findByTestId(
+      activityListRowSecondaryAmountTestId(withdrawHash),
+    );
+    expect(secondaryAmount).toHaveTextContent(/^-.*4,?000 USDC/);
+
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(withdrawHash)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Claimed winnings under Predictions with market subtitle and + fiat primary', async () => {
+    const claim = buildPredictClaimActivity();
+    (
+      Engine.context.PredictController.getActivity as jest.Mock
+    ).mockResolvedValue([claim]);
+
+    const state = initialStateActivityWithAccountsApi()
+      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
+      .build();
+
+    const { findByTestId, getAllByText, queryByTestId } =
+      renderActivityScreenView({
+        state,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(claim.id)),
+      { timeout: 10000 },
+    );
+    expect(title).toHaveTextContent(
+      strings('predict.transactions.claim_title'),
+    );
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(claim.id)),
+    ).toHaveTextContent(ACTIVITY_CV_PREDICT_MARKET_TITLE);
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(claim.id),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+/);
+    expect(primaryAmount).toHaveTextContent(/\$/);
+
+    expect(
+      queryByTestId(activityListRowSecondaryAmountTestId(claim.id)),
+    ).toBeNull();
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(claim.id)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Cashed out under Predictions with market subtitle and + fiat primary', async () => {
+    const sell = buildPredictSellActivity();
+    (
+      Engine.context.PredictController.getActivity as jest.Mock
+    ).mockResolvedValue([sell]);
+
+    const state = initialStateActivityWithAccountsApi()
+      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
+      .build();
+
+    const { findByTestId, getAllByText, queryByTestId } =
+      renderActivityScreenView({
+        state,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(sell.id)),
+      { timeout: 10000 },
+    );
+    expect(title).toHaveTextContent(strings('predict.transactions.sell_title'));
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(sell.id)),
+    ).toHaveTextContent(ACTIVITY_CV_PREDICT_MARKET_TITLE);
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(sell.id),
+    );
+    expect(primaryAmount).toHaveTextContent(/^\+/);
+    expect(primaryAmount).toHaveTextContent(/\$/);
+
+    expect(
+      queryByTestId(activityListRowSecondaryAmountTestId(sell.id)),
+    ).toBeNull();
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(sell.id)),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Prediction placed under Predictions with market subtitle and - fiat primary', async () => {
+    const buy = buildPredictBuyActivity();
+    (
+      Engine.context.PredictController.getActivity as jest.Mock
+    ).mockResolvedValue([buy]);
+
+    const state = initialStateActivityWithAccountsApi()
+      .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
+      .build();
+
+    const { findByTestId, getAllByText, queryByTestId } =
+      renderActivityScreenView({
+        state,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+
+    const title = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(buy.id)),
+      { timeout: 10000 },
+    );
+    expect(title).toHaveTextContent(
+      strings('transactions.activity_prediction_placed'),
+    );
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(buy.id)),
+    ).toHaveTextContent(ACTIVITY_CV_PREDICT_MARKET_TITLE);
+
+    const primaryAmount = await findByTestId(
+      activityListRowPrimaryAmountTestId(buy.id),
+    );
+    expect(primaryAmount).toHaveTextContent(/^-/);
+    expect(primaryAmount).toHaveTextContent(/\$/);
+
+    expect(
+      queryByTestId(activityListRowSecondaryAmountTestId(buy.id)),
+    ).toBeNull();
+    expect(
+      await findByTestId(activityListRowAvatarSingleTestId(buy.id)),
     ).toBeOnTheScreen();
   });
 });

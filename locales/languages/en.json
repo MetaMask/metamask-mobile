@@ -1266,7 +1266,7 @@
       "get_new_quote": "Get new quote",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "includes_mm_fee": "Includes {{fee}}% MetaMask fee",
       "pay_with_no_tokens": "No tokens available to pay with",
       "receive_with_no_tokens": "No tokens available to receive",
       "pay_with_filter_all": "All",
@@ -1280,7 +1280,15 @@
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
-      "toast_failed_sell": "Couldn't sell {{symbol}}"
+      "toast_failed_sell": "Couldn't sell {{symbol}}",
+      "edit_quick_amounts_title": "Edit default amounts",
+      "edit_quick_amounts_set_buy": "To buy",
+      "edit_quick_amounts_set_sell": "To sell",
+      "edit_quick_amounts_confirm": "Save",
+      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
+      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
+      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
+      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
     }
   },
   "perps": {
@@ -1350,7 +1358,8 @@
       "add_margin_button": "Add",
       "protect_losses_title": "Protect against further losses",
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
-      "set_button": "Set"
+      "set_button": "Set",
+      "success_title": "Stop loss set"
     },
     "confirm": "Confirm",
     "deposit": {
@@ -2036,8 +2045,11 @@
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
+      "24h_vol": "24h vol",
       "open_interest": "Open interest",
+      "funding": "Funding",
       "funding_rate": "Funding rate",
+      "mark_price": "Mark price",
       "oracle_price": "Oracle price",
       "order_book": "Order book",
       "countdown": "Countdown",
@@ -2540,7 +2552,11 @@
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
       "market_list": "Browse markets",
-      "perp_pair": "{{ticker}}-{{collateral}} perp"
+      "perp_pair": "{{ticker}}-{{collateral}} perp",
+      "back": "Back",
+      "wallet": "Perps home",
+      "add_to_watchlist": "Add to watchlist",
+      "remove_from_watchlist": "Remove from watchlist"
     }
   },
   "market_insights": {
@@ -7309,8 +7325,10 @@
       }
     },
     "withdraw": "Withdraw",
+    "withdraw_from_aave": "Withdraw from Aave",
     "deposit_more": "Deposit more",
     "earning": "Earning",
+    "lending_earnings": "Lending earnings",
     "withdrawal_time": "Withdrawal time",
     "withdrawing_to": "Withdrawing to",
     "network": "Network",
@@ -7483,6 +7501,19 @@
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
     },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "{{apy}}% APY",
+        "start_earning": "Start earning",
+        "current_apy_disclaimer": "Current APY, variable and not guaranteed."
+      },
+      "balance_cta": {
+        "description_prefix": "Add your {{symbol}} to your Money account and earn up to ",
+        "description_suffix": " in one year.",
+        "earn_apy": "Earn {{apy}}% APY",
+        "earnings_tooltip_accessibility_label": "Learn about projected earnings"
+      }
+    },
     "earnings": {
       "title": "Earnings",
       "estimated_monthly": "Monthly",
@@ -7519,14 +7550,14 @@
       "view_potential_earnings": "View potential earnings"
     },
     "metamask_card": {
-      "title": "MetaMask Card",
-      "upsell_title": "Get MetaMask Card",
+      "title": "Card",
+      "upsell_title": "Get card",
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "{{percentage}}% mUSD back",
-      "get_now": "Get now",
-      "link_title": "Link MetaMask Card",
+      "get_now": "Get",
+      "link_title": "Link card",
       "link_subtitle": "Spend your balance and earn on purchases.",
       "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
@@ -7554,7 +7585,6 @@
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Manage",
-      "avail_balance": "Avail. balance",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
@@ -7568,9 +7598,6 @@
       "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
-    },
-    "footer": {
-      "add_money": "Add funds"
     },
     "add_money_sheet": {
       "title": "Add funds",
@@ -7650,7 +7677,8 @@
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
       "deposit_title": "Projected 1-year balance",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return.",
+      "go_to_money_account": "Go to Money account"
     },
     "activity": {
       "title": "Activity",
@@ -7666,12 +7694,9 @@
       "filter_purchases": "Purchases"
     },
     "condensed_cards": {
-      "how_it_works_title": "How it works",
-      "how_it_works_subtitle": "See how your money works for you",
-      "musd_title": "MetaMask USD",
-      "musd_subtitle": "Learn more about mUSD",
-      "what_you_get_title": "What you get",
-      "what_you_get_subtitle": "Explore your benefits"
+      "how_it_works_title": "How your money grows",
+      "musd_title": "Meet mUSD",
+      "what_you_get_title": "Explore your benefits"
     },
     "transaction": {
       "deposited": "Deposited",
@@ -8299,6 +8324,8 @@
     "sort_balance": "Balance",
     "next": "Next",
     "explore_tokens": "Explore tokens",
+    "robinhood_banner_title": "Robinhood Chain is here",
+    "robinhood_banner_subtitle": "Explore trending tokens",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
     "select_network": "Select network",
@@ -9561,6 +9588,8 @@
       "retry_button": "Retry",
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
+      "maintain_threshold_label": "Maintain threshold",
+      "maintain_this_tier": "{{points}} points to maintain this tier",
       "bps_value": "{{bps}} bps",
       "referee_splash_continue": "Continue",
       "referee_referred_by": "Referred by {{code}}",

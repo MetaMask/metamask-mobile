@@ -45,7 +45,7 @@ const flags = computeE2EPlatformFlags({
   iosCount: readInt(process.env.IOS_COUNT),
   androidOrIgnorableCount: readInt(process.env.ANDROID_OR_IGNORABLE_COUNT),
   iosOrIgnorableCount: readInt(process.env.IOS_OR_IGNORABLE_COUNT),
-  allChangesFiles: process.env.ALL_CHANGES_FILES || '',
+  changedSpecFiles: process.env.CHANGED_SPEC_FILES || '',
 });
 
 let runAppiumIos = false;
@@ -95,8 +95,8 @@ const outputLines = [
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
   `run_appium_ios=${runAppiumIos}`,
-  `changed_files<<GH_EOF`,
-  flags.changedFiles,
+  `changed_spec_files<<GH_EOF`,
+  flags.changedSpecFiles,
   'GH_EOF',
 ];
 
