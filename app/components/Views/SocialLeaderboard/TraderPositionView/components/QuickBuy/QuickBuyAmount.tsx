@@ -9,6 +9,8 @@ const QuickBuyAmount: React.FC = () => {
   const {
     amountDisplayMode,
     fiatAmountLabel,
+    fiatAmount,
+    currentCurrency,
     target,
     tradeMode,
     hasSourcePrice,
@@ -50,6 +52,8 @@ const QuickBuyAmount: React.FC = () => {
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
       fiatAmountLabel={fiatAmountLabel}
+      fiatAmount={fiatAmount}
+      currency={currentCurrency}
       destSymbol={cryptoSymbol}
       estimatedReceiveAmount={displayedCryptoAmount}
       isQuoteLoading={isBlockingQuoteLoad}

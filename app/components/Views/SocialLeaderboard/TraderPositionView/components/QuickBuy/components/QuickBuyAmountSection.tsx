@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Animated, TextInput, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -13,6 +13,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { useBlinkingCursor } from '../../../../../../UI/Ramp/hooks/useBlinkingCursor';
+import {
+  formatCurrency,
+  getCurrencySymbol,
+} from '../../../../../../UI/Bridge/utils/currencyUtils';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
 
@@ -20,6 +24,10 @@ interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
   /** Entered amount preformatted in the user's display currency (e.g. "$20", "20 €"). */
   fiatAmountLabel: string;
+  /** Raw fiat amount string from the keypad (no currency symbol). */
+  fiatAmount?: string;
+  /** ISO currency code for symbol placement while editing. */
+  currency?: string;
   destSymbol: string;
   /** Estimated amount received in the dest token from the quote. */
   estimatedReceiveAmount: string | undefined;
@@ -35,7 +43,7 @@ interface QuickBuyAmountSectionProps {
   sourceCryptoAmount?: string;
   /** Source token symbol (unpriced path), e.g. "CAKE". */
   sourceSymbol?: string;
-  /** When true, shows a blinking caret next to the primary amount (keypad open). */
+  /** When true, shows a blinking caret after the editable digits (keypad open). */
   showCursor?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
   // the only input path for now, but these props remain on the interface so the
@@ -45,9 +53,26 @@ interface QuickBuyAmountSectionProps {
   onAmountChange?: (text: string) => void;
 }
 
+/** True when the currency symbol appears before the digits for this locale. */
+function isCurrencySymbolPrefix(currency: string): boolean {
+  const symbol = getCurrencySymbol(currency);
+  if (!symbol) {
+    return true;
+  }
+  const formatted = formatCurrency(1, currency);
+  const digitIndex = formatted.search(/\d/);
+  const symbolIndex = formatted.indexOf(symbol);
+  if (digitIndex < 0 || symbolIndex < 0) {
+    return true;
+  }
+  return symbolIndex < digitIndex;
+}
+
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
   fiatAmountLabel,
+  fiatAmount = '',
+  currency,
   destSymbol,
   estimatedReceiveAmount,
   isQuoteLoading,
@@ -81,6 +106,102 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
   }
 
+  // While the keypad is open, render amount digits + caret + currency/token
+  // affix separately so the caret sits where typing happens (after digits),
+  // not after a suffix symbol like "US$" / "ETH".
+  const editingPrimary = useMemo(() => {
+    if (!showCursor) {
+      return null;
+    }
+
+    const cursor = (
+      <Animated.View
+        testID="quick-buy-amount-cursor"
+        style={[
+          tw.style('mx-0.5 w-0.5 h-8 bg-primary-default'),
+          { opacity: cursorOpacity },
+        ]}
+      />
+    );
+
+    if (isUnpricedSource) {
+      const amountDigits = sourceCryptoAmount || '0';
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+        >
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+          >
+            {amountDigits}
+          </Text>
+          {cursor}
+          {sourceSymbol ? (
+            <Text
+              variant={TextVariant.DisplayMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {` ${sourceSymbol}`}
+            </Text>
+          ) : null}
+        </Box>
+      );
+    }
+
+    const amountDigits = fiatAmount || '0';
+    const symbol = currency ? getCurrencySymbol(currency) : '';
+    const symbolIsPrefix = currency ? isCurrencySymbolPrefix(currency) : true;
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+      >
+        {symbol && symbolIsPrefix ? (
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+          >
+            {symbol}
+          </Text>
+        ) : null}
+        <Text
+          variant={TextVariant.DisplayMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+        >
+          {amountDigits}
+        </Text>
+        {cursor}
+        {symbol && !symbolIsPrefix ? (
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+          >
+            {` ${symbol}`}
+          </Text>
+        ) : null}
+      </Box>
+    );
+  }, [
+    showCursor,
+    isUnpricedSource,
+    sourceCryptoAmount,
+    sourceSymbol,
+    fiatAmount,
+    currency,
+    cursorOpacity,
+    tw,
+  ]);
+
   const content = (
     <Box
       alignItems={BoxAlignItems.Center}
@@ -89,11 +210,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       twClassName="px-4 pt-6 pb-4"
       testID="quick-buy-amount-area"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-      >
+      {editingPrimary ?? (
         <Text
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
@@ -101,16 +218,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         >
           {primaryLabel}
         </Text>
-        {showCursor ? (
-          <Animated.View
-            testID="quick-buy-amount-cursor"
-            style={[
-              tw.style('ml-0.5 w-0.5 h-8 bg-primary-default'),
-              { opacity: cursorOpacity },
-            ]}
-          />
-        ) : null}
-      </Box>
+      )}
 
       {isQuoteLoading ? (
         <Box
