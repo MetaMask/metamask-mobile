@@ -458,6 +458,23 @@ class QuoteView {
   async selectNetwork(network: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
+        // Best-effort only: some swap flows never expose "more networks".
+        try {
+          const moreNetworks = await asDetoxElement(this.moreNetworksButton);
+          await waitFor(moreNetworks).toExist().withTimeout(1500);
+          await Gestures.scrollToElement(
+            moreNetworks,
+            Matchers.scrollContainer('network-pills-scroll'),
+            {
+              direction: 'right',
+              scrollAmount: 120,
+              timeout: 5000,
+              elemDescription: 'Scroll to more networks control',
+            },
+          );
+        } catch {
+          // Continue — the target network may already be visible without this control.
+        }
         const networkElement = Matchers.getElementByText(network);
         await Gestures.waitAndTap(networkElement, {
           delay: 1000,
