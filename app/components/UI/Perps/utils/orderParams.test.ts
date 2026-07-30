@@ -14,7 +14,7 @@ const trackingData = buildPerpsOrderTrackingData({
     estimatedPoints: 100,
   },
   marketPrice: 90000,
-  inputMethod: 'default',
+  inputMethod: 'default' as const,
   direction: 'long',
   chartLibrary: 'lightweight',
 });
@@ -109,7 +109,7 @@ describe('buildPerpsOrderTrackingData', () => {
       estimatedPoints: 100,
     },
     marketPrice: 90000,
-    inputMethod: 'default',
+    inputMethod: 'default' as const,
     direction: 'long' as const,
     chartLibrary: 'lightweight',
   };

@@ -9,6 +9,7 @@ import {
 import {
   TimeDuration,
   getPerpsDisplaySymbol,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
@@ -253,8 +254,13 @@ const PerpsProMarketView = () => {
           <PerpsProMarketLayout
             isOrderBookCollapsed={isOrderBookCollapsed}
             orderForm={
+              // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
+              // to support deep-link trade-detail entries that may only carry
+              // partial data. PerpsProMarketView is only reachable via full-market
+              // navigation; the !market?.symbol guard above validates the minimum
+              // required field at runtime.
               <PerpsProOrderFormPanel
-                market={market}
+                market={market as PerpsMarketData}
                 isOrderBookCollapsed={isOrderBookCollapsed}
                 onExpandOrderBook={handleExpandOrderBook}
               />
