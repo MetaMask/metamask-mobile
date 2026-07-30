@@ -20,6 +20,11 @@ import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/fe
 import { LocalNode } from '../../../framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 
+// TEMPORARY — do not merge. No-op touch on a throwaway branch to verify that
+// the spec-file list still reaches E2E flakiness detection after PR #33921.
+// Expected: one shard logs "Duplicated 1 changed file(s) for flakiness detection".
+// Must be observed on run attempt 1: e2e-split-tags-shards.mjs gates flakiness
+// detection behind RUN_ATTEMPT === 1, so a re-run never exercises this path.
 const SIGNATURE_LIST = [
   {
     specName: 'Personal Sign',
