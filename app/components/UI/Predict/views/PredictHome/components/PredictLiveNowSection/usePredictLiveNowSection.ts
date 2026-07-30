@@ -35,6 +35,12 @@ export const LIVE_NOW_LIVE_LIMIT = 7;
 /** Max cards displayed when the carousel uses a custom content source. */
 export const CUSTOM_FEED_CAROUSEL_LIMIT = 10;
 
+const excludeMarkets = (
+  markets: PredictMarket[],
+  excludedMarketIds: ReadonlySet<string>,
+): PredictMarket[] =>
+  markets.filter((market) => !excludedMarketIds.has(market.id));
+
 export interface UsePredictLiveNowSectionResult {
   /** Markets curated for the selected live or custom mode. */
   items: PredictMarket[];
@@ -80,21 +86,25 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     [config.contentSource.excludedMarketIds, isCustom],
   );
 
-  const marketListParams: PredictMarketListParams = isCustom
-    ? {
-        order: 'volume24hr',
-        status: 'open',
-        limit: LIVE_NOW_FETCH_LIMIT,
-        ...(config.contentSource.queryParams
-          ? { customQueryParams: config.contentSource.queryParams }
-          : {}),
-      }
-    : {
-        live: true,
-        order: 'volume24hr',
-        status: 'open',
-        limit: LIVE_NOW_FETCH_LIMIT,
-      };
+  const marketListParams = useMemo<PredictMarketListParams>(
+    () =>
+      isCustom
+        ? {
+            order: 'volume24hr',
+            status: 'open',
+            limit: LIVE_NOW_FETCH_LIMIT,
+            ...(config.contentSource.queryParams
+              ? { customQueryParams: config.contentSource.queryParams }
+              : {}),
+          }
+        : {
+            live: true,
+            order: 'volume24hr',
+            status: 'open',
+            limit: LIVE_NOW_FETCH_LIMIT,
+          },
+    [config.contentSource.queryParams, isCustom],
+  );
 
   const { markets: marketsRaw, isLoading: isMarketListLoading } =
     usePredictMarketList(marketListParams);
@@ -103,18 +113,18 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
   // markets, then cap to the display limit.
   const liveMarkets = useMemo(
     () =>
-      marketsRaw
+      excludeMarkets(marketsRaw, excludedMarketIds)
         .filter((market) => Boolean(market.game))
-        .filter((market) => !excludedMarketIds.has(market.id))
         .slice(0, LIVE_NOW_LIVE_LIMIT),
     [excludedMarketIds, marketsRaw],
   );
 
   const customMarkets = useMemo(
     () =>
-      marketsRaw
-        .filter((market) => !excludedMarketIds.has(market.id))
-        .slice(0, CUSTOM_FEED_CAROUSEL_LIMIT),
+      excludeMarkets(marketsRaw, excludedMarketIds).slice(
+        0,
+        CUSTOM_FEED_CAROUSEL_LIMIT,
+      ),
     [excludedMarketIds, marketsRaw],
   );
 
@@ -135,12 +145,12 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
     if (!includeCrypto) {
       return [];
     }
-    return [btc5m.market, eth5m.market, btc15m.market].filter(
+    const resolvedMarkets = [btc5m.market, eth5m.market, btc15m.market].filter(
       (market): market is PredictMarket =>
-        market !== undefined &&
-        isCryptoUpDown(market) &&
-        !excludedMarketIds.has(market.id),
+        market !== undefined && isCryptoUpDown(market),
     );
+
+    return excludeMarkets(resolvedMarkets, excludedMarketIds);
   }, [
     includeCrypto,
     btc5m.market,

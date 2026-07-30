@@ -1448,6 +1448,8 @@ export const buildMarketListQueryParams = (
   }
 
   const customParams = new URLSearchParams(customQueryParams?.trim());
+  // Clear generated values first, then append all custom values so repeated
+  // parameters override rather than merge with generated defaults.
   const customKeys = new Set<string>();
   customParams.forEach((_value, key) => customKeys.add(key));
   customKeys.forEach((key) => queryParams.delete(key));
