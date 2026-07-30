@@ -1537,7 +1537,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           delete orderWithoutTPSL.takeProfitPrice;
           delete orderWithoutTPSL.stopLossPrice;
 
-          await executeOrder(orderWithoutTPSL);
+          const orderResult = await executeOrder(orderWithoutTPSL);
+          if (!orderResult?.success) {
+            return;
+          }
+
           const tpslResult = await updatePositionTPSL({
             symbol: orderForm.asset,
             takeProfitPrice: orderForm.takeProfitPrice,
@@ -1555,7 +1559,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             );
           }
         } else {
-          await executeOrder(orderParams);
+          const orderResult = await executeOrder(orderParams);
+          if (!orderResult?.success) {
+            return;
+          }
         }
 
         // Clear pending trade config after successful submission to prevent

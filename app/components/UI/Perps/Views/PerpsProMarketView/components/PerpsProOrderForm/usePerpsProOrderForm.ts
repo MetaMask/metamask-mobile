@@ -22,7 +22,7 @@ import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
-import { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { bpsToPercent } from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
 import {
@@ -220,9 +220,9 @@ export const usePerpsProOrderForm = ({
     const markPrice = parseFloat(currentPrice.markPrice || '0');
     const change = parseFloat(currentPrice.percentChange24h || '0');
     return {
-      price: isNaN(price) ? 0 : price,
-      markPrice: isNaN(markPrice) ? 0 : markPrice,
-      change: isNaN(change) ? 0 : change,
+      price: Number.isNaN(price) ? 0 : price,
+      markPrice: Number.isNaN(markPrice) ? 0 : markPrice,
+      change: Number.isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
 
@@ -497,7 +497,11 @@ export const usePerpsProOrderForm = ({
         delete orderWithoutTPSL.takeProfitPrice;
         delete orderWithoutTPSL.stopLossPrice;
 
-        await executeOrder(orderWithoutTPSL);
+        const orderResult = await executeOrder(orderWithoutTPSL);
+        if (!orderResult?.success) {
+          return;
+        }
+
         const tpslResult = await updatePositionTPSL({
           symbol: orderForm.asset,
           takeProfitPrice: orderForm.takeProfitPrice,
@@ -514,7 +518,10 @@ export const usePerpsProOrderForm = ({
           );
         }
       } else {
-        await executeOrder(orderParams);
+        const orderResult = await executeOrder(orderParams);
+        if (!orderResult?.success) {
+          return;
+        }
       }
 
       Engine.context.PerpsController?.clearPendingTradeConfiguration(

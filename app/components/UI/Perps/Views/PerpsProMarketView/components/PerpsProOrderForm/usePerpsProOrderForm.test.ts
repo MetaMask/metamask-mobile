@@ -12,7 +12,7 @@ const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
-const mockExecuteOrder = jest.fn().mockResolvedValue(undefined);
+const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
 
 let mockExecutionOptions: {
@@ -260,6 +260,39 @@ describe('usePerpsProOrderForm', () => {
       const banner = result.current.notices.find((n) => n.id === 'oi-cap');
       expect(banner?.variant).toBe('banner');
     });
+
+    it('shows the sl-liq-risk notice when the stop loss risks liquidation', () => {
+      // Arrange: long, market 90000, liquidation 80000 — SL at 79000 is past liq
+      mockOrderForm.stopLossPrice = '79000';
+      const { result } = renderProForm();
+
+      // Assert
+      expect(
+        result.current.notices.find((n) => n.id === 'sl-liq-risk'),
+      ).toBeDefined();
+    });
+
+    it('shows the tp-invalid notice when the take profit is on the wrong side', () => {
+      // Arrange: long, market 90000 — TP below market is wrong side
+      mockOrderForm.takeProfitPrice = '85000';
+      const { result } = renderProForm();
+
+      // Assert
+      expect(
+        result.current.notices.find((n) => n.id === 'tp-invalid'),
+      ).toBeDefined();
+    });
+
+    it('shows the sl-invalid notice when the stop loss is on the wrong side', () => {
+      // Arrange: long, market 90000 — SL above market is wrong side
+      mockOrderForm.stopLossPrice = '95000';
+      const { result } = renderProForm();
+
+      // Assert
+      expect(
+        result.current.notices.find((n) => n.id === 'sl-invalid'),
+      ).toBeDefined();
+    });
   });
 
   describe('handlePlaceOrder', () => {
@@ -335,6 +368,57 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalled();
+    });
+
+    it('aborts submit when the stop loss risks liquidation (doesStopLossRiskLiquidation guard)', async () => {
+      // Arrange: long, liquidation 80000 — SL at 79000 is past liquidation
+      mockOrderForm.stopLossPrice = '79000';
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('skips updatePositionTPSL and clearPendingConfig when the order fails (shouldHandleTPSLSeparately path)', async () => {
+      // Arrange: new market position with TP triggers the separate-TP/SL branch;
+      // controller returns failure so post-processing must not run
+      mockOrderForm.takeProfitPrice = '95000';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: false,
+        error: 'rejected',
+      });
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockUpdatePositionTPSL).not.toHaveBeenCalled();
+      expect(mockClearPendingTradeConfiguration).not.toHaveBeenCalled();
+    });
+
+    it('skips clearPendingConfig when the order fails (plain else path)', async () => {
+      // Arrange: no TP/SL, controller returns failure
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: false,
+        error: 'rejected',
+      });
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockClearPendingTradeConfiguration).not.toHaveBeenCalled();
     });
   });
 
@@ -470,6 +554,33 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('is disabled when the stop loss risks liquidation', () => {
+      // Arrange: long, liquidation 80000 — SL at 79000 sits past liquidation
+      mockOrderForm.stopLossPrice = '79000';
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('is disabled when the take profit is on the wrong side', () => {
+      // Arrange: long, market 90000 — TP below market price is invalid
+      mockOrderForm.takeProfitPrice = '85000';
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('is disabled when the stop loss is on the wrong side', () => {
+      // Arrange: long, market 90000 — SL above market price is invalid
+      mockOrderForm.stopLossPrice = '95000';
+      const { result } = renderProForm();
+
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
   });
 
