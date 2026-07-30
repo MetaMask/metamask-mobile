@@ -115,11 +115,6 @@ export interface FeedViewProps {
    */
   onScroll?: AnimatedScrollHandler;
   /**
-   * Top padding applied to the scroll content so the first row sits below the
-   * parent's floating title + tabs at rest.
-   */
-  contentTopInset?: number;
-  /**
    * Lets the tabs container drive this page's scroll offset so the collapsing
    * title stays put when the user switches tabs.
    */
@@ -140,7 +135,6 @@ const FeedView: React.FC<FeedViewProps> = ({
   onQuickBuy,
   onSpotAvailabilityChange,
   onScroll,
-  contentTopInset = 0,
   pageRef,
 }) => {
   const tw = useTailwind();
@@ -172,7 +166,9 @@ const FeedView: React.FC<FeedViewProps> = ({
     pageRef,
     () => ({
       scrollToOffset: (offset: number, animated = false) => {
-        listRef.current?.getScrollResponder()?.scrollTo({ y: offset, animated });
+        listRef.current
+          ?.getScrollResponder()
+          ?.scrollTo({ y: offset, animated });
         skeletonScrollRef.current?.scrollTo({ y: offset, animated });
       },
     }),
@@ -424,16 +420,9 @@ const FeedView: React.FC<FeedViewProps> = ({
         tintColor={colors.icon.default}
         refreshing={refreshing}
         onRefresh={handleRefresh}
-        progressViewOffset={contentTopInset}
       />
     ),
-    [
-      colors.primary.default,
-      colors.icon.default,
-      refreshing,
-      handleRefresh,
-      contentTopInset,
-    ],
+    [colors.primary.default, colors.icon.default, refreshing, handleRefresh],
   );
 
   const renderListEmpty = useCallback(() => {
@@ -515,9 +504,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         <Animated.ScrollView
           ref={skeletonScrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('pb-6', {
-            paddingTop: contentTopInset,
-          })}
+          contentContainerStyle={tw.style('pb-6')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -549,9 +536,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={tw.style('pb-6 flex-grow', {
-          paddingTop: contentTopInset,
-        })}
+        contentContainerStyle={tw.style('pb-6 flex-grow')}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -569,7 +554,6 @@ const FeedView: React.FC<FeedViewProps> = ({
     handleEndReached,
     filterRow,
     onScroll,
-    contentTopInset,
     tw,
   ]);
 

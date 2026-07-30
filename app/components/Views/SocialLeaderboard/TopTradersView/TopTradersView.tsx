@@ -182,11 +182,6 @@ export interface TopTradersViewProps {
    */
   onScroll?: AnimatedScrollHandler;
   /**
-   * Top padding applied to the scroll content so the first row sits below the
-   * parent's floating title + tabs at rest. Only used in `embeddedInTabs` mode.
-   */
-  contentTopInset?: number;
-  /**
    * Lets the tabs container drive this page's scroll offset so the collapsing
    * title stays put when the user switches tabs. Only used in `embeddedInTabs`
    * mode.
@@ -197,7 +192,6 @@ export interface TopTradersViewProps {
 const TopTradersView: React.FC<TopTradersViewProps> = ({
   embeddedInTabs = false,
   onScroll: onScrollProp,
-  contentTopInset = 0,
   pageRef,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -722,12 +716,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   const scrollHandler =
     embeddedInTabs && onScrollProp ? onScrollProp : onScroll;
-  const contentContainerStyle = tw.style('pb-6', {
-    paddingTop: embeddedInTabs ? contentTopInset : 0,
-  });
-  const refreshProgressViewOffset = embeddedInTabs
-    ? contentTopInset
-    : undefined;
+  const contentContainerStyle = tw.style('pb-6');
 
   const listBody = (
     <Box twClassName="flex-1">
@@ -747,7 +736,6 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              progressViewOffset={refreshProgressViewOffset}
             />
           }
         >
@@ -777,7 +765,6 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              progressViewOffset={refreshProgressViewOffset}
             />
           }
         />

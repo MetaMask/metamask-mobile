@@ -104,15 +104,6 @@ const SocialTradersTabsView: React.FC = () => {
   // The tabs bar stops there so it stays pinned under the header.
   const titleHeightSv = useSharedValue(0);
   const [titleHeight, setTitleHeight] = useState(0);
-  const [tabsHeight, setTabsHeight] = useState(0);
-  // Pushes each page's first row below the floating title + tabs at rest.
-  const contentTopInset = titleHeight + tabsHeight;
-  // The inset is only known after the overlay's `onLayout` fires (a frame after
-  // first paint). Until then the pages would lay their content out at the top,
-  // under the floating title/tabs, then snap down once measured. Keep the pages
-  // mounted (so their fetches start) but hidden until the inset is real to avoid
-  // that first-frame content jump.
-  const isHeaderMeasured = titleHeight > 0 && tabsHeight > 0;
 
   const handleTitleLayout = useCallback(
     (e: LayoutChangeEvent) => {
@@ -122,10 +113,6 @@ const SocialTradersTabsView: React.FC = () => {
     },
     [titleHeightSv],
   );
-
-  const handleTabsLayout = useCallback((e: LayoutChangeEvent) => {
-    setTabsHeight(e.nativeEvent.layout.height);
-  }, []);
 
   /**
    * Brings the incoming page's scroll offset into agreement with the outgoing
@@ -177,18 +164,30 @@ const SocialTradersTabsView: React.FC = () => {
     [titleHeight, leaderboardScrollY, feedScrollY],
   );
 
-  // Slide the title (and the tabs riding above it) up as the page scrolls,
-  // clamped so the tabs settle flush under the header instead of scrolling off.
-  // The lower clamp (>= 0) keeps the overlay pinned at rest during pull-to-
-  // refresh overscroll: without it a negative scroll offset drives the overlay
+  // The title, tabs, and pager form one normal-flow column that slides up as
+  // the active page scrolls, clamped so the tabs settle flush under the header
+  // instead of scrolling off. Because the pages lay out below the title/tabs in
+  // flow, the very first frame is already correct — nothing depends on a
+  // measured inset, so navigating here never flashes mispositioned content.
+  //
+  // `bottom: -titleHeight` overdraws the block below the fold by the collapse
+  // distance so the pager still reaches the bottom of the screen once the block
+  // is translated up. Before the title measures it's 0, which is exactly the
+  // resting layout.
+  //
+  // The lower clamp (>= 0) keeps the block pinned at rest during pull-to-
+  // refresh overscroll: without it a negative scroll offset drives the block
   // *downward*, so it re-tracks the bounce through this derived value while the
   // list content springs back natively — the two desync and the return motion
-  // looks erratic. Pinning the overlay lets only the content bounce.
-  const collapsingHeaderStyle = useAnimatedStyle(() => {
+  // looks erratic. Pinning the block lets only the content bounce.
+  const collapsingBlockStyle = useAnimatedStyle(() => {
     const maxShift = titleHeightSv.value;
     const shift =
       maxShift > 0 ? Math.max(0, Math.min(scrollY.value, maxShift)) : 0;
-    return { transform: [{ translateY: -shift }] };
+    return {
+      bottom: -maxShift,
+      transform: [{ translateY: -shift }],
+    };
   });
 
   // The spot Buy orchestrator (QuickBuy sheet / swaps A/B) is hosted here,
@@ -376,58 +375,17 @@ const SocialTradersTabsView: React.FC = () => {
         testID={SocialTradersTabsViewSelectorsIDs.HEADER}
       />
 
-      {/* `overflow-hidden` clips the floating title as it slides up so it
+      {/* `overflow-hidden` clips the title as the block slides up so it
           disappears *under* the fixed header (revealing the compact title)
           instead of scrolling over the back button / notification bell. */}
       <Box twClassName="flex-1 overflow-hidden">
-        <PagerView
-          ref={pagerRef}
-          style={tw.style('flex-1', { opacity: isHeaderMeasured ? 1 : 0 })}
-          initialPage={LEADERBOARD_INDEX}
-          onPageSelected={handlePageSelected}
-          testID={SocialTradersTabsViewSelectorsIDs.PAGER}
-        >
-          <View
-            key="leaderboard"
-            style={tw.style('flex-1')}
-            collapsable={false}
-            testID={SocialTradersTabsViewSelectorsIDs.LEADERBOARD_PAGE}
-          >
-            <TopTradersView
-              embeddedInTabs
-              onScroll={leaderboardScrollHandler}
-              contentTopInset={contentTopInset}
-              pageRef={leaderboardPageRef}
-            />
-          </View>
-          <View
-            key="feed"
-            style={tw.style('flex-1')}
-            collapsable={false}
-            testID={SocialTradersTabsViewSelectorsIDs.FEED_PAGE}
-          >
-            <FeedView
-              isActive={activeIndex === FEED_INDEX}
-              onQuickBuy={handleQuickBuy}
-              onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
-              onScroll={feedScrollHandler}
-              contentTopInset={contentTopInset}
-              pageRef={feedPageRef}
-            />
-          </View>
-        </PagerView>
-
-        {/* Floating title + tabs. Only the tabs stay pinned under the header;
-            the large title slides up and collapses into the compact header. */}
         <Animated.View
-          pointerEvents="box-none"
           style={[
-            tw.style('absolute top-0 left-0 right-0 z-10'),
-            collapsingHeaderStyle,
+            tw.style('absolute top-0 left-0 right-0'),
+            collapsingBlockStyle,
           ]}
         >
           <Box
-            pointerEvents="none"
             twClassName="px-4 pt-2 pb-3 bg-default"
             onLayout={handleTitleLayout}
           >
@@ -440,7 +398,7 @@ const SocialTradersTabsView: React.FC = () => {
             </Text>
           </Box>
 
-          <Box twClassName="bg-default" onLayout={handleTabsLayout}>
+          <Box twClassName="bg-default">
             <TabsBar
               tabs={tabs}
               activeIndex={activeIndex}
@@ -448,6 +406,41 @@ const SocialTradersTabsView: React.FC = () => {
               testID={SocialTradersTabsViewSelectorsIDs.TABS}
             />
           </Box>
+
+          <PagerView
+            ref={pagerRef}
+            style={tw.style('flex-1')}
+            initialPage={LEADERBOARD_INDEX}
+            onPageSelected={handlePageSelected}
+            testID={SocialTradersTabsViewSelectorsIDs.PAGER}
+          >
+            <View
+              key="leaderboard"
+              style={tw.style('flex-1')}
+              collapsable={false}
+              testID={SocialTradersTabsViewSelectorsIDs.LEADERBOARD_PAGE}
+            >
+              <TopTradersView
+                embeddedInTabs
+                onScroll={leaderboardScrollHandler}
+                pageRef={leaderboardPageRef}
+              />
+            </View>
+            <View
+              key="feed"
+              style={tw.style('flex-1')}
+              collapsable={false}
+              testID={SocialTradersTabsViewSelectorsIDs.FEED_PAGE}
+            >
+              <FeedView
+                isActive={activeIndex === FEED_INDEX}
+                onQuickBuy={handleQuickBuy}
+                onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
+                onScroll={feedScrollHandler}
+                pageRef={feedPageRef}
+              />
+            </View>
+          </PagerView>
         </Animated.View>
       </Box>
 
