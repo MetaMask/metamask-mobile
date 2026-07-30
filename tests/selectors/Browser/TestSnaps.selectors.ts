@@ -126,6 +126,35 @@ export const NativeDropdownSelectorWebIDS = {
   snapUIDropdown: 'snap-ui-renderer__dropdown',
 };
 
+/** Native Snap UI renderer element IDs used outside web dropdown option maps. */
+export const SnapUIRendererSelectorIDs = {
+  selectorItem: 'snap-ui-renderer__selector-item',
+};
+
+/** Native Snap UI dialog custom input (Detox / Android Appium testID). */
+export const SnapUIInputSelectorIDs = {
+  customDialogInput: 'custom-input-snap-ui-input',
+};
+
+/**
+ * iOS Appium XPath for the dialog custom input — testID is not exposed in
+ * the XCUITest page source, so target the textfield under the Snap UI scrollview.
+ */
+export const SnapUIInputSelectorXPaths = {
+  customDialogInputIos:
+    '//*[@name="snap-ui-renderer__scrollview"]//*[@name="textfield"]',
+};
+
+export function snapUISelectorItemAndroidUIAutomator(text: string): string {
+  const id = SnapUIRendererSelectorIDs.selectorItem;
+  return `.resourceIdMatches(".*${id}.*").childSelector(new UiSelector().text("${text}"))`;
+}
+
+export function snapUISelectorItemIosXPath(text: string): string {
+  const id = SnapUIRendererSelectorIDs.selectorItem;
+  return `//*[@name="${id}" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="${id}"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`;
+}
+
 /**
  * Visible button labels for Android UiScrollable fallbacks when resource-id
  * nodes are virtualized off-screen in the WebView accessibility tree.

@@ -9,6 +9,11 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
+  SnapUIRendererSelectorIDs,
+  SnapUIInputSelectorIDs,
+  SnapUIInputSelectorXPaths,
+  snapUISelectorItemAndroidUIAutomator,
+  snapUISelectorItemIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
@@ -426,10 +431,9 @@ class TestSnaps {
    */
   async fillCustomDialogInput(text: string) {
     const input = resolve({
-      detoxTestID: 'custom-input-snap-ui-input',
-      androidAppiumTestID: 'custom-input-snap-ui-input',
-      iosAppiumXPath:
-        '//*[@name="snap-ui-renderer__scrollview"]//*[@name="textfield"]',
+      detoxTestID: SnapUIInputSelectorIDs.customDialogInput,
+      androidAppiumTestID: SnapUIInputSelectorIDs.customDialogInput,
+      iosAppiumXPath: SnapUIInputSelectorXPaths.customDialogInputIos,
     });
 
     await Gestures.typeText(input, text, { hideKeyboard: true });
@@ -448,16 +452,18 @@ class TestSnaps {
     const selectorItem = encapsulated({
       detox: () =>
         element(
-          by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
+          by
+            .text(text)
+            .withAncestor(by.id(SnapUIRendererSelectorIDs.selectorItem)),
         ) as unknown as DetoxElement,
       appium: {
         android: () =>
           PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.resourceIdMatches(".*snap-ui-renderer__selector-item.*").childSelector(new UiSelector().text("${text}"))`,
+            snapUISelectorItemAndroidUIAutomator(text),
           ),
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
-            `//*[@name="snap-ui-renderer__selector-item" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="snap-ui-renderer__selector-item"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
+            snapUISelectorItemIosXPath(text),
           ),
       },
     });
