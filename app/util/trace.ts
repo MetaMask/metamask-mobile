@@ -998,6 +998,11 @@ export function applyPendingOnboardingMachineTime(): void {
   pendingOnboardingMachineTimeMs = 0;
 }
 
+export function _resetOnboardingMachineTimeForTesting(): void {
+  onboardingMachineTimeMs = 0;
+  pendingOnboardingMachineTimeMs = 0;
+}
+
 export function discardBufferedTraces() {
   pendingOnboardingMachineTimeMs += harvestBufferedOnboardingMachineTime();
   localBufferedTraces.length = 0;
