@@ -9,7 +9,7 @@ import {
   selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
-  selectMoneyDepositCtaTokens,
+  selectMoneyDepositCtaTokenAddresses,
   selectMoneyEarnBannerTokens,
 } from '../selectors/featureFlags';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
@@ -35,7 +35,7 @@ const actualIsTokenInWildcardList = jest.requireActual<
 >('../../Earn/utils/wildcardTokenList').isTokenInWildcardList;
 
 const ctaToken = {
-  address: '0xAbC',
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: '0x1',
   symbol: 'USDC',
 } as TokenI;
@@ -47,7 +47,7 @@ interface SelectorState {
   ctaEnabled: boolean;
   assetOverviewFooterCtaEnabled: boolean;
   assetOverviewBalanceCtaEnabled: boolean;
-  ctaTokens: Record<string, string[]>;
+  ctaTokenAddresses: Record<string, string[]>;
   geoEligible: boolean;
   vaultConfig: object | undefined;
   primaryMoneyAccount: { address?: string } | undefined;
@@ -60,7 +60,7 @@ const setupSelectors = ({
   ctaEnabled = true,
   assetOverviewFooterCtaEnabled = true,
   assetOverviewBalanceCtaEnabled = true,
-  ctaTokens = { '*': ['USDC'] },
+  ctaTokenAddresses = { '0x1': [ctaToken.address] },
   geoEligible = true,
   earnBannerEnabled = true,
   earnBannerTokens = { '0x1': ['USDC'] },
@@ -83,8 +83,8 @@ const setupSelectors = ({
     if (selector === selectIsMoneyAssetOverviewBalanceCtaEnabledFlag) {
       return assetOverviewBalanceCtaEnabled;
     }
-    if (selector === selectMoneyDepositCtaTokens) {
-      return ctaTokens;
+    if (selector === selectMoneyDepositCtaTokenAddresses) {
+      return ctaTokenAddresses;
     }
     if (selector === selectIsMoneyAccountGeoEligible) {
       return geoEligible;
@@ -122,7 +122,7 @@ describe('useMoneyCtaVisibility', () => {
     const { result } = renderHook(() => useMoneyCtaVisibility());
 
     const isVisible = result.current.shouldShowMoneyTokenListItemCta(
-      createToken({ address: '0xabc', chainId: '0X1' }),
+      createToken({ address: ctaToken.address.toLowerCase() }),
     );
 
     expect(isVisible).toBe(true);
@@ -168,8 +168,12 @@ describe('useMoneyCtaVisibility', () => {
     );
   });
 
-  it('returns false when token symbol is absent from configured wildcard list', () => {
-    mockIsTokenInWildcardList.mockReturnValue(false);
+  it('returns false when token address is absent from configured address list', () => {
+    setupSelectors({
+      ctaTokenAddresses: {
+        '0x1': ['0xdAC17F958D2ee523a2206206994597C13D831ec7'],
+      },
+    });
 
     const { result } = renderHook(() => useMoneyCtaVisibility());
 
@@ -209,6 +213,30 @@ describe('useMoneyCtaVisibility', () => {
 
       expect(
         result.current.shouldShowMoneyAssetOverviewFooterCta(ctaToken),
+      ).toBe(false);
+    });
+
+    it('hides footer CTA for a same-symbol asset with another address', () => {
+      const customUsdc = createToken({
+        address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(customUsdc),
+      ).toBe(false);
+    });
+
+    it('hides footer CTA for a configured address on another chain', () => {
+      const assetOnAnotherChain = createToken({ chainId: '0xa4b1' });
+
+      const { result } = renderHook(() => useMoneyCtaVisibility());
+
+      expect(
+        result.current.shouldShowMoneyAssetOverviewFooterCta(
+          assetOnAnotherChain,
+        ),
       ).toBe(false);
     });
 
@@ -319,7 +347,9 @@ describe('useMoneyCtaVisibility', () => {
 
     it('returns false when the token has been dismissed', () => {
       setupSelectors({
-        earnBannerDismissedTokens: { '0x1-0xabc': true },
+        earnBannerDismissedTokens: {
+          [`0x1-${ctaToken.address.toLowerCase()}`]: true,
+        },
       });
 
       const { result } = renderHook(() => useMoneyCtaVisibility());

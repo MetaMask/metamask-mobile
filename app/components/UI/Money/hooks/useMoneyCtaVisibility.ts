@@ -4,12 +4,13 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { TokenI } from '../../Tokens/types';
 import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
+import { isEvmTokenAddress } from '../utils/erc20TokenAddressList';
 import {
   selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
   selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
-  selectMoneyDepositCtaTokens,
+  selectMoneyDepositCtaTokenAddresses,
   selectMoneyEarnBannerTokens,
 } from '../selectors/featureFlags';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
@@ -18,7 +19,7 @@ import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
 
 const getTokenKey = (address: string, chainId: string) =>
-  `${chainId.toLowerCase()}-${address.toLowerCase()}`;
+  `${safeFormatChainIdToHex(chainId).toLowerCase()}-${address.toLowerCase()}`;
 
 /**
  * Source of truth for Money account CTAs displayed in shared token-list rows.
@@ -33,7 +34,7 @@ export const useMoneyCtaVisibility = () => {
   const isAssetOverviewBalanceCtaEnabled = useSelector(
     selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
   );
-  const ctaTokens = useSelector(selectMoneyDepositCtaTokens);
+  const ctaTokenAddresses = useSelector(selectMoneyDepositCtaTokenAddresses);
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
@@ -44,14 +45,26 @@ export const useMoneyCtaVisibility = () => {
   );
   const { tokens: depositTokens } = useMoneyDepositTokens();
 
-  const ctaTokenKeys = useMemo(
+  const configuredCtaTokenKeys = useMemo(
+    () =>
+      new Set(
+        Object.entries(ctaTokenAddresses).flatMap(([chainId, addresses]) =>
+          addresses.map((address) => getTokenKey(address, chainId)),
+        ),
+      ),
+    [ctaTokenAddresses],
+  );
+
+  const ctaDepositTokenKeys = useMemo(
     () =>
       new Set(
         depositTokens.flatMap((token) => {
           if (
             !token.address ||
             !token.chainId ||
-            !isTokenInWildcardList(token.symbol, ctaTokens, token.chainId)
+            !configuredCtaTokenKeys.has(
+              getTokenKey(token.address, token.chainId),
+            )
           ) {
             return [];
           }
@@ -59,7 +72,7 @@ export const useMoneyCtaVisibility = () => {
           return [getTokenKey(token.address, token.chainId)];
         }),
       ),
-    [ctaTokens, depositTokens],
+    [configuredCtaTokenKeys, depositTokens],
   );
 
   const isMoneyAccountReady = Boolean(
@@ -78,10 +91,10 @@ export const useMoneyCtaVisibility = () => {
         return false;
       }
 
-      return ctaTokenKeys.has(getTokenKey(asset.address, asset.chainId));
+      return ctaDepositTokenKeys.has(getTokenKey(asset.address, asset.chainId));
     },
     [
-      ctaTokenKeys,
+      ctaDepositTokenKeys,
       isGeoEligible,
       isMoneyAccountReady,
       isTokenListItemCtaEnabled,
@@ -94,15 +107,19 @@ export const useMoneyCtaVisibility = () => {
         !isAssetOverviewFooterCtaEnabled ||
         !isGeoEligible ||
         !isMoneyAccountReady ||
+        !asset?.address ||
         !asset?.chainId
       ) {
         return false;
       }
 
-      return isTokenInWildcardList(asset.symbol, ctaTokens, asset.chainId);
+      return (
+        isEvmTokenAddress(asset.address) &&
+        configuredCtaTokenKeys.has(getTokenKey(asset.address, asset.chainId))
+      );
     },
     [
-      ctaTokens,
+      configuredCtaTokenKeys,
       isAssetOverviewFooterCtaEnabled,
       isGeoEligible,
       isMoneyAccountReady,
@@ -121,10 +138,10 @@ export const useMoneyCtaVisibility = () => {
         return false;
       }
 
-      return ctaTokenKeys.has(getTokenKey(asset.address, asset.chainId));
+      return ctaDepositTokenKeys.has(getTokenKey(asset.address, asset.chainId));
     },
     [
-      ctaTokenKeys,
+      ctaDepositTokenKeys,
       isAssetOverviewBalanceCtaEnabled,
       isGeoEligible,
       isMoneyAccountReady,

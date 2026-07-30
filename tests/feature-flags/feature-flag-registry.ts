@@ -3377,8 +3377,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyDepositCtaTokens: {
-    name: 'earnMoneyDepositCtaTokens',
+  earnMoneyDepositCtaTokenAddresses: {
+    name: 'earnMoneyDepositCtaTokenAddresses',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {},

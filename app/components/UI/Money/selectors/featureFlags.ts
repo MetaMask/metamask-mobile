@@ -16,6 +16,10 @@ import {
   WildcardTokenList,
 } from '../../Earn/utils/wildcardTokenList';
 import {
+  Erc20TokenAddressList,
+  getErc20TokenAddressListFromConfig,
+} from '../utils/erc20TokenAddressList';
+import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
   ensureMonadMusdListed,
 } from '../utils/depositFaqTokens';
@@ -170,17 +174,19 @@ export const selectIsMoneyAssetOverviewBalanceCtaEnabledFlag = createSelector(
 );
 
 /**
- * Selects stablecoins that can display the Money account deposit CTA.
+ * Selects the explicit EVM token contracts that can display Money account
+ * deposit CTAs.
+ *
  * Remote config takes precedence over the local environment override.
  */
-export const selectMoneyDepositCtaTokens = createSelector(
+export const selectMoneyDepositCtaTokenAddresses = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList =>
-    getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyDepositCtaTokens,
-      'earnMoneyDepositCtaTokens',
-      process.env.MM_MONEY_DEPOSIT_CTA_TOKENS,
-      'MM_MONEY_DEPOSIT_CTA_TOKENS',
+  (remoteFeatureFlags): Erc20TokenAddressList =>
+    getErc20TokenAddressListFromConfig(
+      remoteFeatureFlags?.earnMoneyDepositCtaTokenAddresses,
+      'earnMoneyDepositCtaTokenAddresses',
+      process.env.MM_MONEY_DEPOSIT_CTA_TOKEN_ADDRESSES,
+      'MM_MONEY_DEPOSIT_CTA_TOKEN_ADDRESSES',
     ),
 );
 
