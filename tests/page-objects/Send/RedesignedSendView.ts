@@ -13,12 +13,11 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class SendView {
-  get ethereumTokenButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('Ethereum');
+  get ethTokenAssetButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(getAssetTestId('ETH'), 0);
   }
 
   get erc20TokenButton(): EncapsulatedElementType {
@@ -90,24 +89,32 @@ class SendView {
   }
 
   async selectEthereumToken(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.ethereumTokenButton, {
+    // The redesigned send picker lists the native ETH row directly (asset-ETH);
+    // tap it, retrying until the Amount screen opens. Mirrors selectERC20Token:
+    // the asset list can re-render while hydrating and a tap may highlight the
+    // row without firing onPress, so we wait for stability and retry.
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+          return;
+        } catch {
+          // Still on the asset picker
+        }
+
+        await Gestures.waitAndTap(this.ethTokenAssetButton, {
           elemDescription: 'Select ethereum token',
+          checkStability: true,
+          delay: 1000,
         });
+
+        await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
       },
-      appium: async () => {
-        // Tap the Ethereum network filter chip (chainId 0x1) to filter tokens
-        const networkChip = await PlaywrightMatchers.getElementById(
-          getNetworkFilterTestId('0x1'),
-        );
-        await PlaywrightGestures.scrollIntoView(networkChip);
-        await PlaywrightGestures.waitAndTap(networkChip);
-        // Tap the first ETH token row (no testID in production, use text)
-        const ethToken = await PlaywrightMatchers.getElementByText('ETH');
-        await PlaywrightGestures.waitAndTap(ethToken);
+      {
+        timeout: 25000,
+        description: 'Select ethereum token and open amount screen',
       },
-    });
+    );
   }
 
   async selectERC20Token(): Promise<void> {
