@@ -471,7 +471,7 @@ class QuoteView {
           const moreNetworks = await asPlaywrightElement(
             this.moreNetworksButton,
           );
-          if (await moreNetworks.isExisting()) {
+          if (await moreNetworks.unwrap().isExisting()) {
             await PlaywrightGestures.scrollIntoViewFullyVisible(moreNetworks);
           }
         } catch {
