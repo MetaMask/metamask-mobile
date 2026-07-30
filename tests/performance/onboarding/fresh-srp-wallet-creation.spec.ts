@@ -1,15 +1,10 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import {
-  addOverhead,
   asPlaywrightElement,
-  isOverheadTrackingActive,
   PlaywrightAssertions,
   PlaywrightGestures,
 } from '../../framework';
-import { OnboardingInterestQuestionnaireTestIds } from '../../../app/components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.testIds';
-import { NewUserSheetSelectorsIDs } from '../../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
-import { PREDICT_GTM_MODAL_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictGTMModal/PredictGTMModal.testIds';
-import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
+import { withImplicitWait } from '../../framework/PlaywrightUtilities';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import TimerHelper, {
   type PlatformThreshold,
@@ -73,81 +68,131 @@ const POST_ONBOARDING_SOURCE_LABELS: Record<PostOnboardingSource, string> = {
   'predict-modal': '"Not now" on the Predict onboarding sheet',
 };
 
+const DESTINATION_PROBE_IMPLICIT_WAIT_MS = 300;
+
+const isCandidateVisible = async (
+  getElement: () => ReturnType<typeof asPlaywrightElement>,
+): Promise<boolean> => {
+  try {
+    const el = await getElement();
+    return (await el.unwrap().isExisting()) && (await el.isVisible());
+  } catch {
+    return false;
+  }
+};
+
 const waitForPostOnboardingDestination = async (
   appDriver: WebdriverIO.Browser,
   dismissedDestinations: ReadonlySet<PostOnboardingDestination>,
 ): Promise<PostOnboardingDestination> => {
+  // Sheet destinations are listed before wallet so a still-open prompt wins
+  // over the tab bar (which often remains mounted behind sheets).
   const candidates: {
     destination: PostOnboardingDestination;
-    marker: string;
     getElement: () => ReturnType<typeof asPlaywrightElement>;
   }[] = [
     {
       destination: 'interest-questionnaire',
-      marker: OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
       getElement: () =>
         asPlaywrightElement(OnboardingInterestQuestionnaireView.skipButton),
     },
     {
       destination: 'push-notification',
-      marker: NewUserSheetSelectorsIDs.TITLE,
       getElement: () =>
         asPlaywrightElement(PushNotificationOnboardingView.title),
     },
     {
       destination: 'predict-modal',
-      marker: PREDICT_GTM_MODAL_TEST_IDS.NOT_NOW_BUTTON,
       getElement: () => asPlaywrightElement(PredictModalView.notNowButton),
     },
     {
-      // Wait on the tab-bar Wallet button (matches import-wallet.spec.ts) so
-      // the timer stops when the home experience is actually usable, not
-      // just when the wallet shell mounts.
+      // Tab-bar Wallet button (matches import-wallet.spec.ts): usable home,
+      // not just wallet shell mount.
       destination: 'wallet',
-      marker: TabBarSelectorIDs.WALLET,
       getElement: () => asPlaywrightElement(TabBarComponent.tabBarWalletButton),
     },
   ];
 
+  const remaining = candidates.filter(
+    (candidate) => !dismissedDestinations.has(candidate.destination),
+  );
+
+  if (remaining.length === 0) {
+    throw new Error('No post-onboarding destinations remain to wait for');
+  }
+
+  // Last hop (typically Predict → wallet): skip multi-candidate polling and
+  // wait on the single remaining element. Avoids expensive getPageSource dumps
+  // that inflate cloud performance timers while the UI is already ready.
+  if (remaining.length === 1) {
+    const only = remaining[0];
+    await PlaywrightAssertions.expectElementToBeVisible(only.getElement(), {
+      description: `${POST_ONBOARDING_DESTINATION_LABELS[only.destination]} should be visible`,
+    });
+    return only.destination;
+  }
+
   let visibleCandidate: (typeof candidates)[number] | undefined;
 
-  await appDriver.waitUntil(
-    async () => {
-      const probeStartedAt = Date.now();
-      const pageSource = await appDriver.getPageSource();
-      // Every getPageSource poll is Appium round-trip work, not app work —
-      // account for the full probe so cumulative polling latency doesn't
-      // inflate the measured transition duration. The `waitForDisplayed`
-      // check below adds its own bounded probe on top.
-      if (isOverheadTrackingActive()) {
-        addOverhead(Date.now() - probeStartedAt);
-      }
-      visibleCandidate = candidates.find(
-        (candidate) =>
-          !dismissedDestinations.has(candidate.destination) &&
-          pageSource.includes(candidate.marker),
-      );
-      return Boolean(visibleCandidate);
-    },
-    {
-      timeout: 30_000,
-      interval: 250,
-      timeoutMsg: 'No post-onboarding destination became visible',
-    },
-  );
+  // Probe concrete elements instead of getPageSource(): full hierarchy dumps
+  // are multi-second Appium RTTs on BrowserStack/TestMu and were not fully
+  // subtracted from TimerHelper (only the final probe is).
+  await withImplicitWait(DESTINATION_PROBE_IMPLICIT_WAIT_MS, async () => {
+    await appDriver.waitUntil(
+      async () => {
+        // Prefer any visible sheet over wallet — tab bar often stays mounted.
+        for (const candidate of remaining) {
+          if (candidate.destination === 'wallet') {
+            continue;
+          }
+          if (await isCandidateVisible(candidate.getElement)) {
+            visibleCandidate = candidate;
+            return true;
+          }
+        }
+
+        const walletCandidate = remaining.find(
+          (candidate) => candidate.destination === 'wallet',
+        );
+        if (!walletCandidate) {
+          return false;
+        }
+        if (!(await isCandidateVisible(walletCandidate.getElement))) {
+          return false;
+        }
+
+        // Defer wallet while a remaining sheet is still in the hierarchy
+        // (e.g. animating out after "Not now").
+        for (const sheet of remaining) {
+          if (sheet.destination === 'wallet') {
+            continue;
+          }
+          try {
+            const sheetEl = await sheet.getElement();
+            if (await sheetEl.unwrap().isExisting()) {
+              return false;
+            }
+          } catch {
+            // ignore probe errors
+          }
+        }
+
+        visibleCandidate = walletCandidate;
+        return true;
+      },
+      {
+        timeout: 30_000,
+        interval: 250,
+        timeoutMsg: 'No post-onboarding destination became visible',
+      },
+    );
+  });
 
   const resolvedCandidate = visibleCandidate;
   if (!resolvedCandidate) {
     throw new Error('Post-onboarding destination was not resolved');
   }
 
-  // `pageSource.includes(marker)` matches any occurrence in the hierarchy —
-  // a mounted-but-covered route (e.g. Wallet behind a sheet) can win before
-  // the topmost sheet is dismissed. Assert the specific candidate element is
-  // actually displayed to guard against selecting a covered screen.
-  // Note: expectElementToBeVisible internally accounts for probe overhead
-  // where appropriate; do not wrap it in addOverhead here — that would also
-  // subtract legitimate UI-wait time and under-report the transition.
   await PlaywrightAssertions.expectElementToBeVisible(
     resolvedCandidate.getElement(),
     {
@@ -192,6 +237,23 @@ const dismissPostOnboardingDestination = async (
     case 'predict-modal':
       await PredictModalView.tapNotNowButton();
       break;
+  }
+};
+
+/**
+ * Once a later prompt appears, earlier ones in POST_ONBOARDING_DESTINATIONS
+ * will not show. Mark them dismissed so later hops do not keep probing them
+ * (failed isExisting with implicit wait was inflating Predict → wallet).
+ */
+const markSkippedDestinationsBefore = (
+  dismissedDestinations: Set<PostOnboardingDestination>,
+  reached: PostOnboardingDestination,
+): void => {
+  for (const destination of POST_ONBOARDING_DESTINATIONS) {
+    if (destination === reached) {
+      break;
+    }
+    dismissedDestinations.add(destination);
   }
 };
 
@@ -323,6 +385,10 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           break;
         }
 
+        // Interest/push may never appear; once we land on a later sheet,
+        // mark prior destinations skipped so the next hop short-circuits to
+        // a single-element wait (Predict → wallet) instead of probing ghosts.
+        markSkippedDestinationsBefore(dismissedDestinations, destination);
         await dismissPostOnboardingDestination(destination);
         dismissedDestinations.add(destination);
         source = destination;
