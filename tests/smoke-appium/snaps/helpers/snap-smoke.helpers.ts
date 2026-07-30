@@ -12,9 +12,17 @@
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import type { CurrentDeviceDetails } from '../../../framework/fixtures/playwright/index.js';
+import type {
+  LocalNodeOptionsInput,
+  WithFixturesOptions,
+} from '../../../framework/types.js';
 
 interface SnapFixtureOptions {
   fixture?: ReturnType<FixtureBuilder['build']>;
+  analyticsExpectations?: WithFixturesOptions['analyticsExpectations'];
+  testSpecificMock?: WithFixturesOptions['testSpecificMock'];
+  localNodeOptions?: LocalNodeOptionsInput;
+  restartDevice?: WithFixturesOptions['restartDevice'];
 }
 
 export async function withSnapsFixtures(
@@ -22,12 +30,21 @@ export async function withSnapsFixtures(
   options: SnapFixtureOptions,
   testFn: () => Promise<void>,
 ): Promise<void> {
-  const { fixture = new FixtureBuilder().build() } = options;
+  const {
+    fixture = new FixtureBuilder().build(),
+    analyticsExpectations,
+    testSpecificMock,
+    localNodeOptions,
+    restartDevice = true,
+  } = options;
 
   await withFixtures(
     {
       fixture,
-      restartDevice: true,
+      restartDevice,
+      analyticsExpectations,
+      testSpecificMock,
+      localNodeOptions,
       currentDeviceDetails,
     },
     testFn,
