@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import LinkedOffDeviceAccountsSheet from './LinkedOffDeviceAccountsSheet';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -139,9 +140,26 @@ jest.mock('../../../../../core/ClipboardManager', () => ({
   default: { setString: jest.fn().mockResolvedValue(undefined) },
 }));
 
-// Mock @metamask/controller-utils toHex
+// Mock @metamask/controller-utils toHex, keeping the rest intact so
+// transitively-loaded modules (e.g. transaction-controller via Engine) still
+// find exports like ChainId.
 jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
   toHex: jest.fn(() => '0x1'),
+}));
+
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
+const mockGetBetaSupportUrl = jest.fn(
+  () => 'https://intercom.help/internal-beta-testing/en/',
+);
+jest.mock('../../utils', () => ({
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
@@ -300,7 +318,9 @@ describe('LinkedOffDeviceAccountsSheet', () => {
   });
 
   describe('Interactions', () => {
-    it('navigates to the SimpleWebview with the support URL when "let us know" is pressed', () => {
+    // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
+    // "let us know" opens it directly rather than through the consent flow.
+    it('navigates to the SimpleWebview with the beta support URL when "let us know" is pressed on a beta build', () => {
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
@@ -310,15 +330,22 @@ describe('LinkedOffDeviceAccountsSheet', () => {
       fireEvent.press(
         getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
       );
+
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
-        params: expect.objectContaining({
+        params: {
+          url: 'https://intercom.help/internal-beta-testing/en/',
           title: 'app_settings.contact_support',
-        }),
+        },
       });
+      expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
     });
 
-    it('navigates exactly once per press', () => {
+    // On a non-beta (main) build, getBetaSupportUrl() resolves to an empty string,
+    // so "let us know" opens the support consent modal instead of a direct link.
+    it('opens the support consent modal when "let us know" is pressed on a non-beta build', () => {
+      mockGetBetaSupportUrl.mockReturnValueOnce('');
+
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
@@ -328,7 +355,40 @@ describe('LinkedOffDeviceAccountsSheet', () => {
       fireEvent.press(
         getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
       );
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    // Covers only the call-site opener glue: invoking the opener passed to
+    // openSupportWithConsent navigates to the webview. Modal behavior itself
+    // is covered by the core support-consent tests.
+    it('navigates to the support webview when the provided opener is invoked', () => {
+      mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+      const { getByText } = render(
+        <LinkedOffDeviceAccountsSheet
+          accounts={[mockAccount1]}
+          onClose={mockOnClose}
+        />,
+      );
+      fireEvent.press(
+        getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
+      );
+
+      const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
+      openWebview(METAMASK_SUPPORT_URL);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: METAMASK_SUPPORT_URL,
+          title: 'app_settings.contact_support',
+        },
+      });
     });
 
     it('calls ClipboardManager.setString with the account address when copy is pressed', () => {

@@ -120,7 +120,7 @@ jobs:
       test_suite_tag: SmokePredictions
       split_number: ${{ matrix.split }}
       total_splits: 3
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -135,41 +135,41 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: appium-seedless-onboarding-android-smoke-${{ matrix.split }}
       platform: android
-      # Trailing colon required: bare SmokeSeedlessOnboarding also matches Extended titles.
-      test_suite_tag: 'SmokeSeedlessOnboarding:'
+      test_suite_tag: SmokeSeedlessOnboarding
       split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 45
+      total_splits: 4
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  appium-seedless-onboarding-extended-android-smoke:
+
+  appium-snaps-android-smoke:
     if: >-
       ${{
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboardingExtended'))
+         contains(fromJson(inputs.selected_tags), 'SmokeSnaps'))
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-seedless-onboarding-extended-android-smoke-${{ matrix.split }}
+      test-suite-name: appium-snaps-android-smoke-${{ matrix.split }}
       platform: android
-      test_suite_tag: SmokeSeedlessOnboardingExtended
+      test_suite_tag: SmokeSnaps
       split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 60
+      total_splits: 3
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -207,7 +207,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -215,7 +215,7 @@ jobs:
       platform: android
       test_suite_tag: SmokeWalletPlatform
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 4
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -239,7 +239,7 @@ jobs:
       test_suite_tag: SmokeSwap
       split_number: ${{ matrix.split }}
       total_splits: 2
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -263,7 +263,32 @@ jobs:
       test_suite_tag: SmokeStake
       split_number: ${{ matrix.split }}
       total_splits: 2
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-mmconnect-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeMMConnect'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-mmconnect-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeMMConnect
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 35
+      android-tag: google_apis
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -287,7 +312,31 @@ jobs:
       test_suite_tag: SmokeMoney
       split_number: ${{ matrix.split }}
       total_splits: 1
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-browser-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeBrowser'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-browser-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeBrowser
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
