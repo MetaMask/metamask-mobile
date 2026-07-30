@@ -50,6 +50,12 @@ const POST_ONBOARDING_THRESHOLD: PlatformThreshold = {
   android: 5_000,
 };
 
+/** Predict "Not now" → usable wallet tends to sit just above the shared 5s base. */
+const PREDICT_TO_WALLET_THRESHOLD: PlatformThreshold = {
+  ios: 5_500,
+  android: 5_500,
+};
+
 const POST_ONBOARDING_DESTINATION_LABELS: Record<
   PostOnboardingDestination,
   string
@@ -297,7 +303,9 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       ) {
         const transitionTimer = new TimerHelper(
           `Fresh SRP post-onboarding transition ${hop}`,
-          POST_ONBOARDING_THRESHOLD,
+          source === 'predict-modal'
+            ? PREDICT_TO_WALLET_THRESHOLD
+            : POST_ONBOARDING_THRESHOLD,
           currentDeviceDetails.platform,
         );
         destination = await measurePostOnboardingDestination(

@@ -1,8 +1,33 @@
 import { remote, type Browser } from 'webdriverio';
 import { BaseServiceProvider } from '../../common/base/BaseServiceProvider.ts';
 import type { ProjectConfig } from '../../common/types.ts';
+import {
+  DEFAULT_BROWSERSTACK_SESSION_CREATE_MAX_ATTEMPTS,
+  DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS,
+} from '../../../Constants.ts';
 import { BrowserStackAPI } from './BrowserStackAPI.ts';
 import { BrowserStackConfigBuilder } from './BrowserStackConfigBuilder.ts';
+
+const TRANSIENT_SESSION_ERROR_PATTERNS = [
+  'aborted due to timeout',
+  'wd/hub/session',
+  'Failed to create a session',
+  'Could not start a new session',
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'ECONNREFUSED',
+  'socket hang up',
+  'network timeout',
+  'Unable to create new service',
+  'All parallel tests are currently in use',
+] as const;
+
+function isTransientBrowserStackSessionError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return TRANSIENT_SESSION_ERROR_PATTERNS.some((pattern) =>
+    message.includes(pattern),
+  );
+}
 
 /**
  * Service provider for BrowserStack cloud testing
@@ -25,7 +50,9 @@ export class BrowserStackProvider extends BaseServiceProvider {
   }
 
   /**
-   * Create and return WebDriver browser instance for BrowserStack
+   * Create and return WebDriver browser instance for BrowserStack.
+   * Retries transient hub/session timeouts so a single busy-grid abort does
+   * not consume the whole Playwright test retry budget.
    */
   async getDriver(): Promise<Browser> {
     this.logger.info(
@@ -34,16 +61,51 @@ export class BrowserStackProvider extends BaseServiceProvider {
 
     const configBuilder = new BrowserStackConfigBuilder(this.project);
     const config = configBuilder.build();
-
+    const maxAttempts = DEFAULT_BROWSERSTACK_SESSION_CREATE_MAX_ATTEMPTS;
     const sessionCreationStart = Date.now();
-    const browser = await remote(config);
-    this.sessionCreationDurationMs = Date.now() - sessionCreationStart;
-    this.sessionId = browser.sessionId;
+    let lastError: unknown;
 
-    this.logger.info(
-      `Driver created for BrowserStack with session: ${this.sessionId} (session creation took ${this.sessionCreationDurationMs}ms)`,
-    );
-    return browser;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const browser = await remote(config);
+        this.sessionCreationDurationMs = Date.now() - sessionCreationStart;
+        this.sessionId = browser.sessionId;
+
+        this.logger.info(
+          `Driver created for BrowserStack with session: ${this.sessionId} ` +
+            `(session creation took ${this.sessionCreationDurationMs}ms` +
+            (attempt > 1 ? `, attempt ${attempt}/${maxAttempts}` : '') +
+            `)`,
+        );
+        return browser;
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message : String(error);
+        const isTransient = isTransientBrowserStackSessionError(error);
+
+        if (!isTransient || attempt === maxAttempts) {
+          this.logger.error(
+            `BrowserStack session creation failed ` +
+              `(attempt ${attempt}/${maxAttempts}` +
+              `${isTransient ? ', transient' : ''}): ${message}`,
+          );
+          throw error;
+        }
+
+        this.logger.warn(
+          `BrowserStack session creation failed transiently ` +
+            `(attempt ${attempt}/${maxAttempts}); retrying in ` +
+            `${DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS}ms: ${message}`,
+        );
+        await new Promise((resolve) =>
+          setTimeout(resolve, DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS),
+        );
+      }
+    }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error(String(lastError));
   }
 
   /**
