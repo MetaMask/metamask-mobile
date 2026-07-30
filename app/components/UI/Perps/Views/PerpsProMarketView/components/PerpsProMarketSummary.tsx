@@ -10,6 +10,12 @@ import LivePriceHeader from '../../../components/LivePriceDisplay/LivePriceHeade
 interface PerpsProMarketSummaryProps {
   symbol: string;
   currentPrice: number;
+  /**
+   * Optional right-aligned accessory rendered on the same 76px row as the
+   * price (per Figma "Chart Compact"). Used for the collapsed-chart expand
+   * action so no extra row is introduced below the summary.
+   */
+  endAccessory?: React.ReactNode;
 }
 
 /**
@@ -26,14 +32,15 @@ export const PRICE_SECTION_HEIGHT = 76;
 const PerpsProMarketSummary = ({
   symbol,
   currentPrice,
+  endAccessory,
 }: PerpsProMarketSummaryProps) => (
   <Box
     testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="h-[76px] px-4"
+    twClassName="h-[76px] gap-4 px-4"
   >
-    <Box twClassName="flex-1">
+    <Box twClassName="h-full flex-1 justify-start py-1">
       <LivePriceHeader
         symbol={symbol}
         currentPrice={currentPrice}
@@ -42,6 +49,7 @@ const PerpsProMarketSummary = ({
         testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
       />
     </Box>
+    {endAccessory}
   </Box>
 );
 

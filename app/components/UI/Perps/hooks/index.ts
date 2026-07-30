@@ -22,6 +22,7 @@ export { usePerpsSearch } from './usePerpsSearch';
 export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
+export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';
