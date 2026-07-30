@@ -1358,7 +1358,8 @@
       "add_margin_button": "Add",
       "protect_losses_title": "Protect against further losses",
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
-      "set_button": "Set"
+      "set_button": "Set",
+      "success_title": "Stop loss set"
     },
     "confirm": "Confirm",
     "deposit": {
@@ -2044,8 +2045,11 @@
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
+      "24h_vol": "24h vol",
       "open_interest": "Open interest",
+      "funding": "Funding",
       "funding_rate": "Funding rate",
+      "mark_price": "Mark price",
       "oracle_price": "Oracle price",
       "order_book": "Order book",
       "countdown": "Countdown",
