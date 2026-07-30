@@ -113,7 +113,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// PerpsProPositionsPanel uses live stream hooks; avoid PerpsStreamProvider requirement.
+// Live stream hooks used by the positions panel and stats bar; mock the barrel
+// fully (no requireActual) so the view renders without a PerpsStreamProvider.
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: null,
@@ -127,6 +128,7 @@ jest.mock('../../hooks/stream', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
@@ -143,6 +145,19 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   usePerpsOrderBookGrouping: jest.fn(() => ({
     savedGrouping: undefined,
     saveGrouping: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsMarketStats', () => ({
+  usePerpsMarketStats: jest.fn(() => ({
+    high24h: '$50,000.00',
+    low24h: '$45,000.00',
+    volume24h: '$1,234,567.89',
+    openInterest: '$987,654.32',
+    fundingRate: '0.0125%',
+    currentPrice: 90000,
+    isLoading: false,
+    refresh: jest.fn(),
   })),
 }));
 
@@ -221,6 +236,9 @@ describe('PerpsProMarketView', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR_SCROLL),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT),

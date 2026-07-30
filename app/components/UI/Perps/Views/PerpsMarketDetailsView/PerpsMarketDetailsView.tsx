@@ -46,7 +46,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -168,7 +168,7 @@ import {
   BUTTON_COLOR_VARIANTS,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
-import { getMarketHoursStatus } from '../../utils/marketHours';
+import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -258,7 +258,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     return fullMarket || routeMarket;
   }, [markets, routeMarket, needsEnrichment]);
-  const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -643,6 +642,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     positionOpenedTimestamp,
   });
 
+  // Reset stop loss success state when market or position changes.
+  // Runs before the preserve effect below so a remount/symbol change clears
+  // first, then the current variant is re-captured.
+  useEffect(() => {
+    setIsStopLossSuccess(false);
+    preservedBannerVariantRef.current = null;
+  }, [market?.symbol, existingPosition?.symbol]);
+
   // Preserve banner variant when we have a valid one (for use during success fade-out)
   // The hook's variant becomes null after SL is set, but we need to keep rendering
   // Use useEffect to avoid ref mutation during render (React best practice)
@@ -656,12 +663,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const bannerVariant = isStopLossSuccess
     ? preservedBannerVariantRef.current
     : bannerVariantFromHook;
-
-  // Reset stop loss success state when market or position changes
-  useEffect(() => {
-    setIsStopLossSuccess(false);
-    preservedBannerVariantRef.current = null;
-  }, [market?.symbol, existingPosition?.symbol]);
 
   // Track Perps asset screen load performance with simplified API
   usePerpsMeasurement({
@@ -1701,53 +1702,67 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
+          </View>
 
-            {/* Price Deviation Warning - Shows when price has deviated too much from spot price */}
-            {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
+          {/* Price Deviation Warning - outside chart section so px-4 isn't doubled with section padding */}
+          {market?.symbol && isTradingHalted && !isLoadingTradingHalted && (
+            <Box twClassName="px-4 mb-4">
               <PerpsPriceDeviationWarning
                 testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-price-deviation-warning`}
               />
-            )}
-          </View>
+            </Box>
+          )}
 
           {/* Service Interruption Banner */}
-          <PerpsServiceInterruptionBanner
-            testID={
-              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
-            }
-          />
+          {/* Outer flag guard avoids mounting the padded wrapper (and banner hooks) when disabled.
+              The banner also returns null via the same flag when mounted. */}
+          {isServiceInterruptionBannerEnabled && (
+            <Box twClassName="px-4 mb-4">
+              <PerpsServiceInterruptionBanner
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+                }
+              />
+            </Box>
+          )}
 
           {/* OI Cap Warning - Shows when market is at capacity */}
           {market?.symbol && isAtOICap && (
-            <PerpsOICapWarning symbol={market.symbol} variant="banner" />
+            <Box twClassName="px-4 mb-4">
+              <PerpsOICapWarning symbol={market.symbol} variant="banner" />
+            </Box>
           )}
 
           {/* Market Hours Banner - Hidden when OI cap warning is showing */}
-          {!isAtOICap && (
-            <PerpsMarketHoursBanner
-              marketType={market?.marketType}
-              onInfoPress={handleMarketHoursInfoPress}
-              testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
-            />
+          {!isAtOICap && isEquityAsset(market?.marketType) && (
+            <Box twClassName="px-4 mb-4">
+              <PerpsMarketHoursBanner
+                marketType={market?.marketType}
+                onInfoPress={handleMarketHoursInfoPress}
+                testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
+              />
+            </Box>
           )}
 
           {/* Stop Loss Prompt Banner - Shows when position needs attention */}
           {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
           {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
-            <PerpsStopLossPromptBanner
-              variant={bannerVariant}
-              liquidationDistance={liquidationDistance ?? 0}
-              suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
-              suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
-              onSetStopLoss={handleSetStopLossFromBanner}
-              onAddMargin={handleAddMarginFromBanner}
-              isLoading={isSettingStopLoss}
-              isSuccess={isStopLossSuccess}
-              onFadeOutComplete={handleBannerFadeOutComplete}
-              testID={
-                PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
-              }
-            />
+            <Box twClassName="px-4 mb-4">
+              <PerpsStopLossPromptBanner
+                variant={bannerVariant}
+                liquidationDistance={liquidationDistance ?? 0}
+                suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
+                suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
+                onSetStopLoss={handleSetStopLossFromBanner}
+                onAddMargin={handleAddMarginFromBanner}
+                isLoading={isSettingStopLoss}
+                isSuccess={isStopLossSuccess}
+                onFadeOutComplete={handleBannerFadeOutComplete}
+                testID={
+                  PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
+                }
+              />
+            </Box>
           )}
 
           {shouldShowPerpsMarketInsightsSection ? (
@@ -1954,6 +1969,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         symbol={market?.symbol}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
+        fallbackFetchMoreHistory={fetchMoreHistory}
       />
 
       {/* Market Insights Disclaimer Bottom Sheet */}

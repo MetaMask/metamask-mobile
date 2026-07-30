@@ -126,6 +126,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialAusCacheRefreshEnabled: {
+    name: 'aiSocialAusCacheRefreshEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.5.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardOnboardingEnabled: {
     name: 'aiSocialLeaderboardOnboardingEnabled',
     type: FeatureFlagType.Remote,
@@ -261,12 +272,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          tracesEnabled: false,
           deprecatedControllers: [],
         },
         '8.3.0': {
           enabled: true,
           featureVersion: '1',
           minimumVersion: '8.3.0',
+          tracesEnabled: false,
           deprecatedControllers: [],
         },
       },
@@ -3391,6 +3404,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyEarningSectionEnabled: {
+    name: 'earnMoneyEarningSectionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyTokenListItemCtaEnabled: {
     name: 'earnMoneyTokenListItemCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -5136,16 +5160,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   confirmations_pay_hardware: {
     name: 'confirmations_pay_hardware',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  coreMCU589AbtestHubPageDiscoveryTabs: {
-    name: 'coreMCU589AbtestHubPageDiscoveryTabs',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {

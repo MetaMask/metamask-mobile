@@ -32,6 +32,7 @@ function TokenAvatar({
   iconUrl,
   perpsMarketSymbol,
   styles,
+  testIdSuffix,
   tokens,
 }: {
   fallbackIconName: IconName;
@@ -39,6 +40,7 @@ function TokenAvatar({
   iconUrl?: string;
   perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
+  testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
   const tokenImageSources = useMemo(
@@ -72,7 +74,13 @@ function TokenAvatar({
 
   if (tokens.length === 0) {
     if (iconUrl) {
-      return <AvatarToken src={{ uri: iconUrl }} size={AvatarTokenSize.Md} />;
+      return (
+        <AvatarToken
+          src={{ uri: iconUrl }}
+          size={AvatarTokenSize.Md}
+          testID={`activity-row-avatar-single-${testIdSuffix}`}
+        />
+      );
     }
     return (
       <AvatarIcon
@@ -81,6 +89,7 @@ function TokenAvatar({
           isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
         }
         size={AvatarIconSize.Md}
+        testID={`activity-row-avatar-single-${testIdSuffix}`}
       />
     );
   }
@@ -92,6 +101,7 @@ function TokenAvatar({
         name={token.symbol}
         src={tokenImageSources[0]}
         size={AvatarTokenSize.Md}
+        testID={`activity-row-avatar-single-${testIdSuffix}`}
       />
     );
   }
@@ -99,7 +109,10 @@ function TokenAvatar({
   const [sourceToken, destinationToken] = tokens;
 
   return (
-    <View style={styles.tokenIconStack}>
+    <View
+      style={styles.tokenIconStack}
+      testID={`activity-row-avatar-stack-${testIdSuffix}`}
+    >
       <View style={styles.tokenIconStackBack}>
         <AvatarToken
           name={sourceToken.symbol}
@@ -127,6 +140,7 @@ export function ActivityListItemRowIcon({
   networkImageSource,
   perpsMarketSymbol,
   styles,
+  testIdSuffix,
   tokens,
 }: {
   /** Design-system arrow icon shown when the row has no token avatar. */
@@ -143,6 +157,7 @@ export function ActivityListItemRowIcon({
   networkImageSource?: ImageSourcePropType;
   perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
+  testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
   useEffect(() => {
@@ -159,6 +174,7 @@ export function ActivityListItemRowIcon({
       iconUrl={iconUrl}
       perpsMarketSymbol={perpsMarketSymbol}
       styles={styles}
+      testIdSuffix={testIdSuffix}
       tokens={tokens}
     />
   );
