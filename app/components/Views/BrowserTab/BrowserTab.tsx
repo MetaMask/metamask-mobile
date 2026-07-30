@@ -214,10 +214,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const autocompleteRef = useRef<UrlAutocompleteRef>(null);
     // Track when navigating to detail screen (Token/Perps/Predictions) to prevent onBlur from hiding autocomplete
     const isNavigatingToDetailRef = useRef(false);
-    // After autocomplete URL selection, keep the URL bar focused until the WebView
-    // page commits. Unfocusing in the same turn as source.uri updates remounts
-    // the bottom bar and can cancel native loadRequest (MCWP-748).
-    const pendingHideUrlBarRef = useRef(false);
     const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
       async () => {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -809,15 +805,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           name: siteInfo.title,
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
-
-        // Unfocus only after the new page has committed. Doing this earlier
-        // remounts the bottom bar and can cancel loadRequest; hide() also
-        // resets the URL bar via onCancelUrlBar using resolvedUrlRef, which is
-        // now the new URL (MCWP-748).
-        if (pendingHideUrlBarRef.current) {
-          pendingHideUrlBarRef.current = false;
-          urlBarRef.current?.hide();
-        }
       },
       [
         isUrlBarFocused,
@@ -1084,10 +1071,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     const onAutocompleteSelectPressIn = useCallback(() => {
-      // Keep URL bar focused through the tap (blur would otherwise unfocus
-      // before onPress and cancel source.uri loadRequest). Hide after the
-      // page commits in handleSuccessfulPageResolution (MCWP-748).
-      pendingHideUrlBarRef.current = true;
+      // Keep focus through pressIn → onPress so blur does not dismiss
+      // autocomplete before the selection handler runs.
       urlBarRef.current?.suppressNextBlur();
     }, []);
 
@@ -1342,6 +1327,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Load via WebView source.uri (same as Explore) instead of
         // window.location.href to avoid iOS Universal Link handoff (MCWP-748).
         navigateWebViewToUrl(processedUrl);
+        // Bottom bar stays mounted while focused (hidden visually), so we can
+        // leave edit mode immediately without remounting it mid-navigation.
+        urlBarRef.current?.dismissEditing();
       },
       [searchEngine, handleEnsUrl, setConnectionType, navigateWebViewToUrl],
     );
@@ -1385,24 +1373,32 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [onSubmitEditing]);
 
     /**
-     * Render the bottom navigation bar
+     * Render the bottom navigation bar.
+     * Keep the bar mounted while the URL bar is focused and only hide it
+     * visually — unmounting remounts siblings and can cancel WebView
+     * loadRequest when navigating via source.uri (MCWP-748).
      */
     const renderBottomBar = () =>
-      isTabActive && !isUrlBarFocused ? (
-        <BrowserBottomBar
-          canGoBack={backEnabled}
-          canGoForward={forwardEnabled}
-          goBack={goBack}
-          goForward={goForward}
-          reload={reload}
-          openNewTab={openNewTab}
-          activeUrl={resolvedUrlRef.current}
-          getMaskedUrl={getMaskedUrl}
-          title={titleRef.current}
-          sessionENSNames={sessionENSNamesRef.current}
-          favicon={favicon}
-          icon={iconRef.current}
-        />
+      isTabActive ? (
+        <View
+          pointerEvents={isUrlBarFocused ? 'none' : 'auto'}
+          style={isUrlBarFocused ? styles.hide : undefined}
+        >
+          <BrowserBottomBar
+            canGoBack={backEnabled}
+            canGoForward={forwardEnabled}
+            goBack={goBack}
+            goForward={goForward}
+            reload={reload}
+            openNewTab={openNewTab}
+            activeUrl={resolvedUrlRef.current}
+            getMaskedUrl={getMaskedUrl}
+            title={titleRef.current}
+            sessionENSNames={sessionENSNamesRef.current}
+            favicon={favicon}
+            icon={iconRef.current}
+          />
+        </View>
       ) : null;
 
     /**
@@ -1464,10 +1460,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Recents:
           case UrlAutocompleteCategory.Favorites:
           default:
-            // Keep URL bar focused until the page commits — same as keyboard
-            // "Go". Unfocusing earlier remounts the bottom bar and can cancel
-            // the WebView source.uri loadRequest (MCWP-748).
-            pendingHideUrlBarRef.current = true;
             onSubmitEditing(item.url);
             break;
         }

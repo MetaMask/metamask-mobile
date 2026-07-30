@@ -633,7 +633,7 @@ describe('BrowserTab', () => {
 
       fireEvent.press(screen.getByTestId('browser-url-display-text'));
       // RNTL does not fire TextInput onFocus from ref.focus(); focus explicitly
-      // so isUrlBarFocused is true for deferred-hide assertions (MCWP-748).
+      // so isUrlBarFocused is true while editing.
       fireEvent(screen.getByTestId('browser-modal-url-input'), 'focus');
       expect(
         screen.queryByTestId('browser-tab-close-button'),
@@ -642,7 +642,7 @@ describe('BrowserTab', () => {
       const recentResult = await screen.findByText('Example', {
         includeHiddenElements: true,
       });
-      // pressIn suppresses URL-bar blur unfocus before navigation (MCWP-748)
+      // pressIn suppresses URL-bar blur so onPress still runs
       fireEvent(recentResult, 'pressIn');
       fireEvent.press(recentResult);
 
@@ -652,30 +652,8 @@ describe('BrowserTab', () => {
         );
       });
 
-      // Simulate WebView load completing — URL bar should unfocus only after
-      // the page has committed (not onLoadStart), so bottom-bar remount cannot
-      // cancel loadRequest or reset the address to the previous URL (MCWP-748).
-      const webView = screen.getByTestId('browser-webview');
-      const loadEvent = {
-        nativeEvent: {
-          url: 'https://example.com',
-          title: 'Example',
-          loading: false,
-          canGoBack: false,
-          canGoForward: false,
-        },
-      };
-      await act(async () => {
-        await webView.props.onLoadStart(loadEvent);
-      });
-      expect(
-        screen.queryByTestId('browser-tab-close-button'),
-      ).not.toBeOnTheScreen();
-
-      await act(async () => {
-        webView.props.onLoadEnd(loadEvent);
-      });
-
+      // Bottom bar stays mounted while editing (hidden visually), so edit mode
+      // can end immediately after navigation without remounting it (MCWP-748).
       await waitFor(() => {
         expect(
           screen.queryByTestId('browser-tab-close-button'),

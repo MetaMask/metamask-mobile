@@ -75,12 +75,11 @@ appiumTest.describe(SmokeBrowser('Browser Phishing Detection'), () => {
           // Navigate to a local page that redirects to the phishing domain.
           // The redirect triggers dapp-scanning which returns BLOCK.
           //
-          // Skip the URL editor dismissal that `navigateToURL` normally does
-          // under Detox: phishing detection writes to AsyncStorage v2
-          // immediately after navigation, and a Cancel-button tap landing on
-          // top of those writes races with Detox's AsyncStorageIdlingResource.
-          // On Appium this option is a no-op (URL bar path dismisses itself);
-          // keep it for parity with the Detox counterpart.
+          // Skip Detox's post-submit Cancel tap: phishing detection writes to
+          // AsyncStorage immediately after navigation, and a Cancel tap on top
+          // of those writes races with Detox's AsyncStorageIdlingResource.
+          // On Appium this option is a no-op (`navigateToURL` returns after
+          // the URL-bar path; the app already calls dismissEditing()).
           await Browser.tapUrlInputBox();
           await Browser.navigateToURL(
             `${getDappUrl(0)}/redirect-to-phishing.html`,

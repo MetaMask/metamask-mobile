@@ -25,7 +25,7 @@ appiumTest.describe(SmokeBrowser('Browser Security'), () => {
     'shows camera permission dialog when page requests camera access',
     async ({ driver: _driver, currentDeviceDetails }) => {
       // Android Appium cannot reliably drive this case today:
-      // - http URL-bar submit races with dismissUrlEditor when the prompt opens
+      // - WebView camera permission prompt is not reliably exposed in UiAutomator
       // - dapp:// load does not expose ALLOW / status in the UiAutomator tree
       // Covered on iOS Appium (autoAcceptAlerts + granted status)
       appiumTest.skip(

@@ -415,8 +415,8 @@ const SearchContent: React.FC<SearchContentProps> = ({
                 : undefined
             }
             onPress={() => {
-              // Select before hiding so BrowserTab can update WebView source.uri
-              // before URL-bar unfocus remounts browser UI (MCWP-748).
+              // Select first so BrowserTab can start WebView navigation, then
+              // hide autocomplete for URL-based results.
               // Keep autocomplete open for Tokens/Perps/Predictions.
               onSelect(item);
               const isUrlBasedResult =
