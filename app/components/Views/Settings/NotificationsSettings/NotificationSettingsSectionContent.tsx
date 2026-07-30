@@ -169,19 +169,19 @@ const SECTION_CONTENT_BY_TYPE: Partial<
   marketing: MarketingSectionContent,
 };
 
-export interface NotificationSectionContentProps {
+export interface NotificationSettingsSectionContentProps {
   type: NotificationPreferenceSection;
   title?: string;
   description?: string;
   disabled?: boolean;
 }
 
-export const NotificationSectionContent = ({
+export const NotificationSettingsSectionContent = ({
   type,
   title,
   description,
   disabled,
-}: NotificationSectionContentProps) => {
+}: NotificationSettingsSectionContentProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -214,7 +214,8 @@ export const NotificationSectionContent = ({
         Logger.error(
           new Error('Failed to update notification section channel'),
           {
-            message: 'NotificationSectionContent: update channel failed',
+            message:
+              'NotificationSettingsSectionContent: update channel failed',
             type,
             channel: 'pushNotificationsEnabled',
             nextValue: v,
@@ -235,7 +236,8 @@ export const NotificationSectionContent = ({
         Logger.error(
           new Error('Failed to update notification section channel'),
           {
-            message: 'NotificationSectionContent: update channel failed',
+            message:
+              'NotificationSettingsSectionContent: update channel failed',
             type,
             channel: 'inAppNotificationsEnabled',
             nextValue: v,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { NotificationSectionContent } from './NotificationSectionContent';
+import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -69,13 +69,15 @@ const arrangePreferences = ({
 };
 
 const renderContent = (
-  props: Partial<React.ComponentProps<typeof NotificationSectionContent>> = {},
+  props: Partial<
+    React.ComponentProps<typeof NotificationSettingsSectionContent>
+  > = {},
 ) =>
   renderWithProvider(
-    <NotificationSectionContent type="priceAlerts" {...props} />,
+    <NotificationSettingsSectionContent type="priceAlerts" {...props} />,
   );
 
-describe('NotificationSectionContent', () => {
+describe('NotificationSettingsSectionContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUpdateSectionChannel.mockResolvedValue(undefined);

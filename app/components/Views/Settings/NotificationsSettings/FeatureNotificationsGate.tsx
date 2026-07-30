@@ -21,7 +21,7 @@ import {
   useNotificationStoragePreferences,
   type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
-import { NotificationSectionContent } from './NotificationSectionContent';
+import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { strings } from '../../../../../locales/i18n';
@@ -65,11 +65,17 @@ export interface FeatureNotificationsGateProps {
    * Defaults to `navigation.goBack()`.
    */
   onDismiss?: () => void;
+  /**
+   * When true, closes the sheet once the gate condition is satisfied.
+   * Defaults to `true`.
+   */
+  autoDismiss?: boolean;
 }
 
 const FeatureNotificationsGateSheet = ({
   feature,
   onDismiss,
+  autoDismiss = true,
 }: FeatureNotificationsGateProps) => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const handleDismiss = useCallback(() => {
@@ -131,10 +137,10 @@ const FeatureNotificationsGateSheet = ({
   }, [isVisible]);
 
   useEffect(() => {
-    if (shouldAutoClose && isVisible) {
+    if (autoDismiss && shouldAutoClose && isVisible) {
       sheetRef.current?.onCloseBottomSheet(() => setIsVisible(false));
     }
-  }, [shouldAutoClose, isVisible]);
+  }, [autoDismiss, shouldAutoClose, isVisible]);
 
   // Reset so turning push off then on again can re-prompt.
   useEffect(() => {
@@ -200,7 +206,7 @@ const FeatureNotificationsGateSheet = ({
           />
         )}
         {renderChannels && (
-          <NotificationSectionContent
+          <NotificationSettingsSectionContent
             type={feature}
             disabled={channelsDisabled}
           />
@@ -213,6 +219,7 @@ const FeatureNotificationsGateSheet = ({
 export const FeatureNotificationsGate = ({
   feature,
   onDismiss,
+  autoDismiss,
 }: FeatureNotificationsGateProps) => {
   const { isLoading } = useNotificationStoragePreferences();
 
@@ -222,6 +229,10 @@ export const FeatureNotificationsGate = ({
   if (isLoading) return null;
 
   return (
-    <FeatureNotificationsGateSheet feature={feature} onDismiss={onDismiss} />
+    <FeatureNotificationsGateSheet
+      feature={feature}
+      onDismiss={onDismiss}
+      autoDismiss={autoDismiss}
+    />
   );
 };

@@ -149,7 +149,9 @@ const arrangePreferences = ({
   });
 };
 
-const renderGate = (props: { onDismiss?: () => void } = {}) =>
+const renderGate = (
+  props: { onDismiss?: () => void; autoDismiss?: boolean } = {},
+) =>
   renderWithProvider(
     <FeatureNotificationsGate feature="priceAlerts" {...props} />,
   );
@@ -340,6 +342,23 @@ describe('FeatureNotificationsGate', () => {
       arrangePreferences({ isPushEnabled: true, isInAppEnabled: true });
       rerender(<FeatureNotificationsGate feature="priceAlerts" />);
 
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('keeps the panel open when autoDismiss is false and the gate is satisfied', () => {
+      const { rerender } = renderGate({ autoDismiss: false });
+
+      mockIsMasterEnabled = true;
+      arrangePreferences({ isPushEnabled: true, isInAppEnabled: true });
+      rerender(
+        <FeatureNotificationsGate feature="priceAlerts" autoDismiss={false} />,
+      );
+
+      expect(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.FEATURE_GATE_SHEET,
+        ),
+      ).toBeOnTheScreen();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
   });

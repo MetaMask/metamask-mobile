@@ -16,7 +16,7 @@ import { strings } from '../../../../../locales/i18n';
 import { type NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
-import { NotificationSectionContent } from './NotificationSectionContent';
+import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
 
 export interface NotificationSettingsSectionProps {
   navigation: NavigationProp<ParamListBase>;
@@ -61,7 +61,7 @@ const NotificationSettingsSection = ({
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
       >
-        <NotificationSectionContent
+        <NotificationSettingsSectionContent
           type={type}
           title={title}
           description={description}
