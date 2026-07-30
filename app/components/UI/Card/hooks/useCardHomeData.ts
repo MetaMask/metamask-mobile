@@ -22,24 +22,17 @@ export const useCardHomeData = () => {
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
-  // Safety net: if the controller hasn't started a fetch yet (e.g. deep link
-  // before KeyringController:unlock fires), kick one off on mount.
-  // The controller deduplicates concurrent calls so this is safe to call
-  // even when a fetch is already in-flight.
   useEffect(() => {
     if (status === 'idle') {
       Engine.context.CardController.fetchCardHomeData();
     }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [status]);
 
   const refetch = useCallback(
-    () => Engine.context.CardController.fetchCardHomeData(),
+    () => Engine.context.CardController.fetchCardHomeData(true),
     [],
   );
 
-  // One useAssetBalances call covering all known card tokens, deduplicated by key.
   const tokensForBalanceLookup = useMemo(() => {
     const seen = new Set<string>();
     return [
@@ -63,7 +56,6 @@ export const useCardHomeData = () => {
 
   const balanceMap = useAssetBalances(tokensForBalanceLookup);
 
-  // Merge balance info into enriched token objects.
   const primaryToken = useMemo((): CardFundingTokenWithBalance | null => {
     if (!primaryTokenRaw) return null;
     const info = balanceMap.get(getAssetBalanceKey(primaryTokenRaw));

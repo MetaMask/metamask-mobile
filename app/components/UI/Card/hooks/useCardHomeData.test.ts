@@ -118,7 +118,7 @@ describe('useCardHomeData', () => {
     mockGetAssetBalanceKey.mockReturnValue('mock-key');
   });
 
-  describe('useEffect safety-net fetch on mount', () => {
+  describe('useEffect idle-status fetch', () => {
     it("triggers fetchCardHomeData when status is 'idle'", () => {
       setupSelectors(null, 'idle');
       renderHook(() => useCardHomeData());
@@ -141,6 +141,17 @@ describe('useCardHomeData', () => {
       setupSelectors(null, 'error');
       renderHook(() => useCardHomeData());
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+    });
+
+    it("triggers fetchCardHomeData when status transitions back to 'idle'", () => {
+      setupSelectors({ primaryFundingAsset: null }, 'success');
+      const { rerender } = renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+
+      setupSelectors(null, 'idle');
+      rerender();
+
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -236,13 +247,14 @@ describe('useCardHomeData', () => {
   });
 
   describe('refetch', () => {
-    it('calls Engine.context.CardController.fetchCardHomeData', () => {
+    it('calls Engine.context.CardController.fetchCardHomeData with force', () => {
       setupSelectors(null, 'success');
       const { result } = renderHook(() => useCardHomeData());
 
       result.current.refetch();
 
       expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardHomeData).toHaveBeenCalledWith(true);
     });
   });
 

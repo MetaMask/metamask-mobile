@@ -223,15 +223,12 @@ const CardHome = () => {
     }
   }, [refetch]);
 
-  // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
-  const refetched = useRef(false);
+  // Refresh when the screen regains focus (e.g. after a swap). Non-forced so
+  // the controller freshness guard no-ops if data is still fresh.
   useFocusEffect(
     useCallback(() => {
-      if (!refetched.current) {
-        refetched.current = true;
-        refetch();
-      }
-    }, [refetch]),
+      Engine.context.CardController.fetchCardHomeData();
+    }, []),
   );
 
   // --- Auth state transition: navigate to auth screen on logout ---

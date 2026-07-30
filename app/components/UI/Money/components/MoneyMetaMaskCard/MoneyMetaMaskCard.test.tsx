@@ -529,6 +529,38 @@ describe('MoneyMetaMaskCard', () => {
     });
   });
 
+  describe('mode="loading"', () => {
+    it('renders the MetaMask Card title and a loading spinner', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyMetaMaskCard mode="loading" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render link, manage, verifying, or upsell content', () => {
+      const { queryByTestId } = render(
+        <MoneyMetaMaskCard mode="loading" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('upsell mode (default)', () => {
     it('renders only the virtual card row regardless of showMetalCard', () => {
       const { getByTestId, queryByTestId } = render(

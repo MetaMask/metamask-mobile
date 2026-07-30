@@ -79,12 +79,14 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const mockIsCardholder = jest.fn(() => true);
 const mockCardHomeDataStatus = jest.fn(() => 'success');
+const mockIsCardStateResolved = jest.fn(() => true);
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
 jest.mock('../../../../../selectors/cardController', () => ({
   selectIsCardholder: () => mockIsCardholder(),
   selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
+  selectIsCardStateResolved: () => mockIsCardStateResolved(),
 }));
 
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
@@ -149,11 +151,14 @@ const setupDefaultMocks = ({
     isLinking: false,
   });
   mockIsCardholder.mockReturnValue(isCardholder);
+  mockIsCardStateResolved.mockReturnValue(true);
 };
 
 describe('MoneyOnboardingCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsCardStateResolved.mockReturnValue(true);
+    mockCardHomeDataStatus.mockReturnValue('success');
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,
     });
@@ -170,6 +175,15 @@ describe('MoneyOnboardingCard', () => {
 
     it('returns null when balance is loading', () => {
       setupDefaultMocks({ isBalanceLoading: true });
+
+      const { toJSON } = render(<MoneyOnboardingCard />);
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null when card state is unresolved', () => {
+      setupDefaultMocks({ currentStep: 0 });
+      mockIsCardStateResolved.mockReturnValue(false);
 
       const { toJSON } = render(<MoneyOnboardingCard />);
 

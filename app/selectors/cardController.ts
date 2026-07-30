@@ -184,6 +184,16 @@ export const selectCardHomeDataStatus = createSelector(
     cardState?.cardHomeDataStatus ?? 'idle',
 );
 
+export const selectIsCardStateResolved = createSelector(
+  selectCardHomeDataStatus,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  (status, isAuthenticated, isCardholder) =>
+    status === 'success' ||
+    status === 'error' ||
+    (!isAuthenticated && !isCardholder),
+);
+
 export const selectMoneyAccountVedaTokenConfig = createSelector(
   selectCardFeatureFlag,
   (cardFeatureFlag): VedaTokenConfig | null =>

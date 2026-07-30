@@ -12,6 +12,7 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
   selectHasMetalCard,
@@ -531,6 +532,65 @@ describe('selectCardHomeDataStatus', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeDataStatus(state)).toBe('idle');
+  });
+});
+
+describe('selectIsCardStateResolved', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns true when status is success', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true when status is error', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'error',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true for an unauthenticated non-cardholder even while idle', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: [],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns false while loading for an authenticated user', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns false while idle for a cardholder', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: ['eip155:0:0xabc'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(false);
   });
 });
 
