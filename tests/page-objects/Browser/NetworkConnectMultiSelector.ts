@@ -21,14 +21,20 @@ class NetworkConnectMultiSelector {
     );
   }
 
+  /**
+   * Android: NetworkSelectorList rows use testID `${name}-selected` |
+   * `${name}-not-selected`.
+   * iOS: wrapper testID is often not in the a11y tree; use the Cell title text.
+   */
   getNetworkRow(networkName: string): EncapsulatedElementType {
+    const escaped = networkName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return encapsulated({
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            `//*[@content-desc='${networkName}' or @text='${networkName}']`,
+          PlaywrightMatchers.getElementById(
+            new RegExp(`^${escaped}-(selected|not-selected)$`),
           ),
-        ios: () => PlaywrightMatchers.getElementByAccessibilityId(networkName),
+        ios: () => PlaywrightMatchers.getElementByText(networkName, true),
       },
     });
   }
