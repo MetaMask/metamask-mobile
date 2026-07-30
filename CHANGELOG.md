@@ -103,6 +103,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Polished toast styling for consistency in the 8.6.0 release (#33773)
+- Polished toast styling for consistency in the 8.6.0 release (#33769)
+- Polished toast styling for consistency in the 8.6.0 release (#33766)
+- Polished toast styling for consistency in the 8.6.0 release (#33771)
+- Polished toast styling for consistency in the 8.6.0 release (#33767)
+- Polished toast styling for consistency in the 8.6.0 release (#33772)
+- Polished toast styling for consistency in the 8.6.0 release (#33774)
+- Polished toast styling for consistency in the 8.6.0 release (#33775)
+- Polished toast styling for consistency in the 8.6.0 release (#33770)
 - Fixed token imports to return to the full token list after completion (#34039)
 - Fixed Money activity filters so card transactions appear only in the appropriate tabs (#33862)
 - Fixed stale destination exchange rates in Swap and Bridge quotes (#33955)
