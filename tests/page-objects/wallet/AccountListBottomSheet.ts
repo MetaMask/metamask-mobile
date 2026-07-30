@@ -307,6 +307,10 @@ class AccountListBottomSheet {
    * Appium: poll until the account list sheet is open.
    * Retries lookup + visibility — needed after rename/back navigation when the
    * sheet is animating in and text/testID queries can briefly miss.
+   *
+   * iOS: exact "Accounts" title (not contains), any displayed match, then
+   * fall back to a visible `create-account` child — mirrors wallet-home
+   * readiness where XCTest can report wrappers as displayed=false.
    */
   async waitForAccountListVisible(timeout = 15_000): Promise<void> {
     if (!FrameworkDetector.isAppium()) {
@@ -316,17 +320,19 @@ class AccountListBottomSheet {
 
     await Utilities.executeWithRetry(
       async () => {
+        if (PlatformDetector.isIOS()) {
+          if (await this.isIosAccountListOpen()) {
+            return;
+          }
+          throw new Error('Account list sheet is not visible yet');
+        }
+
         let el: PlaywrightElement;
         try {
-          el = PlatformDetector.isIOS()
-            ? await PlaywrightMatchers.getElementByText(
-                AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
-                true,
-              )
-            : await PlaywrightMatchers.getElementById(
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-                { exact: true },
-              );
+          el = await PlaywrightMatchers.getElementById(
+            AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+            { exact: true },
+          );
         } catch {
           throw new Error('Account list sheet element not found');
         }
@@ -342,6 +348,38 @@ class AccountListBottomSheet {
         description: 'Account list sheet visible',
       },
     );
+  }
+
+  /**
+   * iOS Appium readiness for the account list sheet.
+   * Prefers a displayed exact "Accounts" title; falls back to `create-account`
+   * when the title exists in the tree but reports displayed=false.
+   */
+  private async isIosAccountListOpen(): Promise<boolean> {
+    const title = AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE;
+    const escaped = title.replace(/'/g, "\\'");
+    const xpath = `//*[@name='${escaped}' or @label='${escaped}' or @text='${escaped}']`;
+
+    try {
+      const matches = await PlaywrightMatchers.getAllElementsByXPath(xpath);
+      for (const el of matches) {
+        if (await el.isVisible().catch(() => false)) {
+          return true;
+        }
+      }
+    } catch {
+      // Title query failed — try child indicator.
+    }
+
+    try {
+      const createAccount = await PlaywrightMatchers.getElementById(
+        AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+        { exact: true },
+      );
+      return await createAccount.isVisible().catch(() => false);
+    } catch {
+      return false;
+    }
   }
 
   async tapAddAccountButtonV2(options?: {
