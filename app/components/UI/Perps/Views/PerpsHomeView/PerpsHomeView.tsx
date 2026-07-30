@@ -168,18 +168,43 @@ const PerpsHomeView = () => {
       setPerpsMode(nextMode);
       // First-time users must still go through onboarding (same as Trade sheet):
       // routing straight into the Pro market would skip the tutorial otherwise,
-      // so no mode-switch flash is shown here.
+      // so no mode-switch flash is shown here. The redirect mirrors the Pro
+      // branch below so completing the tutorial doesn't land back on Perps
+      // Home while Pro mode is active (TAT-3612).
       if (isFirstTimePerpsUser) {
-        navigation.navigate(Routes.PERPS.TUTORIAL);
+        navigation.navigate(
+          Routes.PERPS.TUTORIAL,
+          nextMode === PerpsMode.Pro
+            ? {
+                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                redirectScreen: Routes.PERPS.MARKET_DETAILS,
+                redirectParams: {
+                  market: buildDefaultProMarket(),
+                  source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                },
+              }
+            : undefined,
+        );
         return;
       }
       // Flash the destination mode on top of the current screen.
       showPerpsModeFlash(nextMode);
-      // Pro lands on the default (BTC) market screen; Lite stays on Perps home.
+      // Pro lands on the default (BTC) market screen; Lite stays on Perps
+      // home. Home is reset out of history (rather than pushed under the
+      // market screen) so Perps Home is never reachable while Pro mode is
+      // active, including via the back button (TAT-3612).
       if (nextMode === PerpsMode.Pro) {
-        navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
-          market: buildDefaultProMarket(),
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: buildDefaultProMarket(),
+                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+              },
+            },
+          ],
         });
       }
     },

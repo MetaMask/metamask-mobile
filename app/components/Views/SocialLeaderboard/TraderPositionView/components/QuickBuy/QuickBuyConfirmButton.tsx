@@ -7,15 +7,15 @@ import Animated, {
 } from 'react-native-reanimated';
 import {
   Box,
-  Button,
-  ButtonBaseSize,
-  ButtonVariant,
+  ButtonBase,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import type { QuickBuyTradeMode } from './types';
 
 export type ConfirmButtonState = 'idle' | 'loading' | 'success';
 
@@ -36,18 +36,30 @@ interface QuickBuyConfirmButtonProps {
   hasValidAmount: boolean;
   isDisabled: boolean;
   onPress: () => void;
+  /** Buy uses success (lime); sell uses error (red). */
+  tradeMode?: QuickBuyTradeMode;
   testID?: string;
 }
 
+/**
+ * Confirm CTA colors follow Figma Trade ButtonHero fills:
+ * buy → success-default (#baf24a in dark), sell → error-default.
+ * Do not use design-system ButtonHero here — its locked light primary is blue.
+ */
 const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   state,
   label,
   isDisabled,
   onPress,
+  tradeMode = 'buy',
   testID,
 }) => {
   const tw = useTailwind();
   const checkScale = useSharedValue(0);
+  const isSell = tradeMode === 'sell';
+  const buttonDisabled = state !== 'idle' || isDisabled;
+  const bgClass = isSell ? 'bg-error-default' : 'bg-success-default';
+  const textClass = isSell ? 'text-error-inverse' : 'text-success-inverse';
 
   useEffect(() => {
     checkScale.value =
@@ -60,15 +72,12 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
 
   if (state === 'success') {
     return (
-      <Box
-        style={[styles.successContainer, tw.style('bg-icon-default')]}
-        testID={testID}
-      >
+      <Box style={[styles.successContainer, tw.style(bgClass)]} testID={testID}>
         <Animated.View style={checkmarkStyle}>
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Lg}
-            color={tw.style('text-primary-inverse').color as string}
+            color={tw.style(textClass).color as string}
           />
         </Animated.View>
       </Box>
@@ -76,17 +85,20 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   }
 
   return (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonBaseSize.Lg}
+    <ButtonBase
+      size={ButtonSize.Lg}
       isLoading={state === 'loading'}
       onPress={onPress}
       isFullWidth
       testID={testID}
-      isDisabled={state !== 'idle' || isDisabled}
+      isDisabled={buttonDisabled}
+      twClassName={(pressed) =>
+        `${bgClass}${pressed && !buttonDisabled && state === 'idle' ? ' opacity-90' : ''}`
+      }
+      textClassName={() => textClass}
     >
       {label}
-    </Button>
+    </ButtonBase>
   );
 };
 

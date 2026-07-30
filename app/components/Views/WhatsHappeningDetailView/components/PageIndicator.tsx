@@ -26,7 +26,6 @@ const PageIndicator: React.FC<PageIndicatorProps> = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       gap={1}
-      twClassName="py-4"
     >
       {Array.from({ length: count }, (_, index) => (
         <Box
