@@ -1332,6 +1332,62 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  describe('failed on startup', () => {
+    beforeEach(() => {
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+          },
+        },
+      } as never);
+    });
+
+    it.each([
+      'Transaction incomplete at startup',
+      'Transaction incomplete at startup with all required transactions confirmed',
+    ])(
+      'sets mm_pay_strategy to fiat when metamaskPay.fiat exists and error is "%s"',
+      (message) => {
+        request.transactionMeta.error = { name: 'Error', message };
+        request.transactionMeta.metamaskPay = {
+          fiat: { orderId: 'order-1', provider: 'transak-native' },
+        };
+
+        const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+        expect(result.properties.mm_pay_strategy).toBe('fiat');
+      },
+    );
+
+    it('does not set mm_pay_strategy when metamaskPay has no fiat', () => {
+      request.transactionMeta.error = {
+        name: 'Error',
+        message: 'Transaction incomplete at startup',
+      };
+      request.transactionMeta.metamaskPay = { chainId: '0x1' };
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_strategy).toBeUndefined();
+    });
+
+    it('does not set mm_pay_strategy for unrelated errors', () => {
+      request.transactionMeta.error = {
+        name: 'Error',
+        message: 'User rejected the transaction',
+      };
+      request.transactionMeta.metamaskPay = {
+        fiat: { orderId: 'order-1', provider: 'transak-native' },
+      };
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_strategy).toBeUndefined();
+    });
+  });
+
   describe('mm_pay_time_to_complete_s', () => {
     afterEach(() => {
       jest.restoreAllMocks();

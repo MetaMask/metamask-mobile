@@ -457,6 +457,12 @@ export const PerpsProMarketViewSelectorsIDs = {
   SCROLL_VIEW: 'perps-pro-market-scroll-view',
   HEADER: 'perps-pro-market-header',
   HEADER_SYMBOL: 'perps-pro-market-header-symbol',
+  HEADER_BACK_BUTTON: 'perps-pro-market-header-back-button',
+  HEADER_ASSET_ICON: 'perps-pro-market-header-asset-icon',
+  HEADER_SUBTITLE: 'perps-pro-market-header-subtitle',
+  HEADER_MARKET_LIST_BUTTON: 'perps-pro-market-header-market-list-button',
+  HEADER_WALLET_BUTTON: 'perps-pro-market-header-wallet-button',
+  HEADER_FAVORITE_BUTTON: 'perps-pro-market-header-favorite-button',
   MARKET_SUMMARY: 'perps-pro-market-summary',
   MARKET_PRICE: 'perps-pro-market-price',
   MARKET_PRICE_CHANGE: 'perps-pro-market-price-change',
@@ -468,6 +474,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_PERIOD_SELECTOR: 'perps-pro-market-chart-period-selector',
   CHART_MORE_PERIODS_SHEET: 'perps-pro-market-chart-more-periods-sheet',
   CHART_FULLSCREEN_BUTTON: 'perps-pro-market-chart-fullscreen-button',
+  CHART_TOGGLE_BUTTON: 'perps-pro-market-chart-toggle-button',
   CHART_PRICE_DEVIATION_WARNING:
     'perps-pro-market-chart-price-deviation-warning',
   CHART_SERVICE_INTERRUPTION_BANNER:

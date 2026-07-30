@@ -76,8 +76,10 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     analyticsContext,
     useKeyboard,
   );
-  // Keypad starts closed; the user opens it by tapping the amount headline.
-  const [isKeypadOpen, setIsKeypadOpen] = useState(false);
+  // Keyboard treatment opens the keypad by default so the sheet matches the
+  // taller Figma layout (footer + keypad visible together). Control keeps the
+  // slider and never uses this flag.
+  const [isKeypadOpen, setIsKeypadOpen] = useState(useKeyboard);
   const {
     currentCurrency,
     usdToCurrentCurrencyRate,

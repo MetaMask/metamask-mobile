@@ -95,8 +95,8 @@ const outputLines = [
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
   `run_appium_ios=${runAppiumIos}`,
-  `changed_files<<GH_EOF`,
-  flags.changedFiles,
+  `changed_spec_files<<GH_EOF`,
+  flags.changedSpecFiles,
   'GH_EOF',
 ];
 

@@ -543,7 +543,12 @@ describe('NotificationService - displayNotification', () => {
         title: notification.title,
         body: notification.body,
         data: { dataStr: JSON.stringify(notification.data) },
+        android: expect.objectContaining({
+          smallIcon: 'ic_notification_small',
+        }),
       }),
     );
+    const displayCall = mocks.mockNotifeeDisplayNotification.mock.calls[0][0];
+    expect(displayCall.android).not.toHaveProperty('largeIcon');
   });
 });

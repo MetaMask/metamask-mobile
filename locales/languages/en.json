@@ -1266,7 +1266,7 @@
       "get_new_quote": "Get new quote",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "includes_mm_fee": "Includes {{fee}}% MetaMask fee",
       "pay_with_no_tokens": "No tokens available to pay with",
       "receive_with_no_tokens": "No tokens available to receive",
       "pay_with_filter_all": "All",
@@ -1281,12 +1281,12 @@
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
       "toast_failed_sell": "Couldn't sell {{symbol}}",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "Confirm",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
+      "edit_quick_amounts_title": "Edit default amounts",
+      "edit_quick_amounts_set_buy": "To buy",
+      "edit_quick_amounts_set_sell": "To sell",
+      "edit_quick_amounts_confirm": "Save",
+      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
+      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
       "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
       "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
     }
@@ -2551,8 +2551,14 @@
     },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
+      "collapse_chart": "Collapse chart",
+      "expand_chart": "Expand chart",
       "market_list": "Browse markets",
-      "perp_pair": "{{ticker}}-{{collateral}} perp"
+      "perp_pair": "{{ticker}}-{{collateral}} perp",
+      "back": "Back",
+      "wallet": "Perps home",
+      "add_to_watchlist": "Add to watchlist",
+      "remove_from_watchlist": "Remove from watchlist"
     }
   },
   "market_insights": {
@@ -7321,8 +7327,10 @@
       }
     },
     "withdraw": "Withdraw",
+    "withdraw_from_aave": "Withdraw from Aave",
     "deposit_more": "Deposit more",
     "earning": "Earning",
+    "lending_earnings": "Lending earnings",
     "withdrawal_time": "Withdrawal time",
     "withdrawing_to": "Withdrawing to",
     "network": "Network",
@@ -7495,6 +7503,19 @@
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
     },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "{{apy}}% APY",
+        "start_earning": "Start earning",
+        "current_apy_disclaimer": "Current APY, variable and not guaranteed."
+      },
+      "balance_cta": {
+        "description_prefix": "Add your {{symbol}} to your Money account and earn up to ",
+        "description_suffix": " in one year.",
+        "earn_apy": "Earn {{apy}}% APY",
+        "earnings_tooltip_accessibility_label": "Learn about projected earnings"
+      }
+    },
     "earnings": {
       "title": "Earnings",
       "estimated_monthly": "Monthly",
@@ -7658,7 +7679,8 @@
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
       "deposit_title": "Projected 1-year balance",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return.",
+      "go_to_money_account": "Go to Money account"
     },
     "activity": {
       "title": "Activity",
