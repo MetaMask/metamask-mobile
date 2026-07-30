@@ -6,8 +6,6 @@ export interface PriceAlertRouteParams {
   currentCurrency: string;
   /** CAIP-19 asset identifier, e.g. "eip155:1/slip44:60" or "eip155:1/erc20:0x..." */
   assetId: string;
-  /** Analytics: whether the user holds a balance of this token. */
-  hasBalance?: boolean;
 }
 
 /** Route params for the Create Price Alert screen. */

@@ -26,7 +26,6 @@ const baseRoute: CreatePriceAlertRouteParams = {
   currentPrice: 1201.98,
   currentCurrency: 'USD',
   assetId: 'eip155:1/slip44:60',
-  hasBalance: true,
 };
 let mockRouteParams: CreatePriceAlertRouteParams = baseRoute;
 
@@ -159,7 +158,6 @@ describe('CreatePriceAlertView', () => {
     expect(mockUseAlertSaveFlow).toHaveBeenCalledWith(
       expect.objectContaining({
         assetId: 'eip155:1/slip44:60',
-        hasBalance: true,
         shouldAutoWatchlistOnCreate: true,
       }),
     );

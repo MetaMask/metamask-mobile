@@ -69,7 +69,6 @@ const renderSaveFlow = (
     assetId: string;
     displayTicker: string;
     fromManage: boolean;
-    hasBalance: boolean;
     shouldAutoWatchlistOnCreate: boolean;
   }> = {},
 ) =>
@@ -248,7 +247,6 @@ describe('useAlertSaveFlow', () => {
   it('adds the asset to the watchlist after creating the first alert', async () => {
     const analytics = mockAnalytics();
     const { result } = renderSaveFlow({
-      hasBalance: true,
       shouldAutoWatchlistOnCreate: true,
     });
 
@@ -259,18 +257,7 @@ describe('useAlertSaveFlow', () => {
       });
     });
 
-    expect(mockAddToWatchlistMutate).toHaveBeenCalledWith(
-      'eip155:1/slip44:60',
-      expect.objectContaining({
-        onSuccess: expect.any(Function),
-      }),
-    );
-
-    const options = mockAddToWatchlistMutate.mock.calls[0][1] as {
-      onSuccess: () => void;
-    };
-    options.onSuccess();
-
+    expect(mockAddToWatchlistMutate).toHaveBeenCalledWith('eip155:1/slip44:60');
     expect(analytics.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WATCHLIST_TOKEN_ADDED,
     );
@@ -280,7 +267,6 @@ describe('useAlertSaveFlow', () => {
     ).toHaveBeenCalledWith({
       source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
       asset_type: 'native',
-      has_balance: true,
     });
   });
 

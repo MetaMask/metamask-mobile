@@ -1010,7 +1010,6 @@ describe('TokenDetails', () => {
           currentPrice: 2500,
           currentCurrency: 'usd',
           assetId: expect.stringMatching(/^eip155:1\//),
-          hasBalance: true,
         }),
       );
     });

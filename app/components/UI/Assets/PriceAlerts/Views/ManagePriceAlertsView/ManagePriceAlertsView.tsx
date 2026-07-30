@@ -88,7 +88,7 @@ const ManagePriceAlertsView: React.FC = () => {
         'ManagePriceAlerts'
       >
     >();
-  const { symbol, ticker, currentPrice, currentCurrency, assetId, hasBalance } =
+  const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
   const displayTicker = ticker || symbol;
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -172,7 +172,6 @@ const ManagePriceAlertsView: React.FC = () => {
         currentPrice,
         currentCurrency,
         assetId,
-        hasBalance,
         fromManage: true,
         existingAbsoluteAlerts: alerts.filter(
           (a): a is AbsolutePriceAlert => a.type === 'absolute_price',
@@ -190,7 +189,6 @@ const ManagePriceAlertsView: React.FC = () => {
       currentPrice,
       currentCurrency,
       assetId,
-      hasBalance,
       alerts,
     ],
   );

@@ -29,7 +29,6 @@ interface UseAlertSaveFlowParams {
   assetId: string;
   displayTicker: string;
   fromManage?: boolean;
-  hasBalance?: boolean;
   shouldAutoWatchlistOnCreate?: boolean;
 }
 
@@ -65,7 +64,6 @@ const useAlertSaveFlow = ({
   assetId,
   displayTicker,
   fromManage,
-  hasBalance,
   shouldAutoWatchlistOnCreate,
 }: UseAlertSaveFlowParams) => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -143,19 +141,17 @@ const useAlertSaveFlow = ({
         await submit();
 
         if (!editingAlert && shouldAutoWatchlistOnCreate) {
-          addToWatchlist(assetId as CaipAssetType, {
-            onSuccess: () => {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
-                  .addProperties({
-                    source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
-                    asset_type: getWatchlistAssetType(assetId),
-                    has_balance: hasBalance ?? false,
-                  })
-                  .build(),
-              );
-            },
-          });
+          const watchlistAnalyticsProperties = {
+            source: WatchlistAnalytics.ADD_SOURCE.PRICE_ALERT_CREATION,
+            asset_type: getWatchlistAssetType(assetId),
+          };
+
+          addToWatchlist(assetId as CaipAssetType);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+              .addProperties(watchlistAnalyticsProperties)
+              .build(),
+          );
         }
 
         if (editingAlert && patch) {
@@ -197,7 +193,6 @@ const useAlertSaveFlow = ({
       assetId,
       createEventBuilder,
       displayTicker,
-      hasBalance,
       navigateAfterSave,
       patchAlertCache,
       shouldAutoWatchlistOnCreate,
