@@ -7921,7 +7921,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^11.2.1, @metamask/assets-controller@npm:^11.3.0":
+"@metamask/assets-controller@npm:^11.2.0, @metamask/assets-controller@npm:^11.2.1, @metamask/assets-controller@npm:^11.3.0":
   version: 11.3.0
   resolution: "@metamask/assets-controller@npm:11.3.0"
   dependencies:
@@ -8255,16 +8255,16 @@ __metadata:
   linkType: hard
 
 "@metamask/client-utils@npm:^1.2.1":
-  version: 1.4.0
-  resolution: "@metamask/client-utils@npm:1.4.0"
+  version: 1.2.1
+  resolution: "@metamask/client-utils@npm:1.2.1"
   dependencies:
     "@metamask/contract-metadata": "npm:^2.4.0"
     "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/core-backend": "npm:^8.0.0"
-    "@metamask/keyring-api": "npm:^23.7.0"
-    "@metamask/transaction-controller": "npm:^69.3.0"
+    "@metamask/core-backend": "npm:^7.0.0"
+    "@metamask/keyring-api": "npm:^23.5.0"
+    "@metamask/transaction-controller": "npm:^69.2.1"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/d763ab9bf4d489cff80fb53d712c14b8635ff77b4c35d0fdaee9293c1fe0b1d7c3a2efbe5761acd8424715f4c145278529636a8213d8892c2845207e87867008
+  checksum: 10/69f00137b4831e8f02335dbef244e65e09b33acc450db27bac9744c392a81cc8fd3107bb5b4c09bf3d01c1ecc75aa1655853ede31cbda62244bcea7d9d4b9b1f
   languageName: node
   linkType: hard
 
@@ -9847,6 +9847,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/ramps-controller@npm:^17.0.0":
+  version: 17.1.0
+  resolution: "@metamask/ramps-controller@npm:17.1.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/profile-sync-controller": "npm:^28.3.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+  checksum: 10/fa4e17571268e1a171be10f643cc8d0c163b0e59021b3067696968e141d39871b0a192ebb207666cff5f4af9397aec2030e6c50a485679b22a1be0a2748494d1
+  languageName: node
+  linkType: hard
+
 "@metamask/ramps-controller@npm:^18.0.0":
   version: 18.0.0
   resolution: "@metamask/ramps-controller@npm:18.0.0"
@@ -10578,13 +10591,13 @@ __metadata:
   linkType: hard
 
 "@metamask/transaction-pay-controller@npm:^26.0.0":
-  version: 26.0.1
-  resolution: "@metamask/transaction-pay-controller@npm:26.0.1"
+  version: 26.0.0
+  resolution: "@metamask/transaction-pay-controller@npm:26.0.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/assets-controller": "npm:^11.2.1"
+    "@metamask/assets-controller": "npm:^11.2.0"
     "@metamask/assets-controllers": "npm:^110.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
@@ -10593,7 +10606,7 @@ __metadata:
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^34.0.0"
-    "@metamask/ramps-controller": "npm:^18.0.0"
+    "@metamask/ramps-controller": "npm:^17.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/sentinel-api-service": "npm:^1.0.0"
     "@metamask/transaction-controller": "npm:^69.2.1"
@@ -10602,7 +10615,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/8392b5856cf58c186a882cbaee3050d02dfc98f699f407d8a72bf90c4443af69bac985160209f0fed18d2001255ae36e7737c2bef28f0e400fd398f737819da5
+  checksum: 10/35c681ab2e1fbf60e3ae01b3f67be52ac69e755a67266884e40a1a3dfe0db74e29c81516df4904e5a78c11d20793df09de6136d436c4513be19730c392cbd977
   languageName: node
   linkType: hard
 
@@ -40752,8 +40765,8 @@ __metadata:
   linkType: hard
 
 "react-native-permissions@npm:^5.6.0":
-  version: 5.6.1
-  resolution: "react-native-permissions@npm:5.6.1"
+  version: 5.6.0
+  resolution: "react-native-permissions@npm:5.6.0"
   peerDependencies:
     react: "*"
     react-native: "*"
@@ -40761,7 +40774,7 @@ __metadata:
   peerDependenciesMeta:
     react-native-windows:
       optional: true
-  checksum: 10/482df5cf9da533a16c267afd06698bb86ba4f5a56d88c6ad66cf96f84c6f8c214ed4433d16a92f746b636b175e17e66f7a2083fbc52eb80658d8a090d6db63b5
+  checksum: 10/3c140d9d08b0a266e28fdf5e6e87016080e41864da7a99360c3d5754c56f7a73f983a47fd973b6d3e7cd7a55868ab4a34519bc971a6580dc226fa74ae114181f
   languageName: node
   linkType: hard
 
@@ -42425,12 +42438,12 @@ __metadata:
   linkType: hard
 
 "rive-react-native@npm:^9.8.0":
-  version: 9.8.3
-  resolution: "rive-react-native@npm:9.8.3"
+  version: 9.8.5
+  resolution: "rive-react-native@npm:9.8.5"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/b646d50dfa235965f7c28e0fc036a0f606469e54039ae89330124d2bc1bb7af5313e7c833cab826015ad9c5ae2e0c36ef60f15ae08fb8d564567d3b2f46ccd44
+  checksum: 10/67b47eb920405ed5e1bff4b28e819c86801bf51330feefdfea475992817fd92313837ea890528f097c510cc72ab85a6ba0490f9fa99f6bb18850ce5ba740d147
   languageName: node
   linkType: hard
 
@@ -42661,9 +42674,9 @@ __metadata:
   linkType: hard
 
 "sax@npm:>=0.6.0, sax@npm:^1.5.0":
-  version: 1.6.1
-  resolution: "sax@npm:1.6.1"
-  checksum: 10/bf7e7f8293903548bd663d71e9300b20ee04df178399b8f54029b6559225de422235c8fb0a63ba088fcb90c1dbaf9b475f57c7f32c901bfb78d0196dceb3cc7f
+  version: 1.6.0
+  resolution: "sax@npm:1.6.0"
+  checksum: 10/0909cedcd9f011ceeac80c0240a92d64ef712cf6c04e0f6ee236a8d812f86a59f61bee6bb5da28d75306db050b99e0593051ea77351795822253b984af6cf044
   languageName: node
   linkType: hard
 
@@ -44599,8 +44612,8 @@ __metadata:
   linkType: hard
 
 "svgo@npm:^3.0.2":
-  version: 3.3.4
-  resolution: "svgo@npm:3.3.4"
+  version: 3.3.3
+  resolution: "svgo@npm:3.3.3"
   dependencies:
     commander: "npm:^7.2.0"
     css-select: "npm:^5.1.0"
@@ -44611,7 +44624,7 @@ __metadata:
     sax: "npm:^1.5.0"
   bin:
     svgo: ./bin/svgo
-  checksum: 10/84287b7eafcd1a1cc1b715292a9d0299e6b9d1822372bd0ec89cd405dc7b77d1106346b8ca69ba48699a1a4cb3e564030b2fce4bb2e34d2c3a9fa49363f9111a
+  checksum: 10/f3c1b4d05d1704483e53515d5995af5f06a2718df85e3a8320f57bb256b8dc926b84c87a1a9b98e9d3ca1224314cc0676a803bdd03163508292f2d45c7077096
   languageName: node
   linkType: hard
 
