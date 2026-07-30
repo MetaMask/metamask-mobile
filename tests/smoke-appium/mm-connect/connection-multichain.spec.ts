@@ -92,6 +92,8 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
             await DappConnectionModal.tapConnectButton({
               timeout: 30_000,
             });
+            // Let the success toast dismiss so the un-awaited relay write flushes before backgrounding MetaMask.
+            await DappConnectionModal.waitForReturnToAppToastToDismiss();
           });
 
           await switchToMobileBrowser();

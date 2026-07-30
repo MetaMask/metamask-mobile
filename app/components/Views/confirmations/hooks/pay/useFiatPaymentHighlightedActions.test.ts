@@ -20,8 +20,8 @@ jest.mock('../../../../UI/Ramp/hooks/useAnalytics', () => ({
   __esModule: true,
   default: () => mockRampsTrackEvent,
 }));
-jest.mock('../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
-  useHasNativeFiatProvider: () => true,
+jest.mock('../../../../UI/Ramp/hooks/useHasFiatProvider', () => ({
+  useHasFiatProvider: () => true,
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../core/Engine', () => ({
