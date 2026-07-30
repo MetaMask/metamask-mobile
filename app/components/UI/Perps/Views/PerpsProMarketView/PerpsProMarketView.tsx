@@ -9,7 +9,6 @@ import {
 import {
   TimeDuration,
   getPerpsDisplaySymbol,
-  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
@@ -255,7 +254,7 @@ const PerpsProMarketView = () => {
             isOrderBookCollapsed={isOrderBookCollapsed}
             orderForm={
               <PerpsProOrderFormPanel
-                market={market as PerpsMarketData}
+                market={market}
                 isOrderBookCollapsed={isOrderBookCollapsed}
                 onExpandOrderBook={handleExpandOrderBook}
               />
