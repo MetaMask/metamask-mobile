@@ -1132,6 +1132,76 @@ describe('useQuickBuyController', () => {
       expect(result.current.sliderPercent).toBe(0);
     });
 
+    it('keeps max-spend mode when the same pay-with token is re-selected', () => {
+      const FULL_BALANCE = '0.10003';
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: FULL_BALANCE,
+        atomicBalance: '100030000000000000',
+      });
+      const stablecoin = createSourceToken({
+        symbol: 'MUSD',
+        currencyExchangeRate: 0.9997,
+        balance: FULL_BALANCE,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [stablecoin],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(100);
+        result.current.handleSliderDragEnd(100);
+      });
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+
+      act(() => {
+        result.current.handleSelectSourceToken(stablecoin);
+      });
+
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+    });
+
+    it('clears max-spend mode when switching to a different pay-with token', () => {
+      const FULL_BALANCE = '0.10003';
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: FULL_BALANCE,
+        atomicBalance: '100030000000000000',
+      });
+      const musd = createSourceToken({
+        symbol: 'MUSD',
+        currencyExchangeRate: 0.9997,
+        balance: FULL_BALANCE,
+      });
+      const usdt = createSourceToken({
+        symbol: 'USDT',
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        currencyExchangeRate: 1,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [musd, usdt],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(100);
+        result.current.handleSliderDragEnd(100);
+      });
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+
+      act(() => {
+        result.current.handleSelectSourceToken(usdt);
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(result.current.fiatAmount).not.toBe('');
+    });
+
     it('tracks pay_with_selected when the user picks a different token', () => {
       const usdc = createSourceToken({
         symbol: 'USDC',

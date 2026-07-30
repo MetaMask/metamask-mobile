@@ -13,6 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { useBlinkingCursor } from '../../../../../../UI/Ramp/hooks/useBlinkingCursor';
+import useCurrency from '../../../../../../Base/Keypad/useCurrency';
 import {
   formatCurrency,
   getCurrencySymbol,
@@ -68,6 +69,21 @@ function isCurrencySymbolPrefix(currency: string): boolean {
   return symbolIndex < digitIndex;
 }
 
+/**
+ * Show keypad-internal amounts (dot decimal) with the currency's locale
+ * separator so editing matches the closed-keypad `formatCurrency` headline.
+ */
+export function formatAmountDigitsForDisplay(
+  amount: string,
+  decimalSeparator: string | null | undefined,
+): string {
+  const digits = amount || '0';
+  if (!decimalSeparator || decimalSeparator === '.' || !digits.includes('.')) {
+    return digits;
+  }
+  return digits.replace('.', decimalSeparator);
+}
+
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
   fiatAmountLabel,
@@ -84,6 +100,11 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 }) => {
   const tw = useTailwind();
   const cursorOpacity = useBlinkingCursor(showCursor);
+  // Same currency → decimal mapping as QuickBuyKeypad so the headline separator
+  // matches what the keypad is typing.
+  const { decimalSeparator } = useCurrency(
+    isUnpricedSource ? 'native' : currency,
+  );
 
   const cryptoAmountLabel = estimatedReceiveAmount
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
@@ -125,7 +146,10 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     );
 
     if (isUnpricedSource) {
-      const amountDigits = sourceCryptoAmount || '0';
+      const amountDigits = formatAmountDigitsForDisplay(
+        sourceCryptoAmount || '0',
+        decimalSeparator,
+      );
       return (
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -153,7 +177,10 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       );
     }
 
-    const amountDigits = fiatAmount || '0';
+    const amountDigits = formatAmountDigitsForDisplay(
+      fiatAmount || '0',
+      decimalSeparator,
+    );
     const symbol = currency ? getCurrencySymbol(currency) : '';
     const symbolIsPrefix = currency ? isCurrencySymbolPrefix(currency) : true;
 
@@ -198,6 +225,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     sourceSymbol,
     fiatAmount,
     currency,
+    decimalSeparator,
     cursorOpacity,
     tw,
   ]);

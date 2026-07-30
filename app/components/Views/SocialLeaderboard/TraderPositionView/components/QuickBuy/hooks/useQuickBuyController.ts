@@ -1251,16 +1251,23 @@ export function useQuickBuyController(
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
       const previousToken = selectedSourceToken?.symbol ?? '';
-      if (token.symbol !== previousToken) {
+      const tokenChanged =
+        !selectedSourceToken ||
+        getTokenKey(token) !== getTokenKey(selectedSourceToken);
+
+      if (tokenChanged && token.symbol !== previousToken) {
         trackPayWithSelected(token.symbol, previousToken);
       }
       isManualSelectionRef.current = true;
       setSelectedSourceToken(token);
-      // Keep the entered fiat/token amount; only clear max-balance mode because
-      // that flag is tied to the previous token's on-chain balance.
-      setIsMaxSourceAmount(false);
+      // Preserve amount across pay-with changes. Only drop max-balance mode when
+      // the token identity changes — re-selecting the same token must keep max
+      // so we still spend the exact on-chain balance (not a fiat round-trip).
+      if (tokenChanged) {
+        setIsMaxSourceAmount(false);
+      }
     },
-    [selectedSourceToken?.symbol, trackPayWithSelected],
+    [selectedSourceToken, trackPayWithSelected],
   );
 
   const handleSelectDestStable = useCallback(

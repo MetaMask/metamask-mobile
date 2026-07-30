@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import QuickBuyAmountSection from './QuickBuyAmountSection';
+import QuickBuyAmountSection, {
+  formatAmountDigitsForDisplay,
+} from './QuickBuyAmountSection';
 
 jest.mock('../../../../../../UI/Bridge/utils/currencyUtils', () => ({
   formatCurrency: jest.fn((amount: number, currency: string) => {
@@ -16,6 +18,20 @@ jest.mock('../../../../../../UI/Bridge/utils/currencyUtils', () => ({
     return '$';
   }),
 }));
+
+describe('formatAmountDigitsForDisplay', () => {
+  it('keeps dot decimals when the currency uses a dot separator', () => {
+    expect(formatAmountDigitsForDisplay('12.5', '.')).toBe('12.5');
+  });
+
+  it('swaps to a locale decimal separator while editing', () => {
+    expect(formatAmountDigitsForDisplay('12.5', ',')).toBe('12,5');
+  });
+
+  it('falls back to 0 for an empty amount', () => {
+    expect(formatAmountDigitsForDisplay('', ',')).toBe('0');
+  });
+});
 
 describe('QuickBuyAmountSection', () => {
   const baseProps = {
@@ -90,18 +106,18 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
   });
 
-  it('places the caret before a suffix currency symbol', () => {
+  it('places the caret before a suffix currency and uses its decimal separator', () => {
     render(
       <QuickBuyAmountSection
         {...baseProps}
         showCursor
         fiatAmount="12.5"
         currency="EUR"
-        fiatAmountLabel="12.5 €"
+        fiatAmountLabel="12,5 €"
       />,
     );
 
-    expect(screen.getByText('12.5')).toBeOnTheScreen();
+    expect(screen.getByText('12,5')).toBeOnTheScreen();
     expect(screen.getByText(' €')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
   });
