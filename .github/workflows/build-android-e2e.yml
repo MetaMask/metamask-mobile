@@ -1,5 +1,7 @@
 # Pure Android E2E build workflow - just builds APKs and uploads artifacts
 # No testing, no unnecessary setup - optimized for speed and efficiency
+# DO-NOT-MERGE: no-op change to trigger the E2E pipeline for validating
+# the slim yarn cache in PR #34051.
 
 name: Build Android E2E APKs
 
