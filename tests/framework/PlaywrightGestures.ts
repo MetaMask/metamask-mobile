@@ -565,7 +565,13 @@ export default class PlaywrightGestures {
 
     logger.debug('Hiding keyboard');
     if (PlatformDetector.isAndroid()) {
-      await drv.hideKeyboard();
+      try {
+        if (await drv.isKeyboardShown()) {
+          await drv.hideKeyboard();
+        }
+      } catch {
+        // Keyboard already hidden
+      }
     } else {
       // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
       // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs

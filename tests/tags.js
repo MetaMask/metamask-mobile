@@ -65,12 +65,7 @@ const smokeTags = {
   smokeSeedlessOnboarding: {
     tag: 'SmokeSeedlessOnboarding:',
     description:
-      'Tests core seedless onboarding with social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, SeedlessOnboardingController mock integration, OAuth token exchange, and the onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, Account Already Exists, or the onboarding sheet, select this tag. For QR sync, add-SRP after seedless, attribution analytics, lock/unlock, or reset wallet, also select SmokeSeedlessOnboardingExtended. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync after social login.',
-  },
-  smokeSeedlessOnboardingExtended: {
-    tag: 'SmokeSeedlessOnboardingExtended:',
-    description:
-      'Tests extended seedless onboarding and post-onboard flows. Covers importing an additional SRP after Google seedless onboarding, Wallet Setup Completed attribution analytics for Google and Apple, QR sync SRP (new-user and existing-user mobile ↔ extension), and lock/unlock and reset-wallet after Google social login (may be skipped when flaky). Specs live in tests/smoke-appium/seedless/ under this tag. When changes touch Add Device / QR sync, post-seedless SRP import, onboarding attribution analytics, or seedless lock/reset, select this tag. Often pair with SmokeSeedlessOnboarding when OAuth onboarding UI also changes. Related to SmokeAccounts for multi-SRP after seedless and SmokeWalletPlatform for wallet lifecycle.',
+      'Tests seedless onboarding with social login providers (Google and Apple) and post-onboard flows. Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, SeedlessOnboardingController mock integration, OAuth token exchange, and the onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. Also covers importing an additional SRP after Google seedless onboarding, Wallet Setup Completed attribution analytics for Google and Apple, QR sync SRP (new-user and existing-user mobile ↔ extension), and lock/unlock and reset-wallet after Google social login (may be skipped when flaky). Specs live in tests/smoke-appium/seedless/. When changes touch OAuth, SeedlessOnboardingController, social login UI, Account Already Exists, the onboarding sheet, Add Device / QR sync, post-seedless SRP import, onboarding attribution analytics, or seedless lock/reset, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync / multi-SRP after social login.',
   },
   smokeBrowser: {
     tag: 'SmokeBrowser:',
@@ -143,7 +138,6 @@ const {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
-  SmokeSeedlessOnboardingExtended,
   SmokeBrowser,
   SmokeSnaps,
   SmokeMMConnect,
@@ -167,7 +161,6 @@ export {
   SmokeMultiChainAPI,
   SmokePredictions,
   SmokeSeedlessOnboarding,
-  SmokeSeedlessOnboardingExtended,
   SmokeBrowser,
   SmokeMMConnect,
   SampleFeature,
