@@ -40,6 +40,7 @@ export const LEADERBOARD_SORT_LABEL_KEY: Record<LeaderboardSort, string> = {
   winRate: 'social_leaderboard.sort_filter.win_rate',
 };
 
-export const DEFAULT_TIMEFRAME: SocialTimeframe = '7d';
-
-export const DEFAULT_LEADERBOARD_SORT: LeaderboardSort = 'pnl';
+export {
+  DEFAULT_LEADERBOARD_SORT,
+  DEFAULT_TIMEFRAME,
+} from '../../../shared/top-traders-constants';

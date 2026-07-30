@@ -30,7 +30,11 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
-import { SPOT_CHAINS } from '../../../shared/top-traders-constants';
+import {
+  DEFAULT_LEADERBOARD_SORT,
+  DEFAULT_TIMEFRAME,
+  SPOT_CHAINS,
+} from '../../../shared/top-traders-constants';
 import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
 import type { TopTrader } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -39,11 +43,6 @@ import { useOpenTradingSignalsSetup } from '../../../SocialLeaderboard/hooks/use
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { rankTradersByMetric } from '../../../SocialLeaderboard/TopTradersView/traderMetric';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import {
-  DEFAULT_LEADERBOARD_SORT,
-  DEFAULT_TIMEFRAME,
-} from '../../../SocialLeaderboard/components/Filters/filterOptions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
