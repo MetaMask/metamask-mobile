@@ -204,7 +204,12 @@ export type PredictSportsLeague =
   | 'fifwc'
   | 'atp'
   | 'wta'
-  | 'itf';
+  | 'itf'
+  | 'cs2'
+  | 'lol'
+  | 'dota2'
+  | 'val'
+  | 'r6siege';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';

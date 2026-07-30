@@ -31,6 +31,7 @@ import {
 import {
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
+  isSpreadLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import { getTokenImage } from '../../utils/sports';
@@ -710,6 +711,12 @@ function replaceAll(s: string, search: string, replace: string) {
 }
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
+  isSpreadLikeMarketType(market.sportsMarketType);
+
+// Ball-sport spread titles name a single team plus its line ("FC-Dallas -3.5"),
+// so the sign is redundant once tokens carry it. Esports handicap titles
+// describe both sides ("GenOne (-1.5) vs NEW VISION (+1.5)") and must keep it.
+const isBallSportSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
@@ -718,7 +725,7 @@ const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
 
-  if (isSpreadMarket(market)) {
+  if (isBallSportSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
     return groupItemTitle.replace(/-(?=\d)/, '');
@@ -1094,7 +1101,7 @@ export const parsePolymarketEvents = (
 
       const outcomeGroups =
         outcomesForGroups.length > 0
-          ? buildOutcomeGroups(outcomesForGroups)
+          ? buildOutcomeGroups(outcomesForGroups, eventLeague ?? undefined)
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
