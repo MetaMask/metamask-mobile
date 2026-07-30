@@ -18,6 +18,9 @@ const mockAbsoluteForm = jest.fn((_props: unknown) => (
 const mockPercentForm = jest.fn((_props: unknown) => (
   <Text testID="mock-percent-form">Percent form</Text>
 ));
+const mockFeatureGate = jest.fn((_props: unknown) => (
+  <Text testID="mock-feature-gate">Feature gate</Text>
+));
 
 const baseRoute: CreatePriceAlertRouteParams = {
   symbol: 'ETH',
@@ -48,6 +51,13 @@ jest.mock('./PercentChangeAlertForm', () => ({
   __esModule: true,
   default: (props: unknown) => mockPercentForm(props),
 }));
+
+jest.mock(
+  '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate',
+  () => ({
+    FeatureNotificationsGate: (props: unknown) => mockFeatureGate(props),
+  }),
+);
 
 const absoluteAlert: AbsolutePriceAlert = {
   id: 'absolute-alert-1',
@@ -177,6 +187,15 @@ describe('CreatePriceAlertView', () => {
 
     expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
       MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED,
+    );
+  });
+
+  it('renders the price alerts notifications gate', () => {
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByTestId('mock-feature-gate')).toBeOnTheScreen();
+    expect(mockFeatureGate).toHaveBeenCalledWith(
+      expect.objectContaining({ feature: 'priceAlerts' }),
     );
   });
 

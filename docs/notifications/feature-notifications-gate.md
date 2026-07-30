@@ -21,6 +21,23 @@ Drop `<FeatureNotificationsGate feature="yourFeature" />` anywhere in the screen
 
 For a real usage example, see [`ManagePriceAlertsView`](../../app/components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx).
 
+**Unit-testing a screen that embeds the gate**
+
+The gate calls `useNotificationStoragePreferences`, which uses TanStack `useQuery`. Any unit test that renders a screen containing `<FeatureNotificationsGate />` must either:
+
+1. **Mock the gate** (preferred for the host screen's tests — gate behaviour is covered in [`FeatureNotificationsGate.test.tsx`](../../app/components/Views/Settings/NotificationsSettings/FeatureNotificationsGate.test.tsx)), or
+2. Wrap the render tree in a `QueryClientProvider`
+
+Without one of those, the suite fails with `No QueryClient set, use QueryClientProvider to set one`.
+
+```ts
+jest.mock('.../NotificationsSettings/FeatureNotificationsGate', () => ({
+  FeatureNotificationsGate: (props: unknown) => mockFeatureGate(props),
+}));
+```
+
+See [`CreatePriceAlertView.test.tsx`](../../app/components/UI/Assets/PriceAlerts/Views/CreatePriceAlertView/CreatePriceAlertView.test.tsx) for a host-screen example.
+
 ---
 
 ## 2. Conditional rendering
