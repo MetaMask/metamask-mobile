@@ -1,10 +1,12 @@
 import React, { Fragment, useMemo } from 'react';
 import { FlatList, ImageSourcePropType, View } from 'react-native';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionGroups.styles';
 import DeFiProtocolPositionGroupTokens from '../../../DeFiPositions/DeFiProtocolPositionGroupTokens';
 import Summary from '../../../../Base/Summary';
@@ -42,8 +44,9 @@ const DeFiProtocolPositionGroupsV2: React.FC<
           return (
             <Fragment key={section.productName}>
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
               >
                 {section.productName}
               </Text>

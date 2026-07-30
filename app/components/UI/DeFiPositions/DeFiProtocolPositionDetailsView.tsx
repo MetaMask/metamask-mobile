@@ -2,21 +2,22 @@ import React, { useCallback } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+  FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
+} from '@metamask/design-system-react-native';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { formatWithThreshold } from '../../../util/assets';
 import I18n from '../../../../locales/i18n';
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import Summary from '../../Base/Summary';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../component-library/components/Texts/SensitiveText';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
@@ -69,10 +70,11 @@ const DeFiProtocolPositionDetailsView: React.FC<
       <View style={styles.protocolPositionDetailsContent}>
         <View style={styles.detailsWrapper}>
           <View>
-            <Text variant={TextVariant.DisplayMD}>{title}</Text>
+            <Text variant={TextVariant.DisplayMd}>{title}</Text>
             <SensitiveText
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
               testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}

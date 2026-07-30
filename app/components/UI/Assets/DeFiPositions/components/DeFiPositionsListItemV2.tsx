@@ -3,21 +3,20 @@ import { TouchableOpacity, View } from 'react-native';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
+  FontWeight,
+  SensitiveText,
   SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
+  AvatarGroup,
+  AvatarGroupSize,
+  AvatarGroupVariant,
+  type AvatarTokenProps,
+} from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../../util/assets';
-import AvatarGroup from '../../../../../component-library/components/Avatars/AvatarGroup';
-import type { AvatarProps } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import DeFiAvatarWithBadge from '../../../DeFiPositions/DeFiAvatarWithBadge';
 import styleSheet from '../../../DeFiPositions/DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
@@ -53,7 +52,7 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
   const {
     tokenAvatars,
     tokenNames,
-  }: { tokenAvatars: AvatarProps[]; tokenNames: string } = useMemo(() => {
+  }: { tokenAvatars: AvatarTokenProps[]; tokenNames: string } = useMemo(() => {
     const icons = position.iconGroup;
 
     const getTokenStringFromLength: Record<string, () => string> = {
@@ -79,9 +78,8 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
 
     return {
       tokenAvatars: icons.map((icon) => ({
-        variant: AvatarVariant.Token,
         name: icon.symbol,
-        imageSource: icon.avatarValue
+        src: icon.avatarValue
           ? {
               uri: icon.avatarValue,
             }
@@ -120,15 +118,22 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
       />
 
       <View style={styles.contentWrapper}>
-        <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {title}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {tokenNames}
         </Text>
       </View>
 
       <View style={styles.balance}>
         <SensitiveText
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >
@@ -137,7 +142,11 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
             currency: 'USD',
           })}
         </SensitiveText>
-        <AvatarGroup avatarPropsList={tokenAvatars} size={AvatarSize.Xs} />
+        <AvatarGroup
+          variant={AvatarGroupVariant.Token}
+          avatarPropsArr={tokenAvatars}
+          size={AvatarGroupSize.Xs}
+        />
       </View>
     </TouchableOpacity>
   );

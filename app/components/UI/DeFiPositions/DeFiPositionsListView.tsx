@@ -2,15 +2,15 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { RefreshControl, ScrollViewProps, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import styleSheet from './DeFiPositionsList.styles';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Icon, {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../DefiEmptyState';
@@ -107,7 +107,7 @@ const DeFiPositionsListView: React.FC<DeFiPositionsListViewProps> = ({
   if (state.status === 'loading') {
     return (
       <View style={styles.emptyView}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('defi_positions.loading_positions')}
         </Text>
       </View>
@@ -119,13 +119,13 @@ const DeFiPositionsListView: React.FC<DeFiPositionsListViewProps> = ({
       <View style={styles.emptyView}>
         <Icon
           name={IconName.Danger}
-          color={IconColor.Alternative}
+          color={IconColor.IconAlternative}
           size={IconSize.Md}
         />
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('defi_positions.error_cannot_load_page')}
         </Text>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('defi_positions.error_visit_again')}
         </Text>
       </View>
