@@ -175,7 +175,7 @@ describe('AccountGroupBalance', () => {
     expect(getByText('Today')).toBeOnTheScreen();
   });
 
-  it('uses alternative text color for a partially loaded aggregate hero', () => {
+  it('uses muted text color for a partially loaded aggregate hero', () => {
     const { getByTestId } = renderWithProvider(
       <AccountGroupBalance
         heroOverride={{
@@ -189,7 +189,7 @@ describe('AccountGroupBalance', () => {
     );
 
     expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.alternative,
+      color: mockTheme.colors.text.muted,
     });
   });
 
