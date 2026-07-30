@@ -288,7 +288,8 @@
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
       },
       "stellar": {
-        "stellar:pubnet": true
+        "stellar:pubnet": true,
+        "stellar:testnet": false
       },
       "tron": {
         "tron:2494104990": false,
@@ -660,6 +661,12 @@
         "isEvm": false,
         "name": "Stellar",
         "nativeCurrency": "stellar:pubnet/slip44:148"
+      },
+      "stellar:testnet": {
+        "chainId": "stellar:testnet",
+        "isEvm": false,
+        "name": "Stellar Testnet",
+        "nativeCurrency": "stellar:testnet/slip44:148"
       },
       "tron:2494104990": {
         "chainId": "tron:2494104990",

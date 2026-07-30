@@ -19,7 +19,8 @@ const STELLAR_NATIVE_ASSET_ID =
   `${XlmScope.Pubnet}/slip44:148` as CaipAssetType;
 
 describe('useSpendableBalance', () => {
-  const getSpendableForAccountMock = getSpendableForAccount as jest.Mock;
+  const getSpendableForAccountMock =
+    getSpendableForAccount as unknown as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();

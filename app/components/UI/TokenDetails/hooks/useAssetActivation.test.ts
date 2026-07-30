@@ -272,7 +272,7 @@ describe('useAssetActivation', () => {
     it('returns non-zero balance error without requesting delete', async () => {
       selectMultichainBalancesMock.mockReturnValue({
         [ACCOUNT_ID]: {
-          [PUBNET_USDC_ASSET]: { amount: '5.5' },
+          [PUBNET_USDC_ASSET]: { amount: '5.5', unit: 'USDC' },
         },
       });
 
