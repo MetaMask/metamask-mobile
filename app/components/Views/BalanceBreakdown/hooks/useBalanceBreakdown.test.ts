@@ -85,6 +85,7 @@ describe('useBalanceBreakdown', () => {
     const { result } = renderHook(() => useBalanceBreakdown());
     // 50000 + 30000 + 20000 + 10000 = 110000
     expect(result.current.hero.totalFiat).toBe(110000);
+    expect(result.current.hero.isPartiallyLoaded).toBe(false);
   });
 
   it('computes percentOfTotal for each slice', () => {
@@ -120,6 +121,7 @@ describe('useBalanceBreakdown', () => {
     );
     const { result } = renderHook(() => useBalanceBreakdown());
     expect(result.current.hero.status).toBe('ready');
+    expect(result.current.hero.isPartiallyLoaded).toBe(true);
   });
 
   it('keeps a zero-value hero loading while an eligible slice is unresolved', () => {

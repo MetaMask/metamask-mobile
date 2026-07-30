@@ -1,25 +1,22 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { usePredictPortfolio } from '../../../../UI/Predict/hooks/usePredictPortfolio';
-import { usePredictEligibility } from '../../../../UI/Predict/hooks/usePredictEligibility';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import type { BalanceSlice, FiatConverter } from '../../types';
 
 export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const isEnabled = useSelector(selectPredictEnabledFlag);
-  const { isEligible, country } = usePredictEligibility();
   const { portfolioValue, isLoading, error } = usePredictPortfolio();
 
   const convertedValue = toUserCurrency(portfolioValue);
 
   const status = useMemo(() => {
     if (!isEnabled) return 'ineligible' as const;
-    if (country && !isEligible) return 'ineligible' as const;
     if (error) return 'error' as const;
     if (isLoading) return 'loading' as const;
     if (convertedValue === undefined) return 'loading' as const;
     return 'ready' as const;
-  }, [convertedValue, country, error, isEligible, isEnabled, isLoading]);
+  }, [convertedValue, error, isEnabled, isLoading]);
 
   const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
 

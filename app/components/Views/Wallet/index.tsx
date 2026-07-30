@@ -208,9 +208,6 @@ const createStyles = ({ colors }: Theme) =>
     treatmentBannerContainer: {
       paddingBottom: 16,
     },
-    accountGroupBalanceContainer: {
-      paddingHorizontal: 16,
-    },
     tabContainer: {
       flex: 1,
     },
@@ -1060,9 +1057,7 @@ const Wallet = ({
   ) : (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
-      <View style={styles.accountGroupBalanceContainer}>
-        <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
-      </View>
+      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {growthBanner}
       {homepageDiscoveryPills}

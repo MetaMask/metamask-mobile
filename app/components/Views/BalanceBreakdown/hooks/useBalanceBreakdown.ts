@@ -125,6 +125,12 @@ export function useBalanceBreakdown(): BreakdownData {
     () => aggregateStatus(slices, totalFiat),
     [slices, totalFiat],
   );
+  const isHeroPartiallyLoaded = useMemo(
+    () =>
+      heroStatus === 'ready' &&
+      SLICE_ORDER.some((key) => slices[key].status === 'loading'),
+    [heroStatus, slices],
+  );
 
   const hero = useMemo<HeroData>(() => {
     /** A missing Perps baseline must not turn session PnL into a “Today” value. */
@@ -152,12 +158,14 @@ export function useBalanceBreakdown(): BreakdownData {
         includePerpsContribution,
       }),
       status: heroStatus,
+      isPartiallyLoaded: isHeroPartiallyLoaded,
     };
   }, [
     totalFiat,
     userCurrency,
     tokensSlice.delta,
     heroStatus,
+    isHeroPartiallyLoaded,
     perpsSlice.status,
     perpsSlice.value1dAgoFiat,
     perpsSlice.valueFiat,

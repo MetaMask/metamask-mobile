@@ -1,7 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
+import Animated, {
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
@@ -23,6 +30,7 @@ import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import {
   SensitiveText,
   SensitiveTextLength,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
@@ -40,6 +48,7 @@ export interface AccountGroupBalanceHeroOverride {
   totalFiat: number;
   userCurrency: string;
   status: 'loading' | 'ready' | 'error' | 'ineligible';
+  isPartiallyLoaded?: boolean;
   delta?: {
     amount: number;
     /** Fractional percentage change (0.01 = 1%). */
@@ -148,6 +157,27 @@ const AccountGroupBalance = ({
   const displayedBalanceChange = heroOverride
     ? heroOverride.delta
     : balanceChange1d;
+  const balanceOpacity = useSharedValue(1);
+  const animatedBalanceStyle = useAnimatedStyle(() => ({
+    opacity: balanceOpacity.value,
+  }));
+
+  useEffect(() => {
+    cancelAnimation(balanceOpacity);
+
+    if (heroOverride?.isPartiallyLoaded) {
+      balanceOpacity.value = withRepeat(
+        withTiming(0.6, { duration: 900 }),
+        -1,
+        true,
+      );
+    } else {
+      balanceOpacity.value = 1;
+    }
+
+    return () => cancelAnimation(balanceOpacity);
+  }, [balanceOpacity, heroOverride?.isPartiallyLoaded]);
+
   const awaitBalanceForPostOnboardingSteps =
     isLoading && !walletHomeOnboardingSkipInitialBalanceWait;
 
@@ -199,14 +229,21 @@ const AccountGroupBalance = ({
         style={styles.balanceContainer}
       >
         <Skeleton hideChildren={isLoading}>
-          <SensitiveText
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
-            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
-          >
-            {displayBalance}
-          </SensitiveText>
+          <Animated.View style={animatedBalanceStyle}>
+            <SensitiveText
+              color={
+                heroOverride?.isPartiallyLoaded
+                  ? TextColor.TextMuted
+                  : TextColor.TextDefault
+              }
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Long}
+              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+              variant={TextVariant.DisplayLg}
+            >
+              {displayBalance}
+            </SensitiveText>
+          </Animated.View>
         </Skeleton>
 
         {displayedBalanceChange && (

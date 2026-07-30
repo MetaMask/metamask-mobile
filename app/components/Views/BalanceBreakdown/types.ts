@@ -30,6 +30,7 @@ export interface HeroData {
   userCurrency: string;
   delta?: SliceDelta;
   status: SliceStatus;
+  isPartiallyLoaded?: boolean;
 }
 
 export interface BreakdownData {

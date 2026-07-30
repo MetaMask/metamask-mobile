@@ -4,6 +4,7 @@ import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { mockTheme } from '../../../../../util/theme';
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
 import {
   FORMATTED_PERCENTAGE_TEST_ID,
@@ -172,6 +173,24 @@ describe('AccountGroupBalance', () => {
 
     expect(getByText('$987.65')).toBeOnTheScreen();
     expect(getByText('Today')).toBeOnTheScreen();
+  });
+
+  it('uses alternative text color for a partially loaded aggregate hero', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupBalance
+        heroOverride={{
+          totalFiat: 987.65,
+          userCurrency: 'USD',
+          status: 'ready',
+          isPartiallyLoaded: true,
+        }}
+      />,
+      { state: testState },
+    );
+
+    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
+      color: mockTheme.colors.text.alternative,
+    });
   });
 
   it('does not mix a legacy percentage into an aggregate delta', () => {
