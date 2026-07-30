@@ -74,9 +74,8 @@ export const selectTokensByChainIdAndWalletAddress = createDeepEqualSelector(
         ) ?? {}),
 );
 
-const EMPTY_TOKENS_BY_ADDRESS: { [address: string]: Token } = Object.freeze(
-  {} as { [address: string]: Token },
-) as { [address: string]: Token };
+const EMPTY_TOKENS_BY_ADDRESS: Readonly<Record<string, never>> =
+  Object.freeze({});
 
 export const selectTokensByAddress = createDeepEqualSelector(
   selectTokens,
@@ -85,13 +84,10 @@ export const selectTokensByAddress = createDeepEqualSelector(
       return EMPTY_TOKENS_BY_ADDRESS;
     }
 
-    return tokens.reduce(
-      (tokensMap: { [address: string]: Token }, token: Token) => {
-        tokensMap[token.address] = token;
-        return tokensMap;
-      },
-      {} as { [address: string]: Token },
-    );
+    return tokens.reduce<Record<string, Token>>((tokensMap, token) => {
+      tokensMap[token.address] = token;
+      return tokensMap;
+    }, {});
   },
 );
 
