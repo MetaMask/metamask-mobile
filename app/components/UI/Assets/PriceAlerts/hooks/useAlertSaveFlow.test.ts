@@ -69,6 +69,7 @@ const renderSaveFlow = (
     assetId: string;
     displayTicker: string;
     fromManage: boolean;
+    hasBalance: boolean;
     shouldAutoWatchlistOnCreate: boolean;
   }> = {},
 ) =>
