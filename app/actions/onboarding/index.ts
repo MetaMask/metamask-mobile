@@ -23,6 +23,8 @@ export const SET_WALLET_HOME_ONBOARDING_STEPS_STEP =
   'SET_WALLET_HOME_ONBOARDING_STEPS_STEP';
 export const SUPPRESS_WALLET_HOME_ONBOARDING_STEPS =
   'SUPPRESS_WALLET_HOME_ONBOARDING_STEPS';
+export const MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED =
+  'MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -96,6 +98,10 @@ export interface SuppressWalletHomeOnboardingStepsAction {
   reason: WalletHomeOnboardingStepsSuppressedReason;
 }
 
+export interface MarkPushNotificationOsPromptRequestedAction {
+  type: typeof MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
@@ -110,7 +116,8 @@ export type OnboardingActionTypes =
   | SetWalletHomeOnboardingStepsEligibleAction
   | ResetWalletHomeOnboardingStepsAction
   | SetWalletHomeOnboardingStepsStepAction
-  | SuppressWalletHomeOnboardingStepsAction;
+  | SuppressWalletHomeOnboardingStepsAction
+  | MarkPushNotificationOsPromptRequestedAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -233,5 +240,23 @@ export function suppressWalletHomeOnboardingSteps(
   return {
     type: SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
     reason,
+  };
+}
+
+/**
+ * Records that the app has asked the OS for push notification permission on the user's
+ * behalf, so post-onboarding surfaces stop nudging the user about notifications.
+ *
+ * Dispatched from the single place that makes that request (`requestPushPermissions`), which
+ * covers the push pre-prompt "Enable notifications" CTA and every other enable path that
+ * nudges for push. The OS itself decides whether a dialog is actually presented (it stays
+ * silent once the permission is already granted or permanently denied), so this records the
+ * ask rather than a confirmed dialog impression.
+ *
+ * @see https://consensyssoftware.atlassian.net/browse/TMCU-924
+ */
+export function markPushNotificationOsPromptRequested(): MarkPushNotificationOsPromptRequestedAction {
+  return {
+    type: MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
   };
 }

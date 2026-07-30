@@ -9,6 +9,7 @@ import notifee, {
 import { Linking, Alert as NativeAlert, Platform } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { store } from '../../../store';
+import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import Logger from '../../../util/Logger';
 import {
   ChannelId,
@@ -337,7 +338,17 @@ const getPushPermissionStatusFromAuthorizationStatus = (
   return 'denied';
 };
 
+/**
+ * Asks the OS for push permission, showing the system dialog when the OS still allows it.
+ *
+ * Records the ask in Redux before requesting so post-onboarding surfaces (the wallet home
+ * onboarding checklist) stop nudging about notifications — a user who got this far has
+ * already answered the notifications question, whether they allowed or denied it.
+ *
+ * @see https://consensyssoftware.atlassian.net/browse/TMCU-924
+ */
 export async function requestPushPermissions() {
+  store.dispatch(markPushNotificationOsPromptRequested());
   const result = await NotificationService.getAllPermissions(true);
   return result.permission === 'authorized';
 }

@@ -15,7 +15,9 @@ import NotificationService, {
   getPushPermissionStatus,
   isPushPermissionGranted,
   isPushPermissionPromptable,
+  requestPushPermissions,
 } from './NotificationService';
+import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { store } from '../../../store';
 
 jest.mock('@notifee/react-native', () => ({
@@ -550,5 +552,47 @@ describe('NotificationService - displayNotification', () => {
     );
     const displayCall = mocks.mockNotifeeDisplayNotification.mock.calls[0][0];
     expect(displayCall.android).not.toHaveProperty('largeIcon');
+  });
+});
+
+describe('requestPushPermissions', () => {
+  const arrangeMocks = (permission: 'authorized' | 'denied') => {
+    const mockGetAllPermissions = jest
+      .spyOn(NotificationService, 'getAllPermissions')
+      .mockResolvedValue({ permission });
+    const mockDispatch = jest.spyOn(store, 'dispatch');
+
+    return { mockGetAllPermissions, mockDispatch };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('records the OS push prompt request so the onboarding checklist stops nudging', async () => {
+    const mocks = arrangeMocks('authorized');
+
+    const result = await requestPushPermissions();
+
+    expect(result).toBe(true);
+    expect(mocks.mockGetAllPermissions).toHaveBeenCalledWith(true);
+    expect(mocks.mockDispatch).toHaveBeenCalledWith(
+      markPushNotificationOsPromptRequested(),
+    );
+  });
+
+  it('records the request even when the user denies OS permission', async () => {
+    const mocks = arrangeMocks('denied');
+
+    const result = await requestPushPermissions();
+
+    expect(result).toBe(false);
+    expect(mocks.mockDispatch).toHaveBeenCalledWith(
+      markPushNotificationOsPromptRequested(),
+    );
   });
 });

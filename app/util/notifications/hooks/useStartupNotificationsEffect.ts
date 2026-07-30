@@ -128,8 +128,11 @@ export function useEnableNotificationsByDefaultEffect() {
         const isWalletHomePostOnboardingChecklistActive =
           shouldShowWalletHomeOnboardingSteps;
 
-        // Wallet home post-onboarding (empty-balance checklist) ends with a dedicated
-        // notifications step — skip startup auto-enable + push nudge to avoid asking twice.
+        // Wallet home post-onboarding (empty-balance checklist) can still ask about
+        // notifications in its own step — skip startup auto-enable + push nudge to avoid
+        // asking twice. When the checklist drops that step it is because the OS push request
+        // already happened, which enables notifications on its own.
+        // @see https://consensyssoftware.atlassian.net/browse/TMCU-924
         if (isWalletHomePostOnboardingChecklistActive) {
           return;
         }

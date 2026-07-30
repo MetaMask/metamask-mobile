@@ -64,12 +64,12 @@ import {
 } from './walletHomeOnboardingStepHero';
 import { WALLET_HOME_ONBOARDING_HERO_MEDIA_LAYOUT_STYLE } from './walletHomeOnboardingStepsLayout';
 import {
-  WALLET_HOME_ONBOARDING_VISIBLE_STEPS,
   walletHomeOnboardingCappedVisualStepIndex,
   walletHomeOnboardingMaxPersistedStepIndex,
   walletHomeOnboardingProgressRatioForStep,
   type WalletHomeOnboardingStepKind,
 } from './walletHomeOnboardingStepsModel';
+import { useWalletHomeOnboardingVisibleSteps } from './useWalletHomeOnboardingVisibleSteps';
 import { walletHomeOnboardingPrimaryDeferDecision } from './walletHomeOnboardingStepsPrimaryPress';
 import {
   walletHomeOnboardingPrimaryLabelForStep,
@@ -136,21 +136,33 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     selectWalletHomeOnboardingSteps,
   );
   const stepIndex = walletHomeOnboardingStepsState.stepIndex ?? 0;
+  /** Notifications step is dropped once the OS push request already happened (TMCU-924). */
+  const { includeNotificationsStep, steps: visibleSteps } =
+    useWalletHomeOnboardingVisibleSteps();
+  const totalSteps = visibleSteps.length;
 
   useWalletHomeOnboardingChecklistHomeViewed({
     isAwaitingBalance,
     stepIndex,
     isFocused,
+    steps: visibleSteps,
   });
   const displayStepIndex = isAwaitingBalance ? 0 : stepIndex;
   /** Capped index for progress + hero; matches visible steps bounds before Redux clamps persisted step. */
-  const visualStepIndexForProgress =
-    walletHomeOnboardingCappedVisualStepIndex(displayStepIndex);
+  const visualStepIndexForProgress = walletHomeOnboardingCappedVisualStepIndex(
+    displayStepIndex,
+    totalSteps,
+  );
+  /** True while the persisted step outruns the visible steps (resolved by the effect below). */
+  const isStepIndexBeyondVisibleSteps = displayStepIndex > totalSteps - 1;
 
   const [slideX] = useState(() => new Animated.Value(0));
   const [slideY] = useState(() => new Animated.Value(0));
   const progressRatio = useSharedValue(
-    walletHomeOnboardingProgressRatioForStep(visualStepIndexForProgress),
+    walletHomeOnboardingProgressRatioForStep(
+      visualStepIndexForProgress,
+      totalSteps,
+    ),
   );
   const isFirstProgressSync = useRef(true);
   const onProgressFillCompleteRef = useRef<
@@ -201,23 +213,28 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const [isAwaitingDeferredNavResumeHold, setIsAwaitingDeferredNavResumeHold] =
     useState(false);
   const stepIndexRef = useRef(stepIndex);
-  const isLastStepRef = useRef(
-    stepIndex >= WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length - 1,
-  );
+  const isLastStepRef = useRef(stepIndex >= totalSteps - 1);
   /** Kept in sync with `stepIndex` + `isAwaitingBalance` so Primary commit matches `goNextOrComplete` ref reads. */
   const currentStepKindRef = useRef<WalletHomeOnboardingStepKind>(
-    WALLET_HOME_ONBOARDING_VISIBLE_STEPS[visualStepIndexForProgress].kind,
+    visibleSteps[visualStepIndexForProgress].kind,
   );
   useEffect(() => {
     canAdvanceFundStepAfterBalanceRef.current = canAdvanceFundStepAfterBalance;
     stepIndexRef.current = stepIndex;
-    isLastStepRef.current =
-      stepIndex >= WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length - 1;
+    isLastStepRef.current = stepIndex >= totalSteps - 1;
     const displayIdx = isAwaitingBalance ? 0 : stepIndex;
-    const cappedVisual = walletHomeOnboardingCappedVisualStepIndex(displayIdx);
-    currentStepKindRef.current =
-      WALLET_HOME_ONBOARDING_VISIBLE_STEPS[cappedVisual].kind;
-  }, [stepIndex, isAwaitingBalance, canAdvanceFundStepAfterBalance]);
+    const cappedVisual = walletHomeOnboardingCappedVisualStepIndex(
+      displayIdx,
+      totalSteps,
+    );
+    currentStepKindRef.current = visibleSteps[cappedVisual].kind;
+  }, [
+    canAdvanceFundStepAfterBalance,
+    isAwaitingBalance,
+    stepIndex,
+    totalSteps,
+    visibleSteps,
+  ]);
 
   useEffect(
     () => () => {
@@ -275,11 +292,19 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   }, []);
 
   useEffect(() => {
-    const max = walletHomeOnboardingMaxPersistedStepIndex();
-    if (stepIndex > max) {
-      dispatch(setWalletHomeOnboardingStepsStep(max));
+    const max = walletHomeOnboardingMaxPersistedStepIndex(totalSteps);
+    if (stepIndex <= max) {
+      return;
     }
-  }, [dispatch, stepIndex]);
+    if (!includeNotificationsStep) {
+      // The user was already on (or past) the notifications step when the OS push request
+      // happened and dropped that step. They have nothing left to do, so finish the flow
+      // instead of sending them back to a step they already completed.
+      dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+      return;
+    }
+    dispatch(setWalletHomeOnboardingStepsStep(max));
+  }, [dispatch, includeNotificationsStep, stepIndex, totalSteps]);
 
   /**
    * When leaving this screen (swaps / settings / onramp), mark blur even if `useIsFocused` does
@@ -329,13 +354,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     };
   }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn]);
 
-  const totalSteps = WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length;
-  const currentStep =
-    WALLET_HOME_ONBOARDING_VISIBLE_STEPS[visualStepIndexForProgress];
+  const currentStep = visibleSteps[visualStepIndexForProgress];
 
   useEffect(() => {
     const target = walletHomeOnboardingProgressRatioForStep(
       visualStepIndexForProgress,
+      totalSteps,
     );
     if (isFirstProgressSync.current) {
       isFirstProgressSync.current = false;
@@ -345,7 +369,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     animateWalletHomeOnboardingProgressRatio(progressRatio, target, {
       instant: hasTestOverrides,
     });
-  }, [progressRatio, visualStepIndexForProgress]);
+  }, [progressRatio, totalSteps, visualStepIndexForProgress]);
 
   const handleProgressFillComplete = useCallback((finished: boolean) => {
     onProgressFillCompleteRef.current?.(finished);
@@ -679,13 +703,16 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const progressLabel = useMemo(
     () =>
       strings('wallet.home_onboarding_steps.progress_a11y', {
-        current: displayStepIndex + 1,
+        current: visualStepIndexForProgress + 1,
         total: totalSteps,
       }),
-    [displayStepIndex, totalSteps],
+    [totalSteps, visualStepIndexForProgress],
   );
 
-  if (!currentStep) {
+  // The persisted step no longer exists (the notifications step was dropped from under the
+  // user). Render nothing rather than a frame of the previous step with its CTA live — the
+  // effect above completes the flow, which unmounts this tile.
+  if (!currentStep || isStepIndexBeyondVisibleSteps) {
     return null;
   }
 
@@ -861,7 +888,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               color={TextColor.TextAlternative}
               fontWeight={FontWeight.Medium}
             >
-              {displayStepIndex + 1}/{totalSteps}
+              {visualStepIndexForProgress + 1}/{totalSteps}
             </Text>
           </Box>
 
