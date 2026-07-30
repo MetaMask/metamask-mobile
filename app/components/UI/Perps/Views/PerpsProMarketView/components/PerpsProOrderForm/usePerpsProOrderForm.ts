@@ -584,7 +584,7 @@ export const usePerpsProOrderForm = ({
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: orderForm.amount,
-      szDecimals: szDecimals ?? undefined,
+      szDecimals,
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,

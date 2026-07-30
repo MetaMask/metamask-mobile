@@ -1,5 +1,6 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
+  type InputMethod,
   type OrderParams,
   type OrderType,
   type Position,
@@ -23,7 +24,7 @@ export interface BuildPerpsOrderTrackingDataInput {
   /** Mid/market price at submission. */
   marketPrice: number;
   /** Input method that produced the amount ('default' for the Pro inline form). */
-  inputMethod: string;
+  inputMethod: InputMethod;
   source?: string;
   sourceSection?: string;
   currentMarketPosition?: Position | null;
@@ -57,33 +58,32 @@ export const buildPerpsOrderTrackingData = ({
   vipTier,
   hasCustomTokenSelected,
   payToken,
-}: BuildPerpsOrderTrackingDataInput): OrderTrackingData =>
-  ({
-    marginUsed: Number(marginRequired),
-    totalFee: feeResults.totalFee,
-    marketPrice,
-    metamaskFee: feeResults.metamaskFee,
-    metamaskFeeRate: feeResults.metamaskFeeRate,
-    feeDiscountPercentage: feeResults.feeDiscountPercentage,
-    estimatedPoints: feeResults.estimatedPoints,
-    inputMethod,
-    source,
-    ...toPerpsEntryAttribution({ source, sourceSection }),
-    ...(feeResults.protocolFeeRate !== undefined
-      ? { hlFeeRate: feeResults.protocolFeeRate }
-      : {}),
-    tradeAction: derivePerpsTradeAction(currentMarketPosition, direction),
-    chartLibrary,
-    tradeWithToken: Boolean(hasCustomTokenSelected),
-    ...(hasCustomTokenSelected && payToken
-      ? {
-          mmPayTokenSelected: payToken.symbol ?? '',
-          mmPayNetworkSelected: String(payToken.chainId ?? ''),
-        }
-      : {}),
-    vipTier: vipTier ?? undefined,
-    vipDiscount: feeResults.feeDiscountPercentage,
-  }) as OrderTrackingData;
+}: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
+  marginUsed: Number(marginRequired),
+  totalFee: feeResults.totalFee,
+  marketPrice,
+  metamaskFee: feeResults.metamaskFee,
+  metamaskFeeRate: feeResults.metamaskFeeRate,
+  feeDiscountPercentage: feeResults.feeDiscountPercentage,
+  estimatedPoints: feeResults.estimatedPoints,
+  inputMethod,
+  source,
+  ...toPerpsEntryAttribution({ source, sourceSection }),
+  ...(feeResults.protocolFeeRate !== undefined
+    ? { hlFeeRate: feeResults.protocolFeeRate }
+    : {}),
+  tradeAction: derivePerpsTradeAction(currentMarketPosition, direction),
+  chartLibrary,
+  tradeWithToken: Boolean(hasCustomTokenSelected),
+  ...(hasCustomTokenSelected && payToken
+    ? {
+        mmPayTokenSelected: payToken.symbol ?? '',
+        mmPayNetworkSelected: String(payToken.chainId ?? ''),
+      }
+    : {}),
+  vipTier: vipTier ?? undefined,
+  vipDiscount: feeResults.feeDiscountPercentage,
+});
 
 export interface BuildPerpsOrderParamsInput {
   asset: string;

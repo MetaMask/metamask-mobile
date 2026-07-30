@@ -56,12 +56,12 @@ export const deriveOrderSizing = ({
   szDecimals,
   isLoadingMarketData,
 }: DeriveOrderSizingInput): DeriveOrderSizingResult => {
-  const hasValidLimitPrice =
-    orderType === 'limit' && !!limitPrice && parseFloat(limitPrice) > 0;
-
-  const effectivePrice = hasValidLimitPrice
-    ? parseFloat(limitPrice as string)
-    : marketPrice;
+  const parsedLimitPrice =
+    orderType === 'limit' && limitPrice
+      ? Number.parseFloat(limitPrice)
+      : Number.NaN;
+  const hasValidLimitPrice = parsedLimitPrice > 0;
+  const effectivePrice = hasValidLimitPrice ? parsedLimitPrice : marketPrice;
 
   const positionSize = isLoadingMarketData
     ? PERPS_CONSTANTS.FallbackDataDisplay
