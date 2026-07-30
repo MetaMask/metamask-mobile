@@ -4,10 +4,13 @@
 #
 # Fingerprint reuse (same procedure as build-android-e2e.yml):
 #   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
-#   2. On miss → fresh dual Gradle builds (unchanged).
-#   3. On hit + main_branch_only (test-only) → re-upload APKs as-is (app JS unchanged).
-#   4. On hit + app changes → skip Gradle, @expo/repack-app both profiles with current JS,
-#      then upload (avoids stale JS; fingerprint ignores JS-only changes).
+#   2. Download + validate both APKs before committing to reuse (continue-on-error).
+#      On download/validation failure → found=false and fall back to fresh dual Gradle builds.
+#      On success → re-stage APKs as artifacts on this run so upload does not depend on the
+#      prior run still having them.
+#   3. On validated hit + main_branch_only (test-only) → re-upload APKs as-is (app JS unchanged).
+#   4. On validated hit + app changes → skip Gradle, @expo/repack-app both profiles with
+#      current JS, then upload (fingerprint ignores JS-only changes).
 
 name: Build Android Dual Versions and Upload to BrowserStack
 
@@ -184,8 +187,10 @@ jobs:
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
 
-      - name: Finalize fingerprint reuse decision
-        id: finalize
+      # Select a candidate run only. found=true is deferred until both APK downloads
+      # succeed (mirrors build-android-e2e.yml gate: never skip native build on lookup alone).
+      - name: Select fingerprint reuse candidate
+        id: candidate
         run: |
           if [ "${{ steps.find-ci.outputs.found }}" = "true" ]; then
             {
@@ -193,33 +198,85 @@ jobs:
               echo "run-id=${{ steps.find-ci.outputs.run-id }}"
               echo "source-sha=${{ steps.find-ci.outputs.source-sha }}"
               echo "source-branch=${{ steps.find-ci.outputs.source-branch }}"
+              echo "source-workflow=ci.yml"
             } >> "$GITHUB_OUTPUT"
-            echo "Reusing performance APKs from ci.yml run ${{ steps.find-ci.outputs.run-id }}"
+            echo "Candidate: ci.yml run ${{ steps.find-ci.outputs.run-id }}"
           elif [ "${{ steps.find-perf.outputs.found }}" = "true" ]; then
             {
               echo "found=true"
               echo "run-id=${{ steps.find-perf.outputs.run-id }}"
               echo "source-sha=${{ steps.find-perf.outputs.source-sha }}"
               echo "source-branch=${{ steps.find-perf.outputs.source-branch }}"
+              echo "source-workflow=run-performance-e2e.yml"
             } >> "$GITHUB_OUTPUT"
-            echo "Reusing performance APKs from run-performance-e2e.yml run ${{ steps.find-perf.outputs.run-id }}"
+            echo "Candidate: run-performance-e2e.yml run ${{ steps.find-perf.outputs.run-id }}"
           elif [ "${{ steps.find-release.outputs.found }}" = "true" ]; then
             {
               echo "found=true"
               echo "run-id=${{ steps.find-release.outputs.run-id }}"
               echo "source-sha=${{ steps.find-release.outputs.source-sha }}"
               echo "source-branch=${{ steps.find-release.outputs.source-branch }}"
+              echo "source-workflow=run-performance-e2e-release.yml"
             } >> "$GITHUB_OUTPUT"
-            echo "Reusing performance APKs from run-performance-e2e-release.yml run ${{ steps.find-release.outputs.run-id }}"
+            echo "Candidate: run-performance-e2e-release.yml run ${{ steps.find-release.outputs.run-id }}"
           elif [ "${{ steps.find-exp.outputs.found }}" = "true" ]; then
             {
               echo "found=true"
               echo "run-id=${{ steps.find-exp.outputs.run-id }}"
               echo "source-sha=${{ steps.find-exp.outputs.source-sha }}"
               echo "source-branch=${{ steps.find-exp.outputs.source-branch }}"
+              echo "source-workflow=run-performance-e2e-experimental.yml"
             } >> "$GITHUB_OUTPUT"
-            echo "Reusing performance APKs from run-performance-e2e-experimental.yml run ${{ steps.find-exp.outputs.run-id }}"
+            echo "Candidate: run-performance-e2e-experimental.yml run ${{ steps.find-exp.outputs.run-id }}"
           else
+            {
+              echo "found=false"
+              echo "run-id="
+              echo "source-sha="
+              echo "source-branch="
+              echo "source-workflow="
+            } >> "$GITHUB_OUTPUT"
+            echo "No fingerprint-matching BrowserStack performance APK candidate found."
+          fi
+
+      - name: Download candidate with-SRP APK
+        id: download-with-srp
+        if: steps.candidate.outputs.found == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.candidate.outputs.run-id }}
+
+      - name: Download candidate without-SRP APK
+        id: download-without-srp
+        if: steps.candidate.outputs.found == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.candidate.outputs.run-id }}
+
+      - name: Validate downloads and finalize reuse decision
+        id: finalize
+        env:
+          CANDIDATE_FOUND: ${{ steps.candidate.outputs.found }}
+          CANDIDATE_RUN_ID: ${{ steps.candidate.outputs.run-id }}
+          CANDIDATE_SOURCE_SHA: ${{ steps.candidate.outputs.source-sha }}
+          CANDIDATE_SOURCE_BRANCH: ${{ steps.candidate.outputs.source-branch }}
+          CANDIDATE_SOURCE_WORKFLOW: ${{ steps.candidate.outputs.source-workflow }}
+          DOWNLOAD_WITH_SRP: ${{ steps.download-with-srp.outcome }}
+          DOWNLOAD_WITHOUT_SRP: ${{ steps.download-without-srp.outcome }}
+        run: |
+          set -euo pipefail
+
+          if [ "$CANDIDATE_FOUND" != "true" ]; then
             {
               echo "found=false"
               echo "run-id="
@@ -227,7 +284,54 @@ jobs:
               echo "source-branch="
             } >> "$GITHUB_OUTPUT"
             echo "No fingerprint-matching BrowserStack performance APKs found; will build fresh."
+            exit 0
           fi
+
+          with_srp_apk="$(find artifacts/with-srp -name '*.apk' -type f 2>/dev/null | head -1 || true)"
+          without_srp_apk="$(find artifacts/without-srp -name '*.apk' -type f 2>/dev/null | head -1 || true)"
+
+          if [ "$DOWNLOAD_WITH_SRP" = "success" ] \
+            && [ "$DOWNLOAD_WITHOUT_SRP" = "success" ] \
+            && [ -n "$with_srp_apk" ] \
+            && [ -n "$without_srp_apk" ]; then
+            {
+              echo "found=true"
+              echo "run-id=$CANDIDATE_RUN_ID"
+              echo "source-sha=$CANDIDATE_SOURCE_SHA"
+              echo "source-branch=$CANDIDATE_SOURCE_BRANCH"
+            } >> "$GITHUB_OUTPUT"
+            echo "Validated reuse of performance APKs from $CANDIDATE_SOURCE_WORKFLOW run $CANDIDATE_RUN_ID"
+            echo "  with-SRP: $with_srp_apk ($(du -h "$with_srp_apk" | cut -f1))"
+            echo "  without-SRP: $without_srp_apk ($(du -h "$without_srp_apk" | cut -f1))"
+          else
+            {
+              echo "found=false"
+              echo "run-id="
+              echo "source-sha="
+              echo "source-branch="
+            } >> "$GITHUB_OUTPUT"
+            echo "::warning::Reusable run $CANDIDATE_RUN_ID was found but artifact download/validation failed (with-srp=$DOWNLOAD_WITH_SRP, without-srp=$DOWNLOAD_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+          fi
+
+      # Re-stage on this run so upload does not re-download from the prior run
+      # (artifacts can expire between lookup and the later upload job).
+      - name: Re-stage with-SRP APK on current run
+        if: steps.finalize.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Re-stage without-SRP APK on current run
+        if: steps.finalize.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+          retention-days: 1
+          if-no-files-found: error
 
   build-with-srp:
     name: Build Android with-SRP
@@ -346,9 +450,6 @@ jobs:
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
-          github-token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          run-id: ${{ needs.resolve-fingerprint-reuse.outputs.run-id }}
 
       - name: Download reused without-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
@@ -356,9 +457,6 @@ jobs:
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
-          github-token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          run-id: ${{ needs.resolve-fingerprint-reuse.outputs.run-id }}
 
       - name: Download with-SRP APK from current build
         if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
