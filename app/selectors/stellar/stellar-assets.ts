@@ -1,5 +1,4 @@
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   type,
   string,
@@ -13,7 +12,6 @@ import {
 import {
   parseCaipAssetType,
   isCaipAssetType,
-  type CaipChainId,
   type CaipAssetType,
 } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
@@ -199,35 +197,36 @@ function normalizeAmount(amount: string, decimalPlaces: number): string {
 }
 
 /**
- * Resolves an account id from an explicit override, or from the selected
- * account for the asset's CAIP chain scope.
- *
- * @param getAccountByScope - Selected-account lookup by scope.
- * @param accountId - Optional account id override.
- * @param assetId - CAIP asset id used to derive the scope when needed.
- * @returns Resolved account id, or `undefined`.
- */
-function resolveAccountIdForAsset(
-  getAccountByScope: (scope: CaipChainId) => InternalAccount | undefined,
-  accountId: string | undefined,
-  assetId: CaipAssetType,
-): string | undefined {
-  if (accountId) {
-    return accountId;
-  }
-  if (!isCaipAssetType(assetId)) {
-    return undefined;
-  }
-  return getAccountByScope(parseCaipAssetType(assetId).chainId)?.id;
-}
-
-/**
  * Parameters for account/asset Stellar selectors.
  */
 export type StellarAccountAssetParams = {
   accountId?: string;
   assetId: string;
 };
+
+/**
+ * Resolves an account id from an explicit override, or from the selected
+ * account for the asset's CAIP chain scope.
+ *
+ * @param state - Redux state.
+ * @param params - Account/asset lookup params.
+ * @returns Resolved account id, or `undefined`.
+ */
+function selectResolvedAccountIdForAsset(
+  state: AssetsBalancesState,
+  params: StellarAccountAssetParams,
+): string | undefined {
+  const { accountId, assetId } = params;
+  if (accountId) {
+    return accountId;
+  }
+  if (!isCaipAssetType(assetId)) {
+    return undefined;
+  }
+  return selectSelectedInternalAccountByScope(state as RootState)(
+    parseCaipAssetType(assetId).chainId,
+  )?.id;
+}
 
 /**
  * Spendable balance breakdown for an account/asset pair.
@@ -249,30 +248,16 @@ export type StellarAccountAssetParams = {
  * @returns Display-unit spendable info, or `undefined`.
  */
 export const getSpendableForAccount = createParameterizedSelector(
-  selectSelectedInternalAccountByScope as (
-    state: AssetsBalancesState,
-  ) => (scope: CaipChainId) => InternalAccount | undefined,
   getAssetsBalance as (
     state: AssetsBalancesState,
   ) => AssetsControllerState['assetsBalance'],
-  (
-    _state: AssetsBalancesState,
-    params: StellarAccountAssetParams,
-  ) => params.accountId,
+  selectResolvedAccountIdForAsset,
   (
     _state: AssetsBalancesState,
     params: StellarAccountAssetParams,
   ) => params.assetId,
-  (getAccountByScope, assetsBalance, accountId, assetId) => {
-    if (!isAssetSupportSpendableBalance(assetId)) {
-      return undefined;
-    }
-    const resolvedAccountId = resolveAccountIdForAsset(
-      getAccountByScope,
-      accountId,
-      assetId,
-    );
-    if (!resolvedAccountId) {
+  (assetsBalance, resolvedAccountId, assetId) => {
+    if (!isAssetSupportSpendableBalance(assetId) || !resolvedAccountId) {
       return undefined;
     }
     const nativeInfo = getNativeAssetInfoForAsset(
@@ -316,30 +301,16 @@ export const getSpendableForAccount = createParameterizedSelector(
  * @returns Trustline info, or `undefined`.
  */
 export const getTrustlineAssetInfoForAccount = createParameterizedSelector(
-  selectSelectedInternalAccountByScope as (
-    state: AssetsBalancesState,
-  ) => (scope: CaipChainId) => InternalAccount | undefined,
   getAssetsBalance as (
     state: AssetsBalancesState,
   ) => AssetsControllerState['assetsBalance'],
-  (
-    _state: AssetsBalancesState,
-    params: StellarAccountAssetParams,
-  ) => params.accountId,
+  selectResolvedAccountIdForAsset,
   (
     _state: AssetsBalancesState,
     params: StellarAccountAssetParams,
   ) => params.assetId,
-  (getAccountByScope, assetsBalance, accountId, assetId) => {
-    if (!isAssetSupportActivation(assetId)) {
-      return undefined;
-    }
-    const resolvedAccountId = resolveAccountIdForAsset(
-      getAccountByScope,
-      accountId,
-      assetId,
-    );
-    if (!resolvedAccountId) {
+  (assetsBalance, resolvedAccountId, assetId) => {
+    if (!isAssetSupportActivation(assetId) || !resolvedAccountId) {
       return undefined;
     }
     return getTrustlineAssetInfoForAsset(
@@ -370,19 +341,13 @@ export const getTrustlineAssetInfoForAccount = createParameterizedSelector(
  */
 export const getIsAssetRequireActivate = createParameterizedSelector(
   getTrustlineAssetInfoForAccount,
-  selectSelectedInternalAccountByScope as (
-    state: AssetsBalancesState,
-  ) => (scope: CaipChainId) => InternalAccount | undefined,
-  (
-    _state: AssetsBalancesState,
-    params: StellarAccountAssetParams,
-  ) => params.accountId,
+  selectResolvedAccountIdForAsset,
   (
     _state: AssetsBalancesState,
     params: StellarAccountAssetParams,
   ) => params.assetId,
-  (assetMetadata, getAccountByScope, accountId, assetId) => {
-    if (!isAssetSupportActivation(assetId)) {
+  (assetMetadata, resolvedAccountId, assetId) => {
+    if (!isAssetSupportActivation(assetId) || !resolvedAccountId) {
       return false;
     }
     if (assetMetadata) {
@@ -391,8 +356,6 @@ export const getIsAssetRequireActivate = createParameterizedSelector(
     // Missing metadata is ambiguous (no account vs newly imported).
     // No account → don’t require activation.
     // No metadata → require activation (newly imported).
-    return Boolean(
-      resolveAccountIdForAsset(getAccountByScope, accountId, assetId),
-    );
+    return true;
   },
 );
