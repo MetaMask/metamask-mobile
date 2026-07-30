@@ -49,10 +49,9 @@ jest.mock(
 );
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance: (
-    state: unknown,
-    chainIds: string[],
-  ) => mockSortedTokenKeys(state, chainIds),
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance:
+    (chainIds: string[]) => (state: unknown) =>
+      mockSortedTokenKeys(state, chainIds),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({

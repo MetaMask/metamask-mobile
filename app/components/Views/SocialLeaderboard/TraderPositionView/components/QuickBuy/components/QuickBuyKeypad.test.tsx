@@ -12,15 +12,12 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../utils/quickBuyQuickAmounts', () => ({
-  getBuyQuickAmounts: jest.fn(() => [
-    { value: 10, label: '$10', presetTierUsd: 10 },
-    { value: 50, label: '$50', presetTierUsd: 50 },
-    { value: 100, label: '$100', presetTierUsd: 100 },
-    { value: 250, label: '$250', presetTierUsd: 250 },
-  ]),
-  SELL_QUICK_PERCENTAGES: [25, 50, 75, 100],
-}));
+jest.mock('../utils/quickBuyQuickAmounts', () => {
+  const actual = jest.requireActual('../utils/quickBuyQuickAmounts');
+  return {
+    ...actual,
+  };
+});
 
 jest.mock('../../../../../../../util/haptics', () => ({
   ...jest.requireActual<typeof import('../../../../../../../util/haptics')>(
@@ -69,6 +66,9 @@ const baseContext = {
   tradeMode: 'buy' as const,
   currentCurrency: 'USD',
   usdToCurrentCurrencyRate: 1,
+  buyQuickAmounts: [10, 50, 100, 250] as [number, number, number, number],
+  sellQuickPercentages: [25, 50, 75, 100] as [number, number, number, number],
+  isQuickAmountPreferencesLoaded: true,
   isSliderDisabled: false,
   handleQuickAmountPress: jest.fn(),
   handleSliderChange: jest.fn(),

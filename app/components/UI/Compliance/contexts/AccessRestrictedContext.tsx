@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { playWarningNotification } from '../../../../util/haptics';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
@@ -37,7 +38,7 @@ export const AccessRestrictedProvider = ({
   children,
 }: AccessRestrictedProviderProps) => {
   const [isVisible, setIsVisible] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const { openSupportWithConsent } = useSupportConsent();
 

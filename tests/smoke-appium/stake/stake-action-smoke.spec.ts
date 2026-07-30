@@ -14,6 +14,7 @@ import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
 import { SmokeStake } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
 import StakeView from '../../page-objects/Stake/StakeView.js';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils.js';
 import { AnvilManager } from '../../seeder/anvil-manager.js';
 import { Mockttp } from 'mockttp';
@@ -143,11 +144,17 @@ appiumTest.describe(SmokeStake('Stake from Actions'), () => {
           await WalletView.tapOnEarnButton();
           await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
           await StakeView.enterAmount(AMOUNT_TO_STAKE);
-          await StakeView.tapReviewWithRetry(30000);
-          await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
-            timeout: 30000,
-          });
-          await StakeView.tapConfirm(30000);
+          // Redesigned stake confirmations use confirm-button (FooterActions),
+          // not the legacy text "Confirm" locator in StakeView.tapReviewWithRetry.
+          await StakeView.tapReview();
+          await Assertions.expectElementToBeVisible(
+            FooterActions.confirmButton,
+            {
+              description:
+                'Redesigned Confirm button should appear after Review',
+            },
+          );
+          await FooterActions.tapConfirmButton();
 
           await Assertions.expectElementToBeVisible(
             ActivitiesView.stakeDepositedLabel,
