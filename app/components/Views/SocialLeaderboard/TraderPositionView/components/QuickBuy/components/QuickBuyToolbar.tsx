@@ -16,21 +16,21 @@ const QuickBuyToolbar: React.FC = () => {
     features,
     hasSellableBalance,
     isQuickAmountPreferencesLoaded,
+    onClose,
     setActiveScreen,
   } = useQuickBuyContext();
 
   const showFullToggle = features.tradeModes.length > 1 && hasSellableBalance;
+  const showSettings = features.quickAmountPills;
 
   return (
     <Box
-      twClassName="px-4 pt-2 pb-3"
+      twClassName="px-4 pt-4 pb-3"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
     >
-      <QuickBuyTradeModeToggle buyOnly={!showFullToggle} />
-
-      {features.quickAmountPills ? (
+      {showSettings ? (
         <ButtonIcon
           iconName={DsIconName.Setting}
           size={ButtonIconSize.Md}
@@ -39,8 +39,18 @@ const QuickBuyToolbar: React.FC = () => {
           testID="quick-buy-edit-amounts-button"
         />
       ) : (
-        <Box />
+        // Keep the toggle optically centered when settings is hidden.
+        <Box twClassName="w-6 h-6" />
       )}
+
+      <QuickBuyTradeModeToggle buyOnly={!showFullToggle} />
+
+      <ButtonIcon
+        iconName={DsIconName.Close}
+        size={ButtonIconSize.Md}
+        onPress={onClose}
+        testID="quick-buy-close-button"
+      />
     </Box>
   );
 };

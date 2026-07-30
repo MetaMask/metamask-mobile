@@ -3,6 +3,7 @@ import {
   InitializationState,
   PerpsMode,
   DEFAULT_PERPS_MODE,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
   type AccountState,
 } from '@metamask/perps-controller';
 import {
@@ -17,6 +18,8 @@ import {
   selectIsPerpsBalanceSelected,
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMode,
+  selectPerpsProLayoutPreferences,
+  selectPerpsProChartExpanded,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -945,6 +948,59 @@ describe('PerpsController Selectors', () => {
       const result = selectPerpsMode(mockState);
 
       expect(result).toBe(DEFAULT_PERPS_MODE);
+    });
+  });
+
+  describe('selectPerpsProLayoutPreferences', () => {
+    it('returns the persisted Pro layout preferences merged over defaults', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { chartExpanded: true },
+      });
+
+      const result = selectPerpsProLayoutPreferences(mockState);
+
+      expect(result).toEqual({
+        ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+        chartExpanded: true,
+      });
+    });
+
+    it('falls back to the defaults when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      const result = selectPerpsProLayoutPreferences(mockState);
+
+      expect(result).toEqual(DEFAULT_PRO_LAYOUT_PREFERENCES);
+    });
+  });
+
+  describe('selectPerpsProChartExpanded', () => {
+    it('returns true when the chart is expanded', () => {
+      const mockState = createMockState({
+        proLayoutPreferences: { chartExpanded: true },
+      });
+
+      expect(selectPerpsProChartExpanded(mockState)).toBe(true);
+    });
+
+    it('returns the controller default when the preference is unset', () => {
+      const mockState = createMockState({});
+
+      expect(selectPerpsProChartExpanded(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
+      );
+    });
+
+    it('falls back to the default when PerpsController state is missing', () => {
+      const mockState = {
+        engine: { backgroundState: { PerpsController: undefined } },
+      } as unknown as RootState;
+
+      expect(selectPerpsProChartExpanded(mockState)).toBe(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.chartExpanded,
+      );
     });
   });
 });
