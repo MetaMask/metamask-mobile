@@ -185,7 +185,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3, 4, 5, 6]
+        split: [1, 2, 3, 4, 5, 6, 7, 8]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -193,7 +193,7 @@ jobs:
       platform: android
       test_suite_tag: SmokeSnaps
       split_number: ${{ matrix.split }}
-      total_splits: 6
+      total_splits: 8
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
