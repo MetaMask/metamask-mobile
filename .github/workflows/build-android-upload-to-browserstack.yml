@@ -107,17 +107,23 @@ jobs:
         id: names
         run: |
           if [ "${{ inputs.build_variant }}" = "exp" ]; then
-            echo "with-srp-build-name=main-exp-with-srp" >> "$GITHUB_OUTPUT"
-            echo "without-srp-build-name=main-exp-without-srp" >> "$GITHUB_OUTPUT"
-            echo "github-environment=build-exp" >> "$GITHUB_OUTPUT"
+            {
+              echo "with-srp-build-name=main-exp-with-srp"
+              echo "without-srp-build-name=main-exp-without-srp"
+              echo "github-environment=build-exp"
+            } >> "$GITHUB_OUTPUT"
           elif [ "${{ inputs.build_variant }}" = "rc" ]; then
-            echo "with-srp-build-name=main-rc-with-srp" >> "$GITHUB_OUTPUT"
-            echo "without-srp-build-name=main-rc-without-srp" >> "$GITHUB_OUTPUT"
-            echo "github-environment=build-rc" >> "$GITHUB_OUTPUT"
+            {
+              echo "with-srp-build-name=main-rc-with-srp"
+              echo "without-srp-build-name=main-rc-without-srp"
+              echo "github-environment=build-rc"
+            } >> "$GITHUB_OUTPUT"
           else
-            echo "with-srp-build-name=main-e2e-bs-with-srp" >> "$GITHUB_OUTPUT"
-            echo "without-srp-build-name=main-e2e-bs-without-srp" >> "$GITHUB_OUTPUT"
-            echo "github-environment=build-e2e" >> "$GITHUB_OUTPUT"
+            {
+              echo "with-srp-build-name=main-e2e-bs-with-srp"
+              echo "without-srp-build-name=main-e2e-bs-without-srp"
+              echo "github-environment=build-e2e"
+            } >> "$GITHUB_OUTPUT"
           fi
 
   resolve-fingerprint-reuse:

@@ -190,8 +190,11 @@ jobs:
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
           echo "Branch: $BRANCH_NAME"
 
-  # Soft dependency: fingerprint enables BS APK reuse but must not block fresh
-  # dual builds when yarn/@expo/fingerprint fails (pre-fingerprint behavior).
+  # Same contract as ci.yml native-build-fingerprint → build-android-e2e:
+  # fingerprint must resolve for this job to succeed. Empty fingerprint disables
+  # reuse inside build-android-upload-to-browserstack (resolve job is skipped) but
+  # the dual Gradle path still runs. Download-miss fallback lives in that workflow,
+  # matching build-android-e2e.yml's continue-on-error + native-build gate.
   ensure-fingerprint:
     name: Ensure native build fingerprint
     runs-on: ubuntu-latest
@@ -208,24 +211,18 @@ jobs:
           echo "Using caller-provided fingerprint: $SOURCE_FINGERPRINT"
 
       - name: Checkout
-        id: checkout
         if: ${{ !inputs.source_fingerprint }}
-        continue-on-error: true
         uses: actions/checkout@v6
 
       - name: Set up Node.js
-        id: setup-node
-        if: ${{ !inputs.source_fingerprint && steps.checkout.outcome == 'success' }}
-        continue-on-error: true
+        if: ${{ !inputs.source_fingerprint }}
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
 
       - name: Install Yarn dependencies with retry
-        id: yarn-install
-        if: ${{ !inputs.source_fingerprint && steps.setup-node.outcome == 'success' }}
-        continue-on-error: true
+        if: ${{ !inputs.source_fingerprint }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -235,8 +232,7 @@ jobs:
 
       - name: Compute and post build-source-hash
         id: computed
-        if: ${{ !inputs.source_fingerprint && steps.yarn-install.outcome == 'success' }}
-        continue-on-error: true
+        if: ${{ !inputs.source_fingerprint }}
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
@@ -251,14 +247,13 @@ jobs:
         run: |
           if [ -n "$PROVIDED" ]; then
             echo "fingerprint=$PROVIDED" >> "$GITHUB_OUTPUT"
-            echo "Resolved fingerprint: $PROVIDED"
           elif [ -n "$COMPUTED" ]; then
             echo "fingerprint=$COMPUTED" >> "$GITHUB_OUTPUT"
-            echo "Resolved fingerprint: $COMPUTED"
           else
-            echo "::warning::No fingerprint available; Android dual builds will run fresh without reuse."
-            echo "fingerprint=" >> "$GITHUB_OUTPUT"
+            echo "❌ No fingerprint available" >&2
+            exit 1
           fi
+          echo "Resolved fingerprint: $(grep fingerprint= "$GITHUB_OUTPUT" | tail -1)"
 
   read-device-matrix:
     name: Read Device Matrix
@@ -408,12 +403,13 @@ jobs:
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     needs: [determine-branch-name, resolve-main-browserstack-urls, ensure-fingerprint]
     # Build/upload when not reusing main, or when main reuse lookup found nothing.
-    # Fingerprint is best-effort: failure/empty must not block the fresh dual-build path.
+    # Fingerprint job must succeed (same as ci.yml native-build-fingerprint → E2E).
+    # Download-miss → fresh dual Gradle fallback is inside build-android-upload-to-browserstack.
     if: >-
       always() &&
       !cancelled() &&
       (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
-      (needs.ensure-fingerprint.result == 'success' || needs.ensure-fingerprint.result == 'failure' || needs.ensure-fingerprint.result == 'skipped') &&
+      needs.ensure-fingerprint.result == 'success' &&
       (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
       (
         !inputs.reuse_main_builds ||
