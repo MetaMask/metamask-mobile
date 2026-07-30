@@ -1249,7 +1249,6 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   bindingConflictTitle: string;
   bindingConflictDescription: string;
   onTrackDescription: string;
-  lostTodayDescription: string;
   belowThresholdDescription: string;
 };
 
