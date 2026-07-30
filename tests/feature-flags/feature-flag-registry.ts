@@ -5740,6 +5740,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyAccountBalanceSource: {
+    name: 'moneyAccountBalanceSource',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'rpc',
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyAccountBalanceStaletime: {
     name: 'moneyAccountBalanceStaletime',
     type: FeatureFlagType.Remote,
