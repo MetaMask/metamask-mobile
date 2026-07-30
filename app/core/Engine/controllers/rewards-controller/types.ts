@@ -1545,10 +1545,7 @@ export type PredictThePitchPrizePoolState = {
 
 // ─── Money Account Sweepstakes Campaign ───────────────────────────────────
 
-export type MoneyAccountSweepstakesTodayStatus =
-  | 'on_track'
-  | 'lost_today'
-  | 'below_threshold';
+export type MoneyAccountSweepstakesTodayStatus = 'on_track' | 'below_threshold';
 
 export interface MoneyAccountSweepstakesStatsMeDto {
   entryCount: number;
