@@ -1,29 +1,39 @@
 import { execFileSync } from 'node:child_process';
 
+import {
+  probeHermesHealthy,
+  verifyJsLiveness,
+  type ProbeHermesHealthy,
+} from './hermes-health';
 import { IOSLaunchError } from '../launcher-types';
 
 const DEFAULT_MAX_ATTEMPTS = 5;
-const DEFAULT_STABILIZATION_DELAY_MS = 1_500;
 const DEFAULT_RETRY_DELAY_MS = 1_000;
 const DEFAULT_METRO_READY_TIMEOUT_MS = 30_000;
 const DEFAULT_DEEPLINK_TIMEOUT_MS = 10_000;
 const METRO_POLL_INTERVAL_MS = 500;
+const DEFAULT_HERMES_PROBE_INTERVAL_MS = 500;
+const DEFAULT_HERMES_PROBE_CEILING_MS = 20_000;
+const DEFAULT_LIVENESS_TIMEOUT_MS = 5_000;
 
 export type AttachToMetroOptions = {
   simulatorUdid: string;
   metroPort: number;
-  /** App bundle ID — used in the deep-link URL hint (optional, defaults handled). */
-  appBundleId?: string;
-  /** Max attempts to open the deep link + stabilize. Default: 5. */
+  appBundleId: string;
+  pinnedDeviceId?: string;
   maxAttempts?: number;
-  /** Sleep after Metro responds 200, before declaring success. Default: 1500. */
-  stabilizationDelayMs?: number;
-  /** Delay between retry attempts. Default: 1000. */
   retryDelayMs?: number;
-  /** Max time to wait for Metro `/status` to respond 200. Default: 30_000. */
   metroReadyTimeoutMs?: number;
-  /** Optional `fetch` implementation, primarily for testing. Defaults to `globalThis.fetch`. */
+  hermesProbeIntervalMs?: number;
+  hermesProbeCeilingMs?: number;
+  livenessTimeoutMs?: number;
   fetchImpl?: typeof fetch;
+  probeHealthyImpl?: ProbeHermesHealthy;
+  verifyLivenessImpl?: typeof verifyJsLiveness;
+};
+
+export type AttachToMetroResult = {
+  pinnedDeviceId?: string;
 };
 
 export function buildMetroDeepLink(metroPort: number): {
@@ -42,13 +52,19 @@ export function buildMetroDeepLink(metroPort: number): {
 
 export async function attachToMetroWatchMode(
   options: AttachToMetroOptions,
-): Promise<void> {
+): Promise<AttachToMetroResult> {
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
-  const stabilizationDelayMs =
-    options.stabilizationDelayMs ?? DEFAULT_STABILIZATION_DELAY_MS;
   const metroReadyTimeoutMs =
     options.metroReadyTimeoutMs ?? DEFAULT_METRO_READY_TIMEOUT_MS;
   const fetchFn = options.fetchImpl ?? globalThis.fetch;
+  const probeHealthy = options.probeHealthyImpl ?? probeHermesHealthy;
+  const verifyLiveness = options.verifyLivenessImpl ?? verifyJsLiveness;
+  const hermesProbeIntervalMs =
+    options.hermesProbeIntervalMs ?? DEFAULT_HERMES_PROBE_INTERVAL_MS;
+  const hermesProbeCeilingMs =
+    options.hermesProbeCeilingMs ?? DEFAULT_HERMES_PROBE_CEILING_MS;
+  const livenessTimeoutMs =
+    options.livenessTimeoutMs ?? DEFAULT_LIVENESS_TIMEOUT_MS;
   const { deepLinkUrl } = buildMetroDeepLink(options.metroPort);
 
   process.stderr.write(
@@ -84,11 +100,49 @@ export async function attachToMetroWatchMode(
     );
 
     if (await waitForMetroReady(statusUrl, metroReadyTimeoutMs, fetchFn)) {
-      await sleep(stabilizationDelayMs);
       process.stderr.write(
-        `[mm-mobile] metro-attach: Metro ready after attempt ${attempt}\n`,
+        `[mm-mobile] metro-attach: Metro ready after attempt ${attempt}, probing Hermes health\n`,
       );
-      return;
+
+      const healthResult = await probeHealthy({
+        port: options.metroPort,
+        appId: options.appBundleId,
+        pinnedDeviceId: options.pinnedDeviceId,
+        intervalMs: hermesProbeIntervalMs,
+        ceilingMs: hermesProbeCeilingMs,
+      });
+
+      if (!healthResult.healthy || !healthResult.target?.webSocketDebuggerUrl) {
+        throw new IOSLaunchError({
+          code: 'MM_LAUNCH_FAILED',
+          message:
+            `Hermes health check failed after deep-link attach on port ${options.metroPort}` +
+            (healthResult.reason ? ` (reason: ${healthResult.reason})` : ''),
+          remediation:
+            healthResult.reason === 'HERMES_TARGET_NOT_FOUND'
+              ? 'Metro attach requires a dev build with a Hermes inspector. Release/prod builds have no debuggable target.'
+              : 'Ensure the app is installed and Metro is serving the correct bundle. Try `mm cleanup` then re-launch.',
+        });
+      }
+
+      const live = await verifyLiveness(
+        healthResult.target.webSocketDebuggerUrl,
+        livenessTimeoutMs,
+      );
+
+      if (!live) {
+        process.stderr.write(
+          '[mm-mobile] metro-attach: JS liveness probe failed or unavailable, proceeding with target-presence-only health\n',
+        );
+      }
+
+      process.stderr.write(
+        `[mm-mobile] metro-attach: Hermes target healthy, attach complete\n`,
+      );
+
+      return {
+        pinnedDeviceId: healthResult.pinnedDeviceId,
+      };
     }
 
     process.stderr.write(

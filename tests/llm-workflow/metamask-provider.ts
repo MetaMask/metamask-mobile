@@ -29,6 +29,8 @@ import {
   type CreatedIOSDriver,
 } from './ios/platform-driver-factory';
 import { attachToMetroWatchMode } from './ios/metro-watch-attach';
+import { ensureAccessibilityBridgeEnabled } from './ios/accessibility-bridge';
+import { probeHermesHealthy } from './ios/hermes-health';
 import { validateIOSPrerequisites } from './ios/prerequisites';
 import {
   IOSLaunchError,
@@ -38,6 +40,20 @@ import { appendLog } from './utils';
 
 const IOS_PAGE_UNAVAILABLE =
   'Playwright Page/BrowserContext is not available on iOS sessions.';
+
+const PURE_ATTACH_PROBE_INTERVAL_MS = 500;
+const PURE_ATTACH_PROBE_CEILING_MS = 3_000;
+
+function isNewBinaryAction(
+  action: ResolvedIOSLaunchOptions['installAction'],
+): boolean {
+  return (
+    action === 'install-explicit' ||
+    action === 'install-new' ||
+    action === 'reinstall' ||
+    action === 'reset-and-install'
+  );
+}
 
 export class MetaMaskMobileSessionManager implements ISessionManager {
   private refMap: Map<string, string> = new Map();
@@ -88,11 +104,21 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       });
     }
 
+    const force =
+      (input as SessionLaunchInput & { force?: boolean }).force === true;
     if (this.hasActiveSession()) {
-      throw new IOSLaunchError({
-        code: 'MM_SESSION_ALREADY_RUNNING',
-        message: 'A session is already active. Run `mm cleanup` first.',
-      });
+      if (force) {
+        appendLog(
+          'Force flag set — cleaning up existing session before launch',
+        );
+        await this.cleanup();
+      } else {
+        throw new IOSLaunchError({
+          code: 'MM_SESSION_ALREADY_RUNNING',
+          message:
+            'A session is already active. Run `mm cleanup` first or use --force.',
+        });
+      }
     }
 
     // The core launch schema defaults `platform` to "browser" before invoking
@@ -168,16 +194,11 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         this.bootSimulator(resolved.simulatorDeviceId);
       }
 
-      this.executeInstallAction(resolved);
+      const { wasAlreadyOn: bridgeWasAlreadyOn } =
+        ensureAccessibilityBridgeEnabled(resolved.simulatorDeviceId);
+      appendLog(`Accessibility bridge: wasAlreadyOn=${bridgeWasAlreadyOn}`);
 
-      if (resolved.metroPort !== undefined) {
-        appendLog('Attaching metro port');
-        await attachToMetroWatchMode({
-          simulatorUdid: resolved.simulatorDeviceId,
-          metroPort: resolved.metroPort,
-          appBundleId: resolved.appBundleId,
-        });
-      }
+      this.executeInstallAction(resolved);
 
       appendLog('Creating iOS platform driver');
       const iosDriver = await createIOSPlatformDriver(resolved);
@@ -185,14 +206,86 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       this.iosDriver = iosDriver;
       this.platformDriver = iosDriver.driver;
 
-      // In the metro path, `simctl openurl` (deep link) already launched the
-      // app as a side-effect.  In the non-metro (prod) path nothing has started
-      // it yet — createBackend() only connects to the simulator, it does not
-      // launch the app.  Explicitly open it so getAppState() finds a running
-      // process.
-      if (resolved.metroPort === undefined) {
-        appendLog('Launching app on simulator');
+      const newBinaryInstalled = isNewBinaryAction(resolved.installAction);
+      let appIsRunning: boolean;
+
+      if (newBinaryInstalled) {
+        if (resolved.installAction === 'install-explicit') {
+          this.terminateSimulatorApp(resolved);
+        }
+        appIsRunning = false;
+      } else {
+        const rawState = await iosDriver.backend.getAppState(
+          resolved.appBundleId,
+        );
+        if (rawState.state === 'Not Installed') {
+          throw new IOSLaunchError({
+            code: 'MM_INVALID_CONFIG',
+            message: 'MetaMask app is not installed on the target simulator.',
+            remediation: 'Install the app first or pass --app-bundle <path>.',
+          });
+        }
+        appIsRunning = rawState.state === 'Running';
+      }
+
+      if (resolved.metroPort !== undefined) {
+        if (appIsRunning && bridgeWasAlreadyOn) {
+          appendLog(
+            'Metro branch: app running with bridge already on — pure attach candidate',
+          );
+          const healthResult = await probeHermesHealthy({
+            port: resolved.metroPort,
+            appId: resolved.appBundleId,
+            intervalMs: PURE_ATTACH_PROBE_INTERVAL_MS,
+            ceilingMs: PURE_ATTACH_PROBE_CEILING_MS,
+          });
+
+          if (healthResult.healthy) {
+            appendLog(
+              'Pure attach: app healthily attached to Metro, skipping relaunch',
+            );
+          } else {
+            appendLog(
+              `Pure attach failed (${healthResult.reason}) — terminating and deep-linking`,
+            );
+            this.terminateSimulatorApp(resolved);
+            await attachToMetroWatchMode({
+              simulatorUdid: resolved.simulatorDeviceId,
+              metroPort: resolved.metroPort,
+              appBundleId: resolved.appBundleId,
+            });
+          }
+        } else if (appIsRunning && !bridgeWasAlreadyOn) {
+          appendLog(
+            'Metro branch: app running but bridge just flipped — relaunching for a11y',
+          );
+          this.terminateSimulatorApp(resolved);
+          await attachToMetroWatchMode({
+            simulatorUdid: resolved.simulatorDeviceId,
+            metroPort: resolved.metroPort,
+            appBundleId: resolved.appBundleId,
+          });
+        } else {
+          appendLog('Metro branch: app not running — deep-linking to launch');
+          await attachToMetroWatchMode({
+            simulatorUdid: resolved.simulatorDeviceId,
+            metroPort: resolved.metroPort,
+            appBundleId: resolved.appBundleId,
+          });
+        }
+      } else if (appIsRunning && !bridgeWasAlreadyOn) {
+        appendLog(
+          'Prod branch: app running but bridge just flipped — relaunching for a11y',
+        );
+        this.terminateSimulatorApp(resolved);
         await iosDriver.backend.openApp(resolved.appBundleId);
+      } else if (!appIsRunning) {
+        appendLog('Prod branch: app not running — launching');
+        await iosDriver.backend.openApp(resolved.appBundleId);
+      } else {
+        appendLog(
+          'Prod branch: app running with bridge already on — pure attach',
+        );
       }
 
       const state = await iosDriver.driver.getAppState();

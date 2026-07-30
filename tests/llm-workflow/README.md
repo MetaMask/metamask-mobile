@@ -75,7 +75,7 @@ There is no alternate launch context. Supplying `--context e2e` is rejected clea
 
 ## Metro Watch Mode
 
-Metro attachment remains available for development builds. Start Metro and provide its port with either the flag or the environment variable (the flag wins when both are set):
+Metro attachment is available for development builds. The workflow is **attach-only** — it never spawns Metro. Start Metro separately and provide its port with either the flag or the environment variable (the flag wins when both are set):
 
 ```bash
 yarn watch:clean
@@ -84,6 +84,16 @@ yarn mm launch --metro-port 8081
 # Equivalent, still supported
 MM_METRO_PORT=8081 yarn mm launch
 ```
+
+If Metro is not reachable on the given port, launch fails with `MM_INVALID_CONFIG` instructing you to run `yarn watch:clean`. Release/prod builds have no Hermes inspector; Metro attach requires a dev build.
+
+### Pure-Attach Behavior
+
+When the app is already running and healthily attached to Metro (a Hermes debug target is found at `/json` matching the app bundle ID), `mm launch` connects **without relaunching** — no deep-link, no app restart. This prevents the "reload required" overlay and crashes caused by unnecessary re-launches.
+
+If the app is running but **not** healthily attached (stale, crashed, or stuck on an overlay), the workflow terminates and re-launches via the deep link, then verifies JS liveness via a CDP `Runtime.evaluate` probe.
+
+On a fresh-booted simulator where the accessibility bridge was just enabled, a one-time relaunch is performed to ensure the accessibility tree is valid.
 
 On Node 20, CDP WebSocket use may require:
 
@@ -102,6 +112,14 @@ NODE_OPTIONS="--experimental-websocket" yarn mm launch --metro-port 8081
 ```bash
 # Replace the installed app with a local build, discarding wallet state
 yarn mm launch --app-bundle ios/build/MetaMask.app --reinstall
+```
+
+## Force Launch
+
+If a session is already active, `mm launch` rejects with `MM_SESSION_ALREADY_RUNNING`. Use `--force` to clean up the existing session (terminate the app, clear session state) and launch a new one in a single step:
+
+```bash
+yarn mm launch --force
 ```
 
 ## Commands

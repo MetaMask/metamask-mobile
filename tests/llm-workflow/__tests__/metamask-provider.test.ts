@@ -12,6 +12,8 @@ import {
   type CreatedIOSDriver,
 } from '../ios/platform-driver-factory';
 import { attachToMetroWatchMode } from '../ios/metro-watch-attach';
+import { ensureAccessibilityBridgeEnabled } from '../ios/accessibility-bridge';
+import { probeHermesHealthy } from '../ios/hermes-health';
 import { validateIOSPrerequisites } from '../ios/prerequisites';
 import {
   IOSLaunchError,
@@ -29,11 +31,23 @@ jest.mock('../ios/platform-driver-factory', () => ({
 jest.mock('../ios/metro-watch-attach', () => ({
   attachToMetroWatchMode: jest.fn(),
 }));
+jest.mock('../ios/accessibility-bridge', () => ({
+  ensureAccessibilityBridgeEnabled: jest.fn(),
+  ACCESSIBILITY_SETTLE_MS: 250,
+}));
+jest.mock('../ios/hermes-health', () => ({
+  probeHermesHealthy: jest.fn(),
+  verifyJsLiveness: jest.fn(),
+}));
 
 const mockExecFileSync = jest.mocked(execFileSync);
 const mockValidateIOSPrerequisites = jest.mocked(validateIOSPrerequisites);
 const mockCreateIOSPlatformDriver = jest.mocked(createIOSPlatformDriver);
 const mockAttachToMetroWatchMode = jest.mocked(attachToMetroWatchMode);
+const mockEnsureAccessibilityBridgeEnabled = jest.mocked(
+  ensureAccessibilityBridgeEnabled,
+);
+const mockProbeHermesHealthy = jest.mocked(probeHermesHealthy);
 
 const resolved: ResolvedIOSLaunchOptions = {
   simulatorDeviceId: 'SIM-UDID',
@@ -53,8 +67,8 @@ const resolved: ResolvedIOSLaunchOptions = {
 };
 
 function createLaunchInput(
-  overrides: Partial<SessionLaunchInput> = {},
-): SessionLaunchInput {
+  overrides: Partial<SessionLaunchInput> & { force?: boolean } = {},
+): SessionLaunchInput & { force?: boolean } {
   return {
     platform: 'ios',
     deviceId: 'SIM-UDID',
@@ -69,6 +83,11 @@ describe('MetaMaskMobileSessionManager', () => {
   let backend: {
     openApp: jest.MockedFunction<(bundleId: string) => Promise<void>>;
     closeApp: jest.MockedFunction<(bundleId: string) => Promise<void>>;
+    getAppState: jest.MockedFunction<
+      (
+        bundleId: string,
+      ) => Promise<{ bundleId: string; state: string; pid?: number }>
+    >;
   };
   let stderrSpy: jest.SpyInstance;
 
@@ -95,12 +114,24 @@ describe('MetaMaskMobileSessionManager', () => {
     backend = {
       openApp: jest.fn().mockResolvedValue(undefined),
       closeApp: jest.fn().mockResolvedValue(undefined),
+      getAppState: jest.fn().mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Unknown',
+      }),
     };
     mockValidateIOSPrerequisites.mockResolvedValue(resolved);
     mockCreateIOSPlatformDriver.mockResolvedValue({
       driver: platformDriver as IPlatformDriver,
       backend,
     } as unknown as CreatedIOSDriver);
+    mockEnsureAccessibilityBridgeEnabled.mockReturnValue({
+      wasAlreadyOn: false,
+    });
+    mockProbeHermesHealthy.mockResolvedValue({
+      healthy: false,
+      reason: 'HERMES_TARGET_NOT_FOUND',
+    });
+    mockAttachToMetroWatchMode.mockResolvedValue({ pinnedDeviceId: undefined });
     mockExecFileSync.mockImplementation((file, args) => {
       if (file === 'xcrun' && args?.[1] === 'list') {
         return JSON.stringify({
@@ -170,7 +201,7 @@ describe('MetaMaskMobileSessionManager', () => {
     });
     expect(mockExecFileSync).not.toHaveBeenCalledWith(
       'xcrun',
-      expect.arrayContaining(['spawn', 'fixtureServerPort']),
+      expect.arrayContaining(['fixtureServerPort']),
       expect.anything(),
     );
   });
@@ -183,7 +214,7 @@ describe('MetaMaskMobileSessionManager', () => {
     );
   });
 
-  it('preserves Metro attachment', async () => {
+  it('preserves Metro attachment for not-running app', async () => {
     mockValidateIOSPrerequisites.mockResolvedValueOnce({
       ...resolved,
       metroPort: 8081,
@@ -409,6 +440,240 @@ describe('MetaMaskMobileSessionManager', () => {
       name: 'IOSLaunchError',
       code: 'MM_DEVICE_NOT_AVAILABLE',
       message: expect.stringContaining('simctl: Unable to boot device'),
+    });
+  });
+
+  describe('state-gated launch decision matrix', () => {
+    it('1.1 pure attach: app Running + bridge already on + Hermes healthy → no deep-link, no relaunch', async () => {
+      mockValidateIOSPrerequisites.mockResolvedValueOnce({
+        ...resolved,
+        metroPort: 8081,
+      });
+      mockEnsureAccessibilityBridgeEnabled.mockReturnValue({
+        wasAlreadyOn: true,
+      });
+      backend.getAppState.mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Running',
+      });
+      mockProbeHermesHealthy.mockResolvedValue({
+        healthy: true,
+        target: {
+          id: 't1',
+          appId: 'io.metamask.MetaMask',
+          webSocketDebuggerUrl: 'ws://localhost:8081/page/1',
+          reactNative: { logicalDeviceId: 'SIM-UDID' },
+        },
+        pinnedDeviceId: 'SIM-UDID',
+      });
+
+      await sessionManager.launch(createLaunchInput({ metroPort: 8081 }));
+
+      expect(mockProbeHermesHealthy).toHaveBeenCalledWith(
+        expect.objectContaining({ port: 8081, appId: 'io.metamask.MetaMask' }),
+      );
+      expect(mockAttachToMetroWatchMode).not.toHaveBeenCalled();
+      expect(backend.openApp).not.toHaveBeenCalled();
+    });
+
+    it('1.3a stale→relaunch: app Running + bridge on + Hermes unhealthy → terminate + deep-link', async () => {
+      mockValidateIOSPrerequisites.mockResolvedValueOnce({
+        ...resolved,
+        metroPort: 8081,
+      });
+      mockEnsureAccessibilityBridgeEnabled.mockReturnValue({
+        wasAlreadyOn: true,
+      });
+      backend.getAppState.mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Running',
+      });
+      mockProbeHermesHealthy.mockResolvedValue({
+        healthy: false,
+        reason: 'HERMES_TARGET_NOT_FOUND',
+      });
+
+      await sessionManager.launch(createLaunchInput({ metroPort: 8081 }));
+
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'xcrun',
+        ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+        expect.anything(),
+      );
+      expect(mockAttachToMetroWatchMode).toHaveBeenCalledWith({
+        simulatorUdid: 'SIM-UDID',
+        metroPort: 8081,
+        appBundleId: 'io.metamask.MetaMask',
+      });
+    });
+
+    it('1.4 metro-down error: /status not reachable → MM_INVALID_CONFIG', async () => {
+      mockValidateIOSPrerequisites.mockRejectedValueOnce(
+        new IOSLaunchError({
+          code: 'MM_INVALID_CONFIG',
+          message: 'Metro bundler not reachable on port 8081',
+          remediation: 'Run `yarn watch:clean` in another terminal.',
+        }),
+      );
+
+      await expect(
+        sessionManager.launch(createLaunchInput({ metroPort: 8081 })),
+      ).rejects.toMatchObject({
+        code: 'MM_INVALID_CONFIG',
+        message: expect.stringContaining('Metro bundler not reachable'),
+      });
+    });
+
+    it('1.3b not-installed error: app state Not Installed → MM_INVALID_CONFIG', async () => {
+      backend.getAppState.mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Not Installed',
+      });
+
+      await expect(
+        sessionManager.launch(createLaunchInput()),
+      ).rejects.toMatchObject({
+        code: 'MM_INVALID_CONFIG',
+        message: expect.stringContaining('not installed'),
+      });
+    });
+
+    it('3.1 install-explicit then launch: new binary → terminate + deep-link', async () => {
+      mockValidateIOSPrerequisites.mockResolvedValueOnce({
+        ...resolved,
+        metroPort: 8081,
+        installAction: 'install-explicit',
+      });
+
+      await sessionManager.launch(
+        createLaunchInput({
+          metroPort: 8081,
+          appBundlePath: '/tmp/MetaMask.app',
+        }),
+      );
+
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'xcrun',
+        ['simctl', 'install', 'SIM-UDID', '/tmp/MetaMask.app'],
+        expect.anything(),
+      );
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'xcrun',
+        ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+        expect.anything(),
+      );
+      expect(mockAttachToMetroWatchMode).toHaveBeenCalledWith({
+        simulatorUdid: 'SIM-UDID',
+        metroPort: 8081,
+        appBundleId: 'io.metamask.MetaMask',
+      });
+      expect(backend.getAppState).not.toHaveBeenCalled();
+    });
+
+    it('--force: active session + force → cleanup then launch', async () => {
+      await sessionManager.launch(createLaunchInput());
+      expect(sessionManager.hasActiveSession()).toBe(true);
+
+      await sessionManager.launch(createLaunchInput({ force: true }));
+
+      expect(sessionManager.hasActiveSession()).toBe(true);
+      expect(backend.closeApp).toHaveBeenCalledWith('io.metamask.MetaMask');
+    });
+
+    it('rejects second launch without --force with MM_SESSION_ALREADY_RUNNING', async () => {
+      await sessionManager.launch(createLaunchInput());
+
+      await expect(
+        sessionManager.launch(createLaunchInput()),
+      ).rejects.toMatchObject({
+        code: 'MM_SESSION_ALREADY_RUNNING',
+        message: expect.stringContaining('--force'),
+      });
+    });
+
+    it('fresh-boot a11y relaunch: app Running + bridge just flipped → terminate + deep-link', async () => {
+      mockValidateIOSPrerequisites.mockResolvedValueOnce({
+        ...resolved,
+        metroPort: 8081,
+      });
+      mockEnsureAccessibilityBridgeEnabled.mockReturnValue({
+        wasAlreadyOn: false,
+      });
+      backend.getAppState.mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Running',
+      });
+
+      await sessionManager.launch(createLaunchInput({ metroPort: 8081 }));
+
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'xcrun',
+        ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+        expect.anything(),
+      );
+      expect(mockAttachToMetroWatchMode).toHaveBeenCalledWith({
+        simulatorUdid: 'SIM-UDID',
+        metroPort: 8081,
+        appBundleId: 'io.metamask.MetaMask',
+      });
+      expect(mockProbeHermesHealthy).not.toHaveBeenCalled();
+    });
+
+    it('prod pure attach: app Running + bridge on → no openApp, no terminate', async () => {
+      mockEnsureAccessibilityBridgeEnabled.mockReturnValue({
+        wasAlreadyOn: true,
+      });
+      backend.getAppState.mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Running',
+      });
+
+      await sessionManager.launch(createLaunchInput());
+
+      expect(backend.openApp).not.toHaveBeenCalled();
+      expect(mockExecFileSync).not.toHaveBeenCalledWith(
+        'xcrun',
+        ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+        expect.anything(),
+      );
+    });
+
+    it('prod fresh-boot a11y relaunch: app Running + bridge flipped → terminate + openApp', async () => {
+      mockEnsureAccessibilityBridgeEnabled.mockReturnValue({
+        wasAlreadyOn: false,
+      });
+      backend.getAppState.mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Running',
+      });
+
+      await sessionManager.launch(createLaunchInput());
+
+      expect(mockExecFileSync).toHaveBeenCalledWith(
+        'xcrun',
+        ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+        expect.anything(),
+      );
+      expect(backend.openApp).toHaveBeenCalledWith('io.metamask.MetaMask');
+    });
+
+    it('prod not-running launch: app Not Running + bridge on → openApp, no terminate', async () => {
+      mockEnsureAccessibilityBridgeEnabled.mockReturnValue({
+        wasAlreadyOn: true,
+      });
+      backend.getAppState.mockResolvedValue({
+        bundleId: 'io.metamask.MetaMask',
+        state: 'Not Running',
+      });
+
+      await sessionManager.launch(createLaunchInput());
+
+      expect(backend.openApp).toHaveBeenCalledWith('io.metamask.MetaMask');
+      expect(mockExecFileSync).not.toHaveBeenCalledWith(
+        'xcrun',
+        ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+        expect.anything(),
+      );
     });
   });
 });
