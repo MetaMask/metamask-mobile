@@ -586,6 +586,11 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 # CI note: scheduled/feature-branch performance workflows use build_variant=e2e
 # (GitHub environment build-e2e). E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately
 # in performance-test-runner for the flags API. Release workflows use build_variant=rc.
+#
+# Android BrowserStack dual builds (main-e2e-bs-*) can be reused across CI runs that share
+# the same @expo/fingerprint (native-build-fingerprint / build-source-hash), via
+# find-reusable-build in build-android-upload-to-browserstack.yml. This is separate from
+# Appium smoke main-e2e APKs and from reuse_main_builds (BrowserStack custom_id on main).
 ```
 
 ### Sentry Performance Instrumentation (Optional)
