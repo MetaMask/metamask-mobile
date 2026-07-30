@@ -961,6 +961,41 @@ describe('CustomAmountInfo', () => {
       ).not.toBeDisabled();
     });
 
+    it('clears amount updating when loading finishes before Redux observes it', async () => {
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(100);
+      const { deferred } = arrangePendingPreparation();
+      const EngineService = jest.requireMock(
+        '../../../../../../core/EngineService',
+      ).default;
+      // Simulate the race: controller was loading when handleDone armed the
+      // handoff, but settled before flush pushed isLoading:true into Redux.
+      EngineService.flushState.mockImplementation(() => {
+        setControllerTransactionData({
+          isLoading: false,
+          quotesLastUpdated: 100,
+        });
+      });
+
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+      setControllerTransactionData({
+        isLoading: true,
+        quotesLastUpdated: 100,
+      });
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
+    });
+
     it('keeps the loading review until Redux observes a fast completed quote', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
@@ -1598,6 +1633,21 @@ describe('CustomAmountInfo', () => {
       expect(queryByTestId('deposit-keyboard')).toBeNull();
     });
 
+    it('disables Confirm while waiting for the Max amount to land', async () => {
+      const { getByText, getByTestId } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+      expect(
+        getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS),
+      ).toBeOnTheScreen();
+    });
+
     it('calls updatePendingAmountPercentage with 100 when Max is pressed', async () => {
       const { getByText } = render({ hasMax: true });
 
@@ -1739,6 +1789,24 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).not.toBeDisabled();
+    });
+
+    it('keeps Confirm disabled when fee rows are hidden after commit', async () => {
+      useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const view = render();
+
+      await act(async () => {
+        fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        view.queryByTestId(CustomAmountInfoTestIds.REVIEW_ROWS),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
     });
 
     it('shows fee rows for same-chain payment without quotes', async () => {

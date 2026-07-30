@@ -354,7 +354,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isAccountSelectionNeeded ||
       isPrefillPending ||
       isAwaitingPrefillResult ||
-      hasBlockingErrorEffective;
+      hasBlockingErrorEffective ||
+      !isResultReady ||
+      showLoadingReview;
 
     const showLiveAccountSelector =
       Boolean(supportAccountSelection) &&
@@ -473,11 +475,33 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           : quoteHandoff.quotesLastUpdated === undefined ||
             quotesLastUpdated > quoteHandoff.quotesLastUpdated);
 
-      if (hasObservedLoading || hasObservedCompletedQuote) {
+      // Loading can finish before Redux ever sees isLoading:true. In that case
+      // neither hasObservedLoading nor a strictly-newer timestamp fires, so
+      // confirm the controller has settled and Redux has at least the baseline.
+      const controllerTransactionData =
+        transactionId === undefined
+          ? undefined
+          : Engine.context.TransactionPayController.state.transactionData[
+              transactionId
+            ];
+      const hasSettledWithoutObservedLoading =
+        quoteHandoff.kind === 'loading' &&
+        !isQuotesLoading &&
+        controllerTransactionData !== undefined &&
+        !controllerTransactionData.isLoading &&
+        (quoteHandoff.quotesLastUpdated === undefined ||
+          (quotesLastUpdated !== undefined &&
+            quotesLastUpdated >= quoteHandoff.quotesLastUpdated));
+
+      if (
+        hasObservedLoading ||
+        hasObservedCompletedQuote ||
+        hasSettledWithoutObservedLoading
+      ) {
         setQuoteHandoff(undefined);
         setIsAmountUpdating(false);
       }
-    }, [isQuotesLoading, quoteHandoff, quotesLastUpdated]);
+    }, [isQuotesLoading, quoteHandoff, quotesLastUpdated, transactionId]);
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
@@ -519,6 +543,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // stranding the user on a loading screen.
         if (percentage === 100 && didApplyAmount) {
           isMaxAutoSubmitPending.current = true;
+          // Max defers the commit until amountFiat lands; show the loading
+          // review through that gap so Confirm cannot be tapped early.
+          setIsAmountUpdating(true);
           setIsKeyboardVisible(false);
         }
       },
