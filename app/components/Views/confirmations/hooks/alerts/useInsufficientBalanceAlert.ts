@@ -9,11 +9,11 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useConfirmActions } from '../useConfirmActions';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
+  TransactionType,
   hasTransactionType,
-  shouldApplyGasFeeSponsorship,
-} from '../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';

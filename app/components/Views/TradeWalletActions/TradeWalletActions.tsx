@@ -81,7 +81,11 @@ import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureF
 import { usePerpsMode } from '../../UI/Perps/hooks';
 import PerpsModeToggle from '../../UI/Perps/components/PerpsModeToggle';
 import { showPerpsModeFlash } from '../../UI/Perps/utils/perpsModeFlash';
-import { buildDefaultProMarket } from '../../UI/Perps/utils/perpsModeSwitch';
+import {
+  buildDefaultProMarket,
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../UI/Perps/utils/perpsModeSwitch';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -173,6 +177,7 @@ function TradeWalletActions() {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -236,13 +241,19 @@ function TradeWalletActions() {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
+        navigate(
+          Routes.PERPS.ROOT,
+          toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
+        );
       }
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
+  }, [
+    handleNavigateBack,
+    navigate,
+    isFirstTimePerpsUser,
+    getPerpsHomeNavigationTarget,
+  ]);
 
   const onPerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
@@ -251,23 +262,38 @@ function TradeWalletActions() {
       postCallback.current = () => {
         // First-time users must still go through onboarding (same as tapping
         // the Perps row): routing straight into Perps would skip the tutorial
-        // otherwise, so no mode-switch flash is shown here.
+        // otherwise, so no mode-switch flash is shown here. The redirect
+        // mirrors the Pro/Lite branches below so completing the tutorial
+        // doesn't land back on Perps Home while Pro mode is active
+        // (TAT-3612).
         if (isFirstTimePerpsUser) {
-          navigate(Routes.PERPS.TUTORIAL);
+          navigate(
+            Routes.PERPS.TUTORIAL,
+            nextMode === PerpsMode.Pro
+              ? {
+                  source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+                  redirectScreen: Routes.PERPS.MARKET_DETAILS,
+                  redirectParams: {
+                    market: buildDefaultProMarket(),
+                    source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+                  },
+                }
+              : undefined,
+          );
           return;
         }
         // Flash the destination mode on top of the Perps stack once it mounts.
         showPerpsModeFlash(nextMode);
         if (nextMode === PerpsMode.Pro) {
-          // Pro lands on the default (BTC) market screen, with Perps home
-          // seeded beneath it (initial: false) so back navigation works.
+          // Pro lands on the default (BTC) market screen. Deliberately no
+          // `initial: false` here: Perps Home must never be seeded beneath
+          // it, so it stays unreachable via back navigation.
           navigate(Routes.PERPS.ROOT, {
             screen: Routes.PERPS.MARKET_DETAILS,
             params: {
               market: buildDefaultProMarket(),
               source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
             },
-            initial: false,
           });
           return;
         }

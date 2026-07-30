@@ -102,6 +102,21 @@ export default class Utilities {
   static async checkElementDisabled(
     elem: EncapsulatedElementType,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(elem);
+      if (!(await el.isEnabled())) {
+        return;
+      }
+      // Android RN reports isEnabled=true while disabled — use native enabled attr
+      if (PlatformDetector.isAndroidAppium()) {
+        const enabledAttr = await el.getAttribute('enabled');
+        if (enabledAttr === 'false') {
+          return;
+        }
+      }
+      throw new Error('🚫 Element is enabled, but should be disabled.');
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || attributes.enabled) {
@@ -121,6 +136,21 @@ export default class Utilities {
       timeout,
       interval,
       description: 'Element to be enabled',
+    });
+  }
+
+  /**
+   * Wait for element to be disabled with retry mechanism
+   */
+  static async waitForElementToBeDisabled(
+    elem: EncapsulatedElementType,
+    timeout = 3500,
+    interval = 100,
+  ): Promise<void> {
+    return this.executeWithRetry(() => this.checkElementDisabled(elem), {
+      timeout,
+      interval,
+      description: 'Element to be disabled',
     });
   }
 

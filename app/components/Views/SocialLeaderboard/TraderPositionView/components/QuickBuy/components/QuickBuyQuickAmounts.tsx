@@ -53,6 +53,8 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
     handleQuickAmountPress,
     handleSliderChange,
     handleSliderDragEnd,
+    useKeyboard,
+    setIsKeypadOpen,
   } = useQuickBuyContext();
 
   const buyAmounts = useMemo(
@@ -69,9 +71,19 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
     [sellQuickPercentages],
   );
 
+  // Selecting a preset amount commits the value and dismisses the keypad on the
+  // keyboard treatment. The keypad only returns when the user taps the amount
+  // headline (see QuickBuyAmount).
+  const dismissKeypadIfNeeded = useCallback(() => {
+    if (useKeyboard) {
+      setIsKeypadOpen(false);
+    }
+  }, [setIsKeypadOpen, useKeyboard]);
+
   const handleSellPercentPress = useCallback(
     (percent: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
+      dismissKeypadIfNeeded();
       if (!hasSourcePrice) {
         handleSliderChange(percent);
         return;
@@ -79,15 +91,22 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
       handleSliderChange(percent);
       handleSliderDragEnd(percent);
     },
-    [hasSourcePrice, handleSliderChange, handleSliderDragEnd, playImpact],
+    [
+      dismissKeypadIfNeeded,
+      hasSourcePrice,
+      handleSliderChange,
+      handleSliderDragEnd,
+      playImpact,
+    ],
   );
 
   const handleBuyAmountPress = useCallback(
     (value: number, presetValue: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
+      dismissKeypadIfNeeded();
       handleQuickAmountPress(value, presetValue);
     },
-    [handleQuickAmountPress, playImpact],
+    [dismissKeypadIfNeeded, handleQuickAmountPress, playImpact],
   );
 
   const doneButton =

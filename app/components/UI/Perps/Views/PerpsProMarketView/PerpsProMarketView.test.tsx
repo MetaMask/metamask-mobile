@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
 import { Box, ButtonBase } from '@metamask/design-system-react-native';
-import { CandlePeriod } from '@metamask/perps-controller';
+import { CandlePeriod, PerpsMode } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -17,7 +17,12 @@ import {
 } from '../../Perps.testIds';
 
 interface MockRouteParams {
-  market?: { symbol: string; price?: string };
+  market?: {
+    symbol: string;
+    price?: string;
+    name?: string;
+    maxLeverage?: string;
+  };
   source?: string;
   source_section?: string;
 }
@@ -37,12 +42,24 @@ interface MockCandlePeriodBottomSheetProps {
 }
 
 let mockRouteParams: MockRouteParams | undefined = {
-  market: { symbol: 'BTC', price: '$90,000.00' },
+  market: {
+    symbol: 'BTC',
+    price: '$90,000.00',
+    name: 'Bitcoin',
+    maxLeverage: '40x',
+  },
 };
 const mockTrack = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
   track: mockTrack,
 }));
+
+const mockHandleBackPress = jest.fn();
+const mockHandleMarketListPress = jest.fn();
+const mockHandleWalletPress = jest.fn();
+const mockHandleFavoritePress = jest.fn();
+const mockHandlePerpsModeChange = jest.fn();
+const mockHeaderPerpsMode = PerpsMode.Pro;
 
 const mockPerpsProChartPanel = jest.fn(
   ({ symbol, onMorePress }: MockChartPanelProps) => (
@@ -103,6 +120,18 @@ jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: (options?: unknown) =>
     mockUsePerpsEventTracking(options),
+}));
+
+jest.mock('../../hooks/usePerpsProMarketHeaderActions', () => ({
+  usePerpsProMarketHeaderActions: jest.fn(() => ({
+    perpsMode: mockHeaderPerpsMode,
+    isWatchlist: false,
+    handleBackPress: mockHandleBackPress,
+    handleMarketListPress: mockHandleMarketListPress,
+    handleWalletPress: mockHandleWalletPress,
+    handleFavoritePress: mockHandleFavoritePress,
+    handlePerpsModeChange: mockHandlePerpsModeChange,
+  })),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -169,7 +198,14 @@ const renderView = () =>
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { market: { symbol: 'BTC', price: '$90,000.00' } };
+    mockRouteParams = {
+      market: {
+        symbol: 'BTC',
+        price: '$90,000.00',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      },
+    };
   });
 
   it.each([
@@ -428,15 +464,15 @@ describe('PerpsProMarketView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the asset symbol from route params in the header', () => {
+  it('shows the asset name from route params in the header', () => {
     const { getByTestId } = renderView();
 
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
-    ).toHaveTextContent(/^BTC$/);
+    ).toHaveTextContent(/^Bitcoin$/);
   });
 
-  it('removes the HIP-3 dex prefix from the header symbol', () => {
+  it('falls back to the display symbol when the market has no name', () => {
     mockRouteParams = { market: { symbol: 'xyz:TSLA' } };
 
     const { getByTestId } = renderView();
@@ -444,6 +480,56 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
     ).toHaveTextContent(/^TSLA$/);
+  });
+
+  it('renders the redesigned header controls from Figma', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_ASSET_ICON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the perp pair subtitle beneath the asset name', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SUBTITLE),
+    ).toHaveTextContent('BTC-USD perp');
+  });
+
+  it('wires header actions from usePerpsProMarketHeaderActions', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON),
+    );
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    );
+
+    expect(mockHandleBackPress).toHaveBeenCalledTimes(1);
+    expect(mockHandleMarketListPress).toHaveBeenCalledTimes(1);
+    expect(mockHandleWalletPress).toHaveBeenCalledTimes(1);
+    expect(mockHandleFavoritePress).toHaveBeenCalledTimes(1);
   });
 
   it('uses the Figma shell heights', () => {
