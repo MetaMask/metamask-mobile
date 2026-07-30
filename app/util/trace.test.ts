@@ -7,6 +7,7 @@ import {
   Scope,
   type Span,
   withIsolationScope,
+  startNewTrace,
   SPAN_STATUS_ERROR,
 } from '@sentry/core';
 import {
@@ -36,6 +37,8 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('@sentry/core', () => ({
   withIsolationScope: jest.fn(),
+  startNewTrace: jest.fn((fn: () => unknown) => fn()),
+  SPAN_STATUS_ERROR: 2,
 }));
 
 jest.mock('../store/storage-wrapper', () => ({
@@ -87,6 +90,7 @@ describe('Trace', () => {
   const startSpanManualMock = jest.mocked(startSpanManual);
   // mockImplementation doesn't choose the correct overload, so we ignore the types by casting to jest.Mock
   const withIsolationScopeMock = jest.mocked(withIsolationScope) as jest.Mock;
+  const startNewTraceMock = jest.mocked(startNewTrace) as jest.Mock;
   const setMeasurementMock = jest.mocked(setMeasurement);
   const setTagMock = jest.fn();
 
@@ -111,6 +115,7 @@ describe('Trace', () => {
     withIsolationScopeMock.mockImplementation((fn: (arg: Scope) => unknown) =>
       fn({ setTag: setTagMock } as unknown as Scope),
     );
+    startNewTraceMock.mockImplementation((fn: () => unknown) => fn());
 
     flushBufferedTraces();
     updateCachedConsent(false);
@@ -262,6 +267,41 @@ describe('Trace', () => {
 
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
+    });
+
+    it('starts a new trace when forceTransaction is set without parentContext', () => {
+      updateCachedConsent(true);
+
+      trace({
+        id: ID_MOCK,
+        name: NAME_MOCK,
+        forceTransaction: true,
+      });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(startNewTraceMock).toHaveBeenCalledTimes(1);
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: NAME_MOCK,
+          forceTransaction: true,
+          parentSpan: null,
+        }),
+        expect.any(Function),
+      );
+    });
+
+    it('does not start a new trace when forceTransaction has parentContext', () => {
+      updateCachedConsent(true);
+
+      trace({
+        id: ID_MOCK,
+        name: NAME_MOCK,
+        forceTransaction: true,
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(startNewTraceMock).not.toHaveBeenCalled();
     });
 
     it('falls back to Date.now when performance.timeOrigin is broken (RN Android)', () => {
