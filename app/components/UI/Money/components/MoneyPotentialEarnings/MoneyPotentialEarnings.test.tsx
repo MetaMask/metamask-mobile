@@ -338,61 +338,23 @@ describe('MoneyPotentialEarnings', () => {
     expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC, 0, 1);
   });
 
-  it('calls onHeaderPress when the section header is tapped', () => {
-    const onHeader = jest.fn();
+  it('never renders the section arrow, even when more than five tokens are eligible', () => {
     const extra = makeToken({
       name: 'Extra',
       symbol: 'EXT',
       address: '0x0000000000000000000000000000000000000004',
       fiat: { balance: 100 },
     });
-    const { getByText } = render(
+    const { queryByTestId } = render(
       <MoneyPotentialEarnings
         apyDecimal={0.04}
         tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-        onHeaderPress={onHeader}
-      />,
-    );
-
-    fireEvent.press(getByText(strings('money.potential_earnings.title')));
-
-    expect(onHeader).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders the section arrow when more than five tokens are eligible', () => {
-    const extra = makeToken({
-      name: 'Extra',
-      symbol: 'EXT',
-      address: '0x0000000000000000000000000000000000000004',
-      fiat: { balance: 100 },
-    });
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-        onHeaderPress={jest.fn()}
-      />,
-    );
-
-    expect(getByTestId(MoneySectionHeaderTestIds.CHEVRON)).toBeOnTheScreen();
-  });
-
-  it('hides the section arrow and ignores header taps with five or fewer eligible tokens', () => {
-    const onHeader = jest.fn();
-    const { queryByTestId, getByText } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL]}
-        onHeaderPress={onHeader}
       />,
     );
 
     expect(
       queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
     ).not.toBeOnTheScreen();
-
-    fireEvent.press(getByText(strings('money.potential_earnings.title')));
-    expect(onHeader).not.toHaveBeenCalled();
   });
 
   it('renders the inline info button when onInfoPress is provided', () => {

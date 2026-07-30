@@ -78,11 +78,11 @@ export const QuoteSelectorView = () => {
       (quote) =>
         ({
           formattedTotalCost: formatFiat(
-            new BigNumber(quote.sentAmount.valueInCurrency ?? '0').plus(
+            new BigNumber(quote.sentAmount?.valueInCurrency ?? '0').plus(
               isGaslessQuote(quote.quote)
                 ? (quote.includedTxFees?.valueInCurrency ?? '0')
                 : (quote.totalNetworkFee?.valueInCurrency ??
-                    quote.gasFee?.effective?.valueInCurrency ??
+                    quote.gasFee?.total?.valueInCurrency ??
                     '0'),
             ),
             currency,
