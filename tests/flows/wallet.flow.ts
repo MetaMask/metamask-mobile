@@ -681,54 +681,61 @@ export const loginToApp = async (password?: string): Promise<void> => {
  * Dismisses the push notification opt-in sheet for existing users, if it appears.
  * This sheet may appear after login and block navigation. It is safe to call
  * even when the sheet is not present — the function will silently no-op.
+ *
+ * @param options.appearTimeout - How long to wait for the sheet to show before
+ *   treating it as absent. Keep this short on fixture login (~1.5s); onboarding
+ *   flows that expect the sheet can pass a longer value.
  */
-export const dismissPushNotificationExistingUserSheet =
-  async (): Promise<void> => {
+export const dismissPushNotificationExistingUserSheet = async (
+  options: { appearTimeout?: number } = {},
+): Promise<void> => {
+  const appearTimeout = options.appearTimeout ?? 5_000;
+
+  try {
+    const sheetTitle = await asPlaywrightElement(
+      encapsulated({
+        detox: () =>
+          Matchers.getElementByID(ExistingUserSheetSelectorsIDs.TITLE),
+        appium: () =>
+          PlaywrightMatchers.getElementByText('Never miss a move', true),
+      }),
+    );
+    await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
+      timeout: appearTimeout,
+      description: 'Push notification existing user sheet',
+    });
+
     try {
-      const sheetTitle = await asPlaywrightElement(
+      const notNowById = await asPlaywrightElement(
         encapsulated({
           detox: () =>
-            Matchers.getElementByID(ExistingUserSheetSelectorsIDs.TITLE),
+            Matchers.getElementByID(
+              ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
+            ),
           appium: () =>
-            PlaywrightMatchers.getElementByText('Never miss a move', true),
+            PlaywrightMatchers.getElementById(
+              ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
+              { exact: true },
+            ),
         }),
       );
-      await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 5_000,
-        description: 'Push notification existing user sheet',
-      });
-
-      try {
-        const notNowById = await asPlaywrightElement(
-          encapsulated({
-            detox: () =>
-              Matchers.getElementByID(
-                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
-              ),
-            appium: () =>
-              PlaywrightMatchers.getElementById(
-                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
-                { exact: true },
-              ),
-          }),
-        );
-        await PlaywrightGestures.waitAndTap(notNowById, { timeout: 5_000 });
-      } catch {
-        const notNowByText = await asPlaywrightElement(
-          PlaywrightMatchers.getElementByText('Not now', true),
-        );
-        await PlaywrightGestures.waitAndTap(notNowByText, { timeout: 5_000 });
-      }
-
-      await PlaywrightAssertions.expectElementToNotBeVisible(sheetTitle, {
-        timeout: 10_000,
-        description: 'Push notification existing user sheet should close',
-      });
-      logger.debug('Dismissed push notification existing user sheet');
+      await PlaywrightGestures.waitAndTap(notNowById, { timeout: 5_000 });
     } catch {
-      // Sheet not present — no-op
+      const notNowByText = await asPlaywrightElement(
+        PlaywrightMatchers.getElementByText('Not now', true),
+      );
+      await PlaywrightGestures.waitAndTap(notNowByText, { timeout: 5_000 });
     }
-  };
+
+    await PlaywrightAssertions.expectElementToNotBeVisible(sheetTitle, {
+      timeout: 10_000,
+      description: 'Push notification existing user sheet should close',
+    });
+    logger.debug('Dismissed push notification existing user sheet');
+  } catch {
+    // Sheet not present — no-op
+  }
+};
 
 /**
  * Dismisses the marketing consent (Experience Enhancer) modal if it appears
@@ -751,9 +758,9 @@ export const loginToAppPlaywright = async (
 
   const dismissPostLoginModals = async (): Promise<void> => {
     await PlaywrightUtilities.wait(500);
-    // Push "Never miss a move" sheet is not shown for fixture/e2e logins —
-    // probing it burns ~5s per login. Call dismissPushNotificationExistingUserSheet
-    // explicitly from onboarding flows that can show it.
+    // Short appear timeout: sheet is often absent on fixture login, but when
+    // present (e.g. seedless existing-user) it blocks account-picker taps.
+    await dismissPushNotificationExistingUserSheet({ appearTimeout: 1_500 });
     await dismissExperienceEnhancerModal();
   };
 
