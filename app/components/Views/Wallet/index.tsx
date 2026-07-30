@@ -131,8 +131,6 @@ import {
 import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageActionButtonsGrid } from '../Homepage/components/HomepageActionButtonsGrid';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import HomepageBalanceBreakdown from '../Homepage/components/HomepageBalanceBreakdown';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -206,6 +204,12 @@ const createStyles = ({ colors }: Theme) =>
       flexDirection: 'column',
       gap: 16,
       paddingBottom: 12,
+    },
+    treatmentBannerContainer: {
+      paddingBottom: 16,
+    },
+    accountGroupBalanceContainer: {
+      paddingHorizontal: 16,
     },
     tabContainer: {
       flex: 1,
@@ -1051,30 +1055,29 @@ const Wallet = ({
     </>
   );
 
-  const portfolioHeader = (
+  const portfolioHeader = balanceBreakdownLayout ? (
+    <View style={styles.treatmentBannerContainer}>{bannerContent}</View>
+  ) : (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
-      {balanceBreakdownLayout ? (
-        <HomepageBalanceBreakdown
-          accountGroupBalanceProps={walletHomeAccountGroupBalanceProps}
-          hideRows={inWalletHomePostOnboardingFlow}
-          layout={balanceBreakdownLayout}
-        >
-          {contentBeforeBalanceBreakdown}
-        </HomepageBalanceBreakdown>
-      ) : (
-        <>
-          <View style={styles.accountGroupBalanceContainer}>
-            <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
-          </View>
-          {walletHomeMainAssetDetailsActions}
-          {growthBanner}
-          {homepageDiscoveryPills}
-          {isMoneyAccountVisible && <MoneyBalanceCard />}
-        </>
-      )}
+      <View style={styles.accountGroupBalanceContainer}>
+        <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+      </View>
+      {walletHomeMainAssetDetailsActions}
+      {growthBanner}
+      {homepageDiscoveryPills}
+      {isMoneyAccountVisible && <MoneyBalanceCard />}
     </View>
   );
+
+  const balanceBreakdownSectionProps = balanceBreakdownLayout
+    ? {
+        accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
+        hideRows: inWalletHomePostOnboardingFlow,
+        layout: balanceBreakdownLayout,
+        children: contentBeforeBalanceBreakdown,
+      }
+    : undefined;
 
   const renderLoader = useCallback(
     () => (
@@ -1226,7 +1229,12 @@ const Wallet = ({
                     }}
                   >
                     {portfolioHeader}
-                    <Homepage ref={homepageRef} />
+                    <Homepage
+                      ref={homepageRef}
+                      balanceBreakdownSectionProps={
+                        balanceBreakdownSectionProps
+                      }
+                    />
                   </ConditionalScrollView>
                 </HomepageScrollContext.Provider>
               </View>

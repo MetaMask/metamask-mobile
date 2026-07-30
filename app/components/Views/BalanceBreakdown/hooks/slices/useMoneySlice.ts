@@ -51,8 +51,11 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
       ? 'loading'
       : moneyStatus;
   const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
-  const apyLoading = vaultApyQuery.isLoading;
-  const apyPercentFormatted = apyLoading ? undefined : `${apyPercent ?? 0}%`;
+  const apyLoading = isMoneyAccountFeatureEnabled && vaultApyQuery.isLoading;
+  const apyPercentFormatted =
+    isMoneyAccountFeatureEnabled && !apyLoading && apyPercent !== undefined
+      ? `${apyPercent}%`
+      : undefined;
 
   return useMemo(
     () => ({

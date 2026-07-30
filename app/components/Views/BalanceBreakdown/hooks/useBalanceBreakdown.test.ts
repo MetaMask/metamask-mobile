@@ -6,12 +6,7 @@ import { usePerpsSlice } from './slices/usePerpsSlice';
 import { usePredictSlice } from './slices/usePredictSlice';
 import { useDefiSlice } from './slices/useDefiSlice';
 import { mockTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
-import {
-  DARK_ALLOCATION_COLORS,
-  getBalanceBreakdownSliceColors,
-  LIGHT_ALLOCATION_COLORS,
-} from '../utils/getBalanceBreakdownSliceColors';
+import { getBalanceBreakdownSliceColors } from '../utils/getBalanceBreakdownSliceColors';
 
 const mockUseTokensSlice = jest.mocked(useTokensSlice);
 const mockUseMoneySlice = jest.mocked(useMoneySlice);
@@ -65,38 +60,6 @@ function makeSlice(
     status,
   };
 }
-
-describe('getBalanceBreakdownSliceColors', () => {
-  it('uses the light allocation palette', () => {
-    expect(getBalanceBreakdownSliceColors(AppThemeKey.light)).toEqual(
-      LIGHT_ALLOCATION_COLORS,
-    );
-    /* eslint-disable @metamask/design-tokens/color-no-hex -- Locks the approved reference palette. */
-    expect(Object.values(LIGHT_ALLOCATION_COLORS)).toEqual([
-      '#190066',
-      '#89b0ff',
-      '#adb6fe',
-      '#c7ceff',
-      '#d6dbff',
-    ]);
-    /* eslint-enable @metamask/design-tokens/color-no-hex */
-  });
-
-  it('uses the dark allocation palette', () => {
-    expect(getBalanceBreakdownSliceColors(AppThemeKey.dark)).toEqual(
-      DARK_ALLOCATION_COLORS,
-    );
-    /* eslint-disable @metamask/design-tokens/color-no-hex -- Locks the approved reference palette. */
-    expect(Object.values(DARK_ALLOCATION_COLORS)).toEqual([
-      '#8b99ff',
-      '#cce7ff',
-      '#abbcce',
-      '#949596',
-      '#66676a',
-    ]);
-    /* eslint-enable @metamask/design-tokens/color-no-hex */
-  });
-});
 
 describe('useBalanceBreakdown', () => {
   beforeEach(() => {

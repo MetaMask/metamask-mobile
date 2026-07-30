@@ -259,6 +259,18 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
   })),
 }));
 
+const mockBalanceBreakdownSection = jest.fn();
+jest.mock('./Sections/BalanceBreakdown', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockBalanceBreakdownSection(props);
+      return <View testID="balance-breakdown-section-mock" />;
+    },
+  };
+});
+
 jest.mock('./Sections/TopTraders/hooks', () => ({
   useTopTraders: jest.fn(() => ({
     traders: [],
@@ -401,6 +413,35 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+  });
+
+  it('renders the treatment breakdown before homepage sections when provided', () => {
+    const balanceBreakdownSectionProps = {
+      accountGroupBalanceProps: {},
+      hideRows: false,
+      layout: 'icons' as const,
+    };
+
+    renderWithProvider(
+      <Homepage balanceBreakdownSectionProps={balanceBreakdownSectionProps} />,
+      { state: stateWithPreferences },
+    );
+
+    expect(
+      screen.getByTestId('balance-breakdown-section-mock'),
+    ).toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
+      balanceBreakdownSectionProps,
+    );
+  });
+
+  it('does not render a breakdown section for control', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(
+      screen.queryByTestId('balance-breakdown-section-mock'),
+    ).not.toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {

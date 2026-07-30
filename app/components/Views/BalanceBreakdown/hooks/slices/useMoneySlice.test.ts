@@ -93,6 +93,35 @@ describe('useMoneySlice', () => {
     expect(result.current.apyPercentFormatted).toBeUndefined();
   });
 
+  it('does not fabricate APY after a settled query without a rate', () => {
+    mockUseMoneyAccountBalance.mockReturnValue({
+      tokenTotal: { toNumber: () => 100 },
+      isBalanceLoading: false,
+      isBalanceFetchError: false,
+      apyPercent: undefined,
+      vaultApyQuery: { isLoading: false },
+    } as ReturnType<typeof useMoneyAccountBalance>);
+
+    const { result } = renderHook(() => useMoneySlice((amount) => amount));
+
+    expect(result.current.apyLoading).toBe(false);
+    expect(result.current.apyPercentFormatted).toBeUndefined();
+  });
+
+  it('preserves a genuine zero APY', () => {
+    mockUseMoneyAccountBalance.mockReturnValue({
+      tokenTotal: { toNumber: () => 100 },
+      isBalanceLoading: false,
+      isBalanceFetchError: false,
+      apyPercent: 0,
+      vaultApyQuery: { isLoading: false },
+    } as ReturnType<typeof useMoneyAccountBalance>);
+
+    const { result } = renderHook(() => useMoneySlice((amount) => amount));
+
+    expect(result.current.apyPercentFormatted).toBe('0%');
+  });
+
   it('exposes APY before an eligible user creates a Money account', () => {
     mockUseMoneyAccountInfo.mockReturnValue({
       isMoneyAccountFeatureEnabled: true,
@@ -106,7 +135,7 @@ describe('useMoneySlice', () => {
     expect(result.current.apyLoading).toBe(false);
   });
 
-  it('returns an ineligible zero balance without APY', () => {
+  it('suppresses APY when the Money feature is disabled', () => {
     mockUseMoneyAccountInfo.mockReturnValue({
       isMoneyAccountFeatureEnabled: false,
       hasMoneyAccount: false,
@@ -115,7 +144,7 @@ describe('useMoneySlice', () => {
       tokenTotal: undefined,
       isBalanceLoading: false,
       isBalanceFetchError: false,
-      apyPercent: undefined,
+      apyPercent: 4.1,
       vaultApyQuery: { isLoading: false },
     } as ReturnType<typeof useMoneyAccountBalance>);
 
@@ -125,7 +154,7 @@ describe('useMoneySlice', () => {
       key: 'money',
       valueFiat: 0,
       status: 'ineligible',
-      apyPercentFormatted: '0%',
+      apyPercentFormatted: undefined,
       apyLoading: false,
     });
   });

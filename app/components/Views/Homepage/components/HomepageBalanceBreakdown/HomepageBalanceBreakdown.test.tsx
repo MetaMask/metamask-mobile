@@ -13,6 +13,7 @@ import type {
 } from '../../../BalanceBreakdown/types';
 /* eslint-enable import-x/no-restricted-paths */
 import Routes from '../../../../../constants/navigation/Routes';
+import { mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -211,6 +212,46 @@ describe('HomepageBalanceBreakdown', () => {
     expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
       '4.1% APY',
     );
+  });
+
+  it('uses alternative text color for a ready zero balance', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        tokens: makeSlice('tokens', {
+          valueFiat: 0,
+          percentOfTotal: 0,
+        }),
+      },
+    });
+
+    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+
+    const value = getByTestId(HomepageBalanceBreakdownTestIds.VALUE('tokens'));
+    expect(value).toHaveTextContent('USD 0.00');
+    expect(value).toHaveStyle({ color: mockTheme.colors.text.alternative });
+  });
+
+  it('renders less than one percent for a non-zero rounded allocation', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        tokens: makeSlice('tokens', {
+          valueFiat: 0.01,
+          percentOfTotal: 0.004,
+        }),
+      },
+    });
+
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown layout="allocation" />,
+    );
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('tokens')),
+    ).toHaveTextContent('<1%');
   });
 
   it('renders the Money APY loading slot', () => {

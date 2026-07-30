@@ -163,21 +163,6 @@ jest.mock('../../../hooks', () => ({
   }),
 }));
 
-const mockHomepageBalanceBreakdown = jest.fn();
-jest.mock('../Homepage/components/HomepageBalanceBreakdown', () => {
-  const ReactMock = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: unknown) => {
-      mockHomepageBalanceBreakdown(props);
-      return ReactMock.createElement(View, {
-        testID: 'homepage-balance-breakdown-mock',
-      });
-    },
-  };
-});
-
 const mockHomepageDiscoveryPills = jest.fn();
 const mockHomepageActionButtonsGrid = jest.fn();
 jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
@@ -241,6 +226,7 @@ jest.mock('../../UI/Carousel', () => {
 // Capture the HomepageScrollContext value by rendering a context-aware mock Homepage.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let capturedContext: any = null;
+const mockHomepage = jest.fn();
 jest.mock('../Homepage', () => {
   const React = jest.requireActual('react');
   const { HomepageScrollContext: HomepageCtx } = jest.requireActual(
@@ -248,7 +234,8 @@ jest.mock('../Homepage', () => {
   );
   return {
     __esModule: true,
-    default: React.forwardRef((_props: unknown, _ref: unknown) => {
+    default: React.forwardRef((props: unknown, _ref: unknown) => {
+      mockHomepage(props);
       capturedContext = React.useContext(HomepageCtx);
       return null;
     }),
@@ -1901,9 +1888,15 @@ describe('MoneyBalanceCard slot', () => {
     mockMoneyAccountEnabled = true;
     mockBalanceBreakdownVariantName = 'icons';
 
-    const { getByTestId, queryByTestId } = render(Wallet);
+    const { queryByTestId } = render(Wallet);
 
-    expect(getByTestId('homepage-balance-breakdown-mock')).toBeOnTheScreen();
+    expect(mockHomepage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        balanceBreakdownSectionProps: expect.objectContaining({
+          layout: 'icons',
+        }),
+      }),
+    );
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
   });
 });
@@ -1924,23 +1917,25 @@ describe('Homepage balance breakdown ABC test', () => {
   });
 
   it('does not mount the aggregation UI while assignment is unresolved', () => {
-    const { queryByTestId } = render(Wallet);
+    render(Wallet);
 
-    expect(
-      queryByTestId('homepage-balance-breakdown-mock'),
-    ).not.toBeOnTheScreen();
-    expect(mockHomepageBalanceBreakdown).not.toHaveBeenCalled();
+    expect(mockHomepage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        balanceBreakdownSectionProps: undefined,
+      }),
+    );
   });
 
   it('keeps the current homepage for the control assignment', () => {
     mockBalanceBreakdownVariantName = 'control';
 
-    const { queryByTestId } = render(Wallet);
+    render(Wallet);
 
-    expect(
-      queryByTestId('homepage-balance-breakdown-mock'),
-    ).not.toBeOnTheScreen();
-    expect(mockHomepageBalanceBreakdown).not.toHaveBeenCalled();
+    expect(mockHomepage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        balanceBreakdownSectionProps: undefined,
+      }),
+    );
   });
 
   it.each([
@@ -1949,14 +1944,32 @@ describe('Homepage balance breakdown ABC test', () => {
   ])('maps %s assignment to the %s layout', (variantName, layout) => {
     mockBalanceBreakdownVariantName = variantName;
 
-    const { getByTestId } = render(Wallet);
+    render(Wallet);
 
-    expect(getByTestId('homepage-balance-breakdown-mock')).toBeOnTheScreen();
-    expect(mockHomepageBalanceBreakdown).toHaveBeenCalledWith(
+    expect(mockHomepage).toHaveBeenCalledWith(
       expect.objectContaining({
-        children: expect.anything(),
-        hideRows: false,
-        layout,
+        balanceBreakdownSectionProps: expect.objectContaining({
+          children: expect.anything(),
+          hideRows: false,
+          layout,
+        }),
+      }),
+    );
+  });
+
+  it('hides treatment rows during wallet-home post-onboarding', () => {
+    mockBalanceBreakdownVariantName = 'icons';
+    const state = mockStateWalletHomePostOnboardingActive;
+    jest.mocked(useSelector).mockImplementation((callback) => callback(state));
+
+    renderWalletWithRootState(state);
+
+    expect(mockHomepage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        balanceBreakdownSectionProps: expect.objectContaining({
+          hideRows: true,
+          layout: 'icons',
+        }),
       }),
     );
   });
