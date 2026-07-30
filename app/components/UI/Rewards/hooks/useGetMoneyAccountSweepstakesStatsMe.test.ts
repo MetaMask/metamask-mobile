@@ -36,7 +36,8 @@ const MOCK_STATS: MoneyAccountSweepstakesStatsMeDto = {
   entryCount: 3,
   currentBalanceUsd: 1250.5,
   yieldEarnedUsd: 12.34,
-  todayMinUsd: 1000,
+  qualifyingDepositsUsd: 1000,
+  qualifyingThresholdUsd: 100,
   todayStatus: 'on_track',
   daysRemaining: 4,
 };
