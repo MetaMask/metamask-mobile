@@ -645,7 +645,7 @@ describe('SearchTokenAutocomplete', () => {
               customAssets: {},
               assetsBalance: {
                 'evm-account-id': {
-                  [assetId]: { balance: '1' },
+                  [assetId]: { amount: '1' },
                 },
               },
               assetPreferences: {
