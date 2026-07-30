@@ -25,7 +25,6 @@ export interface UsePerpsProMarketHeaderActionsResult {
   isWatchlist: boolean;
   handleBackPress: () => void;
   handleMarketListPress: () => void;
-  handleWalletPress: () => void;
   handleFavoritePress: () => void;
   handlePerpsModeChange: (nextMode: PerpsMode) => void;
 }
@@ -33,9 +32,11 @@ export interface UsePerpsProMarketHeaderActionsResult {
 /**
  * Header action handlers for the Pro market detail screen.
  *
- * Keeps back / market-list / wallet / watchlist / mode-switch wiring out of
+ * Keeps back / market-list / watchlist / mode-switch wiring out of
  * `PerpsProMarketView` so the screen stays layout-focused and the handlers can
- * be unit-tested in isolation.
+ * be unit-tested in isolation. The wallet icon's balance-sheet visibility is
+ * owned by `PerpsProMarketView` directly since it's local UI state, not a
+ * navigation side effect.
  */
 export const usePerpsProMarketHeaderActions = ({
   symbol,
@@ -85,10 +86,6 @@ export const usePerpsProMarketHeaderActions = ({
     });
   }, [symbol, track, navigateToMarketList]);
 
-  const handleWalletPress = useCallback(() => {
-    navigateToWallet();
-  }, [navigateToWallet]);
-
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {
       return;
@@ -119,7 +116,6 @@ export const usePerpsProMarketHeaderActions = ({
     isWatchlist,
     handleBackPress,
     handleMarketListPress,
-    handleWalletPress,
     handleFavoritePress,
     handlePerpsModeChange,
   };
