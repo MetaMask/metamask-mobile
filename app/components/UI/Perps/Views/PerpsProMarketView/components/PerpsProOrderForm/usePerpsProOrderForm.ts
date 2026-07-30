@@ -60,6 +60,7 @@ import {
 import { deriveOrderSizing } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
 import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
+import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
 import type {
   PerpsProOrderDirection,
@@ -703,7 +704,7 @@ export const usePerpsProOrderForm = ({
   const onSizeChange = useCallback(
     (value: string) => {
       const digitCount = (value.match(/\d/g) || []).length;
-      if (digitCount > 9) {
+      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
         return;
       }
       setAmount(value || '0');

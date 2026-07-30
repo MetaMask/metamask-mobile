@@ -1,3 +1,7 @@
+// Unit test: `usePerpsProOrderForm` is mocked to isolate container → presentational
+// prop/sheet wiring from business logic. A full component-view test (real Redux
+// state + stream fixtures) is deferred until the Pro form's view-test renderer is
+// established alongside PerpsOrderView.view.test.tsx.
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
