@@ -377,6 +377,62 @@ export const selectIconSeedAddressByAccountGroupId = (
   );
 
 /**
+ * Shared selector that maps EVERY account group id to its icon seed address in
+ * a single pass over the account tree.
+ *
+ * List cells read `map[groupId]` (O(1)) from this instead of each cell creating
+ * its own `selectIconSeedAddressByAccountGroupId` deep-equal selector — N cells
+ * each deep-comparing the full account tree on every store update collapses to
+ * one selector. Unlike `selectIconSeedAddressesByAccountGroupIds`, this takes no
+ * id argument, so every cell shares one memoized result rather than memoizing
+ * per its own single-id array.
+ *
+ * Priority matches the per-id selector: first EVM account address, else the
+ * first internal account in the group, else ''.
+ */
+export const selectAllAccountGroupIconSeedAddresses = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectInternalAccountsById],
+  (
+    accountTreeState: AccountTreeControllerState,
+    internalAccountsMap: Record<AccountId, InternalAccount>,
+  ): Record<string, string> => {
+    const seedByGroupId: Record<string, string> = {};
+    const wallets = accountTreeState?.accountTree?.wallets;
+    if (!wallets) {
+      return seedByGroupId;
+    }
+
+    for (const wallet of Object.values(wallets)) {
+      for (const [groupId, group] of Object.entries(wallet.groups)) {
+        // Prefer an EVM account address if present.
+        const evmAccount = findInternalAccountByScope(
+          accountTreeState,
+          internalAccountsMap,
+          groupId,
+          EthScope.Mainnet,
+        );
+        if (evmAccount?.address) {
+          seedByGroupId[groupId] = evmAccount.address;
+          continue;
+        }
+
+        // Fallback to the first available internal account in the group.
+        const firstAccount = group.accounts
+          .map((accountId: AccountId) => internalAccountsMap[accountId])
+          .find(
+            (
+              account: InternalAccount | undefined,
+            ): account is InternalAccount => Boolean(account),
+          );
+        seedByGroupId[groupId] = firstAccount?.address ?? '';
+      }
+    }
+
+    return seedByGroupId;
+  },
+);
+
+/**
  * Efficient selector to get icon seed addresses for multiple account groups at once.
  * This selector is optimized for batch operations and avoids creating multiple selectors.
  *

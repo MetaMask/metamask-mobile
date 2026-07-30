@@ -22,9 +22,11 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { markFirstPredictionOnUsOrderConfirmed } from '../../../../../reducers/rewards';
 import { usePredictOrderPreview } from '../../../Predict/hooks/usePredictOrderPreview';
 import {
   Side,
@@ -62,6 +64,7 @@ type FirstPredictOnUsOrderSheetRoute = RouteProp<
 
 const FirstPredictOnUsOrderSheet: React.FC = () => {
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation =
     useNavigation<NavigationProp<ReactNavigation.RootParamList>>();
@@ -110,6 +113,13 @@ const FirstPredictOnUsOrderSheet: React.FC = () => {
         })
         .build(),
     );
+    dispatch(
+      markFirstPredictionOnUsOrderConfirmed({
+        marketId,
+        outcome,
+      }),
+    );
+
     try {
       await submitOrder({
         amountUsd: usdAmount,
@@ -123,7 +133,7 @@ const FirstPredictOnUsOrderSheet: React.FC = () => {
     } catch {
       // The hook owns error state for the sheet.
     }
-  }, [createEventBuilder, onClose, params, submitOrder, trackEvent]);
+  }, [createEventBuilder, dispatch, onClose, params, submitOrder, trackEvent]);
 
   if (!params) {
     return null;

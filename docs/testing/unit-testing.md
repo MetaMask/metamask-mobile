@@ -368,6 +368,7 @@ const mockApi: any = jest.fn(); // ❌ no any type
 - **Reset all mocks between tests**
 - **Tests MUST run in any order**
 - **Avoid duplicated or polluted tests**
+- **Screen / view UI behavior:** if `ComponentName.view.test.tsx` exists (or should exist), put user-visible screen scenarios there — do **not** add overlapping shallow unit tests that mock hooks/selectors/children. Keep unit tests for pure functions, selectors, and utils. Overlap reduction playbook: [unit-vs-component-view-overlap.md](./unit-vs-component-view-overlap.md).
 - **Use mocks for all external dependencies**
 
 ```ts
