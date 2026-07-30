@@ -117,37 +117,6 @@ const DMK_REFLECT_METADATA_IMPORTERS = [
   'node_modules/@inversifyjs/',
 ];
 
-// Canonical ethers v6 ESM entry used to collapse every `ethers` import from
-// the Ledger DMK closure onto a single bundled copy. The app's root
-// `node_modules/ethers` is v5.7.2, so Yarn (`nodeLinker: node-modules`) cannot
-// hoist ethers v6 to the top level and instead nests a separate copy under
-// each DMK consumer (`@ledgerhq/context-module`,
-// `@ledgerhq/device-signer-kit-ethereum`, plus `@myx-trade/sdk` for the perpetuals feature.
-// Metro resolves `ethers` relative to each importer, so without this redirect
-// it would bundle ethers v6 once per nested copy. Re-resolving `ethers` to a
-// single canonical file path makes every DMK `ethers` import hit the same
-// module, so Metro emits ethers v6 exactly once. `@myx-trade/sdk` (perpetuals feature)
-// keeps its own nested copy and is unaffected.
-//
-// Computed at config load by resolving `ethers` as if from inside
-// `@ledgerhq/device-signer-kit-ethereum` (which carries its own nested
-// ethers v6), then deriving the package's ESM entry (`lib.esm/index.js`).
-const DMK_ETHERS_V6_ENTRY = (() => {
-  try {
-    const deviceSignerDir = path.dirname(
-      require.resolve('@ledgerhq/device-signer-kit-ethereum'),
-    );
-    const ethersMain = require.resolve('ethers', { paths: [deviceSignerDir] });
-    return path.join(
-      path.resolve(ethersMain, '..', '..'),
-      'lib.esm',
-      'index.js',
-    );
-  } catch {
-    return null;
-  }
-})();
-
 module.exports = function (baseConfig) {
   return getSentryExpoConfig(__dirname, {
     getDefaultConfig: (projectRoot, options) => {
@@ -264,22 +233,6 @@ module.exports = function (baseConfig) {
                   filePath: require.resolve(
                     './app/shims/reflect-metadata-once.js',
                   ),
-                  type: 'sourceFile',
-                };
-              }
-              // Collapse every `ethers` import from the Ledger DMK closure onto
-              // a single canonical ethers v6 ESM entry (see
-              // `DMK_ETHERS_V6_ENTRY` above). Without this, Metro resolves
-              // `ethers` to each DMK consumer's own nested copy and bundles
-              // ethers v6 multiple times. Scoped to `node_modules/@ledgerhq/`
-              // so `@myx-trade/sdk` (perps) keeps its own ethers v6 copy.
-              if (
-                moduleName === 'ethers' &&
-                DMK_ETHERS_V6_ENTRY !== null &&
-                context.originModulePath?.includes('node_modules/@ledgerhq/')
-              ) {
-                return {
-                  filePath: DMK_ETHERS_V6_ENTRY,
                   type: 'sourceFile',
                 };
               }
