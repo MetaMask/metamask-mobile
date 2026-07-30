@@ -481,7 +481,5 @@ export const isWalletConnectPermissionOrigin = (
   wc2Metadata?: { id?: string },
 ): boolean =>
   Boolean(
-    wc2Metadata?.id &&
-      wc2Metadata.id.length > 0 &&
-      origin === wc2Metadata.id,
+    wc2Metadata?.id && wc2Metadata.id.length > 0 && origin === wc2Metadata.id,
   );

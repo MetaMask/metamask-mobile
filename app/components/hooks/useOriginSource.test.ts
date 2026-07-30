@@ -30,7 +30,8 @@ jest.mock('../../core/SDKConnect/SDKConnect', () => ({
           protocolVersion: '1.0',
           originatorInfo: { name: 'test-originator' },
           initialConnection: true,
-          validUntil: Date.now() + 10000,
+          // Pinned instead of Date.now() so the mock stays deterministic.
+          validUntil: 1735689600000,
         };
       }
       return undefined;
