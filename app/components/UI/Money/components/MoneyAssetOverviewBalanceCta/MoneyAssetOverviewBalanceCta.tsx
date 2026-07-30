@@ -16,6 +16,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
@@ -36,10 +37,12 @@ export const MoneyAssetOverviewBalanceDescription = ({
   tokenSymbol,
 }: MoneyAssetOverviewBalanceDescriptionProps) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { trackTooltipClicked } = useMoneyAnalytics({
+  const { trackComponentViewed, trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ASSET_DETAIL,
     component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
   });
+
+  useMountEffect(trackComponentViewed);
 
   const handleProjectedEarningsPress = useCallback(() => {
     trackTooltipClicked({

@@ -16,6 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
+const mockTrackComponentViewed = jest.fn();
 const mockTrackTooltipClicked = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -24,6 +25,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
+    trackComponentViewed: mockTrackComponentViewed,
     trackTooltipClicked: mockTrackTooltipClicked,
   })),
 }));
@@ -47,6 +49,18 @@ describe('MoneyAssetOverviewBalanceCta', () => {
     expect(
       getByTestId(MoneyAssetOverviewBalanceCtaTestIds.EARNINGS_AMOUNT),
     ).toHaveTextContent('•'.repeat(6));
+  });
+
+  it('tracks the balance CTA component when projected earnings renders', () => {
+    render(
+      <MoneyAssetOverviewBalanceDescription
+        privacyMode={false}
+        projectedEarnings="$0.21"
+        tokenSymbol="USDC"
+      />,
+    );
+
+    expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
   });
 
   it('tracks and opens the earn crypto sheet when projected earnings is pressed', () => {

@@ -61,10 +61,7 @@ export enum MONEY_SURFACE_TYPES {
 export enum COMPONENT_NAMES {
   // — Section Headers —
   MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
-  MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
-  MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
-  MONEY_CARD_SECTION_HEADER = 'money_card_section_header',
 
   // — Onboarding —
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
