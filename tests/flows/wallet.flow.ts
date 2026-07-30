@@ -681,10 +681,10 @@ export const loginToApp = async (password?: string): Promise<void> => {
  * Dismisses the push notification opt-in sheet for existing users, if it appears.
  * This sheet may appear after login and block navigation. It is safe to call
  * even when the sheet is not present — the function will silently no-op.
+ * Fixture login should pass a short `appearTimeout` (~1.5s); onboarding callers
+ * that expect the sheet can use the default.
  *
- * @param options.appearTimeout - How long to wait for the sheet to show before
- *   treating it as absent. Keep this short on fixture login (~1.5s); onboarding
- *   flows that expect the sheet can pass a longer value.
+ * @param options.appearTimeout - Max wait for the sheet before treating it as absent.
  */
 export const dismissPushNotificationExistingUserSheet = async (
   options: { appearTimeout?: number } = {},
