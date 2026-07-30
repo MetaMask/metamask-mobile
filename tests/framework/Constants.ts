@@ -115,9 +115,10 @@ export const DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT = 5;
 /**
  * Outer attempts in BrowserStackProvider.getDriver() when session creation fails
  * with a transient hub/timeout error after WDIO's own connection retries.
- * Kept modest so nested WDIO connectionRetryCount does not explode wall-clock time.
+ * This is the session-only retry path — Playwright test retries stay at the
+ * shared CI default and are not raised for product/threshold failures.
  */
-export const DEFAULT_BROWSERSTACK_SESSION_CREATE_MAX_ATTEMPTS = 3;
+export const DEFAULT_BROWSERSTACK_SESSION_CREATE_MAX_ATTEMPTS = 5;
 
 /** Backoff between BrowserStackProvider session-create attempts, in ms. */
 export const DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS = 5_000;
