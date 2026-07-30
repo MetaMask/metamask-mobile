@@ -31,20 +31,15 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       paddingTop: 16,
     },
-    sliderSection: {
-      paddingHorizontal: 32,
-      paddingTop: 32,
-      paddingBottom: 24,
-    },
-    detailsWrapper: {
+    helpTextContainer: {
+      alignItems: 'center',
+      justifyContent: 'flex-start',
       paddingHorizontal: 16,
-      flex: 1,
-      flexGrow: 1,
-    },
-    inputGroupContainer: {
-      backgroundColor: colors.background.section,
-      borderRadius: 12,
-      overflow: 'hidden',
+      marginTop: 16,
+      marginBottom: 16,
+      // Reserve space so content below doesn't jump when
+      // validation HelpText appears or wraps.
+      minHeight: 40,
     },
     detailLeft: {
       flexDirection: 'row',
@@ -71,20 +66,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 8,
-    },
-    stopLossLiquidationWarning: {
-      paddingHorizontal: 8,
-      paddingTop: 8,
-    },
-    validationContainer: {
-      marginBottom: 12,
-    },
-    insufficientPayTokenWarning: {
-      backgroundColor: colors.warning.muted,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      borderRadius: 8,
-      marginTop: 12,
     },
     bottomSection: {
       paddingVertical: 24,

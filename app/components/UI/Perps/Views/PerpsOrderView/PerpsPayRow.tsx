@@ -1,5 +1,8 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   IconName,
   KeyValueRow,
   KeyValueRowVariant,
@@ -12,12 +15,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -164,13 +161,8 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
     />
   ) : token ? (
     <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
-        />
-      }
+      position={BadgeWrapperPosition.BottomRight}
+      badge={<BadgeNetwork src={networkImageSource} />}
     >
       <BaseTokenIcon
         testID="perps-pay-row-token-icon"

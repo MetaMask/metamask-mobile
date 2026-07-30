@@ -640,42 +640,15 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
   })),
 }));
 
-// Value the slider stub drags to. Tests set this before firing the drag
-// testIDs below so the real onValueChange/onDragEnd wiring runs with a
-// controllable value.
-let mockSliderDragValue = 0;
-
-// Mock PerpsSlider since it uses reanimated which needs special handling in
-// tests. Exposes drag/drag-end testIDs so tests can exercise the real
-// commit-funnel wiring (handleSliderValueChange/handleSliderDragEnd) instead
-// of only checking that the slider renders.
-jest.mock('../../components/PerpsSlider', () => ({
-  __esModule: true,
-  default: ({
-    value,
-    onValueChange,
-    onDragEnd,
-  }: {
-    value: number;
-    onValueChange: (v: number) => void;
-    onDragEnd?: (v: number) => void;
-  }) => {
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return (
-      <View testID="perps-slider">
-        <Text>Slider Value: {value}</Text>
-        <TouchableOpacity
-          testID="perps-slider-drag"
-          onPress={() => onValueChange(mockSliderDragValue)}
-        />
-        <TouchableOpacity
-          testID="perps-slider-drag-end"
-          onPress={() => onDragEnd?.(mockSliderDragValue)}
-        />
-      </View>
-    );
-  },
-}));
+// Only mock Slider — reanimated needs special handling in tests. Keep the
+// rest of the design system real (HelpText, ButtonSemantic, etc.).
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    Slider: 'Slider',
+  };
+});
 
 // Mock notifications utility
 jest.mock('../../../../../util/notifications', () => ({
@@ -1004,7 +977,6 @@ describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPerpsAdvancedChartEnabled = false;
-    mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
 
     jest.mocked(useAnalytics).mockReturnValue({
@@ -1499,14 +1471,18 @@ describe('PerpsOrderView', () => {
   });
 
   it('shows slider when not focused on input', () => {
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
+    const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+      wrapper: TestWrapper,
+    });
 
     // Slider should be visible initially
-    expect(screen.getByTestId('perps-slider')).toBeDefined();
+    expect(UNSAFE_getByType('Slider' as never)).toBeDefined();
   });
 
   it('hides slider when focused on input', async () => {
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
+    const { UNSAFE_queryByType } = render(<PerpsOrderView />, {
+      wrapper: TestWrapper,
+    });
 
     // Press amount to focus input
     const amountDisplay = screen.getByTestId('perps-amount-display');
@@ -1514,7 +1490,7 @@ describe('PerpsOrderView', () => {
 
     // Slider should not be visible when keypad is active
     await waitFor(() => {
-      expect(screen.queryByTestId('perps-slider')).toBeNull();
+      expect(UNSAFE_queryByType('Slider' as never)).toBeNull();
     });
   });
 
@@ -1553,12 +1529,18 @@ describe('PerpsOrderView', () => {
 
   describe('Slider drag commit funnel', () => {
     it('shows the live drag value instead of the stale committed amount while dragging', () => {
-      mockSliderDragValue = 42;
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
-      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(42);
+      });
 
-      expect(screen.getByText('Slider Value: 42')).toBeOnTheScreen();
+      expect(getSlider().props).toEqual(expect.objectContaining({ value: 42 }));
     });
 
     it('commits the live value on drag end', () => {
@@ -1566,12 +1548,20 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         buildOrderContextMock({ setAmount: mockSetAmount }),
       );
-      mockSliderDragValue = 77;
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
-      fireEvent.press(screen.getByTestId('perps-slider-drag'));
-      fireEvent.press(screen.getByTestId('perps-slider-drag-end'));
+      act(() => {
+        const { onValueChange, onDragEnd } = getSlider().props as {
+          onValueChange: (v: number) => void;
+          onDragEnd: (v: number) => void;
+        };
+        onValueChange(77);
+        onDragEnd(77);
+      });
 
       expect(mockSetAmount).toHaveBeenCalledWith('77');
     });
@@ -1581,17 +1571,22 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         buildOrderContextMock({ setAmount: mockSetAmount }),
       );
-      mockSliderDragValue = 88;
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
-      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(88);
+      });
       // A gesture cancelled by competing-gesture arbitration never fires
       // onDragEnd; only the wrapping View's onTouchCancel signals it.
-      fireEvent(
-        screen.getByTestId('perps-slider').parent as ReactTestInstance,
-        'touchCancel',
-      );
+      act(() => {
+        fireEvent(getSlider().parent as ReactTestInstance, 'touchCancel');
+      });
 
       expect(mockSetAmount).toHaveBeenCalledWith('88');
     });
@@ -1602,12 +1597,14 @@ describe('PerpsOrderView', () => {
         buildOrderContextMock({ setAmount: mockSetAmount }),
       );
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
-      fireEvent(
-        screen.getByTestId('perps-slider').parent as ReactTestInstance,
-        'touchCancel',
-      );
+      expect(() => {
+        fireEvent(getSlider().parent as ReactTestInstance, 'touchCancel');
+      }).not.toThrow();
 
       expect(mockSetAmount).not.toHaveBeenCalled();
     });
@@ -1622,11 +1619,17 @@ describe('PerpsOrderView', () => {
         placeOrder: mockExecuteOrder,
         isPlacing: false,
       });
-      mockSliderDragValue = 55;
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
-      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(55);
+      });
 
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
@@ -1651,12 +1654,18 @@ describe('PerpsOrderView', () => {
           balanceForValidation: 1000,
         }),
       );
-      mockSliderDragValue = 50;
       mockLeverageConfirmValue = 3;
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
-      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(50);
+      });
 
       const leverageRow = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
@@ -1682,12 +1691,18 @@ describe('PerpsOrderView', () => {
           balanceForValidation: 1000,
         }),
       );
-      mockSliderDragValue = 5000; // exceeds the post-confirm max of 1000
       mockLeverageConfirmValue = 1;
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const { UNSAFE_getByType } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
-      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      act(() => {
+        (
+          getSlider().props as { onValueChange: (v: number) => void }
+        ).onValueChange(5000); // exceeds the post-confirm max of 1000
+      });
 
       const leverageRow = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,

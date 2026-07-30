@@ -22,8 +22,13 @@ import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
   Button as DSButton,
+  ButtonBaseSize,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  HelpText,
+  HelpTextSeverity,
   TextVariant,
   TextColor,
   Text,
@@ -33,19 +38,18 @@ import {
   IconColor,
   KeyValueRow,
   KeyValueRowVariant,
+  Slider,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
@@ -81,7 +85,6 @@ import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet'
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
-import PerpsSlider from '../../components/PerpsSlider';
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
@@ -372,6 +375,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
     [commitAmount],
   );
+
+  const handleSliderGrip = useCallback(() => {
+    playImpact(ImpactMoment.SliderGrip);
+  }, []);
+
+  const handleSliderMark = useCallback(() => {
+    playImpact(ImpactMoment.SliderTick);
+  }, []);
 
   // A pan gesture cancelled by competing-gesture arbitration (e.g. a parent
   // ScrollView taking over) finalizes internally in the design-system Slider
@@ -1847,11 +1858,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         {/* Amount Slider - Hide when keypad is active */}
         {!isInputFocused && (
-          <View
-            style={styles.sliderSection}
-            onTouchCancel={handleSliderDragCancel}
-          >
-            <PerpsSlider
+          <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+            <Slider
               value={parseFloat(displayAmount || '0')}
               onValueChange={handleSliderValueChange}
               onDragEnd={handleSliderDragEnd}
@@ -1859,16 +1867,35 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               minimumValue={0}
               maximumValue={maxPossibleAmount}
               step={1}
-              showPercentageLabels
-              disabled={isAmountDisabled}
+              showRangeLabels
+              showRangeDots
+              isDisabled={isAmountDisabled}
+              onGrip={handleSliderGrip}
+              onMark={handleSliderMark}
             />
-          </View>
+          </Box>
         )}
+
+        {/* Validation Messages - keep visible while typing */}
+        <Box style={styles.helpTextContainer}>
+          {!isLoadingMarketData &&
+            currentPrice != null &&
+            !orderValidation.isValidating &&
+            filteredErrors.map((error, index) => (
+              <HelpText
+                key={`error-${index}`}
+                severity={HelpTextSeverity.Danger}
+                twClassName="w-full justify-center text-center"
+              >
+                {error}
+              </HelpText>
+            ))}
+        </Box>
 
         {/* Order Details */}
         {!isInputFocused && (
-          <View style={styles.detailsWrapper}>
-            <View style={styles.inputGroupContainer}>
+          <Box twClassName="px-4 flex-1 grow">
+            <Box twClassName="bg-background-section rounded-xl overflow-hidden">
               <TouchableOpacity
                 testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
                 onPress={() => setIsLeverageVisible(true)}
@@ -1928,24 +1955,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               )}
-            </View>
+            </Box>
             {hasInsufficientPayTokenBalance && (
-              <View style={styles.insufficientPayTokenWarning}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
+              <Box twClassName="mt-3 px-2">
+                <HelpText
+                  severity={HelpTextSeverity.Danger}
+                  twClassName="w-full"
                 >
                   {strings(
                     'perps.order.validation.insufficient_funds_to_cover_trade',
                   )}
-                </Text>
-              </View>
+                </HelpText>
+              </Box>
             )}
             {!hideTPSL && doesStopLossRiskLiquidation && (
-              <View style={styles.stopLossLiquidationWarning}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
+              <Box twClassName="px-2 pt-2">
+                <HelpText
+                  severity={HelpTextSeverity.Danger}
+                  twClassName="w-full"
                 >
                   {strings('perps.tpsl.stop_loss_order_view_warning', {
                     direction:
@@ -1953,14 +1980,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         ? strings('perps.tpsl.below')
                         : strings('perps.tpsl.above'),
                   })}
-                </Text>
-              </View>
+                </HelpText>
+              </Box>
             )}
             {!hideTPSL && isTakeProfitPriceInvalid && (
-              <View style={styles.stopLossLiquidationWarning}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
+              <Box twClassName="px-2 pt-2">
+                <HelpText
+                  severity={HelpTextSeverity.Danger}
+                  twClassName="w-full"
                 >
                   {strings('perps.tpsl.take_profit_wrong_side_warning', {
                     direction:
@@ -1969,14 +1996,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         : strings('perps.tpsl.below'),
                     priceType: tpslPriceType,
                   })}
-                </Text>
-              </View>
+                </HelpText>
+              </Box>
             )}
             {!hideTPSL && isStopLossPriceInvalid && (
-              <View style={styles.stopLossLiquidationWarning}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
+              <Box twClassName="px-2 pt-2">
+                <HelpText
+                  severity={HelpTextSeverity.Danger}
+                  twClassName="w-full"
                 >
                   {strings('perps.tpsl.stop_loss_wrong_side_warning', {
                     direction:
@@ -1985,10 +2012,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         : strings('perps.tpsl.above'),
                     priceType: tpslPriceType,
                   })}
-                </Text>
-              </View>
+                </HelpText>
+              </Box>
             )}
-          </View>
+          </Box>
         )}
 
         {/* Spacer pushes the info section to the bottom of the scroll view */}
@@ -2209,29 +2236,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
         <View style={fixedBottomContainerStyle}>
-          {filteredErrors.length > 0 &&
-            !isLoadingMarketData &&
-            currentPrice != null &&
-            !orderValidation.isValidating && (
-              <View style={styles.validationContainer}>
-                {filteredErrors.map((error) => (
-                  <Text
-                    key={error}
-                    variant={TextVariant.BodySm}
-                    color={TextColor.ErrorDefault}
-                  >
-                    {error}
-                  </Text>
-                ))}
-              </View>
-            )}
-
           {hasBlockingPayAlerts && !!blockingPayAlertMessage && (
-            <View style={styles.validationContainer}>
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            <Box twClassName="mb-3">
+              <HelpText severity={HelpTextSeverity.Danger} twClassName="w-full">
                 {blockingPayAlertMessage}
-              </Text>
-            </View>
+              </HelpText>
+            </Box>
           )}
 
           {/* Service Interruption Banner */}
@@ -2248,7 +2258,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               }
               onPress={() => handlePlaceOrder()}
               isFullWidth
-              size={ButtonSizeRNDesignSystem.Lg}
+              size={ButtonBaseSize.Lg}
               isDisabled={
                 !orderValidation.isValid ||
                 isPlacingOrder ||
