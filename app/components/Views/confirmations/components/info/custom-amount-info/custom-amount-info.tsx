@@ -533,7 +533,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [isDepositPrefilled, amountFiat, handleDone, isKeyboardVisible]);
 
-    const isMaxAutoSubmitPending = useRef(false);
+    // State (not a ref) so pressing Max re-runs the effect even when amountFiat
+    // is unchanged (already at max) — a ref alone would never clear loading.
+    const [isMaxAutoSubmitPending, setIsMaxAutoSubmitPending] = useState(false);
 
     const handlePercentagePress = useCallback(
       (percentage: number) => {
@@ -542,7 +544,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // withdraw — the amount stays $0, so leave the keyboard open instead of
         // stranding the user on a loading screen.
         if (percentage === 100 && didApplyAmount) {
-          isMaxAutoSubmitPending.current = true;
+          setIsMaxAutoSubmitPending(true);
           // Max defers the commit until amountFiat lands; show the loading
           // review through that gap so Confirm cannot be tapped early.
           setIsAmountUpdating(true);
@@ -553,11 +555,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     );
 
     useEffect(() => {
-      if (isMaxAutoSubmitPending.current && amountFiat !== '0') {
-        isMaxAutoSubmitPending.current = false;
+      if (isMaxAutoSubmitPending && amountFiat !== '0') {
+        setIsMaxAutoSubmitPending(false);
         handleDone();
       }
-    }, [amountFiat, handleDone]);
+    }, [amountFiat, handleDone, isMaxAutoSubmitPending]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);

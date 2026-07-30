@@ -697,6 +697,26 @@ describe('useTransactionCustomAmount', () => {
       expect(config.isMaxAmount).toBe(true);
     });
 
+    it('returns false when max rounds down to zero fiat', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0.004',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      let didApply = true;
+      await act(async () => {
+        didApply = result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('0');
+      expect(didApply).toBe(false);
+    });
+
     it('to percentage of predict balance converted to USD', async () => {
       usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
 

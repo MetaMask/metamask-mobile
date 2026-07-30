@@ -1751,6 +1751,36 @@ describe('CustomAmountInfo', () => {
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
     });
 
+    it('auto-submits when Max is pressed and amountFiat is already at max', async () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        // hasInput stays false so Max remains visible (e.g. amount set before
+        // debounce flips hasInput, or Max pressed again at the same value).
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      // amountFiat did not change, but Max must still commit — otherwise
+      // isAmountUpdating stays true forever and Confirm stays disabled.
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
     it('does not submit when there is no balance (Max returns false)', async () => {
       updatePendingAmountPercentageMock.mockReturnValue(false);
 
