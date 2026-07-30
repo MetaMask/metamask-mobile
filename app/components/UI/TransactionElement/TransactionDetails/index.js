@@ -243,12 +243,8 @@ const TransactionDetails = ({
   ]);
 
   const viewOnEtherscan = useCallback(() => {
-    const {
-      networkID,
-    } = transactionObject;
-    const {
-      hash,
-    } = transactionDetails;
+    const { networkID } = transactionObject;
+    const { hash } = transactionDetails;
     try {
       const { url, title } = getBlockExplorerTxUrl(RPC, hash, rpcBlockExplorer);
       trackBlockExplorerLinkClicked(
@@ -274,7 +270,13 @@ const TransactionDetails = ({
         networkID,
       });
     }
-  }, [close, navigation, rpcBlockExplorer, transactionDetails, transactionObject]);
+  }, [
+    close,
+    navigation,
+    rpcBlockExplorer,
+    transactionDetails,
+    transactionObject,
+  ]);
 
   const renderSpeedUpButton = () => {
     return (
@@ -320,7 +322,8 @@ const TransactionDetails = ({
   const isHardwareWallet = Boolean(
     fromAddress && isHardwareAccount(fromAddress),
   );
-  const isBridgeTransaction = transactionObject?.type === TransactionType.bridge;
+  const isBridgeTransaction =
+    transactionObject?.type === TransactionType.bridge;
   const renderTxActions =
     (status === 'submitted' || status === 'approved') &&
     !isSmartTransaction &&
@@ -349,12 +352,13 @@ const TransactionDetails = ({
             {strings('transactions.status')}
           </DetailsModal.SectionTitle>
           <StatusText status={status} />
-          {!!renderTxActions && updatedTransactionDetails?.txChainId === chainId && (
-            <View style={styles.transactionActionsContainer}>
-              {renderSpeedUpButton()}
-              {renderCancelButton()}
-            </View>
-          )}
+          {!!renderTxActions &&
+            updatedTransactionDetails?.txChainId === chainId && (
+              <View style={styles.transactionActionsContainer}>
+                {renderSpeedUpButton()}
+                {renderCancelButton()}
+              </View>
+            )}
         </DetailsModal.Column>
         <DetailsModal.Column end>
           <DetailsModal.SectionTitle>
@@ -547,8 +551,9 @@ const mapStateToProps = (state, ownProps) => ({
   avatarAccountType: selectAvatarAccountType(state),
 });
 
-const ConnectedTransactionDetails =
-  connect(mapStateToProps)(MemoizedTransactionDetails);
+const ConnectedTransactionDetails = connect(mapStateToProps)(
+  MemoizedTransactionDetails,
+);
 
 const TransactionDetailsWrapper = (props) => {
   const navigation = useNavigation();
