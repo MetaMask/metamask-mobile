@@ -189,6 +189,22 @@ export const TEST_SNAPS_ANDROID_SCROLL_LABELS: Record<string, string> = {
   stopWebSocket: 'Stop WebSocket',
   getWebSocketState: 'Start WebSocket',
   networkAccessResult: 'Fetch',
+  // Get Entropy — select has no button text; use section heading / sign CTA as anchors.
+  'get-entropy-entropy-selector': 'Entropy source',
+  entropyMessage: 'Sign Message',
+  signEntropyMessage: 'Sign Message',
+  entropySignResult: 'Sign Message',
+  // Legacy manage-state (Clear Data / Send Data — distinct from State snap Clear State).
+  clearManageState: 'Clear Data',
+  clearUnencryptedManageState: 'Clear Data',
+  sendManageState: 'Send Data',
+  sendUnencryptedManageState: 'Send Data',
+  clearManageStateResult: 'Clear Data',
+  clearUnencryptedManageStateResult: 'Clear Data',
+  sendManageStateResult: 'Send Data',
+  sendUnencryptedManageStateResult: 'Send Data',
+  retrieveManageStateResult: 'Send Data',
+  retrieveManageStateUnencryptedResult: 'Send Data',
 };
 
 export const testSnapsAndroidScrollOptions = {

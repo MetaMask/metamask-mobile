@@ -114,9 +114,14 @@ export default class WebView {
     options: WebViewByIdOptions = {},
   ): Promise<void> {
     if (PlatformDetector.isAndroidAppium()) {
-      await tapAndroidWebId(webId, options);
+      await tapAndroidWebId(webId, {
+        ...options,
+        timeout: 60_000,
+        description: options.description ?? `WebView select open "${webId}"`,
+      });
       await Gestures.waitAndTap(Matchers.getElementByText(optionText), {
         elemDescription: `WebView select option "${optionText}"`,
+        timeout: 30_000,
       });
       return;
     }

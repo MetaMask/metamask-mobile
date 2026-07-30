@@ -559,20 +559,37 @@ class TestSnaps {
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    await Gestures.tap(this.getConnectSnapButton, {
+    // Wait explicitly between steps; Snap install sheets are slower on Android CI.
+    const stepTimeout = PlatformDetector.isAndroidAppium() ? 60_000 : 15_000;
+    const waitForSheetTransition = async (
+      elem: EncapsulatedElementType,
+    ): Promise<void> => {
+      if (!FrameworkDetector.isAppium()) {
+        return;
+      }
+      await Utilities.waitForElementToDisappear(elem, stepTimeout);
+    };
+
+    await Gestures.waitAndTap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
+      timeout: stepTimeout,
       waitForElementToDisappear: true,
     });
+    await waitForSheetTransition(this.getConnectSnapButton);
 
-    await Gestures.tap(this.getApproveSnapPermissionsRequestButton, {
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
+      timeout: stepTimeout,
       waitForElementToDisappear: true,
     });
+    await waitForSheetTransition(this.getApproveSnapPermissionsRequestButton);
 
-    await Gestures.tap(this.getConnectSnapInstallOkButton, {
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
+      timeout: stepTimeout,
       waitForElementToDisappear: true,
     });
+    await waitForSheetTransition(this.getConnectSnapInstallOkButton);
   }
 
   async fillMessage(
@@ -654,7 +671,7 @@ class TestSnaps {
           return false;
         }
       },
-      { timeout: 10000, interval: 1000 },
+      { timeout: 30_000, interval: 1000 },
     );
   }
 }
