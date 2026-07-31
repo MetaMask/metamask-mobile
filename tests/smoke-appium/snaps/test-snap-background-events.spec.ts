@@ -105,7 +105,6 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
             'scheduleBackgroundEventResultSpan',
           );
           await TestSnaps.fillMessage('cancelBackgroundEventInput', eventId);
-          // Dismiss the Android keyboard so later Test Snaps controls stay tappable.
           await TestSnaps.blurActiveWebViewInput();
           await TestSnaps.tapButton('cancelBackgroundEventButton');
 
