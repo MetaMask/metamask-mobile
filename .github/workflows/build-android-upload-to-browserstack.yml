@@ -269,13 +269,11 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ steps.candidate.outputs.run-id }}
 
-      - name: Validate downloads and finalize reuse decision
-        id: finalize
+      - name: Validate downloaded candidate APKs
+        id: validate-downloads
         env:
           CANDIDATE_FOUND: ${{ steps.candidate.outputs.found }}
           CANDIDATE_RUN_ID: ${{ steps.candidate.outputs.run-id }}
-          CANDIDATE_SOURCE_SHA: ${{ steps.candidate.outputs.source-sha }}
-          CANDIDATE_SOURCE_BRANCH: ${{ steps.candidate.outputs.source-branch }}
           CANDIDATE_SOURCE_WORKFLOW: ${{ steps.candidate.outputs.source-workflow }}
           DOWNLOAD_WITH_SRP: ${{ steps.download-with-srp.outcome }}
           DOWNLOAD_WITHOUT_SRP: ${{ steps.download-without-srp.outcome }}
@@ -283,12 +281,7 @@ jobs:
           set -euo pipefail
 
           if [ "$CANDIDATE_FOUND" != "true" ]; then
-            {
-              echo "found=false"
-              echo "run-id="
-              echo "source-sha="
-              echo "source-branch="
-            } >> "$GITHUB_OUTPUT"
+            echo "valid=false" >> "$GITHUB_OUTPUT"
             echo "No fingerprint-matching BrowserStack performance APKs found; will build fresh."
             exit 0
           fi
@@ -300,15 +293,66 @@ jobs:
             && [ "$DOWNLOAD_WITHOUT_SRP" = "success" ] \
             && [ -n "$with_srp_apk" ] \
             && [ -n "$without_srp_apk" ]; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Validated downloaded performance APKs from $CANDIDATE_SOURCE_WORKFLOW run $CANDIDATE_RUN_ID"
+            echo "  with-SRP: $with_srp_apk ($(du -h "$with_srp_apk" | cut -f1))"
+            echo "  without-SRP: $without_srp_apk ($(du -h "$without_srp_apk" | cut -f1))"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Reusable run $CANDIDATE_RUN_ID was found but artifact download/validation failed (with-srp=$DOWNLOAD_WITH_SRP, without-srp=$DOWNLOAD_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+          fi
+
+      # Re-stage on this run so upload does not re-download from the prior run
+      # (artifacts can expire between lookup and the later upload job).
+      - name: Re-stage with-SRP APK on current run
+        id: restage-with-srp
+        if: steps.validate-downloads.outputs.valid == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          # Keep reuse artifacts separate from fresh-build artifact names. If only
+          # one re-stage succeeds, the fallback build can still upload both of its
+          # standard artifacts without an upload-artifact v4 name collision.
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Re-stage without-SRP APK on current run
+        id: restage-without-srp
+        if: steps.validate-downloads.outputs.valid == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+          retention-days: 1
+          if-no-files-found: error
+
+      # Publish found=true only after both artifacts are safely available on this
+      # run. The downstream Gradle jobs use this output as their reuse gate.
+      - name: Finalize fingerprint reuse decision
+        id: finalize
+        env:
+          DOWNLOADS_VALID: ${{ steps.validate-downloads.outputs.valid }}
+          RESTAGE_WITH_SRP: ${{ steps.restage-with-srp.outcome }}
+          RESTAGE_WITHOUT_SRP: ${{ steps.restage-without-srp.outcome }}
+          CANDIDATE_RUN_ID: ${{ steps.candidate.outputs.run-id }}
+          CANDIDATE_SOURCE_SHA: ${{ steps.candidate.outputs.source-sha }}
+          CANDIDATE_SOURCE_BRANCH: ${{ steps.candidate.outputs.source-branch }}
+        run: |
+          set -euo pipefail
+
+          if [ "$DOWNLOADS_VALID" = "true" ] \
+            && [ "$RESTAGE_WITH_SRP" = "success" ] \
+            && [ "$RESTAGE_WITHOUT_SRP" = "success" ]; then
             {
               echo "found=true"
               echo "run-id=$CANDIDATE_RUN_ID"
               echo "source-sha=$CANDIDATE_SOURCE_SHA"
               echo "source-branch=$CANDIDATE_SOURCE_BRANCH"
             } >> "$GITHUB_OUTPUT"
-            echo "Validated reuse of performance APKs from $CANDIDATE_SOURCE_WORKFLOW run $CANDIDATE_RUN_ID"
-            echo "  with-SRP: $with_srp_apk ($(du -h "$with_srp_apk" | cut -f1))"
-            echo "  without-SRP: $without_srp_apk ($(du -h "$without_srp_apk" | cut -f1))"
+            echo "Fingerprint reuse committed: both APKs are staged on this run."
           else
             {
               echo "found=false"
@@ -316,28 +360,10 @@ jobs:
               echo "source-sha="
               echo "source-branch="
             } >> "$GITHUB_OUTPUT"
-            echo "::warning::Reusable run $CANDIDATE_RUN_ID was found but artifact download/validation failed (with-srp=$DOWNLOAD_WITH_SRP, without-srp=$DOWNLOAD_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+            if [ "$DOWNLOADS_VALID" = "true" ]; then
+              echo "::warning::Candidate APKs downloaded but re-stage failed (with-srp=$RESTAGE_WITH_SRP, without-srp=$RESTAGE_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+            fi
           fi
-
-      # Re-stage on this run so upload does not re-download from the prior run
-      # (artifacts can expire between lookup and the later upload job).
-      - name: Re-stage with-SRP APK on current run
-        if: steps.finalize.outputs.found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
-          path: artifacts/with-srp
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Re-stage without-SRP APK on current run
-        if: steps.finalize.outputs.found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
-          path: artifacts/without-srp
-          retention-days: 1
-          if-no-files-found: error
 
   build-with-srp:
     name: Build Android with-SRP
@@ -450,15 +476,29 @@ jobs:
           retry_wait_seconds: 30
           command: yarn setup:github-ci --no-build-ios --no-build-android
 
-      # Artifacts are always on this run: either re-staged by resolve-fingerprint-reuse
-      # after a validated prior-run download, or produced by the fresh dual builds.
-      - name: Download with-SRP APK
+      - name: Download reused with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+
+      - name: Download reused without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+
+      - name: Download fresh with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
         uses: actions/download-artifact@v4
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
-      - name: Download without-SRP APK
+      - name: Download fresh without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
         uses: actions/download-artifact@v4
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
