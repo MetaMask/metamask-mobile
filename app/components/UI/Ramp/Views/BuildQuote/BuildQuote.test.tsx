@@ -106,6 +106,14 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
       name,
       screen ? { screen, params } : params,
     ],
+  navigateWithDetails: (
+    navigation: { navigate: (...args: unknown[]) => void },
+    details: unknown[],
+  ) => navigation.navigate(...details),
+  resetWithRoutes: (
+    navigation: { reset: (state: unknown) => void },
+    state: unknown,
+  ) => navigation.reset(state),
 }));
 
 jest.mock('../../hooks/useRampsController', () => ({

@@ -6,6 +6,7 @@ import reducer, {
   setDestAmount,
   resetBridgeState,
   setSlippage,
+  setSlippageUserOverride,
   setBridgeViewMode,
   selectBridgeViewMode,
   setSourceToken,
@@ -122,7 +123,8 @@ describe('bridge slice', () => {
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
-        slippage: '0.5',
+        slippage: undefined,
+        isSlippageUserOverride: false,
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isSelectingToken: false,
@@ -228,6 +230,12 @@ describe('bridge slice', () => {
 
       expect(state.slippage).toBe(slippage);
     });
+
+    it('records an explicit Auto override', () => {
+      const state = reducer(initialState, setSlippageUserOverride(undefined));
+
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
   });
 
   describe('setDestAmount', () => {
@@ -274,6 +282,16 @@ describe('bridge slice', () => {
       const state = reducer(stateWithManualFlag, action);
 
       expect(state.isDestTokenManuallySet).toBe(true);
+    });
+
+    it('clears slippage when the token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setDestToken(mockDestToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
     });
   });
 

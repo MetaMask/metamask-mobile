@@ -31,6 +31,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   exceedsPriceImpactErrorThreshold,
   parsePriceImpact,
@@ -56,7 +57,7 @@ export const SwapsConfirmButton = ({
   location,
   transactionActiveAbTests,
 }: Props) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);

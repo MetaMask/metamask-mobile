@@ -163,6 +163,8 @@ import {
 import { TradingService } from '@metamask/perps-controller/services/TradingService';
 import type {
   FlipPositionParams,
+  PerpsAnalyticsEvent,
+  PerpsAnalyticsProperties,
   ServiceContext,
 } from '@metamask/perps-controller';
 import { createMockInfrastructure } from '../../../app/components/UI/Perps/__mocks__/serviceMocks';
@@ -197,6 +199,28 @@ function installMockEngineContext() {
   });
 }
 
+/**
+ * Query helpers over the real `TradingService`'s `metrics.trackPerpsEvent`
+ * mock. Scalable accessor for asserting ANY perps analytics event emitted by
+ * the trading flow (trade/close/cancel/risk, executed/failed/partially_filled)
+ * without each test re-deriving matches from `mock.calls`.
+ */
+export interface PerpsAnalyticsQueries {
+  /** The raw jest mock backing `metrics.trackPerpsEvent`. */
+  trackPerpsEvent: jest.Mock;
+  /** All emitted events as `{ event, properties }`, in call order. */
+  all: () => {
+    event: PerpsAnalyticsEvent;
+    properties: PerpsAnalyticsProperties;
+  }[];
+  /** Every emission of a given event name, in call order. */
+  byName: (event: PerpsAnalyticsEvent) => PerpsAnalyticsProperties[];
+  /** The most recent emission of a given event name, or undefined. */
+  lastByName: (
+    event: PerpsAnalyticsEvent,
+  ) => PerpsAnalyticsProperties | undefined;
+}
+
 export interface PerpsFlowHarness {
   /** The underlying provider-level harness (provider, mocks, helpers). */
   harness: PerpsIntegrationHarness;
@@ -209,6 +233,12 @@ export interface PerpsFlowHarness {
    * tests can spy on its methods or assert it was called for a specific flow.
    */
   tradingService: TradingService;
+  /**
+   * Analytics query helpers over the real `TradingService`'s emitted events.
+   * Use these to assert `Perp Trade Transaction` / `Perp Position Close
+   * Transaction` etc. with their status + properties.
+   */
+  analytics: PerpsAnalyticsQueries;
 }
 
 /*
@@ -230,7 +260,33 @@ export function buildPerpsFlowHarness(
   const harness = buildPerpsIntegrationHarness(options);
 
   // Real TradingService — same platform deps shape the inner harness uses.
-  const tradingService = new TradingService(createMockInfrastructure());
+  // Capture the infrastructure so its mocked `metrics.trackPerpsEvent` (the
+  // real service calls it to emit analytics) is reachable for assertions.
+  const tradingServiceInfra = createMockInfrastructure();
+  const tradingService = new TradingService(tradingServiceInfra);
+
+  const trackPerpsEvent = tradingServiceInfra.metrics
+    .trackPerpsEvent as jest.Mock;
+  const analytics: PerpsAnalyticsQueries = {
+    trackPerpsEvent,
+    all: () =>
+      trackPerpsEvent.mock.calls.map(([event, properties]) => ({
+        event: event as PerpsAnalyticsEvent,
+        properties: properties as PerpsAnalyticsProperties,
+      })),
+    byName: (event) =>
+      trackPerpsEvent.mock.calls
+        .filter(([emitted]) => emitted === event)
+        .map(([, properties]) => properties as PerpsAnalyticsProperties),
+    lastByName: (event) => {
+      const matches = trackPerpsEvent.mock.calls.filter(
+        ([emitted]) => emitted === event,
+      );
+      return matches.length > 0
+        ? (matches[matches.length - 1][1] as PerpsAnalyticsProperties)
+        : undefined;
+    },
+  };
   const renderHookWithFlow = <Result, Props>(
     hook: (props: Props) => Result,
     renderOptions: PerpsFlowRenderOptions = {},
@@ -243,10 +299,9 @@ export function buildPerpsFlowHarness(
     return renderHookWithProvider(hook, { state: stateBuilder.build() });
   };
 
-  // Minimal ServiceContext factory. PerpsController's real
-  // `#createServiceContext` builds a richer one (state manager callbacks,
-  // saveTradeConfiguration, etc.); the trading-flow methods don't require
-  // those for the seam we're testing, so a minimal version is sufficient.
+  // Minimal ServiceContext. `getPositions` resolves from the provider (WS cache)
+  // so close/flip flows hit TradingService's position-found branch, which emits
+  // the rich position-derived analytics props.
   const buildServiceContext = (method: string): ServiceContext => ({
     tracingContext: {
       provider: 'hyperliquid',
@@ -256,6 +311,7 @@ export function buildPerpsFlowHarness(
       controller: 'PerpsController',
       method,
     },
+    getPositions: () => harness.provider.getPositions(),
   });
 
   // Stub for reportOrderToDataLake — PerpsController has its own impl that
@@ -331,5 +387,5 @@ export function buildPerpsFlowHarness(
   };
   installMockEngineContext();
 
-  return { harness, renderHookWithFlow, tradingService };
+  return { harness, renderHookWithFlow, tradingService, analytics };
 }

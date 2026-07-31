@@ -4,6 +4,8 @@ import {
   CommonActions,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -54,6 +56,7 @@ import {
 } from '../../../../Views/confirmations/constants/perps';
 import {
   useIsTransactionPayQuoteLoading,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
@@ -220,7 +223,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   defaultSzDecimals,
   defaultMaxLeverage,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   // Source: from route params (caller-passed) or trending session, else default
   const source =
@@ -560,6 +563,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
+  const payRequiredTokens = useTransactionPayRequiredTokens();
   const depositFeeUsd = useMemo(() => {
     if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -578,11 +582,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const undiscountedFeesToDisplay = hasCustomTokenSelected
     ? undiscountedEstimatedFees + depositFeeUsd
     : undiscountedEstimatedFees;
+  // The order amount reaches the pay controller through a chain of effects, so
+  // right after the pay token changes it still holds a zero amount, has no
+  // quote, and has not started loading. Without this the CTA is open for a few
+  // seconds and the deposit submits unfunded.
+  const isPayAmountStale = (payRequiredTokens ?? []).some(
+    (token) => !token.skipIfBalance && token.amountRaw === '0',
+  );
+
+  const isPayStateNotReady = isPayTotalsLoading || isPayAmountStale;
+
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
-    (hasCustomTokenSelected && isPayTotalsLoading);
+    (hasCustomTokenSelected && isPayStateNotReady);
   const shouldBlockBecauseOfFeesLoading =
-    hasCustomTokenSelected && isPayTotalsLoading;
+    hasCustomTokenSelected && isPayStateNotReady;
 
   const isMarketOrder = orderForm.type === 'market';
 
@@ -1120,7 +1134,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: orderForm.amount,
-      szDecimals,
+      szDecimals: szDecimals ?? undefined,
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,
@@ -1306,7 +1320,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 {
                   name: Routes.PERPS.MARKET_DETAILS,
                   params: {
-                    market: navigationMarketData,
+                    market: navigationMarketData ?? {
+                      symbol: orderForm.asset,
+                      name: orderForm.asset,
+                    },
                     monitoringIntent: {
                       asset: orderForm.asset,
                       monitorOrders: true,
@@ -1394,7 +1411,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
-            market: navigationMarketData,
+            market: navigationMarketData ?? {
+              symbol: orderForm.asset,
+              name: orderForm.asset,
+            },
             // Pass monitoring intent to destination screen for data-driven tab selection
             monitoringIntent: {
               asset: orderForm.asset,

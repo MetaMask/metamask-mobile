@@ -116,6 +116,8 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'nftBuy',
     'nftMint',
     'nftSell',
+    'assetActivation',
+    'assetDeactivation',
     'deposit',
     'stake',
     'claim',
