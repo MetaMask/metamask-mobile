@@ -944,6 +944,7 @@ describe('resolvePredictFeatureFlags', () => {
               'MONEYLINE',
               'spreads',
               'totals',
+              'first_half_moneyline',
               'soccer_halftime_result',
               'soccer_player_goals',
               'points',
@@ -956,6 +957,7 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
+        'first_half_moneyline',
         'soccer_halftime_result',
         'soccer_player_goals',
       ]);
