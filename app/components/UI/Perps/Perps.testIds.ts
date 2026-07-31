@@ -504,8 +504,15 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
   POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
   POSITIONS_LIST: 'perps-pro-market-positions-list',
+  POSITIONS_CLOSE_ALL: 'perps-pro-market-positions-close-all',
+  POSITION_CLOSE: 'perps-pro-market-position-close',
+  POSITION_REVERSE: 'perps-pro-market-position-reverse',
+  POSITION_SHARE: 'perps-pro-market-position-share',
+  POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
+  POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
+  ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_ROW: 'perps-pro-market-order-row',
 };
 

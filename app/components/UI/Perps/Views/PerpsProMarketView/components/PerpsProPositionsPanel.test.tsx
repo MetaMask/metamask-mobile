@@ -7,6 +7,7 @@ import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
+import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProPositionsPanel from './PerpsProPositionsPanel';
 
@@ -17,8 +18,15 @@ jest.mock('../../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(),
 }));
 
+jest.mock('../../../hooks/usePerpsProPositionsPanelActions', () => ({
+  usePerpsProPositionsPanelActions: jest.fn(),
+}));
+
 const mockUsePerpsLiveOrders = jest.mocked(usePerpsLiveOrders);
 const mockUsePerpsLivePositions = jest.mocked(usePerpsLivePositions);
+const mockUsePerpsProPositionsPanelActions = jest.mocked(
+  usePerpsProPositionsPanelActions,
+);
 
 const makePosition = (overrides: Partial<Position> = {}): Position => ({
   symbol: 'BTC',
@@ -65,6 +73,12 @@ const expectTabLabel = (label: string) => {
 };
 
 describe('PerpsProPositionsPanel', () => {
+  const handleClosePosition = jest.fn();
+  const handleReversePosition = jest.fn();
+  const handleSharePosition = jest.fn();
+  const handleCancelOrder = jest.fn();
+  const handleCloseAllPress = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsLiveOrders.mockReturnValue({
@@ -75,6 +89,19 @@ describe('PerpsProPositionsPanel', () => {
       positions: [],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleCloseAllPress,
+      cancelingOrderId: null,
+      isOrderCancelable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets: () => null,
+    });
   });
 
   it('shows the global empty state when there are no positions', () => {
@@ -197,5 +224,44 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeOnTheScreen();
     expect(screen.getAllByText('BTC').length).toBeGreaterThan(0);
     expect(screen.getAllByText('SOL').length).toBeGreaterThan(0);
+  });
+
+  it('wires close-all and position action handlers when data is present', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_CLOSE_ALL),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_CLOSE),
+    );
+
+    expect(handleCloseAllPress).toHaveBeenCalled();
+    expect(handleClosePosition).toHaveBeenCalled();
+  });
+
+  it('wires order cancel handler on the orders tab', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+    );
+
+    expect(handleCancelOrder).toHaveBeenCalled();
   });
 });

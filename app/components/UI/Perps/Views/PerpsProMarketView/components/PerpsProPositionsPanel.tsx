@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
 import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
@@ -31,10 +32,10 @@ interface PerpsProPositionsPanelProps {
  * Pro-mode positions/orders section.
  *
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
- * The Positions tab shows a read-only list of the user's open positions
- * across all assets, falling back to an empty state when there are none.
+ * The Positions tab shows the user's open positions across all assets,
+ * falling back to an empty state when there are none.
  * The `$TICKER only` checkbox filters positions (not orders) to the current
- * market. The Orders tab shows the user's open orders as read-only cards.
+ * market. The Orders tab shows the user's open orders.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -49,6 +50,19 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
   });
   const { orders, isInitialLoading: areOrdersInitiallyLoading } =
     usePerpsLiveOrders({ throttleMs: 1000 });
+  const {
+    handleClosePosition,
+    handleReversePosition,
+    handleSharePosition,
+    handleEditPositionTpSl,
+    handleEditPositionMargin,
+    handleCancelOrder,
+    handleCloseAllPress,
+    cancelingOrderId,
+    isOrderCancelable,
+    isPositionMarginEditable,
+    renderActionSheets,
+  } = usePerpsProPositionsPanelActions();
 
   const visiblePositions = useMemo(
     () =>
@@ -106,12 +120,19 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
           <PerpsProUnrealizedPnl
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
+            onCloseAll={handleCloseAllPress}
           />
           {visiblePositions.map((position, index) => (
             <PerpsProPositionCard
               key={`${position.symbol}-${index}`}
               position={position}
               testID={getPerpsProPositionRowSelector(position.symbol, index)}
+              onClose={handleClosePosition}
+              onReverse={handleReversePosition}
+              onShare={handleSharePosition}
+              onEditTpSl={handleEditPositionTpSl}
+              onEditMargin={handleEditPositionMargin}
+              isEditMarginDisabled={!isPositionMarginEditable(position)}
             />
           ))}
         </Box>
@@ -141,6 +162,10 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
               key={order.orderId}
               order={order}
               testID={getPerpsProOrderRowSelector(order.symbol, index)}
+              onCancel={handleCancelOrder}
+              isCancelDisabled={
+                !isOrderCancelable(order) || cancelingOrderId === order.orderId
+              }
             />
           ))}
         </Box>
@@ -190,6 +215,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
+      {renderActionSheets()}
     </Box>
   );
 };

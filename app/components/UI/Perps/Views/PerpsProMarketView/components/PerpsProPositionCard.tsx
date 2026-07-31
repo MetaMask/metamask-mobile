@@ -7,7 +7,9 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
   IconName,
+  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Tag,
@@ -22,6 +24,7 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import React from 'react';
+import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
@@ -41,6 +44,13 @@ interface PerpsProPositionCardProps {
   position: Position;
   /** Test ID for the card container. */
   testID?: string;
+  onClose?: (position: Position) => void;
+  onReverse?: (position: Position) => void;
+  onShare?: (position: Position) => void;
+  onEditTpSl?: (position: Position) => void;
+  isEditTpSlDisabled?: boolean;
+  onEditMargin?: (position: Position) => void;
+  isEditMarginDisabled?: boolean;
 }
 
 const ACTION_BUTTON_CLASS_NAME = 'flex-1 border-muted bg-background-default';
@@ -50,6 +60,7 @@ interface KeyValueItemProps {
   value: string;
   valueColor?: TextColor;
   labelAccessory?: React.ReactNode;
+  valueAccessory?: React.ReactNode;
   isHidden?: boolean;
 }
 
@@ -58,6 +69,7 @@ const KeyValueItem = ({
   value,
   valueColor = TextColor.TextDefault,
   labelAccessory,
+  valueAccessory,
   isHidden = false,
 }: KeyValueItemProps) => (
   <Box>
@@ -71,15 +83,22 @@ const KeyValueItem = ({
       </Text>
       {labelAccessory}
     </Box>
-    <SensitiveText
-      variant={TextVariant.BodyXs}
-      fontWeight={FontWeight.Medium}
-      color={isHidden ? TextColor.TextDefault : valueColor}
-      isHidden={isHidden}
-      length={SensitiveTextLength.Short}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-1"
     >
-      {value}
-    </SensitiveText>
+      <SensitiveText
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Medium}
+        color={isHidden ? TextColor.TextDefault : valueColor}
+        isHidden={isHidden}
+        length={SensitiveTextLength.Short}
+      >
+        {value}
+      </SensitiveText>
+      {valueAccessory}
+    </Box>
   </Box>
 );
 
@@ -90,12 +109,18 @@ const KeyValueItem = ({
  * Shows asset, direction/leverage, size, unrealized PnL, and key figures
  * (entry, mark, liquidation prices, margin, TP/SL, funding).
  *
- * Intentionally excludes filters, checkboxes, and close/reverse/share/modify
- * actions — display only.
+ * Action buttons delegate to existing Perps close/reverse/share flows via callbacks.
  */
 const PerpsProPositionCard = ({
   position,
   testID,
+  onClose,
+  onReverse,
+  onShare,
+  onEditTpSl,
+  isEditTpSlDisabled = false,
+  onEditMargin,
+  isEditMarginDisabled = false,
 }: PerpsProPositionCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const displaySymbol = getPerpsDisplaySymbol(position.symbol);
@@ -116,6 +141,8 @@ const PerpsProPositionCard = ({
     position.leverage.type === 'isolated'
       ? strings('perps.pro_positions_panel.card.isolated')
       : strings('perps.pro_positions_panel.card.cross');
+  const canEditMargin =
+    position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
   // Mark price is not stored on the position; derive it from notional.
   // With useLivePnl, enrichPositionsWithLivePnL keeps positionValue in sync
@@ -255,6 +282,19 @@ const PerpsProPositionCard = ({
               labelAccessory={
                 <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
               }
+              valueAccessory={
+                canEditMargin ? (
+                  <Pressable
+                    onPress={() => onEditMargin?.(position)}
+                    disabled={isEditMarginDisabled}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings('perps.adjust_margin.title')}
+                    testID={PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN}
+                  >
+                    <Icon name={IconName.Edit} size={IconSize.Sm} />
+                  </Pressable>
+                ) : undefined
+              }
             />
           </Box>
           <Box twClassName="min-w-[128px] gap-6">
@@ -267,6 +307,21 @@ const PerpsProPositionCard = ({
               label={strings('perps.pro_positions_panel.card.tp_sl')}
               value={tpSlDisplay}
               isHidden={privacyMode}
+              valueAccessory={
+                onEditTpSl ? (
+                  <Pressable
+                    onPress={() => onEditTpSl(position)}
+                    disabled={isEditTpSlDisabled}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings(
+                      'perps.position.card.edit_tpsl',
+                    )}
+                    testID={PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL}
+                  >
+                    <Icon name={IconName.Edit} size={IconSize.Sm} />
+                  </Pressable>
+                ) : undefined
+              }
             />
           </Box>
           <Box twClassName="gap-6">
@@ -296,6 +351,8 @@ const PerpsProPositionCard = ({
           isDanger
           startIconName={IconName.Close}
           twClassName={ACTION_BUTTON_CLASS_NAME}
+          onPress={() => onClose?.(position)}
+          testID={PerpsProMarketViewSelectorsIDs.POSITION_CLOSE}
         >
           {strings('perps.pro_positions_panel.card.close')}
         </Button>
@@ -304,6 +361,8 @@ const PerpsProPositionCard = ({
           size={ButtonSize.Sm}
           startIconName={IconName.Refresh}
           twClassName={ACTION_BUTTON_CLASS_NAME}
+          onPress={() => onReverse?.(position)}
+          testID={PerpsProMarketViewSelectorsIDs.POSITION_REVERSE}
         >
           {strings('perps.pro_positions_panel.card.reverse')}
         </Button>
@@ -312,6 +371,8 @@ const PerpsProPositionCard = ({
           size={ButtonSize.Sm}
           startIconName={IconName.Share}
           twClassName={ACTION_BUTTON_CLASS_NAME}
+          onPress={() => onShare?.(position)}
+          testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
         >
           {strings('perps.pro_positions_panel.card.share')}
         </Button>

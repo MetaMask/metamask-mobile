@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProPositionCard from './PerpsProPositionCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -62,6 +63,30 @@ describe('PerpsProPositionCard', () => {
 
     expect(screen.getByText(/1\.5 ETH • \$4,500/)).toBeOnTheScreen();
     expect(screen.getByText('$3,000')).toBeOnTheScreen();
+  });
+
+  it('renders TP/SL edit control when handler is provided', () => {
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditTpSl={onEditTpSl} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders margin edit control for isolated positions when handler is provided', () => {
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditMargin={onEditMargin} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
+    ).toBeOnTheScreen();
   });
 
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {

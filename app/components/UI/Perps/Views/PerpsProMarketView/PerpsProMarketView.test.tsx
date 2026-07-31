@@ -182,6 +182,22 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
+jest.mock('../../hooks/usePerpsProPositionsPanelActions', () => ({
+  usePerpsProPositionsPanelActions: jest.fn(() => ({
+    handleClosePosition: jest.fn(),
+    handleReversePosition: jest.fn(),
+    handleSharePosition: jest.fn(),
+    handleEditPositionTpSl: jest.fn(),
+    handleEditPositionMargin: jest.fn(),
+    handleCancelOrder: jest.fn(),
+    handleCloseAllPress: jest.fn(),
+    cancelingOrderId: null,
+    isOrderCancelable: () => true,
+    isPositionMarginEditable: () => true,
+    renderActionSheets: () => null,
+  })),
+}));
+
 jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: jest.fn(() => ({
     orderBook: null,
