@@ -119,6 +119,7 @@ describe('Metamask Pay Metrics', () => {
         mm_pay: true,
         mm_pay_chain_selected: '0x1',
         mm_pay_payment_method_selected: 'crypto',
+        mm_pay_strategy: 'relay',
         mm_pay_use_case: 'money_account_deposit',
       },
       sensitiveProperties: {},
@@ -1361,7 +1362,7 @@ describe('Metamask Pay Metrics', () => {
       },
     );
 
-    it('does not set mm_pay_strategy when metamaskPay has no fiat', () => {
+    it('falls back mm_pay_strategy to relay when metamaskPay has no fiat', () => {
       request.transactionMeta.error = {
         name: 'Error',
         message: 'Transaction incomplete at startup',
@@ -1370,7 +1371,7 @@ describe('Metamask Pay Metrics', () => {
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
-      expect(result.properties.mm_pay_strategy).toBeUndefined();
+      expect(result.properties.mm_pay_strategy).toBe('relay');
     });
 
     it('sets mm_pay_strategy from metamaskPay.fiat regardless of error', () => {
@@ -1465,8 +1466,88 @@ describe('Metamask Pay Metrics', () => {
       );
       expect(result.properties).not.toHaveProperty('mm_pay_provider_fee_usd');
       expect(result.properties).not.toHaveProperty('mm_pay_network_fee_usd');
-      expect(result.properties).not.toHaveProperty('mm_pay_strategy');
       expect(result.properties).not.toHaveProperty('mm_pay_fiat_provider');
+      expect(result.properties.mm_pay_strategy).toBe('relay');
+    });
+
+    it('backfills mm_pay_payment_method_selected from matching ramps order', () => {
+      request.transactionMeta.metamaskPay = {
+        fiat: { orderId: 'order-1', provider: 'transak-native' },
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            RampsController: {
+              orders: [
+                {
+                  providerOrderId: 'order-2',
+                  paymentMethod: { id: '/payments/apple-pay' },
+                },
+                {
+                  providerOrderId: 'order-1',
+                  paymentMethod: { id: '/payments/debit-credit-card' },
+                },
+              ],
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_payment_method_selected).toBe(
+        'debit_credit_card',
+      );
+      expect(result.properties.mm_pay_strategy).toBe('fiat');
+    });
+
+    it('keeps mm_pay_payment_method_selected as crypto when no ramps order matches', () => {
+      request.transactionMeta.metamaskPay = {
+        fiat: { orderId: 'order-1', provider: 'transak-native' },
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            RampsController: {
+              orders: [
+                {
+                  providerOrderId: 'order-2',
+                  paymentMethod: { id: '/payments/apple-pay' },
+                },
+              ],
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_payment_method_selected).toBe('crypto');
+    });
+
+    it('keeps mm_pay_payment_method_selected as crypto when matching order has no payment method', () => {
+      request.transactionMeta.metamaskPay = {
+        fiat: { orderId: 'order-1', provider: 'transak-native' },
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            RampsController: {
+              orders: [{ providerOrderId: 'order-1' }],
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_payment_method_selected).toBe('crypto');
     });
   });
 

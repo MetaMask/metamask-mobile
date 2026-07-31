@@ -13,6 +13,7 @@ import {
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
 import { isNoOpQuote } from '../../../../../selectors/transactionPayController';
+import { selectRampsOrders } from '../../../../../selectors/rampsController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
@@ -94,8 +95,9 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       addFiatPaymentProperties(properties, txPayData);
     } else {
       // mm_pay_receiving_value_usd, mm_pay_provider_fee_usd,
-      // mm_pay_network_fee_usd, mm_pay_strategy, mm_pay_fiat_provider
-      addPersistedPayMetadata(properties, payTransaction);
+      // mm_pay_network_fee_usd, mm_pay_strategy, mm_pay_fiat_provider,
+      // mm_pay_payment_method_selected
+      addPersistedPayMetadata(properties, payTransaction, state);
     }
   }
 
@@ -243,6 +245,7 @@ function addTimeToComplete(
 function addPersistedPayMetadata(
   properties: JsonMap,
   transaction: TransactionMeta,
+  state: RootState,
 ) {
   const { metamaskPay } = transaction;
 
@@ -264,14 +267,29 @@ function addPersistedPayMetadata(
     properties.mm_pay_network_fee_usd = networkFeeFiat;
   }
 
-  if (fiat) {
-    properties.mm_pay_strategy = 'fiat';
+  if (!fiat) {
+    // Non-fiat strategy is not persisted on metamaskPay yet, so assume the
+    // most common one until the strategy is persisted in TransactionController
+    // state.
+    properties.mm_pay_strategy = 'relay';
+    return;
+  }
 
-    const providerCode = extractFiatProviderCode(fiat.provider);
+  properties.mm_pay_strategy = 'fiat';
 
-    if (providerCode) {
-      properties.mm_pay_fiat_provider = providerCode;
-    }
+  const providerCode = extractFiatProviderCode(fiat.provider);
+
+  if (providerCode) {
+    properties.mm_pay_fiat_provider = providerCode;
+  }
+
+  const paymentMethodId = selectRampsOrders(state).find(
+    (order) => order.providerOrderId === fiat.orderId,
+  )?.paymentMethod?.id;
+
+  if (paymentMethodId) {
+    properties.mm_pay_payment_method_selected =
+      normalizeMetaMaskPayPaymentMethod(paymentMethodId);
   }
 }
 
