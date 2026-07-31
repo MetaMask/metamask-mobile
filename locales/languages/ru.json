@@ -1513,6 +1513,7 @@
       "size_usd": "Размер в USD",
       "size_percentage": "Процент размера ордера",
       "toggle_size_unit": "Переключить номинал размера",
+      "available_balance": "{{amount}} доступно",
       "available_balance_unavailable": "-- доступно",
       "est_liquidation": "Ожид. ликвидация",
       "tpsl": "ТП/СЛ",

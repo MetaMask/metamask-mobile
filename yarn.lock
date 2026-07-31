@@ -9362,6 +9362,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/money-account-utils@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/money-account-utils@npm:1.0.0"
+  dependencies:
+    "@metamask/transaction-controller": "npm:^69.3.0"
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/bb85219266b451115260263b291c0408ec60060ee1b54f52c48f9220c6077fe492e25347754c1c392ef5d4ecd9b5ddf65de4c1d3bf93966e15d275f2c3364265
+  languageName: node
+  linkType: hard
+
 "@metamask/multichain-account-service@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/multichain-account-service@npm:13.0.0"
@@ -35889,6 +35899,7 @@ __metadata:
     "@metamask/money-account-balance-service": "npm:^2.4.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^3.0.0"
+    "@metamask/money-account-utils": "npm:^1.0.0"
     "@metamask/multichain-account-service": "npm:^13.0.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^4.0.1"

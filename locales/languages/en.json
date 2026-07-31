@@ -1527,6 +1527,7 @@
       "size_usd": "Size USD",
       "size_percentage": "Order size percentage",
       "toggle_size_unit": "Switch size denomination",
+      "available_balance": "{{amount}} available",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",

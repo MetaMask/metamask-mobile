@@ -149,6 +149,7 @@ describe('Feature Flag Registry', () => {
       const defaults = getProductionRemoteFlagDefaults();
       expect(defaults.assetsDefiPositionsEnabled).toBe(true);
       expect(defaults.bitcoinTestnetsEnabled).toBe(false);
+      expect(defaults.moneyAccountBalanceSource).toBe('rpc');
     });
 
     it('only includes remote production flags', () => {

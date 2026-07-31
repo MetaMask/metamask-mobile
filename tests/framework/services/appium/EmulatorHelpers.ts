@@ -516,6 +516,17 @@ export async function ensureAndroidEmulatorReady(
       logger.info(
         `Using configured Android emulator ${serial} — skipping AVD name lookup.`,
       );
+      // Already booted: do not re-run cold-boot stabilize.
+      try {
+        const { stdout } = await execAsync(
+          `adb -s ${serial} shell getprop sys.boot_completed 2>/dev/null`,
+        );
+        if (stdout.trim() === '1') {
+          return serial;
+        }
+      } catch {
+        // Fall through to full boot wait if the property check fails.
+      }
       await waitForEmulatorBoot(serial);
       return serial;
     }
