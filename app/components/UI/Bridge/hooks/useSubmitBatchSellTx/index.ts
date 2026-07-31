@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 import type {
   MetaMetricsSwapsEventSource,
-  QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { BridgeStatusController } from '@metamask/bridge-status-controller';
@@ -29,7 +28,7 @@ export function useSubmitBatchSellTx() {
     quoteResponses,
     location,
   }: {
-    quoteResponses: ((QuoteResponse & QuoteMetadata) | null)[];
+    quoteResponses: (QuoteResponse | null)[];
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
   }) => {

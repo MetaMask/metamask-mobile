@@ -18,7 +18,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
 
 type ChainIdHexOrCaip = Hex | CaipChainId;
-type ActiveQuote = (QuoteResponse & QuoteMetadata) | null | undefined;
+type ActiveQuote = QuoteResponse | null | undefined;
 
 const BTC_MAINNET_CHAIN_ID = formatChainIdToCaip(ChainId.BTC);
 

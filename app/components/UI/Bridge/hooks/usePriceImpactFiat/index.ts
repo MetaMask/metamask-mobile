@@ -11,7 +11,7 @@ import { formatCurrency } from '../../utils/currencyUtils';
  * Returns `undefined` when either fiat value is unavailable.
  */
 export const usePriceImpactFiat = (
-  activeQuote: QuoteMetadata | null | undefined,
+  activeQuote: QuoteResponse | null | undefined,
 ): string | undefined => {
   const currentCurrency = useSelector(selectCurrentCurrency);
 

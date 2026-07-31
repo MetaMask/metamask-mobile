@@ -6,7 +6,7 @@ import { isGaslessQuote } from './isGaslessQuote';
 
 export const formatNetworkFee = (
   currency: string,
-  quote?: (QuoteResponse & QuoteMetadata) | null,
+  quote?: DeepPartial<QuoteResponse> | null,
 ) => {
   if (!quote) return '-';
 

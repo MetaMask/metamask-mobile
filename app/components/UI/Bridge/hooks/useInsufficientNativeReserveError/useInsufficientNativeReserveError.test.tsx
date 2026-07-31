@@ -8,7 +8,8 @@ import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   ChainId,
-  type QuoteMetadata,
+  formatChainIdToCaip,
+  mergeQuoteMetadata,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { initialState } from '../../_mocks_/initialState';
