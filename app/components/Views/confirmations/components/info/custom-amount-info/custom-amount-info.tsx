@@ -234,12 +234,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { toastRef } = useContext(ToastContext);
 
-    const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
-      isInputChanged,
-      isKeyboardVisible: stage === CustomAmountStage.AmountInput,
-      pendingTokenAmount: amountHumanDebounced,
-      pendingFiatAmount: amountFiatDebounced,
-    });
+    const { alertContent, alertMessage, alertTitle } =
+      useTransactionCustomAmountAlerts({
+        isInputChanged,
+        isKeyboardVisible: stage === CustomAmountStage.AmountInput,
+        pendingTokenAmount: amountHumanDebounced,
+        pendingFiatAmount: amountFiatDebounced,
+      });
 
     const hasAutoSubmittedPrefill = useRef(false);
 
@@ -416,7 +417,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           {stage !== CustomAmountStage.Loading && (
-            <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
+            <AlertMessage
+              content={alertContent}
+              alertMessage={alertMessage ?? headlessBuyError}
+            />
           )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>

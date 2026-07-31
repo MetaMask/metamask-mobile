@@ -1513,6 +1513,7 @@
       "size_usd": "Μέγεθος (USD)",
       "size_percentage": "Ποσοστό μεγέθους εντολής",
       "toggle_size_unit": "Αλλαγή μονάδας μεγέθους",
+      "available_balance": "{{amount}} διαθέσιμο",
       "available_balance_unavailable": "-- διαθέσιμο",
       "est_liquidation": "Εκτ. ρευστοποίηση",
       "tpsl": "ΛΚ/ΠΖ",

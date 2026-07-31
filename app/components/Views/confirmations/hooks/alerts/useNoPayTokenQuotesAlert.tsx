@@ -1,7 +1,8 @@
+import React, { useMemo } from 'react';
 import { hasTransactionType } from '@metamask/transaction-controller';
 
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useMemo } from 'react';
+import { NoQuoteAlert } from '../../components/alerts/no-quote-alert';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
@@ -11,6 +12,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayQuoteError,
   useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
@@ -31,6 +33,7 @@ export function useNoPayTokenQuotesAlert() {
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const transactionMeta = useTransactionMetadataRequest();
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
+  const quoteError = useTransactionPayQuoteError();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -97,13 +100,19 @@ export function useNoPayTokenQuotesAlert() {
     !payToken &&
     !hasSelectedFiatPaymentMethod;
 
+  // A quote may be returned but fail validation (e.g. insufficient balance).
+  // The quote still renders prices/fees, but the alert blocks confirmation and
+  // surfaces the structured reason and detail rows provided by core.
+  const shouldShowQuoteErrorAlert = Boolean(quoteError);
+
   const showAlert =
     shouldShowNonFiatNoQuotesAlert ||
     shouldShowFiatNoQuotesAlert ||
     shouldShowPostQuoteNoQuotesAlert ||
     shouldShowQuoteRequiredNoQuotesAlert ||
     shouldShowWithdrawNotInitialisedAlert ||
-    shouldShowPayTokenNotSelectedAlert;
+    shouldShowPayTokenNotSelectedAlert ||
+    shouldShowQuoteErrorAlert;
 
   return useMemo(() => {
     if (!showAlert) {
@@ -114,11 +123,16 @@ export function useNoPayTokenQuotesAlert() {
       {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
-        message: strings('alert_system.no_pay_token_quotes.message'),
+        ...(quoteError
+          ? {
+              content: <NoQuoteAlert error={quoteError} />,
+              message: quoteError.message,
+            }
+          : { message: strings('alert_system.no_pay_token_quotes.message') }),
         title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [showAlert]);
+  }, [showAlert, quoteError]);
 }

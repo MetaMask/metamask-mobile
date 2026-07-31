@@ -1513,6 +1513,7 @@
       "size_usd": "Größe USD",
       "size_percentage": "Ordergröße in Prozent",
       "toggle_size_unit": "Wechsel der Nenngröße",
+      "available_balance": "{{amount}} verfügbar",
       "available_balance_unavailable": "-- verfügbar",
       "est_liquidation": "Gesch. Liquidation",
       "tpsl": "TP / SL",
