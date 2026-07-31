@@ -366,7 +366,7 @@ jobs:
           fi
 
   build-with-srp:
-    name: Build Android with-SRP
+    name: Performance Build Android (with-SRP)
     needs: [check-builds-needed, resolve-fingerprint-reuse]
     if: >-
       always() &&
@@ -384,7 +384,7 @@ jobs:
     secrets: inherit
 
   build-without-srp:
-    name: Build Android without-SRP
+    name: Performance Build Android (without-SRP)
     needs: [check-builds-needed, resolve-fingerprint-reuse]
     if: >-
       always() &&

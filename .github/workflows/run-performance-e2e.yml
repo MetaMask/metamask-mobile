@@ -438,7 +438,7 @@ jobs:
   # =============================================================================
 
   run-android-onboarding-tests:
-    name: Run Android Onboarding Tests
+    name: Performance Test Android (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
@@ -479,7 +479,7 @@ jobs:
     secrets: inherit
 
   run-ios-onboarding-tests:
-    name: Run iOS Onboarding Tests
+    name: Performance Test iOS (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
@@ -519,7 +519,7 @@ jobs:
           echo "Proceeding with imported wallet tests..."
 
   run-android-imported-wallet-tests:
-    name: Run Android Imported Wallet Tests
+    name: Performance Test Android (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
@@ -561,7 +561,7 @@ jobs:
     secrets: inherit
 
   run-ios-imported-wallet-tests:
-    name: Run iOS Imported Wallet Tests
+    name: Performance Test iOS (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
