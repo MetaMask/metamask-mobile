@@ -1542,7 +1542,21 @@
       "ticker_only": "{{ticker}} only",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
+      "positions_empty_long": "No long positions.",
+      "positions_empty_short": "No short positions.",
       "orders_empty": "Your open orders will appear here.",
+      "side_filter": {
+        "all_sides": "All sides",
+        "all_types": "All types",
+        "long": "Long",
+        "short": "Short"
+      },
+      "sort": {
+        "position_value": "Position value",
+        "unrealized_pnl": "Unrealized P&L",
+        "funding_rate": "Funding rate",
+        "settings_accessibility": "Sort positions"
+      },
       "card": {
         "entry_price": "Entry price",
         "margin": "Margin",

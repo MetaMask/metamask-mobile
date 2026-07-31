@@ -212,6 +212,24 @@ describe('BrowserTab', () => {
       );
     });
 
+    it('goes back when close button is pressed and opened from market insights', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} fromMarketInsights />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
+
     it('navigates to Card Home when close button is pressed and opened from card', async () => {
       renderWithProvider(<BrowserTab {...mockProps} fromCard />, {
         state: mockInitialState,
