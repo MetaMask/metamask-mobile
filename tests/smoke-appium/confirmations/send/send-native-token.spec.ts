@@ -39,10 +39,6 @@ function buildNativeSendFixture() {
     .withPreferencesController({})
     .build();
 
-  // The redesigned send token picker builds its list from AssetsController
-  // state (assetsInfo/assetsBalance) via useSendTokens, not from the balance
-  // API mock alone. Seed the native ETH asset for the local chain (1337) so
-  // it appears in the picker.
   const backgroundState = fixture.state.engine.backgroundState;
   const selectedAccountId =
     backgroundState.AccountsController.internalAccounts.selectedAccount;
@@ -67,7 +63,7 @@ function buildNativeSendFixture() {
       [selectedAccountId]: {
         ...existingAssetsController.assetsBalance?.[selectedAccountId],
         [LOCAL_NATIVE_ASSET_ID]: {
-          amount: '10',
+          amount: '100',
         },
       },
     },
@@ -113,6 +109,7 @@ appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
               type: LocalNodeType.anvil,
               options: {
                 chainId: 1337,
+                balance: 100,
               },
             },
           ],
@@ -141,7 +138,7 @@ appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
                     type: 'native',
                     decimals: 18,
                     chainId: 1337,
-                    balance: '10.000000000000000000',
+                    balance: '100.000000000000000000',
                     accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
                   },
                 ],
@@ -162,7 +159,6 @@ appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
         }) => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
 
-          // send Max ETH
           await WalletView.tapWalletSendButton();
           await SendView.selectEthereumToken();
           await SendView.pressAmountMaxButton();
@@ -173,9 +169,6 @@ appiumTest.describe(SmokeConfirmations('Send native asset'), () => {
           await TabBarComponent.tapActivity();
           await Assertions.expectTextDisplayed('Confirmed');
 
-          // Validate txHash in Transaction Finalized Event.
-          // Makes the test fail if the txHash is not matching with the latest
-          // transaction on the local node.
           await validateTransactionHashInTransactionFinalizedEvent(
             localNodes,
             mockServer,

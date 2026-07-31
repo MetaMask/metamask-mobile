@@ -16,6 +16,10 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class SendView {
+  get ethereumTokenButton(): EncapsulatedElementType {
+    return Matchers.getElementByText('Ethereum');
+  }
+
   get ethTokenAssetButton(): EncapsulatedElementType {
     return Matchers.getElementByID(getAssetTestId('ETH'), 0);
   }
@@ -89,32 +93,38 @@ class SendView {
   }
 
   async selectEthereumToken(): Promise<void> {
-    // The redesigned send picker lists the native ETH row directly (asset-ETH);
-    // tap it, retrying until the Amount screen opens. Mirrors selectERC20Token:
-    // the asset list can re-render while hydrating and a tap may highlight the
-    // row without firing onPress, so we wait for stability and retry.
-    await Utilities.executeWithRetry(
-      async () => {
-        try {
-          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
-          return;
-        } catch {
-          // Still on the asset picker
-        }
-
-        await Gestures.waitAndTap(this.ethTokenAssetButton, {
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.ethereumTokenButton, {
           elemDescription: 'Select ethereum token',
-          checkStability: true,
-          delay: 1000,
         });
+      },
+      appium: async () => {
+        // Tap the native ETH row (asset-ETH), retrying until Amount opens.
+        await Utilities.executeWithRetry(
+          async () => {
+            try {
+              await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+              return;
+            } catch {
+              // Still on the asset picker
+            }
 
-        await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
+            await Gestures.waitAndTap(this.ethTokenAssetButton, {
+              elemDescription: 'Select ethereum token',
+              checkStability: true,
+              delay: 1000,
+            });
+
+            await Utilities.waitForElementToBeVisible(this.amountScreen, 5000);
+          },
+          {
+            timeout: 25000,
+            description: 'Select ethereum token and open amount screen',
+          },
+        );
       },
-      {
-        timeout: 25000,
-        description: 'Select ethereum token and open amount screen',
-      },
-    );
+    });
   }
 
   async selectERC20Token(): Promise<void> {
