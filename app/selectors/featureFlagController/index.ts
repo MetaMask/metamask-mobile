@@ -73,9 +73,18 @@ export const selectRawRemoteFeatureFlags = createSelector(
  * Maps threshold feature flag names to their selected group name. Populated by
  * @metamask/remote-feature-flag-controller@5 for threshold/A-B flags, where the
  * selected group name is stored separately from the flag value.
+ *
+ * Respects the basic functionality gate (returns `{}` when disabled), mirroring
+ * `selectRemoteFeatureFlags`, so A/B assignment stays off when the user has
+ * turned basic functionality off.
  */
 export const selectFeatureFlagThresholdGroups = createSelector(
+  selectBasicFunctionalityEnabledForRemoteFlags,
   selectRemoteFeatureFlagControllerState,
-  (remoteFeatureFlagControllerState) =>
-    remoteFeatureFlagControllerState?.featureFlagThresholdGroups ?? {},
+  (isBasicFunctionalityEnabled, remoteFeatureFlagControllerState) => {
+    if (!isBasicFunctionalityEnabled) {
+      return {};
+    }
+    return remoteFeatureFlagControllerState?.featureFlagThresholdGroups ?? {};
+  },
 );
