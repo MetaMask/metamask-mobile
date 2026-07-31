@@ -7,13 +7,11 @@ import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
-const mockSetXValue = jest.fn();
-const mockSetYValue = jest.fn();
-const mockRefCallback = jest.fn();
+const mockSetNumber = jest.fn();
 const mockViewTag = jest.fn((): number | null => 1);
-const mockRiveInstance = { viewTag: mockViewTag };
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
 const mockRiveProps: { current?: { artboardName?: string } } = {};
+const mockMountCount = { current: 0 };
 
 jest.mock('rive-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -22,20 +20,30 @@ jest.mock('rive-react-native', () => {
     __esModule: true,
     AutoBind: jest.fn(() => ({})),
     Fit: { Contain: 'contain' },
-    useRive: () => [mockRefCallback, mockRiveInstance],
-    useRiveNumber: (_instance: unknown, path: string) => [
-      undefined,
-      path === 'xValue' ? mockSetXValue : mockSetYValue,
-    ],
-    default: (props: {
-      testID?: string;
-      artboardName?: string;
-      onError?: (error: { message: string }) => void;
-    }) => {
-      mockOnErrorRef.current = props.onError;
-      mockRiveProps.current = { artboardName: props.artboardName };
-      return ReactActual.createElement(RNView, { testID: props.testID });
-    },
+    default: ReactActual.forwardRef(
+      (
+        props: {
+          testID?: string;
+          artboardName?: string;
+          onError?: (error: { message: string }) => void;
+        },
+        ref: React.Ref<{
+          setNumber: (path: string, value: number) => void;
+          viewTag: () => number | null;
+        }>,
+      ) => {
+        mockOnErrorRef.current = props.onError;
+        mockRiveProps.current = { artboardName: props.artboardName };
+        ReactActual.useImperativeHandle(ref, () => ({
+          setNumber: mockSetNumber,
+          viewTag: mockViewTag,
+        }));
+        ReactActual.useEffect(() => {
+          mockMountCount.current += 1;
+        }, []);
+        return ReactActual.createElement(RNView, { testID: props.testID });
+      },
+    ),
   };
 });
 
@@ -60,6 +68,7 @@ describe('MoneyCardTiltAnimation', () => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
     mockRiveProps.current = undefined;
+    mockMountCount.current = 0;
     mockViewTag.mockReturnValue(1);
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
@@ -181,10 +190,10 @@ describe('MoneyCardTiltAnimation', () => {
       y: number,
     ) => void;
 
-    act(() => applyTilt(0.5, -0.5));
+    act(() => applyTilt(0.5, 0.5));
 
-    expect(mockSetXValue).toHaveBeenCalledWith(75);
-    expect(mockSetYValue).toHaveBeenCalledWith(25);
+    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 75);
+    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 25);
   });
 
   it('does not dispatch tilt values while the native Rive view is detached', () => {
@@ -198,8 +207,23 @@ describe('MoneyCardTiltAnimation', () => {
 
     act(() => applyTilt(0.5, -0.5));
 
-    expect(mockSetXValue).not.toHaveBeenCalled();
-    expect(mockSetYValue).not.toHaveBeenCalled();
+    expect(mockSetNumber).not.toHaveBeenCalled();
+  });
+
+  it('remounts the Rive view when the card variant changes', () => {
+    const { rerender } = render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+    rerender(<MoneyCardTiltAnimation isMetalCard />);
+
+    expect(mockMountCount.current).toBe(2);
+  });
+
+  it('keeps the Rive view mounted when re-rendered with the same variant', () => {
+    const { rerender } = render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+    rerender(<MoneyCardTiltAnimation isMetalCard={false} testID="renamed" />);
+
+    expect(mockMountCount.current).toBe(1);
   });
 
   it('applies the provided testID to the container', () => {

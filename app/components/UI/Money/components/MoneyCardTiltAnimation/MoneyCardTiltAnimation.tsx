@@ -1,19 +1,16 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import Rive, {
-  AutoBind,
-  Fit,
-  RNRiveError,
-  useRive,
-  useRiveNumber,
-} from 'rive-react-native';
+import Rive, { AutoBind, Fit, RNRiveError, RiveRef } from 'rive-react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import { tiltToParallaxValue } from '../../utils/parallax';
+import {
+  pitchToParallaxValue,
+  tiltToParallaxValue,
+} from '../../utils/parallax';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.3.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
@@ -58,22 +55,21 @@ const MoneyCardTiltAnimation = ({
   const flagEnabled = useSelector(selectMoneyCardTiltAnimationEnabledFlag);
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
-  const [riveRef, riveInstance] = useRive();
-  const [, setXValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_X);
-  const [, setYValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_Y);
+  // Written to via a plain ref rather than `useRiveNumber`: that hook echoes
+  // every value back to JS through setState, re-rendering at the accelerometer
+  // sample rate for values this component never reads.
+  const riveRef = useRef<RiveRef>(null);
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
-  const applyTilt = useCallback(
-    (x: number, y: number) => {
-      // viewTag() is null while the native Rive view is detached; dispatching
-      // then throws "found null reactTag".
-      if (!riveInstance || riveInstance.viewTag() === null) return;
-      setXValue(tiltToParallaxValue(x));
-      setYValue(tiltToParallaxValue(y));
-    },
-    [riveInstance, setXValue, setYValue],
-  );
+  const applyTilt = useCallback((x: number, y: number) => {
+    const rive = riveRef.current;
+    // viewTag() is null while the native Rive view is detached; dispatching
+    // then throws "found null reactTag".
+    if (!rive || rive.viewTag() === null) return;
+    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
+    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
+  }, []);
 
   useDeviceOrientation(applyTilt, { enabled: animate });
 
@@ -82,13 +78,20 @@ const MoneyCardTiltAnimation = ({
     setHasRiveError(true);
   }, []);
 
+  const artboardName = isMetalCard
+    ? RIVE_ARTBOARD_METAL
+    : RIVE_ARTBOARD_DIGITAL;
+
   let content: React.ReactNode;
   if (animate) {
     content = (
       <Rive
+        // Remount per artboard: swapping `artboardName` in place reloads the
+        // artboard but leaves data binding pointing at the previous one.
+        key={artboardName}
         ref={riveRef}
         source={CardTiltAnimation}
-        artboardName={isMetalCard ? RIVE_ARTBOARD_METAL : RIVE_ARTBOARD_DIGITAL}
+        artboardName={artboardName}
         dataBinding={AutoBind(true)}
         fit={Fit.Contain}
         style={styles.media}
