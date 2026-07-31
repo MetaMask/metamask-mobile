@@ -550,7 +550,44 @@ describe('QuickBuyRoot', () => {
     });
   });
 
-  it('keeps the initial locked height when a later layout reports a different height on a sub-screen', () => {
+  it('locks sub-screens to the latest amount height after the keypad collapses', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      >
+        <NavigationProbe />
+      </QuickBuyRoot>,
+    );
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    const container = screen.getByTestId('quick-buy-content-container');
+    // Keypad-open height first, then collapsed amount height.
+    act(() => {
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 700 } },
+      });
+    });
+    act(() => {
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 420 } },
+      });
+    });
+
+    act(() => {
+      fireEvent.press(screen.getByTestId('nav-quoteDetails'));
+    });
+
+    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
+      height: 420,
+    });
+  });
+
+  it('keeps the locked height when a later layout reports a different height on a sub-screen', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -709,7 +746,7 @@ describe('QuickBuyRoot', () => {
       );
     });
 
-    it('keeps the locked height when navigating to editQuickAmounts', () => {
+    it('uses dynamic height when navigating to editQuickAmounts', () => {
       renderWithNavigation();
 
       const container = screen.getByTestId('quick-buy-content-container');

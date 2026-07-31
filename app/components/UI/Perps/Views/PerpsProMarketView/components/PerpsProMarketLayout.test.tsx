@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { fireEvent, render, within } from '@testing-library/react-native';
+import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
 
@@ -43,11 +43,9 @@ describe('PerpsProMarketLayout', () => {
     ).toHaveStyle({ width: 24 });
   });
 
-  it('hides the order book and shows expand when collapsed', () => {
-    const onExpandOrderBook = jest.fn();
+  it('hides the order book column and divider when collapsed', () => {
     const { getByTestId, queryByTestId } = renderLayout({
       isOrderBookCollapsed: true,
-      onExpandOrderBook,
     });
 
     expect(
@@ -57,10 +55,5 @@ describe('PerpsProMarketLayout', () => {
       queryByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
     ).not.toBeOnTheScreen();
     expect(getByTestId('mock-order-form')).toBeOnTheScreen();
-
-    fireEvent.press(
-      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON),
-    );
-    expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
   });
 });

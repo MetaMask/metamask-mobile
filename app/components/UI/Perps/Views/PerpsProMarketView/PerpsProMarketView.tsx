@@ -4,6 +4,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import {
   TimeDuration,
@@ -14,20 +15,24 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
+import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -41,6 +46,7 @@ import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
+import { PRICE_SECTION_HEIGHT } from './components/PerpsProMarketSummary';
 import { createStyles } from './PerpsProMarketView.styles';
 
 /**
@@ -56,9 +62,25 @@ const PerpsProMarketView = () => {
   const { styles } = useStyles(createStyles, {});
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
-  const market = route.params?.market;
+  const routeMarket = route.params?.market;
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+
+  // Some navigation sources (e.g. Recent Activity, deep links) pass minimal
+  // market data without `maxLeverage` — fetch the full markets list to
+  // enrich it, same as PerpsMarketDetailsView (Lite). Skipped entirely once
+  // the route already has a properly formatted value (e.g. "40x").
+  const hasFormattedMaxLeverage =
+    typeof routeMarket?.maxLeverage === 'string' &&
+    routeMarket.maxLeverage.endsWith('x');
+  const { markets } = usePerpsMarkets({
+    skipInitialFetch: hasFormattedMaxLeverage,
+  });
+  const market = useMemo(() => {
+    if (hasFormattedMaxLeverage) return routeMarket;
+    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
+    return fullMarket || routeMarket;
+  }, [hasFormattedMaxLeverage, markets, routeMarket]);
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
 
   const handleCollapseOrderBook = useCallback(() => {
@@ -68,6 +90,15 @@ const PerpsProMarketView = () => {
   const handleExpandOrderBook = useCallback(() => {
     setIsOrderBookCollapsed(false);
   }, []);
+
+  // Drives the header's subtitle/live-price crossfade (see
+  // PerpsProMarketHeader). The price section above the fold has a fixed
+  // height, so the threshold is set once instead of measured via onLayout.
+  const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
+    useHeaderStandardAnimated();
+  useEffect(() => {
+    setTitleSectionHeight(PRICE_SECTION_HEIGHT);
+  }, [setTitleSectionHeight]);
 
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
@@ -84,6 +115,15 @@ const PerpsProMarketView = () => {
 
   const [orderType, setOrderType] = useState<OrderType>('limit');
   const [isOrderTypeSheetVisible, setIsOrderTypeSheetVisible] = useState(false);
+  const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+
+  const handleWalletPress = useCallback(() => {
+    setIsBalanceSheetVisible(true);
+  }, []);
+
+  const handleBalanceSheetClose = useCallback(() => {
+    setIsBalanceSheetVisible(false);
+  }, []);
 
   const handleOrderTypeButtonPress = useCallback(() => {
     setIsOrderTypeSheetVisible(true);
@@ -142,6 +182,15 @@ const PerpsProMarketView = () => {
       onAdvancedChartError: handleAdvancedChartError,
     });
 
+  const {
+    perpsMode,
+    isWatchlist,
+    handleBackPress,
+    handleMarketListPress,
+    handleFavoritePress,
+    handlePerpsModeChange,
+  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
+
   if (!market?.symbol) {
     return (
       <SafeAreaView
@@ -176,14 +225,27 @@ const PerpsProMarketView = () => {
       edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsProMarketHeader symbol={symbol} />
-      <ScrollView
+      <PerpsProMarketHeader
+        market={{ ...market, symbol: market.symbol }}
+        mode={perpsMode}
+        onBackPress={handleBackPress}
+        onIdentityPress={handleMarketListPress}
+        onWalletPress={handleWalletPress}
+        onFavoritePress={handleFavoritePress}
+        isFavorite={isWatchlist}
+        onModeChange={handlePerpsModeChange}
+        scrollY={scrollY}
+        priceSectionHeight={titleSectionHeightSv}
+      />
+      <Animated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         <PerpsProChartPanel
           symbol={market.symbol}
@@ -194,31 +256,39 @@ const PerpsProMarketView = () => {
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
         />
-        <PerpsProMarketStatsBar
-          symbol={market.symbol}
-          nextFundingTime={market.nextFundingTime}
-          fundingIntervalHours={market.fundingIntervalHours}
-        />
-        <PerpsProMarketLayout
-          isOrderBookCollapsed={isOrderBookCollapsed}
-          onExpandOrderBook={handleExpandOrderBook}
-          orderForm={
-            <PerpsProOrderFormPanel
-              orderType={orderType}
-              onOrderTypeButtonPress={handleOrderTypeButtonPress}
-            />
-          }
-          orderBook={
-            <PerpsProOrderBookPanel
-              symbol={market.symbol}
-              marketPrice={marketPrice}
-              onCollapse={handleCollapseOrderBook}
-            />
-          }
-        />
-        <SectionDivider />
-        <PerpsProPositionsPanel symbol={symbol} />
-      </ScrollView>
+        {/* The chart's own height (`PerpsProChartPanel`) animates when
+            expanded/collapsed above this point — wrap everything that would
+            otherwise jump when that happens so it slides into place. */}
+        <Animated.View
+          layout={LinearTransition.duration(AnimationDuration.Fast)}
+        >
+          <PerpsProMarketStatsBar
+            symbol={market.symbol}
+            nextFundingTime={market.nextFundingTime}
+            fundingIntervalHours={market.fundingIntervalHours}
+          />
+          <PerpsProMarketLayout
+            isOrderBookCollapsed={isOrderBookCollapsed}
+            orderForm={
+              <PerpsProOrderFormPanel
+                orderType={orderType}
+                onOrderTypeButtonPress={handleOrderTypeButtonPress}
+                isOrderBookCollapsed={isOrderBookCollapsed}
+                onExpandOrderBook={handleExpandOrderBook}
+              />
+            }
+            orderBook={
+              <PerpsProOrderBookPanel
+                symbol={market.symbol}
+                marketPrice={marketPrice}
+                onCollapse={handleCollapseOrderBook}
+              />
+            }
+          />
+          <SectionDivider marginVertical={0} />
+          <PerpsProPositionsPanel symbol={symbol} />
+        </Animated.View>
+      </Animated.ScrollView>
       <PerpsCandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
         onClose={() => setIsMoreCandlePeriodsVisible(false)}
@@ -236,6 +306,10 @@ const PerpsProMarketView = () => {
         currentOrderType={orderType}
         title={strings('perps.pro_order_form.choose_order_type')}
         showSelectedIcon
+      />
+      <PerpsBalanceBottomSheet
+        isVisible={isBalanceSheetVisible}
+        onClose={handleBalanceSheetClose}
       />
     </SafeAreaView>
   );

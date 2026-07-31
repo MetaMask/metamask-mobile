@@ -30,6 +30,7 @@ describe('marketList query', () => {
         status: undefined,
         live: undefined,
         search: undefined,
+        customQueryParams: undefined,
         limit: PREDICT_MARKET_LIST_PAGE_SIZE,
       });
     });
@@ -76,6 +77,18 @@ describe('marketList query', () => {
       expect(normalizeMarketListParams({}).live).toBeUndefined();
       expect(normalizeMarketListParams({ live: true }).live).toBe(true);
     });
+
+    it('trims custom query params and treats blank content as absent', () => {
+      expect(
+        normalizeMarketListParams({
+          customQueryParams: '  tag_slug=tennis  ',
+        }).customQueryParams,
+      ).toBe('tag_slug=tennis');
+      expect(
+        normalizeMarketListParams({ customQueryParams: '   ' })
+          .customQueryParams,
+      ).toBeUndefined();
+    });
   });
 
   describe('predictMarketListKeys', () => {
@@ -118,6 +131,17 @@ describe('marketList query', () => {
       );
 
       expect(open).not.toEqual(closed);
+    });
+
+    it('produces a different key when the remote query changes', () => {
+      const tennis = predictMarketListKeys.list(
+        normalizeMarketListParams({ customQueryParams: 'tag_slug=tennis' }),
+      );
+      const football = predictMarketListKeys.list(
+        normalizeMarketListParams({ customQueryParams: 'tag_slug=football' }),
+      );
+
+      expect(tennis).not.toEqual(football);
     });
 
     it('is namespaced under predict/marketList', () => {
