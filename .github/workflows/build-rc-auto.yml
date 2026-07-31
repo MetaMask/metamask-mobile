@@ -9,6 +9,7 @@
 #
 # Version bump: generate-build-version, then iOS and Android builds are triggered in parallel
 # via auto-rc-ota-build-core.yml with the generated number applied locally at build time.
+# Both platforms pin source_branch to github.sha so they build the same commit.
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
 #
@@ -124,7 +125,9 @@ jobs:
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     with:
       platform: ios
-      source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      # Pin to the triggering commit so iOS and Android build the same SHA even if
+      # cherry-picks land on the release branch while the two jobs are in flight.
+      source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       distribute_external: true
     secrets: inherit
@@ -138,7 +141,7 @@ jobs:
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     with:
       platform: android
-      source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
+      source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
     secrets: inherit
 
