@@ -75,6 +75,10 @@ export const analyticsControllerInit: MessengerClientInitFunction<
     state,
     platformAdapter,
     isAnonymousEventsFeatureEnabled: true,
+    // Geolocation enrichment is intentionally disabled. With this off, the
+    // controller never calls `GeolocationController:getGeolocationData`, so that
+    // action does not need to be delegated to the analytics messenger.
+    isGeolocationEnabled: false,
   });
 
   // `AnalyticsController.init` is asynchronous as of `@metamask/analytics-controller@2`.

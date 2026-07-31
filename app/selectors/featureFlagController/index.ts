@@ -68,3 +68,14 @@ export const selectRawRemoteFeatureFlags = createSelector(
   (remoteFeatureFlagControllerState) =>
     remoteFeatureFlagControllerState?.rawRemoteFeatureFlags ?? {},
 );
+
+/**
+ * Maps threshold feature flag names to their selected group name. Populated by
+ * @metamask/remote-feature-flag-controller@5 for threshold/A-B flags, where the
+ * selected group name is stored separately from the flag value.
+ */
+export const selectFeatureFlagThresholdGroups = createSelector(
+  selectRemoteFeatureFlagControllerState,
+  (remoteFeatureFlagControllerState) =>
+    remoteFeatureFlagControllerState?.featureFlagThresholdGroups ?? {},
+);
