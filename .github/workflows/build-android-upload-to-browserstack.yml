@@ -574,7 +574,11 @@ jobs:
           # Secret values are emitted single-quoted (with embedded quotes escaped) so
           # bash never expands $, backticks, or $() inside them during eval.
           cat > /tmp/export-profile-secrets.js <<'EXPORT_SECRETS_JS'
-          const yaml = require('js-yaml');
+          // Script lives in /tmp, so plain require() would resolve from /tmp and
+          // miss the repo's node_modules. Anchor resolution to the workspace cwd.
+          const { createRequire } = require('module');
+          const requireFromCwd = createRequire(process.cwd() + '/');
+          const yaml = requireFromCwd('js-yaml');
           const fs = require('fs');
           const buildName = process.argv[2];
           const build = yaml.load(fs.readFileSync('builds.yml', 'utf8')).builds[buildName];
