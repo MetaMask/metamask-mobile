@@ -93,7 +93,7 @@ jobs:
           fi
 
   trigger-ios-with-srp-build:
-    name: Trigger iOS with-SRP Build
+    name: Performance Build iOS (with-SRP)
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
@@ -104,7 +104,7 @@ jobs:
     secrets: inherit
 
   trigger-ios-without-srp-build:
-    name: Trigger iOS without-SRP Build
+    name: Performance Build iOS (without-SRP)
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
