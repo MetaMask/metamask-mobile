@@ -328,7 +328,7 @@ describe('useRewardsAnimation', () => {
       useRiveSpy.mockRestore();
     });
 
-    it('should retry the pending trigger when the Rive view becomes ready late', () => {
+    it('retries the pending trigger when the Rive view becomes ready late', () => {
       // View not ready yet — trigger must be skipped, not fired blind.
       const useRiveSpy = jest.spyOn(riveMockModule, 'useRive').mockReturnValue({
         riveRef: { current: null },
