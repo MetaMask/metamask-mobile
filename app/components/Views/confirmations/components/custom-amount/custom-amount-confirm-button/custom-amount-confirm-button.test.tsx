@@ -31,11 +31,13 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
-function render(props: {
-  disableConfirm?: boolean;
-  isAmountUpdating?: boolean;
-  onContinue?: () => void;
-} = {}) {
+function render(
+  props: {
+    disableConfirm?: boolean;
+    isAmountUpdating?: boolean;
+    onContinue?: () => void;
+  } = {},
+) {
   return renderWithProvider(
     <CustomAmountConfirmButton
       disableConfirm={props.disableConfirm}
@@ -83,6 +85,8 @@ describe('CustomAmountConfirmButton', () => {
 
     useConfirmationContextMock.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
+      navHeaderConfig: null,
+      setNavHeaderConfig: noop,
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
