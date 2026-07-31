@@ -47,7 +47,7 @@ const renderSettingsWithBackRoute = (
   options: SettingsRendererOptions = {},
 ) =>
   renderScreenWithRoutes(
-    createSettingsLauncher(routeName),
+    createSettingsLauncher(routeName) as unknown as React.ComponentType,
     { name: `${routeName}-launcher` },
     [{ name: routeName, Component }],
     { state: buildSettingsState(options) },
