@@ -13,10 +13,12 @@ const styleSheet = (params: { theme: Theme }) =>
       width: 4,
       backgroundColor: params.theme.colors.error.default,
     },
-    message: {
+    content: {
       flex: 1,
       paddingVertical: 12,
       paddingHorizontal: 12,
+    },
+    message: {
       color: params.theme.colors.text.default,
     },
   });
