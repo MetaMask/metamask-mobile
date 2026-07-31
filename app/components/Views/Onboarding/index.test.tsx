@@ -322,6 +322,7 @@ const mockNav = {
 jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    Group: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     Screen: ({
       component: ScreenComponent,
       initialParams,

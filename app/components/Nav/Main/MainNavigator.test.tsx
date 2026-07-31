@@ -14,6 +14,7 @@ jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
     Screen: 'Screen',
+    Group: 'Group',
   }),
 }));
 
