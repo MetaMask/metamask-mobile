@@ -51,12 +51,10 @@ export function useNoPayTokenQuotesAlert() {
     !fiatPayment?.rampsQuote &&
     quotes?.length === 0;
 
-  // Post-quote flows (e.g. money account withdraw) where no quote was
-  // returned. Excludes withdraw flows where the user can select a different
-  // withdraw token (`canSelectWithdrawToken`), which are handled by the
-  // shouldShowWithdrawNotInitialisedAlert branch. Does not require non-empty
-  // `sourceAmounts`, so same-token withdraw cases (e.g. MUSD→MUSD with an
-  // empty amounts list) correctly surface the alert.
+  // Post-quote flows (e.g. money account withdraw) where `sourceAmounts` is
+  // non-empty but no quote was returned. The non-fiat branch above may not
+  // fire, so we also emit the alert when the user has entered a positive
+  // input amount but no quote is available.
   const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
     (t) =>
       !t.skipIfBalance &&
@@ -67,7 +65,6 @@ export function useNoPayTokenQuotesAlert() {
     isPostQuote &&
     Boolean(payToken) &&
     !isQuotesLoading &&
-    !canSelectWithdrawToken &&
     !quotes?.length &&
     hasPositiveRequiredAmount;
 
