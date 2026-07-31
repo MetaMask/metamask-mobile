@@ -22,6 +22,49 @@ import type {
   LocalNodeOptionsInput,
   WithFixturesOptions,
 } from '../../../framework/types.js';
+import WebView from '../../../framework/WebView.js';
+import { TEST_SNAPS_URL } from '../../../page-objects/Browser/TestSnaps.js';
+import {
+  TestSnapResultSelectorWebIDS,
+  testSnapsAndroidScrollOptions,
+} from '../../../selectors/Browser/TestSnaps.selectors.js';
+
+const TEST_SNAPS_WEBVIEW_OPTIONS = {
+  pageUrl: TEST_SNAPS_URL,
+  ...testSnapsAndroidScrollOptions,
+};
+
+/**
+ * Parses a Test Snaps result span that holds a JSON string.
+ * iOS/Detox typically return a JSON string (`"value"`); Android UiAutomator often
+ * returns the bare value without quotes.
+ */
+export function parseTestSnapStringResult(rawText: string): string {
+  const text = rawText.trim();
+  if (text.length === 0) {
+    throw new Error(`Expected a non-empty string result, got: ${rawText}`);
+  }
+
+  if (text.startsWith('"') && text.endsWith('"')) {
+    const parsed: unknown = JSON.parse(text);
+    if (typeof parsed !== 'string' || parsed.length === 0) {
+      throw new Error(`Expected a string result, got: ${rawText}`);
+    }
+    return parsed;
+  }
+
+  return text;
+}
+
+export async function readTestSnapStringResult(
+  selector: keyof typeof TestSnapResultSelectorWebIDS,
+): Promise<string> {
+  const resultText = await WebView.readTextById(
+    TestSnapResultSelectorWebIDS[selector],
+    TEST_SNAPS_WEBVIEW_OPTIONS,
+  );
+  return parseTestSnapStringResult(resultText);
+}
 
 interface SnapFixtureOptions {
   fixture?: ReturnType<FixtureBuilder['build']>;

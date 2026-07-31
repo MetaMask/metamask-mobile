@@ -1,22 +1,15 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
-import WebView from '../../framework/WebView.js';
-import TestSnaps, {
-  TEST_SNAPS_URL,
-} from '../../page-objects/Browser/TestSnaps.js';
-import {
-  TestSnapResultSelectorWebIDS,
-  testSnapsAndroidScrollOptions,
-} from '../../selectors/Browser/TestSnaps.selectors.js';
+import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
-import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
-import { sleep } from '../../framework/index.js';
+import {
+  readTestSnapStringResult,
+  withSnapsFixtures,
+} from './helpers/snap-smoke.helpers.js';
 
-const TEST_SNAPS_WEBVIEW_OPTIONS = {
-  pageUrl: TEST_SNAPS_URL,
-  ...testSnapsAndroidScrollOptions,
-};
+/** Far enough ahead that slow Android fill/tap cannot schedule a date in the past. */
+const BACKGROUND_EVENT_DATE_OFFSET_MS = 30_000;
 
 appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
   // Serial: later cases reuse the installed Snap / Appium session from the connect test.
@@ -44,23 +37,17 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
         currentDeviceDetails,
         { restartDevice: false },
         async () => {
-          // Intentionally scheduling an event for 30 seconds into the future
-          // Android can sometimes take a while to find the next input
-          // this then causes "cannot schedule date in the past" errors.
-          const futureDate = new Date(Date.now() + 30_000).toISOString();
+          const futureDate = new Date(
+            Date.now() + BACKGROUND_EVENT_DATE_OFFSET_MS,
+          ).toISOString();
 
           await TestSnaps.fillMessage('backgroundEventDateInput', futureDate);
           await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-          await TestSnaps.checkResultSpanNotEmpty(
-            'scheduleBackgroundEventResultSpan',
-            { timeout: 30_000, interval: 500 },
-          );
 
-          await sleep(30_000); // Wait for the background event to fire
-
+          // Poll until the scheduled event fires (offset above + small buffer).
           await Assertions.expectTextDisplayed(
             'This dialog was triggered by a background event',
-            { timeout: 30_000 },
+            { timeout: BACKGROUND_EVENT_DATE_OFFSET_MS + 15_000 },
           );
           await TestSnaps.tapFooterButton();
         },
@@ -79,16 +66,11 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
           await TestSnaps.tapButton(
             'scheduleBackgroundEventWithDurationButton',
           );
-          await TestSnaps.checkResultSpanNotEmpty(
-            'scheduleBackgroundEventResultSpan',
-            { timeout: 30_000, interval: 500 },
-          );
-
-          await sleep(10_000); // Wait for the background event to fire
 
           await Assertions.expectTextDisplayed(
             'This dialog was triggered by a background event',
-            { timeout: 30_000 },
+            // Duration above + small buffer.
+            { timeout: 25_000 },
           );
           await TestSnaps.tapFooterButton();
         },
@@ -111,7 +93,6 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
           );
           await TestSnaps.checkResultSpanNotEmpty(
             'scheduleBackgroundEventResultSpan',
-            { timeout: 30_000, interval: 500 },
           );
 
           await TestSnaps.tapButton('getBackgroundEventResultButton');
@@ -120,22 +101,9 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
             'fireDialog',
           );
 
-          const scheduleResultText = await WebView.readTextById(
-            TestSnapResultSelectorWebIDS.scheduleBackgroundEventResultSpan,
-            TEST_SNAPS_WEBVIEW_OPTIONS,
+          const eventId = await readTestSnapStringResult(
+            'scheduleBackgroundEventResultSpan',
           );
-          // Android UiAutomator often omits JSON string quotes that Detox/iOS include.
-          let eventId: unknown;
-          try {
-            eventId = JSON.parse(scheduleResultText);
-          } catch {
-            eventId = scheduleResultText.replace(/^"|"$/g, '');
-          }
-          if (typeof eventId !== 'string' || eventId.length === 0) {
-            throw new Error(
-              `Expected scheduled background event id string, got: ${scheduleResultText}`,
-            );
-          }
           await TestSnaps.fillMessage('cancelBackgroundEventInput', eventId);
           await TestSnaps.tapButton('cancelBackgroundEventButton');
 
@@ -159,7 +127,6 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
           await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
           await Assertions.expectTextDisplayed(
             'Cannot schedule an event in the past.',
-            { timeout: 30_000 },
           );
           await TestSnaps.dismissAlert();
         },
