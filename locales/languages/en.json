@@ -1527,6 +1527,7 @@
       "size_usd": "Size USD",
       "size_percentage": "Order size percentage",
       "toggle_size_unit": "Switch size denomination",
+      "available_balance": "{{amount}} available",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
@@ -2055,6 +2056,10 @@
       },
       "statistics": "Overview",
       "stats": "Stats",
+      "about": "About",
+      "about_asset": "About {{assetName}}",
+      "read_more": "Read more",
+      "read_more_about": "Read more about {{assetName}}",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
@@ -3357,7 +3362,8 @@
       "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
       "token_details": "Token details",
-      "remove_token": "Remove token"
+      "remove_token": "Remove token",
+      "deactivate_asset": "Deactivate asset"
     }
   },
   "nft_details": {
@@ -10654,5 +10660,19 @@
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
     "search_placeholder": "Search for any asset to add"
+  },
+  "asset_spendable_balance": {
+    "spendable": "Spendable",
+    "base_reserved": "Reserved (locked)",
+    "fiat_value": "Value",
+    "total_balance": "Total balance"
+  },
+  "asset_activation": {
+    "activate": "Activate",
+    "activate_description": "Activate {{symbol}} on {{chainName}} to get started.",
+    "inactive": "Inactive",
+    "activate_error": "Something went wrong while adding this trustline. Try again.",
+    "deactivate_error": "Something went wrong while removing this trustline. Try again.",
+    "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
   }
 }
