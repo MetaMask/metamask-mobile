@@ -475,10 +475,10 @@ export const makeSelectTransactionMetadataById =
  */
 export const selectTransactionMetadataByHash = createSelector(
   selectTransactionsStrict,
-  (_: RootState, hash: string | undefined) => hash?.toLowerCase(),
+  (_: RootState, hash: string | undefined) => hash,
   (transactions, hash) =>
     hash
-      ? transactions.find((tx) => tx.hash?.toLowerCase() === hash)
+      ? transactions.find((tx) => tx.hash?.toLowerCase() === hash?.toLowerCase())
       : undefined,
 );
 
