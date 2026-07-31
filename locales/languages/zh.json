@@ -1513,6 +1513,7 @@
       "size_usd": "规模（USD）",
       "size_percentage": "订单规模百分比",
       "toggle_size_unit": "切换规模单位",
+      "available_balance": "{{amount}} 可用",
       "available_balance_unavailable": "-- 可用",
       "est_liquidation": "预估清算",
       "tpsl": "止盈/止损",

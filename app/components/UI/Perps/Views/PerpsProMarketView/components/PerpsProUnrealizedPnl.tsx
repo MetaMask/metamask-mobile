@@ -45,7 +45,7 @@ const PerpsProUnrealizedPnl = ({
         : TextColor.TextDefault;
 
   return (
-    <Box twClassName="px-4 py-3">
+    <Box twClassName="px-2 py-3">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

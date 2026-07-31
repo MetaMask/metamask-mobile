@@ -54,8 +54,11 @@ class AccountListBottomSheet {
         ),
       appium: () =>
         PlatformDetector.isIOS()
-          ? PlaywrightMatchers.getElementByText(
+          ? // Exact match: contains("Accounts") also hits "Connect accounts" /
+            // "Edit accounts" nodes that can exist while displayed=false.
+            PlaywrightMatchers.getElementByText(
               AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+              true,
             )
           : PlaywrightMatchers.getElementById(
               AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
@@ -318,6 +321,7 @@ class AccountListBottomSheet {
           el = PlatformDetector.isIOS()
             ? await PlaywrightMatchers.getElementByText(
                 AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+                true,
               )
             : await PlaywrightMatchers.getElementById(
                 AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,

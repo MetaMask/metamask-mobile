@@ -1,7 +1,4 @@
-import {
-  formatCurrency,
-  getCurrencySymbol,
-} from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
 
 /** USD anchor set for buy quick-amount pills (Swap Next Figma). */
 export const USD_QUICK_BUY_BASE = [10, 50, 100, 250] as const;
@@ -39,20 +36,7 @@ const ZERO_DECIMAL_CURRENCIES = new Set([
   'XPF',
 ]);
 
-/**
- * Currencies whose pill amounts use larger magnitudes and need compact K/M
- * labels so four pills fit in a single row without truncation.
- */
-const COMPACT_PILL_LABEL_CURRENCIES = new Set([
-  'BRL',
-  'CNY',
-  'JPY',
-  'INR',
-  'KRW',
-  'IDR',
-]);
-
-/** Minimum magnitude before a compact-pill currency switches from full to K/M. */
+/** Minimum magnitude before pill labels switch from full currency format to K/M. */
 const COMPACT_PILL_LABEL_THRESHOLD = 1_000;
 
 /** Intl options for pill labels — no grouping separators so "$250" fits in-row. */
@@ -132,24 +116,30 @@ function formatCompactMagnitude(value: number): string {
 }
 
 /**
- * Pill label for a buy quick-amount. Uses compact K/M notation for
- * high-magnitude currencies so labels fit in the pill row. The committed
- * `value` is always the full amount — only display is abbreviated.
+ * Pill label for a buy quick-amount. Uses compact K/M notation once the amount
+ * is ≥ 1000 so four pills fit in a single row without truncation (including
+ * custom presets on smaller-denomination currencies like USD/EUR). The
+ * committed `value` is always the full amount — only display is abbreviated.
+ *
+ * Compact labels reuse `formatCurrency` as a template so the currency symbol
+ * stays in the same locale-aware position as non-compact pills (prefix or
+ * suffix), instead of always forcing a prefix via `getCurrencySymbol`.
  */
 export function formatQuickBuyPillLabel(
   value: number,
   currency: string,
 ): string {
   const normalizedCurrency = currency.toUpperCase();
-  const shouldUseCompact =
-    COMPACT_PILL_LABEL_CURRENCIES.has(normalizedCurrency) &&
-    Math.abs(value) >= COMPACT_PILL_LABEL_THRESHOLD;
-
-  if (!shouldUseCompact) {
+  if (Math.abs(value) < COMPACT_PILL_LABEL_THRESHOLD) {
     return formatPillCurrency(value, normalizedCurrency);
   }
 
-  return `${getCurrencySymbol(normalizedCurrency)}${formatCompactMagnitude(value)}`;
+  // `useGrouping: false` keeps the template number as a plain digit string
+  // ("1000" / "1000000") so we can swap it for the compact magnitude while
+  // preserving whatever symbol placement the locale uses.
+  const templateValue = Math.abs(value) >= 1_000_000 ? 1_000_000 : 1_000;
+  const template = formatPillCurrency(templateValue, normalizedCurrency);
+  return template.replace(String(templateValue), formatCompactMagnitude(value));
 }
 
 export interface BuyQuickAmountOption {

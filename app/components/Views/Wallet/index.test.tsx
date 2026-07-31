@@ -60,6 +60,7 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
   ),
+  selectPerpsProModeEnabledFlag: jest.fn(() => false),
 }));
 
 // Mock the Predict feature flag selector - will be controlled per test
