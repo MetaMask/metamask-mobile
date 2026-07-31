@@ -327,6 +327,50 @@ describe('useRewardsAnimation', () => {
 
       useRiveSpy.mockRestore();
     });
+
+    it('should retry the pending trigger when the Rive view becomes ready late', () => {
+      // View not ready yet — trigger must be skipped, not fired blind.
+      const useRiveSpy = jest.spyOn(riveMockModule, 'useRive').mockReturnValue({
+        riveRef: { current: null },
+        riveViewRef: undefined,
+        setHybridRef: { f: jest.fn() },
+      } as unknown as ReturnType<typeof riveMockModule.useRive>);
+
+      const { rerender } = renderHook(() =>
+        useRewardsAnimation({
+          value: 100,
+          state: RewardAnimationState.Idle,
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
+
+      // View becomes ready after the state-machine effect already ran — the
+      // riveViewRef flip must re-run the effect and fire the missed trigger.
+      const readyView = {
+        triggerInput: __mockRiveTriggerInput,
+      } as unknown as NonNullable<
+        ReturnType<typeof riveMockModule.useRive>['riveViewRef']
+      >;
+      useRiveSpy.mockReturnValue({
+        riveRef: { current: readyView },
+        riveViewRef: readyView,
+        setHybridRef: { f: jest.fn() },
+      } as unknown as ReturnType<typeof riveMockModule.useRive>);
+
+      rerender({});
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Refresh_left');
+
+      useRiveSpy.mockRestore();
+    });
   });
 
   describe('Display value updates', () => {

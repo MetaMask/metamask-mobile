@@ -30,7 +30,7 @@ const BANNER_WIDTH = SCREEN_WIDTH - 32;
 const OPACITY_TRIGGER_THRESHOLD = 0.95;
 
 // Delay before triggering the confetti animation after opacity reaches threshold
-// This delay ensures the Rive component has fully loaded and is ready to fire animations
+// Kept for visual pacing; readiness itself is guaranteed by gating on riveViewRef
 const CONFETTI_TRIGGER_DELAY = 50;
 
 export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
@@ -42,8 +42,13 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
 }) => {
   const tw = useTailwind();
   const { riveFile } = useRiveFile(CarouselConfetti);
-  const { riveRef, setHybridRef } = useRive();
+  // riveViewRef (state) is non-null only after the native view resolves
+  // awaitViewReady — gating the confetti effect on it retries a late-ready
+  // view instead of silently skipping the animation.
+  const { riveViewRef, setHybridRef } = useRive();
   const [riveError, setRiveError] = useState(false);
+  const [isCardVisible, setIsCardVisible] = useState(false);
+  const confettiFiredRef = useRef(false);
 
   // Keep the latest callback in a ref so the parent re-rendering (which passes
   // a new inline arrow each time) doesn't tear down the timers below.
@@ -53,34 +58,16 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
     onTransitionToEmptyRef.current = onTransitionToEmpty;
   }, [onTransitionToEmpty]);
 
-  // Fire confetti and start the idle-dismiss timer once the card is fully visible.
+  // Mark the card visible once opacity crosses the threshold.
   useEffect(() => {
     let listenerId: string | null = null;
-    let confettiTimer: NodeJS.Timeout | null = null;
-    let dismissTimer: NodeJS.Timeout | null = null;
 
     const onVisible = () => {
       if (listenerId !== null) {
         emptyStateOpacity.removeListener(listenerId);
         listenerId = null;
       }
-
-      confettiTimer = setTimeout(() => {
-        const rive = riveRef.current;
-        if (!rive) {
-          return;
-        }
-        try {
-          rive.triggerInput('Start');
-        } catch (error) {
-          console.warn('Error triggering Rive confetti animation:', error);
-        }
-      }, CONFETTI_TRIGGER_DELAY);
-
-      dismissTimer = setTimeout(
-        () => onTransitionToEmptyRef.current?.(),
-        CONFETTI_TRIGGER_DELAY + ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME,
-      );
+      setIsCardVisible(true);
     };
 
     listenerId = emptyStateOpacity.addListener(({ value }) => {
@@ -101,10 +88,36 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
 
     return () => {
       if (listenerId !== null) emptyStateOpacity.removeListener(listenerId);
-      if (confettiTimer) clearTimeout(confettiTimer);
-      if (dismissTimer) clearTimeout(dismissTimer);
     };
-  }, [emptyStateOpacity, riveRef]);
+  }, [emptyStateOpacity]);
+
+  // Start the idle-dismiss timer once visible — independent of Rive readiness,
+  // so dismiss still proceeds even if the animation never loads.
+  useEffect(() => {
+    if (!isCardVisible) return undefined;
+    const dismissTimer = setTimeout(
+      () => onTransitionToEmptyRef.current?.(),
+      CONFETTI_TRIGGER_DELAY + ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME,
+    );
+    return () => clearTimeout(dismissTimer);
+  }, [isCardVisible]);
+
+  // Fire confetti exactly once, when the card is visible AND the Rive view is
+  // ready. If the view readies late, the riveViewRef state flip re-runs this
+  // effect and the trigger retries instead of being dropped.
+  useEffect(() => {
+    if (!isCardVisible || !riveViewRef || confettiFiredRef.current)
+      return undefined;
+    const confettiTimer = setTimeout(() => {
+      confettiFiredRef.current = true;
+      try {
+        riveViewRef.triggerInput('Start');
+      } catch (error) {
+        console.warn('Error triggering Rive confetti animation:', error);
+      }
+    }, CONFETTI_TRIGGER_DELAY);
+    return () => clearTimeout(confettiTimer);
+  }, [isCardVisible, riveViewRef]);
 
   return (
     <Animated.View

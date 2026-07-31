@@ -71,8 +71,10 @@ export const useRewardsAnimation = ({
   value,
   state = RewardAnimationState.Idle,
 }: UseRewardsAnimationParams): UseRewardsAnimationResult => {
-  // riveRef.current populated == view ready for inputs (Nitro equivalent of legacy mount delay)
-  const { riveRef, setHybridRef: setRiveHybridRef } = useRive();
+  // riveViewRef (state) is non-null only after the native view resolves
+  // awaitViewReady — gating on it lets effects re-run (and retry missed
+  // triggers) when the view becomes ready, unlike the render-inert riveRef.
+  const { riveRef, riveViewRef, setHybridRef: setRiveHybridRef } = useRive();
   const previousValueRef = useRef<number | null>(null);
   const timeoutRefs = useRef<Set<NodeJS.Timeout>>(new Set());
 
@@ -99,12 +101,12 @@ export const useRewardsAnimation = ({
   const triggerRiveAnimation = useCallback(
     (trigger: RewardsIconTriggers) => {
       try {
-        riveRef.current?.triggerInput(trigger);
+        riveViewRef?.triggerInput(trigger);
       } catch (error) {
         console.warn(`Error triggering Rive animation (${trigger}):`, error);
       }
     },
-    [riveRef],
+    [riveViewRef],
   );
 
   // Helper function to manage timeouts and prevent memory leaks
@@ -136,7 +138,7 @@ export const useRewardsAnimation = ({
   }, []);
 
   const handleLoadingState = useCallback(() => {
-    if (!riveRef.current) return;
+    if (!riveViewRef) return;
 
     // Clear any pending timeouts to prevent race conditions
     clearAllTimeouts();
@@ -158,11 +160,11 @@ export const useRewardsAnimation = ({
     triggerRiveAnimation,
     createTimeout,
     clearAllTimeouts,
-    riveRef,
+    riveViewRef,
   ]);
 
   const handleErrorState = useCallback(() => {
-    if (!riveRef.current) return;
+    if (!riveViewRef) return;
 
     // Clear any pending timeouts to prevent race conditions
     clearAllTimeouts();
@@ -185,11 +187,11 @@ export const useRewardsAnimation = ({
     createTimeout,
     isAnimating,
     clearAllTimeouts,
-    riveRef,
+    riveViewRef,
   ]);
 
   const handleIdleState = useCallback(() => {
-    if (!riveRef.current) return;
+    if (!riveViewRef) return;
 
     // Clear any pending timeouts to prevent race conditions
     clearAllTimeouts();
@@ -231,11 +233,11 @@ export const useRewardsAnimation = ({
     triggerRiveAnimation,
     clearAllTimeouts,
     animatedValue,
-    riveRef,
+    riveViewRef,
   ]);
 
   const handleRefreshLoadingState = useCallback(() => {
-    if (!riveRef.current) return;
+    if (!riveViewRef) return;
 
     // Clear any pending timeouts to prevent race conditions
     clearAllTimeouts();
@@ -258,11 +260,11 @@ export const useRewardsAnimation = ({
     createTimeout,
     rivePosition,
     setHideValue,
-    riveRef,
+    riveViewRef,
   ]);
 
   const handleRefreshFinishedState = useCallback(() => {
-    if (!riveRef.current) return;
+    if (!riveViewRef) return;
 
     // Clear any pending timeouts to prevent race conditions
     clearAllTimeouts();
@@ -291,14 +293,14 @@ export const useRewardsAnimation = ({
     rivePosition,
     animatedValue,
     value,
-    riveRef,
+    riveViewRef,
   ]);
 
   // State machine effect - triggers appropriate animation based on state
   useEffect(() => {
     const timeouts = timeoutRefs.current;
     const timer = createTimeout(() => {
-      if (!riveRef.current) return;
+      if (!riveViewRef) return;
 
       switch (state) {
         case RewardAnimationState.Loading:
@@ -320,7 +322,7 @@ export const useRewardsAnimation = ({
           handleIdleState();
           break;
       }
-    }, 100); // Delay ensures Rive component is loaded
+    }, 100); // Debounces rapid state flips; readiness is guaranteed by riveViewRef
 
     return () => {
       clearTimeout(timer);
@@ -336,7 +338,7 @@ export const useRewardsAnimation = ({
     handleRefreshFinishedState,
     createTimeout,
     clearAllTimeouts,
-    riveRef,
+    riveViewRef,
   ]);
 
   // Update display value when animated value changes
