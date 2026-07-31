@@ -47,6 +47,7 @@ import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
+import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
@@ -85,6 +86,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
@@ -149,6 +151,10 @@ export interface AssetOverviewContentProps {
 
   // Balance data
   balance: string | number | undefined;
+  balanceCta?: React.ReactNode;
+  balanceDescription?: React.ReactNode;
+  balancePriceChangeOverride?: string;
+  balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
   secondaryBalance: string | undefined;
 
@@ -224,6 +230,10 @@ export interface AssetOverviewContentProps {
 const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   token,
   balance,
+  balanceCta,
+  balanceDescription,
+  balancePriceChangeOverride,
+  balancePriceChangeOverrideColor,
   mainBalance,
   secondaryBalance,
   currentPrice,
@@ -687,12 +697,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               fiatValue={mainBalance}
             />
           )}
-          {balance != null && !showSpendableBalance && (
-            <Balance
-              asset={token}
-              mainBalance={mainBalance}
-              secondaryBalance={secondaryBalance}
-            />
+          {balance != null && !spendableBalanceData.hasSpendableBalance &&  (
+            <>
+              <Balance
+                asset={token}
+                balanceCta={balanceCta}
+                balanceDescription={balanceDescription}
+                mainBalance={mainBalance}
+                priceChangeOverride={balancePriceChangeOverride}
+                priceChangeOverrideColor={balancePriceChangeOverrideColor}
+                secondaryBalance={secondaryBalance}
+              />
+              <EarnBalance asset={token} />
+            </>
           )}
           {isTokenEligibleForMerklClaim && (
             <AssetOverviewClaimBonus asset={token} />

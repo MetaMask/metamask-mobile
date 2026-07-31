@@ -17,6 +17,7 @@ const ANDROID_NETWORK_READY_CONSECUTIVE_PINGS = 3;
 const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
+const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
 
@@ -614,15 +615,17 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   logger.info(`Starting Android emulator: ${avdName}`);
 
   // Appium smoke CI uses AOSP (`default` image) — lighter cold boot than google_apis.
-  // RAM/CPU flags align with Detox CI where noted; cores overridable via env.
+  // Skin overrides AVD profile resolution; cores via env.
   const args = ['-avd', avdName];
   if (isCI) {
     const cores =
       process.env.ANDROID_EMULATOR_CI_CORES?.trim() ||
       ANDROID_EMULATOR_CI_CORES_DEFAULT;
+    const skin =
+      process.env.ANDROID_EMULATOR_CI_SKIN?.trim() || ANDROID_EMULATOR_CI_SKIN;
     args.push(
       '-skin',
-      '1080x2340',
+      skin,
       '-memory',
       '12288',
       '-cores',

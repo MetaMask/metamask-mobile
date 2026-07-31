@@ -60,6 +60,7 @@ export enum MONEY_SURFACE_TYPES {
 
 export enum COMPONENT_NAMES {
   // — Section Headers —
+  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
 
   // — Onboarding —
@@ -108,10 +109,13 @@ export enum COMPONENT_NAMES {
   MONEY_MUSD_TOKEN_SECTION = 'money_musd_token_row_section',
   MONEY_BALANCE_CARD = 'money_balance_card',
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',
+  MONEY_BALANCE_PROJECTION = 'money_balance_projection',
   MONEY_HOME_TAB = 'money_home_tab',
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
   MONEY_TOKEN_LIST_ITEM_CTA = 'money_token_list_item_cta',
+  MONEY_ASSET_OVERVIEW_FOOTER_CTA = 'money_asset_overview_footer_cta',
+  MONEY_ASSET_OVERVIEW_BALANCE_CTA = 'money_asset_overview_balance_cta',
   MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
 

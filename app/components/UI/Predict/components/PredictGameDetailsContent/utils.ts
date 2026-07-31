@@ -8,7 +8,11 @@ import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictAct
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
 import { isValidPrice } from '../../utils/prices';
-import { isMoneylineLikeMarketType } from '../../constants/sports';
+import {
+  isEsportsRoundHandicapMarketType,
+  isEsportsRoundOverUnderMarketType,
+  isMoneylineLikeMarketType,
+} from '../../constants/sports';
 import {
   getSportTeamColorForLabel,
   getSportTeamDisplayOrder,
@@ -67,10 +71,26 @@ const warnMissingSportsMarketTypeTranslation = (
   Logger.log(message, { key, type });
 };
 
+/**
+ * Maps numbered esports round types onto a shared base key so a single i18n
+ * entry covers `round_*_game_1`, `round_*_game_6`, etc.
+ */
+const getSportsMarketTypeTranslationKey = (type: string): string => {
+  const normalizedType = type.toLowerCase();
+  if (isEsportsRoundHandicapMarketType(normalizedType)) {
+    return 'round_handicap_game';
+  }
+  if (isEsportsRoundOverUnderMarketType(normalizedType)) {
+    return 'round_over_under_game';
+  }
+  return type;
+};
+
 export const getTranslatedSportsMarketTypeLabel = (
   type: string,
 ): string | undefined => {
-  const key = `${I18N_PREFIX}.${type}`;
+  const translationKey = getSportsMarketTypeTranslationKey(type);
+  const key = `${I18N_PREFIX}.${translationKey}`;
   const label = strings(key);
   if (typeof label !== 'string' || isMissingTranslation(label, key)) {
     if (!isDynamicSportsMarketTypeKey(type)) {
