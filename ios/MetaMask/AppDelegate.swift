@@ -72,6 +72,8 @@ class AppDelegate: ExpoAppDelegate {
     let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
     let initialProps: [AnyHashable: Any] = ["foxCode": foxCode]
 
+    // Enable Branch logging for TestFlight/dev debugging — remove before production release.
+    RNBranch.enableLogging()
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
 
