@@ -1,11 +1,9 @@
 import Routes from '../../../../constants/navigation/Routes';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
+import { trackSocialNotificationClicked } from './sharedNotificationAnalytics';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -100,21 +98,10 @@ export const handleSocialTraderPositionUrl = ({
       );
     }
 
-    if (notificationSubtype !== undefined) {
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
-      )
-        .addProperties({
-          [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
-            notificationSubtype,
-          ...(notificationTemplateVariant !== undefined && {
-            [SocialLeaderboardEventProperties.NOTIFICATION_TEMPLATE_VARIANT]:
-              notificationTemplateVariant,
-          }),
-        })
-        .build();
-      analytics.trackEvent(event);
-    }
+    trackSocialNotificationClicked(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
+      { notificationSubtype, notificationTemplateVariant },
+    );
 
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
       positionId,

@@ -1389,8 +1389,38 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleSocialLeaderboardUrl).toHaveBeenCalledTimes(1);
+      expect(handleSocialLeaderboardUrl).toHaveBeenCalledWith({
+        actionPath: '?ignored=true',
+      });
       expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards the notification query params as actionPath for click analytics', async () => {
+      const search =
+        '?notification_subtype=leaderboard_weekly_update&notification_template_variant=new_week&deduplication_id=dedup-1';
+      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.TOP_TRADERS}${search}`;
+      const leaderboardUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: leaderboardUrl,
+        pathname: `/${ACTIONS.TOP_TRADERS}`,
+        search,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: leaderboardUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: leaderboardUrl,
+        source: 'test-source',
+      });
+
+      // actionPath must carry the notification params through to the handler —
+      // dropping it would silently kill weekly open/CTR tracking.
+      expect(handleSocialLeaderboardUrl).toHaveBeenCalledWith({
+        actionPath: search,
+      });
     });
   });
 
