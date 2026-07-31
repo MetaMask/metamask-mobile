@@ -117,6 +117,21 @@ describe('CustomAmountConfirmButton', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the default label during loading even when alertTitle is set', () => {
+    // useTransactionMetadataRequest returns undefined → useButtonLabel returns the default 'done' string
+    const { getByTestId, queryByText } = renderWithProvider(
+      <CustomAmountConfirmButton
+        alertTitle="Test Alert Title"
+        isDisabled={false}
+        stage={CustomAmountStage.Loading}
+      />,
+      {},
+    );
+    const button = getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    expect(button).toBeOnTheScreen();
+    expect(queryByText('Test Alert Title')).toBeNull();
+  });
+
   it('calls onConfirm and onContinue when pressed (enabled state)', async () => {
     const onConfirmMock = jest.fn();
     const onContinueMock = jest.fn();

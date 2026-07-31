@@ -103,4 +103,14 @@ describe('CustomAmountBuy', () => {
       assetId: 'eip155:1/erc20:0x123',
     });
   });
+
+  it('renders the perps deposit buy message when no tokens available', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as never);
+    const { getByText } = render();
+    expect(
+      getByText(strings('confirm.custom_amount.buy_perps')),
+    ).toBeOnTheScreen();
+  });
 });
