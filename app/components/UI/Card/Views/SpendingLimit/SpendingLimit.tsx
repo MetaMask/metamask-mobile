@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
-import { usePreventRemove } from '../../../../../util/navigation/usePreventRemove';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -58,6 +59,7 @@ interface SpendingLimitProps {
  * Supports three flows: onboarding, enable, and manage.
  */
 const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const tw = useTailwind();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -129,10 +131,18 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  // v6 shim — swap to `@react-navigation/native` in the v7 bump (Phase 4).
-  usePreventRemove(isUiInteractionLocked, () => {
-    // Stay on screen while UI interaction is locked.
-  });
+  const isUiInteractionLockedRef = useRef(isUiInteractionLocked);
+  useEffect(() => {
+    isUiInteractionLockedRef.current = isUiInteractionLocked;
+  }, [isUiInteractionLocked]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (!isUiInteractionLockedRef.current) return;
+      e.preventDefault();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const tokenLabel = useMemo(() => {
     if (!selectedToken) return '';

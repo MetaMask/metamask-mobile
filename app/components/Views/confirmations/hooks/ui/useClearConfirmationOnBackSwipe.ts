@@ -2,7 +2,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useRef } from 'react';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
-import { usePreventRemove } from '../../../../../util/navigation/usePreventRemove';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -28,18 +27,27 @@ const useClearConfirmationOnBackSwipe = () => {
     [isConfirmationSubmittingRef, onReject],
   );
 
-  // v6 shim — swap to `@react-navigation/native` in the v7 bump (Phase 4).
-  // When not intercepting an in-progress MM Pay request, re-dispatch the
-  // original action so dismiss proceeds (matches prior beforeRemove behavior
-  // that did not call preventDefault on the reject path).
-  usePreventRemove(isFullScreenConfirmation, ({ data }) => {
-    if (mmPayRequestInProgressNavHandler.current) {
-      mmPayRequestInProgressNavHandler.current();
+  useEffect(() => {
+    if (!isFullScreenConfirmation) {
       return;
     }
-    rejectConfirmation(true);
-    navigation.dispatch(data.action);
-  });
+
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (mmPayRequestInProgressNavHandler.current) {
+        e.preventDefault();
+        mmPayRequestInProgressNavHandler.current();
+        return;
+      }
+      rejectConfirmation(true);
+    });
+
+    return () => unsubscribe?.();
+  }, [
+    mmPayRequestInProgressNavHandler,
+    isFullScreenConfirmation,
+    navigation,
+    rejectConfirmation,
+  ]);
 
   useEffect(() => {
     if (isFullScreenConfirmation && Device.isAndroid()) {
