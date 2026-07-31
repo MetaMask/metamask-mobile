@@ -51,8 +51,6 @@ const DeFiProtocolPositionGroupsV2: React.FC<
                 {section.productName}
               </Text>
               <DeFiProtocolPositionGroupTokens
-                positionType="supply"
-                hidePositionTypeLabel
                 tokens={section.tokens}
                 networkIconAvatar={networkIconAvatar}
                 privacyMode={privacyMode}

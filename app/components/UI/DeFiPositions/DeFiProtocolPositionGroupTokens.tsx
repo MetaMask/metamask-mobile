@@ -20,9 +20,8 @@ export const DEFI_DETAILS_POSITION_TYPE_TAG_TEST_ID =
   'defi-details-position-type-tag';
 
 interface DeFiProtocolPositionGroupTokensProps {
-  positionType: PositionType;
-  /** When true, omit the position-type label (e.g. V2 sections supply their own header). */
-  hidePositionTypeLabel?: boolean;
+  /** Group-level position-type label (V1). Omit to hide the section header. */
+  positionType?: PositionType;
   tokens: {
     key: string;
     address: string;
@@ -42,7 +41,6 @@ const DeFiProtocolPositionGroupTokens: React.FC<
   DeFiProtocolPositionGroupTokensProps
 > = ({
   positionType,
-  hidePositionTypeLabel = false,
   tokens,
   networkIconAvatar,
   privacyMode,
@@ -55,11 +53,11 @@ const DeFiProtocolPositionGroupTokens: React.FC<
 
   return (
     <View>
-      {!hidePositionTypeLabel && (
+      {positionType ? (
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
           {strings(`defi_positions.${positionType}`)}
         </Text>
-      )}
+      ) : null}
       {tokens.map((token) => (
         <View key={token.key} style={styles.underlyingBalancesWrapper}>
           <View>

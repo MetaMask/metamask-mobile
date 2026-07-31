@@ -91,10 +91,8 @@ describe('DeFiProtocolPositionGroupTokens', () => {
   });
 
   it('renders a position type tag next to the token when provided', async () => {
-    const { findByText, getAllByTestId } = renderWithProvider(
+    const { findByText, getAllByTestId, queryByText } = renderWithProvider(
       <DeFiProtocolPositionGroupTokens
-        positionType="supply"
-        hidePositionTypeLabel
         tokens={[
           {
             ...mockTokens[0],
@@ -113,6 +111,7 @@ describe('DeFiProtocolPositionGroupTokens', () => {
       },
     );
 
+    expect(queryByText('Supplied')).not.toBeOnTheScreen();
     expect(await findByText('deposit')).toBeOnTheScreen();
     expect(await findByText('staked')).toBeOnTheScreen();
     expect(getAllByTestId(DEFI_DETAILS_POSITION_TYPE_TAG_TEST_ID)).toHaveLength(
