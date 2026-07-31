@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -12,6 +17,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
 import NotificationService, {
   isPushPermissionGranted,
   isPushPermissionPromptable,
@@ -58,13 +64,8 @@ async function promptOsPushPermissionIfNeeded(): Promise<void> {
   await NotificationService.requestPushNotificationsPermission();
 }
 
-export interface FeatureNotificationsGateProps {
+export interface FeatureNotificationsGateSheetParams {
   feature: NotificationPreferenceSection;
-  /**
-   * Called when user dismisses the sheet without satisfying the gate condition.
-   * Defaults to `navigation.goBack()`.
-   */
-  onDismiss?: () => void;
   /**
    * When true, closes the sheet once the gate condition is satisfied.
    * Defaults to `true`.
@@ -72,30 +73,27 @@ export interface FeatureNotificationsGateProps {
   autoDismiss?: boolean;
 }
 
-const FeatureNotificationsGateSheet = ({
-  feature,
-  onDismiss,
-  autoDismiss = true,
-}: FeatureNotificationsGateProps) => {
-  const navigation = useNavigation<AppStackNavigationProp>();
-  const handleDismiss = useCallback(() => {
-    if (onDismiss) {
-      onDismiss();
-      return;
-    }
-    navigation.goBack();
-  }, [onDismiss, navigation]);
+type FeatureNotificationsGateSheetRouteProp = RouteProp<
+  { params: FeatureNotificationsGateSheetParams },
+  'params'
+>;
 
-  const {
-    isMasterEnabled,
-    isPushEnabled,
-    isInAppEnabled,
-    hasNotificationPreferences,
-    isPreferencesLoading,
-  } = useFeatureNotificationsStatus(feature);
+/**
+ * The gate bottom sheet, registered as a `transparentModal` route in the root
+ * modal flow. Living on the root stack guarantees it renders above all screen
+ * content — no zIndex, native Modal, or sibling-order tricks — and survives
+ * navigation happening underneath it.
+ *
+ * Do not navigate here directly; render {@link FeatureNotificationsGate}
+ * inside the gated screen instead.
+ */
+export const FeatureNotificationsGateSheet = () => {
+  const navigation = useNavigation();
+  const { params } = useRoute<FeatureNotificationsGateSheetRouteProp>();
+  const { feature, autoDismiss = true } = params;
 
-  const isFeatureBlocked =
-    !isMasterEnabled || (!isPushEnabled && !isInAppEnabled);
+  const { isMasterEnabled, isPushEnabled, isInAppEnabled } =
+    useFeatureNotificationsStatus(feature);
 
   const isFullyEnabled = isMasterEnabled && isPushEnabled && isInAppEnabled;
 
@@ -104,82 +102,32 @@ const FeatureNotificationsGateSheet = ({
   const [renderChannels] = useState(!isPushEnabled && !isInAppEnabled);
 
   // Master-only sheet: at least one channel was already on at mount, so turning
-  // master on is enough — there is no other toggle left to act on.
+  // master on is enough
   const isMasterOnlySatisfied =
     renderMaster && !renderChannels && isMasterEnabled;
 
   const shouldAutoClose = isFullyEnabled || isMasterOnlySatisfied;
 
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [isVisible, setIsVisible] = useState(isFeatureBlocked);
-  const hasPromptedOsPushRef = useRef(false);
-  const isPushEnabledRef = useRef(isPushEnabled);
-  isPushEnabledRef.current = isPushEnabled;
-
   const channelsDisabled = renderMaster && !isMasterEnabled;
 
-  const promptOsPushIfNeeded = useCallback(() => {
-    if (!isPushEnabledRef.current || hasPromptedOsPushRef.current) {
-      return;
-    }
-
-    hasPromptedOsPushRef.current = true;
-    // Defer so the BottomSheet open animation does not swallow the OS Alert.
-    InteractionManager.runAfterInteractions(() => {
-      void promptOsPushPermissionIfNeeded();
-    });
+  useEffect(() => {
+    sheetRef.current?.onOpenBottomSheet();
   }, []);
 
   useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
+    if (autoDismiss && shouldAutoClose) {
+      sheetRef.current?.onCloseBottomSheet();
     }
-  }, [isVisible]);
-
-  useEffect(() => {
-    if (autoDismiss && shouldAutoClose && isVisible) {
-      sheetRef.current?.onCloseBottomSheet(() => setIsVisible(false));
-    }
-  }, [autoDismiss, shouldAutoClose, isVisible]);
-
-  // Reset so turning push off then on again can re-prompt.
-  useEffect(() => {
-    if (!isPushEnabled) {
-      hasPromptedOsPushRef.current = false;
-    }
-  }, [isPushEnabled]);
-
-  // Prompt whenever the push channel is on and prefs are ready — independent of
-  // sheet visibility. Master+push already on means the sheet never opens, but
-  // the user still needs the OS permission prompt to actually get notified.
-  useEffect(() => {
-    if (!hasNotificationPreferences || isPreferencesLoading) {
-      return;
-    }
-    if (!isPushEnabled) {
-      return;
-    }
-
-    promptOsPushIfNeeded();
-  }, [
-    isPushEnabled,
-    hasNotificationPreferences,
-    isPreferencesLoading,
-    promptOsPushIfNeeded,
-  ]);
+  }, [autoDismiss, shouldAutoClose]);
 
   const handleHeaderClose = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
   const handleSheetClosed = () => {
-    setIsVisible(false);
-    if (isFeatureBlocked) {
-      handleDismiss();
-    }
+    navigation.goBack();
   };
-
-  if (!isVisible) return null;
 
   return (
     <BottomSheet
@@ -216,23 +164,160 @@ const FeatureNotificationsGateSheet = ({
   );
 };
 
+interface FeatureNotificationsGateStatus {
+  isFeatureBlocked: boolean;
+  isPushEnabled: boolean;
+  /**
+   * An unsettled preferences read is indistinguishable from "every channel is
+   * off", so nothing may act until the query has an answer.
+   */
+  isPreferencesReady: boolean;
+}
+
+/**
+ * Presents {@link FeatureNotificationsGateSheet} while the gate is blocked,
+ * and dismisses the host screen if the sheet is closed without satisfying
+ * the gate.
+ *
+ * The sheet lives on the root modal stack and cannot be observed directly;
+ * focus is the signal instead. Presenting the sheet takes focus away from
+ * the host screen, and closing it gives focus back. So whenever the host
+ * screen is focused while the gate is blocked, only two things can be true:
+ *
+ * - No sheet was presented yet → present it.
+ * - A sheet was presented → it just closed, still blocked → dismiss.
+ */
+function useGateSheetPresentation({
+  feature,
+  autoDismiss,
+  onDismiss,
+  status,
+}: {
+  feature: NotificationPreferenceSection;
+  autoDismiss?: boolean;
+  onDismiss?: () => void;
+  status: FeatureNotificationsGateStatus;
+}) {
+  const navigation = useNavigation<AppStackNavigationProp>();
+  const isFocused = useIsFocused();
+  const { isFeatureBlocked, isPreferencesReady } = status;
+
+  const handleDismiss = useCallback(() => {
+    if (onDismiss) {
+      onDismiss();
+      return;
+    }
+    navigation.goBack();
+  }, [onDismiss, navigation]);
+
+  const wasSheetPresentedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isPreferencesReady || !isFeatureBlocked || !isFocused) {
+      return;
+    }
+
+    if (wasSheetPresentedRef.current) {
+      handleDismiss();
+      return;
+    }
+
+    wasSheetPresentedRef.current = true;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+      params: { feature, autoDismiss },
+    });
+  }, [
+    isPreferencesReady,
+    isFocused,
+    isFeatureBlocked,
+    handleDismiss,
+    navigation,
+    feature,
+    autoDismiss,
+  ]);
+}
+
+/**
+ * Prompts for the OS push permission whenever the feature push channel is on
+ * but the OS permission is missing. Independent of the gate sheet: master and
+ * push already on means the sheet never opens, but the user still needs the OS
+ * permission to actually get notified.
+ *
+ * Prompts once per push-channel activation: turning push off arms the prompt
+ * again for the next time it turns on.
+ */
+function useOsPushPermissionPrompt({
+  isPushEnabled,
+  isPreferencesReady,
+}: FeatureNotificationsGateStatus) {
+  const hasPromptedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isPushEnabled) {
+      hasPromptedRef.current = false;
+      return;
+    }
+
+    if (!isPreferencesReady || hasPromptedRef.current) {
+      return;
+    }
+
+    hasPromptedRef.current = true;
+    // Defer so the sheet's open animation does not swallow the OS Alert.
+    InteractionManager.runAfterInteractions(() => {
+      void promptOsPushPermissionIfNeeded();
+    });
+  }, [isPushEnabled, isPreferencesReady]);
+}
+
+export interface FeatureNotificationsGateProps {
+  feature: NotificationPreferenceSection;
+  /**
+   * Called when user dismisses the sheet without satisfying the gate condition.
+   * Defaults to `navigation.goBack()`.
+   */
+  onDismiss?: () => void;
+  /**
+   * When true, closes the sheet once the gate condition is satisfied.
+   * Defaults to `true`.
+   */
+  autoDismiss?: boolean;
+}
+
+/**
+ * Renders nothing; when the feature's notifications are not fully enabled it
+ * presents {@link FeatureNotificationsGateSheet} over the current screen, and
+ * calls `onDismiss` (default: `navigation.goBack()`) if the user closes the
+ * sheet without satisfying the gate.
+ *
+ * Note: mount this only on a screen that intends to stay. A screen that
+ * may still redirect on its own (e.g. replace itself after a fetch) must not
+ * mount the gate until that decision is made — a sheet presented by a screen
+ * that then disappears is orphaned, and the replacing screen's gate will
+ * re-present it once instead of dismissing on give-up.
+ */
 export const FeatureNotificationsGate = ({
   feature,
   onDismiss,
   autoDismiss,
 }: FeatureNotificationsGateProps) => {
-  const { isLoading } = useNotificationStoragePreferences();
+  const {
+    isMasterEnabled,
+    isPushEnabled,
+    isInAppEnabled,
+    hasNotificationPreferences,
+    isPreferencesLoading,
+  } = useFeatureNotificationsStatus(feature);
 
-  // The sheet freezes its layout on first render, so it must not mount until the
-  // preferences query has an answer — an unsettled read is indistinguishable
-  // from "every channel is off".
-  if (isLoading) return null;
+  const status: FeatureNotificationsGateStatus = {
+    isFeatureBlocked: !isMasterEnabled || (!isPushEnabled && !isInAppEnabled),
+    isPushEnabled,
+    isPreferencesReady: hasNotificationPreferences && !isPreferencesLoading,
+  };
 
-  return (
-    <FeatureNotificationsGateSheet
-      feature={feature}
-      onDismiss={onDismiss}
-      autoDismiss={autoDismiss}
-    />
-  );
+  useGateSheetPresentation({ feature, autoDismiss, onDismiss, status });
+  useOsPushPermissionPrompt(status);
+
+  return null;
 };

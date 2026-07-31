@@ -106,6 +106,7 @@ import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Con
 import SDKDisconnectModal from '../../Views/SDK/SDKDisconnectModal/SDKDisconnectModal';
 import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
+import { FeatureNotificationsGateSheet } from '../../Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import WalletCreationError from '../../Views/WalletCreationError';
@@ -581,6 +582,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.EXPERIENCE_ENHANCER}
       component={ExperienceEnhancerModal}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.FEATURE_NOTIFICATIONS_GATE}
+      component={FeatureNotificationsGateSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.DATA_COLLECTION}

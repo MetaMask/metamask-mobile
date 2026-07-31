@@ -130,8 +130,6 @@ const CreatePriceAlertView: React.FC = () => {
           isDisabled={isEditing}
         />
 
-        <FeatureNotificationsGate feature="priceAlerts" />
-
         {alertType === 'percent_change' ? (
           <PercentChangeAlertForm
             assetId={assetId}
@@ -150,6 +148,8 @@ const CreatePriceAlertView: React.FC = () => {
             existingAbsoluteAlerts={existingAbsoluteAlerts}
           />
         )}
+
+        <FeatureNotificationsGate feature="priceAlerts" />
       </Box>
     </SafeAreaView>
   );
