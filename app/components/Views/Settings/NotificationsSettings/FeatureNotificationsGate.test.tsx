@@ -2,11 +2,11 @@ import React from 'react';
 import { InteractionManager } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { FeatureNotificationsGate } from './FeatureNotificationsGate';
 import {
-  FeatureNotificationsGate,
   FeatureNotificationsGateSheet,
   type FeatureNotificationsGateSheetParams,
-} from './FeatureNotificationsGate';
+} from './FeatureNotificationsGateSheet';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { MAIN_NOTIFICATION_TOGGLE_TEST_ID } from './MainNotificationToggle';
 import Routes from '../../../../constants/navigation/Routes';
