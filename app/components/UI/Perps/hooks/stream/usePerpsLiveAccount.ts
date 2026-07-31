@@ -4,6 +4,8 @@ import { type AccountState } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 
 export interface UsePerpsLiveAccountOptions {
+  /** Whether to subscribe to account updates. */
+  enabled?: boolean;
   /** Throttle delay in milliseconds (default: 1000ms for balance updates) */
   throttleMs?: number;
 }
@@ -28,7 +30,7 @@ export interface UsePerpsLiveAccountReturn {
 export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
-  const { throttleMs = 1000 } = options;
+  const { enabled = true, throttleMs = 1000 } = options;
   const streamManager = usePerpsStream();
   const initialChannelAccount = streamManager.account.getSnapshot();
   const [account, setAccount] = useState<AccountState | null>(() => {
@@ -46,7 +48,7 @@ export function usePerpsLiveAccount(
   });
 
   useEffect(() => {
-    if (!streamManager) return;
+    if (!enabled || !streamManager) return;
 
     // Mark as no longer loading once we get first update
     const handleAccountUpdate = (newAccount: AccountState | null) => {
@@ -63,7 +65,7 @@ export function usePerpsLiveAccount(
     });
 
     return unsubscribe;
-  }, [streamManager, throttleMs]);
+  }, [enabled, streamManager, throttleMs]);
 
   return { account, isInitialLoading };
 }

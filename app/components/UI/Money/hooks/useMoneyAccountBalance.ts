@@ -62,9 +62,15 @@ interface UseMoneyAccountBalanceResult {
   apyPercentFormatted: string | undefined;
 }
 
-const useMoneyAccountBalance = (
-  refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
-): UseMoneyAccountBalanceResult => {
+interface UseMoneyAccountBalanceOptions {
+  enabled?: boolean;
+  refetchInterval?: number;
+}
+
+const useMoneyAccountBalance = ({
+  enabled = true,
+  refetchInterval = DEFAULT_REFETCH_INTERVAL,
+}: UseMoneyAccountBalanceOptions = {}): UseMoneyAccountBalanceResult => {
   const dispatch = useDispatch();
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const moneyAccountAddress = primaryMoneyAccount?.address;
@@ -80,12 +86,13 @@ const useMoneyAccountBalance = (
       MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
       moneyAccountAddress as string,
     ],
-    enabled: Boolean(moneyAccountAddress),
+    enabled: enabled && Boolean(moneyAccountAddress),
     refetchInterval,
   }) as UseQueryResult<CanonicalMoneyAccountBalanceResponse>;
 
   const vaultApyQuery = useQuery({
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
+    enabled,
     refetchInterval: FIVE_MINUTES_MS,
   }) as UseQueryResult<NormalizedVaultApyResponse>;
 
@@ -103,10 +110,10 @@ const useMoneyAccountBalance = (
 
   const refetchBalance = useCallback(
     () =>
-      moneyAccountAddress
+      enabled && moneyAccountAddress
         ? invalidateMoneyAccountBalanceCaches(moneyAccountAddress)
         : Promise.resolve(),
-    [moneyAccountAddress],
+    [enabled, moneyAccountAddress],
   );
 
   const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
@@ -163,6 +170,7 @@ const useMoneyAccountBalance = (
   // is unavailable — including after an app restart.
   useEffect(() => {
     if (
+      enabled &&
       moneyAccountAddress &&
       !isBalanceFetchError &&
       !isBalanceLoading &&
@@ -179,6 +187,7 @@ const useMoneyAccountBalance = (
     }
   }, [
     dispatch,
+    enabled,
     moneyAccountAddress,
     isBalanceFetchError,
     totalFiatFormatted,

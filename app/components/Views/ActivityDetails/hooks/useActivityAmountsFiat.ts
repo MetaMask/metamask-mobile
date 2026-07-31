@@ -15,6 +15,7 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { getMaybeHexChainId } from '../../../../util/bridge';
 import {
+  GAS_FEE_SPONSORED,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
   toMarketRateLookupToken,
@@ -232,6 +233,10 @@ function getResourceFeeLabel(symbol: string): string {
 }
 
 function getFeeLabel(fee: ActivityFee): string {
+  if (fee.type === GAS_FEE_SPONSORED) {
+    return strings('activity_details.network_fee');
+  }
+
   switch (fee.type) {
     case 'base':
       if (fee.symbol && isResourceFee(fee)) {
@@ -297,6 +302,15 @@ export function useActivityAmountsFiat(
   let hasFee = false;
 
   for (const fee of fees) {
+    if (fee.type === GAS_FEE_SPONSORED) {
+      feeRows.push({
+        label: getFeeLabel(fee),
+        value: strings('transactions.paid_by_metamask'),
+        fee,
+      });
+      continue;
+    }
+
     const feeFiat = feeToFiatNumber(
       fee,
       conversionRate,

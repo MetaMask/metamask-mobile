@@ -10,6 +10,7 @@ import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
+import type { ReactTestInstance } from 'react-test-renderer';
 
 // Local reanimated mock needed: Reanimated.default.call override is required
 // for RewardsAnimations component rendering.
@@ -484,6 +485,7 @@ jest.mock(
 // Controllable pay-quote state for the trade-quote-received coverage tests.
 let mockIsPayQuoteLoading = false;
 let mockPayTotals: unknown;
+let mockPayRequiredTokens: { amountRaw: string; skipIfBalance: boolean }[] = [];
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
@@ -492,6 +494,7 @@ jest.mock(
     ),
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
     useTransactionPayTotals: () => mockPayTotals,
+    useTransactionPayRequiredTokens: () => mockPayRequiredTokens,
   }),
 );
 
@@ -637,19 +640,38 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
   })),
 }));
 
-// Mock PerpsSlider since it uses reanimated which needs special handling in tests
+// Value the slider stub drags to. Tests set this before firing the drag
+// testIDs below so the real onValueChange/onDragEnd wiring runs with a
+// controllable value.
+let mockSliderDragValue = 0;
+
+// Mock PerpsSlider since it uses reanimated which needs special handling in
+// tests. Exposes drag/drag-end testIDs so tests can exercise the real
+// commit-funnel wiring (handleSliderValueChange/handleSliderDragEnd) instead
+// of only checking that the slider renders.
 jest.mock('../../components/PerpsSlider', () => ({
   __esModule: true,
   default: ({
     value,
+    onValueChange,
+    onDragEnd,
   }: {
     value: number;
     onValueChange: (v: number) => void;
+    onDragEnd?: (v: number) => void;
   }) => {
-    const { View, Text } = jest.requireActual('react-native');
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
       <View testID="perps-slider">
         <Text>Slider Value: {value}</Text>
+        <TouchableOpacity
+          testID="perps-slider-drag"
+          onPress={() => onValueChange(mockSliderDragValue)}
+        />
+        <TouchableOpacity
+          testID="perps-slider-drag-end"
+          onPress={() => onDragEnd?.(mockSliderDragValue)}
+        />
       </View>
     );
   },
@@ -705,9 +727,37 @@ const createBottomSheetMock = (testId: string) => {
   };
 };
 
-jest.mock('../../components/PerpsLeverageBottomSheet', () =>
-  createBottomSheetMock('leverage-bottom-sheet'),
-);
+// Leverage the stub confirms with when tests press the confirm testID below.
+let mockLeverageConfirmValue = 3;
+
+// Lightweight stub so tests can confirm a leverage through the real
+// onConfirm wiring (clamp/flush logic) without depending on the real
+// BottomSheet internals. Keeps the same 'leverage-bottom-sheet' testID as
+// the generic mock so existing visibility assertions keep working.
+jest.mock('../../components/PerpsLeverageBottomSheet', () => {
+  const MockReact = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isVisible,
+      onConfirm,
+    }: {
+      isVisible: boolean;
+      onConfirm: (leverage: number, inputMethod: string) => void;
+    }) =>
+      isVisible
+        ? MockReact.createElement(
+            TouchableOpacity,
+            {
+              testID: 'leverage-bottom-sheet',
+              onPress: () => onConfirm(mockLeverageConfirmValue, 'slider'),
+            },
+            null,
+          )
+        : null,
+  };
+});
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () =>
   createBottomSheetMock('limit-price-bottom-sheet'),
 );
@@ -954,6 +1004,8 @@ describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPerpsAdvancedChartEnabled = false;
+    mockSliderDragValue = 0;
+    mockLeverageConfirmValue = 3;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1466,6 +1518,195 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  // Builds a usePerpsOrderContext mock matching the shape the component
+  // actually destructures, with the same defaults as the outer beforeEach,
+  // so individual tests only need to override the fields they care about
+  // (typically setAmount, to assert what the commit funnel flushed).
+  const buildOrderContextMock = (
+    overrides: Partial<ReturnType<typeof usePerpsOrderContext>> = {},
+  ) => ({
+    orderForm: {
+      asset: 'ETH',
+      amount: '11',
+      leverage: 3,
+      direction: 'long',
+      type: 'market',
+      limitPrice: undefined,
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      balancePercent: 10,
+    },
+    setAmount: jest.fn(),
+    setLeverage: jest.fn(),
+    setTakeProfitPrice: jest.fn(),
+    setStopLossPrice: jest.fn(),
+    setLimitPrice: jest.fn(),
+    setOrderType: jest.fn(),
+    handlePercentageAmount: jest.fn(),
+    handleMaxAmount: jest.fn(),
+    handleMinAmount: jest.fn(),
+    optimizeOrderAmount: jest.fn(),
+    maxPossibleAmount: 1000,
+    balanceForValidation: 1000,
+    ...overrides,
+  });
+
+  describe('Slider drag commit funnel', () => {
+    it('shows the live drag value instead of the stale committed amount while dragging', () => {
+      mockSliderDragValue = 42;
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      expect(screen.getByText('Slider Value: 42')).toBeOnTheScreen();
+    });
+
+    it('commits the live value on drag end', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+      mockSliderDragValue = 77;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      fireEvent.press(screen.getByTestId('perps-slider-drag-end'));
+
+      expect(mockSetAmount).toHaveBeenCalledWith('77');
+    });
+
+    it('flushes the live drag value forward on cancel instead of discarding it', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+      mockSliderDragValue = 88;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      // A gesture cancelled by competing-gesture arbitration never fires
+      // onDragEnd; only the wrapping View's onTouchCancel signals it.
+      fireEvent(
+        screen.getByTestId('perps-slider').parent as ReactTestInstance,
+        'touchCancel',
+      );
+
+      expect(mockSetAmount).toHaveBeenCalledWith('88');
+    });
+
+    it('does not commit anything on cancel when the slider was never dragged', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent(
+        screen.getByTestId('perps-slider').parent as ReactTestInstance,
+        'touchCancel',
+      );
+
+      expect(mockSetAmount).not.toHaveBeenCalled();
+    });
+
+    it('flushes a stuck live drag value instead of submitting a stale order', async () => {
+      const mockSetAmount = jest.fn();
+      const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: mockExecuteOrder,
+        isPlacing: false,
+      });
+      mockSliderDragValue = 55;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      // The stuck live value is flushed forward, not submitted directly -
+      // this same tap only flushes and bails, it does not place the order.
+      expect(mockSetAmount).toHaveBeenCalledWith('55');
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Leverage confirm resolves against the live drag amount', () => {
+    it('flushes the live drag amount forward when no clamping is required', async () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          balanceForValidation: 1000,
+        }),
+      );
+      mockSliderDragValue = 50;
+      mockLeverageConfirmValue = 3;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
+      await act(async () => {
+        fireEvent.press(leverageRow);
+      });
+      const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      expect(mockSetAmount).toHaveBeenCalledWith('50');
+    });
+
+    it('clamps against the live drag amount, not the stale committed amount', async () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          // orderForm.amount stays '11' (well under the new max); only the
+          // live drag value should be able to trigger the clamp below.
+          balanceForValidation: 1000,
+        }),
+      );
+      mockSliderDragValue = 5000; // exceeds the post-confirm max of 1000
+      mockLeverageConfirmValue = 1;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
+      await act(async () => {
+        fireEvent.press(leverageRow);
+      });
+      const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // newMaxAmount = balanceForValidation(1000) * leverage(1) = 1000. Using
+      // the stale orderForm.amount ('11') for the check would never have
+      // triggered this clamp at all.
+      expect(mockSetAmount).toHaveBeenCalledWith('1000');
+    });
+  });
+
   it('handles testnet defaults', async () => {
     (usePerpsNetwork as jest.Mock).mockReturnValue('testnet');
 
@@ -1863,6 +2104,78 @@ describe('PerpsOrderView', () => {
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
       expect(placeOrderButton).toBeDefined();
+      expect(placeOrderButton).toBeEnabled();
+    });
+  });
+
+  describe('pay amount readiness', () => {
+    beforeEach(() => {
+      mockIsPayQuoteLoading = false;
+      mockPayRequiredTokens = [];
+      // A custom pay token, not the Perps balance: the gate only applies here.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+    });
+
+    afterEach(() => {
+      mockPayRequiredTokens = [];
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+    });
+
+    it('disables place order while the required token amount is still zero', async () => {
+      // The pay controller has not received the deposit amount yet, and no
+      // quote request has started, so nothing else would block the button.
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
+    it('enables place order once the required token amount arrives', async () => {
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('ignores a zero amount on a token that is skipped when the balance covers it', async () => {
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: true }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('leaves place order enabled when paying from the Perps balance', async () => {
+      // Orders funded from the Perps balance never deposit, so a stale pay
+      // amount must not block them.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
       expect(placeOrderButton).toBeEnabled();
     });
   });

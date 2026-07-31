@@ -1,5 +1,7 @@
 import {
   getBuyOutcomeImage,
+  hasExplicitMoneylineDraw,
+  isDrawCapableMarket,
   getMatchingSportTeam,
   getPrimaryMoneylineOutcomes,
   getPrimarySportsCardOutcomes,
@@ -36,6 +38,27 @@ const game: PredictMarketGame = {
     logo: 'https://example.com/czechia.png',
     abbreviation: 'CZE',
     color: 'blue',
+  },
+};
+
+const dota2Game: PredictMarketGame = {
+  ...game,
+  id: 'dota2-game-1',
+  league: 'dota2',
+  score: { away: 0, home: 0, raw: '000-000|0-0|Bo2' },
+  homeTeam: {
+    id: 'team-home-dota',
+    name: 'Nigma',
+    logo: 'https://example.com/nigma.png',
+    abbreviation: 'NIGMA',
+    color: 'black',
+  },
+  awayTeam: {
+    id: 'team-away-dota',
+    name: '1win',
+    logo: 'https://example.com/1win.png',
+    abbreviation: '1WIN',
+    color: 'white',
   },
 };
 
@@ -118,6 +141,177 @@ describe('getPrimarySportsCardOutcomes', () => {
     );
 
     expect(result).toEqual([moneylineOutcome]);
+  });
+});
+
+describe('isDrawCapableMarket', () => {
+  it('returns true for existing draw-capable leagues', () => {
+    const result = isDrawCapableMarket({
+      game,
+      outcomes: [
+        {
+          id: 'moneyline',
+          sportsMarketType: 'moneyline',
+          tokens: [
+            { id: 'home-token', title: 'Korea Republic' },
+            { id: 'away-token', title: 'Czechia' },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true when a combined moneyline includes a draw token', () => {
+    const result = isDrawCapableMarket({
+      game: dota2Game,
+      outcomes: [
+        {
+          id: 'moneyline',
+          sportsMarketType: 'moneyline',
+          tokens: [
+            { id: 'home-token', title: 'Nigma' },
+            { id: 'draw-token', title: 'Draw' },
+            { id: 'away-token', title: '1win' },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for unordered split neg-risk moneylines with an explicit draw', () => {
+    const result = isDrawCapableMarket({
+      game: dota2Game,
+      outcomes: [
+        {
+          id: 'away-moneyline',
+          sportsMarketType: 'moneyline',
+          groupItemTitle: '1win',
+          negRisk: true,
+          tokens: [{ id: 'away-yes-token', title: 'Yes' }],
+        },
+        {
+          id: 'draw-moneyline',
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Draw',
+          negRisk: true,
+          tokens: [{ id: 'draw-yes-token', title: 'Yes' }],
+        },
+        {
+          id: 'home-moneyline',
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Nigma',
+          negRisk: true,
+          tokens: [{ id: 'home-yes-token', title: 'Yes' }],
+        },
+      ],
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for two-way esports moneylines', () => {
+    const result = isDrawCapableMarket({
+      game: dota2Game,
+      outcomes: [
+        {
+          id: 'moneyline',
+          sportsMarketType: 'moneyline',
+          tokens: [
+            { id: 'home-token', title: 'Nigma' },
+            { id: 'away-token', title: '1win' },
+          ],
+        },
+      ],
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for three neg-risk moneylines without an explicit draw', () => {
+    const result = isDrawCapableMarket({
+      game: dota2Game,
+      outcomes: [
+        {
+          id: 'home-moneyline',
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Nigma',
+          negRisk: true,
+          tokens: [{ id: 'home-yes-token', title: 'Yes' }],
+        },
+        {
+          id: 'away-moneyline',
+          sportsMarketType: 'moneyline',
+          groupItemTitle: '1win',
+          negRisk: true,
+          tokens: [{ id: 'away-yes-token', title: 'Yes' }],
+        },
+        {
+          id: 'map-total-moneyline',
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Map Total',
+          negRisk: true,
+          tokens: [{ id: 'map-total-yes-token', title: 'Yes' }],
+        },
+      ],
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('matches draw labels case-insensitively', () => {
+    const result = hasExplicitMoneylineDraw([
+      {
+        id: 'home-moneyline',
+        sportsMarketType: 'moneyline',
+        groupItemTitle: 'Nigma',
+        negRisk: true,
+        tokens: [{ id: 'home-yes-token', title: 'Yes' }],
+      },
+      {
+        id: 'draw-moneyline',
+        sportsMarketType: 'moneyline',
+        groupItemTitle: ' dRaW ',
+        negRisk: true,
+        tokens: [{ id: 'draw-yes-token', title: 'Yes' }],
+      },
+      {
+        id: 'away-moneyline',
+        sportsMarketType: 'moneyline',
+        groupItemTitle: '1win',
+        negRisk: true,
+        tokens: [{ id: 'away-yes-token', title: 'Yes' }],
+      },
+    ]);
+
+    expect(result).toBe(true);
+  });
+
+  it('ignores draw labels on non-moneyline outcomes', () => {
+    const result = isDrawCapableMarket({
+      game: dota2Game,
+      outcomes: [
+        {
+          id: 'moneyline',
+          sportsMarketType: 'moneyline',
+          tokens: [
+            { id: 'home-token', title: 'Nigma' },
+            { id: 'away-token', title: '1win' },
+          ],
+        },
+        {
+          id: 'map-draw',
+          sportsMarketType: 'map_handicap',
+          groupItemTitle: 'Draw',
+          tokens: [{ id: 'map-draw-token', title: 'Draw' }],
+        },
+      ],
+    });
+
+    expect(result).toBe(false);
   });
 });
 
@@ -221,6 +415,49 @@ describe('resolveSportCardButtons', () => {
 
     expect(result.home?.token.id).toBe('home-advance-token');
     expect(result.away?.token.id).toBe('away-advance-token');
+  });
+
+  it('resolves unordered split neg-risk esports draws to distinct tokens', () => {
+    const awayOutcome = {
+      id: 'away-moneyline',
+      sportsMarketType: 'moneyline',
+      groupItemTitle: '1win',
+      negRisk: true,
+      tokens: [{ id: 'away-yes-token', title: 'Yes' }],
+    };
+    const drawOutcome = {
+      id: 'draw-moneyline',
+      sportsMarketType: 'moneyline',
+      groupItemTitle: 'Draw',
+      negRisk: true,
+      tokens: [{ id: 'draw-yes-token', title: 'Yes' }],
+    };
+    const homeOutcome = {
+      id: 'home-moneyline',
+      sportsMarketType: 'moneyline',
+      groupItemTitle: 'Nigma',
+      negRisk: true,
+      tokens: [{ id: 'home-yes-token', title: 'Yes' }],
+    };
+
+    const result = resolveSportCardButtons({
+      outcomes: [awayOutcome, drawOutcome, homeOutcome],
+      game: dota2Game,
+      showDraw: true,
+    });
+
+    expect(result.home).toEqual({
+      outcome: homeOutcome,
+      token: homeOutcome.tokens[0],
+    });
+    expect(result.draw).toEqual({
+      outcome: drawOutcome,
+      token: drawOutcome.tokens[0],
+    });
+    expect(result.away).toEqual({
+      outcome: awayOutcome,
+      token: awayOutcome.tokens[0],
+    });
   });
 });
 

@@ -8,10 +8,24 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictHotTabFlag } from '../../types/flags';
-import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
+import {
+  PredictFeedBannerConfig,
+  PredictFeedCarouselConfig,
+  PredictHotTabFlag,
+} from '../../types/flags';
+import {
+  DEFAULT_HOT_TAB_FLAG,
+  DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+} from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 import { resolvePredictFeatureFlags } from '../../utils/resolvePredictFeatureFlags';
+import {
+  parse,
+  PredictFeedBannerSchema,
+  PredictFeedCarouselSchema,
+} from '../../schemas';
+import { isAllowedPredictDeeplink } from '../../utils/isAllowedPredictDeeplink';
 
 /**
  * Selector for Predict trading feature enablement
@@ -157,6 +171,11 @@ export const selectPredictWorldCupConfig = createSelector(
   (flags) => flags.predictWorldCup,
 );
 
+export const selectPredictSportsFeedConfig = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictSportsFeed,
+);
+
 export const selectPredictWimbledonTabFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWimbledonTab,
@@ -222,6 +241,76 @@ export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
         remoteFeatureFlags?.predictTabFeaturedCarousel,
       ),
     ) ?? false,
+);
+
+export const selectPredictFeedBannerConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictFeedBannerConfig => {
+    const parsedFlag = parse(
+      unwrapRemoteFeatureFlag<PredictFeedBannerConfig>(
+        remoteFeatureFlags?.predictFeedBanner,
+      ),
+      PredictFeedBannerSchema,
+      DEFAULT_PREDICT_FEED_BANNER_FLAG,
+    );
+
+    if (
+      !validatedVersionGatedFeatureFlag(parsedFlag) ||
+      !parsedFlag.id.trim() ||
+      !parsedFlag.title.trim() ||
+      !parsedFlag.description.trim()
+    ) {
+      return DEFAULT_PREDICT_FEED_BANNER_FLAG;
+    }
+
+    return parsedFlag;
+  },
+);
+
+export const selectPredictFeedCarouselConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictFeedCarouselConfig => {
+    const parsedFlag = parse(
+      unwrapRemoteFeatureFlag<PredictFeedCarouselConfig>(
+        remoteFeatureFlags?.predictFeedCarousel,
+      ),
+      PredictFeedCarouselSchema,
+      DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+    );
+
+    if (
+      parsedFlag.mode !== 'custom' ||
+      !validatedVersionGatedFeatureFlag(parsedFlag)
+    ) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    const title = parsedFlag.title?.trim() || undefined;
+    const deeplink = parsedFlag.deeplink?.trim() || undefined;
+
+    if (deeplink && !isAllowedPredictDeeplink(deeplink)) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    return {
+      ...parsedFlag,
+      title,
+      deeplink,
+      contentSource: {
+        ...parsedFlag.contentSource,
+        queryParams: parsedFlag.contentSource.queryParams
+          .trim()
+          .replace(/^\?/, ''),
+        excludedMarketIds: [
+          ...new Set(
+            parsedFlag.contentSource.excludedMarketIds
+              .map((id) => id.trim())
+              .filter(Boolean),
+          ),
+        ],
+      },
+    };
+  },
 );
 
 /**

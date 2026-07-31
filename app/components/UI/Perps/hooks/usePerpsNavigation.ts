@@ -23,6 +23,10 @@ import {
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import {
+  navigateToPerpsHomeTarget,
+  useGetPerpsHomeNavigationTarget,
+} from '../utils/perpsModeSwitch';
 
 /**
  * Navigation handler result interface
@@ -143,13 +147,14 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
   const navigateToHome = useCallback(
     (source?: string) => {
-      navigation.navigate(Routes.PERPS.PERPS_HOME, {
-        source,
-      });
+      const target = getPerpsHomeNavigationTarget({ source });
+      navigateToPerpsHomeTarget(navigation, target);
     },
-    [navigation],
+    [navigation, getPerpsHomeNavigationTarget],
   );
 
   const navigateToMarketList = useCallback(

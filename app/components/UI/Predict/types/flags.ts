@@ -1,8 +1,36 @@
 import { Infer } from '@metamask/superstruct';
 import { PredictFeeCollectionSchema } from '../schemas';
+import type { PredictMarketListOrder } from '../constants/flags';
 import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import type {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../constants/feedBanner';
 
 export type PredictFeeCollection = Infer<typeof PredictFeeCollectionSchema>;
+
+export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
+  id: string;
+  title: string;
+  description: string;
+  position: PredictFeedBannerPosition;
+  severity: PredictFeedBannerSeverity;
+  dismissible: boolean;
+}
+
+export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
+  mode: 'live' | 'custom';
+  title?: string;
+  deeplink?: string;
+  contentSource: {
+    /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
+    composition: 'query-results' | 'live-now';
+    /** Raw Polymarket query params, without a leading `?`. */
+    queryParams: string;
+    /** IDs matching `PredictMarket.id` that are removed from custom results. */
+    excludedMarketIds: string[];
+  };
+}
 
 export interface PredictLiveSportsFlag {
   enabled: boolean;
@@ -50,6 +78,51 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
   stages: PredictWorldCupStageConfig[];
 }
 
+export type PredictSportsFeedChipKind = 'games' | 'props' | 'tag';
+export type PredictSportsFeedChipOrder = PredictMarketListOrder;
+
+export interface PredictSportsFeedChipConfig {
+  id: string;
+  kind: PredictSportsFeedChipKind;
+  titleKey?: string;
+  label?: string;
+  tagSlug?: string;
+  /**
+   * Optional raw `/events/keyset` query string without a leading `?`. When
+   * present, this replaces the generated chip params, with explicit chip-level
+   * order and start-time overrides still applied on top.
+   */
+  queryParams?: string;
+  /**
+   * Optional ordering override. When absent, each chip keeps its generated default.
+   */
+  order?: PredictSportsFeedChipOrder;
+  /**
+   * Optional start-time lower bound in minutes relative to request time. Applies
+   * on top of generated params or `queryParams` and overrides any default
+   * start-time lower bound for this chip. Use `null` to disable the lower bound.
+   */
+  startTimeMinMinutesAgo?: number | null;
+  /**
+   * Optional client-side minimum outcome volume for game-card filtering.
+   * When set, markets below this volume are hidden. When absent, no volume filter.
+   */
+  filterByVolume?: number;
+}
+
+export interface PredictSportsFeedTabConfig {
+  id: string;
+  titleKey?: string;
+  label?: string;
+  tagSlug?: string;
+  defaultFilterId?: string;
+  chips: PredictSportsFeedChipConfig[];
+}
+
+export interface PredictSportsFeedConfig extends VersionGatedFeatureFlag {
+  tabs: PredictSportsFeedTabConfig[];
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -61,6 +134,7 @@ export interface PredictFeatureFlags {
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictSportsFeed: PredictSportsFeedConfig;
   predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
