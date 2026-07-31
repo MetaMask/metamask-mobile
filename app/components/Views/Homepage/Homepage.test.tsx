@@ -354,17 +354,11 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   }),
 }));
 
-// State with preferences needed for NFT section rendering.
-// Homepage is the post-unlock wallet surface, so KeyringController must be unlocked
-// for Top Traders (and other auth-gated sections) to mount.
+// State with preferences needed for NFT section rendering
 const stateWithPreferences = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        isUnlocked: true,
-      },
       PreferencesController: {
         ...backgroundState.PreferencesController,
         isIpfsGatewayEnabled: true,
@@ -582,32 +576,6 @@ describe('Homepage', () => {
       const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(6);
-      });
-    });
-
-    it('does not mount Top Traders while the wallet is locked', () => {
-      const lockedState = {
-        engine: {
-          backgroundState: {
-            ...stateWithPreferences.engine.backgroundState,
-            KeyringController: {
-              ...stateWithPreferences.engine.backgroundState.KeyringController,
-              isUnlocked: false,
-            },
-          },
-        },
-      };
-
-      renderWithProvider(<Homepage />, { state: lockedState });
-
-      const calls = getUseHomeViewedEventCalls();
-      const callBySectionName = (name: string) =>
-        calls.find((c) => c[0]?.sectionName === name)?.[0];
-
-      expect(callBySectionName('top_traders')).toBeUndefined();
-      expect(callBySectionName('defi')?.sectionIndex).toBe(3);
-      calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(5);
       });
     });
   });

@@ -71,8 +71,7 @@ export const useTopTraders = (
   // Also disable automatic focus/reconnect refetches: ReactQueryService wires
   // AppState → focusManager, and react-data-query uses staleTime: 0, so a
   // foreground/reconnect can otherwise run queryFn before React commits
-  // enabled:false after background auto-lock. Unlock / Homepage remount flips
-  // enabled true and fetches.
+  // enabled:false after background auto-lock. Unlock flips enabled true and fetches.
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
