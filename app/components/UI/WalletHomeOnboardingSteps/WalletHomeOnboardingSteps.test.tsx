@@ -858,9 +858,11 @@ describe('WalletHomeOnboardingSteps', () => {
     });
 
     it('clamps an out-of-range persisted step while the notifications step is still shown', async () => {
-      const { store } = renderSteps({
+      const { getByTestId, store } = renderSteps({
         walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 7 },
       });
+
+      expect(getByTestId('steps-root-hero-notifications')).toBeOnTheScreen();
 
       await waitFor(() => {
         expect(

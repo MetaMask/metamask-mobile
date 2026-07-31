@@ -67,6 +67,7 @@ import {
   walletHomeOnboardingCappedVisualStepIndex,
   walletHomeOnboardingMaxPersistedStepIndex,
   walletHomeOnboardingProgressRatioForStep,
+  walletHomeOnboardingShouldHoldRenderForDroppedStep,
   type WalletHomeOnboardingStepKind,
 } from './walletHomeOnboardingStepsModel';
 import { useWalletHomeOnboardingVisibleSteps } from './useWalletHomeOnboardingVisibleSteps';
@@ -153,8 +154,13 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     displayStepIndex,
     totalSteps,
   );
-  /** True while the persisted step outruns the visible steps (resolved by the effect below). */
-  const isStepIndexBeyondVisibleSteps = displayStepIndex > totalSteps - 1;
+
+  const isStepIndexBeyondVisibleSteps =
+    walletHomeOnboardingShouldHoldRenderForDroppedStep({
+      displayStepIndex,
+      stepCount: totalSteps,
+      includeNotificationsStep,
+    });
 
   const [slideX] = useState(() => new Animated.Value(0));
   const [slideY] = useState(() => new Animated.Value(0));
@@ -297,9 +303,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
     if (!includeNotificationsStep) {
-      // The user was already on (or past) the notifications step when the OS push request
-      // happened and dropped that step. They have nothing left to do, so finish the flow
-      // instead of sending them back to a step they already completed.
       dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
       return;
     }
@@ -709,9 +712,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     [totalSteps, visualStepIndexForProgress],
   );
 
-  // The persisted step no longer exists (the notifications step was dropped from under the
-  // user). Render nothing rather than a frame of the previous step with its CTA live — the
-  // effect above completes the flow, which unmounts this tile.
   if (!currentStep || isStepIndexBeyondVisibleSteps) {
     return null;
   }

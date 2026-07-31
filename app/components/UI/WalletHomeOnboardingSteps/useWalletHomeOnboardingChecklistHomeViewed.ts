@@ -45,9 +45,6 @@ export function useWalletHomeOnboardingChecklistHomeViewed({
     }
 
     const displayIdx = isAwaitingBalance ? 0 : stepIndex;
-    // The persisted step outruns the visible steps (e.g. the notifications step was dropped
-    // from under the user). Capping would report the previous step as newly viewed, so stay
-    // quiet until the checklist resolves the step index or completes the flow.
     if (displayIdx > steps.length - 1) {
       return;
     }
@@ -62,7 +59,7 @@ export function useWalletHomeOnboardingChecklistHomeViewed({
     const sectionName =
       walletHomeOnboardingStepKindToHomeViewedSectionName(stepKind);
 
-    const dedupeKey = `${visitId}:${cappedVisual}`;
+    const dedupeKey = `${visitId}:${stepKind}`;
     if (lastFiredVisitStepKeyRef.current === dedupeKey) {
       return;
     }

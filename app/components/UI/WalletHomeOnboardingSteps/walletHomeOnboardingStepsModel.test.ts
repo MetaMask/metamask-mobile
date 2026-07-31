@@ -4,6 +4,7 @@ import {
   walletHomeOnboardingMaxPersistedStepIndex,
   walletHomeOnboardingProgressDenominator,
   walletHomeOnboardingProgressRatioForStep,
+  walletHomeOnboardingShouldHoldRenderForDroppedStep,
   walletHomeOnboardingVisibleSteps,
 } from './walletHomeOnboardingStepsModel';
 
@@ -81,6 +82,45 @@ describe('walletHomeOnboardingStepsModel', () => {
 
     it('clamps at zero for an empty step list', () => {
       expect(walletHomeOnboardingMaxPersistedStepIndex(0)).toBe(0);
+    });
+  });
+
+  describe('walletHomeOnboardingShouldHoldRenderForDroppedStep', () => {
+    it('holds the render when the notifications step was dropped under the user', () => {
+      expect(
+        walletHomeOnboardingShouldHoldRenderForDroppedStep({
+          displayStepIndex: 2,
+          stepCount: 2,
+          includeNotificationsStep: false,
+        }),
+      ).toBe(true);
+    });
+
+    it('still renders a legacy out-of-range step while the notifications step is shown', () => {
+      expect(
+        walletHomeOnboardingShouldHoldRenderForDroppedStep({
+          displayStepIndex: 7,
+          stepCount: 3,
+          includeNotificationsStep: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('never holds the render for an in-range step', () => {
+      expect(
+        walletHomeOnboardingShouldHoldRenderForDroppedStep({
+          displayStepIndex: 1,
+          stepCount: 2,
+          includeNotificationsStep: false,
+        }),
+      ).toBe(false);
+      expect(
+        walletHomeOnboardingShouldHoldRenderForDroppedStep({
+          displayStepIndex: 2,
+          stepCount: 3,
+          includeNotificationsStep: true,
+        }),
+      ).toBe(false);
     });
   });
 

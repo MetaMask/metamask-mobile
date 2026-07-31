@@ -45,12 +45,6 @@ export const selectWalletHomeOnboardingSteps = createSelector(
     WALLET_HOME_ONBOARDING_STEPS_INITIAL,
 );
 
-/**
- * True once the OS push notification permission request has been asked for on this wallet.
- * Guarded with `=== true` so legacy persisted state (field absent) reads as "not asked".
- *
- * @see https://consensyssoftware.atlassian.net/browse/TMCU-924
- */
 export const selectPushNotificationOsPromptRequested = createSelector(
   selectOnboarding,
   (onboardingState) =>

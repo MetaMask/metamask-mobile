@@ -66,3 +66,18 @@ export function walletHomeOnboardingMaxPersistedStepIndex(
 ): number {
   return Math.max(0, stepCount - 1);
 }
+
+export function walletHomeOnboardingShouldHoldRenderForDroppedStep({
+  displayStepIndex,
+  stepCount,
+  includeNotificationsStep,
+}: {
+  displayStepIndex: number;
+  stepCount: number;
+  includeNotificationsStep: boolean;
+}): boolean {
+  return (
+    !includeNotificationsStep &&
+    displayStepIndex > walletHomeOnboardingMaxPersistedStepIndex(stepCount)
+  );
+}

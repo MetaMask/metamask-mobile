@@ -62,8 +62,6 @@ export interface OnboardingState {
    * True once the OS push notification permission request has been asked for. Users who got
    * that far already answered the notifications question, so the wallet home checklist drops
    * its notifications step instead of asking a second time.
-   *
-   * @see https://consensyssoftware.atlassian.net/browse/TMCU-924
    */
   pushNotificationOsPromptRequested: boolean;
 }

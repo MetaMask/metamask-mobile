@@ -243,18 +243,6 @@ export function suppressWalletHomeOnboardingSteps(
   };
 }
 
-/**
- * Records that the app has asked the OS for push notification permission on the user's
- * behalf, so post-onboarding surfaces stop nudging the user about notifications.
- *
- * Dispatched from the single place that makes that request (`requestPushPermissions`), which
- * covers the push pre-prompt "Enable notifications" CTA and every other enable path that
- * nudges for push. The OS itself decides whether a dialog is actually presented (it stays
- * silent once the permission is already granted or permanently denied), so this records the
- * ask rather than a confirmed dialog impression.
- *
- * @see https://consensyssoftware.atlassian.net/browse/TMCU-924
- */
 export function markPushNotificationOsPromptRequested(): MarkPushNotificationOsPromptRequestedAction {
   return {
     type: MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
