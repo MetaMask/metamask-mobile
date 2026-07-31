@@ -18,7 +18,9 @@ const TEST_SNAPS_WEBVIEW_OPTIONS = {
 };
 
 appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
-  appiumTest.describe.configure({ timeout: 150_000 });
+  // Serial: later cases reuse the installed Snap / Appium session from the connect test.
+  // this will allow the test to fail fast
+  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
 
   appiumTest(
     'can connect to the background events Snap',
@@ -41,21 +43,20 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
         currentDeviceDetails,
         { restartDevice: false },
         async () => {
-          // Longer futureDate to ensure the event fires after the test has finished interacting with the app.
-          const futureDate = new Date(Date.now() + 30_000).toISOString();
+          const futureDate = new Date(Date.now() + 5_000).toISOString();
 
           await TestSnaps.fillMessage('backgroundEventDateInput', futureDate);
           await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
+          await TestSnaps.checkResultSpanNotEmpty(
+            'scheduleBackgroundEventResultSpan',
+            { timeout: 30_000, interval: 500 },
+          );
 
           await Assertions.expectTextDisplayed(
             'This dialog was triggered by a background event',
             { timeout: 30_000 },
           );
           await TestSnaps.tapFooterButton();
-          await TestSnaps.checkResultSpanNotEmpty(
-            'scheduleBackgroundEventResultSpan',
-            { timeout: 30_000, interval: 500 },
-          );
         },
       );
     },
@@ -72,15 +73,16 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
           await TestSnaps.tapButton(
             'scheduleBackgroundEventWithDurationButton',
           );
+          await TestSnaps.checkResultSpanNotEmpty(
+            'scheduleBackgroundEventResultSpan',
+            { timeout: 30_000, interval: 500 },
+          );
+
           await Assertions.expectTextDisplayed(
             'This dialog was triggered by a background event',
             { timeout: 30_000 },
           );
           await TestSnaps.tapFooterButton();
-          await TestSnaps.checkResultSpanNotEmpty(
-            'scheduleBackgroundEventResultSpan',
-            { timeout: 30_000, interval: 500 },
-          );
         },
       );
     },
