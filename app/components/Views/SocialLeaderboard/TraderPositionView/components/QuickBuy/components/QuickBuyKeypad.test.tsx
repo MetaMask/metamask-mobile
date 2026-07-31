@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import QuickBuyKeypad from './QuickBuyKeypad';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -10,20 +10,6 @@ jest.mock('../useQuickBuyContext', () => ({
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
-}));
-
-jest.mock('../utils/quickBuyQuickAmounts', () => {
-  const actual = jest.requireActual('../utils/quickBuyQuickAmounts');
-  return {
-    ...actual,
-  };
-});
-
-jest.mock('../../../../../../../util/haptics', () => ({
-  ...jest.requireActual<typeof import('../../../../../../../util/haptics')>(
-    '../../../../../../../util/haptics',
-  ),
-  useHaptics: jest.fn(() => ({ playImpact: jest.fn() })),
 }));
 
 const mockKeypad = jest.fn(
@@ -55,7 +41,6 @@ jest.mock('../../../../../../Base/Keypad', () => ({
 }));
 
 const baseContext = {
-  useKeyboard: true,
   isKeypadOpen: true,
   hasSourcePrice: true,
   fiatAmount: '',
@@ -81,18 +66,7 @@ describe('QuickBuyKeypad', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue(baseContext);
   });
 
-  it('renders nothing on the slider control variant', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      useKeyboard: false,
-    });
-
-    renderWithProvider(<QuickBuyKeypad />);
-
-    expect(screen.queryByTestId('quick-buy-keypad')).toBeNull();
-  });
-
-  it('renders nothing when the keypad is dismissed', () => {
+  it('renders nothing when the keypad is dismissed and has never opened', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       isKeypadOpen: false,
@@ -107,7 +81,7 @@ describe('QuickBuyKeypad', () => {
     renderWithProvider(<QuickBuyKeypad />);
 
     expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-keypad-done')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-keypad-done')).toBeNull();
 
     const { onChange } = mockKeypad.mock.calls.at(-1)?.[0] ?? {};
     onChange?.({ value: '5' });
@@ -127,20 +101,6 @@ describe('QuickBuyKeypad', () => {
     expect(screen.getByTestId('keypad-mock').props.accessibilityLabel).toBe(
       'EUR:250,5',
     );
-  });
-
-  it('cleans a trailing decimal and dismisses the keypad when Done is pressed', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      fiatAmount: '250.',
-    });
-
-    renderWithProvider(<QuickBuyKeypad />);
-
-    fireEvent.press(screen.getByTestId('quick-buy-keypad-done'));
-
-    expect(baseContext.handleAmountChange).toHaveBeenCalledWith('250');
-    expect(baseContext.setIsKeypadOpen).toHaveBeenCalledWith(false);
   });
 
   it('appends to the source token amount for an unpriced source', () => {

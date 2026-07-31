@@ -1513,6 +1513,7 @@
       "size_usd": "साइज़ USD",
       "size_percentage": "ऑर्डर साइज़ का प्रतिशत",
       "toggle_size_unit": "साइज़ डिनॉमिनेशन बदलें",
+      "available_balance": "{{amount}} उपलब्ध",
       "available_balance_unavailable": "-- उपलब्ध",
       "est_liquidation": "अनुमानित लिक्विडेशन",
       "tpsl": "TP / SL",

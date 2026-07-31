@@ -1,6 +1,7 @@
 export const SocialTradersTabsViewSelectorsIDs = {
   CONTAINER: 'social-traders-tabs-view-container',
   HEADER: 'social-traders-tabs-view-header',
+  HEADER_TITLE: 'social-traders-tabs-view-header-title',
   TITLE: 'social-traders-tabs-view-title',
   TABS: 'social-traders-tabs-view-tabs',
   PAGER: 'social-traders-tabs-view-pager',

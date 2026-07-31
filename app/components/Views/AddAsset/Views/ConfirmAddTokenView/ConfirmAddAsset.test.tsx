@@ -152,7 +152,7 @@ describe('ConfirmAddAsset', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls addTokenList and navigates to wallet when import button is pressed', async () => {
+  it('calls addTokenList and navigates to tokens full view when import button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
@@ -163,12 +163,7 @@ describe('ConfirmAddAsset', () => {
     await userEvent.press(importButton);
 
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
 
   it('shows loading feedback and prevents duplicate import presses', async () => {
@@ -203,12 +198,7 @@ describe('ConfirmAddAsset', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
     });
   });
 
@@ -235,12 +225,9 @@ describe('ConfirmAddAsset', () => {
       getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
     ).toBeEnabled();
     expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeEnabled();
-    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.WALLET.TOKENS_FULL_VIEW,
+    );
   });
 
   it('renders without crashing when asset has no image', () => {

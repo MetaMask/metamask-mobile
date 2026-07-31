@@ -113,7 +113,8 @@ describe('useQuickBuyQuickAmountPreferences', () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
       JSON.stringify({
         currency: 'USD',
-        buyAmounts: [50_000, 50, 100, 250],
+        // Above BUY_AMOUNT_MAX_VALID_USD (9_999_999)
+        buyAmounts: [10_000_000, 50, 100, 250],
         sellPercentages: [25, 50, 75, 100],
       }),
     );

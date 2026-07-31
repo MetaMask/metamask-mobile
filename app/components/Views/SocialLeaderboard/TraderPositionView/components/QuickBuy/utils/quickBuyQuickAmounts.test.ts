@@ -1,7 +1,4 @@
-import {
-  formatCurrency,
-  getCurrencySymbol,
-} from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import {
   formatQuickBuyPillLabel,
   getBuyQuickAmounts,
@@ -15,12 +12,15 @@ jest.mock('../../../../../../UI/Bridge/utils/currencyUtils', () => ({
   formatCurrency: jest.fn(
     (amount: number, currency: string) => `${currency}:${amount}`,
   ),
-  getCurrencySymbol: jest.fn((currency: string) => `$${currency}`),
 }));
+
+const defaultFormatCurrencyMock = (amount: number, currency: string) =>
+  `${currency}:${amount}`;
 
 describe('quickBuyQuickAmounts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (formatCurrency as jest.Mock).mockImplementation(defaultFormatCurrencyMock);
   });
 
   describe('snapToNiceFiatAmount', () => {
@@ -47,8 +47,9 @@ describe('quickBuyQuickAmounts', () => {
   });
 
   describe('formatQuickBuyPillLabel', () => {
-    it('uses full currency formatting for standard-magnitude currencies', () => {
+    it('uses full currency formatting below the compact threshold', () => {
       expect(formatQuickBuyPillLabel(10, 'USD')).toBe('USD:10');
+      expect(formatQuickBuyPillLabel(999, 'USD')).toBe('USD:999');
       expect(formatCurrency).toHaveBeenCalledWith(10, 'USD', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
@@ -56,16 +57,31 @@ describe('quickBuyQuickAmounts', () => {
       });
     });
 
-    it('uses compact K labels for high-magnitude JPY amounts', () => {
-      expect(formatQuickBuyPillLabel(1500, 'JPY')).toBe('$JPY1.5K');
-      expect(formatQuickBuyPillLabel(15000, 'JPY')).toBe('$JPY15K');
-      expect(formatCurrency).not.toHaveBeenCalled();
+    it('keeps locale currency placement when applying compact K/M labels', () => {
+      expect(formatQuickBuyPillLabel(1000, 'USD')).toBe('USD:1K');
+      expect(formatQuickBuyPillLabel(1500, 'EUR')).toBe('EUR:1.5K');
+      expect(formatQuickBuyPillLabel(1500, 'JPY')).toBe('JPY:1.5K');
+      expect(formatQuickBuyPillLabel(15000, 'JPY')).toBe('JPY:15K');
+      expect(formatCurrency).toHaveBeenCalledWith(1000, 'USD', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+        useGrouping: false,
+      });
     });
 
-    it('uses compact K/M labels for IDR and KRW', () => {
-      expect(formatQuickBuyPillLabel(200_000, 'IDR')).toBe('$IDR200K');
-      expect(formatQuickBuyPillLabel(3_500_000, 'KRW')).toBe('$KRW3.5M');
-      expect(getCurrencySymbol).toHaveBeenCalledWith('IDR');
+    it('uses compact K/M labels for large IDR and KRW amounts', () => {
+      expect(formatQuickBuyPillLabel(200_000, 'IDR')).toBe('IDR:200K');
+      expect(formatQuickBuyPillLabel(3_500_000, 'KRW')).toBe('KRW:3.5M');
+    });
+
+    it('preserves suffix currency placement from formatCurrency', () => {
+      (formatCurrency as jest.Mock).mockImplementation(
+        (amount: number, currency: string) => `${amount} ${currency}`,
+      );
+
+      expect(formatQuickBuyPillLabel(10, 'USD')).toBe('10 USD');
+      expect(formatQuickBuyPillLabel(1500, 'USD')).toBe('1.5K USD');
+      expect(formatQuickBuyPillLabel(3_500_000, 'USD')).toBe('3.5M USD');
     });
   });
 
@@ -103,18 +119,18 @@ describe('quickBuyQuickAmounts', () => {
 
       expect(options[0]).toEqual({
         value: 1500,
-        label: '$JPY1.5K',
+        label: 'JPY:1.5K',
         presetValue: 1500,
       });
       expect(options[3]?.value).toBe(50000);
-      expect(options[3]?.label).toBe('$JPY50K');
+      expect(options[3]?.label).toBe('JPY:50K');
     });
 
     it('normalizes lowercase currency codes', () => {
       const options = getBuyQuickAmounts('jpy', 150);
 
       expect(options[0]?.value).toBe(1500);
-      expect(options[0]?.label).toBe('$JPY1.5K');
+      expect(options[0]?.label).toBe('JPY:1.5K');
     });
 
     it('uses a 1:1 multiplier when the USD conversion rate is unavailable', () => {

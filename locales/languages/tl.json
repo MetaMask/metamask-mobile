@@ -1513,6 +1513,7 @@
       "size_usd": "Laki USD",
       "size_percentage": "Porsiyento ng laki ng order",
       "toggle_size_unit": "Palitan ang laki ng denominasyon",
+      "available_balance": "{{amount}} available",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Tinatayang Liquidation",
       "tpsl": "TP / SL",
