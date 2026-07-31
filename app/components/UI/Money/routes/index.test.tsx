@@ -59,9 +59,6 @@ jest.mock('@react-navigation/native-stack', () => ({
         {children}
       </MockView>
     ),
-    Group: ({ children }: { children: React.ReactNode }) => (
-      <MockView testID="money-stack-group">{children}</MockView>
-    ),
     Screen: ({ name }: { name: string }) => (
       <MockView testID={`money-screen-${name}`}>
         <MockText>{name}</MockText>

@@ -15,16 +15,14 @@ interface MockNavigatorProps {
 }
 
 /**
- * Version-resilient stub returned by `createNativeStackNavigator` in unit tests.
+ * Shared stub returned by `createNativeStackNavigator` in unit tests.
  *
- * Prefer this over hand-rolled `{ Navigator, Screen }` objects so tests keep a
- * `Group` key (and any future factory keys) without asserting on library
- * option names that change across React Navigation majors.
+ * Prefer this over hand-rolled `{ Navigator, Screen }` objects so route tests
+ * share one passthrough mock instead of asserting on library option names.
  */
 export function createMockNativeStackNavigator() {
   return {
     Navigator: ({ children }: MockNavigatorProps) => <>{children}</>,
-    Group: ({ children }: MockNavigatorProps) => <>{children}</>,
     Screen: ({
       component: Component,
       children,
