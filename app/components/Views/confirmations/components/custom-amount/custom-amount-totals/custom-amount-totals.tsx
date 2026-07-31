@@ -6,16 +6,6 @@ import { ReceiveRow } from '../../rows/receive-row';
 import { InfoRowSkeleton } from '../../UI/info-row/info-row';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 
-function PaymentDetailsSkeleton() {
-  return (
-    <>
-      <InfoRowSkeleton testId="bridge-fee-row-skeleton" />
-      <InfoRowSkeleton testId="bridge-time-row-skeleton" />
-      <InfoRowSkeleton testId="total-row-skeleton" />
-    </>
-  );
-}
-
 export function CustomAmountTotals({
   amountFiat,
   canSelectWithdrawToken,
@@ -26,7 +16,7 @@ export function CustomAmountTotals({
   stage: CustomAmountStage;
 }>) {
   if (stage === CustomAmountStage.Loading) {
-    return <PaymentDetailsSkeleton />;
+    return <CustomAmountTotalsSkeleton />;
   }
 
   if (stage === CustomAmountStage.NoQuote) {
@@ -42,6 +32,16 @@ export function CustomAmountTotals({
       ) : (
         <TotalRow />
       )}
+    </>
+  );
+}
+
+function CustomAmountTotalsSkeleton() {
+  return (
+    <>
+      <InfoRowSkeleton testId="bridge-fee-row-skeleton" />
+      <InfoRowSkeleton testId="bridge-time-row-skeleton" />
+      <InfoRowSkeleton testId="total-row-skeleton" />
     </>
   );
 }

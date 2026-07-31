@@ -23,40 +23,6 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 
-function useButtonLabel() {
-  const transaction = useTransactionMetadataRequest();
-  const { payWithOption } = useParams<ConfirmationParams>({});
-
-  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
-  }
-
-  if (
-    hasTransactionType(transaction, [
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-  ) {
-    return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirm');
-  }
-
-  if (
-    payWithOption === PayWithOption.MoneyAccount &&
-    hasTransactionType(transaction, [
-      TransactionType.perpsDeposit,
-      TransactionType.predictDeposit,
-    ])
-  ) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
-  }
-
-  return strings('confirm.deposit_edit_amount_done');
-}
-
 export function CustomAmountConfirmButton({
   alertTitle,
   isDisabled,
@@ -114,4 +80,38 @@ export function CustomAmountConfirmButton({
       {buttonLabel}
     </Button>
   );
+}
+
+function useButtonLabel() {
+  const transaction = useTransactionMetadataRequest();
+  const { payWithOption } = useParams<ConfirmationParams>({});
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
+  }
+
+  if (
+    hasTransactionType(transaction, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+    ])
+  ) {
+    return strings('confirm.deposit_edit_amount_predict_withdraw');
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
+    return strings('earn.musd_conversion.confirm');
+  }
+
+  if (
+    payWithOption === PayWithOption.MoneyAccount &&
+    hasTransactionType(transaction, [
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])
+  ) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
+  }
+
+  return strings('confirm.deposit_edit_amount_done');
 }
