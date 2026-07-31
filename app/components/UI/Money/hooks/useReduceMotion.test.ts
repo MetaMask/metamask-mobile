@@ -1,6 +1,6 @@
 import { AccessibilityInfo } from 'react-native';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useReduceMotion } from './useReduceMotion';
+import { useReduceMotion, useReduceMotionState } from './useReduceMotion';
 
 describe('useReduceMotion', () => {
   const mockRemove = jest.fn();
@@ -66,5 +66,53 @@ describe('useReduceMotion', () => {
     unmount();
 
     expect(mockRemove).toHaveBeenCalledTimes(1);
+  });
+
+  describe('useReduceMotionState', () => {
+    it('returns null before the initial value resolves', () => {
+      jest
+        .spyOn(AccessibilityInfo, 'isReduceMotionEnabled')
+        .mockReturnValue(new Promise(() => undefined));
+
+      const { result } = renderHook(() => useReduceMotionState());
+
+      expect(result.current).toBeNull();
+    });
+
+    it('resolves to false once the check reports reduce motion is off', async () => {
+      const { result } = renderHook(() => useReduceMotionState());
+
+      await waitFor(() => expect(result.current).toBe(false));
+    });
+
+    it('resolves to true when reduce motion is enabled', async () => {
+      jest
+        .spyOn(AccessibilityInfo, 'isReduceMotionEnabled')
+        .mockResolvedValue(true);
+
+      const { result } = renderHook(() => useReduceMotionState());
+
+      await waitFor(() => expect(result.current).toBe(true));
+    });
+
+    it('updates when the reduceMotionChanged event fires', async () => {
+      const { result } = renderHook(() => useReduceMotionState());
+
+      await waitFor(() => expect(result.current).toBe(false));
+
+      act(() => {
+        capturedListener?.(true);
+      });
+
+      expect(result.current).toBe(true);
+    });
+
+    it('removes the listener on unmount', () => {
+      const { unmount } = renderHook(() => useReduceMotionState());
+
+      unmount();
+
+      expect(mockRemove).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -103,6 +103,13 @@ yarn install:ios:dev --skipInstall
 yarn install:android:dev --skipInstall
 ```
 
+Re-runs skip the download when the GitHub Actions artifact digest matches a local cache under `build/gh-expo-dev-build/`. Force a fresh download with `--force-download`:
+
+```bash
+yarn install:ios:dev --force-download
+yarn install:android:dev --force-download
+```
+
 Artifacts land under `build/` (`MetaMask.app` on iOS, `metamask-dev.apk` on Android). The workflow run id is saved to `build/expo-dev-build-run-id.txt`.
 
 **Manual download from GitHub Actions:**

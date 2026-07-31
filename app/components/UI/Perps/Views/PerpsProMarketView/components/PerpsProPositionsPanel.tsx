@@ -1,27 +1,328 @@
-import { Box } from '@metamask/design-system-react-native';
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSize,
+  ButtonVariant,
+  Checkbox,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import React, { useMemo, useState } from 'react';
+import { strings } from '../../../../../../../locales/i18n';
+import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
+import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
+import {
+  usePerpsLiveOrders,
+  usePerpsLivePositions,
+} from '../../../hooks/stream';
+import {
+  getPerpsProOrderRowSelector,
+  getPerpsProPositionRowSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
+import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations';
+import PerpsProOrderCard from './PerpsProOrderCard';
+import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
+import PerpsProPositionCard from './PerpsProPositionCard';
+import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
+import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
+import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
+import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
+import {
+  DEFAULT_PRO_POSITION_SIDE_FILTER,
+  filterProPositionsBySide,
+  getProPositionSideFilterButtonLabelKey,
+  getProPositionSideFilterEmptyDescriptionKey,
+  type ProPositionSideFilter,
+} from '../utils/proPositionSideFilter';
+import {
+  DEFAULT_PRO_POSITION_SORT,
+  sortProPositions,
+  type ProPositionSortConfig,
+} from '../utils/proPositionSort';
 
-const styles = StyleSheet.create({
-  body: {
-    minHeight: 200,
-  },
-});
+const POSITIONS_TAB_INDEX = 0;
+const ORDERS_TAB_INDEX = 1;
+
+interface PerpsProPositionsPanelProps {
+  symbol: string;
+}
 
 /**
- * Pro-mode positions/orders section placeholder.
+ * Pro-mode positions/orders section.
  *
- * Scaffold only: empty container matching the Figma tabs/filter/summary/list
- * area. No ticket currently scopes its content.
+ * Renders the two-tab bar (Positions / Orders) matching the Figma design.
+ * The Positions tab shows the user's open positions across all assets,
+ * falling back to an empty state when there are none.
+ * The `$TICKER only` checkbox filters positions (not orders) to the current
+ * market. The Orders tab shows the user's open orders.
+ *
+ * Summary P&L and position cards always share one data flow: derive
+ * `visiblePositions`, compute `aggregateTotals` from that array, and render
+ * both from those results so filter state never swaps data freshness sources.
  */
-const PerpsProPositionsPanel = () => (
-  <Box
-    testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL}
-    twClassName="px-4 py-3"
-  >
-    <Box twClassName="rounded-xl bg-muted" style={styles.body} />
-  </Box>
-);
+const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
+  const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
+  const [isTickerOnly, setIsTickerOnly] = useState(false);
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const [isSideFilterSheetOpen, setIsSideFilterSheetOpen] = useState(false);
+  const [sideFilter, setSideFilter] = useState<ProPositionSideFilter>(
+    DEFAULT_PRO_POSITION_SIDE_FILTER,
+  );
+  const [sortConfig, setSortConfig] = useState<ProPositionSortConfig>(
+    DEFAULT_PRO_POSITION_SORT,
+  );
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000,
+    useLivePnl: true,
+  });
+  const { orders, isInitialLoading: areOrdersInitiallyLoading } =
+    usePerpsLiveOrders({ throttleMs: 1000 });
+  const {
+    handleClosePosition,
+    handleReversePosition,
+    handleSharePosition,
+    handleEditPositionTpSl,
+    handleEditPositionMargin,
+    handleCancelOrder,
+    handleCloseAllPress,
+    cancelingOrderId,
+    isOrderCancelable,
+    isPositionMarginEditable,
+    renderActionSheets,
+  } = usePerpsProPositionsPanelActions();
+  const { markets } = usePerpsMarkets();
+
+  const fundingRatesBySymbol = useMemo(
+    () =>
+      Object.fromEntries(
+        markets.map((market) => [market.symbol, market.fundingRate]),
+      ),
+    [markets],
+  );
+
+  const visiblePositions = useMemo(
+    () =>
+      isTickerOnly
+        ? positions.filter(
+            (position) => getPerpsDisplaySymbol(position.symbol) === symbol,
+          )
+        : positions,
+    [isTickerOnly, positions, symbol],
+  );
+
+  const sideFilteredPositions = useMemo(
+    () => filterProPositionsBySide(visiblePositions, sideFilter),
+    [sideFilter, visiblePositions],
+  );
+
+  const sortedVisiblePositions = useMemo(
+    () =>
+      sortProPositions(sideFilteredPositions, sortConfig, fundingRatesBySymbol),
+    [fundingRatesBySymbol, sideFilteredPositions, sortConfig],
+  );
+
+  const aggregateTotals = useMemo(
+    () => calculatePositionAggregateTotals(sideFilteredPositions),
+    [sideFilteredPositions],
+  );
+
+  const openPositionsCount = sideFilteredPositions.length;
+  const positionsTabLabel =
+    openPositionsCount > 0
+      ? strings('perps.pro_positions_panel.positions_with_count', {
+          count: openPositionsCount,
+        })
+      : strings('perps.pro_positions_panel.positions');
+
+  const openOrdersCount = orders.length;
+  const ordersTabLabel =
+    openOrdersCount > 0
+      ? strings('perps.pro_positions_panel.orders_with_count', {
+          count: openOrdersCount,
+        })
+      : strings('perps.pro_positions_panel.orders');
+
+  const tabs: TabItem[] = [
+    {
+      key: 'positions',
+      label: positionsTabLabel,
+      content: null,
+      testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
+    },
+    {
+      key: 'orders',
+      label: ordersTabLabel,
+      content: null,
+      testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+    },
+  ];
+
+  const hasPositions = sortedVisiblePositions.length > 0;
+  const hasAnyPositions = positions.length > 0;
+  const isSideFilterEmpty =
+    sideFilter !== 'all' &&
+    sideFilteredPositions.length === 0 &&
+    visiblePositions.length > 0;
+  const sideFilterEmptyDescriptionKey = isSideFilterEmpty
+    ? getProPositionSideFilterEmptyDescriptionKey(sideFilter)
+    : undefined;
+  const filteredTicker =
+    isTickerOnly &&
+    hasAnyPositions &&
+    visiblePositions.length === 0 &&
+    !isSideFilterEmpty
+      ? symbol
+      : undefined;
+
+  const renderPositionsTab = () => {
+    if (hasPositions) {
+      return (
+        <Box testID={PerpsProMarketViewSelectorsIDs.POSITIONS_LIST}>
+          <PerpsProUnrealizedPnl
+            unrealizedPnl={aggregateTotals.unrealizedPnl}
+            returnOnEquity={aggregateTotals.returnOnEquity}
+            onCloseAll={handleCloseAllPress}
+          />
+          {sortedVisiblePositions.map((position) => (
+            <PerpsProPositionCard
+              key={position.symbol}
+              position={position}
+              testID={getPerpsProPositionRowSelector(position.symbol)}
+              onClose={handleClosePosition}
+              onReverse={handleReversePosition}
+              onShare={handleSharePosition}
+              onEditTpSl={handleEditPositionTpSl}
+              onEditMargin={handleEditPositionMargin}
+              isEditMarginDisabled={!isPositionMarginEditable(position)}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    // Avoid flashing the empty state while the first stream update is pending.
+    if (isInitialLoading) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="items-center justify-center px-2 pt-6">
+        <PerpsProPositionsEmptyState
+          filteredTicker={filteredTicker}
+          filteredSideDescriptionKey={sideFilterEmptyDescriptionKey}
+        />
+      </Box>
+    );
+  };
+
+  const renderOrdersTab = () => {
+    if (orders.length > 0) {
+      return (
+        <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
+          {orders.map((order, index) => (
+            <PerpsProOrderCard
+              key={order.orderId}
+              order={order}
+              testID={getPerpsProOrderRowSelector(order.symbol, index)}
+              onCancel={handleCancelOrder}
+              isCancelDisabled={
+                !isOrderCancelable(order) || cancelingOrderId !== null
+              }
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    if (areOrdersInitiallyLoading) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="items-center justify-center px-2 pt-6">
+        <PerpsProOrdersEmptyState />
+      </Box>
+    );
+  };
+
+  return (
+    <Box
+      testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL}
+      twClassName="py-3"
+    >
+      {/* TabsBar hardcodes its own px-4 (16px) internally — 8px more than
+          the px-2 (8px) inset the rest of this panel's rows use below, which
+          reads as extra padding on the tab labels. Pull it back in with a
+          matching negative margin instead of touching the shared component's
+          own padding (used by other tab bars across the app). */}
+      <TabsBar
+        tabs={tabs}
+        activeIndex={activeIndex}
+        onTabPress={setActiveIndex}
+        twClassName="-mx-2"
+        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
+      />
+      {activeIndex === POSITIONS_TAB_INDEX && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2 px-2 pt-3"
+        >
+          <ButtonIcon
+            iconName={IconName.Customize}
+            accessibilityLabel={strings(
+              'perps.pro_positions_panel.sort.settings_accessibility',
+            )}
+            size={ButtonIconSize.Md}
+            onPress={() => setIsSortSheetOpen(true)}
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
+          />
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            endIconName={IconName.ArrowDown}
+            onPress={() => setIsSideFilterSheetOpen(true)}
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
+          >
+            {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
+          </Button>
+          <Checkbox
+            label={strings('perps.pro_positions_panel.ticker_only', {
+              ticker: symbol,
+            })}
+            isSelected={isTickerOnly}
+            onChange={setIsTickerOnly}
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
+          />
+        </Box>
+      )}
+      {activeIndex === ORDERS_TAB_INDEX
+        ? renderOrdersTab()
+        : renderPositionsTab()}
+      {renderActionSheets()}
+      <PerpsProPositionsSortSheet
+        isVisible={isSortSheetOpen}
+        sortConfig={sortConfig}
+        onApply={setSortConfig}
+        onClose={() => setIsSortSheetOpen(false)}
+        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}
+      />
+      <PerpsProPositionsSideFilterSheet
+        isVisible={isSideFilterSheetOpen}
+        sideFilter={sideFilter}
+        onApply={setSideFilter}
+        onClose={() => setIsSideFilterSheetOpen(false)}
+        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}
+      />
+    </Box>
+  );
+};
 
 export default PerpsProPositionsPanel;

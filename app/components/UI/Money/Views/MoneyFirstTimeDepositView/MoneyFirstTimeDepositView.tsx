@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { BackHandler, PixelRatio, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Rive, {
   AutoBind,
@@ -13,6 +14,13 @@ import Rive, {
 import { createProjectLogger } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useReduceMotion } from '../../hooks/useReduceMotion';
+import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
+import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
+import {
+  pitchToParallaxValue,
+  tiltToParallaxValue,
+} from '../../utils/parallax';
 import { SCREEN_NAMES } from '../../constants/moneyEvents';
 import { MoneyFirstTimeDepositViewTestIds } from './MoneyFirstTimeDepositView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -40,6 +48,12 @@ const BUTTON_TEXT_PATH = 'button';
 /** Text data-binding path for the body copy shown during the animation. */
 const RIVE_CONTENT_PATH = 'content';
 
+/** Number data-binding (0–100) driving the coins' horizontal parallax. */
+const RIVE_X_VALUE_PATH = 'xValue';
+
+/** Number data-binding (0–100) driving the coins' vertical parallax. */
+const RIVE_Y_VALUE_PATH = 'yValue';
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -52,6 +66,9 @@ const MoneyFirstTimeDepositView = () => {
   const { trackScreenViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_FIRST_TIME_DEPOSIT,
   });
+
+  const parallaxEnabled = useSelector(selectMoneyParallaxAnimationEnabledFlag);
+  const reduceMotion = useReduceMotion();
 
   const [ref, riveRef] = useRive();
 
@@ -93,6 +110,21 @@ const MoneyFirstTimeDepositView = () => {
     setContent(strings('money.first_time_deposit.content'));
     setButtonText(strings('money.first_time_deposit.button_text'));
   }, [riveRef, setTitle, setContent, setButtonText]);
+
+  const applyTilt = useCallback(
+    (x: number, y: number) => {
+      // viewTag() is null while the native Rive view is detached; dispatching
+      // then throws "found null reactTag".
+      if (!riveRef || riveRef.viewTag() === null) return;
+      riveRef.setNumber(RIVE_X_VALUE_PATH, tiltToParallaxValue(x));
+      riveRef.setNumber(RIVE_Y_VALUE_PATH, pitchToParallaxValue(y));
+    },
+    [riveRef],
+  );
+
+  useDeviceOrientation(applyTilt, {
+    enabled: parallaxEnabled && !reduceMotion,
+  });
 
   const handleError = useCallback(
     (riveError: RNRiveError) => {

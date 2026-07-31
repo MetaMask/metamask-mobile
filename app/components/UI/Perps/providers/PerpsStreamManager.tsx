@@ -43,6 +43,7 @@ import {
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import {
+  buildPerpsCufStartTags,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
 } from '../utils/perpsCufTrace';
@@ -630,6 +631,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       name: TraceName.PerpsWebSocketFirstPrice,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
     this.wsConnectionStartTime = performance.now();
 
@@ -809,6 +811,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           name: TraceName.PerpsWebSocketFirstPrice,
           id: this.firstDataTraceId,
           op: TraceOperation.PerpsOperation,
+          tags: buildPerpsCufStartTags(),
         });
         this.wsConnectionStartTime = performance.now();
 
@@ -1647,6 +1650,7 @@ class TopOfBookStreamChannel extends StreamChannel<
       name: TraceName.PerpsWebSocketFirstOrderBook,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
     this.wsConnectionStartTime = performance.now();
 
@@ -2285,39 +2289,6 @@ export class PerpsStreamManager {
     )?.catch(() => {
       /* fire-and-forget */
     });
-  }
-
-  /**
-   * Pause all stream channels — stops emitting updates to subscribers while
-   * keeping WebSocket subscriptions alive and cache warm. Call when the Perps
-   * UI is not visible to avoid unnecessary processing.
-   */
-  public pauseAllChannels(): void {
-    this.prices.pause();
-    this.orders.pause();
-    this.positions.pause();
-    this.fills.pause();
-    this.account.pause();
-    this.oiCaps.pause();
-    this.topOfBook.pause();
-    this.focusedPrice.pause();
-    this.candles.pause();
-  }
-
-  /**
-   * Resume all stream channels after a pause. Subscribers will receive the
-   * next update pushed by the WebSocket.
-   */
-  public resumeAllChannels(): void {
-    this.prices.resume();
-    this.orders.resume();
-    this.positions.resume();
-    this.fills.resume();
-    this.account.resume();
-    this.oiCaps.resume();
-    this.topOfBook.resume();
-    this.focusedPrice.resume();
-    this.candles.resume();
   }
 
   /**

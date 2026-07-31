@@ -8,18 +8,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
-  FontWeight,
-  IconName,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../UI/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
@@ -38,6 +29,7 @@ import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
 import MarketInsightsDisclaimerBottomSheet from '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
+import { WhatsHappeningAIGeneratedLabel } from '../../UI/WhatsHappening/components';
 import PageIndicator from './components/PageIndicator';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -68,7 +60,7 @@ interface WhatsHappeningDetailParams {
 }
 
 const WhatsHappeningDetailView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
@@ -255,24 +247,11 @@ const WhatsHappeningDetailView = () => {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-default`}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-2 py-2"
-      >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={handleBackPress}
-          testID="whats-happening-detail-back-button"
-        />
-        <Box twClassName="flex-1 items-center">
-          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('whats_happening.title')}
-          </Text>
-        </Box>
-        <Box twClassName="w-10" />
-      </Box>
+      <HeaderStandard
+        title={strings('whats_happening.title')}
+        onBack={handleBackPress}
+        backButtonProps={{ testID: 'whats-happening-detail-back-button' }}
+      />
 
       <PerpsStreamProvider>
         <Box twClassName="flex-1">
@@ -327,10 +306,16 @@ const WhatsHappeningDetailView = () => {
                       onSourcesPress={(articles) =>
                         handleSourcesPress(articles, item, index)
                       }
-                      onAIDisclaimerPress={handleAIDisclaimerPress}
                     />
                   ))}
               </ScrollView>
+
+              {items.length > 0 && (
+                <WhatsHappeningAIGeneratedLabel
+                  onInfoPress={handleAIDisclaimerPress}
+                  twClassName="mt-1 mb-4 justify-center"
+                />
+              )}
 
               <PageIndicator count={items.length} activeIndex={currentIndex} />
             </>

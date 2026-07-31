@@ -45,6 +45,7 @@ const styleSheet = (params: {
           default: screenBottomPadding + 16,
         }),
         borderWidth: 1,
+        borderBottomWidth: 0,
         borderColor: colors.border.muted,
         ...(isFullscreen && { height: maxSheetHeight }),
         ...shadows.size.lg,

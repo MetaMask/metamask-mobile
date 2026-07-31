@@ -5,7 +5,10 @@ import {
   ButtonIconVariant,
 } from '../../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import {
@@ -16,7 +19,6 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import { hasTransactionType } from '../../../utils/transaction';
 
 const IGNORED_TRANSACTION_TYPES = [TransactionType.musdConversion];
 
