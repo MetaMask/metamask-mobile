@@ -7,10 +7,12 @@
 # All other build parameters (TestFlight group, external distribution, runner
 # provider) use the defaults of build-and-upload-to-testflight.yml.
 #
-# NOTE: issue_comment always runs from the default branch (main). To build the
-# PR's version of the workflow/code, this handler dispatches a workflow_dispatch
-# event on the PR branch, then exits. The dispatched run posts the version and
-# build number back to the PR when the upload finishes (via the pr_number input).
+# NOTE: issue_comment always runs from the default branch (main). This handler
+# dispatches build-and-upload-to-testflight.yml as a workflow_dispatch on `main`
+# (so the pipeline definition is always the stable main version), while passing
+# source_branch=<PR branch> so the PR's *code* is what gets built. The dispatched
+# run posts the version and build number back to the PR when the upload finishes
+# (via the pr_number input).
 
 name: Create TestFlight build (bot command)
 
@@ -135,9 +137,11 @@ jobs:
           ENVIRONMENT: ${{ steps.track.outputs.environment }}
         run: |
           set -euo pipefail
+          # Dispatch on `main` so the pipeline definition is always the stable
+          # main version; source_branch makes build.yml check out the PR's code.
           gh workflow run build-and-upload-to-testflight.yml \
             --repo "${REPO}" \
-            --ref "${BRANCH}" \
+            --ref main \
             -f "source_branch=${BRANCH}" \
             -f "environment=${ENVIRONMENT}" \
             -f "pr_number=${PR_NUMBER}"
