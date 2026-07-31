@@ -1,0 +1,26 @@
+tests/llm-workflow/__tests__/hermes-health.test.ts
+  s_c0985eb9dfbfaf::t_3f693f30ac3678 203,213,216
+tests/llm-workflow/__tests__/metro-watch-attach.test.ts
+  s_c0985eb9dfbfaf::t_0e64036b499690 187-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "867f441ce4dc3d7e0a7e7b1348195f0fbea8e9c7",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
+  "sessions": {
+    "s_c0985eb9dfbfaf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_048569939ffejo4kYIu6s8cZmj",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
