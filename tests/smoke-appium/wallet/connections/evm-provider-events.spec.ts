@@ -52,7 +52,7 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   appiumTest.describe.configure({ timeout: 150000 });
 
   appiumTest(
-    'should notify the connected account and chain on load of a permitted dapp',
+    'notifies the connected account and chain on load of a permitted dapp',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
