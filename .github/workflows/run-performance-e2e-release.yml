@@ -23,6 +23,7 @@ permissions:
   id-token: write
   actions: write
   pull-requests: write
+  statuses: write
 
 jobs:
   check-release-trigger:
