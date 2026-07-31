@@ -23,6 +23,14 @@ let captureInFlight = false;
 /** Prevents concurrent consent callbacks from emitting the event twice. */
 let replayInFlight = false;
 
+// DEBUG: remove before merge — stores raw Branch params from capture time for the debug banner
+// eslint-disable-next-line import-x/no-mutable-exports
+export let debugCaptureSnapshot: {
+  rawParams: unknown;
+  skippedReason?: string;
+  attribution?: PendingAppInstallAttribution;
+} | null = null;
+
 /**
  * Reads Branch attribution at install time using getLatestReferringParams.
  *
@@ -45,6 +53,7 @@ const readBranchAttributionAtInstall = async (): Promise<
 > => {
   try {
     const params = await branch.getLatestReferringParams();
+    debugCaptureSnapshot = { rawParams: params };
 
     const clickedBranchLink = params?.['+clicked_branch_link'] === true;
     const deeplinkPath = params?.$deeplink_path as string | undefined;
@@ -54,16 +63,19 @@ const readBranchAttributionAtInstall = async (): Promise<
       return undefined;
     }
 
-    return {
+    const attribution = {
       clickedBranchLink,
       ...(deeplinkPath ? { deeplinkPath } : {}),
       ...(referringLink ? { referringLink } : {}),
     };
+    debugCaptureSnapshot = { rawParams: params, attribution };
+    return attribution;
   } catch (error) {
     Logger.error(
       error as Error,
       'AppInstall: Error reading Branch attribution at install',
     );
+    debugCaptureSnapshot = { rawParams: { error: (error as Error).message } };
     return undefined;
   }
 };
@@ -106,11 +118,22 @@ export async function captureAppInstallOnce(): Promise<void> {
   try {
     const state = ReduxService.store.getState();
 
-    if (
-      selectExistingUser(state) ||
-      selectAppInstallEventFired(state) ||
-      selectPendingAppInstall(state)
-    ) {
+    if (selectExistingUser(state)) {
+      debugCaptureSnapshot = { rawParams: null, skippedReason: 'existingUser' };
+      return;
+    }
+    if (selectAppInstallEventFired(state)) {
+      debugCaptureSnapshot = {
+        rawParams: null,
+        skippedReason: 'appInstallEventFired',
+      };
+      return;
+    }
+    if (selectPendingAppInstall(state)) {
+      debugCaptureSnapshot = {
+        rawParams: null,
+        skippedReason: 'alreadyPending',
+      };
       return;
     }
 
@@ -120,6 +143,10 @@ export async function captureAppInstallOnce(): Promise<void> {
     // that gates emission, so losing the Redux `user` slice can no longer make
     // an existing install look brand new.
     if (analytics.isEnabled()) {
+      debugCaptureSnapshot = {
+        rawParams: null,
+        skippedReason: 'analyticsEnabled',
+      };
       return;
     }
 
