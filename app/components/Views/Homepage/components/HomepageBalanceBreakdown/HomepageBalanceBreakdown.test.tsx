@@ -120,6 +120,7 @@ const makeSlice = (
 ): SliceData => ({
   key,
   color: 'transparent',
+  isVisible: true,
   valueFiat: 10,
   percentOfTotal: 0.2,
   status: 'ready',
@@ -164,7 +165,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and rows in screenshot order', () => {
-    const { getByLabelText, getByTestId, getAllByRole } = render(
+    const { getByTestId, getAllByRole } = render(
       <HomepageBalanceBreakdown layout="icons" />,
     );
 
@@ -213,8 +214,38 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
     ).toHaveTextContent('%');
-    expect(getByLabelText('Hide total balance')).toBeOnTheScreen();
-    expect(getByLabelText('Tokens')).toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
+        .accessibilityLabel,
+    ).toContain('USD 50.00');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO).props.accessibilityHint,
+    ).toBe('Hide total balance');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
+        .accessibilityLabel,
+    ).toBe('Tokens, USD 20.00, 20%');
+  });
+
+  it('omits slices hidden by their product flags', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        predict: makeSlice('predict', {
+          isVisible: false,
+          status: 'ineligible',
+        }),
+      },
+    });
+
+    const { queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
+
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROW('predict')),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders an amount-only aggregate delta without a legacy percentage', () => {
@@ -475,10 +506,20 @@ describe('HomepageBalanceBreakdown', () => {
   it('keeps fiat and PnL values privacy-sensitive', () => {
     mockPrivacyMode = true;
 
-    const { queryByText } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { getByTestId, queryByText } = render(
+      <HomepageBalanceBreakdown layout="icons" />,
+    );
 
     expect(queryByText('USD 20.00')).not.toBeOnTheScreen();
     expect(queryByText('20%')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
+        .accessibilityLabel,
+    ).toBe('Show total balance');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
+        .accessibilityLabel,
+    ).toBe('Tokens');
   });
 
   it('does not expose proportional allocation while privacy mode is enabled', () => {

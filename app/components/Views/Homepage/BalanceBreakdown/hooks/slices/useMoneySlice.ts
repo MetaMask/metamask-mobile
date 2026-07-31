@@ -33,7 +33,7 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
     isBalanceFetchError,
     apyPercent,
     vaultApyQuery,
-  } = useMoneyAccountBalance();
+  } = useMoneyAccountBalance({ enabled: isMoneyAccountFeatureEnabled });
   const moneyStatus = getMoneySliceStatus({
     isFeatureEnabled: isMoneyAccountFeatureEnabled,
     hasMoneyAccount,
@@ -60,11 +60,18 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
   return useMemo(
     () => ({
       key: 'money',
+      isVisible: isMoneyAccountFeatureEnabled,
       valueFiat,
       status,
       apyPercent: visibleApyPercent,
       apyLoading,
     }),
-    [apyLoading, status, valueFiat, visibleApyPercent],
+    [
+      apyLoading,
+      isMoneyAccountFeatureEnabled,
+      status,
+      valueFiat,
+      visibleApyPercent,
+    ],
   );
 }

@@ -30,6 +30,7 @@ const HomepageBalanceBreakdown = ({
   const isWalletHomeOnboardingActive = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
+  const visibleSliceKeys = SLICE_ORDER.filter((key) => slices[key].isVisible);
 
   return (
     <Box testID={HomepageBalanceBreakdownTestIds.CONTAINER}>
@@ -47,7 +48,7 @@ const HomepageBalanceBreakdown = ({
           {layout === 'allocation' ? (
             <HomepageBalanceBreakdownAllocationBar slices={slices} />
           ) : null}
-          {SLICE_ORDER.map((key) => (
+          {visibleSliceKeys.map((key) => (
             <HomepageBalanceBreakdownRow
               key={key}
               layout={layout}

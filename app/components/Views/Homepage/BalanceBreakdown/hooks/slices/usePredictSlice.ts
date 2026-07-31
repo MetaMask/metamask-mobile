@@ -6,7 +6,9 @@ import type { BalanceSlice, FiatConverter } from '../../types';
 
 export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const isEnabled = useSelector(selectPredictEnabledFlag);
-  const { portfolioValue, isLoading, error } = usePredictPortfolio();
+  const { portfolioValue, isLoading, error } = usePredictPortfolio({
+    enabled: isEnabled,
+  });
 
   const convertedValue = toUserCurrency(portfolioValue);
 
@@ -23,9 +25,10 @@ export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
   return useMemo(
     () => ({
       key: 'predict' as const,
+      isVisible: isEnabled,
       valueFiat,
       status,
     }),
-    [status, valueFiat],
+    [isEnabled, status, valueFiat],
   );
 }

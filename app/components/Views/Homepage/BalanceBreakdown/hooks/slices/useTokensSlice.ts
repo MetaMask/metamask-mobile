@@ -44,6 +44,7 @@ export function useTokensSlice(): BalanceSlice {
   return useMemo(
     () => ({
       key: 'tokens' as const,
+      isVisible: true,
       valueFiat,
       delta:
         status === 'ready' && balanceChange1d

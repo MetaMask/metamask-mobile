@@ -63,10 +63,11 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   return useMemo<BalanceSlice>(
     () => ({
       key: 'perps',
+      isVisible: isEnabled,
       valueFiat: status === 'ready' ? (convertedValue ?? 0) : 0,
       status,
       value1dAgoFiat: status === 'ready' ? totalBalance1dAgoFiat : undefined,
     }),
-    [convertedValue, status, totalBalance1dAgoFiat],
+    [convertedValue, isEnabled, status, totalBalance1dAgoFiat],
   );
 }

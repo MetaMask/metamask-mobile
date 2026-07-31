@@ -69,6 +69,20 @@ const HomepageBalanceBreakdownRow = ({
       ? TextColor.TextAlternative
       : TextColor.TextDefault;
   const moneyApy = slice.apyPercent;
+  const apyLabel =
+    moneyApy !== undefined
+      ? strings('money.apy_label', { percentage: moneyApy })
+      : undefined;
+  const accessibilityLabel = privacyMode
+    ? getSliceLabel(slice.key)
+    : [
+        getSliceLabel(slice.key),
+        slice.status === 'ready' ? displayValue : undefined,
+        percentageLabel,
+        apyLabel,
+      ]
+        .filter(Boolean)
+        .join(', ');
   const showIcon = layout === 'icons';
   const showAllocationDot = layout === 'allocation';
   const iconName = SLICE_ICONS[slice.key];
@@ -76,7 +90,7 @@ const HomepageBalanceBreakdownRow = ({
 
   return (
     <Pressable
-      accessibilityLabel={getSliceLabel(slice.key)}
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       onPress={onPress}
       testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
@@ -185,7 +199,7 @@ const HomepageBalanceBreakdownRow = ({
                   fontWeight={FontWeight.Medium}
                   variant={TextVariant.BodySm}
                 >
-                  {strings('money.apy_label', { percentage: moneyApy })}
+                  {apyLabel}
                 </Text>
               </Box>
             ) : null}

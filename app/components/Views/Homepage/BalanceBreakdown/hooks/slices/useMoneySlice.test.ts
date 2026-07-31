@@ -59,6 +59,7 @@ describe('useMoneySlice', () => {
 
     expect(result.current).toEqual({
       key: 'money',
+      isVisible: true,
       valueFiat: 200,
       status: 'ready',
       apyPercent: 4.1,
@@ -71,6 +72,7 @@ describe('useMoneySlice', () => {
 
     expect(result.current).toEqual({
       key: 'money',
+      isVisible: true,
       valueFiat: 0,
       status: 'error',
       apyPercent: 4.1,
@@ -150,8 +152,10 @@ describe('useMoneySlice', () => {
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
     expect(result.current).toEqual({
       key: 'money',
+      isVisible: false,
       valueFiat: 0,
       status: 'ineligible',
       apyPercent: undefined,

@@ -55,6 +55,7 @@ function makeSlice(
   return {
     key,
     color: colors[key],
+    isVisible: true,
     valueFiat,
     percentOfTotal: 0,
     status,

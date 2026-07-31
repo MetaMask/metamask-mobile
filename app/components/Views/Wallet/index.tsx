@@ -986,8 +986,11 @@ const Wallet = ({
   const hasBannerContent =
     !basicFunctionalityEnabled ||
     networkConnectionBanner.networkConnectionBannerState.visible;
-  const bannerContent = hasBannerContent ? (
-    <View style={styles.banner}>
+  const bannerContent = (
+    <View
+      style={styles.banner}
+      testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT}
+    >
       {!basicFunctionalityEnabled ? (
         <BannerAlert
           severity={BannerAlertSeverity.Error}
@@ -1004,7 +1007,7 @@ const Wallet = ({
       ) : null}
       <NetworkConnectionBannerContent {...networkConnectionBanner} />
     </View>
-  ) : null;
+  );
 
   /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
   const walletHomeAccountGroupBalanceProps = {
@@ -1041,24 +1044,25 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
-  const growthBanner = (
-    <>
-      {/* Hide growth banners when money account is enabled but user is geo-blocked */}
-      {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
-        homeGrowthBannerContent}
-    </>
-  );
+  // Hide growth banners when money account is enabled but user is geo-blocked.
+  const growthBanner =
+    !isMoneyAccountEnabled || isMoneyAccountGeoEligible
+      ? homeGrowthBannerContent
+      : null;
 
-  const contentBeforeBalanceBreakdown = (
+  const hasContentBeforeBalanceBreakdown = Boolean(
+    walletHomeMainAssetDetailsActions || growthBanner || homepageDiscoveryPills,
+  );
+  const contentBeforeBalanceBreakdown = hasContentBeforeBalanceBreakdown ? (
     <>
       {walletHomeMainAssetDetailsActions}
       {growthBanner}
       {homepageDiscoveryPills}
     </>
-  );
+  ) : null;
 
   const portfolioHeader = balanceBreakdownLayout ? (
-    bannerContent ? (
+    hasBannerContent ? (
       <View
         style={styles.treatmentBannerContainer}
         testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER}

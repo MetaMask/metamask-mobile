@@ -51,12 +51,6 @@ describe('usePredictSlice', () => {
       enabled: true,
       expected: 'error',
     },
-    {
-      name: 'feature disabled',
-      portfolio: createPortfolio(),
-      enabled: false,
-      expected: 'ineligible',
-    },
   ])('returns zero for $name', ({ portfolio, enabled, expected }) => {
     mockUseSelector.mockReturnValue(enabled);
     mockUsePredictPortfolio.mockReturnValue(portfolio);
@@ -67,6 +61,18 @@ describe('usePredictSlice', () => {
 
     expect(result.current.status).toBe(expected);
     expect(result.current.valueFiat).toBe(0);
+  });
+
+  it('disables portfolio work and hides the slice with the feature off', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    const { result } = renderHook(() =>
+      usePredictSlice((amount) => amount * 2),
+    );
+
+    expect(mockUsePredictPortfolio).toHaveBeenCalledWith({ enabled: false });
+    expect(result.current.status).toBe('ineligible');
+    expect(result.current.isVisible).toBe(false);
   });
 
   it('reports an error when fiat conversion is unavailable', () => {

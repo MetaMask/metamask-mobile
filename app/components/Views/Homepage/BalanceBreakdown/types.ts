@@ -12,6 +12,8 @@ export interface SliceDelta {
 
 export interface BalanceSlice {
   key: SliceKey;
+  /** Whether the product should be exposed on the homepage. */
+  isVisible: boolean;
   valueFiat: number;
   delta?: SliceDelta;
   status: SliceStatus;

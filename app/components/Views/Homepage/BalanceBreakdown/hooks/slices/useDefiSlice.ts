@@ -40,6 +40,7 @@ export function useDefiSlice(toUserCurrency: FiatConverter): BalanceSlice {
   return useMemo(() => {
     const base = {
       key: 'defi' as const,
+      isVisible: isEnabled,
     };
 
     if (!isEnabled) {

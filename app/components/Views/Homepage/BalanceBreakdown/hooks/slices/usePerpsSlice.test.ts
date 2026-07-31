@@ -68,6 +68,7 @@ describe('usePerpsSlice', () => {
       throttleMs: 1000,
     });
     expect(result.current.status).toBe('ineligible');
+    expect(result.current.isVisible).toBe(false);
     expect(result.current.valueFiat).toBe(0);
   });
 

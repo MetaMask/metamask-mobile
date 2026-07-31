@@ -8,7 +8,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { TextColor } from '@metamask/design-system-react-native';
-import I18n from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   getFormattedAmountChange,
   getFormattedPercentageChange,
@@ -43,6 +43,7 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     selectAccountGroupBalanceForEmptyState,
   );
   const balanceOpacity = useSharedValue(1);
+  const locale = I18n.locale;
   const animatedBalanceStyle = useAnimatedStyle(() => ({
     opacity: balanceOpacity.value,
   }));
@@ -70,9 +71,24 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     () =>
       hero.delta?.percent === undefined
         ? undefined
-        : getFormattedPercentageChange(hero.delta.percent * 100, I18n.locale),
-    [hero.delta?.percent],
+        : getFormattedPercentageChange(hero.delta.percent * 100, locale),
+    [hero.delta?.percent, locale],
   );
+  const accessibilityHint = strings(
+    privacyMode
+      ? 'balance_breakdown.show_balance'
+      : 'balance_breakdown.hide_balance',
+  );
+  const accessibilityLabel = privacyMode
+    ? accessibilityHint
+    : [
+        displayBalance,
+        amountText?.trim(),
+        percentText,
+        hero.delta ? strings('asset_overview.chart_time_period.1d') : undefined,
+      ]
+        .filter(Boolean)
+        .join(', ');
   const deltaColor = hero.delta
     ? getDeltaColor(Boolean(privacyMode), hero.delta.amount, hero.delta.percent)
     : TextColor.TextAlternative;
@@ -98,6 +114,8 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
   }, [balanceOpacity, hero.isPartiallyLoaded]);
 
   return {
+    accessibilityHint,
+    accessibilityLabel,
     amountText,
     animatedBalanceStyle,
     deltaColor,

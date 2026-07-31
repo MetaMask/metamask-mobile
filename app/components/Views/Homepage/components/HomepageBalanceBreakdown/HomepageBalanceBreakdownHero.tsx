@@ -29,6 +29,8 @@ const HomepageBalanceBreakdownHero = ({
   hero,
 }: HomepageBalanceBreakdownHeroProps) => {
   const {
+    accessibilityHint,
+    accessibilityLabel,
     amountText,
     animatedBalanceStyle,
     deltaColor,
@@ -52,11 +54,8 @@ const HomepageBalanceBreakdownHero = ({
 
   return (
     <ButtonBase
-      accessibilityLabel={strings(
-        privacyMode
-          ? 'balance_breakdown.show_balance'
-          : 'balance_breakdown.hide_balance',
-      )}
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel}
       contentWrapperProps={{
         testID: HomepageBalanceBreakdownTestIds.HERO_CONTENT,
         twClassName: 'w-full flex-col items-start gap-1',

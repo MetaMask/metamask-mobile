@@ -132,6 +132,19 @@ describe('useHomepageBalanceBreakdownHero', () => {
     ).toHaveBeenCalledWith(true);
   });
 
+  it('reformats the percentage after the locale changes', () => {
+    const { result, rerender } = renderHook(() =>
+      useHomepageBalanceBreakdownHero(baseHero),
+    );
+    const englishPercentage = result.current.percentText;
+
+    I18n.locale = 'de-DE';
+    rerender({});
+
+    expect(result.current.percentText).not.toBe(englishPercentage);
+    expect(result.current.percentText).toContain(',');
+  });
+
   it('pulses only while another slice is loading', () => {
     const { rerender } = renderHook(
       ({ isPartiallyLoaded }) =>

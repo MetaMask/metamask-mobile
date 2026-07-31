@@ -97,6 +97,7 @@ describe('useDefiSlice', () => {
     expect(mockSelectDefiPositionsByChainIds).toHaveBeenCalledWith({}, ['0x1']);
     expect(result.current).toEqual({
       key: 'defi',
+      isVisible: true,
       valueFiat: 200,
       status: 'ready',
     });
@@ -131,6 +132,7 @@ describe('useDefiSlice', () => {
 
     expect(result.current).toEqual({
       key: 'defi',
+      isVisible: enabled,
       valueFiat: 0,
       status: expectedStatus,
     });
@@ -141,6 +143,7 @@ describe('useDefiSlice', () => {
 
     expect(result.current).toEqual({
       key: 'defi',
+      isVisible: true,
       valueFiat: 0,
       status: 'error',
     });
