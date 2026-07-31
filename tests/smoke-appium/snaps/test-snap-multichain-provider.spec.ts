@@ -66,7 +66,17 @@ const multichainMocks = async (mockServer: Mockttp) => {
   await mockGenesisBlocks(mockServer);
 };
 
-async function exerciseMultichainChain(chain: MultichainChain): Promise<void> {
+async function exerciseMultichainProvider(
+  chain: MultichainChain,
+): Promise<void> {
+  await loginAndOpenTestSnaps();
+
+  await TestSnaps.installSnap('connectMultichainProviderButton');
+
+  await TestSnaps.tapButton('sendCreateSessionButton');
+  await Assertions.expectElementToBeVisible(ConnectBottomSheet.connectButton);
+  await ConnectBottomSheet.tapConnectButton();
+
   await TestSnaps.selectInDropdown('multichainNetworkDropdown', chain.name);
 
   if (chain.chainId) {
@@ -94,6 +104,7 @@ async function exerciseMultichainChain(chain: MultichainChain): Promise<void> {
   if (chain.name === 'Solana') {
     await TestSnaps.approveSolanaConfirmation();
   } else {
+    await Assertions.expectElementToBeVisible(RequestTypes.PersonalSignRequest);
     await TestSnaps.approveNativeConfirmation();
   }
   await TestSnaps.checkResultSpan(
@@ -114,65 +125,25 @@ async function exerciseMultichainChain(chain: MultichainChain): Promise<void> {
 }
 
 appiumTest.describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Long running test due to multiple steps within the test for each chain
+  appiumTest.describe.configure({ mode: 'serial', timeout: 300_000 });
 
-  appiumTest(
-    'can use the Multichain provider on Ethereum',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(
-        currentDeviceDetails,
-        {
-          fixture: multiSrpFixture,
-          testSpecificMock: multichainMocks,
-          restartDevice: true,
-        },
-        async () => {
-          await loginAndOpenTestSnaps();
-          await TestSnaps.installSnap('connectMultichainProviderButton');
-
-          await TestSnaps.tapButton('sendCreateSessionButton');
-          await Assertions.expectElementToBeVisible(
-            ConnectBottomSheet.connectButton,
-          );
-          await ConnectBottomSheet.tapConnectButton();
-
-          await exerciseMultichainChain(CHAINS[0]);
-        },
-      );
-    },
-  );
-
-  appiumTest(
-    'can use the Multichain provider on Sepolia',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(
-        currentDeviceDetails,
-        {
-          fixture: multiSrpFixture,
-          testSpecificMock: multichainMocks,
-          restartDevice: false,
-        },
-        async () => {
-          await exerciseMultichainChain(CHAINS[1]);
-        },
-      );
-    },
-  );
-
-  appiumTest(
-    'can use the Multichain provider on Solana',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(
-        currentDeviceDetails,
-        {
-          fixture: multiSrpFixture,
-          testSpecificMock: multichainMocks,
-          restartDevice: false,
-        },
-        async () => {
-          await exerciseMultichainChain(CHAINS[2]);
-        },
-      );
-    },
-  );
+  for (const chain of CHAINS) {
+    appiumTest(
+      `can use the Multichain provider on ${chain.name}`,
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withSnapsFixtures(
+          currentDeviceDetails,
+          {
+            fixture: multiSrpFixture,
+            testSpecificMock: multichainMocks,
+            restartDevice: true,
+          },
+          async () => {
+            await exerciseMultichainProvider(chain);
+          },
+        );
+      },
+    );
+  }
 });
