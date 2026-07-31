@@ -165,6 +165,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     fromBenefit,
     fromCard,
     fromWhatsHappening,
+    fromMarketInsights,
     fromMoney,
   }) => {
     // Opted out of the React Compiler since it's a large component and we don't want to risk breaking changes.
@@ -1462,6 +1463,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       } else if (fromWhatsHappening) {
         // WhatsHappeningDetailView is in the stack navigator so goBack() works correctly.
         navigation.goBack();
+      } else if (fromMarketInsights) {
+        // MarketInsightsView is in the stack navigator so goBack() works correctly.
+        navigation.goBack();
       } else if (fromMoney) {
         navigation.navigate(Routes.HOME_TABS, {
           screen: Routes.MONEY.ROOT,
@@ -1482,6 +1486,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       fromBenefit,
       fromCard,
       fromWhatsHappening,
+      fromMarketInsights,
       fromMoney,
     ]);
 

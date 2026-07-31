@@ -9,7 +9,7 @@ import {
 import {
   TimeDuration,
   getPerpsDisplaySymbol,
-  type OrderType,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
@@ -27,7 +27,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
-import PerpsOrderTypeBottomSheetView from '../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -113,8 +112,6 @@ const PerpsProMarketView = () => {
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
 
-  const [orderType, setOrderType] = useState<OrderType>('limit');
-  const [isOrderTypeSheetVisible, setIsOrderTypeSheetVisible] = useState(false);
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
 
   const handleWalletPress = useCallback(() => {
@@ -123,19 +120,6 @@ const PerpsProMarketView = () => {
 
   const handleBalanceSheetClose = useCallback(() => {
     setIsBalanceSheetVisible(false);
-  }, []);
-
-  const handleOrderTypeButtonPress = useCallback(() => {
-    setIsOrderTypeSheetVisible(true);
-  }, []);
-
-  const handleOrderTypeSheetClose = useCallback(() => {
-    setIsOrderTypeSheetVisible(false);
-  }, []);
-
-  const handleOrderTypeSelect = useCallback((newOrderType: OrderType) => {
-    setOrderType(newOrderType);
-    setIsOrderTypeSheetVisible(false);
   }, []);
 
   useEffect(() => {
@@ -270,9 +254,13 @@ const PerpsProMarketView = () => {
           <PerpsProMarketLayout
             isOrderBookCollapsed={isOrderBookCollapsed}
             orderForm={
+              // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
+              // to support deep-link trade-detail entries that may only carry
+              // partial data. PerpsProMarketView is only reachable via full-market
+              // navigation; the !market?.symbol guard above validates the minimum
+              // required field at runtime.
               <PerpsProOrderFormPanel
-                orderType={orderType}
-                onOrderTypeButtonPress={handleOrderTypeButtonPress}
+                market={market as PerpsMarketData}
                 isOrderBookCollapsed={isOrderBookCollapsed}
                 onExpandOrderBook={handleExpandOrderBook}
               />
@@ -298,14 +286,6 @@ const PerpsProMarketView = () => {
         showAllPeriods
         asset={market.symbol}
         testID={PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET}
-      />
-      <PerpsOrderTypeBottomSheetView
-        isVisible={isOrderTypeSheetVisible}
-        onClose={handleOrderTypeSheetClose}
-        onSelect={handleOrderTypeSelect}
-        currentOrderType={orderType}
-        title={strings('perps.pro_order_form.choose_order_type')}
-        showSelectedIcon
       />
       <PerpsBalanceBottomSheet
         isVisible={isBalanceSheetVisible}

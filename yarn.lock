@@ -7790,18 +7790,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-api@npm:^1.0.4":
-  version: 1.0.4
-  resolution: "@metamask/account-api@npm:1.0.4"
+"@metamask/account-api@npm:^1.0.4, @metamask/account-api@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@metamask/account-api@npm:1.1.1"
   dependencies:
-    "@metamask/keyring-api": "npm:^23.1.0"
-    "@metamask/keyring-utils": "npm:^3.2.0"
+    "@metamask/keyring-api": "npm:^23.6.0"
+    "@metamask/keyring-utils": "npm:^4.0.0"
     uuid: "npm:^9.0.1"
-  checksum: 10/54e9972a7b21917e2d1296d7e211d99a8c07f28391be89671d30acebaaa574ee3ae98e5ed90c8257e5c567f8604244029e844909ff3051c8c50878be5a6527d0
+  checksum: 10/2991dbfbbbe12437c2267c8be7f52f2eea8f6c3a021bcc21c30a07506a02894b207f29775be5e4e81a7453fc23dbafe94013fe1f48a3d6044d4527f95ae91827
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.5.4, @metamask/account-tree-controller@npm:^7.5.5":
+"@metamask/account-tree-controller@npm:^7.2.0, @metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.5.5":
   version: 7.5.5
   resolution: "@metamask/account-tree-controller@npm:7.5.5"
   dependencies:
@@ -9152,7 +9152,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-snap-sdk@npm:^9.0.2, @metamask/keyring-snap-sdk@npm:^9.2.0, @metamask/keyring-snap-sdk@npm:^9.2.1":
+"@metamask/keyring-snap-sdk@npm:^9.0.2, @metamask/keyring-snap-sdk@npm:^9.2.1":
   version: 9.2.1
   resolution: "@metamask/keyring-snap-sdk@npm:9.2.1"
   dependencies:
@@ -9296,20 +9296,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-api-data-service@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/money-account-api-data-service@npm:0.2.0"
-  dependencies:
-    "@metamask/base-data-service": "npm:^0.1.3"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.11.0"
-    "@tanstack/query-core": "npm:^4.43.0"
-  checksum: 10/0fff27629be75e79862d878d6ca8e8f39064e71d30a88964ff16e307b734315cc2f2847033d40a84dd84175d60bb6b2241f9fc3b65223d93836f087f87e3876b
-  languageName: node
-  linkType: hard
-
 "@metamask/money-account-api-data-service@npm:^0.4.0":
   version: 0.4.0
   resolution: "@metamask/money-account-api-data-service@npm:0.4.0"
@@ -9324,9 +9310,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-balance-service@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "@metamask/money-account-balance-service@npm:2.3.0"
+"@metamask/money-account-balance-service@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@metamask/money-account-balance-service@npm:2.4.0"
   dependencies:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
@@ -9334,12 +9320,12 @@ __metadata:
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
-    "@metamask/money-account-api-data-service": "npm:^0.2.0"
+    "@metamask/money-account-api-data-service": "npm:^0.4.0"
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/9dc04df5f4be1862eeef6c060cb9cc1faf7efed121bd2f834cd122fc40e8be425ebd5792d55bd30ea9bd840bdf37b035d5f126bde827ddabe37d67bb4c558cd0
+  checksum: 10/064ebd057c871b3ee861d901efdca9eaea7e52aa5681c8d539913cfbb2e474651f85ece5c7afcc873f4c681e02152eba8e29e1eba1a7356e4cc99c2b47781bac
   languageName: node
   linkType: hard
 
@@ -9373,6 +9359,16 @@ __metadata:
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/utils": "npm:^11.11.0"
   checksum: 10/24e286c9cbe3546dae857b46bfec0497bc3aeb178a622cd868d2cad232d2836862c714ebff21e9b59f204eaf5a074ee48fdc09685dd58650ae7ec309865fa2fb
+  languageName: node
+  linkType: hard
+
+"@metamask/money-account-utils@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/money-account-utils@npm:1.0.0"
+  dependencies:
+    "@metamask/transaction-controller": "npm:^69.3.0"
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/bb85219266b451115260263b291c0408ec60060ee1b54f52c48f9220c6077fe492e25347754c1c392ef5d4ecd9b5ddf65de4c1d3bf93966e15d275f2c3364265
   languageName: node
   linkType: hard
 
@@ -10201,23 +10197,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snap-account-service@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/snap-account-service@npm:2.0.0"
+"@metamask/snap-account-service@npm:^2.0.0, @metamask/snap-account-service@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@metamask/snap-account-service@npm:2.1.1"
   dependencies:
-    "@metamask/account-api": "npm:^1.0.4"
-    "@metamask/account-tree-controller": "npm:^7.5.4"
+    "@metamask/account-api": "npm:^1.1.1"
     "@metamask/eth-snap-keyring": "npm:^23.0.0"
-    "@metamask/keyring-api": "npm:^23.5.0"
+    "@metamask/keyring-api": "npm:^23.7.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/keyring-internal-snap-client": "npm:^10.0.5"
-    "@metamask/keyring-snap-sdk": "npm:^9.2.0"
+    "@metamask/keyring-snap-sdk": "npm:^9.2.1"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/snaps-controllers": "npm:^19.0.0"
     "@metamask/snaps-sdk": "npm:^11.0.0"
     "@metamask/utils": "npm:^11.11.0"
     lodash: "npm:^4.17.21"
-  checksum: 10/a0e860bc34933775c5271ef560efbf8b84eb60e460c7a7586a8169d54750cb9a59500c3c73e97cf0baebb8951830d136f8bb9a7322186ee46b0d6687d7203997
+  checksum: 10/06d50cf199d03b62cecf6f0c5cf1c4f770e1440b2d298634265fcc8d76ebb23c8fdcf1c71c591ed9ed5f580f857f1fe9e4ea83a78a31b2d2c2841ee7221d41e6
   languageName: node
   linkType: hard
 
@@ -10532,6 +10527,15 @@ __metadata:
   version: 9.5.0
   resolution: "@metamask/test-dapp@npm:9.5.0"
   checksum: 10/38d88f93bcaa9fe79a619d0fbaf676dd9d006baa0b0db14f0b2d41019502f94fd90744e5e023d206a7384a498aa6ea5998bf772534a97f4ab4d8c10f97a07681
+  languageName: node
+  linkType: hard
+
+"@metamask/tooling-insight@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/tooling-insight@npm:1.0.0"
+  bin:
+    metamask-daily-anonymizer: ./dist/daily-anonymizer.mjs
+  checksum: 10/bfed6e2f0cb169ffb1f4e61c2b4be0cc71583174f47908c69aa348714631af4a7d62fe5df0c08db34a11659bca69efbac72442e0320beb4772efed50b967616c
   languageName: node
   linkType: hard
 
@@ -35891,9 +35895,10 @@ __metadata:
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/money-account-api-data-service": "npm:^0.4.0"
-    "@metamask/money-account-balance-service": "npm:^2.3.0"
+    "@metamask/money-account-balance-service": "npm:^2.4.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^3.0.0"
+    "@metamask/money-account-utils": "npm:^1.0.0"
     "@metamask/multichain-account-service": "npm:^13.0.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^4.0.1"
@@ -35933,7 +35938,7 @@ __metadata:
     "@metamask/skills": "npm:^0.2.0"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:25.0.0"
-    "@metamask/snap-account-service": "npm:^2.0.0"
+    "@metamask/snap-account-service": "npm:^2.1.1"
     "@metamask/snaps-controllers": "npm:^21.0.0"
     "@metamask/snaps-execution-environments": "npm:^11.2.0"
     "@metamask/snaps-rpc-methods": "npm:^17.1.0"
@@ -35950,6 +35955,7 @@ __metadata:
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
+    "@metamask/tooling-insight": "npm:^1.0.0"
     "@metamask/transaction-controller": "npm:^69.3.0"
     "@metamask/transaction-pay-controller": "npm:^26.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.33.1"

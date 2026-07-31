@@ -238,6 +238,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  defiControllerV2: {
+    name: 'defiControllerV2',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      versions: {
+        '8.5.0': {
+          enabled: false,
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsEnableNotificationsByDefault: {
     name: 'assetsEnableNotificationsByDefault',
     type: FeatureFlagType.Remote,
@@ -5555,6 +5569,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictSportsFeed: {
+    name: 'predictSportsFeed',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   rewardsMissingEnrolledAccounts: {
     name: 'rewardsMissingEnrolledAccounts',
     type: FeatureFlagType.Remote,
@@ -5921,6 +5946,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: null,
       enabled: false,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccountBalanceSource: {
+    name: 'moneyAccountBalanceSource',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'rpc',
     status: FeatureFlagStatus.Active,
   },
 

@@ -192,6 +192,72 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
     </Box>
   ) : null;
 
+const summaryRowClassName = 'h-5 px-0';
+const summaryRowStyle = { paddingHorizontal: 0 } as const;
+
+interface SlippageValueProps {
+  value: string;
+  onPress?: () => void;
+}
+
+const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
+  <Pressable
+    accessibilityRole="button"
+    accessibilityState={{ disabled: !onPress }}
+    disabled={!onPress}
+    onPress={onPress}
+    testID={ids.SUMMARY_SLIPPAGE_BUTTON}
+  >
+    <Box twClassName="min-w-0 flex-1 flex-row items-center justify-end gap-1">
+      <Text
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Medium}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {value}
+      </Text>
+      <Icon
+        name={IconName.Edit}
+        size={IconSize.Sm}
+        color={IconColor.IconDefault}
+      />
+    </Box>
+  </Pressable>
+);
+
+interface AvailableBalanceRowProps {
+  value: string;
+  onPress?: () => void;
+}
+
+const AvailableBalanceRow = ({ value, onPress }: AvailableBalanceRowProps) => (
+  <Pressable
+    accessibilityRole="button"
+    accessibilityState={{ disabled: !onPress }}
+    accessibilityLabel={value}
+    accessibilityHint={onPress ? strings('perps.add_funds') : undefined}
+    disabled={!onPress}
+    onPress={onPress}
+    testID={ids.ADD_FUNDS_BUTTON}
+  >
+    <Box twClassName="flex-row items-center gap-1">
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        testID={ids.AVAILABLE_BALANCE}
+      >
+        {value}
+      </Text>
+      <Icon
+        name={IconName.AddCircle}
+        size={IconSize.Sm}
+        color={IconColor.IconAlternative}
+      />
+    </Box>
+  </Pressable>
+);
+
 const OrderSummary = ({
   margin,
   liquidationPrice,
@@ -202,13 +268,14 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
 }: PerpsProOrderSummaryProps) => (
-  <Box twClassName="gap-1" testID={ids.SUMMARY}>
+  <Box twClassName="w-full gap-1 overflow-hidden" testID={ids.SUMMARY}>
     <KeyValueRow
       keyLabel={strings('perps.order.margin')}
       value={margin}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      twClassName="h-5"
+      twClassName={summaryRowClassName}
+      style={summaryRowStyle}
       testID={ids.SUMMARY_MARGIN}
     />
     <KeyValueRow
@@ -216,21 +283,18 @@ const OrderSummary = ({
       value={liquidationPrice}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      twClassName="h-5"
+      twClassName={summaryRowClassName}
+      style={summaryRowStyle}
       testID={ids.SUMMARY_LIQUIDATION}
     />
     {slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
-        value={slippage}
-        valueEndButtonIconProps={buttonIcon(
-          IconName.Edit,
-          ids.SUMMARY_SLIPPAGE_BUTTON,
-          onSlippagePress,
-        )}
+        value={<SlippageValue value={slippage} onPress={onSlippagePress} />}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
-        twClassName="h-5"
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
         testID={ids.SUMMARY_SLIPPAGE}
       />
     ) : null}
@@ -252,7 +316,8 @@ const OrderSummary = ({
       )}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      twClassName="h-5"
+      twClassName={summaryRowClassName}
+      style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
     />
   </Box>
@@ -295,9 +360,10 @@ const PerpsProOrderForm = ({
   return (
     <>
       <Box twClassName="gap-4" testID={ids.CONTAINER}>
-        {/* Screen-edge inset comes from PerpsProMarketLayout's outer px-4
-            (wraps form + divider + book), not this Box — keeps the summary
-            rows below flush with everything above instead of edge-to-edge. */}
+        {/* Screen-edge inset comes from PerpsProMarketLayout's outer padding
+            (wraps form + divider + book), not this Box. Summary rows use
+            KeyValueRow which ships with px-4 by default — override to px-0 so
+            margin/liquidation/slippage/fees align with the form above. */}
         <Box twClassName="gap-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -448,24 +514,10 @@ const PerpsProOrderForm = ({
                 />
               }
             />
-            <Box twClassName="flex-row items-center gap-1">
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                testID={ids.AVAILABLE_BALANCE}
-              >
-                {availableBalance}
-              </Text>
-              <ButtonIcon
-                iconName={IconName.AddCircle}
-                size={ButtonIconSize.Xs}
-                iconProps={{ color: IconColor.IconAlternative }}
-                isDisabled={!onAddFundsPress}
-                onPress={onAddFundsPress}
-                testID={ids.ADD_FUNDS_BUTTON}
-                accessibilityLabel={strings('perps.add_funds')}
-              />
-            </Box>
+            <AvailableBalanceRow
+              value={availableBalance}
+              onPress={onAddFundsPress}
+            />
           </Box>
           <ReduceOnlyRow
             label={strings('perps.order.reduce_only')}
