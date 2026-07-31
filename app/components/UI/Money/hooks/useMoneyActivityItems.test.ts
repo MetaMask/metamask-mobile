@@ -108,7 +108,7 @@ describe('buildMoneyActivityBuckets', () => {
   const cashback = cashbackTx('0xback' as Hex, 300);
   const refund = refundTx('0xrefund' as Hex, 250);
 
-  it('routes card spends to Transfers and cashback to Deposits; both into All', () => {
+  it('keeps card spends and cashback out of Deposits and Sends; both into All', () => {
     const buckets = buildMoneyActivityBuckets(onchain, [card, cashback]);
 
     const ids = (filter: MoneyActivityFilter) =>
@@ -118,13 +118,30 @@ describe('buildMoneyActivityBuckets', () => {
     expect(ids(MoneyActivityFilter.All)).toEqual(
       expect.arrayContaining(['0xback', '0xcard', 'all']),
     );
-    // Deposits: cashback inflow, not the card spend.
-    expect(ids(MoneyActivityFilter.Deposits)).toContain('0xback');
-    expect(ids(MoneyActivityFilter.Deposits)).not.toContain('0xcard');
-    // Transfers: card outflow, not the cashback.
-    expect(ids(MoneyActivityFilter.Transfers)).toContain('0xcard');
-    expect(ids(MoneyActivityFilter.Transfers)).not.toContain('0xback');
+    // Deposits and Sends are on-chain only — every API row is a Purchase,
+    // cashback included.
+    expect(ids(MoneyActivityFilter.Deposits)).toEqual(['dep']);
+    expect(ids(MoneyActivityFilter.Transfers)).toEqual(['xfer']);
   });
+
+  it.each([
+    ['Sends', MoneyActivityFilter.Transfers, 'transfers'],
+    ['Deposits', MoneyActivityFilter.Deposits, 'deposits'],
+  ] as const)(
+    'still dedupes an on-chain API-sourced row out of %s',
+    (_label, filter, key) => {
+      // A card spend or cashback credit that also landed in the local
+      // TransactionController would otherwise render as a plain send/deposit;
+      // the API hash must suppress it.
+      const shared = '0xCaRd' as Hex;
+      const buckets = buildMoneyActivityBuckets(
+        { ...onchain, [key]: [onchainTx('dup', 200, shared)] },
+        [cardTx('0xcard' as Hex, 200)],
+      );
+
+      expect(buckets[filter]).toEqual([]);
+    },
+  );
 
   it('groups all card activity (spend, cashback, refund) into Purchases without on-chain rows', () => {
     const buckets = buildMoneyActivityBuckets(onchain, [
@@ -163,12 +180,10 @@ describe('buildMoneyActivityBuckets', () => {
       '0xback',
       '0xcard',
     ]);
-    expect(buckets[MoneyActivityFilter.Deposits].map((i) => i.id)).toEqual([
-      '0xback',
-    ]);
-    expect(buckets[MoneyActivityFilter.Transfers].map((i) => i.id)).toEqual([
-      '0xcard',
-    ]);
+    // Deposits and Sends hold only on-chain rows, and theirs (40/30) are both
+    // below the watermark.
+    expect(buckets[MoneyActivityFilter.Deposits]).toEqual([]);
+    expect(buckets[MoneyActivityFilter.Transfers]).toEqual([]);
   });
 
   it('withholds rows at exactly the watermark (second-resolution ties)', () => {
@@ -278,8 +293,8 @@ describe('useMoneyActivityItems', () => {
   });
 
   it('fills the target bucket, not All: an empty Deposits tab keeps fetching', () => {
-    // Card rows land in All/Transfers/Purchases but not Deposits, so a fill
-    // targeting Deposits must keep paging even though All has rows.
+    // Card rows land in All/Purchases but not Deposits, so a fill targeting
+    // Deposits must keep paging even though All has rows.
     const loadMore = jest.fn();
     mockUseMoneyAccountApiActivity.mockReturnValue(
       apiResult({

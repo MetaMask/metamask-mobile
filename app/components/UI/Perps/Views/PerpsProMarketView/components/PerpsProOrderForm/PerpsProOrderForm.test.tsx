@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import {
+  PerpsProMarketViewSelectorsIDs,
+  PerpsProOrderFormSelectorsIDs,
+} from '../../../../Perps.testIds';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
@@ -212,6 +215,68 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'limit' });
 
       expect(screen.getByTestId(testID)).toBeDisabled();
+    });
+  });
+
+  describe('direction control', () => {
+    it('fills the remaining row width whether or not the order book icon is shown', () => {
+      const { rerender } = renderForm();
+
+      expect(screen.getByTestId(ids.DIRECTION_CONTROL)).toHaveStyle({
+        flexGrow: 1,
+      });
+
+      rerender(
+        <PerpsProOrderForm {...createProps({ isOrderBookCollapsed: true })} />,
+      );
+
+      expect(screen.getByTestId(ids.DIRECTION_CONTROL)).toHaveStyle({
+        flexGrow: 1,
+      });
+    });
+
+    it('calls onDirectionChange when the order book icon is also shown', () => {
+      const onDirectionChange = jest.fn();
+      renderForm({ isOrderBookCollapsed: true, onDirectionChange });
+
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+
+      expect(onDirectionChange).toHaveBeenCalledWith('short');
+    });
+  });
+
+  describe('order book expand icon', () => {
+    it('omits the order book icon by default', () => {
+      renderForm();
+
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the order book icon when the order book is collapsed', () => {
+      renderForm({ isOrderBookCollapsed: true });
+
+      expect(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onExpandOrderBook when the order book icon is pressed', () => {
+      const onExpandOrderBook = jest.fn();
+      renderForm({ isOrderBookCollapsed: true, onExpandOrderBook });
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        ),
+      );
+
+      expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
     });
   });
 

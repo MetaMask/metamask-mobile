@@ -214,13 +214,40 @@ describe('onboarding performance hooks', () => {
     });
   });
 
-  // A CTA span starts in Onboarding and must be ended by the screen its route
-  // registers; screen directories are named after their route.
+  // Sentry's default scrubber matches values as well as keys, so an id carrying
+  // one of these substrings reaches Sentry as [Filtered] on every tag and
+  // breadcrumb that includes it.
   it.each([
-    [Routes.ONBOARDING.CHOOSE_PASSWORD, 'index.tsx'],
-    [Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, 'index.js'],
-  ])('instruments the registered %s destination', (routeName, entry) => {
-    const path = `${__dirname}/../../components/Views/${routeName}/${entry}`;
+    ['screen', OnboardingScreenIds],
+    ['rive animation', OnboardingRiveAnimationIds],
+    ['cta', OnboardingCtaIds],
+  ])('keeps %s ids clear of Sentry-scrubbed substrings', (_label, ids) => {
+    const scrubbed =
+      /password|passwd|secret|api_key|apikey|auth|credentials|mysql_pwd|privatekey|private_key|token|bearer/i;
+
+    Object.values(ids).forEach((id) => expect(id).not.toMatch(scrubbed));
+  });
+
+  // A CTA span starts in Onboarding and must be ended by the screen its route
+  // registers. Most screen directories are named after their route; the social
+  // destinations are shared components serving several routes.
+  it.each([
+    [Routes.ONBOARDING.CHOOSE_PASSWORD, 'ChoosePassword/index.tsx'],
+    [
+      Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+      'ImportFromSecretRecoveryPhrase/index.js',
+    ],
+    [
+      Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
+      'OAuthRehydration/index.tsx',
+    ],
+    ['AccountAlreadyExists / AccountNotFound', 'AccountStatus/index.tsx'],
+    [
+      Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+      'SocialLoginIosUser/index.tsx',
+    ],
+  ])('instruments the registered %s destination', (_routeName, entry) => {
+    const path = `${__dirname}/../../components/Views/${entry}`;
 
     expect(readFileSync(path, 'utf8')).toContain('useNavigationPerformance({');
   });
