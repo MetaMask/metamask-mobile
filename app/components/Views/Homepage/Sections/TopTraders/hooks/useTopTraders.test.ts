@@ -137,9 +137,19 @@ describe('useTopTraders', () => {
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent7d,
         pnlValue: first.pnl7d,
+        winRatePercent: null,
         pnlPerChain: first.pnlPerChain ?? {},
         isFollowing: false,
       });
+    });
+
+    it('converts the API win-rate fraction to a whole percent', () => {
+      const entry = { ...mockTraders[0], winRate7d: 0.92 };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].winRatePercent).toBe(92);
     });
 
     it('defaults percentageChange to 0 when roiPercent7d is null', () => {
@@ -176,6 +186,53 @@ describe('useTopTraders', () => {
       );
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.traders[0].pnlPerChain).toEqual({});
+    });
+
+    it('reports the 30-day window when that timeframe is requested', () => {
+      const entry = {
+        ...mockTraders[0],
+        pnl30d: 1000,
+        roiPercent30d: 12,
+        winRate30d: 0.5,
+      };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+
+      const { result } = renderHook(() => useTopTraders({ timeframe: '30d' }));
+
+      expect(result.current.traders[0].pnlValue).toBe(1000);
+      expect(result.current.traders[0].percentageChange).toBe(12);
+      expect(result.current.traders[0].winRatePercent).toBe(50);
+    });
+  });
+
+  describe('query options', () => {
+    it('forwards the ranking metric to the leaderboard query key', () => {
+      renderHook(() => useTopTraders({ limit: 50, sort: 'winRate' }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, sort: 'winRate' },
+          ],
+        }),
+      );
+    });
+
+    it('leaves the query key untouched when the timeframe changes', () => {
+      const { rerender } = renderHook(
+        ({ timeframe }: { timeframe: '7d' | '30d' }) =>
+          useTopTraders({ limit: 50, timeframe }),
+        { initialProps: { timeframe: '7d' as '7d' | '30d' } },
+      );
+
+      const initialKey = mockUseQuery.mock.calls.at(-1)?.[0].queryKey;
+
+      rerender({ timeframe: '30d' });
+
+      expect(mockUseQuery.mock.calls.at(-1)?.[0].queryKey).toEqual(initialKey);
     });
   });
 
@@ -485,7 +542,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
 
@@ -497,7 +558,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
+        expect.objectContaining({
+          enabled: false,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
 
@@ -513,7 +578,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
   });

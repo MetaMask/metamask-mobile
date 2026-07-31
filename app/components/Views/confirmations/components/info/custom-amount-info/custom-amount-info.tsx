@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { Platform, View } from 'react-native';
-import { toCaipAssetType } from '@metamask/utils';
 import {
   TransactionType,
   hasTransactionType,
@@ -16,10 +15,6 @@ import {
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
-import { BridgeFeeRow } from '../../rows/bridge-fee-row';
-import { BridgeTimeRow } from '../../rows/bridge-time-row';
-import { TotalRow } from '../../rows/total-row';
-import { ReceiveRow } from '../../rows/receive-row';
 import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
@@ -48,28 +43,18 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayQuotesLastUpdated,
-  useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
-import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { strings } from '../../../../../../../locales/i18n';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import {
-  ConfirmationParams,
-  PayWithOption,
-} from '../../confirm/confirm-component';
+import { ConfirmationParams } from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Box,
-  BoxAlignItems,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   HelpText,
   HelpTextSeverity,
   Text,
@@ -79,16 +64,13 @@ import {
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
-import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
 import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { prefixError } from '../../../../../../util/transactions/error-prefix';
-import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
@@ -98,10 +80,11 @@ import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
-import { KeyValueRowSkeleton } from '../../rows/key-value-row-skeleton';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { typography } from '@metamask/design-tokens';
-
+import { CustomAmountBuy } from '../../custom-amount/custom-amount-buy';
+import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
+import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 /** Reserve up to two BodySm lines so HelpText appearance does not shift the amount block. */
 const HELP_TEXT_SLOT_MIN_HEIGHT = typography.sBodySM.lineHeight * 2;
@@ -643,7 +626,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <PayWithRow isResultReady />
               )}
               {!hideDetailsForNoFunds && !hasAccountNoFunds && (
-                <Quote
+                <CustomAmountTotals
                   amountFiat={amountFiat}
                   canSelectWithdrawToken={canSelectWithdrawToken}
                   isAddMusdIntent={isAddMusdIntent}
@@ -685,12 +668,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             )}
           {showBuySection ? (
             <Box twClassName="px-4">
-              <BuySection />
+              <CustomAmountBuy />
             </Box>
           ) : null}
           {!isKeyboardVisible && !hideConfirm && (
             <Box twClassName="px-4">
-              <ConfirmButton
+              <CustomAmountConfirmButton
                 disableConfirm={disableConfirmEffective}
                 isAmountUpdating={isAmountUpdating}
                 onContinue={trackContinue}
@@ -804,149 +787,6 @@ function getBuyEmptyHelpText(
   return undefined;
 }
 
-function BuySection() {
-  const tokens = useAccountTokens({ includeNoBalance: true });
-  const requiredTokens = useTransactionPayRequiredTokens();
-
-  const primaryRequiredToken = requiredTokens.find(
-    (token) => token.address !== getNativeTokenAddress(token.chainId),
-  );
-
-  const asset = tokens.find(
-    (token) =>
-      token.address?.toLowerCase() ===
-        primaryRequiredToken?.address.toLowerCase() &&
-      token.chainId === primaryRequiredToken?.chainId,
-  );
-
-  const assetId = toCaipAssetType(
-    'eip155',
-    Number(primaryRequiredToken?.chainId ?? '0x0').toString(),
-    'erc20',
-    asset?.assetId ?? '0x0',
-  );
-
-  const { goToBuy } = useRampNavigation();
-
-  const handleBuyPress = useCallback(() => {
-    goToBuy({ assetId });
-  }, [assetId, goToBuy]);
-
-  return (
-    <Box alignItems={BoxAlignItems.Center} gap={5}>
-      <Button
-        variant={ButtonVariant.Primary}
-        onPress={handleBuyPress}
-        isFullWidth
-        size={ButtonSize.Lg}
-      >
-        {strings('confirm.custom_amount.buy_button')}
-      </Button>
-    </Box>
-  );
-}
-
-function Quote({
-  amountFiat,
-  canSelectWithdrawToken,
-  isAddMusdIntent,
-  isAwaitingPrefillResult,
-  isLoading,
-  showPaymentDetails,
-}: Readonly<{
-  amountFiat: string;
-  canSelectWithdrawToken: boolean;
-  isAddMusdIntent: boolean;
-  isAwaitingPrefillResult: boolean;
-  isLoading: boolean;
-  showPaymentDetails: boolean;
-}>) {
-  if (isLoading) {
-    return <PaymentDetailsSkeleton />;
-  }
-
-  if (showPaymentDetails && !isAwaitingPrefillResult) {
-    return (
-      <>
-        <BridgeFeeRow />
-        <BridgeTimeRow />
-        {canSelectWithdrawToken ? (
-          <ReceiveRow inputAmountUsd={amountFiat} />
-        ) : (
-          <TotalRow />
-        )}
-      </>
-    );
-  }
-
-  if (isAddMusdIntent || isAwaitingPrefillResult) {
-    return <PaymentDetailsSkeleton />;
-  }
-
-  return null;
-}
-
-function PaymentDetailsSkeleton() {
-  return (
-    <>
-      <KeyValueRowSkeleton testID="bridge-fee-row-skeleton" />
-      <KeyValueRowSkeleton testID="bridge-time-row-skeleton" />
-      <KeyValueRowSkeleton testID="total-row-skeleton" />
-    </>
-  );
-}
-
-function ConfirmButton({
-  disableConfirm,
-  isAmountUpdating,
-  onContinue,
-}: Readonly<{
-  disableConfirm?: boolean;
-  isAmountUpdating?: boolean;
-  onContinue?: () => void;
-}>) {
-  const { hasBlockingAlerts } = useAlerts();
-  const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
-    useConfirmationContext();
-  const isLoading = useIsTransactionPayLoading();
-  const { onConfirm } = useConfirmActions();
-  const disabled =
-    hasBlockingAlerts ||
-    isLoading ||
-    Boolean(disableConfirm) ||
-    isAmountUpdating ||
-    isHeadlessBuyInProgress;
-  const buttonLabel = useButtonLabel();
-
-  const handleConfirm = useCallback(async () => {
-    setIsConfirmationSubmitting(true);
-    // Continue / Add Funds CTA funnel event; no-op for non-money flows.
-    onContinue?.();
-    try {
-      await onConfirm();
-    } catch (error) {
-      setIsConfirmationSubmitting(false);
-      throw error;
-    }
-  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
-
-  return (
-    <Button
-      twClassName={disabled ? 'opacity-50' : undefined}
-      size={ButtonSize.Lg}
-      variant={ButtonVariant.Primary}
-      isFullWidth
-      isDisabled={disabled}
-      isLoading={isHeadlessBuyInProgress}
-      loadingText={strings('confirm.preparing_order')}
-      onPress={handleConfirm}
-      testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-    >
-      {buttonLabel}
-    </Button>
-  );
-}
-
 function useIsResultReady({
   isKeyboardVisible,
 }: {
@@ -960,38 +800,4 @@ function useIsResultReady({
     !isKeyboardVisible &&
     (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
   );
-}
-
-function useButtonLabel() {
-  const transaction = useTransactionMetadataRequest();
-  const { payWithOption } = useParams<ConfirmationParams>({});
-
-  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
-  }
-
-  if (
-    hasTransactionType(transaction, [
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-  ) {
-    return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirm');
-  }
-
-  if (
-    payWithOption === PayWithOption.MoneyAccount &&
-    hasTransactionType(transaction, [
-      TransactionType.perpsDeposit,
-      TransactionType.predictDeposit,
-    ])
-  ) {
-    return strings('confirm.deposit_edit_amount_money_account_send');
-  }
-
-  return strings('confirm.deposit_edit_amount_done');
 }

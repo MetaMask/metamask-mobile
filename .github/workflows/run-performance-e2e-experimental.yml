@@ -24,6 +24,8 @@ permissions:
   contents: write
   id-token: write
   actions: write
+  pull-requests: write
+  statuses: write
 
 concurrency:
   group: performance-e2e-experimental-${{ github.ref }}-${{ github.event_name }}
