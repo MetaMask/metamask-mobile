@@ -1,7 +1,9 @@
 import type { OpenrpcDocument } from '@open-rpc/meta-schema';
 import { MOCK_RPC_PORT } from './openrpc-document.js';
 
-interface ClosableTransport { close?: () => void }
+interface ClosableTransport {
+  close?: () => void;
+}
 
 interface OpenRpcMockServer {
   start: () => void;
