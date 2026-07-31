@@ -694,6 +694,23 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetAmount).toHaveBeenCalledWith('1234');
     });
 
+    it('ignores limit price input over nine digits and forwards valid input', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceChange('1234567890'); // 10 digits -> ignored
+      });
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
+      act(() => {
+        result.current.onLimitPriceChange('1234.56'); // valid
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalledWith('1234.56');
+    });
+
     it('sets the limit price from the live mid', () => {
       // Arrange
       const { result } = renderProForm();
