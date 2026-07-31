@@ -235,7 +235,8 @@ const AvailableBalanceRow = ({ value, onPress }: AvailableBalanceRowProps) => (
   <Pressable
     accessibilityRole="button"
     accessibilityState={{ disabled: !onPress }}
-    accessibilityLabel={strings('perps.add_funds')}
+    accessibilityLabel={value}
+    accessibilityHint={onPress ? strings('perps.add_funds') : undefined}
     disabled={!onPress}
     onPress={onPress}
     testID={ids.ADD_FUNDS_BUTTON}

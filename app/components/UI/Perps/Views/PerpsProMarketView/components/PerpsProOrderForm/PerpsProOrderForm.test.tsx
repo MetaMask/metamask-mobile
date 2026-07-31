@@ -90,6 +90,18 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeOnTheScreen();
     });
 
+    it('announces the available balance and the add funds action to screen readers', () => {
+      renderForm({
+        availableBalance: '$250 available',
+        onAddFundsPress: jest.fn(),
+      });
+
+      const addFundsButton = screen.getByTestId(ids.ADD_FUNDS_BUTTON);
+
+      expect(addFundsButton).toHaveAccessibleName('$250 available');
+      expect(addFundsButton.props.accessibilityHint).toBe('Add funds');
+    });
+
     it('calls onAddFundsPress when the available balance text is pressed', () => {
       const onAddFundsPress = jest.fn();
       renderForm({ availableBalance: '$250 available', onAddFundsPress });
