@@ -18,84 +18,13 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import {
-  CaipAssetType,
-  CaipChainId,
-  isCaipAssetType,
-  parseCaipAssetType,
-  parseCaipChainId,
-} from '@metamask/utils';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PopularToken } from '../hooks/usePopularTokens';
 import { useRampsButtonClickedEvent } from '../hooks';
 import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/constants';
-
-// Zero address used for native EVM tokens (ETH, BNB, etc.)
-const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
-
-/**
- * Parses a CAIP-19 asset ID to extract chainId, address, and chain type info.
- * Uses @metamask/utils functions directly and adds EVM-specific post-processing.
- *
- * @param assetId - CAIP-19 asset ID (e.g., "eip155:1/erc20:0x123...")
- * @returns Parsed asset info with chainId, address, and type flags
- */
-const parseAssetIdForNavigation = (
-  assetId: string,
-): {
-  chainId: string;
-  address: string;
-  isEvmChain: boolean;
-  isNative: boolean;
-} => {
-  // Validate CAIP-19 format
-  if (!isCaipAssetType(assetId as CaipAssetType)) {
-    return {
-      chainId: '',
-      address: '',
-      isEvmChain: false,
-      isNative: false,
-    };
-  }
-
-  try {
-    // Parse using @metamask/utils functions
-    const parsedAsset = parseCaipAssetType(assetId as CaipAssetType);
-    const parsedChain = parseCaipChainId(parsedAsset.chainId as CaipChainId);
-
-    const { namespace, reference: chainReference } = parsedChain;
-    const { assetNamespace, assetReference } = parsedAsset;
-
-    const isEvmChain = namespace === 'eip155';
-    const isNative = assetNamespace === 'slip44';
-
-    let chainId: string;
-    let address: string;
-
-    if (isEvmChain) {
-      // EVM chains use hex chainId format for navigation
-      chainId = `0x${parseInt(chainReference, 10).toString(16)}`;
-      // For native tokens (slip44), use zero address; for ERC20, use the contract address
-      address = isNative ? NATIVE_TOKEN_ADDRESS : assetReference;
-    } else {
-      // Non-EVM chains use CAIP-2 format for chainId
-      chainId = `${namespace}:${chainReference}`;
-      // For non-EVM chains, address is the full CAIP-19 asset ID
-      address = assetId;
-    }
-
-    return { chainId, address, isEvmChain, isNative };
-  } catch {
-    return {
-      chainId: '',
-      address: '',
-      isEvmChain: false,
-      isNative: false,
-    };
-  }
-};
+import { parseAssetIdForNavigation } from '../../../../../UI/TokenDetails/utils/parseAssetIdForNavigation';
 
 interface PopularTokenRowProps {
   token: PopularToken;

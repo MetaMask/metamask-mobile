@@ -89,7 +89,7 @@ import {
 } from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
-import { parseAssetIdForNavigation } from '../utils/tokenNavigation';
+import { parseAssetIdForNavigation } from '../../../UI/TokenDetails/utils/parseAssetIdForNavigation';
 import type { Trade } from '@metamask/social-controllers';
 import {
   getTradeFocusSpanMs,

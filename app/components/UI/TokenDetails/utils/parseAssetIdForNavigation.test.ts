@@ -1,4 +1,4 @@
-import { parseAssetIdForNavigation } from './tokenNavigation';
+import { parseAssetIdForNavigation } from './parseAssetIdForNavigation';
 
 describe('parseAssetIdForNavigation', () => {
   it('parses an EVM ERC-20 asset id to a hex chainId and contract address', () => {
