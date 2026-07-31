@@ -20,6 +20,14 @@ jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
 }));
 
 describe('TraderPositionCompactTokenStats', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set<string>(),
+      isLoading: false,
+    });
+  });
+
   it('renders trader on the first row and token change on the second', () => {
     const onTraderPress = jest.fn();
 

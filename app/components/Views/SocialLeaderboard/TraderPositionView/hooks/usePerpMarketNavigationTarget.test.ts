@@ -14,6 +14,14 @@ describe('usePerpMarketNavigationTarget', () => {
     });
   };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set<string>(),
+      isLoading: false,
+    });
+  });
+
   it('links a non-HIP-3 symbol directly without a market check', () => {
     setTradableSymbols([]);
 

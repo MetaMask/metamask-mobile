@@ -27,6 +27,14 @@ describe('TraderPositionHeaderTokenLink', () => {
     });
   };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set<string>(),
+      isLoading: false,
+    });
+  });
+
   it('renders a pressable link that navigates with the resolved target symbol', () => {
     setTradableSymbols(['xyz:SPCX']);
     const onTrade = jest.fn();

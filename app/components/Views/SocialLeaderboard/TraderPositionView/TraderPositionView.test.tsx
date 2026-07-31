@@ -1305,6 +1305,7 @@ describe('TraderPositionView', () => {
       ['1713657600000', 1.56],
     ];
 
+    const originalFetch = global.fetch;
     global.fetch = jest.fn().mockImplementation((input: string) => {
       const url = new URL(input);
       const timePeriod = url.searchParams.get('timePeriod');
@@ -1327,19 +1328,23 @@ describe('TraderPositionView', () => {
       });
     }) as jest.Mock;
 
-    renderWithProvider(<TraderPositionView />, { state: mockState });
+    try {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    fireEvent.press(screen.getByText('All'));
+      fireEvent.press(screen.getByText('All'));
 
-    await waitFor(() => {
-      const lastCall =
-        mockTraderPriceChart.mock.calls[
-          mockTraderPriceChart.mock.calls.length - 1
-        ]?.[0];
+      await waitFor(() => {
+        const lastCall =
+          mockTraderPriceChart.mock.calls[
+            mockTraderPriceChart.mock.calls.length - 1
+          ]?.[0];
 
-      expect(lastCall).toMatchObject({
-        prices: weeklyPrices,
+        expect(lastCall).toMatchObject({
+          prices: weeklyPrices,
+        });
       });
-    });
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });
