@@ -135,8 +135,8 @@ const waitForPostOnboardingDestination = async (
   let visibleCandidate: (typeof candidates)[number] | undefined;
 
   // Probe concrete elements instead of getPageSource(): full hierarchy dumps
-  // are multi-second Appium RTTs on BrowserStack/TestMu and were not fully
-  // subtracted from TimerHelper (only the final probe is).
+  // are multi-second Appium RTTs on BrowserStack/TestMu and are not tracked as
+  // capped poll overhead the way expectElementToBeVisible is.
   await withImplicitWait(DESTINATION_PROBE_IMPLICIT_WAIT_MS, async () => {
     await appDriver.waitUntil(
       async () => {

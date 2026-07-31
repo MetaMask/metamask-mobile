@@ -265,8 +265,10 @@ export function boxedStep<This, Args extends unknown[], Return>(
  * infrastructure latency — on cloud device farms this can dominate the timer.
  *
  * Conservative model while `TimerHelper.measure()` is active (click stays outside):
- * - Probe only: post-detect `isExisting` (pure RTT we add after the UI is up).
- * - Resolution / success confirms are not subtracted — they often include app load and under-reported on-device time when capped as infra.
+ * - Post-detect probe (`isExisting` after visible) — pure Appium/network RTT.
+ * - Failed + success poll command durations, each capped at the probe RTT so
+ *   implicit-wait / app-load time inside those commands stays in app time.
+ * - Poll sleeps and element-resolution (`directMs`) stay in app time.
  *
  * When no `measure()` is active all functions are no-ops.
  */
@@ -277,6 +279,19 @@ export interface OverheadAccumulatorState {
   successPollMs: number | null;
   probeMs: number | null;
 }
+
+export interface OverheadTrackingResult {
+  infraMs: number;
+  sleepMs: number;
+}
+
+/** Minimum poll gap while measuring — still allows snappy local detection. */
+export const MEASURING_POLL_INTERVAL_MIN_MS = 50;
+/**
+ * Upper bound matches the non-measuring poll interval so adaptive backing-off
+ * never becomes slower than a normal wait.
+ */
+export const MEASURING_POLL_INTERVAL_MAX_MS = 300;
 
 let _tracking = false;
 let _directMs = 0;
@@ -296,12 +311,12 @@ function resetOverheadState(): void {
 /**
  * Computes infra ms to subtract from wall-clock.
  *
- * Only the post-detect probe is subtracted. That call is pure Appium/network
- * overhead we add after the screen is already visible.
+ * Uses the post-detect probe as the RTT cap. Each failed/success poll may
+ * contribute at most that cap (not its full duration), so implicit-wait time
+ * inside `isExisting` is not mistaken for network overhead.
  *
- * Resolution and success-confirm durations often include real app load (cold
- * start findElement / waitForDisplayed). Subtracting them (even capped to RTT)
- * under-reports app time vs on-device video.
+ * `directMs` / `sleepMs` are intentionally excluded — resolution and sleeps
+ * are treated as app time.
  *
  * Exported for unit tests.
  */
@@ -311,7 +326,59 @@ export function computeAppiumInfraOverheadMs(
   if (state.probeMs == null || state.probeMs <= 0) {
     return 0;
   }
-  return state.probeMs;
+
+  const rttCap = state.probeMs;
+  let infraMs = rttCap;
+
+  for (const durationMs of state.failedPollDurationsMs) {
+    if (durationMs > 0) {
+      infraMs += Math.min(durationMs, rttCap);
+    }
+  }
+
+  if (state.successPollMs != null && state.successPollMs > 0) {
+    // Success path may include isExisting + isVisible (~2 commands). Cap at
+    // one probe RTT so we under-subtract rather than invent near-zero app time.
+    infraMs += Math.min(state.successPollMs, rttCap);
+  }
+
+  return infraMs;
+}
+
+/**
+ * Caps infra subtraction so reported app time cannot collapse to 0ms when the
+ * wall-clock wait had real content (poll sleeps, or any positive duration).
+ *
+ * Exported for unit tests.
+ */
+export function clampInfraSubtractionMs(
+  wallClockMs: number,
+  infraMs: number,
+  sleepMs: number,
+): number {
+  if (wallClockMs <= 0) {
+    return 0;
+  }
+  const appFloorMs = Math.max(sleepMs, 1);
+  return Math.min(Math.max(0, infraMs), Math.max(0, wallClockMs - appFloorMs));
+}
+
+/**
+ * Adaptive poll gap while measuring: never poll faster than the last command
+ * took (cloud RTT), and never slower than a normal non-measuring wait.
+ *
+ * Exported for unit tests.
+ */
+export function nextMeasuringPollIntervalMs(
+  lastCommandDurationMs: number,
+): number {
+  if (!Number.isFinite(lastCommandDurationMs) || lastCommandDurationMs <= 0) {
+    return MEASURING_POLL_INTERVAL_MIN_MS;
+  }
+  return Math.min(
+    MEASURING_POLL_INTERVAL_MAX_MS,
+    Math.max(MEASURING_POLL_INTERVAL_MIN_MS, Math.ceil(lastCommandDurationMs)),
+  );
 }
 
 export function startOverheadTracking(): void {
@@ -351,17 +418,18 @@ export function recordOverheadProbe(durationMs: number): void {
   }
 }
 
-export function stopOverheadTracking(): number {
+export function stopOverheadTracking(): OverheadTrackingResult {
   _tracking = false;
-  const result = computeAppiumInfraOverheadMs({
+  const infraMs = computeAppiumInfraOverheadMs({
     directMs: _directMs,
     sleepMs: _sleepMs,
     failedPollDurationsMs: _failedPollDurationsMs,
     successPollMs: _successPollMs,
     probeMs: _probeMs,
   });
+  const sleepMs = _sleepMs;
   resetOverheadState();
-  return result;
+  return { infraMs, sleepMs };
 }
 
 export function isOverheadTrackingActive(): boolean {
