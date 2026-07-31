@@ -874,6 +874,10 @@ export const usePerpsProOrderForm = ({
 
   const onLimitPriceChange = useCallback(
     (value: string) => {
+      const digitCount = (value.match(/\d/g) || []).length;
+      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+        return;
+      }
       setLimitPrice(value);
     },
     [setLimitPrice],
