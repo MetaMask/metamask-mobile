@@ -170,6 +170,8 @@ export async function prepareOpenRpcDocument(
 
   // net_version missing from execution-apis:
   // https://github.com/ethereum/execution-apis/issues/540
+  // Cast needed: parseOpenRPCDocument types methods via schema-utils-js's
+  // nested @open-rpc/meta-schema, which is a separate type identity.
   openrpcDocument.methods.push({
     name: 'net_version',
     params: [],
@@ -193,7 +195,7 @@ export async function prepareOpenRpcDocument(
         },
       },
     ],
-  } as MethodObject);
+  } as (typeof openrpcDocument.methods)[number]);
 
   return openrpcDocument;
 }

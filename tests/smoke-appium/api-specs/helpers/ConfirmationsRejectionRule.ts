@@ -1,5 +1,10 @@
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
-import type { MethodObject, OpenrpcDocument } from '@open-rpc/meta-schema';
+import type {
+  ContentDescriptorObject,
+  JSONSchema,
+  MethodObject,
+  OpenrpcDocument,
+} from '@open-rpc/meta-schema';
 import type { Call, IOptions } from '@open-rpc/test-coverage/build/coverage';
 import type Rule from '@open-rpc/test-coverage/build/rules/rule';
 import Assertions from '../../../framework/Assertions.js';
@@ -23,6 +28,14 @@ import {
 interface ConfirmationsRejectRuleOptions {
   pageUrl: string;
   only?: string[];
+}
+
+function getMethodResultSchema(method: MethodObject): JSONSchema {
+  const result = method.result;
+  if (!result || !('schema' in result)) {
+    return {};
+  }
+  return result.schema;
 }
 
 /**
@@ -116,14 +129,17 @@ export default class ConfirmationsRejectRule implements Rule {
       const paramValues = (example.params ?? []).map((param) => param.value);
       const params =
         method.paramStructure === 'by-name'
-          ? (paramsToObj(paramValues, method.params) as unknown[])
+          ? (paramsToObj(
+              paramValues,
+              method.params as ContentDescriptorObject[],
+            ) as unknown[])
           : paramValues;
       calls.push({
         title: `${this.getTitle()} - with example ${example.name ?? method.name}`,
         methodName: method.name,
         params,
         url: '',
-        resultSchema: method.result.schema,
+        resultSchema: getMethodResultSchema(method),
         expectedResult: example.result.value,
       });
       return calls;
@@ -134,7 +150,7 @@ export default class ConfirmationsRejectRule implements Rule {
       methodName: method.name,
       params: [],
       url: '',
-      resultSchema: method.result.schema,
+      resultSchema: getMethodResultSchema(method),
     });
     return calls;
   }
