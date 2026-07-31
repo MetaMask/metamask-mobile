@@ -2,6 +2,7 @@ import React from 'react';
 import { brandColor } from '@metamask/design-tokens';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import I18n from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { useBalanceBreakdown } from '../../BalanceBreakdown/hooks/useBalanceBreakdown';
@@ -31,6 +32,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 let mockPrivacyMode = false;
 let mockIsWalletHomeOnboardingActive = false;
 const mockAccountGroupBalance = jest.fn();
+const originalLocale = I18n.locale;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -148,6 +150,7 @@ const breakdown: BreakdownData = {
 describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    I18n.locale = 'en-US';
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
     jest.mocked(useSelector).mockImplementation((selector) => {
@@ -162,6 +165,10 @@ describe('HomepageBalanceBreakdown', () => {
       return undefined;
     });
     jest.mocked(useBalanceBreakdown).mockReturnValue(breakdown);
+  });
+
+  afterAll(() => {
+    I18n.locale = originalLocale;
   });
 
   it('renders the aggregate hero and rows in screenshot order', () => {
@@ -225,6 +232,19 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
         .accessibilityLabel,
     ).toBe('Tokens, USD 20.00, 20%');
+  });
+
+  it('localizes allocation percentages and APY numbers', () => {
+    I18n.locale = 'de-DE';
+
+    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('money')),
+    ).toHaveTextContent('20 %');
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
+      'APY von 4,1 %',
+    );
   });
 
   it('omits slices hidden by their product flags', () => {

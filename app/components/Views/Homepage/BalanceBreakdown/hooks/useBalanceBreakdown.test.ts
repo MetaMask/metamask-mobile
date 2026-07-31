@@ -96,6 +96,27 @@ describe('useBalanceBreakdown', () => {
     expect(tokens.percentOfTotal).toBeCloseTo(50000 / 110000);
   });
 
+  it('excludes debt from the allocation denominator', () => {
+    mockUseTokensSlice.mockReturnValue(
+      makeSlice('tokens', 100) as ReturnType<typeof useTokensSlice>,
+    );
+    mockUsePerpsSlice.mockReturnValue(
+      makeSlice('perps', 0) as ReturnType<typeof usePerpsSlice>,
+    );
+    mockUsePredictSlice.mockReturnValue(
+      makeSlice('predict', 0) as ReturnType<typeof usePredictSlice>,
+    );
+    mockUseDefiSlice.mockReturnValue(
+      makeSlice('defi', -25) as ReturnType<typeof useDefiSlice>,
+    );
+
+    const { result } = renderHook(() => useBalanceBreakdown());
+
+    expect(result.current.hero.totalFiat).toBe(75);
+    expect(result.current.slices.tokens.percentOfTotal).toBe(1);
+    expect(result.current.slices.defi.percentOfTotal).toBe(0);
+  });
+
   it('excludes ineligible slices from total', () => {
     mockUsePerpsSlice.mockReturnValue(
       makeSlice('perps', 30000, 'ineligible') as ReturnType<

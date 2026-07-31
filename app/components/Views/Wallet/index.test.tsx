@@ -1942,13 +1942,24 @@ describe('Homepage balance breakdown ABC test', () => {
   it('keeps the current homepage for the control assignment', () => {
     mockBalanceBreakdownVariantName = 'control';
 
-    const { getByTestId } = render(Wallet);
+    const { queryByTestId } = render(Wallet);
 
     expect(mockHomepage).toHaveBeenCalledWith(
       expect.objectContaining({
         balanceBreakdownSectionProps: undefined,
       }),
     );
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders control banner spacing when the network banner is visible', () => {
+    mockBalanceBreakdownVariantName = 'control';
+    mockNetworkConnectionBannerVisible = true;
+
+    const { getByTestId } = render(Wallet);
+
     expect(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
     ).toBeOnTheScreen();

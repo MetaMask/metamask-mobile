@@ -34,6 +34,10 @@ describe('usePredictSlice', () => {
       usePredictSlice((amount) => amount * 2),
     );
 
+    expect(mockUsePredictPortfolio).toHaveBeenCalledWith({
+      enabled: true,
+      livePriceUpdates: false,
+    });
     expect(result.current.status).toBe('ready');
     expect(result.current.valueFiat).toBe(120);
   });
@@ -70,7 +74,10 @@ describe('usePredictSlice', () => {
       usePredictSlice((amount) => amount * 2),
     );
 
-    expect(mockUsePredictPortfolio).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUsePredictPortfolio).toHaveBeenCalledWith({
+      enabled: false,
+      livePriceUpdates: false,
+    });
     expect(result.current.status).toBe('ineligible');
     expect(result.current.isVisible).toBe(false);
   });

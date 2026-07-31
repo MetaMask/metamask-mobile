@@ -134,6 +134,16 @@ describe('usePredictPortfolio', () => {
     expect(mockUsePredictAccountState).toHaveBeenCalledWith({ enabled: false });
   });
 
+  it('disables live position updates when requested', () => {
+    renderHook(() => usePredictPortfolio({ livePriceUpdates: false }));
+
+    expect(mockUsePredictPositions).toHaveBeenNthCalledWith(1, {
+      claimable: false,
+      enabled: true,
+      livePriceUpdates: false,
+    });
+  });
+
   it('returns a usable balance-only portfolio state', () => {
     mockUsePredictBalance.mockReturnValue(createQuery<number>({ data: 250 }));
 

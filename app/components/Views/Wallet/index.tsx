@@ -986,7 +986,7 @@ const Wallet = ({
   const hasBannerContent =
     !basicFunctionalityEnabled ||
     networkConnectionBanner.networkConnectionBannerState.visible;
-  const bannerContent = (
+  const bannerContent = hasBannerContent ? (
     <View
       style={styles.banner}
       testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT}
@@ -1007,7 +1007,7 @@ const Wallet = ({
       ) : null}
       <NetworkConnectionBannerContent {...networkConnectionBanner} />
     </View>
-  );
+  ) : null;
 
   /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
   const walletHomeAccountGroupBalanceProps = {

@@ -8,6 +8,9 @@ export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const isEnabled = useSelector(selectPredictEnabledFlag);
   const { portfolioValue, isLoading, error } = usePredictPortfolio({
     enabled: isEnabled,
+    // PredictionsSection owns the homepage live-price subscription and updates
+    // the shared positions query cache consumed by this aggregate.
+    livePriceUpdates: false,
   });
 
   const convertedValue = toUserCurrency(portfolioValue);

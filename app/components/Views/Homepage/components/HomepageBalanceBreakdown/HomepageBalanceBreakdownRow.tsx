@@ -17,9 +17,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { formatWithThreshold } from '../../../../../util/assets';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import type { SliceData } from '../../BalanceBreakdown/types';
 import type { HomepageBalanceBreakdownLayout } from '../../abTestConfig';
@@ -51,15 +53,13 @@ const HomepageBalanceBreakdownRow = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const { formatCurrency } = useFormatters();
   const isLoading = slice.status === 'loading';
-  const roundedPercentage = Math.round(slice.percentOfTotal * 100);
   const percentageLabel =
     slice.status !== 'ready'
       ? null
-      : slice.valueFiat !== 0 &&
-          slice.percentOfTotal > 0 &&
-          roundedPercentage === 0
-        ? '<1%'
-        : `${roundedPercentage}%`;
+      : formatWithThreshold(slice.percentOfTotal, 0.01, I18n.locale, {
+          style: 'percent',
+          maximumFractionDigits: 0,
+        });
   const displayValue =
     slice.status === 'error' || slice.status === 'ineligible'
       ? '—'
@@ -69,9 +69,15 @@ const HomepageBalanceBreakdownRow = ({
       ? TextColor.TextAlternative
       : TextColor.TextDefault;
   const moneyApy = slice.apyPercent;
-  const apyLabel =
+  const formattedMoneyApy =
     moneyApy !== undefined
-      ? strings('money.apy_label', { percentage: moneyApy })
+      ? getIntlNumberFormatter(I18n.locale, {
+          maximumFractionDigits: 1,
+        }).format(moneyApy)
+      : undefined;
+  const apyLabel =
+    formattedMoneyApy !== undefined
+      ? strings('money.apy_label', { percentage: formattedMoneyApy })
       : undefined;
   const accessibilityLabel = privacyMode
     ? getSliceLabel(slice.key)

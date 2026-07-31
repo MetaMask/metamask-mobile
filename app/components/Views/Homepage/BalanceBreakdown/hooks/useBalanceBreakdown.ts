@@ -25,14 +25,22 @@ function computePercentages(slices: Record<SliceKey, SliceData>): {
   // Money vault accounts are not part of AccountsController/account groups, so
   // the Money and Tokens slice sources are disjoint and can be summed directly.
   const totalFiat = ready.reduce((s, k) => s + slices[k].valueFiat, 0);
+  // Allocation represents positive holdings. Debt still reduces the hero's net
+  // total, but cannot be used as the denominator for a proportional asset bar.
+  const allocationTotalFiat = ready.reduce(
+    (sum, key) => sum + Math.max(slices[key].valueFiat, 0),
+    0,
+  );
 
   const updated = { ...slices };
   for (const key of SLICE_ORDER) {
     updated[key] = {
       ...slices[key],
       percentOfTotal:
-        totalFiat > 0 && slices[key].status === 'ready'
-          ? slices[key].valueFiat / totalFiat
+        allocationTotalFiat > 0 &&
+        slices[key].status === 'ready' &&
+        slices[key].valueFiat > 0
+          ? slices[key].valueFiat / allocationTotalFiat
           : 0,
     };
   }

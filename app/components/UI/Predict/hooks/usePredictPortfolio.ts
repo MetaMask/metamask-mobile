@@ -58,6 +58,7 @@ export interface PredictPortfolioModel {
 
 interface UsePredictPortfolioOptions {
   enabled?: boolean;
+  livePriceUpdates?: boolean;
 }
 
 const getPositionsPnl = (positions: PredictPosition[]) => {
@@ -81,6 +82,7 @@ const getPositionsPnl = (positions: PredictPosition[]) => {
 
 export function usePredictPortfolio({
   enabled = true,
+  livePriceUpdates = true,
 }: UsePredictPortfolioOptions = {}): PredictPortfolioModel {
   const {
     data: availableBalance = 0,
@@ -93,7 +95,7 @@ export function usePredictPortfolio({
   const activePositionsQuery = usePredictPositions({
     claimable: false,
     enabled,
-    livePriceUpdates: true,
+    livePriceUpdates,
   });
   const claimablePositionsQuery = usePredictPositions({
     claimable: true,
