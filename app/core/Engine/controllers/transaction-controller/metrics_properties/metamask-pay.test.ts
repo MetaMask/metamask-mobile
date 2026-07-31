@@ -1503,7 +1503,7 @@ describe('Metamask Pay Metrics', () => {
       expect(result.properties.mm_pay_strategy).toBe('fiat');
     });
 
-    it('keeps mm_pay_payment_method_selected as crypto when no ramps order matches', () => {
+    it('falls back mm_pay_payment_method_selected to fiat when no ramps order matches', () => {
       request.transactionMeta.metamaskPay = {
         fiat: { orderId: 'order-1', provider: 'transak-native' },
       };
@@ -1526,10 +1526,10 @@ describe('Metamask Pay Metrics', () => {
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
-      expect(result.properties.mm_pay_payment_method_selected).toBe('crypto');
+      expect(result.properties.mm_pay_payment_method_selected).toBe('fiat');
     });
 
-    it('keeps mm_pay_payment_method_selected as crypto when matching order has no payment method', () => {
+    it('falls back mm_pay_payment_method_selected to fiat when matching order has no payment method', () => {
       request.transactionMeta.metamaskPay = {
         fiat: { orderId: 'order-1', provider: 'transak-native' },
       };
@@ -1544,6 +1544,27 @@ describe('Metamask Pay Metrics', () => {
           },
         },
       } as never);
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_payment_method_selected).toBe('fiat');
+    });
+
+    it('falls back mm_pay_payment_method_selected to fiat when there is no ramps state', () => {
+      request.transactionMeta.metamaskPay = {
+        fiat: { orderId: 'order-1', provider: 'transak-native' },
+      };
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_payment_method_selected).toBe('fiat');
+    });
+
+    it('keeps mm_pay_payment_method_selected as crypto for non-fiat backfill', () => {
+      request.transactionMeta.metamaskPay = {
+        chainId: '0x1',
+        tokenAddress: '0xA0b8',
+      };
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 

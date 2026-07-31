@@ -290,6 +290,8 @@ function addPersistedPayMetadata(
   if (paymentMethodId) {
     properties.mm_pay_payment_method_selected =
       normalizeMetaMaskPayPaymentMethod(paymentMethodId);
+  } else {
+    properties.mm_pay_payment_method_selected = 'fiat';
   }
 }
 
