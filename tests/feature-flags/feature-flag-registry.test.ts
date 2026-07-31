@@ -98,6 +98,12 @@ describe('Feature Flag Registry', () => {
         }),
       );
     });
+
+    it('keeps the Predict sports feed enabled by default', () => {
+      expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
+        expect.objectContaining({ enabled: true }),
+      );
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
