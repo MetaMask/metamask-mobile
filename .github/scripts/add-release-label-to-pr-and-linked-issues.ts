@@ -8,6 +8,13 @@ import { Labelable, addLabelToLabelable } from './shared/labelable';
 import { retrievePullRequest } from './shared/pull-request';
 import { isValidVersionFormat } from './shared/utils';
 
+// Extracts version from cherry-pick PR titles (e.g., "cp-8.3.0" -> "8.3.0")
+function extractCherryPickVersion(title: string): string | null {
+  const cherryPickPattern = /cp-(\d+\.\d+\.\d+)/i;
+  const match = title.match(cherryPickPattern);
+  return match ? match[1] : null;
+}
+
 main().catch((error: Error): void => {
   console.error(error);
   process.exit(1);
@@ -42,12 +49,30 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Release label indicates the next release version number
+  // Use cherry-pick version from PR title if present, otherwise use next release version
+  const pullRequestTitle = context.payload.pull_request?.title || '';
+  const cherryPickVersion = extractCherryPickVersion(pullRequestTitle);
+
+  let releaseVersionNumber: string;
+  if (cherryPickVersion) {
+    if (!isValidVersionFormat(cherryPickVersion)) {
+      core.setFailed(
+        `Cherry-pick version (${cherryPickVersion}) extracted from PR title is not a valid version format. The expected format is "x.y.z", where "x", "y" and "z" are numbers.`,
+      );
+      process.exit(1);
+    }
+    core.info(`Cherry-pick detected, using release version ${cherryPickVersion}`);
+    releaseVersionNumber = cherryPickVersion;
+  } else {
+    releaseVersionNumber = nextReleaseVersionNumber;
+  }
+
+  // Release label indicates the release version number
   // Example release label: "release-6.5.0"
   const releaseLabel: Label = {
-    name: `release-${nextReleaseVersionNumber}`,
+    name: `release-${releaseVersionNumber}`,
     color: 'EDEDED',
-    description: `Issue or pull request that will be included in release ${nextReleaseVersionNumber}`,
+    description: `Issue or pull request that will be included in release ${releaseVersionNumber}`,
   };
 
   // Initialise octokit, required to call Github GraphQL API
