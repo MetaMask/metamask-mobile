@@ -200,6 +200,7 @@ describe('hermes-health', () => {
     });
 
     it('returns false on timeout when no CDP response arrives', async () => {
+      jest.useFakeTimers();
       const mockWs = createMockWebSocket();
       globalThis.WebSocket = mockWs.constructor as unknown as typeof WebSocket;
 
@@ -209,8 +210,10 @@ describe('hermes-health', () => {
       );
 
       mockWs.simulateOpen();
+      await jest.advanceTimersByTimeAsync(60);
 
       await expect(promise).resolves.toBe(false);
+      jest.useRealTimers();
     });
 
     it('returns false when the WebSocket errors', async () => {

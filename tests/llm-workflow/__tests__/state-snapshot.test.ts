@@ -43,10 +43,6 @@ describe('MetaMaskMobileStateSnapshotCapability', () => {
     });
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
   describe('getState', () => {
     it('returns app state with current screen', async () => {
       mockPlatformDriver.getTestIds.mockResolvedValue([

@@ -183,14 +183,15 @@ describe('metro-watch-attach', () => {
       metroReadyTimeoutMs: 1,
       fetchImpl: mockFetch,
     });
-    const assertion = await expect(promise).rejects.toMatchObject({
-      code: 'MM_INVALID_CONFIG',
-      message: expect.stringContaining('attach failed after 2 attempts'),
-      remediation: expect.stringContaining('yarn watch:clean'),
-    } satisfies Partial<IOSLaunchError>);
 
-    await jest.advanceTimersByTimeAsync(2_000);
-    await assertion;
+    await Promise.all([
+      jest.advanceTimersByTimeAsync(2_000),
+      expect(promise).rejects.toMatchObject({
+        code: 'MM_INVALID_CONFIG',
+        message: expect.stringContaining('attach failed after 2 attempts'),
+        remediation: expect.stringContaining('yarn watch:clean'),
+      } satisfies Partial<IOSLaunchError>),
+    ]);
   });
 
   it('throws MM_LAUNCH_FAILED when Hermes target is not found (release build)', async () => {
