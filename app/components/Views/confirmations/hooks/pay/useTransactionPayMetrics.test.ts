@@ -25,6 +25,7 @@ import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuoteError,
   useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
   useTransactionPayFiatPayment,
 } from './useTransactionPayData';
@@ -79,6 +80,10 @@ const QUOTE_MOCK = {
   strategy: TransactionPayStrategy.Relay,
 } as TransactionPayQuote<Json>;
 
+const NOOP_QUOTE_MOCK = {
+  strategy: TransactionPayStrategy.None,
+} as TransactionPayQuote<Json>;
+
 function runHook({ type }: { type?: TransactionType } = {}) {
   const state = merge(
     {},
@@ -99,6 +104,9 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useTransactionPayQuotesRawMock = jest.mocked(
+    useTransactionPayQuotesRaw,
+  );
 
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -161,6 +169,7 @@ describe('useTransactionPayMetrics', () => {
     } as never);
 
     useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([]);
     useAccountTokensMock.mockReturnValue([]);
     mockSelectConfirmationMetricsById.mockReturnValue(undefined);
 
@@ -1593,6 +1602,35 @@ describe('useTransactionPayMetrics', () => {
 
       useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
       useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+      useTransactionPayQuotesRawMock.mockReturnValue([QUOTE_MOCK]);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
+    });
+
+    it('does NOT append when a cycle ends with only a no-op quote', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPayQuotesRawMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // A completed same-token / no-conversion route: the raw quotes list
+      // holds a single no-op quote while the filtered list is empty. This is
+      // a success, not a quote error.
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPayQuotesRawMock.mockReturnValue([NOOP_QUOTE_MOCK]);
 
       rerender({});
 

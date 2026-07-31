@@ -19,6 +19,7 @@ import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuoteError,
   useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -50,6 +51,7 @@ export function useTransactionPayMetrics() {
   const quoteErrorsRef = useRef<Json[]>([]);
   const wasQuoteLoadingRef = useRef(false);
   const quotes = useTransactionPayQuotes();
+  const rawQuotes = useTransactionPayQuotesRaw();
   const isQuoteLoading = useIsTransactionPayQuoteLoading();
   const quoteError = useTransactionPayQuoteError();
   const { availableTokens: tokens, hasTokens } =
@@ -81,6 +83,12 @@ export function useTransactionPayMetrics() {
   }, [isQuoteRequested]);
 
   const hasQuotes = (quotes?.length ?? 0) > 0;
+
+  // Includes no-op (TransactionPayStrategy.None) quotes, which the filtered
+  // `quotes` list drops. A completed same-token / no-conversion route stores
+  // only a no-op quote, so it must count as a successful cycle here — not a
+  // quote error. Mirrors useNoPayTokenQuotesAlert, which uses raw quotes too.
+  const hasRawQuotes = (rawQuotes?.length ?? 0) > 0;
 
   if (hasQuotes && !hasLoadedQuoteRef.current) {
     hasLoadedQuoteRef.current = true;
@@ -131,7 +139,7 @@ export function useTransactionPayMetrics() {
   if (
     wasQuoteLoadingRef.current &&
     !isQuoteLoading &&
-    !hasQuotes &&
+    !hasRawQuotes &&
     sendingValue > 0
   ) {
     const inputType = storedMetrics?.properties?.mm_pay_amount_input_type as
