@@ -147,6 +147,16 @@ IOS_SIMULATOR_UDID="$IOS_SIMULATOR_UDID" \
 yarn appium-smoke:ios
 ```
 
+### API specs (OpenRPC) — excluded from smoke tags
+
+`tests/smoke-appium/api-specs/` is **iOS-only**, colocated under smoke-appium but **not** part of Appium smoke tag suites (`testIgnore` unless `APPIUM_RUN_API_SPECS=1`). Use the dedicated script / workflow:
+
+```bash
+IOS_APP_PATH=build/ci-main-e2e/MetaMask.app yarn test:api-specs
+```
+
+CI entrypoint: `.github/workflows/run-e2e-api-specs.yml` (`api-specs-ios`, currently `if: false`).
+
 **Single spec or tag:**
 
 ```bash
