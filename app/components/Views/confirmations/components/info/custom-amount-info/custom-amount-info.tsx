@@ -357,11 +357,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     );
 
     useEffect(() => {
-      if (isMaxAutoSubmitPending.current && amountFiat !== '0') {
+      // Include `stage` so Max still commits when amountFiat is unchanged
+      // (e.g. user already typed the max). Waiting only on amountFiat leaves
+      // isMaxAutoSubmitPending armed and the Loading stage stranded.
+      if (
+        isMaxAutoSubmitPending.current &&
+        stage === CustomAmountStage.Loading &&
+        amountFiat !== '0'
+      ) {
         isMaxAutoSubmitPending.current = false;
         handleDone();
       }
-    }, [amountFiat, handleDone]);
+    }, [amountFiat, handleDone, stage]);
 
     const handleAmountPress = useCallback(() => {
       setStage(CustomAmountStage.AmountInput);

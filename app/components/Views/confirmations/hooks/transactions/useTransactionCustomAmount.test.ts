@@ -660,6 +660,46 @@ describe('useTransactionCustomAmount', () => {
   });
 
   describe('updatePendingAmountPercentage updates amount fiat', () => {
+    it('returns false when there is no balance', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+      let didApply = true;
+
+      await act(async () => {
+        didApply = result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(didApply).toBe(false);
+      expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('returns false when balance rounds down to dust ($0.00)', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0.004',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+      let didApply = true;
+
+      await act(async () => {
+        didApply = result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(didApply).toBe(false);
+      expect(result.current.amountFiat).toBe('0');
+    });
+
     it('to percentage of token balance', async () => {
       const { result } = runHook();
 
