@@ -75,7 +75,9 @@ class MultichainTestDApp {
 
   async createSessionWithNetworks(chainIds: string[]): Promise<void> {
     await this.scrollToPageTop();
-    await this.useAutoConnectButton();
+    const connected = await this.useAutoConnectButton();
+    if (!connected)
+      throw new Error('createSessionWithNetworks: auto-connect failed');
 
     for (const chainId of ALL_CHAIN_IDS) {
       const checkboxId = `${SELECTORS.NETWORK_CHECKBOX_PREFIX}eip155-${chainId}`;

@@ -463,7 +463,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
               unknown
             >;
 
-            Assertions.checkIfObjectHasKeysAndValidValues(result, {
+            await Assertions.checkIfObjectHasKeysAndValidValues(result, {
               id: isHexString,
             });
           },
@@ -531,15 +531,18 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
               getStatusResultText ?? '{}',
             ) as Record<string, unknown>;
 
-            Assertions.checkIfObjectHasKeysAndValidValues(getStatusResult, {
-              version: (value: unknown) =>
-                typeof value === 'string' && value.length > 0,
-              id: isHexString,
-              chainId: isHexString,
-              atomic: Boolean,
-              status: (value: unknown) => value === 200,
-              receipts: Array.isArray,
-            });
+            await Assertions.checkIfObjectHasKeysAndValidValues(
+              getStatusResult,
+              {
+                version: (value: unknown) =>
+                  typeof value === 'string' && value.length > 0,
+                id: isHexString,
+                chainId: isHexString,
+                atomic: Boolean,
+                status: (value: unknown) => value === 200,
+                receipts: Array.isArray,
+              },
+            );
           },
         );
       },

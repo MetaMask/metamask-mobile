@@ -711,7 +711,7 @@ export default class ChromeCdpHelpers {
     return (
       Boolean(target.title) &&
       /multichain api test dapp/i.test(target.title ?? '') &&
-      /:8090\b/.test(dappUrl)
+      dappUrl.includes('localhost')
     );
   }
 
@@ -784,9 +784,10 @@ export default class ChromeCdpHelpers {
       }
     }
 
-    const rawContexts = (await getDriver().execute(
-      'mobile: getContexts',
-    )) as { proc?: string; webviewName?: string }[];
+    const rawContexts = (await getDriver().execute('mobile: getContexts')) as {
+      proc?: string;
+      webviewName?: string;
+    }[];
     const mmCtx = rawContexts.find(
       (ctx) =>
         ctx.webviewName === 'WEBVIEW_io.metamask' ||
