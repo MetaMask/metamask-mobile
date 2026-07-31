@@ -542,7 +542,10 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+        }),
       );
     });
 
@@ -554,7 +557,10 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
+        expect.objectContaining({
+          enabled: false,
+          refetchOnWindowFocus: false,
+        }),
       );
     });
 
@@ -570,7 +576,10 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+        }),
       );
     });
   });

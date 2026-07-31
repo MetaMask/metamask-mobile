@@ -66,10 +66,14 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
+  // Pause while locked (getBearerToken throws). Disable focus refetch so
+  // AppState foreground cannot race ahead of the enabled:false commit after
+  // background auto-lock. Unlock / Homepage remount sets enabled true and fetches.
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
       enabled: (options?.enabled ?? true) && isUnlocked,
+      refetchOnWindowFocus: false,
     });
 
   const leaderboardQueryParams = useMemo(

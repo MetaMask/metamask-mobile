@@ -23,6 +23,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
@@ -49,6 +50,10 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
   const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isUnlocked = useSelector(selectIsUnlocked);
+  // Mount only while unlocked so useTopTraders is created after unlock /
+  // when Homepage content is shown — never while getBearerToken would throw.
+  const shouldShowTopTraders = isTopTradersEnabled && isUnlocked;
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
   const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
@@ -90,7 +95,7 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
         { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         {
           name: HomeSectionNames.TOP_TRADERS,
-          enabled: isTopTradersEnabled,
+          enabled: shouldShowTopTraders,
         },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
@@ -99,7 +104,7 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
       isPerpsEnabled,
       isPredictEnabled,
       isDeFiEnabled,
-      isTopTradersEnabled,
+      shouldShowTopTraders,
       isWatchlistEnabled,
     ],
   );
@@ -162,7 +167,7 @@ const Homepage = forwardRef<SectionRefreshHandle, object>((_props, ref) => {
           totalSectionsLoaded={totalSectionsLoaded}
         />
       )}
-      {isTopTradersEnabled && (
+      {shouldShowTopTraders && (
         <TopTradersSection
           ref={topTradersSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
