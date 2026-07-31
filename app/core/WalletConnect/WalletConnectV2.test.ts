@@ -279,6 +279,9 @@ describe('WC2Manager', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Spies on real modules (StorageWrapper, wcUtils, store, ...) would
+    // otherwise leak into later tests in this single-describe file.
+    jest.restoreAllMocks();
     // Reset WC2Manager singleton state
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (WC2Manager as any).instance = undefined;

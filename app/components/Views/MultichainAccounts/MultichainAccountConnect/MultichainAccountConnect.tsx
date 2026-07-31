@@ -496,7 +496,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   if (isOriginMMSDKRemoteConn || isOriginMMSDKV2RemoteConn) {
     referrer = dappUrl;
   } else if (isOriginWalletConnect) {
-    referrer = wc2Metadata?.url;
+    referrer = wc2Metadata?.url ?? '';
   }
 
   const { domainTitle, hostname } = useMemo(() => {

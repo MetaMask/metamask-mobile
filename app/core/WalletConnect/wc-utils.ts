@@ -16,6 +16,7 @@ import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
 import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
+import type { WC2Metadata } from '../../actions/sdk/state';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -478,7 +479,7 @@ export const isEIP155Scope = (scope: CaipChainId): boolean => {
  */
 export const isWalletConnectPermissionOrigin = (
   origin: string,
-  wc2Metadata?: { id?: string },
+  wc2Metadata?: Partial<WC2Metadata>,
 ): boolean =>
   Boolean(
     wc2Metadata?.id && wc2Metadata.id.length > 0 && origin === wc2Metadata.id,
