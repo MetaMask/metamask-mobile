@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageStyle, ViewStyle } from 'react-native';
 import { useTheme } from '../../../util/theme';
+
+const EMPTY_SET: ReadonlySet<string> = new Set();
 
 export interface UseTokenLogoConfig {
   symbol: string;
@@ -35,8 +37,8 @@ export interface UseTokenLogoReturn {
 export const useTokenLogo = ({
   symbol,
   size = 44,
-  assetsRequiringLightBg = new Set<string>(),
-  assetsRequiringDarkBg = new Set<string>(),
+  assetsRequiringLightBg = EMPTY_SET,
+  assetsRequiringDarkBg = EMPTY_SET,
 }: UseTokenLogoConfig): UseTokenLogoReturn => {
   const { colors, themeAppearance } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
@@ -108,19 +110,19 @@ export const useTokenLogo = ({
     [size, colors.text.default],
   );
 
-  const handleLoadStart = () => {
+  const handleLoadStart = useCallback(() => {
     setIsLoading(true);
     setHasError(false);
-  };
+  }, []);
 
-  const handleLoadEnd = () => {
+  const handleLoadEnd = useCallback(() => {
     setIsLoading(false);
-  };
+  }, []);
 
-  const handleError = () => {
+  const handleError = useCallback(() => {
     setIsLoading(false);
     setHasError(true);
-  };
+  }, []);
 
   return {
     isLoading,
