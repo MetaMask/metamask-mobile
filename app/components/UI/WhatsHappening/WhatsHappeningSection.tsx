@@ -3,23 +3,19 @@ import React, {
   useCallback,
   useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
-  View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  SectionHeader,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import ExploreSectionHeader from '../../Views/TrendingView/components/SectionHeader';
 import type {
   ExploreTabName,
@@ -30,10 +26,13 @@ import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
 import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
+import MarketInsightsDisclaimerBottomSheet from '../MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
   MAX_ITEMS_DISPLAYED,
+  WHATS_HAPPENING_CARD_MIN_HEIGHT,
+  WHATS_HAPPENING_CARD_WIDTH,
   WhatsHappeningInteractionType,
   WhatsHappeningView,
   WhatsHappeningSource,
@@ -45,14 +44,18 @@ import {
   type UseWhatsHappeningResult,
 } from './hooks';
 import type { WhatsHappeningItem } from './types';
-import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
+import {
+  WhatsHappeningAIGeneratedLabel,
+  WhatsHappeningCard,
+  WhatsHappeningCardSkeleton,
+} from './components';
 import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getWhatsHappeningEventProps } from './eventProperties';
 
-const CARD_WIDTH = 280;
-const VIEW_MORE_MIN_HEIGHT_CLASS = 'min-h-[230px]';
+const CARD_WIDTH = WHATS_HAPPENING_CARD_WIDTH;
+const VIEW_MORE_MIN_HEIGHT_CLASS = `min-h-[${WHATS_HAPPENING_CARD_MIN_HEIGHT}px]`;
 const GAP = 12;
 
 const SNAP_OFFSETS = Array.from(
@@ -91,6 +94,7 @@ const WhatsHappeningSection = forwardRef<
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('whats_happening.title');
+  const [isAIDisclaimerVisible, setIsAIDisclaimerVisible] = useState(false);
 
   const internalFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED, {
     enabled: feed === undefined,
@@ -123,6 +127,14 @@ const WhatsHappeningSection = forwardRef<
     [navigateToDetail],
   );
 
+  const handleAIDisclaimerPress = useCallback(() => {
+    setIsAIDisclaimerVisible(true);
+  }, []);
+
+  const handleAIDisclaimerClose = useCallback(() => {
+    setIsAIDisclaimerVisible(false);
+  }, []);
+
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
@@ -151,22 +163,38 @@ const WhatsHappeningSection = forwardRef<
   }
 
   const isExploreSection = tabName !== undefined && sectionName !== undefined;
+  const showAIGeneratedLabel = !hasError && !isLoading && items.length > 0;
+
+  const aiGeneratedSubtitle = showAIGeneratedLabel ? (
+    <WhatsHappeningAIGeneratedLabel
+      onInfoPress={handleAIDisclaimerPress}
+      testID={WhatsHappeningSelectorsIDs.AI_GENERATED_LABEL}
+    />
+  ) : null;
 
   const header = isExploreSection ? (
-    <ExploreSectionHeader
-      title={title}
-      onViewAll={handleViewAll}
-      testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-      tabName={tabName}
-      sectionName={sectionName}
-    />
+    <Box>
+      <ExploreSectionHeader
+        title={title}
+        onViewAll={handleViewAll}
+        testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+        tabName={tabName}
+        sectionName={sectionName}
+        titleTwClassName={aiGeneratedSubtitle ? 'pb-1' : undefined}
+      />
+      {aiGeneratedSubtitle ? (
+        <Box twClassName="mb-3 px-4">{aiGeneratedSubtitle}</Box>
+      ) : null}
+    </Box>
   ) : (
     <SectionHeader
       title={title}
       isInteractive
       onPress={handleViewAll}
       testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-    />
+    >
+      {aiGeneratedSubtitle}
+    </SectionHeader>
   );
 
   const carouselContent = hasError ? (
@@ -203,7 +231,6 @@ const WhatsHappeningSection = forwardRef<
             <ViewMoreCard
               onPress={handleViewAll}
               twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-              textVariant={TextVariant.BodyLg}
             />
           </>
         )}
@@ -215,19 +242,25 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
+  const sectionBody = (
+    <>
+      {header}
+      {carouselContent}
+      {isAIDisclaimerVisible ? (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={handleAIDisclaimerClose}
+        />
+      ) : null}
+    </>
+  );
+
   if (isExploreSection) {
-    return (
-      <Box>
-        {header}
-        {carouselContent}
-      </Box>
-    );
+    return <Box>{sectionBody}</Box>;
   }
 
   return (
     <Box paddingBottom={3} style={styles.sectionGap}>
-      {header}
-      {carouselContent}
+      {sectionBody}
     </Box>
   );
 });

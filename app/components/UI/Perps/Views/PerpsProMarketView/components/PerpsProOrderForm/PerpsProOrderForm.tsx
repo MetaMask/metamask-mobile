@@ -3,6 +3,7 @@ import {
   BannerAlertSeverity,
   Box,
   BoxAlignItems,
+  BoxFlexDirection,
   ButtonBase,
   ButtonBaseSize,
   ButtonIcon,
@@ -29,7 +30,10 @@ import {
   Pressable,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import {
+  PerpsProMarketViewSelectorsIDs,
+  PerpsProOrderFormSelectorsIDs,
+} from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import PerpsProCompactInput, {
@@ -257,6 +261,8 @@ const OrderSummary = ({
 const PerpsProOrderForm = ({
   direction,
   onDirectionChange,
+  isOrderBookCollapsed = false,
+  onExpandOrderBook,
   marginModeLabel,
   leverageLabel,
   onLeveragePress,
@@ -289,47 +295,68 @@ const PerpsProOrderForm = ({
   return (
     <>
       <Box twClassName="gap-4" testID={ids.CONTAINER}>
-        <Box twClassName="gap-4 px-4">
-          <SegmentedControl
-            value={direction}
-            onChange={(value) =>
-              onDirectionChange(value as PerpsProOrderDirection)
-            }
-            isFullWidth
-            size={ButtonBaseSize.Sm}
-            testID={ids.DIRECTION_CONTROL}
+        {/* Screen-edge inset comes from PerpsProMarketLayout's outer px-4
+            (wraps form + divider + book), not this Box — keeps the summary
+            rows below flush with everything above instead of edge-to-edge. */}
+        <Box twClassName="gap-4">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={4}
           >
-            <FilterButton
-              value="long"
-              twClassName={isLong ? 'bg-success-muted' : ''}
-              testID={ids.DIRECTION_LONG}
+            <SegmentedControl
+              value={direction}
+              onChange={(value) =>
+                onDirectionChange(value as PerpsProOrderDirection)
+              }
+              isFullWidth
+              twClassName="flex-1"
+              size={ButtonBaseSize.Sm}
+              testID={ids.DIRECTION_CONTROL}
             >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={
-                  isLong ? TextColor.SuccessDefault : TextColor.TextAlternative
-                }
+              <FilterButton
+                value="long"
+                twClassName={isLong ? 'bg-success-muted' : ''}
+                testID={ids.DIRECTION_LONG}
               >
-                {strings('perps.market.long')}
-              </Text>
-            </FilterButton>
-            <FilterButton
-              value="short"
-              twClassName={!isLong ? 'bg-error-muted' : ''}
-              testID={ids.DIRECTION_SHORT}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={
-                  isLong ? TextColor.TextAlternative : TextColor.ErrorDefault
-                }
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={
+                    isLong
+                      ? TextColor.SuccessDefault
+                      : TextColor.TextAlternative
+                  }
+                >
+                  {strings('perps.market.long')}
+                </Text>
+              </FilterButton>
+              <FilterButton
+                value="short"
+                twClassName={!isLong ? 'bg-error-muted' : ''}
+                testID={ids.DIRECTION_SHORT}
               >
-                {strings('perps.market.short')}
-              </Text>
-            </FilterButton>
-          </SegmentedControl>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={
+                    isLong ? TextColor.TextAlternative : TextColor.ErrorDefault
+                  }
+                >
+                  {strings('perps.market.short')}
+                </Text>
+              </FilterButton>
+            </SegmentedControl>
+            {isOrderBookCollapsed ? (
+              <ButtonIcon
+                iconName={IconName.Book}
+                accessibilityLabel={strings('perps.order_book.expand')}
+                size={ButtonIconSize.Md}
+                onPress={onExpandOrderBook}
+                testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON}
+              />
+            ) : null}
+          </Box>
           <Box twClassName="flex-row items-center justify-between">
             <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
               <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>

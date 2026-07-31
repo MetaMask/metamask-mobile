@@ -18,18 +18,12 @@ import { strings } from '../../../../../../../../locales/i18n';
 import QuickBuyBanners from '../QuickBuyBanners';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
-import CollapsibleReveal from './CollapsibleReveal';
-import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
-    sliderPercent,
-    isSliderDisabled,
-    handleSliderChange,
-    handleSliderDragEnd,
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
@@ -43,24 +37,19 @@ const QuickBuyActionFooter: React.FC = () => {
     destBalanceFiat,
     selectedDestStable,
     features,
-    formattedRate,
-    formattedExchangeRate,
+    totalAmountFiat,
     isPriceImpactError,
     setActiveScreen,
-    useKeyboard,
-    isKeypadOpen,
   } = useQuickBuyContext();
 
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
   const pickerBalanceFiat =
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
-  const rateLabel = formattedRate ?? formattedExchangeRate;
-  // Collapse footer while the keypad expands (same CollapsibleReveal timing) so
-  // sheet height lerps closed→open instead of dipping then growing.
-  const isFooterExpanded = !(useKeyboard && isKeypadOpen);
 
-  const footerBody = (
-    <>
+  return (
+    <Box twClassName="px-4">
+      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
+
       {features.quickAmountPills ? (
         <Box twClassName="pb-3">
           <QuickBuyQuickAmounts />
@@ -115,7 +104,7 @@ const QuickBuyActionFooter: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      {rateLabel || isPriceImpactError ? (
+      {totalAmountFiat || isPriceImpactError ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -123,11 +112,11 @@ const QuickBuyActionFooter: React.FC = () => {
           twClassName="pb-5"
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.quick_buy.rate')}
+            {strings('social_leaderboard.quick_buy.total')}
           </Text>
 
           <QuickBuyRateTag
-            label={rateLabel}
+            label={totalAmountFiat}
             onPress={
               features.quoteDetails
                 ? () => setActiveScreen('quoteDetails')
@@ -144,6 +133,7 @@ const QuickBuyActionFooter: React.FC = () => {
         hasValidAmount={hasValidAmount}
         isDisabled={isConfirmDisabled}
         onPress={handleBuy}
+        tradeMode={tradeMode}
         testID="quick-buy-confirm-button"
       />
 
@@ -156,38 +146,6 @@ const QuickBuyActionFooter: React.FC = () => {
           </Text>
         </Box>
       ) : null}
-    </>
-  );
-
-  return (
-    <Box twClassName="px-4">
-      {/* Slider — control variant only. The keyboard treatment replaces it with
-          the numeric keypad rendered below the CTA. */}
-      {useKeyboard ? null : (
-        <Box twClassName="pt-2 pb-3">
-          <QuickBuyPercentageSlider
-            value={sliderPercent}
-            onValueChange={handleSliderChange}
-            disabled={isSliderDisabled}
-            onDragEnd={handleSliderDragEnd}
-          />
-        </Box>
-      )}
-
-      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
-
-      {useKeyboard ? (
-        <CollapsibleReveal
-          expanded={isFooterExpanded}
-          snapExpandedOnMount
-          unmountWhenCollapsed={false}
-          testID="quick-buy-footer-reveal"
-        >
-          {footerBody}
-        </CollapsibleReveal>
-      ) : (
-        footerBody
-      )}
     </Box>
   );
 };

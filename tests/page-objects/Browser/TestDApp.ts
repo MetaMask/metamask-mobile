@@ -13,6 +13,7 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { getDriver } from '../../framework/PlaywrightUtilities';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -304,29 +305,49 @@ class TestDApp {
   }
 
   async getConnectedAccounts(): Promise<string> {
-    const webview = Matchers.getWebViewByID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    return this.readTestDappTextContentById(
+      TestDappSelectorsWebIDs.ACCOUNTS_TEXT,
     );
-    const accountsElement = webview.element(by.web.id(`accounts`));
-
-    const accountsText = await accountsElement
-      .runScript('(el) => el.textContent')
-      .catch(() => '');
-
-    return typeof accountsText === 'string' ? accountsText : '';
   }
 
   async getConnectedChainId(): Promise<string> {
-    const webview = Matchers.getWebViewByID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    return this.readTestDappTextContentById(
+      TestDappSelectorsWebIDs.CHAIN_ID_TEXT,
     );
-    const chainIdElement = webview.element(by.web.id(`chainId`));
+  }
 
-    const chainIdText = await chainIdElement
-      .runScript('(el) => el.textContent')
-      .catch(() => '');
-
-    return typeof chainIdText === 'string' ? chainIdText : '';
+  /**
+   * Wait until the test-dapp element has non-empty textContent.
+   * Appium: poll via string-form `driver.execute` (no findElement).
+   */
+  private async readTestDappTextContentById(webId: string): Promise<string> {
+    return Utilities.executeWithRetry(
+      async () => {
+        let text = '';
+        await PlaywrightWebMatchers.withWebViewAction(
+          testDappPageUrl(),
+          async () => {
+            // String script — avoids WDIO function polyfill / WDA serialization.
+            const result = await getDriver().execute(
+              `return (document.getElementById(${JSON.stringify(
+                webId,
+              )})?.textContent || '').trim();`,
+            );
+            text = typeof result === 'string' ? result : '';
+          },
+        );
+        if (!text) {
+          throw new Error(
+            `Test dapp #${webId} text is empty (provider may not have injected yet)`,
+          );
+        }
+        return text;
+      },
+      {
+        timeout: 30000,
+        description: `Poll test dapp #${webId} textContent via JS`,
+      },
+    );
   }
 
   async connect(): Promise<void> {

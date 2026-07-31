@@ -185,7 +185,7 @@ const PerpsProPositionCard = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-4 px-4"
+        twClassName="gap-4 px-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -236,7 +236,7 @@ const PerpsProPositionCard = ({
       </Box>
 
       {/* Summary: key figures in three columns */}
-      <Box twClassName="px-4">
+      <Box twClassName="px-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -288,7 +288,7 @@ const PerpsProPositionCard = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2 px-4"
+        twClassName="gap-2 px-2"
       >
         <Button
           variant={ButtonVariant.Secondary}
