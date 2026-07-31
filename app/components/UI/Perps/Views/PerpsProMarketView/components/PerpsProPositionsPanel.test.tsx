@@ -346,7 +346,7 @@ describe('PerpsProPositionsPanel', () => {
       error: null,
       refresh: jest.fn(),
       isRefreshing: false,
-    } as ReturnType<typeof usePerpsMarkets>);
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
 
     renderPanel('SOL');
 
