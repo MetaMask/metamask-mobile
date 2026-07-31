@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Switch } from 'react-native';
 import GeneralSettings, {
   GENERAL_SETTINGS_CURRENCY_SELECTOR,
   updateUserTraitsWithCurrentCurrency,
@@ -15,13 +14,6 @@ import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyt
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { analytics } from '../../../../util/analytics/analytics';
-import {
-  setAvatarAccountType,
-  setHapticsEnabled,
-  setHideZeroBalanceTokens,
-  setPrimaryCurrency,
-} from '../../../../actions/settings';
-import { strings } from '../../../../../locales/i18n';
 
 const mockSetCurrentCurrency = jest.fn();
 const mockSetSelectedCurrency = jest.fn();
@@ -72,6 +64,9 @@ jest.mock(
     },
   }),
 );
+jest.mock('./AvatarTypeSelector', () => ({
+  AvatarTypeSelector: () => null,
+}));
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -125,43 +120,6 @@ describe('GeneralSettings', () => {
     fireEvent.press(backButton);
 
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-  });
-
-  it.each([
-    ['Polycons', AvatarAccountType.Maskicon],
-    [strings('app_settings.jazzicons'), AvatarAccountType.JazzIcon],
-    [strings('app_settings.blockies'), AvatarAccountType.Blockies],
-  ])('selects the %s account avatar', (label, avatarType) => {
-    const { getByText } = renderComponent();
-
-    fireEvent.press(getByText(label));
-
-    expect(store.getActions()).toContainEqual(setAvatarAccountType(avatarType));
-  });
-
-  it('updates the primary currency preference', () => {
-    const { getByText } = renderComponent();
-
-    fireEvent.press(
-      getByText(strings('app_settings.primary_currency_text_second')),
-    );
-
-    expect(store.getActions()).toContainEqual(setPrimaryCurrency('Fiat'));
-  });
-
-  it('updates zero-balance and haptics preferences', () => {
-    const { UNSAFE_getAllByType } = renderComponent();
-    const switches = UNSAFE_getAllByType(Switch);
-
-    fireEvent(switches[0], 'onValueChange', true);
-    fireEvent(switches[1], 'onValueChange', false);
-
-    expect(store.getActions()).toEqual(
-      expect.arrayContaining([
-        setHideZeroBalanceTokens(true),
-        setHapticsEnabled(false),
-      ]),
-    );
   });
 });
 

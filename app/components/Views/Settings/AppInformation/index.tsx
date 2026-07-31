@@ -1,15 +1,7 @@
 /* eslint-disable dot-notation */
 import React, { useEffect, useState } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import {
-  StyleSheet,
-  Image,
-  Text,
-  InteractionManager,
-  View,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { Image, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getApplicationName,
@@ -17,16 +9,11 @@ import {
   getBuildNumber,
 } from 'react-native-device-info';
 import {
-  channel,
-  runtimeVersion,
   isEmbeddedLaunch,
   isEnabled as isOTAUpdatesEnabled,
-  updateId,
-  checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
 import { OTA_VERSION } from '../../../../constants/ota';
-import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { useTheme } from '../../../../util/theme';
@@ -34,74 +21,12 @@ import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import { navigateToSupportConsent } from '../../../../util/support';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { isProduction } from '../../../../util/environment';
-import {
-  getFeatureFlagAppDistribution,
-  getFeatureFlagAppEnvironment,
-} from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
 import type { RootState } from '../../../../reducers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import type { Colors } from '../../../../util/theme/models';
 import foxImage from '../../../../images/branding/fox.png';
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
-    wrapperContent: {
-      paddingHorizontal: 16,
-      paddingVertical: 24,
-    },
-    title: {
-      fontSize: 18,
-      textAlign: 'left',
-      marginBottom: 20,
-      ...fontStyles.normal,
-      color: colors.text.default,
-    },
-    link: {
-      fontSize: 18,
-      textAlign: 'left',
-      marginBottom: 20,
-      ...fontStyles.normal,
-      color: colors.primary.default,
-    },
-    division: {
-      borderBottomColor: colors.border.muted,
-      borderBottomWidth: 1,
-      width: '30%',
-      marginBottom: 20,
-    },
-    image: {
-      width: 100,
-      height: 100,
-    },
-    logoWrapper: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-      alignItems: 'center',
-      justifyContent: 'center',
-      top: 20,
-      marginBottom: 40,
-    },
-    versionInfo: {
-      marginTop: 20,
-      fontSize: 18,
-      textAlign: 'left',
-      marginBottom: 20,
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
-    branchInfo: {
-      fontSize: 18,
-      textAlign: 'left',
-      marginBottom: 20,
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
-  });
+import { createStyles } from './AppInformation.styles';
+import { EnvironmentInfo } from './EnvironmentInfo';
 
 interface Props {
   navigation: AppNavigationProp;
@@ -144,14 +69,12 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
   }, []);
 
   const goTo = (url: string, title: string) => {
-    InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-          title,
-        },
-      });
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+        title,
+      },
     });
   };
 
@@ -208,18 +131,6 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
     return __DEV__ || isRunningEmbedded ? appInfo : appInfoOta;
   };
 
-  /**
-   * Returns the OTA update status message for the environment info section.
-   */
-  const getOtaUpdateMessage = () => {
-    const isRunningEmbedded = isEmbeddedLaunch || !isOTAUpdatesEnabled;
-    return __DEV__ || isRunningEmbedded
-      ? 'This app is running from built-in code or in development mode'
-      : 'This app is running an update';
-  };
-
-  const otaUpdateMessage = getOtaUpdateMessage();
-
   const aboutTitle = strings('app_settings.info_title');
 
   return (
@@ -255,54 +166,10 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
           ) : null}
 
           {showEnvironmentInfo && (
-            <>
-              <Text style={styles.branchInfo}>
-                {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
-              </Text>
-              <Text style={styles.branchInfo}>
-                {`Remote Feature Flag Env: ${getFeatureFlagAppEnvironment()}`}
-              </Text>
-              <Text style={styles.branchInfo}>
-                {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
-              </Text>
-              <Text style={styles.branchInfo}>
-                {`Rewards API URL: ${process.env.REWARDS_API_URL ?? '—'}`}
-              </Text>
-              <Text style={styles.branchInfo}>
-                {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
-              </Text>
-              <Text style={styles.branchInfo}>
-                {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
-              </Text>
-              {isOTAUpdatesEnabled && (
-                <>
-                  <Text style={styles.branchInfo}>
-                    {`Update ID: ${updateId || 'N/A'}`}
-                  </Text>
-                  <Text style={styles.branchInfo}>
-                    {`OTA Update Channel: ${channel}`}
-                  </Text>
-                  <Text style={styles.branchInfo}>
-                    {`OTA Update runtime version: ${runtimeVersion}`}
-                  </Text>
-                  <Text style={styles.branchInfo}>
-                    {`Check Automatically: ${checkAutomatically}`}
-                  </Text>
-                  <Text style={styles.branchInfo}>
-                    {`OTA Update status: ${otaUpdateMessage}`}
-                  </Text>
-                  <Text style={styles.branchInfo}>
-                    {`OTA Version: ${OTA_VERSION}`}
-                  </Text>
-                </>
-              )}
-
-              {preinstalledSnaps.map((snap) => (
-                <Text key={snap.name} style={styles.branchInfo}>
-                  {snap.name}: {snap.version} ({snap.status})
-                </Text>
-              ))}
-            </>
+            <EnvironmentInfo
+              preinstalledSnaps={preinstalledSnaps}
+              styles={styles}
+            />
           )}
         </View>
         <Text style={styles.title}>{strings('app_information.links')}</Text>

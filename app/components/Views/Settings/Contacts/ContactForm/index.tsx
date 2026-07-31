@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   DimensionValue,
   Platform,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -10,24 +9,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  colors as staticColors,
-  fontStyles,
-} from '../../../../../styles/common';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import StyledButton from '../../../../UI/StyledButton';
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  renderShortAddress,
   areAddressesEqual,
-  validateAddressOrENS,
   toChecksumAddress,
 } from '../../../../../util/address';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
-import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -47,16 +43,6 @@ import { selectInternalAccounts } from '../../../../../selectors/accountsControl
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type {
@@ -71,104 +57,14 @@ import type {
 } from '@react-navigation/native';
 import type { RootState } from '../../../../../reducers';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
-import type { Colors } from '../../../../../util/theme/models';
 import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      flexDirection: 'column',
-    },
-    scrollWrapper: {
-      flex: 1,
-      paddingVertical: 12,
-    },
-    input: {
-      ...fontStyles.normal,
-      flex: 1,
-      fontSize: 12,
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
-      padding: 10,
-      flexDirection: 'row',
-      alignItems: 'center',
-      color: colors.text.default,
-    },
-    networkSelector: {
-      ...fontStyles.normal,
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      borderRadius: 5,
-      borderWidth: 2,
-      borderColor: colors.border.default,
-      padding: 10,
-    },
-    networkSelectorNetworkName: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 8,
-    },
-    networkSelectorNetworkNameLabel: {
-      color: colors.text.default,
-    },
-    resolvedInput: {
-      ...fontStyles.normal,
-      fontSize: 10,
-      color: colors.text.default,
-    },
-    informationWrapper: {
-      flex: 1,
-      paddingHorizontal: 24,
-    },
-    label: {
-      fontSize: 14,
-      paddingVertical: 12,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    headerEndActionText: {
-      color: colors.primary.default,
-      fontSize: 14,
-    },
-    buttonsWrapper: {
-      marginVertical: 12,
-      flexDirection: 'row',
-      alignSelf: 'flex-end',
-    },
-    buttonsContainer: {
-      flex: 1,
-      flexDirection: 'column',
-      alignSelf: 'flex-end',
-    },
-    scanIcon: {
-      flexDirection: 'column',
-      alignItems: 'center',
-    },
-    iconWrapper: {
-      alignItems: 'flex-end',
-    },
-    textInput: {
-      ...fontStyles.normal,
-      padding: 0,
-      paddingRight: 8,
-      color: colors.text.default,
-    },
-    inputWrapper: {
-      flex: 1,
-      flexDirection: 'column',
-    },
-    textInputDisaled: {
-      borderColor: staticColors.transparent,
-    },
-    actionButton: {
-      marginVertical: 4,
-    },
-  });
+import { createStyles } from './ContactForm.styles';
+import { ContactNetworkSelector } from './ContactNetworkSelector';
+import { ContactFormFields } from './ContactFormFields';
+import {
+  useContactValidation,
+  type ValidationResult,
+} from './useContactValidation';
 
 const ADD = 'add';
 const EDIT = 'edit';
@@ -176,8 +72,6 @@ const EDIT = 'edit';
 type ContactMode = typeof ADD | typeof EDIT;
 type AddressBook = AddressBookControllerState['addressBook'];
 type NetworkConfigurations = Record<string, MultichainNetworkConfiguration>;
-type ValidationResult = Awaited<ReturnType<typeof validateAddressOrENS>>;
-
 const isHexChainId = (value: string): value is Hex =>
   /^0x[0-9a-f]+$/iu.test(value);
 
@@ -206,7 +100,7 @@ interface ContactFormStateProps {
 }
 
 interface ContactFormOwnProps {
-  navigation: Pick<NavigationProp<ParamListBase>, 'navigate' | 'setParams'> & {
+  navigation: Pick<NavigationProp<ParamListBase>, 'navigate'> & {
     pop: () => void;
   };
   route: Pick<RouteProp<RootStackParamList, 'ContactForm'>, 'params'>;
@@ -228,10 +122,71 @@ const getNetworkConfiguration = (
   );
 };
 
+const createInitialState = ({
+  address,
+  addressBook,
+  chainId,
+  internalAccounts,
+  mode,
+}: {
+  address: string;
+  addressBook: AddressBook;
+  chainId: Hex;
+  internalAccounts: InternalAccount[];
+  mode: ContactMode;
+}): ContactFormState => {
+  const initialState: ContactFormState = {
+    name: null,
+    address: null,
+    originalContactChainId: '',
+    contactChainId: '',
+    addressError: null,
+    toEnsName: null,
+    toEnsAddress: null,
+    addressReady: false,
+    mode,
+    memo: null,
+    editable: true,
+    inputWidth: Platform.OS === 'android' ? '99%' : undefined,
+    openNetworkSelector: false,
+  };
+
+  if (mode !== EDIT) {
+    return initialState;
+  }
+
+  const savedContact = Object.entries(addressBook)
+    .filter(([addressBookChainId]) => addressBookChainId !== '*')
+    .flatMap(([, addressDictionary]) => Object.values(addressDictionary))
+    .find((contact) => contact.address === address);
+  const internalAccount = address
+    ? internalAccounts.find((account) =>
+        areAddressesEqual(account.address, address),
+      )
+    : undefined;
+  const contact = savedContact ?? internalAccount;
+  const savedContactChainId =
+    contact && 'chainId' in contact ? contact.chainId : chainId;
+
+  return {
+    ...initialState,
+    address,
+    name:
+      contact && 'name' in contact && typeof contact.name === 'string'
+        ? contact.name
+        : '',
+    memo: contact && 'memo' in contact ? (contact.memo ?? '') : '',
+    contactChainId: savedContactChainId,
+    originalContactChainId: savedContactChainId,
+    addressReady: true,
+    editable: false,
+  };
+};
+
 /**
  * View that contains app information
  */
-export const ContactForm = ({
+const ContactForm = ({
   navigation,
   internalAccounts,
   addressBook,
@@ -241,45 +196,24 @@ export const ContactForm = ({
 }: ContactFormProps) => {
   const { colors, themeAppearance = 'light' } = useTheme();
   const styles = createStyles(colors);
-  const [state, setState] = useState<ContactFormState>({
-    name: null,
-    address: null,
-    originalContactChainId: '',
-    contactChainId: '',
-    addressError: null,
-    toEnsName: null,
-    toEnsAddress: null,
-    addressReady: false,
-    mode: route.params?.mode ?? ADD,
-    memo: null,
-    editable: true,
-    inputWidth: Platform.OS === 'android' ? '99%' : undefined,
-    openNetworkSelector: false,
-  });
+  const [state, setState] = useState<ContactFormState>(() =>
+    createInitialState({
+      address: route.params?.address ?? '',
+      addressBook,
+      chainId,
+      internalAccounts,
+      mode: route.params?.mode ?? ADD,
+    }),
+  );
   const stateRef = useRef(state);
   const actionSheet = useRef<typeof ActionSheet>(null);
   const addressInput = useRef<TextInput>(null);
   const memoInput = useRef<TextInput>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const validationTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const inputWidthTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const contactAddressToRemove = useRef<string | null>(null);
-  const validationContext = useRef({
-    addressBook,
-    internalAccounts,
-    chainId,
-  });
-  const initialData = useRef({
-    addressBook,
-    internalAccounts,
-    chainId,
-    address: route.params?.address ?? '',
-    navigation,
-  });
 
   const updateState = (updates: Partial<ContactFormState>) => {
     setState((currentState) => ({ ...currentState, ...updates }));
@@ -289,18 +223,8 @@ export const ContactForm = ({
     stateRef.current = state;
   }, [state]);
 
-  useEffect(() => {
-    validationContext.current = {
-      addressBook,
-      internalAccounts,
-      chainId,
-    };
-  }, [addressBook, chainId, internalAccounts]);
-
   const onEdit = () => {
-    const { editable } = stateRef.current;
-    navigation.setParams({ editMode: editable ? EDIT : ADD });
-    updateState({ editable: !editable });
+    updateState({ editable: !state.editable });
   };
 
   const renderHeaderEndAccessory = () => {
@@ -310,34 +234,23 @@ export const ContactForm = ({
       return null;
     }
 
-    const editMode = route.params?.editMode === 'edit';
-
     return (
       <TouchableOpacity
         onPress={onEdit}
         testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
       >
         <Text style={styles.headerEndActionText}>
-          {editMode
-            ? strings('address_book.edit')
-            : strings('address_book.cancel')}
+          {state.editable
+            ? strings('address_book.cancel')
+            : strings('address_book.edit')}
         </Text>
       </TouchableOpacity>
     );
   };
 
   useEffect(() => {
-    const { mode, inputWidth } = stateRef.current;
-    const {
-      addressBook: initialAddressBook,
-      internalAccounts: initialInternalAccounts,
-      chainId: initialChainId,
-      address,
-      navigation: initialNavigation,
-    } = initialData.current;
-
     // Workaround https://github.com/facebook/react-native/issues/9958
-    if (inputWidth) {
+    if (stateRef.current.inputWidth) {
       inputWidthTimeoutId.current = setTimeout(() => {
         setState((currentState) => ({
           ...currentState,
@@ -346,59 +259,9 @@ export const ContactForm = ({
       }, 100);
     }
 
-    if (mode === EDIT) {
-      const completeAndFlattenedAddressBook = Object.entries(initialAddressBook)
-        .filter(([addressBookChainId, _]) => addressBookChainId !== '*')
-        .map(([_, addressDict]) => Object.values(addressDict))
-        .flat();
-      const contact =
-        completeAndFlattenedAddressBook.find(
-          (addressBookContact) => addressBookContact.address === address,
-        ) ||
-        (address
-          ? initialInternalAccounts.find((account) =>
-              areAddressesEqual(account.address, address),
-            )
-          : undefined);
-      const contactMemo =
-        contact && 'memo' in contact ? contact.memo : undefined;
-      const contactName =
-        contact && 'name' in contact && typeof contact.name === 'string'
-          ? contact.name
-          : '';
-      const savedContactChainId =
-        contact && 'chainId' in contact ? contact.chainId : initialChainId;
-      setState((currentState) => ({
-        ...currentState,
-        address,
-        name: contactName,
-        memo: contactMemo ?? '',
-        contactChainId: savedContactChainId,
-        originalContactChainId: savedContactChainId,
-        addressReady: true,
-        editable: false,
-      }));
-      initialNavigation?.setParams({
-        dispatch: () => {
-          const { editable } = stateRef.current;
-          initialNavigation.setParams({
-            editMode: editable ? EDIT : ADD,
-          });
-          setState((currentState) => ({
-            ...currentState,
-            editable: !editable,
-          }));
-        },
-        mode: EDIT,
-      });
-    }
-
     return () => {
       if (inputWidthTimeoutId.current) {
         clearTimeout(inputWidthTimeoutId.current);
-      }
-      if (validationTimeoutId.current) {
-        clearTimeout(validationTimeoutId.current);
       }
     };
   }, []);
@@ -412,35 +275,27 @@ export const ContactForm = ({
     updateState({ name });
   };
 
-  const validateAddressOrENSFromInput = async (address: string) => {
-    const { contactChainId } = stateRef.current;
-    const {
-      addressBook: currentAddressBook,
-      internalAccounts: currentInternalAccounts,
-      chainId: currentChainId,
-    } = validationContext.current;
-
-    const {
-      addressError,
-      toEnsName,
-      addressReady,
-      toEnsAddress,
-      errorContinue,
-    } = await validateAddressOrENS(
-      address,
-      currentAddressBook,
-      currentInternalAccounts,
-      contactChainId || currentChainId,
-    );
-
-    updateState({
-      addressError,
-      toEnsName,
-      addressReady,
-      toEnsAddress,
-      errorContinue,
-    });
-  };
+  const scheduleAddressValidation = useContactValidation({
+    addressBook,
+    chainId,
+    contactChainId: state.contactChainId,
+    internalAccounts,
+    onResult: (
+      { addressError, toEnsName, addressReady, toEnsAddress, errorContinue },
+      validatedAddress,
+    ) => {
+      if (stateRef.current.address !== validatedAddress) {
+        return;
+      }
+      updateState({
+        addressError,
+        toEnsName,
+        addressReady,
+        toEnsAddress,
+        errorContinue,
+      });
+    },
+  });
 
   const onChangeAddress = (address: string) => {
     updateState({
@@ -451,27 +306,11 @@ export const ContactForm = ({
       addressReady: false,
     });
 
-    if (validationTimeoutId.current) {
-      clearTimeout(validationTimeoutId.current);
-    }
-
-    validationTimeoutId.current = setTimeout(() => {
-      validateAddressOrENSFromInput(address);
-    }, 300);
+    scheduleAddressValidation(address);
   };
 
   const onChangeMemo = (memo: string) => {
     updateState({ memo });
-  };
-
-  const jumpToAddressInput = () => {
-    const { current } = addressInput;
-    current && current.focus();
-  };
-
-  const jumpToMemoInput = () => {
-    const { current } = memoInput;
-    current && current.focus();
   };
 
   const saveContact = () => {
@@ -627,140 +466,36 @@ export const ContactForm = ({
       />
       <KeyboardAwareScrollView style={styles.informationWrapper}>
         <View style={styles.scrollWrapper}>
-          <Text style={styles.label}>{strings('address_book.name')}</Text>
-          <TextInput
-            editable={state.editable}
-            autoCapitalize={'none'}
-            autoCorrect={false}
-            onChangeText={onChangeName}
-            placeholder={strings('address_book.nickname')}
-            placeholderTextColor={colors.text.muted}
-            spellCheck={false}
-            numberOfLines={1}
-            style={[
-              styles.input,
-              inputWidth ? { width: inputWidth } : {},
-              editable ? {} : styles.textInputDisaled,
-            ]}
-            value={name ?? ''}
-            onSubmitEditing={jumpToAddressInput}
-            testID={AddContactViewSelectorsIDs.NAME_INPUT}
-            keyboardAppearance={themeAppearance}
+          <ContactFormFields
+            address={address}
+            addressInputRef={addressInput}
+            colors={colors}
+            editable={editable}
+            inputWidth={inputWidth}
+            isAddMode={isAddMode}
+            isEditMode={isEditMode}
+            memo={memo}
+            memoInputRef={memoInput}
+            name={name}
+            onChangeAddress={onChangeAddress}
+            onChangeMemo={onChangeMemo}
+            onChangeName={onChangeName}
+            onScan={onScan}
+            styles={styles}
+            themeAppearance={themeAppearance}
+            toEnsAddress={toEnsAddress}
+            toEnsName={toEnsName}
           />
-          <Text style={styles.label}>{strings('address_book.address')}</Text>
-          <View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                editable={isAddMode}
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                onChangeText={onChangeAddress}
-                placeholder={strings('address_book.add_input_placeholder')}
-                placeholderTextColor={colors.text.muted}
-                spellCheck={false}
-                numberOfLines={1}
-                style={[
-                  styles.textInput,
-                  inputWidth ? { width: inputWidth } : {},
-                  isEditMode
-                    ? {
-                        color: colors.text.alternative,
-                      }
-                    : {},
-                ]}
-                value={toEnsName || address || ''}
-                ref={addressInput}
-                onSubmitEditing={jumpToMemoInput}
-                testID={AddContactViewSelectorsIDs.ADDRESS_INPUT}
-                keyboardAppearance={themeAppearance}
-              />
-              {toEnsName && toEnsAddress && (
-                <Text style={styles.resolvedInput}>
-                  {renderShortAddress(toEnsAddress)}
-                </Text>
-              )}
-            </View>
-
-            {isAddMode && (
-              <TouchableOpacity onPress={onScan} style={styles.iconWrapper}>
-                <AntIcon
-                  name="scan1"
-                  size={20}
-                  color={colors.primary.default}
-                  style={styles.scanIcon}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <Text style={styles.label}>{strings('address_book.memo')}</Text>
-          <View style={[styles.input, editable ? {} : styles.textInputDisaled]}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                multiline
-                editable={editable}
-                autoCapitalize={'none'}
-                autoCorrect={false}
-                onChangeText={onChangeMemo}
-                placeholder={strings('address_book.memo')}
-                placeholderTextColor={colors.text.muted}
-                spellCheck={false}
-                numberOfLines={1}
-                style={[
-                  styles.textInput,
-                  inputWidth ? { width: inputWidth } : {},
-                ]}
-                value={memo ?? ''}
-                ref={memoInput}
-                testID={AddContactViewSelectorsIDs.MEMO_INPUT}
-                keyboardAppearance={themeAppearance}
-              />
-            </View>
-          </View>
 
           <>
             <Text style={styles.label}>{strings('address_book.network')}</Text>
-            <TouchableOpacity
-              disabled={!editable}
-              style={[styles.networkSelector]}
-              onPress={() => {
-                if (state.editable) {
-                  setOpenNetworkSelector(true);
-                }
-              }}
-              onLongPress={() => {
-                if (state.editable) {
-                  setOpenNetworkSelector(true);
-                }
-              }}
-              testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
-            >
-              <View style={styles.networkSelectorNetworkName}>
-                <Avatar
-                  variant={AvatarVariant.Network}
-                  size={AvatarSize.Sm}
-                  name={networkName}
-                  imageSource={getNetworkImageSource({
-                    chainId: contactChainId || chainId,
-                  })}
-                />
-                <Text style={styles.networkSelectorNetworkNameLabel}>
-                  {networkName}
-                </Text>
-              </View>
-              {!!editable && (
-                <ButtonIcon
-                  iconName={IconName.ArrowDown}
-                  iconColor={IconColor.Default}
-                  onPress={() => {
-                    if (state.editable) {
-                      setOpenNetworkSelector(true);
-                    }
-                  }}
-                  accessibilityRole="button"
-                />
-              )}
-            </TouchableOpacity>
+            <ContactNetworkSelector
+              chainId={contactChainId || chainId}
+              editable={editable}
+              networkName={networkName}
+              onOpen={() => setOpenNetworkSelector(true)}
+              styles={styles}
+            />
           </>
         </View>
 
@@ -776,26 +511,30 @@ export const ContactForm = ({
           <View style={styles.buttonsWrapper}>
             <View style={styles.buttonsContainer}>
               <View style={styles.actionButton}>
-                <StyledButton
-                  type={'confirm'}
-                  disabled={!addressReady || !name || !!addressError}
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  isDisabled={!addressReady || !name || !!addressError}
                   onPress={saveContact}
                   testID={AddContactViewSelectorsIDs.ADD_BUTTON}
                 >
                   {strings(`address_book.${mode}_contact`)}
-                </StyledButton>
+                </Button>
               </View>
               {mode === EDIT && (
                 <View style={styles.actionButton}>
-                  <StyledButton
-                    style={styles.actionButton}
-                    type={'warning-empty'}
-                    disabled={!addressReady || !name || !!addressError}
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Lg}
+                    isFullWidth
+                    isDanger
+                    isDisabled={!addressReady || !name || !!addressError}
                     onPress={onDelete}
                     testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
                   >
                     {strings(`address_book.delete`)}
-                  </StyledButton>
+                  </Button>
                 </View>
               )}
             </View>

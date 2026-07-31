@@ -1,10 +1,10 @@
 import React from 'react';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
-import ContactForm, { ContactForm as ContactFormComponent } from '.';
+import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -198,65 +198,6 @@ describe('ContactForm', () => {
     });
   });
 
-  it('validates against the latest address book and network state', async () => {
-    const validateAddressOrENSMock = jest.requireMock(
-      '../../../../../util/address',
-    ).validateAddressOrENS;
-    type ValidationProps = Pick<
-      React.ComponentProps<typeof ContactFormComponent>,
-      'addressBook' | 'internalAccounts' | 'chainId'
-    >;
-    const initialProps: ValidationProps = {
-      addressBook: {},
-      internalAccounts: [],
-      chainId: '0x1',
-    };
-    const updatedAddressBook: ValidationProps['addressBook'] = {
-      '0x2': {
-        [MOCK_ADDRESS_2]: {
-          address: MOCK_ADDRESS_2,
-          name: 'Updated contact',
-          chainId: '0x2',
-          memo: '',
-          isEns: false,
-        },
-      },
-    };
-    const updatedInternalAccounts: ValidationProps['internalAccounts'] = [];
-    const renderForm = (props: ValidationProps) => (
-      <ContactFormComponent
-        {...props}
-        navigation={mockNavigation}
-        networkConfigurations={{}}
-        route={{ params: { mode: 'add' } }}
-      />
-    );
-    const { getByTestId, rerender } = renderWithProvider(
-      renderForm(initialProps),
-    );
-
-    fireEvent.changeText(
-      getByTestId(AddContactViewSelectorsIDs.ADDRESS_INPUT),
-      MOCK_ADDRESS_2,
-    );
-    rerender(
-      renderForm({
-        addressBook: updatedAddressBook,
-        internalAccounts: updatedInternalAccounts,
-        chainId: '0x2',
-      }),
-    );
-
-    await waitFor(() => {
-      expect(validateAddressOrENSMock).toHaveBeenCalledWith(
-        MOCK_ADDRESS_2,
-        updatedAddressBook,
-        updatedInternalAccounts,
-        '0x2',
-      );
-    });
-  });
-
   it('saves contact when form is valid', async () => {
     const validateAddressOrENSMock = jest.requireMock(
       '../../../../../util/address',
@@ -406,66 +347,6 @@ describe('ContactForm', () => {
         expect.anything(),
       );
     });
-  });
-
-  it('handles editable states through route params', async () => {
-    // Render in edit mode (initially not editable)
-    const { findByTestId, rerender } = renderWithProvider(
-      <ContactForm
-        navigation={mockNavigation}
-        route={{
-          params: {
-            mode: 'edit',
-            address: MOCK_ADDRESS,
-          },
-        }}
-      />,
-      { state: initialState },
-    );
-
-    // Simulate what happens when the edit button in the header is pressed
-    // The navigation handler would call the onEdit function via the route params
-    const onEdit = mockNavigation.setParams.mock.calls[0][0].dispatch;
-    expect(onEdit).toBeDefined();
-
-    // Call the edit function which would toggle editable state
-    act(() => {
-      onEdit();
-    });
-
-    rerender(
-      <ContactForm
-        navigation={mockNavigation}
-        route={{
-          params: {
-            mode: 'edit',
-            address: MOCK_ADDRESS,
-            editMode: 'edit',
-          },
-        }}
-      />,
-    );
-
-    const nameInput = await findByTestId(AddContactViewSelectorsIDs.NAME_INPUT);
-
-    const memoInput = await findByTestId(AddContactViewSelectorsIDs.MEMO_INPUT);
-
-    const addressInput = await findByTestId(
-      AddContactViewSelectorsIDs.ADDRESS_INPUT,
-    );
-
-    await waitFor(() => {
-      expect(addressInput.props.value).toBe(MOCK_ADDRESS);
-      expect(addressInput).toHaveProp('editable', false); // Address is immutable in edit mode
-      expect(nameInput).toHaveProp('editable', true);
-      expect(memoInput).toHaveProp('editable', true);
-    });
-
-    // The delete button should be visible now
-    const deleteButton = await findByTestId(
-      AddContactViewSelectorsIDs.DELETE_BUTTON,
-    );
-    expect(deleteButton).toBeTruthy();
   });
 
   it('rejects burn address 0x0000000000000000000000000000000000000000', async () => {

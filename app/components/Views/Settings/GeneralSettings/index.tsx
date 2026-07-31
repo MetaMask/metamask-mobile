@@ -1,11 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  Switch,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import type { Dispatch } from 'redux';
@@ -27,10 +21,7 @@ import {
 } from '../../../../actions/settings';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PickComponent from '../../PickComponent';
-import AvatarAccount, {
-  AvatarAccountType,
-} from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { useTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -45,19 +36,16 @@ import {
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { colors as staticColors } from '../../../../styles/common';
 import { enablePushNotifications } from '../../../../actions/notification/helpers';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 import type { RootState } from '../../../../reducers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import type { Colors } from '../../../../util/theme/models';
+import { createStyles } from './GeneralSettings.styles';
+import { SettingsToggleRow } from '../components/SettingsToggleRow';
+import { AvatarTypeSelector } from './AvatarTypeSelector';
 
 export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
   'general-settings-currency-selector';
-
-const diameter = 40;
-const avatarSize = AvatarSize.Lg;
-const spacing = 8;
 
 const sortedCurrencies = infuraCurrencies.objects.sort((a, b) =>
   a.quote.code
@@ -145,76 +133,6 @@ export const updateUserTraitsWithCurrencyType = (primaryCurrency: string) => {
   analytics.identify(traits);
 };
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
-    content: {
-      padding: 16,
-      flex: 1,
-    },
-    titleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    title: {
-      flex: 1,
-    },
-    toggle: {
-      marginLeft: 16,
-    },
-    desc: {
-      marginTop: 8,
-    },
-    accessory: {
-      marginTop: 16,
-    },
-    setting: {
-      marginTop: 24,
-    },
-    switch: {
-      alignSelf: 'flex-start',
-    },
-    firstSetting: {
-      marginTop: 0,
-    },
-    inner: {
-      paddingBottom: 100,
-    },
-    identicon_container: {
-      flexDirection: 'row',
-    },
-    identicon_row: {
-      width: '33%',
-      alignItems: 'center',
-      flexDirection: 'column',
-    },
-    identiconText: {
-      marginTop: 12,
-    },
-    blockie: {
-      height: diameter,
-      width: diameter,
-      borderRadius: diameter / 2,
-    },
-    avatarWrapper: {
-      borderRadius: 12,
-      width: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      height: diameter + 4, // 40 (diameter) + 2*2 (border width)
-      borderWidth: 2,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    selectedAvatarWrapper: {
-      borderColor: colors.primary.default,
-    },
-    unselectedAvatarWrapper: {
-      borderColor: staticColors.transparent,
-    },
-  });
-
 /**
  * Main view for general app configurations
  */
@@ -234,33 +152,32 @@ const Settings = ({
   hapticsEnabled,
   setHapticsEnabled,
 }: Props) => {
-  const themeTokens = useTheme();
-  const { colors } = themeTokens;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const [currentLanguage, setCurrentLanguage] = useState(
     I18n.locale.substr(0, 2),
   );
-  const [languageOptions, setLanguageOptions] = useState<SelectOption[]>();
+  const languageOptions = useMemo<SelectOption[]>(
+    () =>
+      Object.entries(getLanguages()).map(([key, label]) => ({
+        value: key,
+        label,
+        key,
+      })),
+    [],
+  );
   const navigationTimeoutRef = useRef<
     ReturnType<typeof setTimeout> | undefined
   >(undefined);
 
-  useEffect(() => {
-    const languages = getLanguages();
-    setLanguageOptions(
-      Object.keys(languages).map((key) => ({
-        value: key,
-        label: languages[key],
-        key,
-      })),
-    );
-
-    return () => {
+  useEffect(
+    () => () => {
       if (navigationTimeoutRef.current !== undefined) {
         clearTimeout(navigationTimeoutRef.current);
       }
-    };
-  }, []);
+    },
+    [],
+  );
 
   const selectCurrency = async (currency: SupportedCurrency) => {
     const { CurrencyRateController, AssetsController } = Engine.context;
@@ -302,44 +219,6 @@ const Settings = ({
 
     updateUserTraitsWithCurrencyType(selectedPrimaryCurrency);
   };
-
-  const toggleHideZeroBalanceTokens = (
-    shouldHideZeroBalanceTokens: boolean,
-  ) => {
-    setHideZeroBalanceTokens(shouldHideZeroBalanceTokens);
-  };
-
-  const toggleHapticsEnabled = (enabled: boolean) => {
-    setHapticsEnabled(enabled);
-  };
-
-  // TODO - Reintroduce once we enable manual theme settings
-  // goToThemeSettings = () => {
-  //   const { navigation } = this.props;
-  //   navigation.navigate('ThemeSettings');
-  // };
-
-  // renderThemeSettingsSection = () => {
-  //   const { appTheme } = this.props;
-  //   const colors = this.context.colors || mockTheme.colors;
-  //   const styles = createStyles(colors);
-
-  //   return (
-  //     <View style={styles.setting}>
-  //       <View>
-  //         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-  //           {strings('app_settings.theme_title', {
-  //             theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
-  //           })}
-  //         </Text>
-  //         <Text style={styles.desc}>{strings('app_settings.theme_description')}</Text>
-  //         <StyledButton type="normal" onPress={this.goToThemeSettings} containerStyle={styles.marginTop}>
-  //           {strings('app_settings.theme_button_text')}
-  //         </StyledButton>
-  //       </View>
-  //     </View>
-  //   );
-  // };
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
@@ -409,16 +288,14 @@ const Settings = ({
             >
               {strings('app_settings.language_desc')}
             </Text>
-            {languageOptions && (
-              <View style={styles.accessory}>
-                <SelectComponent
-                  selectedValue={currentLanguage}
-                  onValueChange={selectLanguage}
-                  label={strings('app_settings.current_language')}
-                  options={languageOptions}
-                />
-              </View>
-            )}
+            <View style={styles.accessory}>
+              <SelectComponent
+                selectedValue={currentLanguage}
+                onValueChange={selectLanguage}
+                label={strings('app_settings.current_language')}
+                options={languageOptions}
+              />
+            </View>
           </View>
           <View style={styles.setting}>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -441,70 +318,18 @@ const Settings = ({
               />
             </View>
           </View>
-          <View style={styles.setting}>
-            <View style={styles.titleContainer}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                style={styles.title}
-              >
-                {strings('app_settings.hide_zero_balance_tokens_title')}
-              </Text>
-              <View style={styles.toggle}>
-                <Switch
-                  value={hideZeroBalanceTokens}
-                  onValueChange={toggleHideZeroBalanceTokens}
-                  trackColor={{
-                    true: colors.primary.default,
-                    false: colors.border.muted,
-                  }}
-                  thumbColor={themeTokens.brandColors.white}
-                  style={styles.switch}
-                  ios_backgroundColor={colors.border.muted}
-                />
-              </View>
-            </View>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.hide_zero_balance_tokens_desc')}
-            </Text>
-          </View>
-          <View style={styles.setting}>
-            <View style={styles.titleContainer}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                style={styles.title}
-              >
-                {strings('app_settings.haptic_feedback_title')}
-              </Text>
-              <View style={styles.toggle}>
-                <Switch
-                  value={hapticsEnabled}
-                  onValueChange={toggleHapticsEnabled}
-                  trackColor={{
-                    true: colors.primary.default,
-                    false: colors.border.muted,
-                  }}
-                  thumbColor={themeTokens.brandColors.white}
-                  style={styles.switch}
-                  ios_backgroundColor={colors.border.muted}
-                />
-              </View>
-            </View>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.haptic_feedback_desc')}
-            </Text>
-          </View>
+          <SettingsToggleRow
+            title={strings('app_settings.hide_zero_balance_tokens_title')}
+            description={strings('app_settings.hide_zero_balance_tokens_desc')}
+            value={hideZeroBalanceTokens}
+            onValueChange={setHideZeroBalanceTokens}
+          />
+          <SettingsToggleRow
+            title={strings('app_settings.haptic_feedback_title')}
+            description={strings('app_settings.haptic_feedback_desc')}
+            value={hapticsEnabled}
+            onValueChange={setHapticsEnabled}
+          />
           <View style={styles.setting}>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('app_settings.accounts_identicon_title')}
@@ -518,92 +343,14 @@ const Settings = ({
               {strings('app_settings.accounts_identicon_desc')}
             </Text>
             <View style={styles.accessory}>
-              <View style={styles.identicon_container}>
-                <TouchableOpacity
-                  onPress={() =>
-                    setAvatarAccountType(AvatarAccountType.Maskicon)
-                  }
-                  style={styles.identicon_row}
-                >
-                  <View
-                    style={[
-                      styles.avatarWrapper,
-                      avatarAccountType === AvatarAccountType.Maskicon
-                        ? styles.selectedAvatarWrapper
-                        : styles.unselectedAvatarWrapper,
-                    ]}
-                  >
-                    <AvatarAccount
-                      type={AvatarAccountType.Maskicon}
-                      accountAddress={selectedAddress}
-                      size={avatarSize}
-                    />
-                  </View>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={styles.identiconText}
-                  >
-                    Polycons
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    setAvatarAccountType(AvatarAccountType.JazzIcon)
-                  }
-                  style={styles.identicon_row}
-                >
-                  <View
-                    style={[
-                      styles.avatarWrapper,
-                      avatarAccountType === AvatarAccountType.JazzIcon
-                        ? styles.selectedAvatarWrapper
-                        : styles.unselectedAvatarWrapper,
-                    ]}
-                  >
-                    <AvatarAccount
-                      type={AvatarAccountType.JazzIcon}
-                      accountAddress={selectedAddress}
-                      size={avatarSize}
-                    />
-                  </View>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={styles.identiconText}
-                  >
-                    {strings('app_settings.jazzicons')}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    setAvatarAccountType(AvatarAccountType.Blockies)
-                  }
-                  style={styles.identicon_row}
-                >
-                  <View
-                    style={[
-                      styles.avatarWrapper,
-                      avatarAccountType === AvatarAccountType.Blockies
-                        ? styles.selectedAvatarWrapper
-                        : styles.unselectedAvatarWrapper,
-                    ]}
-                  >
-                    <AvatarAccount
-                      type={AvatarAccountType.Blockies}
-                      accountAddress={selectedAddress}
-                      size={avatarSize}
-                    />
-                  </View>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={styles.identiconText}
-                  >
-                    {strings('app_settings.blockies')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <AvatarTypeSelector
+                address={selectedAddress}
+                onChange={setAvatarAccountType}
+                selectedType={avatarAccountType}
+                styles={styles}
+              />
             </View>
           </View>
-          {/* {this.renderThemeSettingsSection()} */}
         </View>
       </ScrollView>
     </SafeAreaView>

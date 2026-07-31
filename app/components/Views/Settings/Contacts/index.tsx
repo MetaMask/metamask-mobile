@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { StyleSheet } from 'react-native';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -9,7 +14,6 @@ import type { Hex } from '@metamask/utils';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AddressList from '../../confirmations/legacy/components/AddressList';
-import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useTheme } from '../../../../util/theme';
@@ -113,7 +117,6 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
   const onAddressPress = (address: string) => {
     navigation.navigate('ContactForm', {
       mode: EDIT,
-      editMode: EDIT,
       address,
       onDelete: updateAddressList,
     });
@@ -152,14 +155,17 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
         onIconPress={onIconPress}
         onAccountLongPress={onAddressLongPress}
       />
-      <StyledButton
-        type={'confirm'}
-        containerStyle={styles.addContact}
-        onPress={goToAddContact}
-        testID={ContactsViewSelectorIDs.ADD_BUTTON}
-      >
-        {strings('address_book.add_contact')}
-      </StyledButton>
+      <View style={styles.addContact}>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={goToAddContact}
+          testID={ContactsViewSelectorIDs.ADD_BUTTON}
+        >
+          {strings('address_book.add_contact')}
+        </Button>
+      </View>
       <ActionSheet
         ref={actionSheetRef}
         title={strings('address_book.delete_contact')}

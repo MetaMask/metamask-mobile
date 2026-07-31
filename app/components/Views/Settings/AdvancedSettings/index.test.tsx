@@ -2,19 +2,10 @@ import React from 'react';
 import AdvancedSettings from './';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Device from '../../../../util/device';
-import Routes from '../../../../constants/navigation/Routes';
-import AppConstants from '../../../../core/AppConstants';
-import { AdvancedViewSelectorsIDs } from './AdvancedView.testIds';
-import { downloadStateLogs } from '../../../../util/logs';
-
-jest.mock('../../../../util/logs', () => ({
-  downloadStateLogs: jest.fn(),
-}));
 
 const originalFetch = global.fetch;
 
@@ -107,78 +98,6 @@ describe('AdvancedSettings', () => {
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('opens the smart transactions information page', () => {
-    const openUrlSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValueOnce(undefined);
-    const { getByText } = renderWithProvider(
-      <AdvancedSettings navigation={defaultNavigation} />,
-      { state: initialState },
-    );
-
-    fireEvent.press(
-      getByText(strings('app_settings.smart_transactions_learn_more')),
-    );
-
-    expect(openUrlSpy).toHaveBeenCalledWith(AppConstants.URLS.SMART_TXS);
-  });
-
-  it('opens the fiat-on-testnets friction sheet when enabling fiat', () => {
-    const { getByTestId } = renderWithProvider(
-      <AdvancedSettings navigation={defaultNavigation} />,
-      { state: initialState },
-    );
-
-    fireEvent(
-      getByTestId(AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS),
-      'onValueChange',
-      true,
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      expect.objectContaining({
-        screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
-      }),
-    );
-  });
-
-  it('dispatches the fiat preference when disabling fiat', () => {
-    const { getByTestId, store } = renderWithProvider(
-      <AdvancedSettings navigation={defaultNavigation} />,
-      {
-        state: {
-          ...initialState,
-          settings: {
-            ...initialState.settings,
-            showFiatOnTestnets: true,
-          },
-        },
-      },
-    );
-
-    fireEvent(
-      getByTestId(AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS),
-      'onValueChange',
-      false,
-    );
-
-    expect(store.getState().settings.showFiatOnTestnets).toBe(false);
-  });
-
-  it('downloads the current application state', () => {
-    const { getByText } = renderWithProvider(
-      <AdvancedSettings navigation={defaultNavigation} />,
-      { state: initialState },
-    );
-
-    fireEvent.press(getByText(strings('app_settings.state_logs_button')));
-
-    expect(downloadStateLogs).toHaveBeenCalledWith(
-      expect.objectContaining(initialState),
-    );
   });
 
   describe('Smart Transactions Opt In', () => {

@@ -1,12 +1,10 @@
 // Third party dependencies.
-import React, { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Linking, StyleSheet, Switch, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Linking, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 import type { Dispatch } from 'redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-
-import { typography } from '@metamask/design-tokens';
 
 // External dependencies.
 import Engine from '../../../../core/Engine';
@@ -17,31 +15,24 @@ import {
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectDismissSmartAccountSuggestionEnabled,
   selectSmartTransactionsOptInStatus,
-  selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
-import { selectSmartTransactionsEnabled } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AdvancedViewSelectorsIDs } from './AdvancedView.testIds';
-import { getFontFamily } from '../../../../component-library/components/Texts/Text/Text.utils';
-import { TextVariant as LibraryTextVariant } from '../../../../component-library/components/Texts/Text/Text.types';
 import {
   FontWeight,
   Text,
   TextColor,
   TextVariant,
   HeaderStandard,
-} from '@metamask/design-system-react-native';
-import Button, {
-  ButtonVariants,
+  Button,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../../../app/core/AppConstants';
@@ -50,155 +41,8 @@ import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
 import type { RootState } from '../../../../reducers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import type { Colors } from '../../../../util/theme/models';
-import type { Hex } from '@metamask/utils';
-
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      padding: 16,
-      paddingBottom: 100,
-    },
-    titleContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    title: {
-      flex: 1,
-    },
-    toggle: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginLeft: 16,
-    },
-    toggleDesc: {
-      marginRight: 8,
-    },
-    desc: {
-      marginTop: 8,
-    },
-    accessory: {
-      marginTop: 16,
-    },
-    switchLine: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    switch: {
-      alignSelf: 'flex-start',
-    },
-    setting: {
-      marginTop: 24,
-    },
-    firstSetting: {
-      marginTop: 0,
-    },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalTitle: {
-      textAlign: 'center',
-      marginBottom: 20,
-    },
-    picker: {
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
-      marginTop: 16,
-    },
-    inner: {
-      paddingBottom: 48,
-    },
-    ipfsGatewayLoadingWrapper: {
-      height: 37,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    warningBox: {
-      flexDirection: 'row',
-      backgroundColor: colors.error.muted,
-      borderLeftColor: colors.error.default,
-      borderRadius: 4,
-      borderLeftWidth: 4,
-      marginTop: 24,
-      marginHorizontal: 8,
-      paddingStart: 11,
-      paddingEnd: 8,
-      paddingVertical: 8,
-    },
-    warningText: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(LibraryTextVariant.BodyMD),
-      color: colors.text.default,
-      flex: 1,
-      marginStart: 8,
-    },
-  });
-
-type Styles = ReturnType<typeof createStyles>;
-
-interface SettingsRowProps {
-  heading: string;
-  description: ReactNode;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  testId?: string;
-  styles: Styles;
-}
-
-const SettingsRow = ({
-  heading,
-  description,
-  value,
-  onValueChange,
-  testId,
-  styles,
-}: SettingsRowProps) => {
-  const { brandColors, colors } = useTheme();
-  return (
-    <View style={styles.setting}>
-      <View style={styles.titleContainer}>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          style={styles.title}
-        >
-          {heading}
-        </Text>
-        <View style={styles.toggle}>
-          <Switch
-            testID={testId}
-            value={value}
-            onValueChange={onValueChange}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            accessibilityLabel={heading}
-          />
-        </View>
-      </View>
-
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-        style={styles.desc}
-      >
-        {description}
-      </Text>
-    </View>
-  );
-};
+import { SettingsToggleRow } from '../components/SettingsToggleRow';
+import { createStyles } from './AdvancedSettings.styles';
 
 interface SettingsState {
   showHexData: boolean;
@@ -213,12 +57,9 @@ interface StateProps {
   showHexData: boolean;
   showFiatOnTestnets: boolean;
   fullState: SettingsRootState;
-  isTokenDetectionEnabled: ReturnType<typeof selectUseTokenDetection>;
-  chainId: ReturnType<typeof selectChainId>;
   smartTransactionsOptInStatus: ReturnType<
     typeof selectSmartTransactionsOptInStatus
   >;
-  smartTransactionsEnabled: ReturnType<typeof selectSmartTransactionsEnabled>;
   dismissSmartAccountSuggestionEnabled: ReturnType<
     typeof selectDismissSmartAccountSuggestionEnabled
   >;
@@ -239,10 +80,6 @@ interface OwnProps {
 }
 
 type Props = StateProps & DispatchProps & OwnProps;
-
-const isHexChainId = (
-  chainId: ReturnType<typeof selectChainId>,
-): chainId is Hex => chainId.startsWith('0x');
 
 /**
  * Main view for app configurations
@@ -352,19 +189,18 @@ const AdvancedSettings = ({
               {strings('app_settings.reset_desc')}
             </Text>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={displayResetAccountModal}
-              label={strings('app_settings.reset_account_button')}
               style={styles.accessory}
-            />
+            >
+              {strings('app_settings.reset_account_button')}
+            </Button>
           </View>
 
-          <SettingsRow
-            heading={strings(
-              'app_settings.smart_account_dapp_requests_heading',
-            )}
+          <SettingsToggleRow
+            title={strings('app_settings.smart_account_dapp_requests_heading')}
             description={strings(
               'app_settings.smart_account_dapp_requests_desc_v2',
             )}
@@ -372,12 +208,11 @@ const AdvancedSettings = ({
             onValueChange={(val) =>
               toggleDismissSmartAccountSuggestionEnabled(!val)
             }
-            testId={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
-            styles={styles}
+            testID={AdvancedViewSelectorsIDs.DISMISS_SMART_ACCOUNT_UPDATE}
           />
 
-          <SettingsRow
-            heading={strings('app_settings.smart_transactions_opt_in_heading')}
+          <SettingsToggleRow
+            title={strings('app_settings.smart_transactions_opt_in_heading')}
             description={
               <>
                 {strings(
@@ -396,22 +231,20 @@ const AdvancedSettings = ({
             }
             value={smartTransactionsOptInStatus}
             onValueChange={toggleSmartTransactionsOptInStatus}
-            testId={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
-            styles={styles}
+            testID={AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH}
           />
 
-          <SettingsRow
-            heading={strings('app_settings.show_hex_data')}
+          <SettingsToggleRow
+            title={strings('app_settings.show_hex_data')}
             description={strings('app_settings.hex_desc')}
             value={showHexData}
             onValueChange={setShowHexData}
-            styles={styles}
           />
 
           <AutoDetectTokensSettings />
 
-          <SettingsRow
-            heading={strings('app_settings.show_fiat_on_testnets')}
+          <SettingsToggleRow
+            title={strings('app_settings.show_fiat_on_testnets')}
             description={strings('app_settings.show_fiat_on_testnets_desc')}
             value={showFiatOnTestnets}
             onValueChange={(enabled) => {
@@ -423,8 +256,7 @@ const AdvancedSettings = ({
                 setShowFiatOnTestnets(false);
               }
             }}
-            testId={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
-            styles={styles}
+            testID={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
           />
 
           <View style={styles.setting}>
@@ -440,13 +272,14 @@ const AdvancedSettings = ({
               {strings('app_settings.state_logs_desc')}
             </Text>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={handleDownloadStateLogs}
-              label={strings('app_settings.state_logs_button')}
               style={styles.accessory}
-            />
+            >
+              {strings('app_settings.state_logs_button')}
+            </Button>
           </View>
         </View>
       </KeyboardAwareScrollView>
@@ -454,23 +287,14 @@ const AdvancedSettings = ({
   );
 };
 
-const mapStateToProps = (state: SettingsRootState): StateProps => {
-  const chainId = selectChainId(state);
-
-  return {
-    showHexData: state.settings.showHexData,
-    showFiatOnTestnets: state.settings.showFiatOnTestnets,
-    fullState: state,
-    isTokenDetectionEnabled: selectUseTokenDetection(state),
-    chainId,
-    smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
-    smartTransactionsEnabled: isHexChainId(chainId)
-      ? selectSmartTransactionsEnabled(state, chainId)
-      : false,
-    dismissSmartAccountSuggestionEnabled:
-      selectDismissSmartAccountSuggestionEnabled(state),
-  };
-};
+const mapStateToProps = (state: SettingsRootState): StateProps => ({
+  showHexData: state.settings.showHexData,
+  showFiatOnTestnets: state.settings.showFiatOnTestnets,
+  fullState: state,
+  smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
+  dismissSmartAccountSuggestionEnabled:
+    selectDismissSmartAccountSuggestionEnabled(state),
+});
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   setShowHexData: (showHexData: boolean) =>
