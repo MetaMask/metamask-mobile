@@ -32,12 +32,14 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
             async () => {
               await TestSnaps.fillMessage('dataStateInput', '"bar"');
               await TestSnaps.fillMessage('setStateKeyInput', 'foo');
+              await TestSnaps.blurActiveWebViewInput();
               await TestSnaps.tapButton('sendStateButton');
               await TestSnaps.checkResultJson('encryptedStateResultSpan', {
                 foo: 'bar',
               });
 
               await TestSnaps.fillMessage('getStateInput', 'foo');
+              await TestSnaps.blurActiveWebViewInput();
               await TestSnaps.tapButton('sendGetStateButton');
               await TestSnaps.checkResultSpan('getStateResultSpan', '"bar"');
             },
@@ -73,12 +75,14 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
             async () => {
               await TestSnaps.fillMessage('dataUnencryptedStateInput', '"bar"');
               await TestSnaps.fillMessage('setStateKeyUnencryptedInput', 'foo');
+              await TestSnaps.blurActiveWebViewInput();
               await TestSnaps.tapButton('sendUnencryptedStateButton');
               await TestSnaps.checkResultJson('unencryptedStateResultSpan', {
                 foo: 'bar',
               });
 
               await TestSnaps.fillMessage('getUnencryptedStateInput', 'foo');
+              await TestSnaps.blurActiveWebViewInput();
               await TestSnaps.tapButton('sendGetUnencryptedStateButton');
               await TestSnaps.checkResultSpan(
                 'getStateUnencryptedResultSpan',
@@ -118,6 +122,7 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
             { restartDevice: false },
             async () => {
               await TestSnaps.fillMessage('dataManageStateInput', '23');
+              await TestSnaps.blurActiveWebViewInput();
               await TestSnaps.tapButton('sendManageStateButton');
               await TestSnaps.checkResultSpan(
                 'sendManageStateResultSpan',
@@ -164,6 +169,7 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
                 'dataUnencryptedManageStateInput',
                 '23',
               );
+              await TestSnaps.blurActiveWebViewInput();
               await TestSnaps.tapButton('sendUnencryptedManageStateButton');
               await TestSnaps.checkResultJson(
                 'retrieveManageStateUnencryptedResultSpan',
