@@ -77,7 +77,11 @@ export const analyticsControllerInit: MessengerClientInitFunction<
     isAnonymousEventsFeatureEnabled: true,
   });
 
-  controller.init();
+  // `AnalyticsController.init` is asynchronous as of `@metamask/analytics-controller@2`.
+  // We intentionally don't block controller initialization on it; log any failure.
+  controller.init().catch((error) => {
+    Logger.error(error as Error, 'analyticsControllerInit: Error initializing');
+  });
 
   let lastCompositionFingerprint = '';
   initMessenger.subscribe(
