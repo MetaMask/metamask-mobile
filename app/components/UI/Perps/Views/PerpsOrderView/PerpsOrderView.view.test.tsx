@@ -279,13 +279,11 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
-    expect(
-      await screen.findByText(
-        strings('perps.order.validation.insufficient_funds'),
-      ),
-    ).toBeOnTheScreen();
     const placeOrderButton = await screen.findByTestId(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toHaveTextContent(
+      strings('perps.order.button.long', { asset: 'ETH' }),
     );
     expect(placeOrderButton).toBeDisabled();
 

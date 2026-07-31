@@ -29,6 +29,7 @@ import {
   ButtonSize as ButtonSizeRNDesignSystem,
   HelpText,
   HelpTextSeverity,
+  TextButton,
   TextVariant,
   TextColor,
   Text,
@@ -53,8 +54,9 @@ import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
-import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
+import { SUPPORT_CONFIG } from '../../constants/perpsConfig';
 import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
@@ -82,7 +84,6 @@ import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
-import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import {
@@ -298,6 +299,21 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
+  const { openSupportWithConsent } = useSupportConsent();
+
+  const handleServiceInterruptionSupportPress = useCallback(() => {
+    openSupportWithConsent(
+      (url) =>
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+            title: strings(SUPPORT_CONFIG.TitleKey),
+          },
+        }),
+      SUPPORT_CONFIG.Url,
+    );
+  }, [navigation, openSupportWithConsent]);
 
   // Check if there's an active transaction
   const activeTransactionMeta = useTransactionMetadataRequest();
@@ -1765,19 +1781,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
-  // Button label: show Insufficient funds when user's max notional is below minimum
-  const orderButtonKey =
-    orderForm.direction === 'long'
-      ? 'perps.order.button.long'
-      : 'perps.order.button.short';
-  const isInsufficientFunds =
-    !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
-  const placeOrderLabel = isInsufficientFunds
-    ? strings('perps.order.validation.insufficient_funds')
-    : strings(orderButtonKey, {
-        asset: getPerpsDisplaySymbol(orderForm.asset),
-      });
-
   const doesStopLossRiskLiquidation = Boolean(
     orderForm.stopLossPrice &&
       !isStopLossSafeFromLiquidation(
@@ -1816,6 +1819,173 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const hasInvalidTPSL = isTakeProfitPriceInvalid || isStopLossPriceInvalid;
 
+  const amountHasError = spendableBalance > 0 && !!filteredErrors.length;
+  const showZeroBalanceWarning = !isLoadingAccount && spendableBalance === 0;
+  const isConfirmDisabled =
+    !orderValidation.isValid ||
+    isPlacingOrder ||
+    showZeroBalanceWarning ||
+    hasInsufficientPayTokenBalance ||
+    doesStopLossRiskLiquidation ||
+    isTakeProfitPriceInvalid ||
+    isStopLossPriceInvalid ||
+    isAtOICap ||
+    isServiceInterruptionBannerEnabled ||
+    shouldBlockBecauseOfFeesLoading ||
+    hasBlockingPayAlerts;
+
+  // Single HelpText stream below the details card — severity is the only
+  // visual difference between warning vs error copy.
+  const helpMessages = useMemo(() => {
+    const messages: {
+      key: string;
+      message: React.ReactNode;
+      severity: (typeof HelpTextSeverity)[keyof typeof HelpTextSeverity];
+    }[] = [];
+
+    const canShowValidationErrors =
+      !isLoadingMarketData &&
+      currentPrice != null &&
+      !orderValidation.isValidating;
+
+    if (canShowValidationErrors) {
+      filteredErrors.forEach((error, index) => {
+        messages.push({
+          key: `validation-${index}`,
+          message: error,
+          severity: HelpTextSeverity.Danger,
+        });
+      });
+    }
+
+    if (!isInputFocused && showZeroBalanceWarning) {
+      messages.push({
+        key: 'zero-balance',
+        message: strings('perps.deposit.no_funds_available'),
+        severity: HelpTextSeverity.Danger,
+      });
+    }
+
+    if (!isInputFocused && hasInsufficientPayTokenBalance) {
+      messages.push({
+        key: 'insufficient-pay-token',
+        message: strings(
+          'perps.order.validation.insufficient_funds_to_cover_trade',
+        ),
+        severity: HelpTextSeverity.Warning,
+      });
+    }
+
+    if (!isInputFocused && !hideTPSL && doesStopLossRiskLiquidation) {
+      messages.push({
+        key: 'sl-liquidation',
+        message: strings('perps.tpsl.stop_loss_order_view_warning', {
+          direction:
+            orderForm.direction === 'long'
+              ? strings('perps.tpsl.below')
+              : strings('perps.tpsl.above'),
+        }),
+        severity: HelpTextSeverity.Warning,
+      });
+    }
+
+    if (!isInputFocused && !hideTPSL && isTakeProfitPriceInvalid) {
+      messages.push({
+        key: 'tp-wrong-side',
+        message: strings('perps.tpsl.take_profit_wrong_side_warning', {
+          direction:
+            orderForm.direction === 'long'
+              ? strings('perps.tpsl.above')
+              : strings('perps.tpsl.below'),
+          priceType: tpslPriceType,
+        }),
+        severity: HelpTextSeverity.Warning,
+      });
+    }
+
+    if (!isInputFocused && !hideTPSL && isStopLossPriceInvalid) {
+      messages.push({
+        key: 'sl-wrong-side',
+        message: strings('perps.tpsl.stop_loss_wrong_side_warning', {
+          direction:
+            orderForm.direction === 'long'
+              ? strings('perps.tpsl.below')
+              : strings('perps.tpsl.above'),
+          priceType: tpslPriceType,
+        }),
+        severity: HelpTextSeverity.Warning,
+      });
+    }
+
+    if (!isInputFocused && hasBlockingPayAlerts && blockingPayAlertMessage) {
+      messages.push({
+        key: 'blocking-pay-alert',
+        message: String(blockingPayAlertMessage),
+        severity: HelpTextSeverity.Danger,
+      });
+    }
+
+    if (!isInputFocused && isAtOICap) {
+      messages.push({
+        key: 'oi-cap',
+        message: strings('perps.order.validation.oi_cap_reached'),
+        severity: HelpTextSeverity.Danger,
+      });
+    }
+
+    if (!isInputFocused && isServiceInterruptionBannerEnabled) {
+      const title = strings('perps.service_interruption.title');
+      const description = strings('perps.service_interruption.description');
+      messages.push({
+        key: 'service-interruption',
+        message: (
+          <>
+            {`${title}. ${description.replace(/\.$/, '')}. `}
+            <TextButton
+              variant={TextVariant.BodySm}
+              onPress={handleServiceInterruptionSupportPress}
+              testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+            >
+              {strings('perps.service_interruption.contact_support')}
+            </TextButton>
+          </>
+        ),
+        severity: HelpTextSeverity.Warning,
+      });
+    }
+
+    return messages;
+  }, [
+    isLoadingMarketData,
+    currentPrice,
+    orderValidation.isValidating,
+    filteredErrors,
+    isInputFocused,
+    showZeroBalanceWarning,
+    hasInsufficientPayTokenBalance,
+    hideTPSL,
+    doesStopLossRiskLiquidation,
+    isTakeProfitPriceInvalid,
+    isStopLossPriceInvalid,
+    orderForm.direction,
+    tpslPriceType,
+    hasBlockingPayAlerts,
+    blockingPayAlertMessage,
+    isAtOICap,
+    isServiceInterruptionBannerEnabled,
+    handleServiceInterruptionSupportPress,
+  ]);
+
+  // CTA label stays Long/Short even when disabled by validation errors.
+  const placeOrderLabel = strings(
+    orderForm.direction === 'long'
+      ? 'perps.order.button.long'
+      : 'perps.order.button.short',
+    {
+      asset: getPerpsDisplaySymbol(orderForm.asset),
+    },
+  );
+
   let rewardAnimationState = RewardAnimationState.Idle;
   if (rewardsState.isLoading) {
     rewardAnimationState = RewardAnimationState.Loading;
@@ -1847,18 +2017,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={displayAmount}
-          showWarning={!isLoadingAccount && spendableBalance === 0}
+          showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={livePositionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
-          hasError={spendableBalance > 0 && !!filteredErrors.length}
+          hasError={amountHasError}
           isLoading={isLoadingAccount}
         />
 
         {/* Amount Slider - Hide when keypad is active */}
         {!isInputFocused && (
-          <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+          <Box twClassName="px-4 pt-4" onTouchCancel={handleSliderDragCancel}>
             <Slider
               value={parseFloat(displayAmount || '0')}
               onValueChange={handleSliderValueChange}
@@ -1876,25 +2046,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           </Box>
         )}
 
-        {/* Validation Messages - keep visible while typing */}
-        <Box style={styles.helpTextContainer}>
-          {!isLoadingMarketData &&
-            currentPrice != null &&
-            !orderValidation.isValidating &&
-            filteredErrors.map((error, index) => (
-              <HelpText
-                key={`error-${index}`}
-                severity={HelpTextSeverity.Danger}
-                twClassName="w-full justify-center text-center"
-              >
-                {error}
-              </HelpText>
-            ))}
-        </Box>
-
         {/* Order Details */}
         {!isInputFocused && (
-          <Box twClassName="px-4 flex-1 grow">
+          <Box twClassName="px-4">
             <Box twClassName="bg-background-section rounded-xl overflow-hidden">
               <TouchableOpacity
                 testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
@@ -1922,7 +2076,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     keyLabel={strings('perps.order.limit_price')}
                     value={
                       orderForm.limitPrice !== undefined &&
-                      orderForm.limitPrice !== null
+                      orderForm.limitPrice !== null &&
+                      orderForm.limitPrice !== ''
                         ? formatPerpsFiat(orderForm.limitPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
@@ -1956,67 +2111,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               )}
             </Box>
-            {hasInsufficientPayTokenBalance && (
-              <Box twClassName="mt-3 px-2">
-                <HelpText
-                  severity={HelpTextSeverity.Danger}
-                  twClassName="w-full"
-                >
-                  {strings(
-                    'perps.order.validation.insufficient_funds_to_cover_trade',
-                  )}
-                </HelpText>
-              </Box>
-            )}
-            {!hideTPSL && doesStopLossRiskLiquidation && (
-              <Box twClassName="px-2 pt-2">
-                <HelpText
-                  severity={HelpTextSeverity.Danger}
-                  twClassName="w-full"
-                >
-                  {strings('perps.tpsl.stop_loss_order_view_warning', {
-                    direction:
-                      orderForm.direction === 'long'
-                        ? strings('perps.tpsl.below')
-                        : strings('perps.tpsl.above'),
-                  })}
-                </HelpText>
-              </Box>
-            )}
-            {!hideTPSL && isTakeProfitPriceInvalid && (
-              <Box twClassName="px-2 pt-2">
-                <HelpText
-                  severity={HelpTextSeverity.Danger}
-                  twClassName="w-full"
-                >
-                  {strings('perps.tpsl.take_profit_wrong_side_warning', {
-                    direction:
-                      orderForm.direction === 'long'
-                        ? strings('perps.tpsl.above')
-                        : strings('perps.tpsl.below'),
-                    priceType: tpslPriceType,
-                  })}
-                </HelpText>
-              </Box>
-            )}
-            {!hideTPSL && isStopLossPriceInvalid && (
-              <Box twClassName="px-2 pt-2">
-                <HelpText
-                  severity={HelpTextSeverity.Danger}
-                  twClassName="w-full"
-                >
-                  {strings('perps.tpsl.stop_loss_wrong_side_warning', {
-                    direction:
-                      orderForm.direction === 'long'
-                        ? strings('perps.tpsl.below')
-                        : strings('perps.tpsl.above'),
-                    priceType: tpslPriceType,
-                  })}
-                </HelpText>
-              </Box>
-            )}
           </Box>
         )}
+
+        {/* Validation Messages — below order details card (Close Position pattern) */}
+        <Box style={styles.helpTextContainer}>
+          {helpMessages.map(({ key, message, severity }) => (
+            <HelpText
+              key={key}
+              severity={severity}
+              twClassName="w-full text-center"
+              style={styles.helpText}
+            >
+              {message}
+            </HelpText>
+          ))}
+        </Box>
 
         {/* Spacer pushes the info section to the bottom of the scroll view */}
         {!isInputFocused && <View style={styles.infoSectionSpacer} />}
@@ -2026,7 +2136,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           style={[
             styles.infoSection,
             // eslint-disable-next-line react-native/no-inline-styles
-            { marginBottom: orderValidation.errors.length > 0 ? 8 : 0 },
+            { marginBottom: helpMessages.length > 0 ? 8 : 0 },
             // eslint-disable-next-line react-native/no-inline-styles
             { marginTop: isInputFocused ? 8 : 0 },
           ]}
@@ -2071,7 +2181,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             }}
           />
 
-          {isMarketOrder && (
+          {orderForm.type === 'market' && (
             <KeyValueRow
               testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_ROW}
               variant={KeyValueRowVariant.Summary}
@@ -2227,28 +2337,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           />
         </View>
       )}
-      {/* OI Cap Warning - Shows when market is at capacity */}
-      {!isInputFocused && isAtOICap && (
-        <Box twClassName="px-4 mb-4">
-          <PerpsOICapWarning symbol={orderForm.asset} variant="banner" />
-        </Box>
-      )}
-      {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
-      {!isInputFocused && !isAtOICap && (
+      {/* Fixed Place Order Button - Hide when keypad is active */}
+      {!isInputFocused && (
         <View style={fixedBottomContainerStyle}>
-          {hasBlockingPayAlerts && !!blockingPayAlertMessage && (
-            <Box twClassName="mb-3">
-              <HelpText severity={HelpTextSeverity.Danger} twClassName="w-full">
-                {blockingPayAlertMessage}
-              </HelpText>
-            </Box>
-          )}
-
-          {/* Service Interruption Banner */}
-          <PerpsServiceInterruptionBanner
-            testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-          />
-
           {buttonColorVariant === 'colors' ? (
             <ButtonSemantic
               severity={
@@ -2259,15 +2350,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPress={() => handlePlaceOrder()}
               isFullWidth
               size={ButtonBaseSize.Lg}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
+              isDisabled={isConfirmDisabled}
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
@@ -2279,15 +2362,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               size={ButtonSizeRNDesignSystem.Lg}
               isFullWidth
               onPress={() => handlePlaceOrder()}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
+              isDisabled={isConfirmDisabled}
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >

@@ -884,7 +884,7 @@ const PerpsClosePositionView: React.FC = () => {
 
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
-          <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+          <Box twClassName="px-4 pt-4" onTouchCancel={handleSliderDragCancel}>
             <Slider
               value={displayClosePercentage}
               onValueChange={handleSliderValueChange}

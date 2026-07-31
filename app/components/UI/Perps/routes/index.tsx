@@ -60,6 +60,7 @@ import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   clearNativeStackNavigatorOptions,
+  slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
@@ -365,7 +366,7 @@ const PerpsScreenStack = () => {
                 name={Routes.PERPS.TPSL}
                 component={PerpsTPSLView}
                 options={{
-                  ...transparentModalScreenOptions,
+                  ...slideFromRightNativeOptions,
                   title: strings('perps.tpsl.title'),
                   headerShown: false,
                 }}

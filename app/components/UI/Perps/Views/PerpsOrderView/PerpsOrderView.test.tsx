@@ -71,6 +71,10 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -100,7 +104,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.button.short': 'Short {{asset}}',
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
-      'perps.order.validation.insufficient_funds': 'Insufficient funds',
+      'perps.deposit.no_funds_available':
+        'Not enough funds available. Deposit funds or select a different payment method',
+      'perps.order.validation.oi_cap_reached':
+        'Open interest cap reached. New positions cannot be opened at this time.',
+      'perps.service_interruption.title': "We're experiencing an outage",
+      'perps.service_interruption.description':
+        'Some services may be unavailable while the team works on a fix.',
+      'perps.service_interruption.contact_support': 'Contact support',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
       'perps.errors.orderValidation.sizePositive':
@@ -541,12 +552,32 @@ jest.mock(
 );
 
 let mockPerpsAdvancedChartEnabled = false;
+let mockServiceInterruptionEnabled = false;
+
+// Populated after feature-flag imports so useSelector can match by reference.
+const flagSelectors: {
+  serviceInterruption: unknown;
+  advancedChart: unknown;
+} = {
+  serviceInterruption: null,
+  advancedChart: null,
+};
+
+flagSelectors.advancedChart = selectPerpsAdvancedChartEnabledFlag;
+flagSelectors.serviceInterruption =
+  selectPerpsServiceInterruptionBannerEnabledFlag;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(() => jest.fn()),
   useSelector: jest.fn((selector) => {
+    if (selector === flagSelectors.advancedChart) {
+      return mockPerpsAdvancedChartEnabled;
+    }
+    if (selector === flagSelectors.serviceInterruption) {
+      return mockServiceInterruptionEnabled;
+    }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
       selector.toString().includes('perpsAdvancedChart')
@@ -638,6 +669,12 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
   default: jest.fn(() => ({
     openTooltipModal: jest.fn(),
   })),
+}));
+
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: jest.fn(),
+  }),
 }));
 
 // Only mock Slider — reanimated needs special handling in tests. Keep the
@@ -868,6 +905,8 @@ const defaultMockHooks = {
 };
 
 // Mock stream manager for tests
+let mockOiCapSymbols: string[] | null = null;
+
 const createMockStreamManager = () => {
   // Using Map to track subscribers for potential cleanup
   const subscribers = new Map<string, (data: unknown) => void>();
@@ -945,7 +984,14 @@ const createMockStreamManager = () => {
       getSnapshot: jest.fn(() => null),
     },
     oiCaps: {
-      subscribe: jest.fn(() => jest.fn()),
+      subscribe: jest.fn(
+        ({ callback }: { callback: (caps: string[]) => void }) => {
+          if (mockOiCapSymbols) {
+            callback(mockOiCapSymbols);
+          }
+          return jest.fn();
+        },
+      ),
       getSnapshot: jest.fn(() => null),
     },
   };
@@ -977,6 +1023,8 @@ describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPerpsAdvancedChartEnabled = false;
+    mockServiceInterruptionEnabled = false;
+    mockOiCapSymbols = null;
     mockLeverageConfirmValue = 3;
 
     jest.mocked(useAnalytics).mockReturnValue({
@@ -1935,23 +1983,93 @@ describe('PerpsOrderView', () => {
 
   it('handles zero balance warning', async () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
-      balance: '0',
-      spendableBalance: '0',
-      withdrawableBalance: '0',
-      accountInfo: {
-        marginSummary: {
-          accountValue: 0,
-          totalMarginUsed: 0,
-        },
+      account: {
+        spendableBalance: '0',
+        withdrawableBalance: '0',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalBalance: '0',
       },
+      isInitialLoading: false,
     });
+    (usePerpsOrderContext as jest.Mock).mockReturnValue(
+      buildOrderContextMock({
+        balanceForValidation: 0,
+        orderForm: {
+          asset: 'ETH',
+          amount: '0',
+          leverage: 3,
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 0,
+        },
+      }),
+    );
 
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    // Should show warning when balance is zero
+    // Danger HelpText below details; CTA keeps Long/Short label when disabled
     await waitFor(() => {
-      expect(screen.getByTestId('perps-amount-display')).toBeDefined();
+      expect(
+        screen.getByText(
+          'Not enough funds available. Deposit funds or select a different payment method',
+        ),
+      ).toBeOnTheScreen();
     });
+    const placeOrderButton = screen.getByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toHaveTextContent('Long ETH');
+    expect(placeOrderButton).toBeDisabled();
+  });
+
+  it('shows OI cap HelpText and keeps CTA visible but disabled', async () => {
+    mockOiCapSymbols = ['ETH'];
+
+    try {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'Open interest cap reached. New positions cannot be opened at this time.',
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      const placeOrderButton = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toHaveTextContent('Long ETH');
+      expect(placeOrderButton).toBeDisabled();
+    } finally {
+      mockOiCapSymbols = null;
+    }
+  });
+
+  it('shows service interruption HelpText and keeps CTA visible but disabled', async () => {
+    mockServiceInterruptionEnabled = true;
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          /We're experiencing an outage\. Some services may be unavailable while the team works on a fix\./,
+        ),
+      ).toBeOnTheScreen();
+    });
+    expect(screen.getByText('Contact support')).toBeOnTheScreen();
+
+    const placeOrderButton = screen.getByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toHaveTextContent('Long ETH');
+    expect(placeOrderButton).toBeDisabled();
   });
 
   it('validates order before placement', async () => {

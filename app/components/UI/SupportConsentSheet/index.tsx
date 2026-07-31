@@ -5,6 +5,7 @@ import {
   BottomSheetHeader,
   ButtonsAlignment,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -57,7 +58,11 @@ const SupportConsentSheet = () => {
       >
         {strings('support_consent.title')}
       </BottomSheetHeader>
-      <Text variant={TextVariant.BodyMd} twClassName="px-4 pb-4">
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="px-4 pb-4"
+      >
         {strings('support_consent.description')}
       </Text>
       <BottomSheetFooter

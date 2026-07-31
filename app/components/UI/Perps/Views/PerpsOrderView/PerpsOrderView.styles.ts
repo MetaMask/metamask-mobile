@@ -41,6 +41,10 @@ const createStyles = (colors: Colors) =>
       // validation HelpText appears or wraps.
       minHeight: 40,
     },
+    helpText: {
+      textAlign: 'center',
+      width: '100%',
+    },
     detailLeft: {
       flexDirection: 'row',
       alignItems: 'center',
