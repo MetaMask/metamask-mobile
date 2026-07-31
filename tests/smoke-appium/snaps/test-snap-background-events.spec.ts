@@ -11,6 +11,7 @@ import {
 } from '../../selectors/Browser/TestSnaps.selectors.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
+import { sleep } from '../../framework/index.js';
 
 const TEST_SNAPS_WEBVIEW_OPTIONS = {
   pageUrl: TEST_SNAPS_URL,
@@ -43,7 +44,10 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
         currentDeviceDetails,
         { restartDevice: false },
         async () => {
-          const futureDate = new Date(Date.now() + 5_000).toISOString();
+          // Intentionally scheduling an event for 30 seconds into the future
+          // Android can sometimes take a while to find the next input
+          // this then causes "cannot schedule date in the past" errors.
+          const futureDate = new Date(Date.now() + 30_000).toISOString();
 
           await TestSnaps.fillMessage('backgroundEventDateInput', futureDate);
           await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
@@ -51,6 +55,8 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
             'scheduleBackgroundEventResultSpan',
             { timeout: 30_000, interval: 500 },
           );
+
+          await sleep(30_000); // Wait for the background event to fire
 
           await Assertions.expectTextDisplayed(
             'This dialog was triggered by a background event',
@@ -69,7 +75,7 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
         currentDeviceDetails,
         { restartDevice: false },
         async () => {
-          await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT5S');
+          await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT10S');
           await TestSnaps.tapButton(
             'scheduleBackgroundEventWithDurationButton',
           );
@@ -77,6 +83,8 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
             'scheduleBackgroundEventResultSpan',
             { timeout: 30_000, interval: 500 },
           );
+
+          await sleep(10_000); // Wait for the background event to fire
 
           await Assertions.expectTextDisplayed(
             'This dialog was triggered by a background event',
