@@ -303,7 +303,7 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     });
 
-    it('sets atomic:false and recipient for perpsWithdraw', () => {
+    it('sets atomic:false for perpsWithdraw', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
         type: TransactionType.perpsWithdraw,
@@ -322,7 +322,6 @@ describe('usePayWithMoneyAccountSection', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBe(false);
-      expect(config.recipient).toBe(MONEY_ACCOUNT_ADDRESS);
       expect(config.refundTo).toBeUndefined();
     });
 
@@ -359,7 +358,6 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
       expect(config.atomic).toBeUndefined();
-      expect(config.recipient).toBeUndefined();
     });
 
     it('navigates back on press', () => {

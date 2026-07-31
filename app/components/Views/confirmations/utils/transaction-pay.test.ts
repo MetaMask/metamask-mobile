@@ -904,7 +904,7 @@ describe('Transaction Pay Utils', () => {
       return config;
     }
 
-    it('sets paymentOverride, atomic:false, and recipient for perpsWithdraw', () => {
+    it('sets paymentOverride and atomic:false for perpsWithdraw', () => {
       applyMoneyAccountOverride(
         TRANSACTION_ID,
         MONEY_ADDRESS,
@@ -915,11 +915,10 @@ describe('Transaction Pay Utils', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBe(false);
-      expect(config.recipient).toBe(MONEY_ADDRESS);
       expect(config.refundTo).toBeUndefined();
     });
 
-    it('sets paymentOverride, atomic:false, and recipient for predictWithdraw', () => {
+    it('sets paymentOverride and atomic:false for predictWithdraw', () => {
       applyMoneyAccountOverride(
         TRANSACTION_ID,
         MONEY_ADDRESS,
@@ -930,11 +929,10 @@ describe('Transaction Pay Utils', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBe(false);
-      expect(config.recipient).toBe(MONEY_ADDRESS);
       expect(config.refundTo).toBeUndefined();
     });
 
-    it('sets paymentOverride and refundTo but leaves atomic and recipient unset for moneyAccountDeposit', () => {
+    it('sets paymentOverride and refundTo but leaves atomic unset for moneyAccountDeposit', () => {
       applyMoneyAccountOverride(
         TRANSACTION_ID,
         MONEY_ADDRESS,
@@ -945,11 +943,10 @@ describe('Transaction Pay Utils', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBeUndefined();
-      expect(config.recipient).toBeUndefined();
       expect(config.refundTo).toBe(MONEY_ADDRESS);
     });
 
-    it('sets only paymentOverride for moneyAccountWithdraw (no atomic, recipient, or refundTo)', () => {
+    it('sets only paymentOverride for moneyAccountWithdraw (no atomic or refundTo)', () => {
       applyMoneyAccountOverride(
         TRANSACTION_ID,
         MONEY_ADDRESS,
@@ -960,11 +957,10 @@ describe('Transaction Pay Utils', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBeUndefined();
-      expect(config.recipient).toBeUndefined();
       expect(config.refundTo).toBeUndefined();
     });
 
-    it('omits recipient when moneyAccountAddress is undefined for perps/predict withdraws', () => {
+    it('sets atomic:false when moneyAccountAddress is undefined for perps/predict withdraws', () => {
       applyMoneyAccountOverride(
         TRANSACTION_ID,
         undefined,
@@ -975,7 +971,6 @@ describe('Transaction Pay Utils', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBe(false);
-      expect(config.recipient).toBeUndefined();
       expect(config.refundTo).toBeUndefined();
     });
 
@@ -999,7 +994,6 @@ describe('Transaction Pay Utils', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBeUndefined();
-      expect(config.recipient).toBeUndefined();
       expect(config.refundTo).toBeUndefined();
     });
 

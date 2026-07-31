@@ -317,8 +317,9 @@ export function resolvePreferredPayToken({
  * `paymentOverride` is set unconditionally; the additional non-atomic fields
  * are set only for the flows that need them.
  *
- * Perps/Predict withdraw → MA sets `atomic: false` and `recipient: MA` so the
- * post-Relay transfer to the Money Account runs in `submitPostNonAtomic`.
+ * Perps/Predict withdraw → MA sets `atomic: false` so the post-Relay transfer
+ * to the Money Account runs in `submitPostNonAtomic`. The quote recipient is
+ * derived by the pay controller via the `getPaymentOverrideData` callback.
  * Money Account deposits set `refundTo: MA` so failed Relay bridges refund to
  * the MA rather than the funding EOA, and flip `atomic: false` later via
  * `setMoneyAccountDepositMaxAtomic` when the user toggles max amount.
@@ -346,9 +347,6 @@ export function applyMoneyAccountOverride(
       config.paymentOverride = PaymentOverride.MoneyAccount;
       if (isPerpsOrPredictWithdraw) {
         config.atomic = false;
-        if (moneyAccountAddress) {
-          config.recipient = moneyAccountAddress as Hex;
-        }
       }
       if (isMoneyAccountDeposit && moneyAccountAddress) {
         config.refundTo = moneyAccountAddress as Hex;

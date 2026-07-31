@@ -105,7 +105,6 @@ describe('useDefaultPaySelectedSection', () => {
     expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
     expect(config.atomic).toBeUndefined();
-    expect(config.recipient).toBeUndefined();
   });
 
   it('clears selectedPaymentMethodId via updateFiatPayment', () => {
@@ -133,7 +132,7 @@ describe('useDefaultPaySelectedSection', () => {
     expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
   });
 
-  it('sets atomic:false and recipient for perpsWithdraw', () => {
+  it('sets atomic:false for perpsWithdraw', () => {
     (useParams as jest.Mock).mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
@@ -150,11 +149,10 @@ describe('useDefaultPaySelectedSection', () => {
 
     expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     expect(config.atomic).toBe(false);
-    expect(config.recipient).toBe(MONEY_ACCOUNT_ADDRESS);
     expect(config.refundTo).toBeUndefined();
   });
 
-  it('sets atomic:false and recipient for predictWithdraw', () => {
+  it('sets atomic:false for predictWithdraw', () => {
     (useParams as jest.Mock).mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
@@ -171,11 +169,10 @@ describe('useDefaultPaySelectedSection', () => {
 
     expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     expect(config.atomic).toBe(false);
-    expect(config.recipient).toBe(MONEY_ACCOUNT_ADDRESS);
     expect(config.refundTo).toBeUndefined();
   });
 
-  it('sets only paymentOverride for moneyAccountWithdraw (no atomic, recipient, refundTo)', () => {
+  it('sets only paymentOverride for moneyAccountWithdraw (no atomic, refundTo)', () => {
     (useParams as jest.Mock).mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
@@ -192,7 +189,6 @@ describe('useDefaultPaySelectedSection', () => {
 
     expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     expect(config.atomic).toBeUndefined();
-    expect(config.recipient).toBeUndefined();
     expect(config.refundTo).toBeUndefined();
   });
 
@@ -255,7 +251,7 @@ describe('useDefaultPaySelectedSection', () => {
       expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
     });
 
-    it('sets atomic:false and recipient for predictWithdraw when flag is active', () => {
+    it('sets atomic:false for predictWithdraw when flag is active', () => {
       (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(true);
       (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
         id: TRANSACTION_ID,
@@ -270,7 +266,6 @@ describe('useDefaultPaySelectedSection', () => {
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBe(false);
-      expect(config.recipient).toBe(MONEY_ACCOUNT_ADDRESS);
       expect(config.refundTo).toBeUndefined();
     });
 

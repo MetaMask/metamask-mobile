@@ -24,7 +24,6 @@ export function useClearPaymentOverride() {
         (config) => {
           config.paymentOverride = undefined;
           config.refundTo = undefined;
-          config.recipient = undefined;
           config.atomic = undefined;
         },
       );
