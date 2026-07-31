@@ -229,8 +229,7 @@
     "expo-web-browser@npm:~55.0.16": "55.0.16",
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
-    "@react-native/babel-preset@npm:0.83.6": "patch:@react-native/babel-preset@npm%3A0.83.6#~/.yarn/patches/@react-native-babel-preset-npm-0.83.6-90eed53ffb.patch",
-    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
+    "@react-native/babel-preset@npm:0.83.6": "patch:@react-native/babel-preset@npm%3A0.83.6#~/.yarn/patches/@react-native-babel-preset-npm-0.83.6-90eed53ffb.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -268,7 +267,7 @@
     "@metamask/client-controller": "^1.0.1",
     "@metamask/client-utils": "^1.2.1",
     "@metamask/compliance-controller": "2.1.0",
-    "@metamask/config-registry-controller": "^0.3.1",
+    "@metamask/config-registry-controller": "^1.0.0",
     "@metamask/connectivity-controller": "^0.3.0",
     "@metamask/controller-utils": "^12.3.0",
     "@metamask/core-backend": "^8.0.0",
@@ -325,7 +324,7 @@
     "@metamask/multichain-transactions-controller": "^7.1.0",
     "@metamask/native-utils": "^0.8.0",
     "@metamask/network-controller": "^34.0.0",
-    "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
+    "@metamask/network-enablement-controller": "^6.0.0",
     "@metamask/notification-services-controller": "^26.0.0",
     "@metamask/permission-controller": "^13.1.1",
     "@metamask/perps-controller": "^10.0.0",
