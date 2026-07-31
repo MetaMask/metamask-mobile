@@ -96,6 +96,12 @@ export const LEVERAGE_SLIDER_CONFIG = {
 } as const;
 
 /**
+ * Maximum number of digits allowed in any perps price/size/percentage input.
+ * Prevents overflow and keeps inputs within safe numeric range.
+ */
+export const MAX_PERPS_INPUT_DIGITS = 9;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */
@@ -112,7 +118,7 @@ export const TP_SL_VIEW_CONFIG = {
 
   // Maximum number of digits allowed in price/percentage input fields
   // Prevents overflow and maintains reasonable input constraints
-  MaxInputDigits: 9,
+  MaxInputDigits: MAX_PERPS_INPUT_DIGITS,
 
   // Keypad configuration for price inputs
   // USD_PERPS is not a real currency - it's a custom configuration
