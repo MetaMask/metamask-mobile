@@ -145,7 +145,8 @@ import Logger from '../../../util/Logger';
 import BrazeBanner from '../../UI/BrazeBanner';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
-import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
+import { NetworkConnectionBannerContent } from '../../UI/NetworkConnectionBanner';
+import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 
 import {
   SwapBridgeNavigationLocation,
@@ -981,7 +982,11 @@ const Wallet = ({
       </View>
     ) : null;
 
-  const bannerContent = (
+  const networkConnectionBanner = useNetworkConnectionBanner();
+  const hasBannerContent =
+    !basicFunctionalityEnabled ||
+    networkConnectionBanner.networkConnectionBannerState.visible;
+  const bannerContent = hasBannerContent ? (
     <View style={styles.banner}>
       {!basicFunctionalityEnabled ? (
         <BannerAlert
@@ -997,9 +1002,9 @@ const Wallet = ({
           }
         />
       ) : null}
-      <NetworkConnectionBanner />
+      <NetworkConnectionBannerContent {...networkConnectionBanner} />
     </View>
-  );
+  ) : null;
 
   /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
   const walletHomeAccountGroupBalanceProps = {
@@ -1053,7 +1058,14 @@ const Wallet = ({
   );
 
   const portfolioHeader = balanceBreakdownLayout ? (
-    <View style={styles.treatmentBannerContainer}>{bannerContent}</View>
+    bannerContent ? (
+      <View
+        style={styles.treatmentBannerContainer}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER}
+      >
+        {bannerContent}
+      </View>
+    ) : null
   ) : (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}

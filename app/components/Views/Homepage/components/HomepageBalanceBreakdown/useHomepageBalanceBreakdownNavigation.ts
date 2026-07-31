@@ -6,8 +6,11 @@ import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigatio
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { usePerpsNavigationHandlers } from '../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { SliceKey } from '../../../BalanceBreakdown/types';
+import type { SliceKey } from '../../BalanceBreakdown/types';
+import {
+  BalanceBreakdownEventProperties,
+  BalanceBreakdownEventSource,
+} from './balanceBreakdownEvents';
 
 export function useHomepageBalanceBreakdownNavigation() {
   const navigation = useNavigation();
@@ -20,8 +23,9 @@ export function useHomepageBalanceBreakdownNavigation() {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.BALANCE_BREAKDOWN_SLICE_TAPPED)
           .addProperties({
-            slice: key,
-            source: 'homepage',
+            [BalanceBreakdownEventProperties.Slice]: key,
+            [BalanceBreakdownEventProperties.Source]:
+              BalanceBreakdownEventSource.Homepage,
           })
           .build(),
       );

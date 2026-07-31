@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useAccountGroupBalanceFetchState } from '../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState';
-import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useAccountGroupBalanceFetchState } from '../../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState';
+import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useTokensSlice } from './useTokensSlice';
 
 const mockBalanceSelector = jest.fn();
@@ -9,7 +9,7 @@ const mockBalanceChangeSelector = jest.fn();
 const mockEmptyStateSelector = jest.fn();
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
-jest.mock('../../../../../selectors/assets/balances', () => ({
+jest.mock('../../../../../../selectors/assets/balances', () => ({
   selectBalanceBySelectedAccountGroup: jest.fn(() => mockBalanceSelector),
   selectBalanceChangeBySelectedAccountGroup: jest.fn(
     () => mockBalanceChangeSelector,
@@ -17,9 +17,9 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
   selectAccountGroupBalanceForEmptyState: mockEmptyStateSelector,
 }));
 jest.mock(
-  '../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState',
+  '../../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState',
 );
-jest.mock('../../../../hooks/useNetworkEnablement/useNetworkEnablement');
+jest.mock('../../../../../hooks/useNetworkEnablement/useNetworkEnablement');
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseAccountGroupBalanceFetchState = jest.mocked(

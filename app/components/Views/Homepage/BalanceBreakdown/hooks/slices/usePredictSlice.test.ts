@@ -3,11 +3,11 @@ import { useSelector } from 'react-redux';
 import {
   usePredictPortfolio,
   type PredictPortfolioModel,
-} from '../../../../UI/Predict/hooks/usePredictPortfolio';
+} from '../../../../../UI/Predict/hooks/usePredictPortfolio';
 import { usePredictSlice } from './usePredictSlice';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
-jest.mock('../../../../UI/Predict/hooks/usePredictPortfolio');
+jest.mock('../../../../../UI/Predict/hooks/usePredictPortfolio');
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUsePredictPortfolio = jest.mocked(usePredictPortfolio);
@@ -69,10 +69,10 @@ describe('usePredictSlice', () => {
     expect(result.current.valueFiat).toBe(0);
   });
 
-  it('stays loading while fiat conversion is unavailable', () => {
+  it('reports an error when fiat conversion is unavailable', () => {
     const { result } = renderHook(() => usePredictSlice(() => undefined));
 
-    expect(result.current.status).toBe('loading');
+    expect(result.current.status).toBe('error');
     expect(result.current.valueFiat).toBe(0);
   });
 });

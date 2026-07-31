@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { usePredictPortfolio } from '../../../../UI/Predict/hooks/usePredictPortfolio';
-import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
+import { usePredictPortfolio } from '../../../../../UI/Predict/hooks/usePredictPortfolio';
+import { selectPredictEnabledFlag } from '../../../../../UI/Predict/selectors/featureFlags';
 import type { BalanceSlice, FiatConverter } from '../../types';
 
 export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
@@ -14,7 +14,7 @@ export function usePredictSlice(toUserCurrency: FiatConverter): BalanceSlice {
     if (!isEnabled) return 'ineligible' as const;
     if (error) return 'error' as const;
     if (isLoading) return 'loading' as const;
-    if (convertedValue === undefined) return 'loading' as const;
+    if (convertedValue === undefined) return 'error' as const;
     return 'ready' as const;
   }, [convertedValue, error, isEnabled, isLoading]);
 

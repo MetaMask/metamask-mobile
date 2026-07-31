@@ -4,16 +4,14 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useBalanceBreakdown } from '../../../BalanceBreakdown/hooks/useBalanceBreakdown';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import { useBalanceBreakdown } from '../../BalanceBreakdown/hooks/useBalanceBreakdown';
 import type {
   BreakdownData,
   SliceData,
   SliceKey,
-} from '../../../BalanceBreakdown/types';
-/* eslint-enable import-x/no-restricted-paths */
+} from '../../BalanceBreakdown/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -68,7 +66,7 @@ jest.mock('../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers', () => ({
   }),
 }));
 
-jest.mock('../../../BalanceBreakdown/hooks/useBalanceBreakdown');
+jest.mock('../../BalanceBreakdown/hooks/useBalanceBreakdown');
 
 jest.mock(
   '../../../../UI/Assets/components/Balance/AccountGroupBalance',
@@ -137,7 +135,7 @@ const breakdown: BreakdownData = {
   },
   slices: {
     money: makeSlice('money', {
-      apyPercentFormatted: '4.1%',
+      apyPercent: 4.1,
     }),
     tokens: makeSlice('tokens', { valueFiat: 20 }),
     perps: makeSlice('perps'),
@@ -154,6 +152,9 @@ describe('HomepageBalanceBreakdown', () => {
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectPrivacyMode) return mockPrivacyMode;
       if (selector === selectEvmChainId) return '0x1';
+      if (selector === selectAccountGroupBalanceForEmptyState) {
+        return { totalBalanceInUserCurrency: 0 };
+      }
       if (selector === selectShouldShowWalletHomeOnboardingSteps) {
         return mockIsWalletHomeOnboardingActive;
       }
@@ -163,7 +164,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and rows in screenshot order', () => {
-    const { getByTestId, getAllByRole } = render(
+    const { getByLabelText, getByTestId, getAllByRole } = render(
       <HomepageBalanceBreakdown layout="icons" />,
     );
 
@@ -212,6 +213,8 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
     ).toHaveTextContent('%');
+    expect(getByLabelText('Hide total balance')).toBeOnTheScreen();
+    expect(getByLabelText('Tokens')).toBeOnTheScreen();
   });
 
   it('renders an amount-only aggregate delta without a legacy percentage', () => {
@@ -244,6 +247,23 @@ describe('HomepageBalanceBreakdown', () => {
       hero: {
         ...breakdown.hero,
         isPartiallyLoaded: true,
+      },
+    });
+
+    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+
+    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
+      color: mockTheme.colors.text.muted,
+    });
+  });
+
+  it('mutes an incomplete aggregate without treating an error as loading', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        hasErroredSlice: true,
+        isPartiallyLoaded: false,
       },
     });
 
@@ -355,7 +375,7 @@ describe('HomepageBalanceBreakdown', () => {
         ...breakdown.slices,
         money: makeSlice('money', {
           apyLoading: true,
-          apyPercentFormatted: undefined,
+          apyPercent: undefined,
         }),
       },
     });
@@ -459,6 +479,24 @@ describe('HomepageBalanceBreakdown', () => {
 
     expect(queryByText('USD 20.00')).not.toBeOnTheScreen();
     expect(queryByText('20%')).not.toBeOnTheScreen();
+  });
+
+  it('does not expose proportional allocation while privacy mode is enabled', () => {
+    mockPrivacyMode = true;
+
+    const { getByLabelText, getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown layout="allocation" />,
+    );
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ALLOCATION_PRIVATE),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT('tokens'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(getByLabelText('Show total balance')).toBeOnTheScreen();
   });
 
   it('does not render rows during the onboarding checklist flow', () => {

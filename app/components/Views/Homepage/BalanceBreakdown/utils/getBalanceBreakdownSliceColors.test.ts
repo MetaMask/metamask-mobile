@@ -1,5 +1,5 @@
 import { brandColor } from '@metamask/design-tokens';
-import { AppThemeKey } from '../../../../util/theme/models';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   DARK_ALLOCATION_COLORS,
   getBalanceBreakdownSliceColors,

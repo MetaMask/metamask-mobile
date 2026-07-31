@@ -5,9 +5,9 @@ import {
   selectAccountGroupBalanceForEmptyState,
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
-} from '../../../../../selectors/assets/balances';
-import { useAccountGroupBalanceFetchState } from '../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState';
-import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+} from '../../../../../../selectors/assets/balances';
+import { useAccountGroupBalanceFetchState } from '../../../../../UI/Assets/components/Balance/useAccountGroupBalanceFetchState';
+import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import type { BalanceSlice } from '../../types';
 
 export function useTokensSlice(): BalanceSlice {

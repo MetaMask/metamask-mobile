@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../reducers';
+import { RootState } from '../../../../../reducers';
 import {
   selectConversionRateBySymbol,
   selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
+} from '../../../../../selectors/currencyRateController';
 
 /** Converts USD-denominated primitive balances to the user's display currency. */
 export function useFiatNormalizer() {
@@ -17,7 +17,7 @@ export function useFiatNormalizer() {
 
   const toUserCurrency = useCallback(
     (amount: number): number | undefined => {
-      if (!amount || !Number.isFinite(amount)) return 0;
+      if (!Number.isFinite(amount)) return 0;
       if (userCurrency.toLowerCase() === 'usd') return amount;
       if (!Number.isFinite(usdRate) || usdRate <= 0) {
         return undefined;

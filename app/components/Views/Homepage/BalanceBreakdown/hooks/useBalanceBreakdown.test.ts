@@ -5,7 +5,7 @@ import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
 import { usePredictSlice } from './slices/usePredictSlice';
 import { useDefiSlice } from './slices/useDefiSlice';
-import { mockTheme } from '../../../../util/theme';
+import { mockTheme } from '../../../../../util/theme';
 import { getBalanceBreakdownSliceColors } from '../utils/getBalanceBreakdownSliceColors';
 
 const mockUseTokensSlice = jest.mocked(useTokensSlice);
@@ -36,10 +36,10 @@ jest.mock('./useFiatNormalizer', () => ({
   }),
 }));
 
-jest.mock('../../../../util/theme', () => {
+jest.mock('../../../../../util/theme', () => {
   const themeModule = jest.requireActual<
-    typeof import('../../../../util/theme')
-  >('../../../../util/theme');
+    typeof import('../../../../../util/theme')
+  >('../../../../../util/theme');
   return {
     ...themeModule,
     useTheme: () => themeModule.mockTheme,
@@ -122,6 +122,19 @@ describe('useBalanceBreakdown', () => {
     const { result } = renderHook(() => useBalanceBreakdown());
     expect(result.current.hero.status).toBe('ready');
     expect(result.current.hero.isPartiallyLoaded).toBe(true);
+  });
+
+  it('marks a ready hero as incomplete without loading when a slice errors', () => {
+    mockUsePerpsSlice.mockReturnValue(
+      makeSlice('perps', 0, 'error') as ReturnType<typeof usePerpsSlice>,
+    );
+
+    const { result } = renderHook(() => useBalanceBreakdown());
+
+    expect(result.current.hero.status).toBe('ready');
+    expect(result.current.hero.isPartiallyLoaded).toBe(false);
+    expect(result.current.hero.hasErroredSlice).toBe(true);
+    expect(result.current.hero.totalFiat).toBe(80000);
   });
 
   it('keeps a zero-value hero loading while an eligible slice is unresolved', () => {

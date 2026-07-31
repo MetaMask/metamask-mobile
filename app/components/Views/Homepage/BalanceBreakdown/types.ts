@@ -15,7 +15,7 @@ export interface BalanceSlice {
   valueFiat: number;
   delta?: SliceDelta;
   status: SliceStatus;
-  apyPercentFormatted?: string;
+  apyPercent?: number;
   apyLoading?: boolean;
   value1dAgoFiat?: number;
 }
@@ -31,6 +31,7 @@ export interface HeroData {
   delta?: SliceDelta;
   status: SliceStatus;
   isPartiallyLoaded?: boolean;
+  hasErroredSlice?: boolean;
 }
 
 export interface BreakdownData {

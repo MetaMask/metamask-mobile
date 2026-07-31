@@ -1,5 +1,5 @@
 import { brandColor } from '@metamask/design-tokens';
-import { AppThemeKey, type Theme } from '../../../../util/theme/models';
+import { AppThemeKey, type Theme } from '../../../../../util/theme/models';
 import type { SliceKey } from '../types';
 
 /*

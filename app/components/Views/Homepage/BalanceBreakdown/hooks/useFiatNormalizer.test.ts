@@ -61,6 +61,15 @@ describe('useFiatNormalizer', () => {
     expect(result.current.toUserCurrency(0)).toBe(0);
   });
 
+  it('does not mark zero ready when a non-USD rate is unavailable', () => {
+    const store = buildStore(undefined, 'EUR');
+    const { result } = renderHook(() => useFiatNormalizer(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(result.current.toUserCurrency(0)).toBeUndefined();
+  });
+
   it('returns 0 for NaN input', () => {
     const store = buildStore(1, 'USD');
     const { result } = renderHook(() => useFiatNormalizer(), {

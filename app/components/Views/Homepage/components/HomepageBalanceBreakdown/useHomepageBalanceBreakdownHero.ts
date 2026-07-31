@@ -8,17 +8,18 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { TextColor } from '@metamask/design-system-react-native';
+import I18n from '../../../../../../locales/i18n';
 import {
   getFormattedAmountChange,
   getFormattedPercentageChange,
 } from '../../../../../component-library/components-temp/Price/AggregatedPercentage/utils';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import Engine from '../../../../../core/Engine';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useFormatters } from '../../../../hooks/useFormatters';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { HeroData } from '../../../BalanceBreakdown/types';
+import type { HeroData } from '../../BalanceBreakdown/types';
 
 const getDeltaColor = (
   privacyMode: boolean,
@@ -38,6 +39,9 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
   const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
   const selectedChainId = useSelector(selectEvmChainId);
+  const accountGroupBalance = useSelector(
+    selectAccountGroupBalanceForEmptyState,
+  );
   const balanceOpacity = useSharedValue(1);
   const animatedBalanceStyle = useAnimatedStyle(() => ({
     opacity: balanceOpacity.value,
@@ -47,7 +51,9 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
   const shouldShowEmptyState =
     hero.status === 'ready' &&
     hero.totalFiat === 0 &&
+    accountGroupBalance?.totalBalanceInUserCurrency === 0 &&
     !hero.isPartiallyLoaded &&
+    !hero.hasErroredSlice &&
     !isCurrentNetworkTestnet;
   const displayBalance =
     hero.status === 'error' || hero.status === 'ineligible'
@@ -64,7 +70,7 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     () =>
       hero.delta?.percent === undefined
         ? undefined
-        : getFormattedPercentageChange(hero.delta.percent * 100, 'en-US'),
+        : getFormattedPercentageChange(hero.delta.percent * 100, I18n.locale),
     [hero.delta?.percent],
   );
   const deltaColor = hero.delta

@@ -17,8 +17,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import BalanceEmptyState from '../../../../UI/BalanceEmptyState';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { HeroData } from '../../../BalanceBreakdown/types';
+import type { HeroData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { useHomepageBalanceBreakdownHero } from './useHomepageBalanceBreakdownHero';
 
@@ -53,6 +52,11 @@ const HomepageBalanceBreakdownHero = ({
 
   return (
     <ButtonBase
+      accessibilityLabel={strings(
+        privacyMode
+          ? 'balance_breakdown.show_balance'
+          : 'balance_breakdown.hide_balance',
+      )}
       contentWrapperProps={{
         testID: HomepageBalanceBreakdownTestIds.HERO_CONTENT,
         twClassName: 'w-full flex-col items-start gap-1',
@@ -65,7 +69,7 @@ const HomepageBalanceBreakdownHero = ({
         <Animated.View style={animatedBalanceStyle}>
           <SensitiveText
             color={
-              hero.isPartiallyLoaded
+              hero.isPartiallyLoaded || hero.hasErroredSlice
                 ? TextColor.TextMuted
                 : TextColor.TextDefault
             }

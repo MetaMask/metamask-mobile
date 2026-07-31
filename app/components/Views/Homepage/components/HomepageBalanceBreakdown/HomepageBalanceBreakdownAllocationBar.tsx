@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, type ViewStyle } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxFlexDirection,
@@ -7,10 +8,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { SLICE_ORDER } from '../../../BalanceBreakdown/constants';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { SliceData, SliceKey } from '../../../BalanceBreakdown/types';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { SLICE_ORDER } from '../../BalanceBreakdown/constants';
+import type { SliceData, SliceKey } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 
 const getAllocationSegmentStyle = (slice: SliceData): ViewStyle => ({
@@ -27,32 +27,43 @@ interface HomepageBalanceBreakdownAllocationBarProps {
 
 const HomepageBalanceBreakdownAllocationBar = ({
   slices,
-}: HomepageBalanceBreakdownAllocationBarProps) => (
-  <Box twClassName="mb-2 gap-3 pt-1">
-    <Text
-      testID={HomepageBalanceBreakdownTestIds.ALLOCATION_TITLE}
-      variant={TextVariant.HeadingMd}
-    >
-      {strings('balance_breakdown.allocation')}
-    </Text>
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      gap={1}
-      testID={HomepageBalanceBreakdownTestIds.ALLOCATION_BAR}
-      twClassName="h-1.5 overflow-hidden rounded-full"
-    >
-      {SLICE_ORDER.filter(
-        (key) =>
-          slices[key].status === 'ready' && slices[key].percentOfTotal > 0,
-      ).map((key) => (
-        <View
-          key={key}
-          testID={HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT(key)}
-          style={getAllocationSegmentStyle(slices[key])}
-        />
-      ))}
+}: HomepageBalanceBreakdownAllocationBarProps) => {
+  const privacyMode = useSelector(selectPrivacyMode);
+
+  return (
+    <Box twClassName="mb-2 gap-3 pt-1">
+      <Text
+        testID={HomepageBalanceBreakdownTestIds.ALLOCATION_TITLE}
+        variant={TextVariant.HeadingMd}
+      >
+        {strings('balance_breakdown.allocation')}
+      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        gap={1}
+        testID={HomepageBalanceBreakdownTestIds.ALLOCATION_BAR}
+        twClassName="h-1.5 overflow-hidden rounded-full"
+      >
+        {privacyMode ? (
+          <Box
+            testID={HomepageBalanceBreakdownTestIds.ALLOCATION_PRIVATE}
+            twClassName="h-full flex-1 bg-muted"
+          />
+        ) : (
+          SLICE_ORDER.filter(
+            (key) =>
+              slices[key].status === 'ready' && slices[key].percentOfTotal > 0,
+          ).map((key) => (
+            <View
+              key={key}
+              testID={HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT(key)}
+              style={getAllocationSegmentStyle(slices[key])}
+            />
+          ))
+        )}
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default HomepageBalanceBreakdownAllocationBar;

@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
-import { usePerpsLiveAccount } from '../../../../UI/Perps/hooks';
-import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
-import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
+import { usePerpsLiveAccount } from '../../../../../UI/Perps/hooks';
+import { usePerpsConnection } from '../../../../../UI/Perps/hooks/usePerpsConnection';
+import { selectPerpsEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
 import {
   selectPerpsBalances,
   selectPerpsEligibility,
   selectPerpsProvider,
-} from '../../../../UI/Perps/selectors/perpsController';
+} from '../../../../../UI/Perps/selectors/perpsController';
 import type { BalanceSlice, FiatConverter } from '../../types';
 import { PERPS_HOMEPAGE_THROTTLE_MS } from '../../constants';
 
@@ -21,6 +21,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
     | PerpsActiveProviderMode
     | undefined;
   const { account, isInitialLoading } = usePerpsLiveAccount({
+    enabled: isEnabled && isEligible,
     throttleMs: PERPS_HOMEPAGE_THROTTLE_MS,
   });
   const { error: connectionError } = usePerpsConnection();
@@ -49,7 +50,7 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
     if (!account && connectionError) return 'error' as const;
     if (isInitialLoading) return 'loading' as const;
     if (!account) return 'loading' as const;
-    if (convertedValue === undefined) return 'loading' as const;
+    if (convertedValue === undefined) return 'error' as const;
     return 'ready' as const;
   }, [
     account,

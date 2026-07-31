@@ -17,11 +17,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useFormatters } from '../../../../hooks/useFormatters';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { SliceData } from '../../../BalanceBreakdown/types';
+import type { SliceData } from '../../BalanceBreakdown/types';
 import type { HomepageBalanceBreakdownLayout } from '../../abTestConfig';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import {
@@ -68,7 +68,7 @@ const HomepageBalanceBreakdownRow = ({
     slice.status === 'ready' && slice.valueFiat === 0
       ? TextColor.TextAlternative
       : TextColor.TextDefault;
-  const moneyApy = slice.apyPercentFormatted;
+  const moneyApy = slice.apyPercent;
   const showIcon = layout === 'icons';
   const showAllocationDot = layout === 'allocation';
   const iconName = SLICE_ICONS[slice.key];
@@ -76,6 +76,7 @@ const HomepageBalanceBreakdownRow = ({
 
   return (
     <Pressable
+      accessibilityLabel={getSliceLabel(slice.key)}
       accessibilityRole="button"
       onPress={onPress}
       testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}
@@ -174,7 +175,7 @@ const HomepageBalanceBreakdownRow = ({
                 twClassName="shrink-0"
                 width={60}
               />
-            ) : moneyApy ? (
+            ) : moneyApy !== undefined ? (
               <Box
                 testID={HomepageBalanceBreakdownTestIds.APY}
                 twClassName="shrink-0 rounded-md bg-success-muted px-1.5 py-0.5"
@@ -184,7 +185,7 @@ const HomepageBalanceBreakdownRow = ({
                   fontWeight={FontWeight.Medium}
                   variant={TextVariant.BodySm}
                 >
-                  {moneyApy} APY
+                  {strings('money.apy_label', { percentage: moneyApy })}
                 </Text>
               </Box>
             ) : null}

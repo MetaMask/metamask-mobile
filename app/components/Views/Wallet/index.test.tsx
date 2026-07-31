@@ -100,7 +100,19 @@ jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
 // NetworkController / controllerMessenger APIs. Without this, the banner hook
 // throws during render and the ErrorBoundary swallows the failure, making
 // negative-assert tests pass for the wrong reason.
-jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
+jest.mock('../../UI/NetworkConnectionBanner', () => ({
+  NetworkConnectionBannerContent: () => null,
+}));
+let mockNetworkConnectionBannerVisible = false;
+jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
+  useNetworkConnectionBanner: () => ({
+    networkConnectionBannerState: {
+      visible: mockNetworkConnectionBannerVisible,
+    },
+    updateRpc: jest.fn(),
+    switchToInfura: jest.fn(),
+  }),
+}));
 
 let mockDiscoveryPillsVariantName = 'control';
 let mockActionButtonsGridVariantName = 'control';
@@ -767,6 +779,7 @@ beforeEach(() => {
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
   mockBalanceBreakdownVariantName = 'unresolved';
+  mockNetworkConnectionBannerVisible = false;
 });
 
 describe('Wallet', () => {
@@ -1955,6 +1968,27 @@ describe('Homepage balance breakdown ABC test', () => {
         }),
       }),
     );
+  });
+
+  it('does not reserve banner spacing when treatment banners are hidden', () => {
+    mockBalanceBreakdownVariantName = 'icons';
+
+    const { queryByTestId } = render(Wallet);
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps treatment banner spacing when the network banner is visible', () => {
+    mockBalanceBreakdownVariantName = 'icons';
+    mockNetworkConnectionBannerVisible = true;
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER),
+    ).toHaveStyle({ paddingBottom: 16 });
   });
 
   it('hides treatment rows during wallet-home post-onboarding', () => {

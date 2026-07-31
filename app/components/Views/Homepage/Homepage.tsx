@@ -137,63 +137,63 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     return (
-      <Box
-        marginBottom={8}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
-        accessible={false}
-      >
-        {balanceBreakdownSectionProps ? (
-          <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
-        ) : null}
-        <TokensSection
-          ref={tokensSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-        {isPerpsEnabled && (
-          <PerpsConnectionProvider suppressErrorView>
-            <PerpsStreamProvider>
+      <PerpsConnectionProvider isEnabled={isPerpsEnabled} suppressErrorView>
+        <PerpsStreamProvider>
+          <Box
+            marginBottom={8}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+            accessible={false}
+          >
+            {balanceBreakdownSectionProps ? (
+              <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
+            ) : null}
+            <TokensSection
+              ref={tokensSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            {isPerpsEnabled && (
               <HomepagePerpsHomeSlot
                 ref={perpsSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                 totalSectionsLoaded={totalSectionsLoaded}
               />
-            </PerpsStreamProvider>
-          </PerpsConnectionProvider>
-        )}
-        <PredictionsSection
-          ref={predictionsSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-        {isWatchlistEnabled && (
-          <WatchlistSection
-            ref={watchlistSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
-        {isTopTradersEnabled && (
-          <TopTradersSection
-            ref={topTradersSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
-        {isDeFiEnabled && (
-          <DeFiSection
-            ref={defiSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
-        <NFTsSection
-          ref={nftsSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-        <MoreSection />
-      </Box>
+            )}
+            <PredictionsSection
+              ref={predictionsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            {isWatchlistEnabled && (
+              <WatchlistSection
+                ref={watchlistSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            {isTopTradersEnabled && (
+              <TopTradersSection
+                ref={topTradersSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            {isDeFiEnabled && (
+              <DeFiSection
+                ref={defiSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            <NFTsSection
+              ref={nftsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            <MoreSection />
+          </Box>
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
     );
   },
 );

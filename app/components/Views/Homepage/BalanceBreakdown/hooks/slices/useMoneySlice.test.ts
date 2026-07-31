@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
-import useMoneyAccountInfo from '../../../../UI/Money/hooks/useMoneyAccountInfo';
+import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
 import { getMoneySliceStatus, useMoneySlice } from './useMoneySlice';
 
-jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
-jest.mock('../../../../UI/Money/hooks/useMoneyAccountInfo');
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccountInfo');
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
@@ -61,19 +61,19 @@ describe('useMoneySlice', () => {
       key: 'money',
       valueFiat: 200,
       status: 'ready',
-      apyPercentFormatted: '4.1%',
+      apyPercent: 4.1,
       apyLoading: false,
     });
   });
 
-  it('stays loading while fiat conversion is unavailable', () => {
+  it('reports an error when fiat conversion is unavailable', () => {
     const { result } = renderHook(() => useMoneySlice(() => undefined));
 
     expect(result.current).toEqual({
       key: 'money',
       valueFiat: 0,
-      status: 'loading',
-      apyPercentFormatted: '4.1%',
+      status: 'error',
+      apyPercent: 4.1,
       apyLoading: false,
     });
   });
@@ -90,7 +90,7 @@ describe('useMoneySlice', () => {
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
     expect(result.current.apyLoading).toBe(true);
-    expect(result.current.apyPercentFormatted).toBeUndefined();
+    expect(result.current.apyPercent).toBeUndefined();
   });
 
   it('does not fabricate APY after a settled query without a rate', () => {
@@ -105,7 +105,7 @@ describe('useMoneySlice', () => {
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
     expect(result.current.apyLoading).toBe(false);
-    expect(result.current.apyPercentFormatted).toBeUndefined();
+    expect(result.current.apyPercent).toBeUndefined();
   });
 
   it('preserves a genuine zero APY', () => {
@@ -119,7 +119,7 @@ describe('useMoneySlice', () => {
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
-    expect(result.current.apyPercentFormatted).toBe('0%');
+    expect(result.current.apyPercent).toBe(0);
   });
 
   it('exposes APY before an eligible user creates a Money account', () => {
@@ -131,7 +131,7 @@ describe('useMoneySlice', () => {
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
     expect(result.current.status).toBe('ineligible');
-    expect(result.current.apyPercentFormatted).toBe('4.1%');
+    expect(result.current.apyPercent).toBe(4.1);
     expect(result.current.apyLoading).toBe(false);
   });
 
@@ -154,7 +154,7 @@ describe('useMoneySlice', () => {
       key: 'money',
       valueFiat: 0,
       status: 'ineligible',
-      apyPercentFormatted: undefined,
+      apyPercent: undefined,
       apyLoading: false,
     });
   });

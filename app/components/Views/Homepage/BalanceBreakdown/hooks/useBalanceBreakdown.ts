@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../../util/theme';
 import { useTokensSlice } from './slices/useTokensSlice';
 import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
@@ -17,23 +17,26 @@ import type {
   SliceKey,
 } from '../types';
 
-function computePercentages(
-  slices: Record<SliceKey, SliceData>,
-): Record<SliceKey, SliceData> {
+function computePercentages(slices: Record<SliceKey, SliceData>): {
+  slices: Record<SliceKey, SliceData>;
+  totalFiat: number;
+} {
   const ready = SLICE_ORDER.filter((k) => slices[k].status === 'ready');
-  const total = ready.reduce((s, k) => s + slices[k].valueFiat, 0);
+  // Money vault accounts are not part of AccountsController/account groups, so
+  // the Money and Tokens slice sources are disjoint and can be summed directly.
+  const totalFiat = ready.reduce((s, k) => s + slices[k].valueFiat, 0);
 
   const updated = { ...slices };
   for (const key of SLICE_ORDER) {
     updated[key] = {
       ...slices[key],
       percentOfTotal:
-        total > 0 && slices[key].status === 'ready'
-          ? slices[key].valueFiat / total
+        totalFiat > 0 && slices[key].status === 'ready'
+          ? slices[key].valueFiat / totalFiat
           : 0,
     };
   }
-  return updated;
+  return { slices: updated, totalFiat };
 }
 
 function aggregateStatus(
@@ -107,18 +110,9 @@ export function useBalanceBreakdown(): BreakdownData {
     [slicesRaw, sliceStrokeColors],
   );
 
-  const slices = useMemo(
+  const { slices, totalFiat } = useMemo(
     () => computePercentages(slicesWithThemeColors),
     [slicesWithThemeColors],
-  );
-
-  const totalFiat = useMemo(
-    () =>
-      SLICE_ORDER.filter((k) => slices[k].status === 'ready').reduce(
-        (s, k) => s + slices[k].valueFiat,
-        0,
-      ),
-    [slices],
   );
 
   const heroStatus = useMemo(
@@ -129,6 +123,12 @@ export function useBalanceBreakdown(): BreakdownData {
     () =>
       heroStatus === 'ready' &&
       SLICE_ORDER.some((key) => slices[key].status === 'loading'),
+    [heroStatus, slices],
+  );
+  const hasHeroErroredSlice = useMemo(
+    () =>
+      heroStatus === 'ready' &&
+      SLICE_ORDER.some((key) => slices[key].status === 'error'),
     [heroStatus, slices],
   );
 
@@ -159,12 +159,14 @@ export function useBalanceBreakdown(): BreakdownData {
       }),
       status: heroStatus,
       isPartiallyLoaded: isHeroPartiallyLoaded,
+      hasErroredSlice: hasHeroErroredSlice,
     };
   }, [
     totalFiat,
     userCurrency,
     tokensSlice.delta,
     heroStatus,
+    hasHeroErroredSlice,
     isHeroPartiallyLoaded,
     perpsSlice.status,
     perpsSlice.value1dAgoFiat,

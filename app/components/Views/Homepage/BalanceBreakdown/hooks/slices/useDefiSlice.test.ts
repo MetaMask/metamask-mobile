@@ -1,20 +1,20 @@
 import type { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { selectDefiPositionsByChainIds } from '../../../../../selectors/defiPositionsController';
-import { selectDeFiPositionsSectionEnabled } from '../../../../../selectors/deFiPositionsSectionEnabled';
-import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { selectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
+import { selectDeFiPositionsSectionEnabled } from '../../../../../../selectors/deFiPositionsSectionEnabled';
+import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { sumDefiPositionsUsd, useDefiSlice } from './useDefiSlice';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
-jest.mock('../../../../../selectors/defiPositionsController', () => ({
+jest.mock('../../../../../../selectors/defiPositionsController', () => ({
   selectDefiPositionsByChainIds: jest.fn(),
 }));
-jest.mock('../../../../../selectors/deFiPositionsSectionEnabled', () => ({
+jest.mock('../../../../../../selectors/deFiPositionsSectionEnabled', () => ({
   selectDeFiPositionsSectionEnabled: jest.fn(),
 }));
 jest.mock(
-  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  '../../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
     useNetworkEnablement: jest.fn(),
   }),
@@ -136,13 +136,13 @@ describe('useDefiSlice', () => {
     });
   });
 
-  it('stays loading while fiat conversion is unavailable', () => {
+  it('reports an error when fiat conversion is unavailable', () => {
     const { result } = renderHook(() => useDefiSlice(() => undefined));
 
     expect(result.current).toEqual({
       key: 'defi',
       valueFiat: 0,
-      status: 'loading',
+      status: 'error',
     });
   });
 });

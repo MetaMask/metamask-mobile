@@ -1,7 +1,6 @@
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { SliceKey } from '../../../BalanceBreakdown/types';
+import type { SliceKey } from '../../BalanceBreakdown/types';
 
 export const SLICE_ICONS: Partial<Record<SliceKey, IconName>> = {
   money: IconName.Musd,

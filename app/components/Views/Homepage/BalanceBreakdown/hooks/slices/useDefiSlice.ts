@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
-import { selectDefiPositionsByChainIds } from '../../../../../selectors/defiPositionsController';
-import { selectDeFiPositionsSectionEnabled } from '../../../../../selectors/deFiPositionsSectionEnabled';
-import type { RootState } from '../../../../../reducers';
-import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { selectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
+import { selectDeFiPositionsSectionEnabled } from '../../../../../../selectors/deFiPositionsSectionEnabled';
+import type { RootState } from '../../../../../../reducers';
+import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import type { BalanceSlice, FiatConverter } from '../../types';
 
 type DeFiPositionsByChain = Partial<Record<Hex, GroupedDeFiPositions>>;
@@ -56,7 +56,7 @@ export function useDefiSlice(toUserCurrency: FiatConverter): BalanceSlice {
       sumDefiPositionsUsd(positions as DeFiPositionsByChain),
     );
     return valueFiat === undefined
-      ? { ...base, valueFiat: 0, status: 'loading' as const }
+      ? { ...base, valueFiat: 0, status: 'error' as const }
       : { ...base, valueFiat, status: 'ready' as const };
   }, [isEnabled, positions, toUserCurrency]);
 }

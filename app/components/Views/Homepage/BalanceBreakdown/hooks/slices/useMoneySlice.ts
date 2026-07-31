@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
-import useMoneyAccountInfo from '../../../../UI/Money/hooks/useMoneyAccountInfo';
+import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
 import type { BalanceSlice, FiatConverter, SliceStatus } from '../../types';
 
 export function getMoneySliceStatus({
@@ -48,13 +48,13 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
       : undefined;
   const status =
     moneyStatus === 'ready' && convertedValue === undefined
-      ? 'loading'
+      ? 'error'
       : moneyStatus;
   const valueFiat = status === 'ready' ? (convertedValue ?? 0) : 0;
   const apyLoading = isMoneyAccountFeatureEnabled && vaultApyQuery.isLoading;
-  const apyPercentFormatted =
+  const visibleApyPercent =
     isMoneyAccountFeatureEnabled && !apyLoading && apyPercent !== undefined
-      ? `${apyPercent}%`
+      ? apyPercent
       : undefined;
 
   return useMemo(
@@ -62,9 +62,9 @@ export function useMoneySlice(toUserCurrency: FiatConverter): BalanceSlice {
       key: 'money',
       valueFiat,
       status,
-      apyPercentFormatted,
+      apyPercent: visibleApyPercent,
       apyLoading,
     }),
-    [apyLoading, apyPercentFormatted, status, valueFiat],
+    [apyLoading, status, valueFiat, visibleApyPercent],
   );
 }
