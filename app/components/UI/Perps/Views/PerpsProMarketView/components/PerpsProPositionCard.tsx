@@ -60,8 +60,12 @@ interface KeyValueItemProps {
   value: string;
   valueColor?: TextColor;
   labelAccessory?: React.ReactNode;
-  valueAccessory?: React.ReactNode;
   isHidden?: boolean;
+  onValuePress?: () => void;
+  isValuePressDisabled?: boolean;
+  valuePressTestID?: string;
+  valuePressAccessibilityLabel?: string;
+  showEditIcon?: boolean;
 }
 
 const KeyValueItem = ({
@@ -69,25 +73,15 @@ const KeyValueItem = ({
   value,
   valueColor = TextColor.TextDefault,
   labelAccessory,
-  valueAccessory,
   isHidden = false,
-}: KeyValueItemProps) => (
-  <Box>
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
-    >
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
-      {labelAccessory}
-    </Box>
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
-    >
+  onValuePress,
+  isValuePressDisabled = false,
+  valuePressTestID,
+  valuePressAccessibilityLabel,
+  showEditIcon = false,
+}: KeyValueItemProps) => {
+  const valueContent = (
+    <>
       <SensitiveText
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
@@ -97,10 +91,50 @@ const KeyValueItem = ({
       >
         {value}
       </SensitiveText>
-      {valueAccessory}
+      {showEditIcon ? <Icon name={IconName.Edit} size={IconSize.Sm} /> : null}
+    </>
+  );
+
+  return (
+    <Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
+      >
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        {labelAccessory}
+      </Box>
+      {onValuePress ? (
+        <Pressable
+          onPress={onValuePress}
+          disabled={isValuePressDisabled}
+          accessibilityRole="button"
+          accessibilityLabel={valuePressAccessibilityLabel}
+          testID={valuePressTestID}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            {valueContent}
+          </Box>
+        </Pressable>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          {valueContent}
+        </Box>
+      )}
     </Box>
-  </Box>
-);
+  );
+};
 
 /**
  * PerpsProPositionCard
@@ -282,19 +316,17 @@ const PerpsProPositionCard = ({
               labelAccessory={
                 <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
               }
-              valueAccessory={
-                canEditMargin ? (
-                  <Pressable
-                    onPress={() => onEditMargin?.(position)}
-                    disabled={isEditMarginDisabled}
-                    accessibilityRole="button"
-                    accessibilityLabel={strings('perps.adjust_margin.title')}
-                    testID={PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN}
-                  >
-                    <Icon name={IconName.Edit} size={IconSize.Sm} />
-                  </Pressable>
-                ) : undefined
+              onValuePress={
+                canEditMargin ? () => onEditMargin?.(position) : undefined
               }
+              isValuePressDisabled={isEditMarginDisabled}
+              valuePressTestID={
+                PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN
+              }
+              valuePressAccessibilityLabel={strings(
+                'perps.adjust_margin.title',
+              )}
+              showEditIcon={canEditMargin}
             />
           </Box>
           <Box twClassName="min-w-[128px] gap-6">
@@ -307,21 +339,15 @@ const PerpsProPositionCard = ({
               label={strings('perps.pro_positions_panel.card.tp_sl')}
               value={tpSlDisplay}
               isHidden={privacyMode}
-              valueAccessory={
-                onEditTpSl ? (
-                  <Pressable
-                    onPress={() => onEditTpSl(position)}
-                    disabled={isEditTpSlDisabled}
-                    accessibilityRole="button"
-                    accessibilityLabel={strings(
-                      'perps.position.card.edit_tpsl',
-                    )}
-                    testID={PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL}
-                  >
-                    <Icon name={IconName.Edit} size={IconSize.Sm} />
-                  </Pressable>
-                ) : undefined
+              onValuePress={onEditTpSl ? () => onEditTpSl(position) : undefined}
+              isValuePressDisabled={isEditTpSlDisabled}
+              valuePressTestID={
+                PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL
               }
+              valuePressAccessibilityLabel={strings(
+                'perps.position.card.edit_tpsl',
+              )}
+              showEditIcon={Boolean(onEditTpSl)}
             />
           </Box>
           <Box twClassName="gap-6">

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
@@ -87,6 +87,30 @@ describe('PerpsProPositionCard', () => {
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
     ).toBeOnTheScreen();
+  });
+
+  it('invokes edit TP/SL when the TP/SL value text is pressed', () => {
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditTpSl={onEditTpSl} />,
+    );
+
+    fireEvent.press(screen.getByText(/\$3,500.*\$2,000/));
+
+    expect(onEditTpSl).toHaveBeenCalledWith(position);
+  });
+
+  it('invokes edit margin when the margin value text is pressed', () => {
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditMargin={onEditMargin} />,
+    );
+
+    fireEvent.press(screen.getByText('$1,450'));
+
+    expect(onEditMargin).toHaveBeenCalledWith(position);
   });
 
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {
