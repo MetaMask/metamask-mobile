@@ -261,6 +261,9 @@ describe('usePerpsProPositionsPanelActions', () => {
       expect.objectContaining({
         orderId: order.orderId,
         symbol: order.symbol,
+        trackingData: expect.objectContaining({
+          source: 'perp_asset_screen',
+        }),
       }),
     );
     expect(mockShowToast).toHaveBeenCalled();
@@ -283,6 +286,7 @@ describe('usePerpsProPositionsPanelActions', () => {
       actions?.handleCloseAllPress();
     });
 
+    expect(mockGate).toHaveBeenCalled();
     await waitFor(() => {
       expect(
         screen.getByTestId('perps-close-all-positions-view'),

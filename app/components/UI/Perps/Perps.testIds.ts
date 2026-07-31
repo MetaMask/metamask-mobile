@@ -521,8 +521,8 @@ export const PerpsProMarketViewSelectorsIDs = {
 };
 
 // Helper for dynamic Pro position row test IDs
-export const getPerpsProPositionRowSelector = (symbol: string, index: number) =>
-  `${PerpsProMarketViewSelectorsIDs.POSITION_ROW}-${symbol}-${index}`;
+export const getPerpsProPositionRowSelector = (symbol: string) =>
+  `${PerpsProMarketViewSelectorsIDs.POSITION_ROW}-${symbol}`;
 
 export const getPerpsProOrderRowSelector = (symbol: string, index: number) =>
   `${PerpsProMarketViewSelectorsIDs.ORDER_ROW}-${symbol}-${index}`;

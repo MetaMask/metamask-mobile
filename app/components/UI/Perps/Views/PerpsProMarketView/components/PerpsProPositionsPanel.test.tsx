@@ -318,6 +318,63 @@ describe('PerpsProPositionsPanel', () => {
     });
   });
 
+  it('subscribes to market data for funding-rate sort', () => {
+    renderPanel();
+
+    expect(mockUsePerpsMarkets).toHaveBeenCalled();
+    expect(mockUsePerpsMarkets.mock.calls[0]?.[0]?.skipInitialFetch).not.toBe(
+      true,
+    );
+  });
+
+  it('sorts positions by market funding rate when configured', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC' }),
+        makePosition({ symbol: 'ETH' }),
+        makePosition({ symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [
+        { symbol: 'BTC', fundingRate: 0.015 },
+        { symbol: 'ETH', fundingRate: -0.005 },
+        { symbol: 'SOL', fundingRate: 0.0025 },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as ReturnType<typeof usePerpsMarkets>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-option-fundingRate`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-apply`,
+      ),
+    );
+
+    const positionRows = screen
+      .getAllByTestId(/perps-pro-market-position-row-/)
+      .map((node) => node.props.testID);
+
+    expect(positionRows).toEqual([
+      'perps-pro-market-position-row-BTC',
+      'perps-pro-market-position-row-SOL',
+      'perps-pro-market-position-row-ETH',
+    ]);
+  });
+
   it('opens the sort sheet from the positions settings button', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [makePosition({ symbol: 'SOL' })],

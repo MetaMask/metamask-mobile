@@ -97,7 +97,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     isPositionMarginEditable,
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
-  const { markets } = usePerpsMarkets({ skipInitialFetch: true });
+  const { markets } = usePerpsMarkets();
 
   const fundingRatesBySymbol = useMemo(
     () =>
@@ -190,11 +190,11 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
             returnOnEquity={aggregateTotals.returnOnEquity}
             onCloseAll={handleCloseAllPress}
           />
-          {sortedVisiblePositions.map((position, index) => (
+          {sortedVisiblePositions.map((position) => (
             <PerpsProPositionCard
-              key={`${position.symbol}-${index}`}
+              key={position.symbol}
               position={position}
-              testID={getPerpsProPositionRowSelector(position.symbol, index)}
+              testID={getPerpsProPositionRowSelector(position.symbol)}
               onClose={handleClosePosition}
               onReverse={handleReversePosition}
               onShare={handleSharePosition}

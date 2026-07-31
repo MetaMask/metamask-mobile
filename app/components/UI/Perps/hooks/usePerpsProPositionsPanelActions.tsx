@@ -290,9 +290,9 @@ export const usePerpsProPositionsPanelActions =
             trackingData: {
               totalFee: 0,
               marketPrice: effectivePrice ?? 0,
-              source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
+              source: PRO_MARKET_SOURCE,
               ...toPerpsEntryAttribution({
-                source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
+                source: PRO_MARKET_SOURCE,
               }),
             },
           });
@@ -330,19 +330,21 @@ export const usePerpsProPositionsPanelActions =
     );
 
     const handleCloseAllPress = useCallback(() => {
-      if (!isEligible) {
-        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PERPS_EVENT_PROPERTY.SOURCE]:
-            PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
-        });
-        setIsCloseAllGeoBlockVisible(true);
-        return;
-      }
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+          });
+          setIsCloseAllGeoBlockVisible(true);
+          return;
+        }
 
-      setShowCloseAllSheet(true);
-    }, [isEligible, track]);
+        setShowCloseAllSheet(true);
+      });
+    }, [gate, isEligible, track]);
 
     const renderActionSheets = useCallback(
       () => (
