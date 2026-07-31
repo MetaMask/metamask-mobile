@@ -60,6 +60,7 @@ import {
   ButtonIconSize,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  SectionDivider,
   Text as CustomText,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -1029,7 +1030,12 @@ const Wallet = ({
       {walletHomeMainAssetDetailsActions}
       {/* Hide growth banners when money account is enabled but user is geo-blocked */}
       {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
-        homeGrowthBannerContent}
+        homeGrowthBannerContent && (
+          <>
+            <SectionDivider />
+            {homeGrowthBannerContent}
+          </>
+        )}
       {homepageDiscoveryPills}
       {showMoneyBalanceCard && <MoneyBalanceCard />}
     </View>
