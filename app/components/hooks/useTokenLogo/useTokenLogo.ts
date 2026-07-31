@@ -7,8 +7,8 @@ const EMPTY_SET: ReadonlySet<string> = new Set();
 export interface UseTokenLogoConfig {
   symbol: string;
   size?: number;
-  assetsRequiringLightBg?: Set<string>;
-  assetsRequiringDarkBg?: Set<string>;
+  assetsRequiringLightBg?: ReadonlySet<string>;
+  assetsRequiringDarkBg?: ReadonlySet<string>;
 }
 
 export interface UseTokenLogoReturn {
