@@ -9362,6 +9362,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/money-account-utils@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/money-account-utils@npm:1.0.0"
+  dependencies:
+    "@metamask/transaction-controller": "npm:^69.3.0"
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/bb85219266b451115260263b291c0408ec60060ee1b54f52c48f9220c6077fe492e25347754c1c392ef5d4ecd9b5ddf65de4c1d3bf93966e15d275f2c3364265
+  languageName: node
+  linkType: hard
+
 "@metamask/multichain-account-service@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/multichain-account-service@npm:13.0.0"
@@ -10518,6 +10528,15 @@ __metadata:
   version: 9.5.0
   resolution: "@metamask/test-dapp@npm:9.5.0"
   checksum: 10/38d88f93bcaa9fe79a619d0fbaf676dd9d006baa0b0db14f0b2d41019502f94fd90744e5e023d206a7384a498aa6ea5998bf772534a97f4ab4d8c10f97a07681
+  languageName: node
+  linkType: hard
+
+"@metamask/tooling-insight@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/tooling-insight@npm:1.0.0"
+  bin:
+    metamask-daily-anonymizer: ./dist/daily-anonymizer.mjs
+  checksum: 10/bfed6e2f0cb169ffb1f4e61c2b4be0cc71583174f47908c69aa348714631af4a7d62fe5df0c08db34a11659bca69efbac72442e0320beb4772efed50b967616c
   languageName: node
   linkType: hard
 
@@ -35880,6 +35899,7 @@ __metadata:
     "@metamask/money-account-balance-service": "npm:^2.4.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^3.0.0"
+    "@metamask/money-account-utils": "npm:^1.0.0"
     "@metamask/multichain-account-service": "npm:^13.0.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^4.0.1"
@@ -35936,6 +35956,7 @@ __metadata:
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
+    "@metamask/tooling-insight": "npm:^1.0.0"
     "@metamask/transaction-controller": "npm:^69.3.0"
     "@metamask/transaction-pay-controller": "npm:^26.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.33.1"
