@@ -36,10 +36,7 @@ import {
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
 import { useComplianceGate } from '../../Compliance';
-import {
-  selectSelectedInternalAccountAddress,
-  selectSelectedInternalAccountId,
-} from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -308,7 +305,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const accountId = useSelector(selectSelectedInternalAccountId);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
   const closeEligibilityModal = useCallback(() => {
@@ -697,7 +693,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               fiatValue={mainBalance}
             />
           )}
-          {balance != null && !spendableBalanceData.hasSpendableBalance &&  (
+          {balance != null && !spendableBalanceData.hasSpendableBalance && (
             <>
               <Balance
                 asset={token}

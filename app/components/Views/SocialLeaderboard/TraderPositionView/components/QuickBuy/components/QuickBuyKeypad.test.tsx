@@ -41,7 +41,6 @@ jest.mock('../../../../../../Base/Keypad', () => ({
 }));
 
 const baseContext = {
-  useKeyboard: true,
   isKeypadOpen: true,
   hasSourcePrice: true,
   fiatAmount: '',
@@ -67,18 +66,7 @@ describe('QuickBuyKeypad', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue(baseContext);
   });
 
-  it('renders nothing on the slider control variant', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      useKeyboard: false,
-    });
-
-    renderWithProvider(<QuickBuyKeypad />);
-
-    expect(screen.queryByTestId('quick-buy-keypad')).toBeNull();
-  });
-
-  it('renders nothing when the keypad is dismissed', () => {
+  it('renders nothing when the keypad is dismissed and has never opened', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       isKeypadOpen: false,

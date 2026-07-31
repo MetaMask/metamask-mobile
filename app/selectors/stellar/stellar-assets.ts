@@ -197,10 +197,10 @@ function normalizeAmount(amount: string, decimalPlaces: number): string {
 /**
  * Parameters for account/asset Stellar selectors.
  */
-export type StellarAccountAssetParams = {
+export interface StellarAccountAssetParams {
   accountId?: string;
   assetId: string;
-};
+}
 
 /**
  * Resolves an account id from an explicit override, or from the selected
