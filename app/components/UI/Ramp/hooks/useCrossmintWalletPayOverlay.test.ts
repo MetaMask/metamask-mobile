@@ -10,6 +10,16 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+const mockNavigationReset = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({ reset: mockNavigationReset })),
+}));
+
+const mockGetOrderById = jest.fn();
+jest.mock('./useRampsOrders', () => ({
+  useRampsOrders: jest.fn(() => ({ getOrderById: mockGetOrderById })),
+}));
+
 jest.mock('./useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
@@ -85,6 +95,7 @@ describe('useCrossmintWalletPayOverlay', () => {
     jest.mocked(useSelector).mockReturnValue(true);
     setPlatform('ios');
     setupController();
+    mockGetOrderById.mockReturnValue(undefined);
     mockGetBuyWidgetData.mockResolvedValue({
       url: 'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=abc',
       orderId: 'custom-order-id-1',
@@ -305,6 +316,138 @@ describe('useCrossmintWalletPayOverlay', () => {
         message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
       }),
     );
+  });
+
+  it('hands off to OrderDetails when the WebView reports payment in progress', async () => {
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+    await settle();
+
+    act(() => {
+      result.current.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            event: 'order:updated',
+            data: { order: { payment: { status: 'in-progress' } } },
+          }),
+        },
+      } as never);
+    });
+
+    expect(mockNavigationReset).toHaveBeenCalledTimes(1);
+    expect(mockNavigationReset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        index: 0,
+        routes: [
+          expect.objectContaining({
+            name: expect.any(String),
+            params: expect.objectContaining({
+              orderId: 'custom-order-id-1',
+              showCloseButton: true,
+            }),
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('hands off to OrderDetails when the WebView reports payment completed', async () => {
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+    await settle();
+
+    act(() => {
+      result.current.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            event: 'order:updated',
+            data: { order: { payment: { status: 'completed' } } },
+          }),
+        },
+      } as never);
+    });
+
+    expect(mockNavigationReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands off only once for repeated payment updates', async () => {
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+    await settle();
+
+    const paymentMessage = {
+      nativeEvent: {
+        data: JSON.stringify({
+          event: 'order:updated',
+          data: { order: { payment: { status: 'in-progress' } } },
+        }),
+      },
+    } as never;
+
+    act(() => {
+      result.current.onMessage(paymentMessage);
+      result.current.onMessage(paymentMessage);
+    });
+
+    expect(mockNavigationReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not hand off while payment has not been authorized', async () => {
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+    await settle();
+
+    act(() => {
+      result.current.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            event: 'order:updated',
+            data: { order: { payment: { status: 'awaiting-payment' } } },
+          }),
+        },
+      } as never);
+    });
+
+    expect(mockNavigationReset).not.toHaveBeenCalled();
+  });
+
+  it('hands off when the polled order status advances past CREATED', async () => {
+    mockGetOrderById.mockImplementation((orderId: string) =>
+      orderId === 'custom-order-id-1' ? { status: 'PENDING' } : undefined,
+    );
+
+    renderHook(() => useCrossmintWalletPayOverlay(crossmintQuote, 25));
+    await settle();
+
+    expect(mockNavigationReset).toHaveBeenCalledTimes(1);
+    expect(mockNavigationReset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        routes: [
+          expect.objectContaining({
+            params: expect.objectContaining({ orderId: 'custom-order-id-1' }),
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('does not hand off while the polled order is still precreated or created', async () => {
+    mockGetOrderById.mockReturnValue({ status: 'PRECREATED' });
+
+    renderHook(() => useCrossmintWalletPayOverlay(crossmintQuote, 25));
+    await settle();
+
+    expect(mockNavigationReset).not.toHaveBeenCalled();
+
+    mockGetOrderById.mockReturnValue({ status: 'CREATED' });
+    renderHook(() => useCrossmintWalletPayOverlay(crossmintQuote, 25));
+    await settle();
+
+    expect(mockNavigationReset).not.toHaveBeenCalled();
   });
 
   it('ignores unparseable WebView messages', () => {
