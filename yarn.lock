@@ -35958,6 +35958,7 @@ __metadata:
     "@noble/hashes": "npm:1.8.0"
     "@notifee/react-native": "npm:^9.1.8"
     "@octokit/rest": "npm:^21.0.0"
+    "@open-rpc/meta-schema": "npm:^1.14.9"
     "@open-rpc/mock-server": "npm:^1.7.5"
     "@open-rpc/schema-utils-js": "npm:^1.16.2"
     "@open-rpc/test-coverage": "npm:^2.2.2"

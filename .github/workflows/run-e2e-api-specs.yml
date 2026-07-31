@@ -101,6 +101,10 @@ jobs:
           ARTIFACT_NAME: main-e2e-MetaMask.app
           APP_PATH: ${{ env.IOS_APP_ARTIFACT_PATH }}
           INPUT_RUN_ID: ${{ inputs.ios_build_run_id || '' }}
+          HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
 
@@ -114,15 +118,15 @@ jobs:
             fi
 
             # Prefer a successful build on the PR head branch when present, else main.
-            BRANCH="${{ github.head_ref || github.ref_name }}"
-            if [ -z "${BRANCH}" ] || [ "${BRANCH}" = "${{ github.event.repository.default_branch }}" ]; then
+            BRANCH="${HEAD_REF:-${REF_NAME}}"
+            if [ -z "${BRANCH}" ] || [ "${BRANCH}" = "${DEFAULT_BRANCH}" ]; then
               BRANCH="main"
             fi
 
             echo "Resolving latest successful build workflow run on branch '${BRANCH}'..." >&2
             RUN_ID="$(
               gh run list \
-                --repo "${{ github.repository }}" \
+                --repo "${REPOSITORY}" \
                 --workflow build.yml \
                 --branch "${BRANCH}" \
                 --status success \
@@ -131,7 +135,7 @@ jobs:
                 --jq '.[].databaseId' \
               | while read -r id; do
                   if gh api \
-                    "repos/${{ github.repository }}/actions/runs/${id}/artifacts" \
+                    "repos/${REPOSITORY}/actions/runs/${id}/artifacts" \
                     --jq ".artifacts[] | select(.name == \"${ARTIFACT_NAME}\") | .name" \
                     | grep -qx "${ARTIFACT_NAME}"; then
                     echo "${id}"
@@ -144,7 +148,7 @@ jobs:
               echo "No ${ARTIFACT_NAME} on '${BRANCH}'; falling back to main..." >&2
               RUN_ID="$(
                 gh run list \
-                  --repo "${{ github.repository }}" \
+                  --repo "${REPOSITORY}" \
                   --workflow build.yml \
                   --branch main \
                   --status success \
@@ -153,7 +157,7 @@ jobs:
                   --jq '.[].databaseId' \
                 | while read -r id; do
                     if gh api \
-                      "repos/${{ github.repository }}/actions/runs/${id}/artifacts" \
+                      "repos/${REPOSITORY}/actions/runs/${id}/artifacts" \
                       --jq ".artifacts[] | select(.name == \"${ARTIFACT_NAME}\") | .name" \
                       | grep -qx "${ARTIFACT_NAME}"; then
                       echo "${id}"
@@ -173,10 +177,10 @@ jobs:
 
           RUN_ID="$(resolve_run_id)"
           echo "📥 Downloading ${ARTIFACT_NAME} from run ${RUN_ID}..."
-          echo "Run URL: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+          echo "Run URL: https://github.com/${REPOSITORY}/actions/runs/${RUN_ID}"
 
           if ! gh run download "${RUN_ID}" \
-            --repo "${{ github.repository }}" \
+            --repo "${REPOSITORY}" \
             -n "${ARTIFACT_NAME}" \
             -D "${APP_PATH}"; then
             echo "::error title=iOS artifact download failed::Failed to download ${ARTIFACT_NAME} from run ${RUN_ID}."
