@@ -1233,7 +1233,7 @@ jobs:
           )
         )
       }}
-    needs: [get_requirements, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
@@ -1242,12 +1242,14 @@ jobs:
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
     permissions:
       contents: write
       id-token: write
       actions: write
       pull-requests: write
+      statuses: write
 
   build-android-apks:
     name: 'Build Android APKs'
