@@ -33,12 +33,7 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   );
   const [refreshing, setRefreshing] = useState(false);
 
-  const {
-    positions,
-    isLoading,
-    isError,
-    refresh: refreshV2,
-  } = useDeFiPositionsV2({
+  const { positions, isLoading, isError, refresh } = useDeFiPositionsV2({
     enabled: true,
     // Full view / list surface is the viewport — fetch immediately when mounted.
     isVisible: true,
@@ -79,11 +74,11 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   const handleDeFiRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refreshV2();
+      await refresh();
     } finally {
       setRefreshing(false);
     }
-  }, [refreshV2]);
+  }, [refresh]);
 
   const state = useMemo((): DeFiPositionsListState => {
     if (isLoading) {
