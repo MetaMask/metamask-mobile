@@ -9,11 +9,15 @@ import type { PerpsProOrderDirection } from './PerpsProOrderForm/PerpsProOrderFo
 export interface PerpsProOrderFormPanelProps {
   orderType: OrderType;
   onOrderTypeButtonPress: () => void;
+  isOrderBookCollapsed?: boolean;
+  onExpandOrderBook?: () => void;
 }
 
 const PerpsProOrderFormPanel = ({
   orderType,
   onOrderTypeButtonPress,
+  isOrderBookCollapsed,
+  onExpandOrderBook,
 }: PerpsProOrderFormPanelProps) => {
   const [direction, setDirection] = useState<PerpsProOrderDirection>('long');
   const [limitPrice, setLimitPrice] = useState('');
@@ -29,6 +33,8 @@ const PerpsProOrderFormPanel = ({
       <PerpsProOrderForm
         direction={direction}
         onDirectionChange={setDirection}
+        isOrderBookCollapsed={isOrderBookCollapsed}
+        onExpandOrderBook={onExpandOrderBook}
         marginModeLabel={strings('perps.pro_order_form.isolated')}
         leverageLabel="3x"
         orderType={orderType}

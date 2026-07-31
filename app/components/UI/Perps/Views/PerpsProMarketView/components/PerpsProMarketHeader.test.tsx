@@ -190,7 +190,7 @@ describe('PerpsProMarketHeader', () => {
     });
 
     expect(getByLabelText('Back')).toBeOnTheScreen();
-    expect(getByLabelText('Perps home')).toBeOnTheScreen();
+    expect(getByLabelText('Perps balance')).toBeOnTheScreen();
     expect(getByLabelText('Add to watchlist')).toBeOnTheScreen();
   });
 

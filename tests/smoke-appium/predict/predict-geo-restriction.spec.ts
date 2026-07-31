@@ -25,6 +25,7 @@ import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/pol
 import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectations/predict-geo-restriction.analytics.js';
 import {
   loginForPredictTests,
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
@@ -33,18 +34,10 @@ import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
-    predictExtendedSportsMarkets: {
-      versions: {
-        '7.82.0': {
-          enabled: false,
-          leagues: [],
-          enabledSportsMarketTypes: [],
-        },
-      },
-    },
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);

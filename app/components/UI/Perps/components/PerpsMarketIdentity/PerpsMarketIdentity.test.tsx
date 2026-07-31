@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Text } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PerpsMarketIdentity from './PerpsMarketIdentity';
@@ -76,5 +77,20 @@ describe('PerpsMarketIdentity', () => {
 
     expect(queryByTestId('identity-pressable')).not.toBeOnTheScreen();
     expect(getByTestId('identity-name')).toBeOnTheScreen();
+  });
+
+  it('renders subtitleContent instead of the default subtitle when provided', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PerpsMarketIdentity
+        symbol="BTC"
+        name="Bitcoin"
+        testIDs={{ subtitle: 'identity-subtitle' }}
+        subtitleContent={<Text testID="custom-subtitle">$45,000</Text>}
+      />,
+      { state: initialState },
+    );
+
+    expect(getByTestId('custom-subtitle')).toHaveTextContent('$45,000');
+    expect(queryByTestId('identity-subtitle')).not.toBeOnTheScreen();
   });
 });
