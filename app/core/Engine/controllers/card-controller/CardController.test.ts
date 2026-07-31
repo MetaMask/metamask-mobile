@@ -275,7 +275,6 @@ describe('CardController', () => {
 
     expect(controller.state).toStrictEqual({
       selectedCountry: 'US',
-      selectedCardProgramId: null,
       activeProviderId: 'baanx',
       isAuthenticated: true,
       lastUnauthenticatedReason: null,
@@ -388,27 +387,6 @@ describe('CardController — setSelectedCountry', () => {
     controller.setSelectedCountry('FR');
 
     expect(controller.state.activeProviderId).toBe('baanx');
-  });
-});
-
-describe('CardController — setSelectedCardProgramId', () => {
-  it('updates selectedCardProgramId in state', () => {
-    const messenger = buildMockMessenger();
-    const controller = new CardController({
-      messenger,
-      providers: {
-        baanx: buildMockProvider({ id: 'baanx' }),
-        immersve: buildMockProvider({ id: 'immersve' }),
-      },
-    });
-
-    expect(controller.state.selectedCardProgramId).toBeNull();
-
-    controller.setSelectedCardProgramId('program-alpha');
-    expect(controller.state.selectedCardProgramId).toBe('program-alpha');
-
-    controller.setSelectedCardProgramId(null);
-    expect(controller.state.selectedCardProgramId).toBeNull();
   });
 });
 

@@ -93,13 +93,6 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
-  // Temporary: internal-testing override for Immersve cardProgramId.
-  selectedCardProgramId: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
   activeProviderId: {
     persist: true,
     includeInDebugSnapshot: true,
@@ -152,7 +145,6 @@ const metadata: StateMetadata<CardControllerState> = {
 
 export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
-  selectedCardProgramId: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
   lastUnauthenticatedReason: null,
@@ -375,17 +367,6 @@ export class CardController extends BaseController<
     if (providerChanged) {
       this.invalidateFetch();
     }
-  }
-
-  /**
-   * Temporary: persist the Immersve cardProgramId chosen on SignUp for
-   * internal multi-program testing. Overlayed onto the feature flag in
-   * card-controller/index.ts. Easy to remove.
-   */
-  setSelectedCardProgramId(id: string | null): void {
-    this.update((s) => {
-      s.selectedCardProgramId = id;
-    });
   }
 
   #resolveProviderForCountry(country: string): string {
