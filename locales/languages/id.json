@@ -1513,6 +1513,7 @@
       "size_usd": "Ukuran USD",
       "size_percentage": "Persentase ukuran order",
       "toggle_size_unit": "Ubah ukuran denominasi",
+      "available_balance": "{{amount}} tersedia",
       "available_balance_unavailable": "-- tersedia",
       "est_liquidation": "Estimasi Likuidasi",
       "tpsl": "TP/SL",

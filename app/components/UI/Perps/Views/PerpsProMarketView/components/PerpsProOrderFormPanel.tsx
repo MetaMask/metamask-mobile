@@ -4,6 +4,7 @@ import type { PerpsMarketData } from '@metamask/perps-controller';
 import React from 'react';
 import { Modal, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
@@ -11,6 +12,7 @@ import PerpsOrderTypeBottomSheetView from '../../../components/PerpsOrderTypeBot
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { PerpsOrderProvider } from '../../../contexts/PerpsOrderContext';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
+import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 
 export interface PerpsProOrderFormPanelProps {
@@ -72,10 +74,16 @@ const PerpsProOrderFormContent = ({
     feeDiscountPercentage,
   } = usePerpsProOrderForm({ market });
 
+  const { styles } = useStyles(createStyles, {});
+
   return (
     <Box
       testID={PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL}
-      twClassName="flex-1 py-4"
+      collapsable={false}
+      style={[
+        styles.panel,
+        !isOrderBookCollapsed && styles.panelWithBookSeparator,
+      ]}
     >
       <PerpsProOrderForm
         direction={direction}

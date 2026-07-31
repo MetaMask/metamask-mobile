@@ -78,6 +78,27 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
     });
 
+    it('shows available balance with add funds action below the size input', () => {
+      renderForm({
+        availableBalance: '$250 available',
+        onAddFundsPress: jest.fn(),
+      });
+
+      expect(screen.getByTestId(ids.AVAILABLE_BALANCE)).toHaveTextContent(
+        '$250 available',
+      );
+      expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('calls onAddFundsPress when the available balance text is pressed', () => {
+      const onAddFundsPress = jest.fn();
+      renderForm({ availableBalance: '$250 available', onAddFundsPress });
+
+      fireEvent.press(screen.getByTestId(ids.AVAILABLE_BALANCE));
+
+      expect(onAddFundsPress).toHaveBeenCalledTimes(1);
+    });
+
     it('connects each iOS numeric input to its own keyboard accessory', () => {
       renderForm({ orderType: 'limit' });
 
@@ -195,6 +216,22 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
 
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onSlippagePress when the slippage value is pressed', () => {
+      const onSlippagePress = jest.fn();
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          slippage: '0.50% / 1%',
+          onSlippagePress,
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
+
+      expect(onSlippagePress).toHaveBeenCalledTimes(1);
     });
 
     it('disables Place Order when requested', () => {
@@ -318,6 +355,14 @@ describe('PerpsProOrderForm', () => {
 
       expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
         height: 20,
+      });
+    });
+
+    it('uses no horizontal padding on summary rows so they align with the form', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+        paddingHorizontal: 0,
       });
     });
   });
