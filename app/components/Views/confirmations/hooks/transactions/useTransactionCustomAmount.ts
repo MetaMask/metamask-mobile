@@ -46,6 +46,7 @@ const DEBOUNCE_DELAY = 300;
 
 interface DepositPrefetchQuoteRequest {
   amountHuman: string;
+  payTokenKey: string;
   isAmountPrepared: boolean;
   quoteBaseline: number | undefined;
   sawQuoteLoading: boolean;
@@ -95,7 +96,10 @@ export function useTransactionCustomAmount({
     DepositPrefetchQuoteRequest | undefined
   >(undefined);
   const prefetchedQuoteAmountHumanRef = useRef<string | undefined>(undefined);
+  const prefetchedQuotePayTokenKeyRef = useRef<string | undefined>(undefined);
   const [prefetchedQuoteAmountHuman, setPrefetchedQuoteAmountHuman] =
+    useState<string>();
+  const [prefetchedQuotePayTokenKey, setPrefetchedQuotePayTokenKey] =
     useState<string>();
   const isQuoteLoadingRef = useRef(isQuoteLoading);
   const quotesLastUpdatedRef = useRef(quotesLastUpdated);
@@ -132,11 +136,19 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
   const { payToken } = useTransactionPayToken();
+  const payTokenKey = `${payToken?.chainId ?? ''}:${
+    payToken?.address.toLowerCase() ?? ''
+  }`;
   const { setIsMaxDeposit } = useConfirmationContext();
 
   useEffect(() => {
     depositMaxHumanRef.current = null;
     userHasEditedRef.current = false;
+    prefetchQuoteRequestRef.current = undefined;
+    prefetchedQuoteAmountHumanRef.current = undefined;
+    prefetchedQuotePayTokenKeyRef.current = undefined;
+    setPrefetchedQuoteAmountHuman(undefined);
+    setPrefetchedQuotePayTokenKey(undefined);
     setIsMaxDeposit(false);
   }, [payToken?.address, payToken?.chainId, setIsMaxDeposit]);
 
@@ -167,10 +179,13 @@ export function useTransactionCustomAmount({
         quotesLastUpdated > prefetchRequest.quoteBaseline);
     if (
       hasNewerQuote &&
-      prefetchedQuoteAmountHumanRef.current !== prefetchRequest.amountHuman
+      (prefetchedQuoteAmountHumanRef.current !== prefetchRequest.amountHuman ||
+        prefetchedQuotePayTokenKeyRef.current !== prefetchRequest.payTokenKey)
     ) {
       prefetchedQuoteAmountHumanRef.current = prefetchRequest.amountHuman;
+      prefetchedQuotePayTokenKeyRef.current = prefetchRequest.payTokenKey;
       setPrefetchedQuoteAmountHuman(prefetchRequest.amountHuman);
+      setPrefetchedQuotePayTokenKey(prefetchRequest.payTokenKey);
     }
   }, [
     isAmountUpdateQuotePipelineEnabled,
@@ -272,10 +287,12 @@ export function useTransactionCustomAmount({
     const depositMaxHuman = depositMaxHumanRef.current;
     const effectiveHuman = depositMaxHuman ?? amountHumanDebounced;
     const isNewPrefetch =
-      prefetchQuoteRequestRef.current?.amountHuman !== effectiveHuman;
+      prefetchQuoteRequestRef.current?.amountHuman !== effectiveHuman ||
+      prefetchQuoteRequestRef.current?.payTokenKey !== payTokenKey;
     if (isNewPrefetch) {
       prefetchQuoteRequestRef.current = {
         amountHuman: effectiveHuman,
+        payTokenKey,
         isAmountPrepared: false,
         quoteBaseline: quotesLastUpdatedRef.current,
         sawQuoteLoading: false,
@@ -293,14 +310,21 @@ export function useTransactionCustomAmount({
         }
 
         const prefetchRequest = prefetchQuoteRequestRef.current;
-        if (isNewPrefetch && prefetchRequest?.amountHuman === effectiveHuman) {
+        if (
+          isNewPrefetch &&
+          prefetchRequest?.amountHuman === effectiveHuman &&
+          prefetchRequest.payTokenKey === payTokenKey
+        ) {
           prefetchRequest.isAmountPrepared = true;
           prefetchRequest.quoteBaseline = quotesLastUpdatedRef.current;
           prefetchRequest.sawQuoteLoading = isQuoteLoadingRef.current;
         }
       },
       () => {
-        if (prefetchQuoteRequestRef.current?.amountHuman === effectiveHuman) {
+        if (
+          prefetchQuoteRequestRef.current?.amountHuman === effectiveHuman &&
+          prefetchQuoteRequestRef.current.payTokenKey === payTokenKey
+        ) {
           prefetchQuoteRequestRef.current = undefined;
         }
       },
@@ -308,6 +332,7 @@ export function useTransactionCustomAmount({
   }, [
     amountHumanDebounced,
     isAmountUpdateQuotePipelineEnabled,
+    payTokenKey,
     updateTransactionPayAmount,
   ]);
 
@@ -496,7 +521,8 @@ export function useTransactionCustomAmount({
   const effectiveCurrentAmountHuman = depositMaxHumanRef.current ?? amountHuman;
   const hasPrefetchedQuote =
     isAmountUpdateQuotePipelineEnabled &&
-    prefetchedQuoteAmountHuman === effectiveCurrentAmountHuman;
+    prefetchedQuoteAmountHuman === effectiveCurrentAmountHuman &&
+    prefetchedQuotePayTokenKey === payTokenKey;
 
   return {
     amountFiat,

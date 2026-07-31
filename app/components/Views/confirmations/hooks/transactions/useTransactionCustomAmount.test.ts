@@ -471,6 +471,52 @@ describe('useTransactionCustomAmount', () => {
     expect(result.current.hasPrefetchedQuote).toBe(false);
   });
 
+  it('invalidates a prefetched quote when the pay token changes', async () => {
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(10);
+    const { result, rerender } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+    rerender(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(11);
+    rerender(undefined);
+
+    expect(result.current.hasPrefetchedQuote).toBe(true);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: '0x9876543210987654321098765432109876543210' as Hex,
+        balanceUsd: '1234.56',
+        chainId: '0x1' as Hex,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
+    await act(async () => {
+      rerender(undefined);
+    });
+
+    expect(result.current.hasPrefetchedQuote).toBe(false);
+
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+    rerender(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(12);
+    rerender(undefined);
+
+    expect(result.current.hasPrefetchedQuote).toBe(true);
+  });
+
   it('does not mark an unpublished optimized amount update as prefetched', async () => {
     updateTransactionPayAmountMock.mockResolvedValue(false);
     useUpdateTransactionPayAmountMock.mockReturnValue({
