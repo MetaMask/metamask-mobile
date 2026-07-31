@@ -8,7 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, View } from 'react-native';
+import PerpsProPositionsModalPortal from '../Views/PerpsProMarketView/components/PerpsProPositionsModalPortal';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -326,45 +326,50 @@ export const usePerpsProPositionsPanelActions =
       () => (
         <>
           {showCloseAllSheet && (
-            <PerpsCloseAllPositionsView
-              sheetRef={closeAllSheetRef}
-              onClose={handleCloseAllSheetClose}
-            />
+            <PerpsProPositionsModalPortal
+              onRequestClose={handleCloseAllSheetClose}
+            >
+              <PerpsCloseAllPositionsView
+                sheetRef={closeAllSheetRef}
+                onClose={handleCloseAllSheetClose}
+              />
+            </PerpsProPositionsModalPortal>
           )}
 
           {reversePosition && (
-            <PerpsFlipPositionConfirmSheet
-              position={reversePosition}
-              sheetRef={reversePositionSheetRef}
-              onClose={handleReverseSheetClose}
-              onConfirm={handleReverseSheetClose}
-            />
+            <PerpsProPositionsModalPortal
+              onRequestClose={handleReverseSheetClose}
+            >
+              <PerpsFlipPositionConfirmSheet
+                position={reversePosition}
+                sheetRef={reversePositionSheetRef}
+                onClose={handleReverseSheetClose}
+                onConfirm={handleReverseSheetClose}
+              />
+            </PerpsProPositionsModalPortal>
           )}
 
           {adjustMarginPosition && (
-            <PerpsSelectAdjustMarginActionView
-              sheetRef={adjustMarginSheetRef}
-              position={adjustMarginPosition}
-              onClose={handleAdjustMarginSheetClose}
-            />
+            <PerpsProPositionsModalPortal
+              onRequestClose={handleAdjustMarginSheetClose}
+            >
+              <PerpsSelectAdjustMarginActionView
+                sheetRef={adjustMarginSheetRef}
+                position={adjustMarginPosition}
+                onClose={handleAdjustMarginSheetClose}
+              />
+            </PerpsProPositionsModalPortal>
           )}
 
           {isGeoBlockVisible && (
-            <View>
-              <Modal
-                visible
-                transparent
-                animationType="none"
-                statusBarTranslucent
-              >
-                <PerpsBottomSheetTooltip
-                  isVisible
-                  onClose={closeGeoBlockModal}
-                  contentKey="geo_block"
-                  testID="perps-pro-positions-panel-geo-block-tooltip"
-                />
-              </Modal>
-            </View>
+            <PerpsProPositionsModalPortal onRequestClose={closeGeoBlockModal}>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeGeoBlockModal}
+                contentKey="geo_block"
+                testID="perps-pro-positions-panel-geo-block-tooltip"
+              />
+            </PerpsProPositionsModalPortal>
           )}
         </>
       ),
