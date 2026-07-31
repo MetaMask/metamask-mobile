@@ -139,8 +139,10 @@ jest.mock('../../../../hooks/stream', () => ({
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
 }));
 
+let mockIsInitialized = true;
+
 jest.mock('../../../../hooks/usePerpsConnection', () => ({
-  usePerpsConnection: () => ({ isInitialized: true }),
+  usePerpsConnection: () => ({ isInitialized: mockIsInitialized }),
 }));
 
 jest.mock('../../../../hooks/usePerpsEstimatedSlippage', () => ({
@@ -206,7 +208,24 @@ describe('usePerpsProOrderForm', () => {
     mockExistingPosition = null;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
+    mockIsInitialized = true;
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+  });
+
+  describe('availableBalance', () => {
+    it('formats spendable balance as "$amount available" when connected', () => {
+      const { result } = renderProForm();
+
+      expect(result.current.availableBalance).toMatch(/^\$500 available$/);
+    });
+
+    it('shows the unavailable placeholder before Perps is initialized', () => {
+      mockIsInitialized = false;
+
+      const { result } = renderProForm();
+
+      expect(result.current.availableBalance).toBe('-- available');
+    });
   });
 
   describe('summary', () => {

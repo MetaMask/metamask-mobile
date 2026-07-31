@@ -741,9 +741,17 @@ export const usePerpsProOrderForm = ({
         )
       : 0;
 
-  const availableBalance = formatPerpsFiat(spendableBalance, {
-    ranges: PRICE_RANGES_MINIMAL_VIEW,
-  });
+  const availableBalance = useMemo(() => {
+    if (!isInitialized) {
+      return strings('perps.pro_order_form.available_balance_unavailable');
+    }
+
+    return strings('perps.pro_order_form.available_balance', {
+      amount: formatPerpsFiat(spendableBalance, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      }),
+    });
+  }, [isInitialized, spendableBalance]);
 
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list: PerpsProOrderNotice[] = [];
