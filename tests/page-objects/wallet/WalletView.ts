@@ -499,7 +499,12 @@ class WalletView {
     });
   }
 
-  // mUSD conversion (Earn) - education screen, token list CTA, asset overview CTA
+  get musdAssetListConversionCta(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
+    );
+  }
+
   get cashGetMusdContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER);
   }
@@ -550,11 +555,10 @@ class WalletView {
           PlaywrightMatchers.getElementById(getAssetTestId(token), {
             exact: true,
           }),
-        // iOS: TokenListItem sets accessibilityLabel to "Name, $fiat, balance"
-        // so the iOS predicate `name` (= accessibilityLabel) differs from testID.
-        // Use `~testID` which maps to accessibilityIdentifier (= testID).
+        // iOS: match accessibilityIdentifier (= RN testID), not accessibilityLabel
+        // (label is "Name, $fiat, balance" and does not contain asset-SYMBOL).
         ios: () =>
-          PlaywrightMatchers.getElementByNameiOS(getAssetTestId(token)),
+          PlaywrightMatchers.getElementByAccessibilityId(getAssetTestId(token)),
       },
     });
   }
@@ -623,7 +627,7 @@ class WalletView {
   ): Promise<void> {
     await Gestures.scrollToElement(
       this.tokenInWallet(tokenName) as unknown as DetoxElement,
-      Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      Matchers.scrollContainer(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
         direction,
         scrollAmount: 50,
@@ -1336,7 +1340,7 @@ class WalletView {
    * container as the Asset/Transactions screen (transactions-container).
    */
   async scrollDownToAssetOverviewMusdCta(): Promise<void> {
-    const assetOverviewScrollContainer = Matchers.getIdentifier(
+    const assetOverviewScrollContainer = Matchers.scrollContainer(
       'transactions-container',
     );
     await Gestures.scrollToElement(

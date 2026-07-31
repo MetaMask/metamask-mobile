@@ -25,7 +25,6 @@ export interface UsePerpsProMarketHeaderActionsResult {
   isWatchlist: boolean;
   handleBackPress: () => void;
   handleMarketListPress: () => void;
-  handleWalletPress: () => void;
   handleFavoritePress: () => void;
   handlePerpsModeChange: (nextMode: PerpsMode) => void;
 }
@@ -33,14 +32,16 @@ export interface UsePerpsProMarketHeaderActionsResult {
 /**
  * Header action handlers for the Pro market detail screen.
  *
- * Keeps back / market-list / wallet / watchlist / mode-switch wiring out of
+ * Keeps back / market-list / watchlist / mode-switch wiring out of
  * `PerpsProMarketView` so the screen stays layout-focused and the handlers can
- * be unit-tested in isolation.
+ * be unit-tested in isolation. The wallet icon's balance-sheet visibility is
+ * owned by `PerpsProMarketView` directly since it's local UI state, not a
+ * navigation side effect.
  */
 export const usePerpsProMarketHeaderActions = ({
   symbol,
 }: UsePerpsProMarketHeaderActionsParams): UsePerpsProMarketHeaderActionsResult => {
-  const { navigateBack, navigateToHome, navigateToMarketList, canGoBack } =
+  const { navigateBack, navigateToWallet, navigateToMarketList, canGoBack } =
     usePerpsNavigation();
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const { track } = usePerpsEventTracking();
@@ -58,9 +59,12 @@ export const usePerpsProMarketHeaderActions = ({
     if (canGoBack) {
       navigateBack();
     } else {
-      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
+      // No back stack (e.g. this is the Pro-mode stack root): "home" while
+      // Pro mode is active is itself a market screen, so falling back to it
+      // here would often be a no-op. Leave Perps entirely instead.
+      navigateToWallet();
     }
-  }, [canGoBack, navigateBack, navigateToHome]);
+  }, [canGoBack, navigateBack, navigateToWallet]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
@@ -81,10 +85,6 @@ export const usePerpsProMarketHeaderActions = ({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     });
   }, [symbol, track, navigateToMarketList]);
-
-  const handleWalletPress = useCallback(() => {
-    navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
-  }, [navigateToHome]);
 
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {
@@ -116,7 +116,6 @@ export const usePerpsProMarketHeaderActions = ({
     isWatchlist,
     handleBackPress,
     handleMarketListPress,
-    handleWalletPress,
     handleFavoritePress,
     handlePerpsModeChange,
   };

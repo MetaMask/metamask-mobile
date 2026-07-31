@@ -160,7 +160,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2, 3, 4, 5, 6, 7, 8]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -168,8 +168,10 @@ jobs:
       platform: android
       test_suite_tag: SmokeSnaps
       split_number: ${{ matrix.split }}
-      total_splits: 3
-      test-timeout-minutes: 25
+      total_splits: 8
+      # Temporary: full login+install per test makes Android snaps shards slow.
+      # Drop back toward 25 once Appium has reloadReactNative (no full login each test).
+      test-timeout-minutes: 40
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -351,7 +353,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -359,7 +361,7 @@ jobs:
       platform: android
       test_suite_tag: SmokeConfirmations
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       test-timeout-minutes: 60
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}

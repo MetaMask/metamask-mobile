@@ -8,8 +8,8 @@ on:
         required: false
         type: string
         default: '["ALL"]'
-      changed_files:
-        description: 'Changed files'
+      changed_spec_files:
+        description: 'Space-separated list of changed E2E spec file paths, used to run modified specs twice for flakiness detection'
         required: false
         type: string
         default: ''
@@ -37,7 +37,7 @@ jobs:
       test_suite_tag: 'SmokeConfirmations'
       split_number: ${{ matrix.split }}
       total_splits: 4
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -55,28 +55,13 @@ jobs:
       test_suite_tag: 'SmokePerps'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  wallet-platform-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform')
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: wallet-platform-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeWalletPlatform'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # SmokeWalletPlatform Detox job removed — tag fully migrated to Appium
+  # (run-appium-smoke-tests-ios.yml / appium-wallet-platform-ios-smoke).
 
   network-abstraction-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions')
@@ -91,7 +76,7 @@ jobs:
       test_suite_tag: 'SmokeNetworkAbstractions'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -109,7 +94,7 @@ jobs:
       test_suite_tag: 'SmokeNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -127,7 +112,7 @@ jobs:
       test_suite_tag: 'SmokeMultiChainAPI'
       split_number: ${{ matrix.split }}
       total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -145,7 +130,7 @@ jobs:
       test_suite_tag: 'SmokeSnaps'
       split_number: ${{ matrix.split }}
       total_splits: 4
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
       bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && matrix.split == 1 && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || '' }}
@@ -167,7 +152,6 @@ jobs:
     needs:
       - confirmations-ios-smoke
       - perps-ios-smoke
-      - wallet-platform-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
       - multichain-api-ios-smoke

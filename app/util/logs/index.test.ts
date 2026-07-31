@@ -140,6 +140,7 @@ describe('logs :: generateStateLogs', () => {
           PhishingController: { whitelist: [] },
           AssetsContractController: { assets: [] },
           DeFiPositionsController: { positions: [] },
+          DeFiPositionsControllerV2: { positions: [] },
           PredictController: { predictions: [] },
           KeyringController: {
             vault: 'vault mock',
@@ -157,6 +158,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes('DeFiPositionsController')).toBe(false);
+    expect(logs.includes('DeFiPositionsControllerV2')).toBe(false);
     expect(logs.includes('PredictController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
