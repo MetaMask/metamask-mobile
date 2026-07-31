@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, userEvent } from '@testing-library/react-native';
+import { render, userEvent, act } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
 
 import { strings } from '../../../../locales/i18n';
@@ -80,7 +80,9 @@ describe('AssetActivateCard', () => {
       <AssetActivateCard token={STELLAR_TOKEN} chainName="Stellar" />,
     );
 
-    await userEvent.press(getByTestId(AssetActivateCardTestIds.BUTTON));
+    await act(async () => {
+      await userEvent.press(getByTestId(AssetActivateCardTestIds.BUTTON));
+    });
 
     expect(mockActivateAsset).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -97,7 +99,9 @@ describe('AssetActivateCard', () => {
       <AssetActivateCard token={STELLAR_TOKEN} chainName="Stellar" />,
     );
 
-    await userEvent.press(getByTestId(AssetActivateCardTestIds.BUTTON));
+    await act(async () => {
+      await userEvent.press(getByTestId(AssetActivateCardTestIds.BUTTON));
+    });
 
     expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith({
       status: 'error',
@@ -118,7 +122,9 @@ describe('AssetActivateCard', () => {
       <AssetActivateCard token={STELLAR_TOKEN} chainName="Stellar" />,
     );
 
-    await userEvent.press(getByTestId(AssetActivateCardTestIds.BUTTON));
+    await act(async () => {
+      await userEvent.press(getByTestId(AssetActivateCardTestIds.BUTTON));
+    });
 
     expect(mockActivateAsset).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
