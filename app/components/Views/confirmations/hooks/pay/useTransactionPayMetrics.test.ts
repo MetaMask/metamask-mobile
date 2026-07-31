@@ -138,6 +138,10 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayQuoteError,
   );
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.resetAllMocks();
 
