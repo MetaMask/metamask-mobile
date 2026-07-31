@@ -1,6 +1,7 @@
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeedBannerConfig,
+  PredictFeedCarouselConfig,
   PredictFeeCollection,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
@@ -12,6 +13,17 @@ import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
 } from './feedBanner';
+
+export const DEFAULT_PREDICT_FEED_CAROUSEL_FLAG: PredictFeedCarouselConfig = {
+  enabled: false,
+  minimumVersion: '',
+  mode: 'live',
+  contentSource: {
+    composition: 'query-results',
+    queryParams: '',
+    excludedMarketIds: [],
+  },
+};
 
 export const DEFAULT_PREDICT_FEED_BANNER_FLAG: PredictFeedBannerConfig = {
   enabled: false,

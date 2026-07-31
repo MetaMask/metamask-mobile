@@ -151,6 +151,7 @@ const makeTrader = (overrides: Partial<TopTrader> = {}): TopTrader => ({
   avatarUri: undefined,
   percentageChange: 12,
   pnlValue: 456900,
+  winRatePercent: 92,
   pnlPerChain: {},
   isFollowing: false,
   ...overrides,

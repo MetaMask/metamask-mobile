@@ -1,15 +1,12 @@
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import React, { type ReactNode } from 'react';
 import { StyleSheet } from 'react-native';
-import { strings } from '../../../../../../../locales/i18n';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 
 interface PerpsProMarketLayoutProps {
@@ -17,7 +14,8 @@ interface PerpsProMarketLayoutProps {
   orderBook: ReactNode;
   /**
    * When true, the order-book column and divider are hidden so the order form
-   * expands to full width. An expand control restores the book.
+   * expands to full width. The order form itself renders the control that
+   * restores the book (Figma: order-book icon beside the direction control).
    *
    * Collapse unmounts the order-book panel (subscriptions disconnect). On
    * expand, session-only UI state in that panel — list currency, metric, and
@@ -25,7 +23,6 @@ interface PerpsProMarketLayoutProps {
    * persisted per market separately from this layout.
    */
   isOrderBookCollapsed?: boolean;
-  onExpandOrderBook?: () => void;
 }
 
 const PRO_TRADING_AREA_MIN_HEIGHT = 682;
@@ -48,6 +45,9 @@ const styles = StyleSheet.create({
   orderBookColumn: {
     width: PRO_ORDER_BOOK_COLUMN_WIDTH,
   },
+  orderBookGroup: {
+    flexDirection: 'row',
+  },
 });
 
 /**
@@ -58,6 +58,11 @@ const styles = StyleSheet.create({
  * positioning is deferred until the rearrangeable-layout feature consumes the
  * controller preferences.
  *
+ * The 16px screen-edge inset is applied once here (`px-4` on the row), not
+ * by either column individually — Figma's own two-column section is inset
+ * this way, with both inner columns at `px-0`. Applying it per-column would
+ * double the gap next to the divider (column padding + divider width).
+ *
  * When the book is collapsed, `{orderBook}` is not rendered so the panel
  * unmounts and live order-book sockets disconnect. That remount-on-expand
  * path intentionally drops session-only book preferences (currency, metric,
@@ -67,38 +72,30 @@ const PerpsProMarketLayout = ({
   orderForm,
   orderBook,
   isOrderBookCollapsed = false,
-  onExpandOrderBook,
 }: PerpsProMarketLayoutProps) => (
   <Box
     testID={PerpsProMarketViewSelectorsIDs.LAYOUT}
     flexDirection={BoxFlexDirection.Row}
+    twClassName="px-2"
     style={styles.container}
   >
-    <Box
+    <Animated.View
       testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
       style={styles.orderFormColumn}
+      layout={LinearTransition.duration(AnimationDuration.Fast)}
     >
-      {isOrderBookCollapsed ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.End}
-          twClassName="px-4 pt-2"
-        >
-          <ButtonIcon
-            iconName={IconName.Expand}
-            accessibilityLabel={strings('perps.order_book.expand')}
-            size={ButtonIconSize.Md}
-            onPress={onExpandOrderBook}
-            testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON}
-          />
-        </Box>
-      ) : null}
       {orderForm}
-    </Box>
-    {/* Omit the column while collapsed: unmount disconnects subscriptions. */}
+    </Animated.View>
+    {/* Omit the column while collapsed: unmount disconnects subscriptions.
+        The fade in/out is purely visual — Reanimated still lets React unmount
+        the column immediately, it just keeps the last frame on screen for the
+        exit animation's duration. */}
     {!isOrderBookCollapsed ? (
-      <>
+      <Animated.View
+        style={styles.orderBookGroup}
+        entering={FadeIn.duration(AnimationDuration.Fast)}
+        exiting={FadeOut.duration(AnimationDuration.Fast)}
+      >
         <Box
           testID={PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER}
           twClassName="items-center"
@@ -111,12 +108,11 @@ const PerpsProMarketLayout = ({
         </Box>
         <Box
           testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
-          twClassName="pr-4"
           style={styles.orderBookColumn}
         >
           {orderBook}
         </Box>
-      </>
+      </Animated.View>
     ) : null}
   </Box>
 );
