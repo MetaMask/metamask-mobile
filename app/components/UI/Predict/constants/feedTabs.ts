@@ -27,10 +27,16 @@ export const PREDICT_WORLD_CUP_TAB: PredictTabConfig = {
   labelKey: 'predict.world_cup.title',
 };
 
+export const PREDICT_WIMBLEDON_TAB: PredictTabConfig = {
+  key: 'wimbledon',
+  labelKey: 'predict.category.wimbledon',
+};
+
 export const PREDICT_ALL_TABS: readonly PredictTabConfig[] = [
   ...PREDICT_BASE_TABS,
   PREDICT_HOT_TAB,
   PREDICT_WORLD_CUP_TAB,
+  PREDICT_WIMBLEDON_TAB,
 ];
 
 const PREDICT_TAB_KEYS = PREDICT_ALL_TABS.map((tab) => tab.key);

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,6 +19,8 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
+import { ScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/scam-questionnaire';
+import { useSendScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/useSendScamQuestionnaire';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -29,12 +32,14 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import {
   MMM_ORIGIN,
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
-import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -77,10 +82,18 @@ export const Footer = () => {
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
+
+  const {
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    isScamQuestionnaireVisible,
+    showScamQuestionnaire,
+    scamQuestionnaireProps,
+  } = useSendScamQuestionnaire({ onReject });
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -105,12 +118,25 @@ export const Footer = () => {
   }, [hideConfirmAlertModal, onConfirm, navigation]);
 
   const onSignConfirm = useCallback(async () => {
-    if (hasDangerAlerts) {
+    if (isScamQuestionnaireRequired) {
+      showScamQuestionnaire();
+      return;
+    }
+    // A completed questionnaire stands in for the danger-alert checkbox modal,
+    // so don't surface it again after the user has been through that friction.
+    if (hasDangerAlerts && !isScamQuestionnaireCompleted) {
       showConfirmAlertModal();
       return;
     }
     await onConfirm();
-  }, [hasDangerAlerts, onConfirm, showConfirmAlertModal]);
+  }, [
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    showScamQuestionnaire,
+    hasDangerAlerts,
+    onConfirm,
+    showConfirmAlertModal,
+  ]);
 
   useEffect(() => {
     trackAlertMetrics();
@@ -206,6 +232,9 @@ export const Footer = () => {
           onReject={onHandleReject}
           onConfirm={onHandleConfirm}
         />
+      )}
+      {isScamQuestionnaireVisible && (
+        <ScamQuestionnaire {...scamQuestionnaireProps} />
       )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}

@@ -63,6 +63,7 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndWalletAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../util/navigation/navigateToTransactionDetails';
 import {
   hasGasFeeTokenSelected,
   hasTransactionType,
@@ -316,14 +317,9 @@ class TransactionElement extends PureComponent {
         bridgeTxHistoryItem,
       });
     } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
-      // Navigate to TRANSACTIONS_VIEW first to ensure correct navigation context,
-      // then navigate to TRANSACTION_DETAILS (pattern from usePerpsToasts)
-      this.props.navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      setTimeout(() => {
-        this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
-          transactionId: tx.id,
-        });
-      }, 100);
+      navigateToTransactionDetails(this.props.navigation, {
+        transactionId: tx.id,
+      });
     } else {
       const { transactionElement, transactionDetails } = this.state;
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

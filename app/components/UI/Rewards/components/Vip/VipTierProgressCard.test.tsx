@@ -211,4 +211,27 @@ describe('VipTierProgressCard', () => {
       color: VIP_GOLD_TEXT_MUTED,
     });
   });
+
+  it('renders the maintain subline under the subline when provided', () => {
+    const { getByTestId } = renderWithTheme(
+      <VipTierProgressCard
+        {...baseProps}
+        maintainSubline="250k points to maintain this tier"
+      />,
+    );
+
+    expect(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toHaveTextContent('250k points to maintain this tier');
+  });
+
+  it('omits the maintain subline when maintainSubline is not provided', () => {
+    const { queryByTestId } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} />,
+    );
+
+    expect(
+      queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toBeNull();
+  });
 });

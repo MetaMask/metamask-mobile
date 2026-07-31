@@ -107,17 +107,13 @@ describe('ActivityEmptyState', () => {
     fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
+      params: {},
     });
 
     cleanup();
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.BuySell} />);
     fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-
-    cleanup();
-    render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Money} />);
-    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
-    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalledTimes(1));
 
     cleanup();
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.MetamaskCard} />);

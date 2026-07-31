@@ -1,9 +1,4 @@
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
 import {
@@ -14,6 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { estimateLineCount } from '../../utils/format';
@@ -49,6 +45,7 @@ import { isCryptoUpDown } from '../../utils/cryptoUpDown';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
+  selectNonRegTimeSportsMarketTypes,
 } from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
@@ -66,8 +63,7 @@ import { usePredictPreviewSheet } from '../../contexts';
 interface PredictMarketDetailsProps {}
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
@@ -81,6 +77,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const nonRegTimeSportsMarketTypes = useSelector(
+    selectNonRegTimeSportsMarketTypes,
+  );
   const {
     marketId,
     series,
@@ -344,8 +343,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
         params: {
           url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
           title: strings('predict.market_details.resolution_details'),
@@ -488,6 +487,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
         isLoading={isClaimablePositionsLoading}
         isClaimPending={isClaimPending}
+        nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
       />
     );
   }

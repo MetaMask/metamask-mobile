@@ -24,22 +24,30 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  CommonActions,
   StackActions,
   useFocusEffect,
   useNavigation,
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Engine from '../../../../../core/Engine';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
+  selectCardLastUnauthenticatedReason,
   selectCardUserLocation,
   selectCardHomeDataStatus,
+  selectCardRedemptionDestinationIsMoneyAccount,
+  selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
   getCardSupportEmail,
@@ -54,6 +62,7 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
+import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
 import {
@@ -66,18 +75,26 @@ import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterren
 import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
-import { CardType } from '../../types';
-import { isSpendingLimitSupportedToken } from '../../constants';
+import { CardType, CardMessageBoxType } from '../../types';
+import {
+  isSpendingLimitSupportedToken,
+  IMMERSVE_SUPPORT_EMAIL,
+  IMMERSVE_TERMS_URL,
+} from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
+import { formatWithThreshold } from '../../../../../util/assets';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import CardImageSection from './components/CardImageSection';
 import ManageCardOptions from './components/ManageCardOptions';
 import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
 import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
@@ -91,13 +108,18 @@ const CardHome = () => {
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const lastUnauthenticatedReason = useSelector(
+    selectCardLastUnauthenticatedReason,
+  );
   const userLocation = useSelector(selectCardUserLocation);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
   const { data: registrationSettings } = useRegistrationSettings();
   const privacyMode = useSelector(selectPrivacyMode);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const theme = useTheme();
@@ -113,13 +135,20 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
+  const isImmersve = useSelector(selectCardActiveProviderId) === 'immersve';
   const cardTermsAndConditionsUrl = useMemo(
-    () => getCardTermsAndConditionsUrl(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
+    () =>
+      isImmersve
+        ? IMMERSVE_TERMS_URL
+        : getCardTermsAndConditionsUrl(registrationSettings, userLocation),
+    [isImmersve, registrationSettings, userLocation],
   );
   const supportEmail = useMemo(
-    () => getCardSupportEmail(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
+    () =>
+      isImmersve
+        ? IMMERSVE_SUPPORT_EMAIL
+        : getCardSupportEmail(registrationSettings, userLocation),
+    [isImmersve, registrationSettings, userLocation],
   );
 
   // --- Extracted hooks ---
@@ -128,10 +157,19 @@ const CardHome = () => {
     primaryToken,
     isFrozen,
     cardTermsAndConditionsUrl,
+    capabilities,
   });
+
+  const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
     useCardProvisioning(data);
+
+  const {
+    pendingAction: immersvePendingAction,
+    resumePendingAction,
+    isReconciling: isReconcilingImmersveProvisioning,
+  } = useImmersveCardProvisioning(data);
 
   // --- Money Account linkage ---
   const {
@@ -140,8 +178,13 @@ const CardHome = () => {
     isLinking: isMoneyAccountLinkInProgress,
   } = useMoneyAccountCardLinkage();
   const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
+  const credit = useCreditBalance();
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const hasMetalCard = data?.card?.type === CardType.METAL;
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const redeemsToMoneyAccount = useSelector(
+    selectCardRedemptionDestinationIsMoneyAccount,
+  );
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
   const handleLinkMoneyAccountCard = useCallback(
@@ -196,10 +239,43 @@ const CardHome = () => {
   useEffect(() => {
     const wasAuth = wasAuthenticated.current;
     wasAuthenticated.current = isAuthenticated;
-    if (wasAuth && !isAuthenticated) {
+    if (
+      wasAuth &&
+      !isAuthenticated &&
+      lastUnauthenticatedReason !== 'onboarding_token_revoked'
+    ) {
       navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, lastUnauthenticatedReason, navigation]);
+
+  const hasHandledOnboardingTokenRevocation = useRef(false);
+  useEffect(() => {
+    if (
+      lastUnauthenticatedReason !== 'onboarding_token_revoked' ||
+      hasHandledOnboardingTokenRevocation.current
+    ) {
+      return;
+    }
+
+    hasHandledOnboardingTokenRevocation.current = true;
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: strings('card.card_home.onboarding_token_revoked'),
+        },
+      ],
+      hasNoTimeout: false,
+      iconName: IconName.Warning,
+    });
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      }),
+    );
+    Engine.context.CardController.clearLastUnauthenticatedReason();
+  }, [lastUnauthenticatedReason, navigation, toastRef]);
 
   // --- Deeplink toast ---
   const hasShownDeeplinkToast = useRef(false);
@@ -238,13 +314,74 @@ const CardHome = () => {
   }, [actions.freeze.error, actions.unfreeze.error, toastRef]);
 
   // --- Derived state ---
+  const hasPrimaryFiat =
+    !!primaryToken?.balanceFiat &&
+    primaryToken.balanceFiat !== TOKEN_RATE_UNDEFINED &&
+    primaryToken.rawFiatNumber !== undefined;
+
+  const creditIncludedInBalance =
+    hasPrimaryFiat && credit.hasCredit && credit.creditFiatNumber !== undefined;
+
   const balanceAmount = useMemo(() => {
-    const { balanceFiat, balanceFormatted } = primaryToken ?? {};
-    if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
+    const { balanceFiat, balanceFormatted, rawFiatNumber } = primaryToken ?? {};
+
+    if (!hasPrimaryFiat) {
       return balanceFormatted;
     }
+
+    if (creditIncludedInBalance) {
+      const combined = (rawFiatNumber ?? 0) + (credit.creditFiatNumber ?? 0);
+      return formatWithThreshold(combined, 0.01, I18n.locale, {
+        style: 'currency',
+        currency: currentCurrency?.toUpperCase() || 'USD',
+      });
+    }
+
     return balanceFiat;
-  }, [primaryToken]);
+  }, [
+    primaryToken,
+    hasPrimaryFiat,
+    creditIncludedInBalance,
+    credit.creditFiatNumber,
+    currentCurrency,
+  ]);
+
+  const refundFiatLabel = useMemo(() => {
+    if (credit.creditFiatNumber !== undefined) {
+      return formatWithThreshold(credit.creditFiatNumber, 0.01, I18n.locale, {
+        style: 'currency',
+        currency: currentCurrency?.toUpperCase() || 'USD',
+      });
+    }
+    return `${credit.creditBalance} ${
+      credit.creditCurrency?.toUpperCase() ?? ''
+    }`.trim();
+  }, [
+    credit.creditFiatNumber,
+    credit.creditBalance,
+    credit.creditCurrency,
+    currentCurrency,
+  ]);
+
+  const handleOpenCreditBalanceTooltip = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.CREDIT_BALANCE_TOOLTIP,
+      params: {
+        moneyAccountAmount: primaryToken?.balanceFiat,
+        refundAmount: refundFiatLabel,
+        isMoneyAccount: !!primaryToken?.isMoneyAccountEntry,
+      },
+    });
+  }, [
+    navigation,
+    primaryToken?.balanceFiat,
+    primaryToken?.isMoneyAccountEntry,
+    refundFiatLabel,
+  ]);
+
+  const handleRedeemCredit = useCallback(() => {
+    navigation.navigate(Routes.CARD.CREDIT_REDEEM);
+  }, [navigation]);
 
   const hasSetupAlerts = (data?.alerts ?? []).some((a) =>
     SETUP_ALERT_TYPES.has(a.type),
@@ -263,6 +400,60 @@ const CardHome = () => {
     data?.primaryFundingAsset?.status === FundingAssetStatus.Active;
 
   const hasPriorityTokenBalance = (primaryToken?.rawTokenBalance ?? 0) > 0;
+
+  const canUnlinkMoneyAccount = useMemo(() => {
+    if (!primaryToken?.isMoneyAccountEntry) return false;
+
+    const tokenMoneyAccountAddress = primaryToken.walletAddress;
+    const activeMoneyAccountAddress = primaryMoneyAccount?.address;
+    return Boolean(
+      tokenMoneyAccountAddress &&
+        activeMoneyAccountAddress &&
+        tokenMoneyAccountAddress.toLowerCase() ===
+          activeMoneyAccountAddress.toLowerCase(),
+    );
+  }, [
+    primaryMoneyAccount?.address,
+    primaryToken?.isMoneyAccountEntry,
+    primaryToken?.walletAddress,
+  ]);
+
+  const fallbackFundingSourceSymbol = useMemo(() => {
+    if (!canUnlinkMoneyAccount) return undefined;
+
+    const primary = data?.primaryFundingAsset;
+    const fallback = data?.fundingAssets.find((asset) => {
+      const isDelegated =
+        asset.status === FundingAssetStatus.Active ||
+        asset.status === FundingAssetStatus.Limited;
+      if (!isDelegated) return false;
+
+      return (
+        asset.address !== primary?.address ||
+        asset.chainId !== primary?.chainId ||
+        asset.walletAddress !== primary?.walletAddress
+      );
+    });
+
+    if (!fallback) return undefined;
+
+    return isMoneyAccountEntry(
+      {
+        address: fallback.address,
+        stagingTokenAddress: fallback.stagingTokenAddress,
+        caipChainId: fallback.chainId,
+        symbol: fallback.symbol,
+      },
+      vedaConfig,
+    )
+      ? strings('money.metamask_card.unlink_card_sheet_another_money_account')
+      : fallback.symbol;
+  }, [
+    canUnlinkMoneyAccount,
+    data?.fundingAssets,
+    data?.primaryFundingAsset,
+    vedaConfig,
+  ]);
 
   const headerHandlers = useCardHeaderHandlers('back');
 
@@ -348,18 +539,32 @@ const CardHome = () => {
             onDismissSpendingLimitWarning={() =>
               setIsSpendingLimitWarningDismissed(true)
             }
+            hasPendingVerification={Boolean(immersvePendingAction)}
+            onContinueVerification={resumePendingAction}
+            isReconcilingProvisioning={isReconcilingImmersveProvisioning}
           />
         </Box>
+
+        {isBlocked && (
+          <Box twClassName="mx-4 mt-2">
+            <CardMessageBox messageType={CardMessageBoxType.Blocked} />
+          </Box>
+        )}
 
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Box twClassName="w-full relative">
             <CardImageSection
               isLoading={isLoading}
-              isCardDetailsLoading={actions.isCardDetailsLoading}
+              isCardDetailsLoading={
+                actions.isCardDetailsLoading ||
+                actions.isSensitiveDetailsLoading
+              }
               cardDetailsImageUrl={actions.cardDetailsImageUrl}
               isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
               onImageLoad={actions.onCardDetailsImageLoad}
               onImageError={actions.onCardDetailsImageError}
+              cardSensitiveDetails={actions.cardSensitiveDetails}
+              onCopyDetail={actions.copyCardDetail}
               cardType={data?.card?.type}
               cardStatus={data?.card?.status}
               walletAddress={
@@ -379,6 +584,9 @@ const CardHome = () => {
               privacyMode={privacyMode}
               assetBalance={primaryToken ?? undefined}
               onTogglePrivacy={handleTogglePrivacy}
+              showInfoBadge={creditIncludedInBalance}
+              onInfoPress={handleOpenCreditBalanceTooltip}
+              infoBadgeTestID={CardHomeSelectors.CREDIT_BALANCE_INFO_BUTTON}
             />
           )}
 
@@ -418,6 +626,20 @@ const CardHome = () => {
           )}
         </Box>
 
+        {credit.hasCredit && !hasSetupActions && !hasAlertOnlyState && (
+          <Box twClassName="mx-4 mt-4" testID={CardHomeSelectors.CREDIT_BANNER}>
+            <CardMessageBox
+              messageType={
+                redeemsToMoneyAccount
+                  ? CardMessageBoxType.CreditAvailable
+                  : CardMessageBoxType.CreditAvailableNoMoneyAccount
+              }
+              values={{ amount: refundFiatLabel }}
+              onConfirm={handleRedeemCredit}
+            />
+          </Box>
+        )}
+
         {!isLoading && canAddToWallet && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
@@ -445,7 +667,6 @@ const CardHome = () => {
                 showMetalCard={hasMetalCard}
                 isLinkDisabled={isMoneyAccountLinkInProgress}
                 onGetNowPress={handleLinkMoneyAccountCard}
-                onHeaderPress={handleLinkMoneyAccountCard}
                 onLinkPress={handleLinkMoneyAccountCard}
                 analyticsScreen={CardScreens.HOME}
                 analyticsEntryPoint={
@@ -463,34 +684,44 @@ const CardHome = () => {
           </>
         )}
 
-        <ManageCardOptions
-          card={data?.card}
-          account={data?.account}
-          capabilities={capabilities}
-          isSpendingLimitActive={isSpendingLimitActive}
-          isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-          isAuthenticated={isAuthenticated}
-          isLoading={isLoading}
-          hasSetupActions={hasSetupActions}
-          hasAlertOnlyState={hasAlertOnlyState}
-          hasSetupAlerts={hasSetupAlerts}
-          userLocation={userLocation}
-          isFrozen={isFrozen}
-          isFreezeLoading={
-            actions.freeze.isPending || actions.unfreeze.isPending
-          }
-          isPinLoading={actions.isPinLoading}
-          cardDetailsImageUrl={actions.cardDetailsImageUrl}
-          onViewCardDetails={actions.viewCardDetailsAction}
-          onViewPin={actions.viewPinAction}
-          onToggleFreeze={actions.handleToggleFreeze}
-          onManageSpendingLimit={actions.manageSpendingLimitAction}
-          onOrderMetalCard={actions.orderMetalCardAction}
-          onChangeAsset={actions.changeAssetAction}
-          hasPriorityTokenBalance={hasPriorityTokenBalance}
-          onCashback={actions.cashbackAction}
-          onTravel={actions.navigateToTravelPage}
-        />
+        {!isBlocked && (
+          <ManageCardOptions
+            card={data?.card}
+            account={data?.account}
+            capabilities={capabilities}
+            isSpendingLimitActive={isSpendingLimitActive}
+            isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
+            isAuthenticated={isAuthenticated}
+            isLoading={isLoading}
+            hasSetupActions={hasSetupActions}
+            hasAlertOnlyState={hasAlertOnlyState}
+            hasSetupAlerts={hasSetupAlerts}
+            userLocation={userLocation}
+            isFrozen={isFrozen}
+            isFreezeLoading={
+              actions.freeze.isPending || actions.unfreeze.isPending
+            }
+            isPinLoading={actions.isPinLoading}
+            cardDetailsVisible={
+              (!!actions.cardDetailsImageUrl ||
+                !!actions.cardSensitiveDetails) &&
+              isAuthenticated
+            }
+            onViewCardDetails={actions.viewCardDetailsAction}
+            onViewPin={actions.viewPinAction}
+            onToggleFreeze={actions.handleToggleFreeze}
+            onManageSpendingLimit={actions.manageSpendingLimitAction}
+            showUnlinkMoneyAccount={canUnlinkMoneyAccount}
+            onUnlinkMoneyAccount={() =>
+              actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
+            }
+            onOrderMetalCard={actions.orderMetalCardAction}
+            onChangeAsset={actions.changeAssetAction}
+            hasPriorityTokenBalance={hasPriorityTokenBalance}
+            onCashback={actions.cashbackAction}
+            onTravel={actions.navigateToTravelPage}
+          />
+        )}
 
         <CardHomeFooter
           isAuthenticated={isAuthenticated}
@@ -502,7 +733,11 @@ const CardHome = () => {
           onLogout={actions.logoutAction}
         />
 
-        <CardScreenshotDeterrent enabled={!!actions.cardDetailsImageUrl} />
+        <CardScreenshotDeterrent
+          enabled={
+            !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
+          }
+        />
       </ScrollView>
     </Box>
   );

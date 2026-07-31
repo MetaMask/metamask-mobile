@@ -26,11 +26,16 @@ export {
   ActivityDetailsDualAmountHeader,
 } from './ActivityDetailsAmountHeader';
 export { ActivityDetailsMetadata } from './ActivityDetailsMetadata';
+export { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 export {
   ActivityDetailsFeesAndTotal,
   ActivityDetailsFeeRows,
   ActivityDetailsTotalRow,
 } from './ActivityDetailsFees';
+export {
+  ActivityDetailsPayFeesAndTotal,
+  hasActivityPayFiat,
+} from './ActivityDetailsPayFees';
 export {
   ActivityDetailsFooter,
   ActivityDetailsBlockExplorerButton,

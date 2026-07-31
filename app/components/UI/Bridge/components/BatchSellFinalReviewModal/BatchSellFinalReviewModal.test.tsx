@@ -18,6 +18,7 @@ const mockDispatch = jest.fn();
 const mockUpdateBatchSellQuoteParams = jest.fn();
 const mockGetNewQuote = jest.fn();
 const mockSubmitBatchSellTx = jest.fn();
+const mockTrackBatchSellReviewModalSubmitted = jest.fn();
 const mockUseBatchSellHasSufficientGas = jest.fn((_params: unknown) => true);
 const errorTextColor = lightTheme.colors.error.default;
 const ethAssetId = 'eip155:1/erc20:0x1111111111111111111111111111111111111111';
@@ -189,6 +190,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+  selectBatchSellSlippages: jest.fn(() => ({})),
   selectIsSubmittingTx: jest.fn(() => mockIsSubmittingTx),
   setIsSubmittingTx: jest.fn((isSubmittingTx: boolean) => ({
     type: 'bridge/setIsSubmittingTx',
@@ -216,6 +218,12 @@ jest.mock('../../hooks/useSubmitBatchSellTx', () => ({
   useSubmitBatchSellTx: () => ({
     submitBatchSellTx: mockSubmitBatchSellTx,
   }),
+}));
+
+jest.mock('../../hooks/useTrackBatchSellReviewModalSubmitted', () => ({
+  useTrackBatchSellReviewModalSubmitted: jest.fn(
+    () => mockTrackBatchSellReviewModalSubmitted,
+  ),
 }));
 
 function renderModal(overrides: Partial<MockBatchSellQuoteData> = {}) {
@@ -294,6 +302,7 @@ describe('BatchSellFinalReviewModal', () => {
         quoteResponses: defaultRecommendedQuotes,
       });
     });
+    expect(mockTrackBatchSellReviewModalSubmitted).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenNthCalledWith(1, {
       type: 'bridge/setIsSubmittingTx',
       payload: true,

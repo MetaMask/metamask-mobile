@@ -81,10 +81,13 @@ jest.mock(
 );
 
 const mockCreateBuildQuoteNavDetails = jest.fn(
-  (params: { assetId: string }) => ['BUILD_QUOTE_ROUTE', params],
+  (params: { assetId: string; amount?: number }) => [
+    'BUILD_QUOTE_ROUTE',
+    params,
+  ],
 );
 jest.mock('../Views/BuildQuote', () => ({
-  createBuildQuoteNavDetails: (params: { assetId: string }) =>
+  createBuildQuoteNavDetails: (params: { assetId: string; amount?: number }) =>
     mockCreateBuildQuoteNavDetails(params),
 }));
 
@@ -336,5 +339,45 @@ describe('handleRampUrl', () => {
         { assetId: 'eip155:1/erc20:0x123456' },
       );
     });
+
+    it('passes amount to BuildQuote when V2 enabled and ramp intent has amount', async () => {
+      mockResolveRampControllerAssetId.mockReturnValue('eip155:1/slip44:60');
+      mockSelectTokens.mockReturnValue({
+        data: { allTokens: [{ assetId: 'eip155:1/slip44:60' }] },
+      });
+
+      await handleRampUrl({
+        rampPath: '?chainId=1&amount=275',
+        rampType: RampType.BUY,
+      });
+
+      expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 275,
+      });
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'BUILD_QUOTE_ROUTE',
+        { assetId: 'eip155:1/slip44:60', amount: 275 },
+      );
+    });
+
+    it.each(['0', '-50', 'abc', ''])(
+      'omits amount from BuildQuote when V2 enabled and amount is invalid (%s)',
+      async (invalidAmount) => {
+        mockResolveRampControllerAssetId.mockReturnValue('eip155:1/slip44:60');
+        mockSelectTokens.mockReturnValue({
+          data: { allTokens: [{ assetId: 'eip155:1/slip44:60' }] },
+        });
+
+        await handleRampUrl({
+          rampPath: `?chainId=1&amount=${invalidAmount}`,
+          rampType: RampType.BUY,
+        });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: 'eip155:1/slip44:60',
+        });
+      },
+    );
   });
 });

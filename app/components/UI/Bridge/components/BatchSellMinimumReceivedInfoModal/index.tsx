@@ -15,21 +15,17 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellMinimumReceivedInfoModalSelectorsIDs } from './BatchSellMinimumReceivedInfoModal.testIds';
 import { BatchSellMinimumReceivedInfoModalParams } from './BatchSellMinimumReceivedInfoModal.types';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellMinimumReceivedInfoModal() {
   const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellMinimumReceivedInfoModalParams>();
   const handleBack = sourceModal
-    ? () => navigation.replace(sourceModal.screen, sourceModal.params)
+    ? () => navigation.replace(sourceModal.screen)
     : undefined;
-  const surfaceClass = useElevatedSurface();
-
   return (
     <BottomSheet
       testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onBack={handleBack}

@@ -441,6 +441,92 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('categorizes a sped-up (retry) replacement by its originalType once the original is dropped', () => {
+    // After the replacement confirms, the original send is dropped from the
+    // list, so the retry becomes both the initial and primary transaction. A
+    // retry preserves the original txParams, so it must still render as a Send
+    // (not the contractInteraction default) with the correct amount/recipient.
+    const transaction = {
+      chainId: mainnet,
+      id: 'retry-id',
+      hash: '0xspedup',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.retry,
+      originalType: TransactionType.simpleSend,
+      txParams: {
+        from,
+        to,
+        value: '0x1',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'send',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xspedup',
+      data: {
+        from,
+        to,
+        token: {
+          amount: '0x1',
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'ETH',
+        },
+      },
+    });
+  });
+
+  it('falls back to contractInteraction for a retry with no originalType', () => {
+    const transaction = {
+      chainId: mainnet,
+      id: 'retry-id',
+      hash: '0xspedup',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.retry,
+      txParams: {
+        from,
+        to,
+        value: '0x1',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction)).type).toBe(
+      'contractInteraction',
+    );
+  });
+
+  it('does not remap a cancel replacement (zero-value self-send stays contractInteraction)', () => {
+    // Cancel rewrites txParams to a zero-value self-send, so remapping it to the
+    // original category would show a misleading amount/recipient. Left as-is
+    // pending the deeper grouping fix that retains the original transaction.
+    const transaction = {
+      chainId: mainnet,
+      id: 'cancel-id',
+      hash: '0xcancel',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.cancel,
+      originalType: TransactionType.simpleSend,
+      txParams: {
+        from,
+        to: from,
+        value: '0x0',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction)).type).toBe(
+      'contractInteraction',
+    );
+  });
+
   it('maps an approval amount from transaction calldata', () => {
     const transaction = {
       chainId: base,
@@ -477,6 +563,35 @@ describe('mapLocalTransaction', () => {
           direction: 'out',
           symbol: 'USDC',
         },
+      },
+    });
+  });
+
+  it('maps a contract deployment transaction to a contractDeployment activity', () => {
+    const transaction = {
+      chainId: base,
+      id: 'deploy-id',
+      hash: '0xdeploy',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.deployContract,
+      txParams: {
+        from,
+        data: '0x60806040',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'contractDeployment',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xdeploy',
+      data: {
+        from,
+        to: '',
       },
     });
   });
@@ -557,6 +672,46 @@ describe('mapLocalTransaction', () => {
           decimals: 6,
           direction: 'out',
           isUnlimitedApproval: true,
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('maps a zero-amount approve to a revoke spending-cap activity', () => {
+    const transaction = {
+      chainId: base,
+      id: 'revoke-id',
+      hash: '0xrevoke',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, 0n),
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'revokeSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xrevoke',
+      data: {
+        token: {
+          amount: '0',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
           symbol: 'USDC',
         },
       },
@@ -773,6 +928,247 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a typed lendingDeposit to the underlying token from simulation data', () => {
+    // Mobile tags lending deposits with TransactionType.lendingDeposit, whose tx
+    // `to` is the pool — the deposited token must come from the balance change,
+    // not the pool address (which resolves no symbol/icon).
+    const transaction = {
+      chainId: base,
+      id: 'typed-lending-deposit-id',
+      hash: '0x1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809',
+      status: TransactionStatus.confirmed,
+      time: 1779892154611,
+      type: TransactionType.lendingDeposit,
+      txParams: {
+        from,
+        to: baseAavePool,
+        value: '0x0',
+      },
+      simulationData: {
+        tokenBalanceChanges: [
+          {
+            address: baseUsdc,
+            difference: '0x186a0',
+            isDecrease: true,
+            standard: 'erc20',
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingDeposit',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779892154611,
+      hash: '0x1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809',
+      data: {
+        sourceToken: {
+          amount: '100000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('maps a typed lendingDeposit to the underlying token from the outgoing transfer log when no simulation data', () => {
+    const transaction = {
+      chainId: base,
+      hash: '0x2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1',
+      status: TransactionStatus.confirmed,
+      time: 1779892154611,
+      type: TransactionType.lendingDeposit,
+      txParams: {
+        from,
+        to: baseAavePool,
+        value: '0x0',
+      },
+      txReceipt: {
+        logs: [
+          // Transfer FROM the user (topics[1]) TO the pool (topics[2]) — the
+          // deposited token.
+          {
+            address: baseUsdc,
+            data: '0x00000000000000000000000000000000000000000000000000000000000186a0',
+            topics: [
+              erc20TransferTopic,
+              addressTopic(from),
+              addressTopic(baseAavePool),
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingDeposit',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779892154611,
+      hash: '0x2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1',
+      data: {
+        sourceToken: {
+          amount: '100000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('maps a typed lendingDeposit to the underlying token when it is transferred to the reserve aToken, not the pool', () => {
+    // Aave V3 sends the underlying from the user to the reserve aToken (not the
+    // pool the tx is addressed to), so the deposit log must still resolve when
+    // the recipient is not txParams.to.
+    const baseAToken = '0x4e65fe4dba92790696d040ac24aa414708f5c0ab';
+    const transaction = {
+      chainId: base,
+      hash: '0x4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2c3',
+      status: TransactionStatus.confirmed,
+      time: 1779892154611,
+      type: TransactionType.lendingDeposit,
+      txParams: {
+        from,
+        to: baseAavePool,
+        value: '0x0',
+      },
+      txReceipt: {
+        logs: [
+          // Transfer FROM the user (topics[1]) TO the reserve aToken (topics[2]),
+          // which is NOT the pool address the tx was sent to.
+          {
+            address: baseUsdc,
+            data: '0x00000000000000000000000000000000000000000000000000000000000186a0',
+            topics: [
+              erc20TransferTopic,
+              addressTopic(from),
+              addressTopic(baseAToken),
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingDeposit',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779892154611,
+      hash: '0x4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2c3',
+      data: {
+        sourceToken: {
+          amount: '100000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('prefers the outgoing transfer to the pool over an earlier unrelated outgoing transfer (e.g. a gas-fee token)', () => {
+    const feeToken = '0x1111111111111111111111111111111111111111';
+    const paymaster =
+      '0x0000000000000000000000002222222222222222222222222222222222222222';
+    const transaction = {
+      chainId: base,
+      hash: '0x5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2c3d4',
+      status: TransactionStatus.confirmed,
+      time: 1779892154611,
+      type: TransactionType.lendingDeposit,
+      txParams: {
+        from,
+        to: baseAavePool,
+        value: '0x0',
+      },
+      txReceipt: {
+        logs: [
+          // An unrelated outgoing transfer from the user (gas-fee token), earlier
+          // in the log — must NOT be picked as the deposited token.
+          {
+            address: feeToken,
+            data: '0x0000000000000000000000000000000000000000000000000000000000002710',
+            topics: [erc20TransferTopic, addressTopic(from), paymaster],
+          },
+          // The actual deposit: user -> pool.
+          {
+            address: baseUsdc,
+            data: '0x00000000000000000000000000000000000000000000000000000000000186a0',
+            topics: [
+              erc20TransferTopic,
+              addressTopic(from),
+              addressTopic(baseAavePool),
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction))) as {
+      data: { sourceToken?: { assetId?: string; amount?: string } };
+    };
+
+    expect(result.data.sourceToken?.assetId).toBe(
+      toAssetId(baseUsdc, 'eip155:8453'),
+    );
+    expect(result.data.sourceToken?.amount).toBe('100000');
+  });
+
+  it('maps a typed lendingDeposit with neither simulation data nor a matching transfer log to the pool-address token (prior behavior)', () => {
+    const otherSender =
+      '0x0000000000000000000000001111111111111111111111111111111111111111';
+    const transaction = {
+      chainId: base,
+      hash: '0x3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2',
+      status: TransactionStatus.confirmed,
+      time: 1779892154611,
+      type: TransactionType.lendingDeposit,
+      txParams: {
+        from,
+        to: baseAavePool,
+        value: '0x0',
+      },
+      txReceipt: {
+        logs: [
+          // A Transfer whose sender isn't the user — not the deposited token.
+          {
+            address: baseUsdc,
+            data: '0x00000000000000000000000000000000000000000000000000000000000186a0',
+            topics: [erc20TransferTopic, otherSender, addressTopic(from)],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingDeposit',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779892154611,
+      hash: '0x3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2',
+      data: {
+        sourceToken: {
+          assetId: toAssetId(baseAavePool, 'eip155:8453'),
+          direction: 'out',
+        },
+      },
+    });
+  });
+
   it('maps a withdraw contract interaction from the received token transfer', () => {
     const transaction = {
       chainId: base,
@@ -818,6 +1214,385 @@ describe('mapLocalTransaction', () => {
         },
       },
     });
+  });
+
+  it('maps a typed lendingWithdraw transaction from the received token transfer', () => {
+    // Mobile tags lending withdrawals with TransactionType.lendingWithdraw, so
+    // the explicit case (not the contractInteraction heuristic) must classify it.
+    const transaction = {
+      chainId: base,
+      hash: '0x26f4911467b538702c0945e4ec5e303de44c0c1c174897141d1b548ea3161795',
+      status: TransactionStatus.confirmed,
+      time: 1779912434153,
+      type: TransactionType.lendingWithdraw,
+      txParams: {
+        from,
+        to: baseAavePool,
+        data: '0x69328dec000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000000000000000000000000000000000000000030d400000000000000000000000009bed78535d6a03a955f1504aadba974d9a29e292',
+      },
+      txReceipt: {
+        logs: [
+          {
+            address: baseUsdc,
+            data: '0x0000000000000000000000000000000000000000000000000000000000030d40',
+            topics: [
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+              '0x0000000000000000000000004e65fe4dba92790696d040ac24aa414708f5c0ab',
+              '0x0000000000000000000000009bed78535d6a03a955f1504aadba974d9a29e292',
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingWithdrawal',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779912434153,
+      hash: '0x26f4911467b538702c0945e4ec5e303de44c0c1c174897141d1b548ea3161795',
+      data: {
+        destinationToken: {
+          amount: '200000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'in',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('maps a typed lendingWithdraw with no matching transfer log to a withdrawal without a destination token', () => {
+    const otherRecipient =
+      '0x0000000000000000000000001111111111111111111111111111111111111111';
+    const transaction = {
+      chainId: base,
+      hash: '0x9c1b7c1d9d2b3a4c5e6f70819293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c',
+      status: TransactionStatus.confirmed,
+      time: 1779912434153,
+      type: TransactionType.lendingWithdraw,
+      txParams: {
+        from,
+        to: baseAavePool,
+        data: '0x69328dec',
+      },
+      txReceipt: {
+        logs: [
+          // Log with no topics — exercises the missing event-topic / `to` branch.
+          {
+            address: baseUsdc,
+            data: '0x0000000000000000000000000000000000000000000000000000000000030d40',
+            topics: [],
+          },
+          // A Transfer to someone other than the sender — not the received token.
+          {
+            address: baseUsdc,
+            data: '0x0000000000000000000000000000000000000000000000000000000000030d40',
+            topics: [
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+              '0x0000000000000000000000004e65fe4dba92790696d040ac24aa414708f5c0ab',
+              otherRecipient,
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingWithdrawal',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779912434153,
+      hash: '0x9c1b7c1d9d2b3a4c5e6f70819293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c',
+      data: {
+        destinationToken: undefined,
+      },
+    });
+  });
+
+  it('maps a typed lendingWithdraw with no receipt logs to a withdrawal without a destination token', () => {
+    const transaction = {
+      chainId: base,
+      hash: '0x5a6b7c8d9e0f10213243546576879a0b1c2d3e4f5061728394a5b6c7d8e9f001',
+      status: TransactionStatus.confirmed,
+      time: 1779912434153,
+      type: TransactionType.lendingWithdraw,
+      txParams: {
+        from,
+        to: baseAavePool,
+        data: '0x69328dec',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingWithdrawal',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779912434153,
+      hash: '0x5a6b7c8d9e0f10213243546576879a0b1c2d3e4f5061728394a5b6c7d8e9f001',
+      data: {
+        destinationToken: undefined,
+      },
+    });
+  });
+
+  it('maps an EIP-7702 upgrade (authorizationList) to a smart account upgrade activity with the gas shown as a native amount', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgrade',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+      txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('smartAccountUpgrade');
+    // Renders like any other tx: native-asset avatar + the gas paid as the
+    // (negative) row amount.
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        from,
+        to,
+        token: expect.objectContaining({
+          direction: 'out',
+          symbol: 'ETH',
+          amount: expect.any(String),
+        }),
+        fees: expect.any(Array),
+      }),
+    );
+  });
+
+  it('uses the gasToken fee amount for a gasless EIP-7702 smart account upgrade', () => {
+    const gasTokenAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgradegasless',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      selectedGasFeeToken: gasTokenAddress,
+      gasFeeTokens: [
+        {
+          tokenAddress: gasTokenAddress,
+          amount: '0x64',
+          decimals: 18,
+          symbol: 'mUSD',
+          balance: '0x0',
+          gas: '0x0',
+          maxFeePerGas: '0x0',
+          maxPriorityFeePerGas: '0x0',
+          rateWei: '0x0',
+          recipient: '0x1',
+        },
+      ],
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('smartAccountUpgrade');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          direction: 'out',
+          amount: '100',
+        }),
+        fees: [
+          expect.objectContaining({
+            type: 'gasToken',
+            amount: '100',
+            symbol: 'mUSD',
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('keeps the action label for a batch that also performs a recognised action', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgradedeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+      nestedTransactions: [
+        { type: TransactionType.predictDeposit, to, data: '0x' },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction)).type).toBe(
+      'predictionsAddFunds',
+    );
+  });
+
+  it('maps a staking deposit to a stake activity with the network fee', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xstakedeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingDeposit,
+      txParams: { from, to },
+      txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction))).toEqual(
+      expect.objectContaining({
+        type: 'stake',
+        data: expect.objectContaining({ fees: expect.any(Array) }),
+      }),
+    );
+  });
+
+  it('maps a staking claim to a Claim activity with the native ETH amount from the simulation', () => {
+    const claimedWei = `0x${(10n ** 15n).toString(16)}`;
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xstakeclaim',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingClaim,
+      txParams: { from, to },
+      simulationData: {
+        nativeBalanceChange: {
+          previousBalance: '0x0',
+          newBalance: claimedWei,
+          difference: claimedWei,
+          isDecrease: false,
+        },
+        tokenBalanceChanges: [],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('claim');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'in',
+          amount: claimedWei,
+        }),
+      }),
+    );
+  });
+
+  it('maps a staking unstake to an Unstake activity with the native ETH amount from calldata', () => {
+    const oneEthShares = (10n ** 18n).toString(16).padStart(64, '0');
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstake',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      txParams: {
+        from,
+        to,
+        value: '0',
+        data: `0x12345678${oneEthShares}${'0'.repeat(64)}`,
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'in',
+          amount: `0x${(10n ** 18n).toString(16)}`,
+        }),
+      }),
+    );
+  });
+
+  it('omits the unstake amount when the calldata is missing or too short', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstakenodata',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      txParams: { from, to, value: '0' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the unstake amount when the shares calldata is not valid hex', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstakebadhex',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      // 0x + 8-char selector + 64 non-hex chars -> BigInt() throws -> undefined.
+      txParams: { from, to, value: '0', data: `0x12345678${'z'.repeat(64)}` },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the claim amount when there is no native balance increase', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xclaimnosim',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingClaim,
+      txParams: { from, to },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('claim');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the native token when the chain has no resolvable native symbol', () => {
+    const transaction = {
+      chainId: '0xffffff',
+      hash: '0xstakenosymbol',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingDeposit,
+      txParams: { from, to, value: '0xde0b6b3a7640000' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(
+      makeGroup(transaction, { nativeAssetSymbol: undefined }),
+    );
+    expect(result.type).toBe('stake');
+    const { token } = result.data as { token?: unknown };
+    expect(token).toBeUndefined();
   });
 
   it('uses a bridge history activity status override', () => {

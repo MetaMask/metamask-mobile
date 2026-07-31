@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Button,
   ButtonSize,
@@ -15,7 +16,7 @@ import {
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
 function useOpenWebview() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   return useCallback(
     ({ title, url }: { title?: string; url: string }) => {
       navigation.navigate(Routes.WEBVIEW.MAIN, {
@@ -159,15 +160,16 @@ export function ActivityDetailsBridgeExplorerButtons({
 }
 
 /**
- * Primary "do it again" CTA. The action target is type-specific (swap → swap,
- * send → send), so per-type templates supply `onPress`; the generic fallback
- * omits it.
+ * Primary "do it again" CTA. Both the action target and the verb are
+ * transaction-type-specific (swap → "Swap again", bridge → "Bridge again",
+ * etc.), so callers must supply an explicit `label` — there is intentionally
+ * no generic fallback copy.
  */
 export function ActivityDetailsDoItAgainButton({
   label,
   onPress,
 }: {
-  label?: string;
+  label: string;
   onPress: () => void;
 }) {
   return (
@@ -178,7 +180,7 @@ export function ActivityDetailsDoItAgainButton({
       onPress={onPress}
       testID={ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON}
     >
-      {label ?? strings('activity_details.do_it_again')}
+      {label}
     </Button>
   );
 }

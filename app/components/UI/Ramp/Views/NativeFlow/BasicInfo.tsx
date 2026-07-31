@@ -8,6 +8,7 @@ import React, {
 import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Text,
   TextVariant,
@@ -23,7 +24,10 @@ import {
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  useParams,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
@@ -31,7 +35,6 @@ import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
 import { VALIDATION_REGEX } from '../../constants/transak';
-import { formatNumberToTemplate } from '../../utils/formatNumberToTemplate';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { timestampToTransakFormat } from '../../utils/depositUtils';
@@ -44,6 +47,7 @@ import { TextVariant as ComponentLibraryTextVariant } from '../../../../../compo
 import { useTransakController } from '../../hooks/useTransakController';
 import useRampsController from '../../hooks/useRampsController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
+import { useRampsCountries } from '../../hooks/useRampsCountries';
 import {
   getTransakApiMessage,
   isTransakPhoneRegisteredError,
@@ -54,6 +58,7 @@ import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
+import PhoneField from './components/PhoneField';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -63,7 +68,7 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
-interface V2BasicInfoParams {
+export interface V2BasicInfoParams {
   quote: TransakBuyQuote;
   previousFormData?: BasicInfoFormData & AddressFormData;
   /**
@@ -74,8 +79,8 @@ interface V2BasicInfoParams {
   headlessSessionId?: string;
 }
 
-const V2BasicInfo = (): JSX.Element => {
-  const navigation = useNavigation();
+const V2BasicInfo = (): React.JSX.Element => {
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData, headlessSessionId } =
@@ -84,6 +89,7 @@ const V2BasicInfo = (): JSX.Element => {
     useTransakController();
   const { selectedToken } = useRampsController();
   const { userRegion } = useRampsUserRegion();
+  const { countries } = useRampsCountries();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
@@ -273,8 +279,9 @@ const V2BasicInfo = (): JSX.Element => {
   const handleLogout = useCallback(async () => {
     try {
       await logoutFromProvider(false);
-      navigation.navigate(
-        ...createV2EnterEmailNavDetails(enterEmailParamsForLogout),
+      navigateWithDetails(
+        navigation,
+        createV2EnterEmailNavDetails(enterEmailParamsForLogout),
       );
     } catch (logoutError) {
       Logger.error(
@@ -314,30 +321,13 @@ const V2BasicInfo = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
-  const phonePrefix = userRegion?.country?.phone?.prefix ?? '';
-  const phoneTemplate =
-    userRegion?.country?.phone?.template ?? '(XXX) XXX-XXXX';
-
-  const rawPhoneDigits = phonePrefix
-    ? formData.mobileNumber
-        .replace(/\D/g, '')
-        .replace(new RegExp(`^${phonePrefix.replace(/\D/g, '')}`), '')
-    : formData.mobileNumber.replace(/\D/g, '');
-  const formattedPhoneValue = formatNumberToTemplate(
-    rawPhoneDigits,
-    phoneTemplate,
-  );
-
-  const handlePhoneChange = useCallback(
-    (text: string) => {
-      const digits = text.replace(/\D/g, '');
-      const fullNumber = phonePrefix ? phonePrefix + digits : digits;
-      handleFieldChange(
-        'mobileNumber',
-        focusNextField(dateInputRef),
-      )(fullNumber);
+  const handlePhoneNumberChange = useCallback(
+    (mobileNumber: string) => {
+      setError(null);
+      setIsPhoneRegisteredError(false);
+      handleFormDataChange('mobileNumber')(mobileNumber);
     },
-    [phonePrefix, handleFieldChange, focusNextField, dateInputRef],
+    [handleFormDataChange],
   );
 
   return (
@@ -420,32 +410,18 @@ const V2BasicInfo = (): JSX.Element => {
               />
             </View>
 
-            <DepositTextField
+            <PhoneField
               label={strings('deposit.basic_info.phone_number')}
-              placeholder={
-                userRegion?.country?.phone?.placeholder ??
-                strings('deposit.basic_info.enter_phone_number')
-              }
-              value={formattedPhoneValue}
-              onChangeText={handlePhoneChange}
+              value={formData.mobileNumber}
+              onChangeText={handlePhoneNumberChange}
+              countries={countries}
+              fallbackCountry={userRegion?.country}
+              initialNumber={previousFormData?.mobileNumber}
               error={errors.mobileNumber}
               ref={phoneInputRef}
+              testID={BASIC_INFO_TEST_IDS.PHONE_INPUT}
+              countrySelectorTestID={BASIC_INFO_TEST_IDS.PHONE_COUNTRY_SELECTOR}
               onSubmitEditing={focusNextField(dateInputRef)}
-              keyboardType="phone-pad"
-              textContentType="telephoneNumber"
-              autoComplete="tel"
-              startAccessory={
-                userRegion?.country?.flag ? (
-                  <View style={styles.phoneFlagRow}>
-                    <Text style={styles.phoneFlagEmoji}>
-                      {userRegion.country.flag}
-                    </Text>
-                    {phonePrefix ? (
-                      <Text style={styles.phonePrefix}>{phonePrefix}</Text>
-                    ) : null}
-                  </View>
-                ) : undefined
-              }
             />
 
             <DepositDateField

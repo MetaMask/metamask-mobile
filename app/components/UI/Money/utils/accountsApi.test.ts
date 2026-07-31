@@ -1,4 +1,4 @@
-import { parseAccountsApiActivity } from './accountsApi';
+import { oldestRawActivityTime, parseAccountsApiActivity } from './accountsApi';
 
 const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
@@ -340,8 +340,8 @@ describe('parseAccountsApiActivity', () => {
     expect(parseAccountsApiActivity({}, MONEY_ADDRESS)).toEqual([]);
   });
 
-  it('drops a card payment with no leg leaving the money account (e.g. a refund)', () => {
-    // Arrange — funds move TO the money account; not a card outflow.
+  it('maps a card payment with an inbound mUSD leg to a refund (a reversed spend)', () => {
+    // Arrange — mUSD moves back TO the money account; a spend was refunded.
     const response = {
       data: [
         {
@@ -351,6 +351,46 @@ describe('parseAccountsApiActivity', () => {
               ...cardPaymentRow.valueTransfers[0],
               from: SETTLEMENT_ADDRESS.toLowerCase(),
               to: MONEY_ADDRESS.toLowerCase(),
+            },
+          ],
+        },
+      ],
+    };
+
+    // Act
+    const result = parseAccountsApiActivity(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(result).toEqual([
+      {
+        kind: 'refund',
+        hash: cardPaymentRow.hash,
+        time: Date.parse('2026-06-04T11:53:51.000Z'),
+        chainId: '0x8f',
+        token: {
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          symbol: 'mUSD',
+          decimals: 6,
+        },
+        amount: '5381986',
+        receivedFrom: SETTLEMENT_ADDRESS.toLowerCase(),
+      },
+    ]);
+  });
+
+  it('drops a card payment whose inbound refund leg is not mUSD', () => {
+    // Arrange — inbound credit, but in a non-mUSD token: not a refund we surface.
+    const response = {
+      data: [
+        {
+          ...cardPaymentRow,
+          valueTransfers: [
+            {
+              ...cardPaymentRow.valueTransfers[0],
+              from: SETTLEMENT_ADDRESS.toLowerCase(),
+              to: MONEY_ADDRESS.toLowerCase(),
+              contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+              symbol: 'USDC',
             },
           ],
         },
@@ -435,4 +475,37 @@ describe('parseAccountsApiActivity', () => {
       expect(result).toEqual([]);
     },
   );
+});
+
+describe('oldestRawActivityTime', () => {
+  const page = (...timestamps: string[]) => ({
+    data: timestamps.map((timestamp) => ({ timestamp })),
+  });
+
+  it('returns +Infinity when no pages have been fetched', () => {
+    expect(oldestRawActivityTime([])).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('returns +Infinity when fetched pages carry no rows', () => {
+    expect(oldestRawActivityTime([{ data: [] }, {}])).toBe(
+      Number.POSITIVE_INFINITY,
+    );
+  });
+
+  it('returns the oldest raw timestamp across every page', () => {
+    const oldest = '2026-06-01T00:00:00.000Z';
+    const result = oldestRawActivityTime([
+      page('2026-06-04T00:00:00.000Z', '2026-06-03T00:00:00.000Z'),
+      page(oldest, '2026-06-02T00:00:00.000Z'),
+    ]);
+
+    expect(result).toBe(new Date(oldest).getTime());
+  });
+
+  it('ignores rows with an unparseable timestamp', () => {
+    const valid = '2026-06-02T00:00:00.000Z';
+    const result = oldestRawActivityTime([page('not-a-date', valid)]);
+
+    expect(result).toBe(new Date(valid).getTime());
+  });
 });

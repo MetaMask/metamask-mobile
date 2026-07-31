@@ -11,8 +11,8 @@ interface ExploreScrollProps {
 }
 
 /**
- * Vertical ScrollView wrapper for an Explore tab body. Owns horizontal, top, and
- * bottom padding and pull-to-refresh wiring.
+ * Vertical ScrollView wrapper for an Explore tab body. Owns top/bottom padding and
+ * pull-to-refresh wiring; horizontal inset is owned by section headers/content.
  */
 const ExploreScroll: React.FC<ExploreScrollProps> = ({
   refreshing,
@@ -26,7 +26,7 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
   return (
     <ScrollView
       testID={testID}
-      style={tw.style('flex-1 px-4 pt-3')}
+      style={tw.style('flex-1 pt-3')}
       contentContainerStyle={tw.style('pb-4')}
       showsVerticalScrollIndicator={false}
       refreshControl={

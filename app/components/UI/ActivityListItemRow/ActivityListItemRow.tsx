@@ -3,22 +3,21 @@
  * All styling and localization are Mobile-specific; data comes from the shared adapters.
  */
 import React, { useCallback } from 'react';
-import { useColorScheme } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
-import { getTransactionIcon } from '../../../util/transaction-icons';
 import { getNetworkImageSource } from '../../../util/networks';
-import { RootState } from '../../../reducers';
-import { AppThemeKey } from '../../../util/theme/models';
 import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
 import { PendingActivityListItemRow } from './PendingActivityListItemRow';
-import { resolveIconType } from './resolveIconType';
+import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import { useNftActivityImage } from './useNftActivityImage';
+import { useSubtitleAccountParts } from './useSubtitleAccountParts';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
-import type { ActivityKind } from '../../../util/activity-adapters';
+import {
+  isPerpsOrderKind,
+  type ActivityKind,
+} from '../../../util/activity-adapters';
 
 export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
 export { resolveIconType } from './resolveIconType';
@@ -31,8 +30,7 @@ function isSingleNetworkDomainKind(type: ActivityKind): boolean {
   return (
     type.startsWith('perps') ||
     type.startsWith('prediction') ||
-    type.startsWith('market') ||
-    type.startsWith('stopMarket')
+    isPerpsOrderKind(type)
   );
 }
 
@@ -63,10 +61,6 @@ function ResolvedActivityListItemRow({
   title: titleOverride,
 }: ActivityListItemRowProps) {
   const { colors, typography } = useTheme();
-  const osColorScheme = useColorScheme();
-  const appTheme = useSelector(
-    (state: RootState) => state.user.appTheme as AppThemeKey,
-  );
   const content = useActivityListItemRowContent(
     item,
     undefined,
@@ -75,13 +69,13 @@ function ResolvedActivityListItemRow({
 
   const nftImageUrl = useNftActivityImage(item);
   const styles = createStyles(colors, typography);
-  const isFailed = item.status === 'failed' || item.status === 'cancelled';
-  const icon = getTransactionIcon(
-    resolveIconType(item.type),
-    isFailed,
-    appTheme,
-    osColorScheme,
+  const subtitleParts = useSubtitleAccountParts(
+    content,
+    styles,
+    item.hash ?? index,
   );
+  const isFailed = item.status === 'failed';
+  const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = isSingleNetworkDomainKind(item.type)
     ? undefined
     : getNetworkImageSource({
@@ -96,10 +90,13 @@ function ResolvedActivityListItemRow({
     <ActivityListItemRowLayout
       avatar={
         <ActivityListItemRowIcon
-          fallbackIcon={icon}
+          fallbackIconName={fallbackIconName}
+          isFailed={isFailed}
           networkImageSource={networkImageSource}
           iconUrl={content.avatarIconUrl ?? nftImageUrl}
+          perpsMarketSymbol={content.perpsMarketSymbol}
           styles={styles}
+          testIdSuffix={item.hash ?? index ?? 0}
           tokens={content.avatarTokens}
         />
       }
@@ -110,9 +107,12 @@ function ResolvedActivityListItemRow({
       onPress={handlePress}
       primaryAmount={content.primaryAmount}
       primaryToken={content.primaryToken}
+      amountIsPnl={content.isPnlAmount}
+      amountIsMuted={content.isMutedAmount}
       secondaryAmount={content.secondaryAmount}
       styles={styles}
       subtitle={content.subtitle}
+      subtitleParts={subtitleParts}
       title={titleOverride ?? content.title}
     />
   );

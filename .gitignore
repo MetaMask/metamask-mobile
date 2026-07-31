@@ -186,6 +186,7 @@ github-tools/
 
 # AI coding agents development files
 *.local.md
+*.local.json
 temp/
 /temp/
 .agent/
@@ -220,6 +221,8 @@ release-signoffs.json
 .claude/skills/
 .claude/commands/
 .agents/skills/
+.ai-pr-analyzer/skills/*
+.ai-pr-analyzer/flaky*
 .cursor/rules/*
 !.cursor/rules/*.mdc
 .cursor/skills/

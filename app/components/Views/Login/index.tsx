@@ -79,6 +79,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -88,7 +89,10 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
-import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
+import {
+  isAndroidKeychainBiometricLockout,
+  isBiometricUnlockCancelledByUser,
+} from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 interface LoginRouteParams {
@@ -112,7 +116,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     undefined | 'Start' | 'Loader'
   >(undefined);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
@@ -125,29 +129,28 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
 
-  const handleBackPress = () => {
-    lockApp({ reset: false });
-    return false;
-  };
-
   useEffect(() => {
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    const backHandlerSubscription = BackHandler.addEventListener(
+    setStartFoxAnimation('Start');
+  }, [saveOnboardingEvent]);
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
-      handleBackPress,
+      () => {
+        lockApp({ reset: false });
+        return false;
+      },
     );
 
-    setStartFoxAnimation('Start');
-
     return () => {
-      backHandlerSubscription.remove();
+      subscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [lockApp]);
 
   useEffect(() => {
     if (Platform.OS === 'android' && !hasTestOverrides) {
@@ -171,6 +174,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       oauth_login: false,
     });
 
+    const failVaultCorruptionRecovery = (e: unknown) => {
+      trackVaultCorruption((e as Error).message, {
+        error_type: 'vault_corruption_handling_failed',
+        context: 'vault_corruption_recovery_failed',
+        oauth_login: false,
+      });
+      Logger.error(e as Error);
+      setLoading(false);
+      setError(strings('login.invalid_password'));
+    };
+
     // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
@@ -189,22 +203,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           setError(null);
           return;
         }
-        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
-      } else if (backupResult.error) {
-        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
+        failVaultCorruptionRecovery(
+          new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`),
+        );
+        return;
+      }
+      if (backupResult.error) {
+        failVaultCorruptionRecovery(
+          new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`),
+        );
       }
     } catch (e: unknown) {
-      // Track vault corruption handling failure
-      trackVaultCorruption((e as Error).message, {
-        error_type: 'vault_corruption_handling_failed',
-        context: 'vault_corruption_recovery_failed',
-        oauth_login: false,
-      });
-
-      Logger.error(e as Error);
-      setLoading(false);
-
-      setError(strings('login.invalid_password'));
+      failVaultCorruptionRecovery(e);
     }
   }, [password, navigation]);
 
@@ -233,6 +243,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
+        setLoading(false);
+        return;
+      }
+
+      if (isAndroidKeychainBiometricLockout(loginError)) {
+        setError(strings('login.biometric_too_many_attempts'));
         setLoading(false);
         return;
       }
@@ -322,9 +338,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       );
     } catch (loginErr) {
       await handleLoginError(loginErr as Error);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [
     password,
     loading,
@@ -355,9 +370,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       );
     } catch (loginerror) {
       await handleLoginError(loginerror as Error);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [unlockWallet, loading, handleLoginError]);
 
   const toggleWarningModal = () => {

@@ -1,5 +1,4 @@
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
@@ -8,6 +7,7 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
@@ -16,8 +16,8 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
+import { isPerpsPredictMoneyWithdraw } from '../../Money/utils/moneyTransactionGuards';
 import { store } from '../../../../store';
 
 function getWithdrawConfirmedDescription(transactionId: string): string {
@@ -77,18 +77,20 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
           iconName: IconName.Loading,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Spinner
-                color={ReactNativeDsIconColor.PrimaryDefault}
-                spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-              />
-            </Box>
+            <Spinner
+              color={ReactNativeDsIconColor.IconDefault}
+              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+            />
           ),
         });
         return;
       }
 
       if (status === TransactionStatus.confirmed) {
+        if (isPerpsPredictMoneyWithdraw(transactionMeta)) {
+          return;
+        }
+
         const description = getWithdrawConfirmedDescription(id);
 
         showToast({
@@ -124,16 +126,11 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
           ],
           iconName: IconName.Error,
           iconColor: theme.colors.error.default,
-          backgroundColor: theme.colors.accent04.normal,
           hasNoTimeout: false,
         });
       }
     },
-    [
-      theme.colors.accent04.normal,
-      theme.colors.error.default,
-      theme.colors.success.default,
-    ],
+    [theme.colors.error.default, theme.colors.success.default],
   );
 
   return useMemo(

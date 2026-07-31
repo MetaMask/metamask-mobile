@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -12,20 +14,34 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
-import { DeviceEventEmitter, Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+  // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
-import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from './showExtensionCancelledErrorSheet';
-
-const MOCK_SCAN_DELAY_MS = 2000;
+import Engine from '../../../core/Engine';
+import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
+import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
+import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import {
+  selectQrSyncIsBusy,
+  selectQrSyncIsSessionActive,
+  selectQrSyncPresentation,
+  selectQrSyncShouldShowOtpSheet,
+} from '../../../selectors/qrSyncController';
+import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
 const Points = ({
   number,
@@ -55,73 +71,89 @@ const Points = ({
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [deviceAdded, setDeviceAdded] = useState(false);
+  const navigation = useNavigation<AppNavigationProp>();
+  const hasOpenedVerificationSheetRef = useRef(false);
+  const isScannerOpen = useIsQrTabSwitcherOpen();
+  const presentation = useSelector(selectQrSyncPresentation);
+  const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const isBusy = useSelector(selectQrSyncIsBusy);
+  const isSessionActive = useSelector(selectQrSyncIsSessionActive);
 
-  useEffect(() => {
-    const verificationDoneSubscription = DeviceEventEmitter.addListener(
-      'addDeviceVerificationDone',
-      () => setDeviceAdded(true),
-    );
-    const resetSubscription = DeviceEventEmitter.addListener(
-      ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
-      () => setDeviceAdded(false),
-    );
-
-    return () => {
-      verificationDoneSubscription.remove();
-      resetSubscription.remove();
-    };
-  }, []);
-
-  const showVerificationSheet = useCallback(() => {
-    (navigation.navigate as (route: string, params: object) => void)(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      { screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE },
-    );
+  const handleBack = useCallback(() => {
+    Engine.context.QrSyncController.resetState();
+    navigation.goBack();
   }, [navigation]);
 
+  const showVerificationSheet = useCallback(() => {
+    showAddDeviceVerificationSheet(navigation);
+  }, [navigation]);
+
+  useEffect(() => {
+    if (!shouldShowOtpSheet || isScannerOpen) {
+      hasOpenedVerificationSheetRef.current = false;
+      return;
+    }
+
+    if (hasOpenedVerificationSheetRef.current) {
+      return;
+    }
+
+    hasOpenedVerificationSheetRef.current = true;
+    showVerificationSheet();
+  }, [shouldShowOtpSheet, isScannerOpen, showVerificationSheet]);
+
+  useQrSyncImportNavigation({
+    enabled: true,
+    deferWhileScannerOpen: true,
+    isScannerOpen,
+  });
+
+  useAddDeviceResetToInstructionsListener({
+    enabled: !isScannerOpen,
+  });
+
+  const submitQrPayload = useCallback(async (qrPayload: string) => {
+    await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
+  }, []);
+
   const onScanSuccess = useCallback(
-    (_data: ScanSuccess, _content?: string) => {
-      // TODO: replace mock with real scan handling. This is a temporary mock to simulate a scan after delay.
-      setTimeout(showVerificationSheet, 300);
+    (data: ScanSuccess, content?: string) => {
+      const scannedQrPayload = content ?? data.content ?? '';
+
+      submitQrPayload(scannedQrPayload).catch((err: unknown) => {
+        reportQrSyncFailure(err, {
+          surface: QrSyncSurfaces.SCANNER,
+          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+          source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
+        });
+      });
     },
-    [showVerificationSheet],
+    [submitQrPayload],
   );
 
   const openQRScanner = useCallback(() => {
-    navigation.navigate(
-      ...createQRScannerNavDetails({
-        initialScreen: QRTabSwitcherScreens.Scanner,
-        disableTabber: true,
-        onScanSuccess,
-        onScanError: () => {
-          if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-          }
-        },
-      }),
-    );
+    if (isSessionActive) {
+      Engine.context.QrSyncController.resetState();
+    }
 
-    // TODO: uncomment when integrating real scan
-    // Mock: simulate a scan after delay (remove when integrating real scan)
-    timerRef.current = setTimeout(() => {
-      showVerificationSheet();
-    }, MOCK_SCAN_DELAY_MS);
-  }, [navigation, onScanSuccess, showVerificationSheet]);
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Scanner,
+      disableTabber: true,
+      origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      onScanSuccess,
+    });
+  }, [navigation, onScanSuccess, isSessionActive]);
 
-  if (deviceAdded) {
+  if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: 'add-device-to-wallet-back-button' }}
-      />
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      testID={AddDeviceToWalletTestIds.SCREEN}
+    >
+      <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
           source={addDeviceToWalletImage}
@@ -166,9 +198,17 @@ const AddDeviceToWallet = () => {
           </Points>
         </Box>
 
-        <Button twClassName="w-full mt-auto" onPress={openQRScanner}>
-          {strings('app_settings.add_device.scan_qr_code_button')}
-        </Button>
+        <Box twClassName="mt-auto gap-4">
+          <Button
+            testID={AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON}
+            twClassName="w-full"
+            onPress={openQRScanner}
+            isDisabled={isBusy}
+            isLoading={isBusy}
+          >
+            {strings('app_settings.add_device.scan_qr_code_button')}
+          </Button>
+        </Box>
       </Box>
     </SafeAreaView>
   );

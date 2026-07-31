@@ -8,12 +8,20 @@ import {
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
-import { filterSupportedLeagues } from '../constants/sports';
-import { normalizeEnabledSportsMarketTypes } from '../providers/polymarket/outcomeGrouping';
+import {
+  DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+  filterSupportedLeagues,
+} from '../constants/sports';
+import {
+  normalizeEnabledSportsMarketTypes,
+  normalizeSportsMarketTypes,
+} from '../providers/polymarket/outcomeGrouping';
 import {
   parse,
   PredictFeeCollectionSchema,
+  PredictWimbledonTabSchema,
   PredictWorldCupSchema,
 } from '../schemas';
 import {
@@ -21,6 +29,7 @@ import {
   PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictWimbledonTabFlag,
 } from '../types/flags';
 import { unwrapRemoteFeatureFlag } from './flags';
 
@@ -96,6 +105,16 @@ export function resolvePredictFeatureFlags(
         extendedSportsFlag.enabledSportsMarketTypes,
       )
     : [];
+  const hasNonRegTimeSportsMarketTypes = Object.prototype.hasOwnProperty.call(
+    extendedSportsFlag,
+    'nonRegTimeSportsMarketTypes',
+  );
+  const nonRegTimeSportsMarketTypes =
+    extendedSportsMarketsEnabled && hasNonRegTimeSportsMarketTypes
+      ? normalizeSportsMarketTypes(
+          extendedSportsFlag.nonRegTimeSportsMarketTypes,
+        )
+      : normalizeSportsMarketTypes(DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES);
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
   );
@@ -127,12 +146,23 @@ export function resolvePredictFeatureFlags(
   )
     ? parsedPredictWorldCup
     : DEFAULT_PREDICT_WORLD_CUP_FLAG;
+  const parsedPredictWimbledonTab = parse(
+    unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
+    PredictWimbledonTabSchema,
+    DEFAULT_WIMBLEDON_TAB_FLAG,
+  );
+  const predictWimbledonTab = validatedVersionGatedFeatureFlag(
+    parsedPredictWimbledonTab,
+  )
+    ? parsedPredictWimbledonTab
+    : DEFAULT_WIMBLEDON_TAB_FLAG;
 
   return {
     feeCollection,
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
     enabledSportsMarketTypes,
+    nonRegTimeSportsMarketTypes,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
@@ -141,5 +171,6 @@ export function resolvePredictFeatureFlags(
     predictHomeRedesignEnabled,
     predictSportCardLivePricesEnabled,
     predictWorldCup,
+    predictWimbledonTab,
   };
 }

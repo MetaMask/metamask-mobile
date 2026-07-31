@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
@@ -28,6 +29,8 @@ jest.mock('../../../../../util/Logger', () => ({
 
 const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
 const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
+const REFRESH_SOCIAL_CACHE_ACTION =
+  'SocialService:refreshNotificationPreferencesCache';
 const CLIENT_TYPE = 'mobile';
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
@@ -39,6 +42,7 @@ const mockGetQueryData = jest.fn();
 const mockCancelQueries = jest.fn();
 const mockRefetch = jest.fn();
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 
 let queryCache: NotificationPreferences | null | undefined;
 
@@ -63,6 +67,10 @@ const buildPreferences = (
     pushNotificationsEnabled: true,
   },
   agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  priceAlerts: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
@@ -122,6 +130,9 @@ describe('useNotificationStoragePreferences', () => {
     mockCancelQueries.mockResolvedValue(undefined);
     mockRefetch.mockResolvedValue(undefined);
     mockCall.mockResolvedValue(undefined);
+    // Default: aiSocialAusCacheRefreshEnabled flag on. The hook's only
+    // useSelector call is for that flag.
+    mockUseSelector.mockReturnValue(true);
   });
 
   it('scopes the query to the active account and exposes query state', () => {
@@ -174,6 +185,63 @@ describe('useNotificationStoragePreferences', () => {
       CLIENT_TYPE,
     );
     expect(mockCall).not.toHaveBeenCalledWith(GET_ACTION);
+    expect(mockCall).toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
+  });
+
+  it('fires a best-effort Social API cache refresh only after the write succeeds', async () => {
+    const initialPreferences = buildPreferences();
+    queryCache = initialPreferences;
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
+    const persistError = new Error('network down');
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === PUT_ACTION) {
+        throw persistError;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await act(async () => {
+      try {
+        await result.current.updateSectionChannel(
+          'perps',
+          'pushNotificationsEnabled',
+          false,
+        );
+      } catch {
+        // expected — the write failed
+      }
+    });
+
+    // The AUS write failed, so there is nothing to refresh — and crucially no
+    // compensating rollback call is made.
+    expect(mockCall).not.toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
+  });
+
+  it('does not refresh the Social API cache when the feature flag is disabled', async () => {
+    mockUseSelector.mockReturnValue(false);
+    queryCache = buildPreferences();
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
+
+    const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await act(async () => {
+      await result.current.updateSectionChannel(
+        'perps',
+        'pushNotificationsEnabled',
+        false,
+      );
+    });
+
+    // The AUS write still happens...
+    expect(mockCall).toHaveBeenCalledWith(
+      PUT_ACTION,
+      expect.anything(),
+      CLIENT_TYPE,
+    );
+    // ...but the gated Social API cache-refresh does not.
+    expect(mockCall).not.toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
   });
 
   it('accepts a section updater that receives the latest cached section', async () => {

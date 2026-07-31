@@ -41,7 +41,7 @@ function TileCarousel<T>({
   const displayItems = useMemo(() => data.slice(0, max), [data, max]);
 
   return (
-    <Box twClassName="-mx-4">
+    <>
       {isLoading ? (
         <Box twClassName="px-4">
           <Skeleton />
@@ -67,7 +67,7 @@ function TileCarousel<T>({
           )}
         </ScrollView>
       )}
-    </Box>
+    </>
   );
 }
 

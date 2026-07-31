@@ -11,8 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ChartType } from './AdvancedChart.types';
 import ChartTypeToggle from './ChartTypeToggle';
-
-const QUICK_INTERVALS = ['1m', '5m', '15m', '1h', '1d'] as const;
+import { TOKEN_OVERVIEW_CHART_INTERVALS } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 
 const PILL_BASE = 'flex-row items-center justify-center rounded-xl px-2 py-1';
 
@@ -44,7 +43,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
         alignItems={BoxAlignItems.Center}
         twClassName="flex-1 gap-1"
       >
-        {QUICK_INTERVALS.map((interval) => {
+        {TOKEN_OVERVIEW_CHART_INTERVALS.map((interval) => {
           const isSelected = normalised === interval;
           return (
             <Pressable

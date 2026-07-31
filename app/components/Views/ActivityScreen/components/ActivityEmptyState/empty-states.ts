@@ -10,7 +10,6 @@ export enum ActivityEmptyStateAction {
   AddFunds = 'addFunds',
   MakePrediction = 'makePrediction',
   BrowsePerpsMarkets = 'browsePerpsMarkets',
-  TransferToMoney = 'transferToMoney',
   OpenMetamaskCard = 'openMetamaskCard',
 }
 
@@ -26,6 +25,7 @@ export interface ActivityEmptyStateConfig {
 interface GetEmptyStateArgs {
   filter: ActivityTypeFilter;
   hasFunds: boolean;
+  perpsSubFilterActive?: boolean;
 }
 
 /**
@@ -38,6 +38,7 @@ interface GetEmptyStateArgs {
 export function getActivityEmptyState({
   filter,
   hasFunds,
+  perpsSubFilterActive = false,
 }: GetEmptyStateArgs): ActivityEmptyStateConfig {
   switch (filter) {
     case ActivityTypeFilter.Predictions:
@@ -48,6 +49,14 @@ export function getActivityEmptyState({
       };
 
     case ActivityTypeFilter.Perps:
+      if (perpsSubFilterActive) {
+        return {
+          descriptionKey:
+            'activity_view.empty_state.perps_sub_filter.description',
+          actionLabelKey: 'activity_view.empty_state.perps.action',
+          action: ActivityEmptyStateAction.BrowsePerpsMarkets,
+        };
+      }
       return {
         descriptionKey: 'activity_view.empty_state.perps.description',
         actionLabelKey: 'activity_view.empty_state.perps.action',
@@ -77,21 +86,6 @@ export function getActivityEmptyState({
         actionLabelKey: 'activity_view.empty_state.buy_sell.action',
         action: ActivityEmptyStateAction.AddFunds,
       };
-
-    case ActivityTypeFilter.Money:
-      return hasFunds
-        ? {
-            descriptionKey:
-              'activity_view.empty_state.money_funded.description',
-            actionLabelKey: 'activity_view.empty_state.money_funded.action',
-            action: ActivityEmptyStateAction.TransferToMoney,
-          }
-        : {
-            descriptionKey:
-              'activity_view.empty_state.money_unfunded.description',
-            actionLabelKey: 'activity_view.empty_state.money_unfunded.action',
-            action: ActivityEmptyStateAction.TransferToMoney,
-          };
 
     case ActivityTypeFilter.MetamaskCard:
       // TODO: confirm card empty state copy with product

@@ -15,8 +15,9 @@ import {
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import {
   getPrimaryMoneylineOutcomes,
-  isDrawCapableLeague,
-} from '../../constants/sports';
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
 import {
   BASE_PREDICT_ACTION_BUTTONS_TEST_IDS,
   PREDICT_ACTION_BUTTONS_TEST_IDS,
@@ -97,44 +98,54 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       ? (moneylineOutcomes[0] ?? outcome)
       : outcome;
 
-  const isDrawCapable =
+  const isDrawCapable = Boolean(
     isGameMarket &&
-    market.game &&
-    isDrawCapableLeague(market.game.league) &&
-    moneylineOutcomes.length >= 3;
+      market.game &&
+      isDrawCapableMarket({
+        game: market.game,
+        outcomes: market.outcomes,
+      }),
+  );
 
-  const sortedOutcomes = useMemo(() => {
-    if (!isDrawCapable) {
+  const buttonResolution = useMemo(() => {
+    if (!isDrawCapable || !market.game) {
       return null;
     }
-    return [...moneylineOutcomes].sort(
-      (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-    );
-  }, [isDrawCapable, moneylineOutcomes]);
+
+    return resolvePredictSportCardButtons({
+      outcomes: market.outcomes,
+      game: market.game,
+      showDraw: true,
+    });
+  }, [isDrawCapable, market.game, market.outcomes]);
+
+  const hasResolvedDrawButtons = Boolean(
+    buttonResolution?.home && buttonResolution.draw && buttonResolution.away,
+  );
 
   const tokenIds = useMemo(() => {
-    if (sortedOutcomes) {
-      return sortedOutcomes
-        .map((marketOutcome) => marketOutcome.tokens[0]?.id)
+    if (hasResolvedDrawButtons) {
+      return [
+        buttonResolution?.home?.token,
+        buttonResolution?.draw?.token,
+        buttonResolution?.away?.token,
+      ]
+        .map((token) => token?.id)
         .filter((tokenId): tokenId is string => Boolean(tokenId));
     }
 
     return primaryOutcome.tokens.map((token) => token.id);
-  }, [sortedOutcomes, primaryOutcome.tokens]);
+  }, [buttonResolution, hasResolvedDrawButtons, primaryOutcome.tokens]);
 
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled: isMarketOpen && !isLoading,
   });
 
   const buttonConfig = useMemo<ButtonConfig | null>(() => {
-    if (sortedOutcomes && market.game) {
-      const homeOutcome = sortedOutcomes[0];
-      const drawOutcome = sortedOutcomes[1];
-      const awayOutcome = sortedOutcomes[2];
-
-      const homeToken = homeOutcome?.tokens[0];
-      const drawToken = drawOutcome?.tokens[0];
-      const awayToken = awayOutcome?.tokens[0];
+    if (hasResolvedDrawButtons && buttonResolution && market.game) {
+      const homeToken = buttonResolution.home?.token;
+      const drawToken = buttonResolution.draw?.token;
+      const awayToken = buttonResolution.away?.token;
 
       if (!homeToken || !drawToken || !awayToken) {
         return null;
@@ -206,7 +217,8 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
     primaryOutcome.tokens,
     isGameMarket,
     market.game,
-    sortedOutcomes,
+    buttonResolution,
+    hasResolvedDrawButtons,
     getPrice,
   ]);
 

@@ -19,6 +19,7 @@ export function ActivityDetailsStandardTemplate({
   fiatOnly,
   showFeesAndTotal = true,
   showTotal = true,
+  addressRows,
 }: {
   item: ActivityListItem;
   header: React.ReactNode;
@@ -26,12 +27,13 @@ export function ActivityDetailsStandardTemplate({
   fiatOnly?: boolean;
   showFeesAndTotal?: boolean;
   showTotal?: boolean;
+  addressRows?: { from?: string; to?: string };
 }) {
   return (
     <Box twClassName="flex-1">
       {header}
       <SectionDivider marginVertical={3} />
-      <ActivityDetailsMetadata item={item} />
+      <ActivityDetailsMetadata item={item} addressRows={addressRows} />
       {showFeesAndTotal ? (
         <>
           <SectionDivider marginVertical={3} />

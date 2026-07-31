@@ -2,7 +2,10 @@ import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -22,7 +25,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
-import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import MoneyIcon from '../../../../../../images/money.png';

@@ -14,6 +14,7 @@ import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import { waitForWalletHomePlaywright } from '../../flows/wallet.flow';
 import { encapsulated } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
@@ -31,7 +32,11 @@ class TabBarComponent {
   }
 
   get tabBarWalletButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+    return resolve({
+      detoxTestID: TabBarSelectorIDs.WALLET,
+      androidAppiumTestID: TabBarSelectorIDs.WALLET,
+      iosAppiumTestID: TabBarSelectorIDs.WALLET,
+    });
   }
 
   get tabBarActionButton(): EncapsulatedElementType {
@@ -91,12 +96,21 @@ class TabBarComponent {
   async tapWallet(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
+        if (FrameworkDetector.isAppium()) {
+          const walletTab = await PlaywrightMatchers.getElementById(
+            TabBarSelectorIDs.WALLET,
+            { exact: true },
+          );
+          await PlaywrightGestures.waitAndTap(walletTab, { timeout: 5_000 });
+        } else {
+          await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
+        }
+
         if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
-            timeout: 500,
+            timeout: FrameworkDetector.isAppium() ? 5_000 : 500,
           });
         }
       },

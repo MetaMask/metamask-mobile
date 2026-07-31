@@ -1,21 +1,15 @@
-import React, { useCallback, useRef } from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  BottomSheet,
-  BottomSheetHeader,
-  type BottomSheetRef,
-  Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import { ACTIVITY_TYPE_FILTER_ORDER, ActivityTypeFilter } from '../../types';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
+import { FilterOptionSheet } from '../FilterOptionSheet';
 
 export const ACTIVITY_TYPE_FILTER_LABEL_KEY: Record<
   ActivityTypeFilter,
@@ -30,71 +24,48 @@ export const ACTIVITY_TYPE_FILTER_LABEL_KEY: Record<
   [ActivityTypeFilter.Perps]: 'activity_view.type_filter.perps',
   [ActivityTypeFilter.Predictions]: 'activity_view.type_filter.predictions',
   [ActivityTypeFilter.MetamaskCard]: 'activity_view.type_filter.metamask_card',
-  [ActivityTypeFilter.Money]: 'activity_view.type_filter.money',
 };
 
-export interface ActivityTypeFilterSheetProps {
+export interface ActivityTypeFilterSheetParams {
   selected: ActivityTypeFilter;
   onSelect: (filter: ActivityTypeFilter) => void;
-  onClose: () => void;
 }
 
-const ActivityTypeFilterSheet: React.FC<ActivityTypeFilterSheetProps> = ({
-  selected,
-  onSelect,
-  onClose,
-}) => {
-  const tw = useTailwind();
-  const sheetRef = useRef<BottomSheetRef>(null);
-
-  const handleSelect = useCallback(
-    (filter: ActivityTypeFilter) => {
-      onSelect(filter);
-      sheetRef.current?.onCloseBottomSheet(onClose);
-    },
-    [onSelect, onClose],
+export const createActivityTypeFilterNavDetails =
+  createNavigationDetails<ActivityTypeFilterSheetParams>(
+    Routes.MODAL.ROOT_MODAL_FLOW,
+    Routes.SHEET.ACTIVITY_TYPE_FILTER,
   );
 
-  return (
-    <BottomSheet
-      ref={sheetRef}
-      onClose={onClose}
-      testID={ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET}
-    >
-      <BottomSheetHeader>
-        {strings('activity_view.type_filter.title')}
-      </BottomSheetHeader>
+/**
+ * Activity Type filter hosted on `ROOT_MODAL_FLOW` so it covers the tab bar
+ * when Activity is a tab (money account off). Selection is written back via a
+ * non-serializable `onSelect` callback in route params (OptionsSheet pattern).
+ */
+const ActivityTypeFilterSheet: React.FC = () => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { selected, onSelect } = useParams<ActivityTypeFilterSheetParams>();
 
-      <Box twClassName="pb-4">
-        {ACTIVITY_TYPE_FILTER_ORDER.map((filter) => {
-          const isSelected = filter === selected;
-          return (
-            <Pressable
-              key={filter}
-              onPress={() => handleSelect(filter)}
-              style={tw.style(
-                'flex-row items-center justify-between px-4 py-4',
-                isSelected && 'bg-muted',
-              )}
-              testID={`${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${filter}`}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
-            >
-              <Text variant={TextVariant.BodyMd}>
-                {strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[filter])}
-              </Text>
-              {isSelected ? (
-                <Icon
-                  name={IconName.Check}
-                  size={IconSize.Md}
-                  color={IconColor.IconDefault}
-                />
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </Box>
-    </BottomSheet>
+  const handleGoBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation]);
+
+  return (
+    <FilterOptionSheet
+      title={strings('activity_view.type_filter.title')}
+      options={ACTIVITY_TYPE_FILTER_ORDER}
+      selected={selected}
+      getLabel={(filter) => strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[filter])}
+      onSelect={onSelect}
+      onClose={() => undefined}
+      goBack={handleGoBack}
+      sheetTestID={ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET}
+      getOptionTestID={(filter) =>
+        `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${filter}`
+      }
+    />
   );
 };
 

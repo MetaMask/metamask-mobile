@@ -12,6 +12,7 @@ import PredictBetButton from '../PredictActionButtons/PredictBetButton';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import { PredictSportLineSelector } from '../PredictSportLineSelector';
 import { PREDICT_SPORT_OUTCOME_CARD_TEST_IDS } from './PredictSportOutcomeCard.testIds';
+import PredictRegTimeTag from '../PredictRegTimeTag';
 
 export interface PredictSportOutcomeButton {
   label: string;
@@ -31,6 +32,8 @@ interface PredictSportOutcomeCardProps {
   onSelectLine?: (line: number, index: number) => void;
   buttonLayout?: 'inline' | 'inlineNoSeparator' | 'stacked';
   disabled?: boolean;
+  showRegTimeTag?: boolean;
+  onPressRegTimeInfo?: () => void;
   testID?: string;
 }
 
@@ -44,6 +47,8 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
   onSelectLine,
   buttonLayout = 'inline',
   disabled = false,
+  showRegTimeTag = false,
+  onPressRegTimeInfo,
   testID = PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.CONTAINER,
 }) => {
   const showLineSelector =
@@ -60,14 +65,29 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
         twClassName="justify-between mb-3"
       >
         <Box twClassName="flex-1">
-          <Text
-            testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.TITLE}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-wrap gap-1"
           >
-            {title}
-          </Text>
+            <Text
+              testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.TITLE}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
+              {title}
+            </Text>
+            {showRegTimeTag ? (
+              <PredictRegTimeTag
+                onPress={onPressRegTimeInfo}
+                buttonTestID={
+                  PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.REG_TIME_INFO_BUTTON
+                }
+                testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.REG_TIME_TAG}
+              />
+            ) : null}
+          </Box>
           {subtitle ? (
             <Text
               testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.SUBTITLE}

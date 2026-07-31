@@ -22,6 +22,12 @@ import {
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
 import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
+import { PredictEventValues } from '../../constants/eventNames';
+import { PredictFeedBannerSelectorsIDs } from '../../components/PredictFeedBanner';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../../constants/feedBanner';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const PREDICTIONS_TITLE = 'Predictions';
@@ -35,6 +41,27 @@ const homeRedesignEnabledOverrides = {
             enabled: true,
             featureVersion: '1.0.0',
             minimumVersion: '0.0.1',
+          },
+        },
+      },
+    },
+  },
+};
+
+const feedBannerEnabledOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictFeedBanner: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            id: 'predict-view-test-message',
+            title: 'Predict service update',
+            description: 'Some markets may be temporarily unavailable.',
+            position: PredictFeedBannerPosition.AfterPortfolio,
+            severity: PredictFeedBannerSeverity.Warning,
+            dismissible: true,
           },
         },
       },
@@ -125,6 +152,27 @@ describe('PredictHome', () => {
       await findByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION);
       await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
     });
+
+    it('renders a remotely enabled feed banner', async () => {
+      const { findByTestId } = renderPredictHomeView({
+        overrides: feedBannerEnabledOverrides,
+      });
+
+      const banner = await findByTestId(PredictFeedBannerSelectorsIDs.BANNER);
+
+      expect(banner).toHaveTextContent(/Predict service update/);
+      expect(banner).toHaveTextContent(
+        /Some markets may be temporarily unavailable\./,
+      );
+    });
+
+    it('does not render the feed banner when the remote flag is disabled', () => {
+      const { queryByTestId } = renderPredictHomeView();
+
+      expect(
+        queryByTestId(PredictFeedBannerSelectorsIDs.BANNER),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('search interaction', () => {
@@ -165,6 +213,56 @@ describe('PredictHome', () => {
 
       expect(openedCall).toBeDefined();
       expect(openedCall?.entryPoint).toBeUndefined();
+    });
+  });
+
+  describe('analytics', () => {
+    it('tracks the redesigned home viewed on focus', async () => {
+      // The shared Engine mock is not reset between tests in this suite, so
+      // clear this spy to assert this render fires exactly one home-viewed.
+      (
+        Engine.context.PredictController.trackHomeViewed as jest.Mock
+      ).mockClear();
+
+      renderPredictHomeView();
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackHomeViewed,
+        ).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('tracks a section-viewed impression once it dwells in the viewport', async () => {
+      const { findByTestId, getByTestId } = renderPredictHomeView();
+
+      // Establish the scroll viewport height.
+      const scrollView = getByTestId(PredictHomeSelectorsIDs.SCROLL_VIEW);
+      fireEvent(scrollView, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 800 } },
+      });
+
+      // Measure the Trending section fully within the viewport.
+      const trendingWrapper = await findByTestId(
+        PredictHomeSelectorsIDs.TRENDING_IMPRESSION,
+      );
+      fireEvent(trendingWrapper, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 100, width: 400, height: 300 } },
+      });
+
+      // After the dwell period the impression fires exactly once.
+      await waitFor(
+        () => {
+          expect(
+            Engine.context.PredictController.trackHomeSectionInteraction,
+          ).toHaveBeenCalledWith({
+            sectionId: PredictEventValues.SECTION_ID.TRENDING,
+            actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+            entryPoint: undefined,
+          });
+        },
+        { timeout: 2000 },
+      );
     });
   });
 

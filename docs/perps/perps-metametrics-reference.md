@@ -113,8 +113,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
 - `market_insights_displayed` (optional): Whether market insights content is displayed on the screen (boolean, used for asset_details screen)
-- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
-- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
+- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
 
 ### 2. PERPS_UI_INTERACTION
 
@@ -154,7 +153,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Discovery section header values** _(`PERPS_EVENT_VALUE.BUTTON_CLICKED`)_: `'watchlist'` | `'top_movers'` | `'whats_happening'`
   - **Market list filter values:** `'all'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'watchlist'` (used with `interaction_type = market_list_filter`)
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
-  - **Discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — magnifying glass button on the asset details screen
+  - **Legacy discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — formerly the magnifying-glass button on the asset details screen. That button was replaced by the market-list arrow, which now reports `button_location = 'perp_market_details'` with `button_clicked = 'market_list'`.
 - `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(`PERPS_EVENT_PROPERTY.RESULT_COUNT`.)_
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
@@ -174,8 +173,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `completion_duration_tutorial` (optional): Time spent in tutorial (number)
 - `steps_viewed` (optional): Number of tutorial steps viewed (number)
 - `view_occurrences` (optional): Number of times tutorial was viewed (number)
-- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short or Place Order button (for engagement tracking)
-- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
+- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
 
 ### 3. PERPS_TRADE_TRANSACTION
 
@@ -357,47 +355,11 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 
 ## Multiple Concurrent Tests
 
-### Flat Property Pattern
+### Canonical `active_ab_tests` Pattern
 
-To support multiple AB tests running concurrently (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties** instead of generic properties.
+Perps A/B tests (e.g., TAT-1937 button colors) follow the canonical MetaMask Mobile A/B testing standard (see [`docs/ab-testing.md`](../ab-testing.md)) rather than a Perps-local flat-property pattern. Each test is registered once in `app/util/analytics/abTestAnalyticsRegistry.ts` with the events it should be attached to; `active_ab_tests` is then injected automatically onto every matching event when the test is active — no manual per-event wiring is required in the view components.
 
-**Property Naming:** `ab_test_{test_name}` (no `_enabled` suffix needed)
-
-**Why no `_enabled` property?**
-
-- Events are only sent when test is enabled (`isEnabled === true`)
-- Including the property means the test is active
-- No need for redundant `_enabled` flag
-
-**Example with 3 concurrent tests:**
-
-```typescript
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
-
-usePerpsEventTracking({
-  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-  properties: {
-    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-      PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
-    [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
-    // Test 1: Button color test (TAT-1937) - only included when enabled
-    ...(isButtonColorTestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-    }),
-    // Test 2: Asset CTA test (TAT-1940) - future
-    ...(isAssetCTATestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_ASSET_CTA]: assetCTAVariant,
-    }),
-    // Test 3: Homepage CTA test (TAT-1827) - future
-    ...(isHomepageCTATestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
-    }),
-  },
-});
-```
+To run multiple concurrent tests, register each test's mapping in the registry; `enrichWithABTests()` appends an entry per active test to the shared `active_ab_tests` array on any event that matches one of the registered `eventNames`.
 
 ### Where to Track AB Tests
 
@@ -406,13 +368,12 @@ usePerpsEventTracking({
 **Dual Tracking Approach:**
 
 1. **PERPS_SCREEN_VIEWED** (baseline exposure):
-   - Include `ab_test_button_color` when test is enabled
+   - `active_ab_tests` is auto-injected when the test is active
    - Establishes how many users were exposed to each variant
    - Required to calculate engagement rate
 
 2. **PERPS_UI_INTERACTION** (engagement):
-   - Include `ab_test_button_color` when user taps Long/Short or Place Order button
-   - Only sent when test is enabled
+   - `active_ab_tests` is auto-injected when the test is active and user taps Long/Short or Place Order button
    - Measures which variant drives more button presses
 
 **Why Both Events?**
@@ -529,22 +490,22 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 
 ### Button Location Values
 
-| Value                      | Description                                    |
-| -------------------------- | ---------------------------------------------- |
-| `'perps_home'`             | Perps home screen                              |
-| `'perps_tutorial'`         | Tutorial screen                                |
-| `'perps_home_empty_state'` | Perps home empty state (no balance)            |
-| `'perps_asset_screen'`     | Asset details screen                           |
-| `'perps_tab'`              | Positions tab                                  |
-| `'trade_menu_action'`      | Trade menu action button                       |
-| `'wallet_home'`            | Wallet home screen                             |
-| `'market_list'`            | Market list screen                             |
-| `'screen'`                 | Generic screen location                        |
-| `'tooltip'`                | Tooltip bottom sheet                           |
-| `'perp_market_details'`    | Market details screen                          |
-| `'order_book'`             | Order book screen                              |
-| `'full_screen_chart'`      | Full screen chart view                         |
-| `'asset_details'`          | Asset details screen — magnifying glass button |
+| Value                      | Description                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `'perps_home'`             | Perps home screen                                                                                                                         |
+| `'perps_tutorial'`         | Tutorial screen                                                                                                                           |
+| `'perps_home_empty_state'` | Perps home empty state (no balance)                                                                                                       |
+| `'perps_asset_screen'`     | Asset details screen                                                                                                                      |
+| `'perps_tab'`              | Positions tab                                                                                                                             |
+| `'trade_menu_action'`      | Trade menu action button                                                                                                                  |
+| `'wallet_home'`            | Wallet home screen                                                                                                                        |
+| `'market_list'`            | Market list screen                                                                                                                        |
+| `'screen'`                 | Generic screen location                                                                                                                   |
+| `'tooltip'`                | Tooltip bottom sheet                                                                                                                      |
+| `'perp_market_details'`    | Market details screen                                                                                                                     |
+| `'order_book'`             | Order book screen                                                                                                                         |
+| `'full_screen_chart'`      | Full screen chart view                                                                                                                    |
+| `'asset_details'`          | Legacy — former magnifying-glass button on the asset details screen (replaced by the market-list arrow reporting `'perp_market_details'`) |
 
 ### Usage Example
 

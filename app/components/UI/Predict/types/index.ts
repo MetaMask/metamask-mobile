@@ -153,15 +153,25 @@ export type PredictCategory =
   | 'crypto'
   | 'politics'
   | 'hot'
-  | 'world-cup';
+  | 'world-cup'
+  | 'wimbledon';
 
 // Sports league types
 export type PredictSportsLeague =
   | 'nfl'
+  | 'cfb'
+  | 'cfl'
   | 'nba'
   | 'wnba'
   | 'mlb'
+  | 'kbo'
+  | 'npb'
+  | 'cpbl'
   | 'nhl'
+  | 'shl'
+  | 'khl'
+  | 'cehl'
+  | 'dehl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -174,6 +184,8 @@ export type PredictSportsLeague =
   | 'bun'
   | 'chi'
   | 'epl'
+  | 'elc'
+  | 'bel1'
   | 'cze1'
   | 'j1100'
   | 'j2100'
@@ -203,7 +215,12 @@ export type PredictSportsLeague =
   | 'fifwc'
   | 'atp'
   | 'wta'
-  | 'itf';
+  | 'itf'
+  | 'cs2'
+  | 'lol'
+  | 'dota2'
+  | 'val'
+  | 'r6siege';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -328,6 +345,7 @@ export type PredictOutcomeToken = {
   id: string;
   title: string;
   shortTitle?: string;
+  image?: string;
   /**
    * Mid price = implied probability / quoted odds. Use this for "% chance" and
    * odds display so it matches the chart and Polymarket.
@@ -340,6 +358,20 @@ export type PredictOutcomeToken = {
    */
   buyPrice?: number;
 };
+
+export type PredictMarketBuyButtonPressParams = {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
+};
+
+/**
+ * Called when the user taps a buy button (before the betslip opens).
+ * Return `true` to handle the buy flow externally and skip the default sheet.
+ */
+export type PredictMarketBuyButtonPress = (
+  params: PredictMarketBuyButtonPressParams,
+) => boolean | void;
 
 export interface PredictActivity {
   id: string;
@@ -359,24 +391,22 @@ export type PredictActivityEntry =
   | PredictActivitySell
   | PredictActivityClaimWinnings;
 
-export interface PredictActivityBuy {
-  type: 'buy';
+export interface PredictActivityTrade {
   timestamp: number;
   marketId: string;
   outcomeId: string;
   outcomeTokenId: number;
   amount: number;
   price: number;
+  size?: number;
 }
 
-export interface PredictActivitySell {
+export interface PredictActivityBuy extends PredictActivityTrade {
+  type: 'buy';
+}
+
+export interface PredictActivitySell extends PredictActivityTrade {
   type: 'sell';
-  timestamp: number;
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: number;
-  amount: number;
-  price: number;
 }
 
 export interface PredictActivityClaimWinnings {
@@ -632,6 +662,8 @@ export interface PredictMarketListParams {
   // search stays on the same feed endpoint (handled in the provider layer, not
   // the UI). Blank/whitespace is ignored (browse mode).
   search?: string;
+  /** Raw Polymarket query params that override matching generated params. */
+  customQueryParams?: string;
   limit?: number;
   afterCursor?: string | null;
 }
@@ -773,6 +805,8 @@ export interface ConnectionStatus {
   marketConnected: boolean;
   rtdsConnected: boolean;
 }
+
+export type ConnectionStatusCallback = (status: ConnectionStatus) => void;
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;

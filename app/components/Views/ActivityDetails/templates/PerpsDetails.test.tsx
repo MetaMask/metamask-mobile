@@ -96,6 +96,10 @@ describe('PerpsDetails', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
+    ).toHaveTextContent('Confirmed');
   });
 
   it('renders canceled order rows and try-again CTA', () => {
@@ -180,6 +184,58 @@ describe('PerpsDetails', () => {
     expect(getByText('$1.229')).toBeOnTheScreen();
     expect(getByText('$2.345')).toBeOnTheScreen();
     expect(getByText('$0.005')).toBeOnTheScreen();
+  });
+
+  it('shows a filled order as "Filled" in the status row, not "Confirmed"', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-filled',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Market short',
+      order: {
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'market',
+        size: '10',
+        limitPrice: '90000',
+        filled: '100%',
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    const statusPill = getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL);
+    expect(statusPill).toHaveTextContent('Filled');
+    expect(statusPill).not.toHaveTextContent('Confirmed');
+  });
+
+  it('labels a rejected order "Rejected" in the status row (not "Failed")', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-rejected',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Market short',
+      order: {
+        text: PerpsOrderTransactionStatus.Rejected,
+        statusType: PerpsOrderTransactionStatusType.Canceled,
+        type: 'market',
+        size: '10',
+        limitPrice: '90000',
+        filled: '0%',
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction, 'failed')} />,
+    );
+
+    const statusPill = getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL);
+    expect(statusPill).toHaveTextContent('Rejected');
+    expect(statusPill).not.toHaveTextContent('Failed');
   });
 
   it('renders funds movement metadata and best-effort steps', () => {

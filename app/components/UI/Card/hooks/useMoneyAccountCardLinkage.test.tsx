@@ -1396,6 +1396,31 @@ describe('useMoneyAccountCardLinkage', () => {
       });
     });
 
+    it('fails closed when revoking but the current primary Money Account is not delegated', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: false }));
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+        entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        reason: CardLinkingFailureReason.PRECONDITION_FAILED,
+        is_revoke: true,
+      });
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+      });
+    });
+
     it('still submits the delegation when already delegated (Manage Limit update / revoke path)', async () => {
       applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
       const { result } = renderLinkageHook();
@@ -1472,6 +1497,87 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).toHaveBeenLastCalledWith(
         expect.objectContaining({
           labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+        }),
+      );
+    });
+  });
+
+  describe('confirmLinkInBackground - update spending limit', () => {
+    it('shows the update pending + success toasts for a non-zero amount on an already-linked card', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      let resolveLink: (() => void) | undefined;
+      mockLinkMoneyAccountCard.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const { result } = renderLinkageHook();
+
+      let linkPromise: Promise<boolean> | undefined;
+      await act(async () => {
+        linkPromise = result.current.confirmLinkInBackground({
+          delegationAmountHuman: '250',
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Updating your spending limit' }],
+        }),
+      );
+
+      await act(async () => {
+        resolveLink?.();
+        await linkPromise;
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Your spending limit was updated' }],
+        }),
+      );
+    });
+
+    it('shows the update error toast when the update submission fails', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('update boom'));
+
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '250',
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            { label: 'Something went wrong updating your spending limit' },
+          ],
+        }),
+      );
+    });
+
+    it('still shows the link toast for a non-zero amount when the card is not yet linked', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: false }));
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '250',
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Your card is ready to use' }],
         }),
       );
     });

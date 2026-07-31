@@ -141,9 +141,6 @@ const mockToastRef = {
 };
 
 let pendingClaimValue: string | undefined;
-const pendingClaimSelectorMock = ((_) => pendingClaimValue) as ReturnType<
-  typeof selectPredictPendingClaimByAddress
->;
 
 const setUseSelectorState = ({
   selectedAccountGroupId = 'test-account-group-id',
@@ -159,11 +156,7 @@ const setUseSelectorState = ({
       return selectedAccountGroupId;
     }
 
-    if (selector === pendingClaimSelectorMock) {
-      return pendingClaim;
-    }
-
-    return undefined;
+    return selector({});
   });
 };
 
@@ -195,8 +188,8 @@ describe('usePredictClaim', () => {
       address: '0xTestAddress',
     } as ReturnType<typeof getEvmAccountFromSelectedAccountGroup>);
 
-    mockSelectPredictPendingClaimByAddress.mockReturnValue(
-      pendingClaimSelectorMock,
+    mockSelectPredictPendingClaimByAddress.mockImplementation(
+      () => pendingClaimValue,
     );
 
     setUseSelectorState({ pendingClaim: undefined });
@@ -353,9 +346,10 @@ describe('usePredictClaim', () => {
       renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
-      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith({
-        address: '0xTestAddress',
-      });
+      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith(
+        expect.any(Object),
+        '0xTestAddress',
+      );
     });
 
     it('uses an empty selector key when no EVM account is selected', () => {
@@ -365,9 +359,10 @@ describe('usePredictClaim', () => {
       renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
-      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith({
-        address: '',
-      });
+      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith(
+        expect.any(Object),
+        '',
+      );
     });
   });
 

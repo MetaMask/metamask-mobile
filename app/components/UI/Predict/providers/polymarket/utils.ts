@@ -29,12 +29,16 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
-  getNegRiskMoneylineTeamLogo,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
-  resolveNegRiskMoneylineShortTitles,
+  isSpreadLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import { getTokenImage } from '../../utils/sports';
+import {
+  getSportsMarketTeamLogo,
+  resolveNegRiskMoneylineShortTitles,
+} from './sportsUtils';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -75,11 +79,15 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  RoundConfig,
   TickSize,
   OrderBook,
 } from './types';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG } from '../../constants/flags';
+import {
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+  PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
+} from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
 import { roundToFiveDecimals } from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
@@ -566,6 +574,65 @@ export const calculateConservativeBuyMarketFee = ({
   return roundToFiveDecimals(conservativeMarketFee);
 };
 
+export const calculateConservativeSellMarketFee = ({
+  preview,
+  marketInfo,
+}: {
+  preview: OrderPreview;
+  marketInfo?: ClobMarketInfo;
+}): number => {
+  if (preview.side !== Side.SELL || !isValidFeeMetadata(marketInfo)) {
+    return 0;
+  }
+
+  const shareAmount = preview.maxAmountSpent;
+  const minAmountReceivedWithSlippage =
+    getMinAmountReceivedWithSlippage(preview);
+
+  if (
+    shareAmount <= 0 ||
+    preview.minAmountReceived <= 0 ||
+    minAmountReceivedWithSlippage <= 0
+  ) {
+    return 0;
+  }
+
+  const snapshotAvgPrice = preview.minAmountReceived / shareAmount;
+  const worstAllowedAvgPrice = minAmountReceivedWithSlippage / shareAmount;
+  const leftEndpoint = Math.min(snapshotAvgPrice, worstAllowedAvgPrice);
+  const rightEndpoint = Math.max(snapshotAvgPrice, worstAllowedAvgPrice);
+
+  if (
+    !Number.isFinite(leftEndpoint) ||
+    !Number.isFinite(rightEndpoint) ||
+    leftEndpoint <= 0 ||
+    rightEndpoint >= 1
+  ) {
+    return 0;
+  }
+
+  const { r: rate, e: exponent } = marketInfo.fd;
+  const candidates = [leftEndpoint, rightEndpoint];
+
+  // With a fixed share count, the fee curve is symmetric and peaks at 0.5.
+  if (exponent > 0 && leftEndpoint < 0.5 && rightEndpoint > 0.5) {
+    candidates.push(0.5);
+  }
+
+  const conservativeMarketFee = Math.max(
+    ...candidates.map((price) =>
+      calculateMarketFeeAtPrice({
+        amountUsd: shareAmount * price,
+        rate,
+        exponent,
+        price,
+      }),
+    ),
+  );
+
+  return roundToFiveDecimals(conservativeMarketFee);
+};
+
 export const getOrderBook = async ({
   tokenId,
   clobVersion = 'v1',
@@ -644,6 +711,12 @@ function replaceAll(s: string, search: string, replace: string) {
 }
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
+  isSpreadLikeMarketType(market.sportsMarketType);
+
+// Ball-sport spread titles name a single team plus its line ("FC-Dallas -3.5"),
+// so the sign is redundant once tokens carry it. Esports handicap titles
+// describe both sides ("GenOne (-1.5) vs NEW VISION (+1.5)") and must keep it.
+const isBallSportSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
@@ -652,7 +725,7 @@ const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
 
-  if (isSpreadMarket(market)) {
+  if (isBallSportSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
     return groupItemTitle.replace(/-(?=\d)/, '');
@@ -809,10 +882,17 @@ const parsePolymarketMarketOutcomes = (
         shortTitle = negRiskShort.noShort;
       }
 
+      const tokenImage = getTokenImage({
+        sportsMarketType: market.sportsMarketType,
+        tokenTitle: title,
+        game,
+      });
+
       return {
         id: tokenId,
         title,
         ...(shortTitle && { shortTitle }),
+        ...(tokenImage && { image: tokenImage }),
         price: parseFloat(outcomePrices[index]),
       };
     },
@@ -911,8 +991,7 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image:
-    getNegRiskMoneylineTeamLogo(market, game) ?? market.icon ?? market.image,
+  image: getSportsMarketTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null
@@ -1022,7 +1101,7 @@ export const parsePolymarketEvents = (
 
       const outcomeGroups =
         outcomesForGroups.length > 0
-          ? buildOutcomeGroups(outcomesForGroups)
+          ? buildOutcomeGroups(outcomesForGroups, eventLeague ?? undefined)
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
@@ -1110,6 +1189,14 @@ export const parsePolymarketActivity = (
 
     const price = Number(activity.price ?? 0);
     const amount = Number(activity.usdcSize ?? 0);
+    const rawSize =
+      activity.size === undefined || activity.size === null
+        ? undefined
+        : Number(activity.size);
+    const size =
+      rawSize !== undefined && Number.isFinite(rawSize) && rawSize > 0
+        ? rawSize
+        : undefined;
 
     const outcomeId = String(activity.conditionId ?? '');
     const marketId = String(activity.conditionId ?? '');
@@ -1142,6 +1229,7 @@ export const parsePolymarketActivity = (
               outcomeTokenId,
               amount,
               price,
+              ...(size !== undefined && { size }),
             },
       title,
       outcome,
@@ -1230,6 +1318,11 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('order', 'volume24hr');
     queryParams.set('ascending', 'false');
     queryParamsEvents = queryParams.toString();
+  } else if (category === 'wimbledon') {
+    queryParamsEvents = appendCustomQueryParams(
+      queryParams,
+      customQueryParams ?? PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+    );
   } else {
     queryParams.set('active', 'true');
     queryParams.set('archived', 'false');
@@ -1240,7 +1333,7 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('volume_min', String(10000.0));
 
     const categoryParamMap: Record<
-      Exclude<PredictCategory, 'world-cup'>,
+      Exclude<PredictCategory, 'world-cup' | 'wimbledon'>,
       Record<string, string>
     > = {
       trending: { order: 'volume24hr' },
@@ -1294,6 +1387,7 @@ export const fetchEventsFromPolymarketApi = async (
  * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
+ * - `customQueryParams` overrides matching generated params while preserving repeated values. Pagination and page size remain app-controlled.
  */
 export const buildMarketListQueryParams = (
   params: PredictMarketListParams = {},
@@ -1308,11 +1402,10 @@ export const buildMarketListQueryParams = (
     limit = 20,
     afterCursor,
     search,
+    customQueryParams,
   } = params;
 
-  const queryParams = new URLSearchParams({
-    limit: String(limit),
-  });
+  const queryParams = new URLSearchParams();
 
   switch (status) {
     case 'closed':
@@ -1356,13 +1449,23 @@ export const buildMarketListQueryParams = (
     queryParams.set('live', 'true');
   }
 
-  if (afterCursor) {
-    queryParams.set('after_cursor', afterCursor);
-  }
-
   const trimmedSearch = search?.trim();
   if (trimmedSearch) {
     queryParams.set('title_search', trimmedSearch);
+  }
+
+  const customParams = new URLSearchParams(customQueryParams?.trim());
+  // Clear generated values first, then append all custom values so repeated
+  // parameters override rather than merge with generated defaults.
+  const customKeys = new Set<string>();
+  customParams.forEach((_value, key) => customKeys.add(key));
+  customKeys.forEach((key) => queryParams.delete(key));
+  customParams.forEach((value, key) => queryParams.append(key, value));
+
+  queryParams.set('limit', String(limit));
+  queryParams.delete('after_cursor');
+  if (afterCursor) {
+    queryParams.set('after_cursor', afterCursor);
   }
 
   return queryParams;
@@ -1416,6 +1519,12 @@ export interface PolymarketRelatedTag {
   id: string | number;
   label?: string;
   slug: string;
+  /**
+   * Active event count for the tag. `omit_empty=true` only drops globally-empty
+   * tags, so a tag can still surface here with zero markets under the applied
+   * params; we skip those (see `normalizeRelatedTagsToFilterOptions`).
+   */
+  activeEventsCount?: number;
 }
 
 /**
@@ -1482,6 +1591,13 @@ export const normalizeRelatedTagsToFilterOptions = (
     // Check the cap before adding so `limit: 0` yields an empty list.
     if (limit !== undefined && options.length >= limit) {
       break;
+    }
+
+    // Skip tags with no active events so empty chips (e.g. "Other") never render.
+    // Fail-open: a missing count is kept (best-effort, matches prior behavior).
+    // Placed before the limit accounting so empty tags don't consume a slot.
+    if (tag?.activeEventsCount === 0) {
+      continue;
     }
 
     const slug = tag?.slug?.trim();
@@ -2234,6 +2350,77 @@ export const roundOrderAmount = ({
   return amount;
 };
 
+const toDecimalTickSizeString = (value: number): string => {
+  const valueAsString = value.toString();
+
+  if (!valueAsString.includes('e')) {
+    return valueAsString;
+  }
+
+  return value
+    .toFixed(COLLATERAL_TOKEN_DECIMALS)
+    .replace(/(?:\.0+|(\.\d*?)0+)$/u, '$1');
+};
+
+const normalizeTickSizeCandidate = (
+  tickSize?: string | number | null,
+): string | undefined => {
+  if (tickSize === undefined || tickSize === null) {
+    return undefined;
+  }
+
+  const parsedTickSize = Number(tickSize);
+
+  if (
+    !Number.isFinite(parsedTickSize) ||
+    parsedTickSize <= 0 ||
+    parsedTickSize >= 1
+  ) {
+    return undefined;
+  }
+
+  return toDecimalTickSizeString(parsedTickSize);
+};
+
+const getTickSizeDecimalPlaces = (tickSize: string): number => {
+  const [, decimalPart = ''] = tickSize.split('.');
+  return decimalPart.length;
+};
+
+export const getTickSizeRoundConfig = ({
+  tickSize,
+}: {
+  tickSize?: string | number | null;
+}): { tickSize: string; roundConfig: RoundConfig } => {
+  const normalizedTickSize = normalizeTickSizeCandidate(tickSize);
+
+  if (!normalizedTickSize) {
+    throw new Error(
+      `Invalid Polymarket tick size: ${String(tickSize ?? 'missing')}`,
+    );
+  }
+
+  const configuredRoundConfig = ROUNDING_CONFIG[normalizedTickSize];
+
+  if (configuredRoundConfig) {
+    return {
+      tickSize: normalizedTickSize,
+      roundConfig: configuredRoundConfig,
+    };
+  }
+
+  const priceDecimals = getTickSizeDecimalPlaces(normalizedTickSize);
+
+  return {
+    tickSize: normalizedTickSize,
+    roundConfig: {
+      price: priceDecimals,
+      size: 2,
+      amount: Math.min(priceDecimals + 2, COLLATERAL_TOKEN_DECIMALS),
+    },
+  };
+};
+
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
@@ -2258,18 +2445,18 @@ export const previewOrder = async (
       clobBaseUrl: isV2 ? clobBaseUrl : undefined,
     }),
     Promise.resolve('0'),
-    side === Side.BUY
-      ? getClobMarketInfoSafe({
-          conditionId: outcomeId,
-          clobVersion: isV2 ? 'v2' : 'v1',
-          clobBaseUrl: isV2 ? clobBaseUrl : undefined,
-        })
-      : Promise.resolve(undefined),
+    getClobMarketInfoSafe({
+      conditionId: outcomeId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
-  const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
 
   if (side === Side.BUY) {
     const { asks } = book;
@@ -2295,7 +2482,7 @@ export const previewOrder = async (
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
       slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(book.tick_size),
+      tickSize: parseFloat(tickSize),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
@@ -2332,7 +2519,12 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
-  return {
+  const serviceFees = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: takerAmount,
+  });
+  const preview: OrderPreview = {
     marketId,
     outcomeId,
     outcomeTokenId,
@@ -2343,10 +2535,21 @@ export const previewOrder = async (
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,
-    tickSize: parseFloat(book.tick_size),
+    tickSize: parseFloat(tickSize),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,
-    // no fees for sell orders
+  };
+  const marketFee = calculateConservativeSellMarketFee({
+    preview,
+    marketInfo,
+  });
+
+  return {
+    ...preview,
+    fees: {
+      ...serviceFees,
+      marketFee,
+    },
   };
 };

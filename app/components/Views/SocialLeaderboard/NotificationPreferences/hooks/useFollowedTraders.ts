@@ -1,6 +1,8 @@
-import { useCallback, useMemo } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import type { FollowingResponse } from '@metamask/social-controllers';
+import { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { selectFollowingProfileIds } from '../../../../../selectors/socialController';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
@@ -54,6 +56,7 @@ export const useFollowedTraders = (
   options?: UseFollowedTradersOptions,
 ): UseFollowedTradersResult => {
   const enabled = options?.enabled ?? true;
+  const followingProfileIds = useSelector(selectFollowingProfileIds);
 
   const { data, isLoading, error, refetch } = useQuery<FollowingResponse>({
     queryKey: ['SocialService:fetchFollowing'],
@@ -72,13 +75,18 @@ export const useFollowedTraders = (
     if (!data?.following) {
       return EMPTY_TRADERS;
     }
-    return data.following.map((profile) => ({
-      id: profile.profileId,
-      username: profile.name,
-      address: profile.address,
-      avatarUri: profile.imageUrl ?? undefined,
-    }));
-  }, [data]);
+    return (
+      data.following
+        // Technically not required, cache is invalidated on follow/unfollow. This is an extra belt-and-suspenders for instant UI during refetch
+        .filter((profile) => followingProfileIds.includes(profile.profileId))
+        .map((profile) => ({
+          id: profile.profileId,
+          username: profile.name,
+          address: profile.address,
+          avatarUri: profile.imageUrl ?? undefined,
+        }))
+    );
+  }, [data, followingProfileIds]);
 
   const refresh = useCallback(async () => {
     try {

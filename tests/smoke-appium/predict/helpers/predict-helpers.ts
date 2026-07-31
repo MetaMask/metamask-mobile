@@ -26,6 +26,45 @@ export const remoteFeatureFlagPerpsDisabledForPredictSmoke = () => ({
   },
 });
 
+/**
+ * Keeps legacy Predict smoke flows off the extended sports details experience.
+ * Feature flag mocks deep-merge version maps, so every app-supported variation
+ * must be disabled explicitly.
+ */
+export const remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke =
+  () => ({
+    predictExtendedSportsMarkets: {
+      versions: {
+        '8.6.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+        '7.82.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+      },
+    },
+  });
+
+/**
+ * Disables the Predict "withdraw to any token" (MetaMask Pay) flow, forcing the
+ * legacy same-token withdraw path.
+ */
+export const remoteFeatureFlagWithdrawAnyTokenDisabled = () => ({
+  confirmations_pay_post_quote: {
+    versions: {
+      '8.0.0': {
+        overrides: {
+          predictWithdraw: { enabled: false },
+        },
+      },
+    },
+  },
+});
+
 export class PredictHelpers {
   /**
    * Sets the device location to Portugal coordinates.

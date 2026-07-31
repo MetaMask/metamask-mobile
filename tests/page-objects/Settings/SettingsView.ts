@@ -5,7 +5,12 @@ import {
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import type { ScrollContainer } from '../../framework/index';
 
 class SettingsView {
   get title(): EncapsulatedElementType {
@@ -60,13 +65,23 @@ class SettingsView {
   }
 
   get alertButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
-      : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
+    // Android Material AlertDialog applies textAllCaps ("YES") while locale is
+    // "Yes"; iOS shows sentence case. Match label/text case-insensitively on both.
+    const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&',
+    );
+    const yesPattern = new RegExp(`^${yes}$`, 'i');
+    return encapsulated({
+      detox: () => Matchers.getElementByText(yesPattern),
+      appium: () => PlaywrightMatchers.getElementByText(yesPattern, false),
+    });
   }
 
-  get scrollViewIdentifier(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+  get scrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
+      SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID,
+    );
   }
 
   async scrollToLockButton(): Promise<void> {
@@ -155,8 +170,11 @@ class SettingsView {
   }
 
   async tapYesAlertButton(): Promise<void> {
-    await Gestures.tap(this.alertButton, {
+    await Gestures.waitAndTap(this.alertButton, {
       elemDescription: 'Settings - Alert Yes Button',
+      timeout: 30_000,
+      delay: 0,
+      checkEnabled: false,
     });
   }
 

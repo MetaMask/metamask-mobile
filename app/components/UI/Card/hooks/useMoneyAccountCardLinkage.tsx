@@ -6,9 +6,9 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Box,
   Icon,
   IconColor,
   IconSize,
@@ -73,8 +73,35 @@ export type LinkageStatus =
   | 'error'
   | 'cancelled';
 
+/**
+ * The user-facing action a linkage submission represents.
+ *
+ * - `link`: linking a card that is not yet delegated.
+ * - `unlink`: revoking an existing delegation (amount of 0).
+ * - `update`: changing the spending limit of an already-linked card.
+ */
+export type LinkageAction = 'link' | 'unlink' | 'update';
+
+const PENDING_TITLE_BY_ACTION: Record<LinkageAction, string> = {
+  link: 'money.metamask_card.link_pending_title',
+  unlink: 'money.metamask_card.unlink_pending_title',
+  update: 'money.metamask_card.update_pending_title',
+};
+
+const SUCCESS_TITLE_BY_ACTION: Record<LinkageAction, string> = {
+  link: 'money.metamask_card.link_success_title',
+  unlink: 'money.metamask_card.unlink_success_title',
+  update: 'money.metamask_card.update_success_title',
+};
+
+const ERROR_TITLE_BY_ACTION: Record<LinkageAction, string> = {
+  link: 'money.metamask_card.link_error',
+  unlink: 'money.metamask_card.unlink_error',
+  update: 'money.metamask_card.update_error',
+};
+
 export interface LinkFlowOrigin {
-  screen: string;
+  screen?: string;
   params?: object;
   entrypoint?: CardEntryPoint;
 }
@@ -115,7 +142,7 @@ export const useMoneyAccountCardLinkage =
   (): UseMoneyAccountCardLinkageReturn => {
     const { toastRef } = useContext(ToastContext);
     const theme = useTheme();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const dispatch = useDispatch();
     const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -187,27 +214,21 @@ export const useMoneyAccountCardLinkage =
     );
 
     const showPendingToast = useCallback(
-      (isRevoke: boolean = false) => {
+      (action: LinkageAction) => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
             {
-              label: strings(
-                isRevoke
-                  ? 'money.metamask_card.unlink_pending_title'
-                  : 'money.metamask_card.link_pending_title',
-              ),
+              label: strings(PENDING_TITLE_BY_ACTION[action]),
             },
           ],
           iconName: IconName.Loading,
           hasNoTimeout: true,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Spinner
-                color={IconColor.IconDefault}
-                spinnerIconProps={{ size: IconSize.Lg }}
-              />
-            </Box>
+            <Spinner
+              color={IconColor.IconDefault}
+              spinnerIconProps={{ size: IconSize.Lg }}
+            />
           ),
         });
       },
@@ -215,29 +236,23 @@ export const useMoneyAccountCardLinkage =
     );
 
     const showSuccessToast = useCallback(
-      (isRevoke: boolean = false) => {
+      (action: LinkageAction) => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
             {
-              label: strings(
-                isRevoke
-                  ? 'money.metamask_card.unlink_success_title'
-                  : 'money.metamask_card.link_success_title',
-              ),
+              label: strings(SUCCESS_TITLE_BY_ACTION[action]),
             },
           ],
           iconName: IconName.Confirmation,
           iconColor: theme.colors.success.default,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Icon
-                name={IconName.Confirmation}
-                color={IconColor.SuccessDefault}
-                size={IconSize.Lg}
-              />
-            </Box>
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
           ),
         });
       },
@@ -245,29 +260,23 @@ export const useMoneyAccountCardLinkage =
     );
 
     const showErrorToast = useCallback(
-      (isRevoke: boolean = false) => {
+      (action: LinkageAction = 'link') => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
             {
-              label: strings(
-                isRevoke
-                  ? 'money.metamask_card.unlink_error'
-                  : 'money.metamask_card.link_error',
-              ),
+              label: strings(ERROR_TITLE_BY_ACTION[action]),
             },
           ],
           iconName: IconName.Error,
           iconColor: theme.colors.error.default,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Icon
-                name={IconName.Error}
-                color={IconColor.ErrorDefault}
-                size={IconSize.Lg}
-              />
-            </Box>
+            <Icon
+              name={IconName.Error}
+              color={IconColor.ErrorDefault}
+              size={IconSize.Lg}
+            />
           ),
         });
       },
@@ -496,11 +505,21 @@ export const useMoneyAccountCardLinkage =
         const isRevoke =
           options?.delegationAmountHuman !== undefined &&
           parseFloat(options.delegationAmountHuman) === 0;
-        const isBlockedByResidency = isResidencyBlocked && !isAlreadyDelegated;
+        // A non-zero submission against an already-linked card is a spending
+        // limit update, not an initial link — surface the correct copy.
+        const action: LinkageAction = isRevoke
+          ? 'unlink'
+          : isAlreadyDelegated
+            ? 'update'
+            : 'link';
+        const isRevokeWithoutOwnedDelegation = isRevoke && !isAlreadyDelegated;
+        const isBlockedByResidency =
+          !isRevoke && isResidencyBlocked && !isAlreadyDelegated;
 
         if (
           !canSubmitDelegation ||
           !primaryMoneyAccount?.address ||
+          isRevokeWithoutOwnedDelegation ||
           isBlockedByResidency
         ) {
           trackMoneyAccountLinkingEvent(
@@ -513,7 +532,7 @@ export const useMoneyAccountCardLinkage =
               is_revoke: isRevoke,
             },
           );
-          showErrorToast(isRevoke);
+          showErrorToast(action);
           return false;
         }
 
@@ -523,7 +542,7 @@ export const useMoneyAccountCardLinkage =
 
         setStatus('pending');
         setError(null);
-        showPendingToast(isRevoke);
+        showPendingToast(action);
 
         try {
           trackMoneyAccountLinkingEvent(
@@ -546,7 +565,7 @@ export const useMoneyAccountCardLinkage =
             },
           );
           setStatus('success');
-          showSuccessToast(isRevoke);
+          showSuccessToast(action);
           return true;
         } catch (caught) {
           const linkageError =
@@ -595,7 +614,7 @@ export const useMoneyAccountCardLinkage =
           Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
           setError(linkageError);
           setStatus('error');
-          showErrorToast(isRevoke);
+          showErrorToast(action);
           return false;
         }
       },

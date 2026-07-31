@@ -1,15 +1,20 @@
 import React, { useEffect, useMemo } from 'react';
 import { Image, ImageSourcePropType, View } from 'react-native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   AvatarToken,
   AvatarTokenSize,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  type IconName,
 } from '@metamask/design-system-react-native';
 import type { TokenAmount } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 import { getTokenImageSource } from './tokenIcon';
+import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 
 function getImageUri(
   source: ImageSourcePropType | undefined,
@@ -22,14 +27,20 @@ function getImageUri(
 }
 
 function TokenAvatar({
-  fallbackIcon,
+  fallbackIconName,
+  isFailed,
   iconUrl,
+  perpsMarketSymbol,
   styles,
+  testIdSuffix,
   tokens,
 }: {
-  fallbackIcon: ImageSourcePropType;
+  fallbackIconName: IconName;
+  isFailed: boolean;
   iconUrl?: string;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
+  testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
   const tokenImageSources = useMemo(
@@ -51,12 +62,35 @@ function TokenAvatar({
     });
   }, [tokenImageSources]);
 
+  if (perpsMarketSymbol) {
+    return (
+      <PerpsTokenLogo
+        symbol={perpsMarketSymbol}
+        size={32}
+        recyclingKey={perpsMarketSymbol}
+      />
+    );
+  }
+
   if (tokens.length === 0) {
     if (iconUrl) {
-      return <AvatarToken src={{ uri: iconUrl }} size={AvatarTokenSize.Md} />;
+      return (
+        <AvatarToken
+          src={{ uri: iconUrl }}
+          size={AvatarTokenSize.Md}
+          testID={`activity-row-avatar-single-${testIdSuffix}`}
+        />
+      );
     }
     return (
-      <Image source={fallbackIcon} style={styles.icon} resizeMode="stretch" />
+      <AvatarIcon
+        iconName={fallbackIconName}
+        severity={
+          isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
+        }
+        size={AvatarIconSize.Md}
+        testID={`activity-row-avatar-single-${testIdSuffix}`}
+      />
     );
   }
 
@@ -67,6 +101,7 @@ function TokenAvatar({
         name={token.symbol}
         src={tokenImageSources[0]}
         size={AvatarTokenSize.Md}
+        testID={`activity-row-avatar-single-${testIdSuffix}`}
       />
     );
   }
@@ -74,7 +109,10 @@ function TokenAvatar({
   const [sourceToken, destinationToken] = tokens;
 
   return (
-    <View style={styles.tokenIconStack}>
+    <View
+      style={styles.tokenIconStack}
+      testID={`activity-row-avatar-stack-${testIdSuffix}`}
+    >
       <View style={styles.tokenIconStackBack}>
         <AvatarToken
           name={sourceToken.symbol}
@@ -96,13 +134,19 @@ function TokenAvatar({
 }
 
 export function ActivityListItemRowIcon({
-  fallbackIcon,
+  fallbackIconName,
+  isFailed = false,
   iconUrl,
   networkImageSource,
+  perpsMarketSymbol,
   styles,
+  testIdSuffix,
   tokens,
 }: {
-  fallbackIcon: ImageSourcePropType;
+  /** Design-system arrow icon shown when the row has no token avatar. */
+  fallbackIconName: IconName;
+  /** Renders the fallback icon in the danger (failed) severity. */
+  isFailed?: boolean;
   /** Explicit avatar image URL (e.g. HyperLiquid market icon) for the single-avatar case. */
   iconUrl?: string;
   /**
@@ -111,7 +155,9 @@ export function ActivityListItemRowIcon({
    * avatar renders without it.
    */
   networkImageSource?: ImageSourcePropType;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
+  testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
   useEffect(() => {
@@ -123,9 +169,12 @@ export function ActivityListItemRowIcon({
 
   const avatar = (
     <TokenAvatar
-      fallbackIcon={fallbackIcon}
+      fallbackIconName={fallbackIconName}
+      isFailed={isFailed}
       iconUrl={iconUrl}
+      perpsMarketSymbol={perpsMarketSymbol}
       styles={styles}
+      testIdSuffix={testIdSuffix}
       tokens={tokens}
     />
   );
@@ -139,6 +188,7 @@ export function ActivityListItemRowIcon({
       position={BadgeWrapperPosition.BottomRight}
       badge={
         <BadgeNetwork
+          twClassName="rounded-md"
           src={
             networkImageSource as React.ComponentProps<
               typeof BadgeNetwork

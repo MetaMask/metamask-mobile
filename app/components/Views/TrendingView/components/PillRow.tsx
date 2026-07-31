@@ -32,13 +32,13 @@ const PillRow: React.FC<PillRowProps> = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="-mx-4">
+    <Box>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         testID={`${testIdPrefix}-pills`}
-        contentContainerStyle={tw.style('px-4')}
+        contentContainerStyle={tw.style('px-4 py-3')}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}

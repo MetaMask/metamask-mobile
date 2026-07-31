@@ -8,14 +8,16 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
   });
 
-  it('renders the toolbar rate-tag skeleton', () => {
+  it('renders the trade-mode toggle skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(screen.getByTestId('quick-buy-skeleton-rate-tag')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-skeleton-trade-mode'),
+    ).toBeOnTheScreen();
   });
 
-  it('renders the slider skeleton', () => {
+  it('renders the keypad placeholder', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(screen.getByTestId('quick-buy-skeleton-slider')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-skeleton-keypad')).toBeOnTheScreen();
   });
 
   it('renders the pay-with pill skeleton', () => {
@@ -34,6 +36,20 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(
       screen.queryByTestId('quick-buy-skeleton-preset-20'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the quick-amount pills skeleton', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(
+      screen.getByTestId('quick-buy-skeleton-quick-amounts'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the removed slider placeholder', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(
+      screen.queryByTestId('quick-buy-skeleton-slider'),
     ).not.toBeOnTheScreen();
   });
 });

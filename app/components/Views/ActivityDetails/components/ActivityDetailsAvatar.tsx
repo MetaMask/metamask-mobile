@@ -14,7 +14,9 @@ import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
 /**
  * Renders one or two overlapping token avatars for the details amount header,
  * optionally badged with the network icon. Mirrors the avatar rendering of the
- * redesigned activity list row.
+ * redesigned activity list row — when an image is missing, AvatarToken falls
+ * back to the first letter of `name` (token symbol), or "?" when there is no
+ * usable name.
  */
 export function ActivityDetailsAvatar({
   tokens,
@@ -51,7 +53,7 @@ export function ActivityDetailsAvatar({
     return networkImage ? (
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
-        badge={<BadgeNetwork src={networkImage} />}
+        badge={<BadgeNetwork twClassName="rounded-md" src={networkImage} />}
       >
         {imageOnlyAvatar}
       </BadgeWrapper>
@@ -84,7 +86,7 @@ export function ActivityDetailsAvatar({
     return (
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
-        badge={<BadgeNetwork src={networkImage} />}
+        badge={<BadgeNetwork twClassName="rounded-md" src={networkImage} />}
       >
         {avatar}
       </BadgeWrapper>

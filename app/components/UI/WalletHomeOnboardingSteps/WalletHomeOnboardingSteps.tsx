@@ -39,17 +39,10 @@ import {
 } from '../../../actions/onboarding';
 import { selectWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
-import { useABTest } from '../../../hooks';
-import {
-  ONBOARDING_CHECKLIST_STEPPER_AB_KEY,
-  ONBOARDING_CHECKLIST_STEPPER_AB_TEST_EXPOSURE_OPTIONS,
-  ONBOARDING_CHECKLIST_STEPPER_VARIANTS,
-} from './abTestConfig';
-import WalletHomeOnboardingStepper from './WalletHomeOnboardingStepper';
 import WalletHomeOnboardingProgressBar from './WalletHomeOnboardingProgressBar';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 import Logger from '../../../util/Logger';
-import onboardChecklistV05Animation from '../../../animations/onboard_checklist_v05.riv';
+import onboardChecklistV07Animation from '../../../animations/onboard_checklist_v07.riv';
 import { hasTestOverrides } from '../../../util/test/utils';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD,
@@ -137,22 +130,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const isFocused = useIsFocused();
   const checklistRiveRef = useRef<RiveRef>(null);
   const prevSuspendRiveForCurtainRef = useRef(false);
-  const checklistFadeOpacity = useRef(new Animated.Value(1)).current;
+  const [checklistFadeOpacity] = useState(() => new Animated.Value(1));
   const dispatch = useDispatch();
   const walletHomeOnboardingStepsState = useSelector(
     selectWalletHomeOnboardingSteps,
   );
   const stepIndex = walletHomeOnboardingStepsState.stepIndex ?? 0;
-
-  // Onboarding checklist stepper experiment (TMCU-828). This component only
-  // mounts once the user passes the checklist gate, so exposure is scoped to
-  // eligible users automatically. Control keeps the continuous progress bar.
-  const { variant: stepperAbVariant } = useABTest(
-    ONBOARDING_CHECKLIST_STEPPER_AB_KEY,
-    ONBOARDING_CHECKLIST_STEPPER_VARIANTS,
-    ONBOARDING_CHECKLIST_STEPPER_AB_TEST_EXPOSURE_OPTIONS,
-  );
-  const useDiscreteStepper = stepperAbVariant.useDiscreteStepper;
 
   useWalletHomeOnboardingChecklistHomeViewed({
     isAwaitingBalance,
@@ -164,8 +147,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const visualStepIndexForProgress =
     walletHomeOnboardingCappedVisualStepIndex(displayStepIndex);
 
-  const slideX = useRef(new Animated.Value(0)).current;
-  const slideY = useRef(new Animated.Value(0)).current;
+  const [slideX] = useState(() => new Animated.Value(0));
+  const [slideY] = useState(() => new Animated.Value(0));
   const progressRatio = useSharedValue(
     walletHomeOnboardingProgressRatioForStep(visualStepIndexForProgress),
   );
@@ -192,7 +175,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const canAdvanceFundStepAfterBalanceRef = useRef(
     canAdvanceFundStepAfterBalance,
   );
-  canAdvanceFundStepAfterBalanceRef.current = canAdvanceFundStepAfterBalance;
 
   /**
    * After returning from trade / notifications (deferred advance), skip replaying the checklist
@@ -227,6 +209,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     WALLET_HOME_ONBOARDING_VISIBLE_STEPS[visualStepIndexForProgress].kind,
   );
   useEffect(() => {
+    canAdvanceFundStepAfterBalanceRef.current = canAdvanceFundStepAfterBalance;
     stepIndexRef.current = stepIndex;
     isLastStepRef.current =
       stepIndex >= WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length - 1;
@@ -234,7 +217,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     const cappedVisual = walletHomeOnboardingCappedVisualStepIndex(displayIdx);
     currentStepKindRef.current =
       WALLET_HOME_ONBOARDING_VISIBLE_STEPS[cappedVisual].kind;
-  }, [stepIndex, isAwaitingBalance]);
+  }, [stepIndex, isAwaitingBalance, canAdvanceFundStepAfterBalance]);
 
   useEffect(
     () => () => {
@@ -322,12 +305,16 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
     const timeoutId = setTimeout(() => {
+      const rive = checklistRiveRef.current;
+      if (!rive) {
+        return;
+      }
       try {
-        checklistRiveRef.current?.fireState(
+        rive.fireState(
           WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
           WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
         );
-        checklistRiveRef.current?.play();
+        rive.play();
       } catch (error) {
         Logger.error(
           error as Error,
@@ -466,16 +453,19 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       // Always run checklist Rive outro before leaving the step (including last step with
       // coordinated Wallet fade — previously outro was skipped and hold was 0, so returning
       // from notification settings showed intro replay then no outro).
-      try {
-        checklistRiveRef.current?.fireState(
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
-        );
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
-        );
+      const rive = checklistRiveRef.current;
+      if (rive) {
+        try {
+          rive.fireState(
+            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+          );
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
+          );
+        }
       }
 
       if (outroHoldTimeoutRef.current !== null) {
@@ -489,13 +479,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     };
 
     if (fromIsLast) {
-      // Discrete stepper has no continuous fill — skip the 100% bar animation so
-      // treatment users are not left with disabled buttons and no visual feedback.
-      if (useDiscreteStepper) {
-        scheduleOutroHoldThenSlide();
-        return;
-      }
-
       onProgressFillCompleteRef.current = (finished) => {
         if (!finished) {
           finishAdvance();
@@ -521,7 +504,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     slideX,
     slideY,
     checklistFadeOpacity,
-    useDiscreteStepper,
   ]);
 
   useLayoutEffect(() => {
@@ -754,7 +736,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             <Rive
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
               ref={checklistRiveRef}
-              source={onboardChecklistV05Animation}
+              source={onboardChecklistV07Animation}
               artboardName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD[currentStep.kind]
               }
@@ -865,40 +847,29 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           gap={4}
           twClassName="w-full"
         >
-          {!useDiscreteStepper ? (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              gap={2}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            gap={2}
+          >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+              {strings('wallet.home_onboarding_steps.get_started_title')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
             >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-                {strings('wallet.home_onboarding_steps.get_started_title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                fontWeight={FontWeight.Medium}
-              >
-                {displayStepIndex + 1}/{totalSteps}
-              </Text>
-            </Box>
-          ) : null}
+              {displayStepIndex + 1}/{totalSteps}
+            </Text>
+          </Box>
 
-          {useDiscreteStepper ? (
-            <WalletHomeOnboardingStepper
-              totalSteps={totalSteps}
-              currentStepIndex={visualStepIndexForProgress}
-              accessibilityLabel={progressLabel}
-              testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
-            />
-          ) : (
-            <WalletHomeOnboardingProgressBar
-              progressRatio={progressRatio}
-              accessibilityLabel={progressLabel}
-              testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
-            />
-          )}
+          <WalletHomeOnboardingProgressBar
+            progressRatio={progressRatio}
+            accessibilityLabel={progressLabel}
+            testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
+          />
         </Box>
 
         {/*

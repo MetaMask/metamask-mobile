@@ -36,6 +36,7 @@ export function getSnapControllerMessenger(
 
   rootMessenger.delegate({
     actions: [
+      'AnalyticsController:trackEvent',
       'PermissionController:getEndowments',
       'PermissionController:getPermissions',
       'PermissionController:hasPermission',

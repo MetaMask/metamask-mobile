@@ -170,7 +170,7 @@ describe('PredictSportScoreboard', () => {
         />,
       );
 
-      expect(getByText('Live')).toBeOnTheScreen();
+      expect(getByText('LIVE')).toBeOnTheScreen();
       expect(getByText('25’')).toBeOnTheScreen();
     });
 
@@ -277,6 +277,23 @@ describe('PredictSportScoreboard', () => {
       const { getAllByTestId } = render(
         <PredictSportScoreboard
           game={createGame({ league: 'fifwc' })}
+          testID="scoreboard"
+        />,
+      );
+
+      const order = getAllByTestId(/-(home|away)-team-logo$/).map(
+        (node) => node.props.testID,
+      );
+      expect(order).toEqual([
+        'scoreboard-home-team-logo',
+        'scoreboard-away-team-logo',
+      ]);
+    });
+
+    it('renders the home team on the left for tennis leagues', () => {
+      const { getAllByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({ league: 'atp' })}
           testID="scoreboard"
         />,
       );

@@ -9,6 +9,10 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectAllTokens } from '../../../selectors/tokensController';
 import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
 import { resolveActivityListItemTitle } from '../ActivityListItemRow/ActivityListItemRow';
 
@@ -69,10 +73,38 @@ const createTransaction = (
 describe('AssetDetailsActivityListItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccount) {
         return { metadata: { importTime: 2000 } };
       }
+
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return { address: '0x123' };
+      }
+
+      if (selector === selectEvmNetworkConfigurationsByChainId) {
+        return {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        };
+      }
+
+      if (selector === selectAllTokens) {
+        return {
+          '0x1': {
+            '0x123': [
+              {
+                address: '0x456',
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            ],
+          },
+        };
+      }
+
       return undefined;
     });
   });
@@ -108,8 +140,26 @@ describe('AssetDetailsActivityListItem', () => {
       if (selector === selectSelectedInternalAccount) {
         return { metadata: { importTime: null } };
       }
+
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return { address: '0x123' };
+      }
+
+      if (selector === selectEvmNetworkConfigurationsByChainId) {
+        return {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        };
+      }
+
+      if (selector === selectAllTokens) {
+        return {};
+      }
+
       return undefined;
     });
+
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });
 
@@ -130,7 +180,63 @@ describe('AssetDetailsActivityListItem', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens transaction details when activity row is pressed', () => {
+  it('routes to the ActivityDetails screen when the redesign is enabled', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccount) {
+        return { metadata: { importTime: 2000 } };
+      }
+
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return { address: '0x123' };
+      }
+
+      if (selector === selectEvmNetworkConfigurationsByChainId) {
+        return {
+          '0x1': {
+            nativeCurrency: 'ETH',
+          },
+        };
+      }
+
+      if (selector === selectAllTokens) {
+        return {};
+      }
+
+      if (selector === selectIsTransactionsRedesignEnabled) {
+        return true;
+      }
+
+      return undefined;
+    });
+
+    const navigation = createNavigation();
+    const transaction = createTransaction();
+
+    const { getByTestId } = render(
+      <AssetDetailsActivityListItem
+        transaction={transaction}
+        index={0}
+        assetSymbol="ETH"
+        chainId="0x1"
+        navigation={navigation}
+        onSpeedUpAction={jest.fn()}
+        onCancelAction={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(getByTestId('activity-list-item-row'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.objectContaining({
+        chainId: 'eip155:1',
+        txIdentifier: 'tx-1',
+        preloadKey: expect.any(String),
+      }),
+    );
+  });
+
+  it('opens the legacy transaction details sheet when the redesign is disabled', () => {
     const navigation = createNavigation();
     const onSpeedUpAction = jest.fn();
     const onCancelAction = jest.fn();
@@ -168,5 +274,22 @@ describe('AssetDetailsActivityListItem', () => {
         }),
       }),
     );
+  });
+
+  it('renders successfully when token metadata is resolved from the selected account group EVM account', () => {
+    const navigation = createNavigation();
+    expect(() =>
+      render(
+        <AssetDetailsActivityListItem
+          transaction={createTransaction()}
+          index={0}
+          assetSymbol="ETH"
+          chainId="0x1"
+          navigation={navigation}
+          onSpeedUpAction={jest.fn()}
+          onCancelAction={jest.fn()}
+        />,
+      ),
+    ).not.toThrow();
   });
 });

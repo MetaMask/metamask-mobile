@@ -85,7 +85,7 @@ jest.mock('react-native', () => {
 
 const mockPaymentMethods = [
   {
-    id: '/payments/debit-credit-card-1',
+    id: 'debit-credit-card-1',
     paymentType: 'debit-credit-card',
     name: 'Debit or Credit',
     score: 90,
@@ -97,7 +97,7 @@ const mockPaymentMethods = [
       'Card purchases may take a few minutes to complete.',
   },
   {
-    id: '/payments/debit-credit-card-2',
+    id: 'debit-credit-card-2',
     paymentType: 'debit-credit-card',
     name: 'Debit or Credit',
     score: 90,
@@ -111,7 +111,7 @@ const mockPaymentMethods = [
 ];
 
 const mockSelectedProvider = {
-  id: '/providers/transak',
+  id: 'transak',
   name: 'Transak',
   environmentType: 'PRODUCTION',
   description: 'Test provider',
@@ -128,7 +128,7 @@ const mockSelectedProvider = {
 const mockProviders = [
   mockSelectedProvider,
   {
-    id: '/providers/moonpay',
+    id: 'moonpay',
     name: 'MoonPay',
     environmentType: 'PRODUCTION',
     description: 'Test provider 2',
@@ -259,9 +259,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('navigates to provider selection when change provider is pressed while payment methods are loading', () => {
@@ -279,9 +284,14 @@ describe('PaymentSelectionModal', () => {
     const changeProviderLink = getByText('fiat_on_ramp.change_provider');
     fireEvent.press(changeProviderLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RampProviderSelectionModal', {
-      amount: 100,
-    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({
+        screen: 'RampProviderSelectionModal',
+        params: { amount: 100 },
+      }),
+    );
   });
 
   it('does not navigate to provider selection when change provider is pressed and there is a payment method error', async () => {
@@ -352,19 +362,16 @@ describe('PaymentSelectionModal', () => {
       walletAddress: '0x123',
       assetId: 'eip155:1/slip44:60',
       redirectUrl: expect.stringContaining('/regions/fake-callback'),
-      providers: ['/providers/transak'],
-      paymentMethods: [
-        '/payments/debit-credit-card-1',
-        '/payments/debit-credit-card-2',
-      ],
+      providers: ['transak'],
+      paymentMethods: ['debit-credit-card-1', 'debit-credit-card-2'],
     });
   });
 
   it('keeps payment method visible when only custom-action quote matches and greys out the rest', () => {
     const customActionQuote = {
-      provider: '/providers/transak',
+      provider: 'transak',
       quote: {
-        paymentMethod: '/payments/debit-credit-card-1',
+        paymentMethod: 'debit-credit-card-1',
         isCustomAction: true,
       },
     };
@@ -396,7 +403,7 @@ describe('PaymentSelectionModal', () => {
         success: [],
         error: [
           {
-            provider: '/providers/transak',
+            provider: 'transak',
             error: 'Minimum purchase is 25 USD',
           },
         ],
@@ -422,7 +429,7 @@ describe('PaymentSelectionModal', () => {
         success: [],
         error: [
           {
-            provider: '/providers/transak',
+            provider: 'transak',
             error: '[object Object]',
           },
         ],
@@ -447,7 +454,7 @@ describe('PaymentSelectionModal', () => {
         success: [],
         error: [
           {
-            provider: '/providers/moonpay',
+            provider: 'moonpay',
             error: 'Should not be shown',
           },
         ],
@@ -487,9 +494,7 @@ describe('PaymentSelectionModal', () => {
       ...defaultQuotesReturn,
       data: {
         success: [],
-        error: [
-          { provider: '/providers/transak', error: 'Amount below minimum' },
-        ],
+        error: [{ provider: 'transak', error: 'Amount below minimum' }],
         sorted: [],
         customActions: [],
       },
@@ -511,9 +516,9 @@ describe('PaymentSelectionModal', () => {
     // find accepted custom-action quotes. It should be filtered out and no
     // price text should render for the row.
     const customActionQuote = {
-      provider: '/providers/transak',
+      provider: 'transak',
       quote: {
-        paymentMethod: '/payments/debit-credit-card-1',
+        paymentMethod: 'debit-credit-card-1',
         amountOut: 0.12345,
         amountOutInFiat: 67.89,
         isCustomAction: true,

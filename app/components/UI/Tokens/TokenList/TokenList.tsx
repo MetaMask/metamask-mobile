@@ -14,6 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import { TokenListItem } from './TokenListItem/TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   Box,
@@ -24,7 +25,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
-import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
+import { useMoneyTokenListCta } from '../../Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../Money/constants/moneyEvents';
 
 export interface FlashListAssetKey {
   address: string;
@@ -83,12 +85,15 @@ const TokenListComponent = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  // Declaring this here and passing it down to avoid O(n) API calls to on-ramp
-  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+  const { tokenListItemCta } = useMoneyTokenListCta(
+    isFullView
+      ? SCREEN_NAMES.TOKENS_SECTION_FULL_VIEW
+      : SCREEN_NAMES.WALLET_HOME,
+  );
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Apply maxItems limit if specified
@@ -161,7 +166,7 @@ const TokenListComponent = ({
   );
 
   const renderTokenListItem = useCallback(
-    ({ item }: { item: FlashListAssetKey }) => (
+    ({ item, index }: { item: FlashListAssetKey; index: number }) => (
       <TokenListItem
         assetKey={item}
         showRemoveMenu={showRemoveMenu}
@@ -169,7 +174,9 @@ const TokenListComponent = ({
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
-        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+        tokenListItemCta={tokenListItemCta}
+        tokenPositionInList={index + 1}
+        tokensInList={displayTokenKeys.length}
         hideSecondaryPriceRow={hideSecondaryPriceRow}
       />
     ),
@@ -179,7 +186,8 @@ const TokenListComponent = ({
       privacyMode,
       showPercentageChange,
       isFullView,
-      shouldShowTokenListItemCta,
+      tokenListItemCta,
+      displayTokenKeys.length,
       hideSecondaryPriceRow,
     ],
   );
@@ -200,7 +208,9 @@ const TokenListComponent = ({
           privacyMode={privacyMode}
           showPercentageChange={showPercentageChange}
           isFullView={isFullView}
-          shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+          tokenListItemCta={tokenListItemCta}
+          tokenPositionInList={index + 1}
+          tokensInList={displayTokenKeys.length}
           hideSecondaryPriceRow={hideSecondaryPriceRow}
         />
       ))}

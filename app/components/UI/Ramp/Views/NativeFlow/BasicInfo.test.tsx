@@ -31,6 +31,14 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     (..._args: unknown[]) =>
     (params: unknown) => ['MockRoute', params],
   useParams: () => mockUseParamsReturn,
+  navigateWithDetails: (
+    navigation: { navigate: (...args: unknown[]) => void },
+    details: unknown[],
+  ) => navigation.navigate(...details),
+  resetWithRoutes: (
+    navigation: { reset: (state: unknown) => void },
+    state: unknown,
+  ) => navigation.reset(state),
 }));
 
 const mockPatchUser = jest.fn();
@@ -40,6 +48,7 @@ const mockLogoutFromProvider = jest.fn();
 let mockUserRegion: unknown = {
   country: {
     isoCode: 'US',
+    name: 'United States',
     currency: 'USD',
     flag: '🇺🇸',
     phone: {
@@ -50,6 +59,51 @@ let mockUserRegion: unknown = {
   },
   regionCode: 'us-ca',
 };
+
+const mockUnitedStatesCountry = {
+  isoCode: 'US',
+  name: 'United States',
+  currency: 'USD',
+  flag: '🇺🇸',
+  supported: { buy: true, sell: true },
+  phone: {
+    prefix: '+1',
+    placeholder: '(XXX) XXX-XXXX',
+    template: 'XXX-XXX-XXXX',
+  },
+};
+
+const mockPortugalCountry = {
+  isoCode: 'PT',
+  name: 'Portugal',
+  currency: 'EUR',
+  flag: '🇵🇹',
+  supported: { buy: true, sell: true },
+  phone: {
+    prefix: '+351',
+    placeholder: 'XXX XXX XXX',
+    template: 'XXX-XXX-XXX',
+  },
+};
+
+const mockUnitedKingdomCountry = {
+  isoCode: 'GB',
+  name: 'United Kingdom',
+  currency: 'GBP',
+  flag: '🇬🇧',
+  supported: { buy: true, sell: true },
+  phone: {
+    prefix: '+44',
+    placeholder: 'XXXX XXX XXXX',
+    template: 'XXXX-XXX-XXXX',
+  },
+};
+
+let mockCountries = [
+  mockUnitedStatesCountry,
+  mockPortugalCountry,
+  mockUnitedKingdomCountry,
+];
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
@@ -69,6 +123,14 @@ jest.mock('../../hooks/useRampsController', () => ({
 jest.mock('../../hooks/useRampsUserRegion', () => ({
   useRampsUserRegion: () => ({
     userRegion: mockUserRegion,
+  }),
+}));
+
+jest.mock('../../hooks/useRampsCountries', () => ({
+  useRampsCountries: () => ({
+    countries: mockCountries,
+    isLoading: false,
+    error: null,
   }),
 }));
 
@@ -163,9 +225,15 @@ describe('V2BasicInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParamsReturn.previousFormData = undefined;
+    mockCountries = [
+      mockUnitedStatesCountry,
+      mockPortugalCountry,
+      mockUnitedKingdomCountry,
+    ];
     mockUserRegion = {
       country: {
         isoCode: 'US',
+        name: 'United States',
         currency: 'USD',
         flag: '🇺🇸',
         phone: {
@@ -191,6 +259,7 @@ describe('V2BasicInfo', () => {
 
     expect(getByTestId('first-name-input')).toBeOnTheScreen();
     expect(getByTestId('last-name-input')).toBeOnTheScreen();
+    expect(getByTestId('phone-input')).toBeOnTheScreen();
     expect(getByTestId('date-of-birth-input')).toBeOnTheScreen();
   });
 
@@ -360,9 +429,76 @@ describe('V2BasicInfo', () => {
   it('handles phone input changes', () => {
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
 
-    const phoneInput = getByTestId('first-name-input');
-    fireEvent.changeText(phoneInput, 'Jane');
-    expect(phoneInput).toBeOnTheScreen();
+    const phoneInput = getByTestId('phone-input');
+    fireEvent.changeText(phoneInput, '1234567890');
+    expect(phoneInput.props.value).toBe('1234567890');
+  });
+
+  it('opens phone country selector with countries and selected phone country', () => {
+    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
+
+    fireEvent.press(getByTestId('phone-country-selector'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MockRoute',
+      expect.objectContaining({
+        countries: mockCountries,
+        selectedCountry: expect.objectContaining({ isoCode: 'US' }),
+        onCountrySelect: expect.any(Function),
+      }),
+    );
+  });
+
+  it('updates only the phone country code when a new phone country is selected', async () => {
+    mockUserRegion = {
+      country: mockPortugalCountry,
+      regionCode: 'pt',
+    };
+    mockUseParamsReturn.previousFormData = {
+      ...validPreviousFormData,
+      mobileNumber: '+351912345678',
+      countryCode: 'PT',
+    };
+    mockPatchUser.mockResolvedValue({});
+
+    const { getByTestId, getByText } = renderWithTheme(<V2BasicInfo />);
+
+    fireEvent.press(getByTestId('phone-country-selector'));
+    act(() => {
+      const countrySelect = mockNavigate.mock.calls[0][1].onCountrySelect;
+      countrySelect(mockUnitedKingdomCountry);
+    });
+
+    expect(getByText('+44')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('continue-button'));
+    });
+
+    await waitFor(() => {
+      expect(mockPatchUser).toHaveBeenCalledWith({
+        personalDetails: expect.objectContaining({
+          mobileNumber: '+44912345678',
+        }),
+      });
+    });
+    expect(mockSubmitSsnDetails).not.toHaveBeenCalled();
+  });
+
+  it('initializes phone country from a prefilled phone prefix when it differs from user region', () => {
+    mockUserRegion = {
+      country: mockPortugalCountry,
+      regionCode: 'pt',
+    };
+    mockUseParamsReturn.previousFormData = {
+      ...validPreviousFormData,
+      mobileNumber: '+447123456789',
+      countryCode: 'PT',
+    };
+
+    const { getByText } = renderWithTheme(<V2BasicInfo />);
+
+    expect(getByText('+44')).toBeOnTheScreen();
   });
 
   it('calls logoutFromProvider when logout button is pressed', async () => {

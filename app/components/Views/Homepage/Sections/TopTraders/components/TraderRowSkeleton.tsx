@@ -38,9 +38,10 @@ const TraderRowSkeleton: React.FC = () => {
             <View style={tw.style('w-40 h-4 rounded')} />
           </View>
 
-          {/* Button placeholder — 80×32 matches the wider Following state so
-              the row's right edge stays stable when the button toggles. */}
-          <View style={tw.style('w-20 h-8 rounded-lg ml-3')} />
+          {/* Button placeholder — 80×40 (ButtonSize.Md) matches the real
+              button so the row's right edge stays stable when the button
+              toggles between Follow and Following. */}
+          <View style={tw.style('w-20 h-10 rounded-xl ml-3')} />
         </View>
       </SkeletonPlaceholder>
     </View>

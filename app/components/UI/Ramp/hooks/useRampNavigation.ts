@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import {
   RampIntent,
@@ -22,6 +24,7 @@ import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAsse
 import Engine from '../../../../core/Engine';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { selectProviders } from '../../../../selectors/rampsController';
 
 /**
  * Hook that returns functions to navigate to ramp flows.
@@ -32,14 +35,24 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
  * - goToSell: Always navigates to aggregator SELL flow
  */
 export const useRampNavigation = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const rampsServiceDisruptionRegions = useSelector(
     selectRampsServiceDisruptionRegions,
   );
   const { userRegion } = useRampsUserRegion();
   const { countries } = useRampsCountries();
-  const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
+  const {
+    setSelectedToken,
+    tokens: rampsTokens,
+    isLoading: tokensLoading,
+    error: tokensError,
+  } = useRampsTokens();
+  const {
+    data: providers,
+    isLoading: providersLoading,
+    error: providersError,
+  } = useSelector(selectProviders);
 
   const goToBuy = useCallback(
     async (
@@ -74,22 +87,53 @@ export const useRampNavigation = () => {
           location,
         )
       ) {
-        navigation.navigate(
-          ...createRampsServiceDisruptionModalNavigationDetails(),
+        navigateWithDetails(
+          navigation,
+          createRampsServiceDisruptionModalNavigationDetails(),
         );
         return;
       }
 
+      // Treat a fully-loaded V2 catalog with no providers or no buyable tokens
+      // as region-unavailable. Only fires once provider/token data has settled
+      // (not loading, no error) so transient states don't trip the modal.
+      const v2CatalogHasLoaded =
+        !overrideUnifiedRouting &&
+        !providersLoading &&
+        !tokensLoading &&
+        !providersError &&
+        !tokensError;
+      const v2CatalogHasNoProviders =
+        v2CatalogHasLoaded && rampsTokens && providers.length === 0;
+      const v2CatalogHasNoBuyableTokens =
+        v2CatalogHasLoaded &&
+        rampsTokens &&
+        !rampsTokens.allTokens.some((token) => token.tokenSupported);
+      const isV2CatalogUnsupported =
+        v2CatalogHasNoProviders || v2CatalogHasNoBuyableTokens;
+
       if (isUnifiedRoutingEnabled) {
         if (!location || location === UNKNOWN_LOCATION) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
+          navigateWithDetails(
+            navigation,
+            createEligibilityFailedModalNavigationDetails(),
           );
           return;
         }
 
         if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+          navigateWithDetails(
+            navigation,
+            createRampUnsupportedModalNavigationDetails(),
+          );
+          return;
+        }
+
+        if (isV2CatalogUnsupported) {
+          navigateWithDetails(
+            navigation,
+            createRampUnsupportedModalNavigationDetails(),
+          );
           return;
         }
       }
@@ -105,8 +149,9 @@ export const useRampNavigation = () => {
             (tok) => tok.assetId === controllerAssetId,
           );
           if (!matchedToken || !matchedToken.tokenSupported) {
-            navigation.navigate(
-              ...createRampUnsupportedModalNavigationDetails(),
+            navigateWithDetails(
+              navigation,
+              createRampUnsupportedModalNavigationDetails(),
             );
             return;
           }
@@ -117,8 +162,9 @@ export const useRampNavigation = () => {
         } catch {
           // Token may not be in controller's list yet (still loading).
         }
-        navigation.navigate(
-          ...createBuildQuoteNavDetails({
+        navigateWithDetails(
+          navigation,
+          createBuildQuoteNavDetails({
             assetId: controllerAssetId,
             buyFlowOrigin: options?.buyFlowOrigin,
           }),
@@ -127,12 +173,13 @@ export const useRampNavigation = () => {
       }
 
       if (!intent?.assetId && !overrideUnifiedRouting) {
-        navigation.navigate(...createTokenSelectionNavDetails());
+        navigateWithDetails(navigation, createTokenSelectionNavDetails());
         return;
       }
 
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
+      navigateWithDetails(
+        navigation,
+        createRampNavigationDetails(AggregatorRampType.BUY, intent),
       );
     },
     [
@@ -141,6 +188,11 @@ export const useRampNavigation = () => {
       userRegion,
       countries,
       rampsTokens,
+      tokensLoading,
+      tokensError,
+      providers,
+      providersLoading,
+      providersError,
       geolocationLocation,
       rampsServiceDisruptionRegions,
     ],
@@ -159,8 +211,9 @@ export const useRampNavigation = () => {
 
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.SELL, intent),
+      navigateWithDetails(
+        navigation,
+        createRampNavigationDetails(AggregatorRampType.SELL, intent),
       );
     },
     [navigation],

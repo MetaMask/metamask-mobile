@@ -1,4 +1,5 @@
 import handleRedirection from './handleRedirection';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import getRedirectPathsAndParams from '../utils/getRedirectPathAndParams';
 import { RampType } from '../Aggregator/types';
 import parseRampIntent from '../utils/parseRampIntent';
@@ -8,7 +9,10 @@ import NavigationService from '../../../../core/NavigationService';
 import ReduxService from '../../../../core/redux';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
-import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
+import {
+  createBuildQuoteNavDetails,
+  type BuildQuoteParams,
+} from '../Views/BuildQuote';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import {
   selectCountries,
@@ -27,6 +31,19 @@ import Engine from '../../../../core/Engine';
 interface RampUrlOptions {
   rampPath: string;
   rampType: RampType;
+}
+
+function parseBuildQuoteAmount(amount?: string): number | undefined {
+  const normalizedAmount = amount?.trim();
+
+  if (!normalizedAmount) {
+    return undefined;
+  }
+
+  const parsedAmount = Number(normalizedAmount);
+  return Number.isFinite(parsedAmount) && parsedAmount > 0
+    ? parsedAmount
+    : undefined;
 }
 
 async function navigateUnifiedV2Buy(
@@ -54,15 +71,17 @@ async function navigateUnifiedV2Buy(
       location,
     )
   ) {
-    NavigationService.navigation.navigate(
-      ...createRampsServiceDisruptionModalNavigationDetails(),
+    navigateWithDetails(
+      NavigationService.navigation,
+      createRampsServiceDisruptionModalNavigationDetails(),
     );
     return;
   }
 
   if (!location || location === UNKNOWN_LOCATION) {
-    NavigationService.navigation.navigate(
-      ...createEligibilityFailedModalNavigationDetails(),
+    navigateWithDetails(
+      NavigationService.navigation,
+      createEligibilityFailedModalNavigationDetails(),
     );
     return;
   }
@@ -71,8 +90,9 @@ async function navigateUnifiedV2Buy(
   const userRegion = selectUserRegion(state);
   const countries = selectCountries(state).data;
   if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-    NavigationService.navigation.navigate(
-      ...createRampUnsupportedModalNavigationDetails(),
+    navigateWithDetails(
+      NavigationService.navigation,
+      createRampUnsupportedModalNavigationDetails(),
     );
     return;
   }
@@ -88,15 +108,24 @@ async function navigateUnifiedV2Buy(
     } catch {
       // Token may not be in controller's list yet; navigate anyway
     }
-    NavigationService.navigation.navigate(
-      ...createBuildQuoteNavDetails({
-        assetId: controllerAssetId,
-      }),
+    const buildQuoteParams: BuildQuoteParams = {
+      assetId: controllerAssetId,
+    };
+    const amount = parseBuildQuoteAmount(rampIntent.amount);
+    if (amount !== undefined) {
+      buildQuoteParams.amount = amount;
+    }
+    navigateWithDetails(
+      NavigationService.navigation,
+      createBuildQuoteNavDetails(buildQuoteParams),
     );
     return;
   }
 
-  NavigationService.navigation.navigate(...createTokenSelectionNavDetails());
+  navigateWithDetails(
+    NavigationService.navigation,
+    createTokenSelectionNavDetails(),
+  );
 }
 
 export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
@@ -116,8 +145,9 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
       case RampType.BUY:
         return navigateUnifiedV2Buy(rampIntent);
       case RampType.SELL:
-        NavigationService.navigation.navigate(
-          ...createSellNavigationDetails(rampIntent),
+        navigateWithDetails(
+          NavigationService.navigation,
+          createSellNavigationDetails(rampIntent),
         );
         break;
     }

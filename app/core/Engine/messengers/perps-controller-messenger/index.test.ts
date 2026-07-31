@@ -86,7 +86,7 @@ describe('PerpsController Messenger', () => {
     );
   });
 
-  it('delegates the AuthenticatedUserStorageService watchlist actions', () => {
+  it('delegates AUS notification-preference actions to the perps controller messenger', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });

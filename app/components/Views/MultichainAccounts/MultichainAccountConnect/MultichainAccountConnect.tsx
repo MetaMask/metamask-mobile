@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -17,7 +18,6 @@ import {
   AvatarFavicon,
   AvatarFaviconSize,
   Box,
-  Toaster,
   toast,
 } from '@metamask/design-system-react-native';
 import { USER_INTENT } from '../../../../constants/permissions.ts';
@@ -71,7 +71,6 @@ import {
 } from '../../MultichainAccounts/shared/utils.ts';
 import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
 import {
-  CaipAccountId,
   CaipChainId,
   KnownCaipNamespace,
   parseCaipChainId,
@@ -136,7 +135,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number | undefined>(undefined);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
@@ -385,7 +384,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     connectedAccountGroups,
     supportedAccountGroups,
     connectedAccountGroupWithRequested,
-    caipAccountIdsOfConnectedAndRequestedAccountGroups,
     selectedAndRequestedAccountGroups,
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
@@ -416,49 +414,28 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [networkConfigurations, selectedChainIds],
   );
 
-  const { suggestedAccountGroups, suggestedCaipAccountIds } = useMemo(() => {
+  const suggestedAccountGroups = useMemo(() => {
     if (connectedAccountGroups.length > 0) {
-      return {
-        suggestedAccountGroups: connectedAccountGroupWithRequested,
-        suggestedCaipAccountIds:
-          caipAccountIdsOfConnectedAndRequestedAccountGroups,
-      };
+      return connectedAccountGroupWithRequested;
     }
 
     if (supportedAccountGroups.length === 0) {
-      return {
-        suggestedAccountGroups: [],
-        suggestedCaipAccountIds: [],
-      };
+      return [];
     }
 
     if (requestedCaipAccountIds.length === 0) {
       const [defaultSelectedAccountGroup] = supportedAccountGroups;
 
-      return {
-        suggestedAccountGroups: [defaultSelectedAccountGroup],
-        suggestedCaipAccountIds: getCaip25AccountIdsFromAccountGroupAndScope(
-          [defaultSelectedAccountGroup],
-          requestedAndAlreadyConnectedCaipChainIdsOrDefault,
-        ),
-      };
+      return [defaultSelectedAccountGroup];
     }
 
-    return {
-      suggestedAccountGroups: selectedAndRequestedAccountGroups,
-      suggestedCaipAccountIds: getCaip25AccountIdsFromAccountGroupAndScope(
-        selectedAndRequestedAccountGroups,
-        requestedAndAlreadyConnectedCaipChainIdsOrDefault,
-      ),
-    };
+    return selectedAndRequestedAccountGroups;
   }, [
     connectedAccountGroups.length,
     supportedAccountGroups,
     requestedCaipAccountIds.length,
     selectedAndRequestedAccountGroups,
-    requestedAndAlreadyConnectedCaipChainIdsOrDefault,
     connectedAccountGroupWithRequested,
-    caipAccountIdsOfConnectedAndRequestedAccountGroups,
   ]);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
@@ -469,9 +446,32 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     ),
   );
 
-  const [selectedCaipAccountIds, setSelectedCaipAccountIds] = useState<
-    CaipAccountId[]
-  >(suggestedCaipAccountIds);
+  // The CAIP account ids to grant are always derived from the currently
+  // selected account groups and chain selection. Deriving (rather than
+  // duplicating in state) guarantees that any update to either selection keeps
+  // the granted accounts in sync — e.g. namespaces added via the network
+  // editor get accounts attached (WPN-1704).
+  const selectedCaipAccountIds = useMemo(() => {
+    const selectedGroupIds = new Set(selectedAccountGroupIds);
+    const selectedAccountGroups = Array.from(
+      new Set([
+        ...supportedAccountGroups,
+        ...connectedAccountGroupWithRequested,
+      ]),
+    ).filter((group: AccountGroupWithInternalAccounts) =>
+      selectedGroupIds.has(group.id),
+    );
+
+    return getCaip25AccountIdsFromAccountGroupAndScope(
+      selectedAccountGroups,
+      selectedChainIds,
+    );
+  }, [
+    selectedAccountGroupIds,
+    selectedChainIds,
+    supportedAccountGroups,
+    connectedAccountGroupWithRequested,
+  ]);
 
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
@@ -574,10 +574,9 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
     if (previousIdentitiesListSize.current !== currentLength) {
       setSelectedAccountGroupIds(suggestedAccountGroupIds);
-      setSelectedCaipAccountIds(suggestedCaipAccountIds);
       previousIdentitiesListSize.current = currentLength;
     }
-  }, [suggestedAccountGroupIds, suggestedCaipAccountIds]);
+  }, [suggestedAccountGroupIds]);
 
   const cancelPermissionRequest = useCallback(
     (requestId: string) => {
@@ -723,7 +722,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       );
 
       toast({
-        description:
+        title:
           connectedAccountLength >= 1
             ? strings('toast.permissions_updated')
             : undefined,
@@ -758,40 +757,34 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const handleAccountGroupsSelected = useCallback(
     (newSelectedAccountGroupIds: AccountGroupId[]) => {
-      const updatedSelectedChains = [...selectedChainIds];
-
-      // Create lookup sets for selected account group IDs
+      // Sanitize the incoming ids against the groups the edit screen offers.
+      // The granted account ids are derived from this selection (see the
+      // selectedCaipAccountIds memo above).
       const selectedGroupIds = new Set(newSelectedAccountGroupIds);
-
-      // Filter to only selected account groups
       const selectedAccountGroups = supportedAccountGroups.filter(
         (group: AccountGroupWithInternalAccounts) =>
           selectedGroupIds.has(group.id),
       );
 
-      const caip25AccountIds = getCaip25AccountIdsFromAccountGroupAndScope(
-        selectedAccountGroups,
-        updatedSelectedChains,
-      );
-
-      setSelectedChainIds(updatedSelectedChains);
       setSelectedAccountGroupIds(
         selectedAccountGroups.map(
           (group: AccountGroupWithInternalAccounts) => group.id,
         ),
       );
-      setSelectedCaipAccountIds(caip25AccountIds);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [selectedChainIds, supportedAccountGroups],
+    [supportedAccountGroups],
   );
 
   const handleNetworksSelected = useCallback(
     (newSelectedChainIds: CaipChainId[]) => {
+      // The granted account ids follow this chain selection automatically via
+      // the selectedCaipAccountIds memo, so namespaces added here get accounts
+      // attached when the permission is granted (WPN-1704).
       setSelectedChainIds(newSelectedChainIds);
       setScreen(AccountConnectScreens.SingleConnect);
     },
-    [setScreen, setSelectedChainIds],
+    [],
   );
 
   const handleConfirm = useCallback(async () => {
@@ -1002,7 +995,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         </ScreenContainer>
       )}
       {renderPhishingModal()}
-      <Toaster />
     </Box>
   );
 };

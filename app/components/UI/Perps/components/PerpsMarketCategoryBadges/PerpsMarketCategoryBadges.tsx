@@ -3,31 +3,28 @@ import {
   FilterButton,
   FilterButtonGroup,
   FilterButtonVariant,
-  IconColor,
   IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsMarketCategoryBadgesProps } from './PerpsMarketCategoryBadges.types';
 import { type MarketTypeFilter } from '@metamask/perps-controller';
 import {
   usePerpsCategories,
+  NEW_CATEGORY,
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
+import { getCategoryIconName } from '../../constants/categoryIcons';
 
 const WATCHLIST_FILTER_VALUE = 'watchlist';
-
-const NEW_CATEGORY: PerpsCategory = {
-  id: 'new',
-  label: strings('perps.home.tabs.new'),
-};
 
 /**
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
  * Categories are derived from live market data via `usePerpsCategories`.
- * The `'new'` badge is automatically appended when any market has
- * `isNewMarket` set.
+ * The `'new'` badge is automatically appended when any market was listed
+ * within the last 30 days (see `useHasNewMarkets`).
  *
  * Uses MMDS FilterButtonGroup with an explicit "All" reset filter.
  */
@@ -73,6 +70,18 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     [isWatchlistSelected, onCategorySelect, onWatchlistToggle],
   );
 
+  const renderCategoryFilterButton = (category: PerpsCategory) => (
+    <FilterButton
+      key={category.id}
+      value={category.id}
+      startIconName={getCategoryIconName(category.id)}
+      startIconProps={{ size: IconSize.Sm }}
+      testID={testID ? `${testID}-${category.id}` : undefined}
+    >
+      {category.label}
+    </FilterButton>
+  );
+
   return (
     <FilterButtonGroup
       value={groupValue}
@@ -85,11 +94,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
         <FilterButton
           value={WATCHLIST_FILTER_VALUE}
           startIconName={IconName.StarFilled}
-          startIconProps={{
-            color: isWatchlistSelected
-              ? IconColor.PrimaryInverse
-              : IconColor.IconAlternative,
-          }}
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
           testID={testID ? `${testID}-watchlist` : undefined}
           contentWrapperProps={{ gap: 0 }}
@@ -100,15 +104,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
       <FilterButton value="all" testID={testID ? `${testID}-all` : undefined}>
         {strings('perps.home.tabs.all')}
       </FilterButton>
-      {displayCategories.map((category) => (
-        <FilterButton
-          key={category.id}
-          value={category.id}
-          testID={testID ? `${testID}-${category.id}` : undefined}
-        >
-          {category.label}
-        </FilterButton>
-      ))}
+      {displayCategories.map(renderCategoryFilterButton)}
     </FilterButtonGroup>
   );
 };

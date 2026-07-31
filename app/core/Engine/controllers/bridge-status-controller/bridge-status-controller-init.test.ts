@@ -1,6 +1,8 @@
 import {
   BridgeStatusController,
   type BridgeStatusControllerMessenger,
+  QuoteStatusGetError,
+  QuoteStatusUpdateError,
 } from '@metamask/bridge-status-controller';
 import { BridgeClientId } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
@@ -14,10 +16,28 @@ import { bridgeStatusControllerInit } from './bridge-status-controller-init';
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { captureException } from '@sentry/react-native';
 
 jest.mock('@metamask/bridge-status-controller');
 jest.mock('../../../../util/trace');
 jest.mock('@metamask/controller-utils');
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+function buildRemoteFeatureFlagControllerMock(
+  bridgeQuoteStatusManager?: { enabled?: boolean },
+  localOverrides: Record<string, unknown> = {},
+) {
+  return {
+    state: {
+      remoteFeatureFlags: {
+        bridgeQuoteStatusManager,
+      },
+      localOverrides,
+    },
+  };
+}
 
 /**
  * Build a mock TransactionController.
@@ -41,6 +61,10 @@ function buildTransactionControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
+  options: {
+    bridgeQuoteStatusManager?: { enabled?: boolean };
+    localOverrides?: Record<string, unknown>;
+  } = {},
 ): jest.Mocked<MessengerClientInitRequest<BridgeStatusControllerMessenger>> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
@@ -60,9 +84,25 @@ function buildInitRequestMock(
   };
 
   if (!initRequestProperties.getMessengerClient) {
+    const mockTransactionController = buildTransactionControllerMock();
+    const mockRemoteFeatureFlagController =
+      buildRemoteFeatureFlagControllerMock(
+        options.bridgeQuoteStatusManager,
+        options.localOverrides,
+      );
+
     requestMock.getMessengerClient = jest
       .fn()
-      .mockReturnValue(buildTransactionControllerMock());
+      .mockReturnValue(buildTransactionControllerMock())
+      .mockImplementation((name: string) => {
+        if (name === 'TransactionController') {
+          return mockTransactionController;
+        }
+        if (name === 'RemoteFeatureFlagController') {
+          return mockRemoteFeatureFlagController;
+        }
+        throw new Error(`${name} not found`);
+      });
   }
 
   return requestMock;
@@ -200,9 +240,15 @@ describe('BridgeStatusController Init', () => {
         addTransactionBatch: jest.fn().mockResolvedValue(['txId1', 'txId2']),
       });
       const requestMock = buildInitRequestMock({
-        getMessengerClient: jest
-          .fn()
-          .mockReturnValue(mockTransactionController),
+        getMessengerClient: jest.fn().mockImplementation((name: string) => {
+          if (name === 'TransactionController') {
+            return mockTransactionController;
+          }
+          if (name === 'RemoteFeatureFlagController') {
+            return buildRemoteFeatureFlagControllerMock();
+          }
+          throw new Error(`${name} not found`);
+        }),
       });
 
       // Act
@@ -260,6 +306,116 @@ describe('BridgeStatusController Init', () => {
       expect(requestMock.getMessengerClient).toHaveBeenCalledWith(
         'TransactionController',
       );
+    });
+
+    it('passes quote status manager callbacks', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock();
+
+      // Act
+      bridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.onQuoteStatusManagerError).toEqual(
+        expect.any(Function),
+      );
+      expect(constructorOptions.isQuoteStatusManagerEnabled).toEqual(
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe('onQuoteStatusManagerError', () => {
+    function getOnQuoteStatusManagerError() {
+      const requestMock = buildInitRequestMock();
+      bridgeStatusControllerInit(requestMock);
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[
+          bridgeStatusControllerClassMock.mock.calls.length - 1
+        ][0];
+      return constructorOptions.onQuoteStatusManagerError;
+    }
+
+    it('calls captureException for QuoteStatusUpdateError', () => {
+      const onQuoteStatusManagerError = getOnQuoteStatusManagerError();
+      const error = new QuoteStatusUpdateError('update failed', {
+        quoteId: 'quote-1',
+      });
+
+      onQuoteStatusManagerError?.(error);
+
+      expect(captureException).toHaveBeenCalledWith(error);
+    });
+
+    it('does not call captureException for QuoteStatusGetError', () => {
+      const onQuoteStatusManagerError = getOnQuoteStatusManagerError();
+      const error = new QuoteStatusGetError('get failed', {
+        quoteId: 'quote-1',
+      });
+
+      onQuoteStatusManagerError?.(error);
+
+      expect(captureException).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isQuoteStatusManagerEnabled', () => {
+    function getIsQuoteStatusManagerEnabled(
+      bridgeQuoteStatusManager?: { enabled?: boolean },
+      localOverrides?: Record<string, unknown>,
+    ) {
+      const requestMock = buildInitRequestMock(
+        {},
+        { bridgeQuoteStatusManager, localOverrides },
+      );
+      bridgeStatusControllerInit(requestMock);
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[
+          bridgeStatusControllerClassMock.mock.calls.length - 1
+        ][0];
+      return constructorOptions.isQuoteStatusManagerEnabled;
+    }
+
+    it('returns true when the remote feature flag is enabled', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled({
+        enabled: true,
+      });
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(true);
+    });
+
+    it('returns false when the remote feature flag is disabled', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled({
+        enabled: false,
+      });
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(false);
+    });
+
+    it('returns false when the remote feature flag is not set', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled();
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(false);
+    });
+
+    it('returns true when a local override enables the feature flag', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled(
+        { enabled: false },
+        { bridgeQuoteStatusManager: { enabled: true } },
+      );
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(true);
+    });
+
+    it('returns false when a local override disables the feature flag', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled(
+        { enabled: true },
+        { bridgeQuoteStatusManager: { enabled: false } },
+      );
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(false);
     });
   });
 });

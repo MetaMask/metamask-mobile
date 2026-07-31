@@ -18,7 +18,7 @@ import PredictResolvedOutcomesDropdown from '../PredictResolvedOutcomesDropdown'
 import { usePricedOutcomeGroup } from './usePricedOutcomeGroup';
 import { getOutcomeGroupLabel } from '../../utils/outcomeGroupLabel';
 import { countOutcomeGroupOutcomes } from '../../utils/outcomeGroups';
-import { getSportsMarketTypeLabel } from './utils';
+import { getSportsMarketTypeLabelForGame } from './utils';
 
 export { getSportsMarketTypeLabel } from './utils';
 
@@ -28,14 +28,18 @@ export interface OutcomesTabProps {
   game?: PredictMarketGame;
   activeChipKey: string;
   onBuyPress: (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
+  nonRegTimeSportsMarketTypes?: string[];
+  onRegTimeInfoPress?: () => void;
 }
 
 const ResolvedOutcomeGroup = memo(
   ({
     group,
+    game,
     isSubgroup = false,
   }: {
     group: PredictOutcomeGroup;
+    game?: PredictMarketGame;
     isSubgroup?: boolean;
   }) => (
     <Box>
@@ -45,7 +49,7 @@ const ResolvedOutcomeGroup = memo(
         twClassName="font-medium pt-3 pb-1"
       >
         {isSubgroup
-          ? getSportsMarketTypeLabel(group.key)
+          ? getSportsMarketTypeLabelForGame(group.key, undefined, game)
           : getOutcomeGroupLabel(group.key)}
       </Text>
       {group.outcomes.map((outcome) => (
@@ -56,7 +60,12 @@ const ResolvedOutcomeGroup = memo(
         />
       ))}
       {group.subgroups?.map((subgroup) => (
-        <ResolvedOutcomeGroup key={subgroup.key} group={subgroup} isSubgroup />
+        <ResolvedOutcomeGroup
+          key={subgroup.key}
+          group={subgroup}
+          game={game}
+          isSubgroup
+        />
       ))}
     </Box>
   ),
@@ -65,7 +74,13 @@ const ResolvedOutcomeGroup = memo(
 ResolvedOutcomeGroup.displayName = 'ResolvedOutcomeGroup';
 
 const PredictGameResultsDropdown = memo(
-  ({ groups }: { groups: PredictOutcomeGroup[] }) => {
+  ({
+    groups,
+    game,
+  }: {
+    groups: PredictOutcomeGroup[];
+    game?: PredictMarketGame;
+  }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const outcomeCount = useMemo(
@@ -95,7 +110,7 @@ const PredictGameResultsDropdown = memo(
         }
       >
         {groups.map((group) => (
-          <ResolvedOutcomeGroup key={group.key} group={group} />
+          <ResolvedOutcomeGroup key={group.key} group={group} game={game} />
         ))}
       </PredictResolvedOutcomesDropdown>
     );
@@ -111,6 +126,8 @@ const PredictGameOutcomesTab = memo(
     game,
     activeChipKey,
     onBuyPress,
+    nonRegTimeSportsMarketTypes = [],
+    onRegTimeInfoPress,
   }: OutcomesTabProps) => {
     const selectedGroup = groupMap.get(activeChipKey);
     const pricedGroup = usePricedOutcomeGroup(selectedGroup);
@@ -123,11 +140,16 @@ const PredictGameOutcomesTab = memo(
               group={pricedGroup}
               onBuyPress={onBuyPress}
               game={game}
+              nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+              onRegTimeInfoPress={onRegTimeInfoPress}
             />
           </Box>
         )}
         <Box twClassName="px-4">
-          <PredictGameResultsDropdown groups={resolvedOutcomeGroups} />
+          <PredictGameResultsDropdown
+            groups={resolvedOutcomeGroups}
+            game={game}
+          />
         </Box>
       </Box>
     );

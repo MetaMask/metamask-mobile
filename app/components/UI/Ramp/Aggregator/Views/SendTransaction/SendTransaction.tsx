@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import BN4 from 'bnjs4';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
@@ -68,7 +69,7 @@ interface SendTransactionParams {
 }
 
 function SendTransaction() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<SendTransactionParams>();
   const dispatch = useDispatch();
   const order = useSelector((state: RootState) =>

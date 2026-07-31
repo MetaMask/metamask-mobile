@@ -7,12 +7,14 @@ function OverlayWithHole({
   circleSize,
   circleX,
   circleY,
+  fill = 'black',
 }: {
   width: number;
   height: number;
   circleSize: number;
   circleX: number;
   circleY: number;
+  fill?: string;
 }) {
   const radius = circleSize / 2;
 
@@ -31,7 +33,7 @@ function OverlayWithHole({
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Path d={pathData} fill="black" fillRule="evenodd" />
+      <Path d={pathData} fill={fill} fillRule="evenodd" />
     </Svg>
   );
 }

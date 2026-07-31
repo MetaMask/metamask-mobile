@@ -15,7 +15,6 @@ import {
   isMultichainWalletSnap,
   isSnapPreinstalled,
 } from './utils/snaps';
-import { endTrace, TraceName } from '../../util/trace';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { trackSnapAccountEvent } from '../../util/analytics/helpers/snapKeyring/trackSnapAccountEvent';
@@ -178,10 +177,6 @@ export class SnapKeyringImpl implements SnapKeyringCallbacks {
           snapId,
           snapName,
         );
-
-        endTrace({
-          name: TraceName.CreateSnapAccount,
-        });
 
         store.dispatch(
           endPerformanceTrace({

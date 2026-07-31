@@ -74,13 +74,22 @@ export const selectTokensByChainIdAndWalletAddress = createDeepEqualSelector(
         ) ?? {}),
 );
 
-export const selectTokensByAddress = createSelector(
+const EMPTY_TOKENS_BY_ADDRESS: Readonly<Record<string, never>> = Object.freeze(
+  {},
+);
+
+export const selectTokensByAddress = createDeepEqualSelector(
   selectTokens,
-  (tokens: Token[]) =>
-    tokens?.reduce((tokensMap: { [address: string]: Token }, token: Token) => {
+  (tokens: Token[]): { [address: string]: Token } => {
+    if (!tokens?.length) {
+      return EMPTY_TOKENS_BY_ADDRESS;
+    }
+
+    return tokens.reduce<Record<string, Token>>((tokensMap, token) => {
       tokensMap[token.address] = token;
       return tokensMap;
-    }, {}),
+    }, {});
+  },
 );
 
 export const selectTokensLength = createSelector(
@@ -118,17 +127,17 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   },
 );
 
-export const selectAllTokensFlat = createSelector(
-  getTokensControllerAllTokens,
-  (tokensByAccountByChain: {
-    [account: string]: { [chainId: string]: Token[] };
-  }): Token[] => {
-    if (Object.values(tokensByAccountByChain).length === 0) {
-      return [];
-    }
-    const tokensByAccountArray = Object.values(tokensByAccountByChain);
+const EMPTY_TOKENS: Token[] = Object.freeze([] as Token[]) as Token[];
 
-    return tokensByAccountArray.reduce<Token[]>((acc, tokensByAccount) => {
+export const selectAllTokensFlat = createDeepEqualSelector(
+  getTokensControllerAllTokens,
+  (tokensByAccountByChain: TokensControllerState['allTokens']): Token[] => {
+    const groups = Object.values(tokensByAccountByChain);
+    if (groups.length === 0) {
+      return EMPTY_TOKENS;
+    }
+
+    return groups.reduce<Token[]>((acc, tokensByAccount) => {
       const tokensArray = Object.values(tokensByAccount).flat();
       return acc.concat(...tokensArray);
     }, []);

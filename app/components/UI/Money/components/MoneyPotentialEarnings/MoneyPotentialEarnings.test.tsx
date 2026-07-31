@@ -1,10 +1,13 @@
 import React from 'react';
+import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
+import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -28,12 +31,9 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 }));
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => 'usd'),
-}));
 
 jest.mock('../../utils/moneyFormatFiat', () => ({
+  ...jest.requireActual('../../utils/moneyFormatFiat'),
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
@@ -89,7 +89,13 @@ const MOCK_SOL = makeToken({
   fiat: { balance: 2000 },
 });
 
+const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
+
 describe('MoneyPotentialEarnings', () => {
+  beforeEach(() => {
+    mockMoneyFormatFiat.mockClear();
+  });
+
   it('returns null when there are no tokens with balance', () => {
     const { queryByTestId } = render(
       <MoneyPotentialEarnings apyDecimal={0.04} tokens={[]} />,
@@ -127,6 +133,30 @@ describe('MoneyPotentialEarnings', () => {
     );
   });
 
+  it('formats the headline total using the token fiat currency instead of a Money default currency when defined', () => {
+    const eurToken = makeToken({
+      symbol: 'EURC',
+      address: '0x0000000000000000000000000000000000000005',
+      fiat: { balance: 5000, currency: 'eur' },
+    });
+
+    render(<MoneyPotentialEarnings apyDecimal={0.04} tokens={[eurToken]} />);
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'eur',
+    );
+  });
+
+  it('falls back to the Money default currency when tokens have no fiat currency', () => {
+    render(<MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />);
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'usd',
+    );
+  });
+
   it('renders the projected amount as a plain Text (no gradient mask)', () => {
     const { getByTestId, toJSON } = render(
       <MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />,
@@ -140,6 +170,69 @@ describe('MoneyPotentialEarnings', () => {
     const serialized = JSON.stringify(toJSON());
     expect(serialized).not.toContain('MaskedView');
     expect(serialized).not.toContain('LinearGradient');
+  });
+
+  it('renders the real token row balance when privacyMode is false', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.2}
+        tokens={[MOCK_USDC]}
+        privacyMode={false}
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('$5000.00');
+  });
+
+  it('masks the token row balance when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.2}
+        tokens={[MOCK_USDC]}
+        privacyMode
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('•'.repeat(9));
+  });
+
+  it('renders the real headline total and projected amounts when privacyMode is false', () => {
+    // USDC $5000 x 4% APY x 1 year = $200.00
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.04}
+        tokens={[MOCK_USDC]}
+        privacyMode={false}
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
+      '$5000.00',
+    );
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('+$200.00');
+  });
+
+  it('masks the headline total and projected amounts when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.04}
+        tokens={[MOCK_USDC]}
+        privacyMode
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
+      '•'.repeat(9),
+    );
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('•'.repeat(6));
   });
 
   it('excludes tokens with zero balance', () => {
@@ -245,61 +338,23 @@ describe('MoneyPotentialEarnings', () => {
     expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC, 0, 1);
   });
 
-  it('calls onHeaderPress when the section header is tapped', () => {
-    const onHeader = jest.fn();
+  it('never renders the section arrow, even when more than five tokens are eligible', () => {
     const extra = makeToken({
       name: 'Extra',
       symbol: 'EXT',
       address: '0x0000000000000000000000000000000000000004',
       fiat: { balance: 100 },
     });
-    const { getByText } = render(
+    const { queryByTestId } = render(
       <MoneyPotentialEarnings
         apyDecimal={0.04}
         tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-        onHeaderPress={onHeader}
-      />,
-    );
-
-    fireEvent.press(getByText(strings('money.potential_earnings.title')));
-
-    expect(onHeader).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders the section arrow when more than five tokens are eligible', () => {
-    const extra = makeToken({
-      name: 'Extra',
-      symbol: 'EXT',
-      address: '0x0000000000000000000000000000000000000004',
-      fiat: { balance: 100 },
-    });
-    const { getByTestId } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
-        onHeaderPress={jest.fn()}
-      />,
-    );
-
-    expect(getByTestId(MoneySectionHeaderTestIds.CHEVRON)).toBeOnTheScreen();
-  });
-
-  it('hides the section arrow and ignores header taps with five or fewer eligible tokens', () => {
-    const onHeader = jest.fn();
-    const { queryByTestId, getByText } = render(
-      <MoneyPotentialEarnings
-        apyDecimal={0.04}
-        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL]}
-        onHeaderPress={onHeader}
       />,
     );
 
     expect(
       queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
     ).not.toBeOnTheScreen();
-
-    fireEvent.press(getByText(strings('money.potential_earnings.title')));
-    expect(onHeader).not.toHaveBeenCalled();
   });
 
   it('renders the inline info button when onInfoPress is provided', () => {
@@ -427,7 +482,7 @@ describe('MoneyPotentialEarnings', () => {
       expect(
         getAllByText(strings('money.potential_earnings.no_fee')),
       ).toHaveLength(1);
-      expect(queryByText('USDT')).toBeOnTheScreen();
+      expect(queryByText('Tether')).toBeOnTheScreen();
     });
   });
 });

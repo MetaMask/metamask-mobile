@@ -45,11 +45,11 @@ export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
     decimals: sourceChainNativeAsset?.decimals,
   });
 
-  // quote.gasFee.effective.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
+  // quote.gasFee.total.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
   const gasAmount =
     sourceChainId && isBitcoinChainId(sourceChainId)
-      ? (quote?.totalNetworkFee?.amount ?? quote?.gasFee?.effective?.amount)
-      : quote?.gasFee?.effective?.amount;
+      ? (quote?.totalNetworkFee?.amount ?? quote?.gasFee?.total?.amount)
+      : quote?.gasFee?.total?.amount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null
       ? new BigNumber(gasAmount).toFixed()

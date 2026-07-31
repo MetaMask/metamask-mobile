@@ -8,6 +8,7 @@ export const TraderPositionViewSelectorsIDs = {
     'trader-position-view-header-compact-token-symbol',
   HEADER_COMPACT_TOKEN_CHANGE:
     'trader-position-view-header-compact-token-change',
+  HEADER_COMPACT_PERP_BADGES: 'trader-position-view-header-compact-perp-badges',
   COMPACT_TOKEN_STATS: 'trader-position-view-compact-token-stats',
   BUY_BUTTON: 'trader-position-view-buy-button',
   TRADE_BUTTON: 'trader-position-view-trade-button',

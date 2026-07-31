@@ -18,6 +18,7 @@ import ExploreScroll from '../components/ExploreScroll';
 import ExploreSectionList, {
   type ExploreSectionItem,
 } from '../components/ExploreSectionList';
+import { SectionHeader as MMDSSectionHeader } from '@metamask/design-system-react-native';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -82,7 +83,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         key: 'recents',
         content: (
           <>
-            <SectionHeader
+            <MMDSSectionHeader
               title={strings('autocomplete.recents')}
               testID="section-header-view-all-dapps_recents"
             />
@@ -150,8 +151,6 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             title={strings('trending.ecosystems')}
             subtitle={strings('trending.ecosystems_subtitle')}
             testID="section-header-view-all-dapps_networks"
-            titleTwClassName="pb-1"
-            subtitleTwClassName="mb-3"
           />
           <TileCarousel<SiteData>
             data={networks.data}

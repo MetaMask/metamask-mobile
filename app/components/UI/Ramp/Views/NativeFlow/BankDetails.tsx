@@ -16,6 +16,7 @@ import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import styleSheet from './BankDetails.styles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -26,7 +27,6 @@ import BankDetailRow from '../../components/BankDetailRow';
 import {
   RampsOrderStatus,
   type TransakDepositOrder,
-  normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
 import PrivacySection from '../../components/PrivacySection';
@@ -58,7 +58,7 @@ const TERMINAL_STATUSES = new Set([
  * and fetches deposit-specific data (paymentDetails) from TransakService.
  */
 const V2BankDetails = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const {
@@ -115,7 +115,7 @@ const V2BankDetails = () => {
         setDepositOrder(updatedDepositOrder);
       }
 
-      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      const providerCode = order.provider?.id ?? '';
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -233,6 +233,7 @@ const V2BankDetails = () => {
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
+        provider_order_id: order.providerOrderId,
         amount_source: Number(order.fiatAmount),
         amount_destination: Number(order.cryptoAmount),
         exchange_rate: Number(order.exchangeRate),

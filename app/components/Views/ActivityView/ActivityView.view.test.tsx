@@ -1,6 +1,5 @@
 import '../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { strings } from '../../../../locales/i18n';
 import type { DeepPartial } from '../../../util/test/renderWithProvider';
 import type { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
@@ -12,6 +11,8 @@ import {
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { ActivityScreenSelectorsIDs } from '../ActivityScreen/ActivityScreen.testIds';
 
 const legacyActivityViewState = {
   engine: {
@@ -44,17 +45,16 @@ describeForPlatforms('ActivityView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('types in search after the redesigned screen lazy-loads', async () => {
-    const { findByPlaceholderText } = renderActivityView({
+  it('lazy-loads the redesigned activity screen', async () => {
+    const { findByTestId } = renderActivityView({
       redesignEnabled: true,
     });
 
-    const searchInput = await waitFor(() =>
-      findByPlaceholderText(strings('activity_view.search_placeholder')),
-    );
-
-    fireEvent.changeText(searchInput, 'swap');
-
-    expect(searchInput).toHaveProp('value', 'swap');
+    // The redesigned ActivityScreen mounts. The search input is temporarily
+    // commented out — TODO(activity-redesign): restore the search-typing
+    // assertion with the unified list + filtering.
+    expect(
+      await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+    ).toBeOnTheScreen();
   });
 });

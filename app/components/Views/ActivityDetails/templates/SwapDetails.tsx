@@ -1,7 +1,10 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import {
+  type ActivityListItem,
+  enrichTokenFromApi,
+} from '../../../../util/activity-adapters';
+import { useTokensData } from '../../../hooks/useTokensData/useTokensData';
 import {
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsDoItAgainButton,
@@ -14,12 +17,14 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
+import { getSwapAgainLabel } from './swapAgainLabel';
 
 type SwapDetailsItem = Extract<
   ActivityListItem,
   {
     type:
       | 'swap'
+      | 'swapIncomplete'
       | 'convert'
       | 'lendingDeposit'
       | 'lendingWithdrawal'
@@ -29,24 +34,33 @@ type SwapDetailsItem = Extract<
 >;
 
 export function SwapDetails({ item }: { item: SwapDetailsItem }) {
-  const totalToken = item.data.sourceToken?.amount
-    ? item.data.sourceToken
-    : item.data.destinationToken;
+  const rawSourceToken = item.data.sourceToken;
+  const rawDestinationToken =
+    'destinationToken' in item.data ? item.data.destinationToken : undefined;
+
+  const tokenData = useTokensData(
+    [rawSourceToken?.assetId, rawDestinationToken?.assetId].filter(
+      (assetId): assetId is string => Boolean(assetId),
+    ),
+  );
+  const sourceToken = enrichTokenFromApi(rawSourceToken, tokenData);
+  const destinationToken = enrichTokenFromApi(rawDestinationToken, tokenData);
+  const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
-    sourceToken: item.data.sourceToken,
-    destinationToken: item.data.destinationToken,
+    sourceToken,
+    destinationToken,
     fallbackCaipChainId: item.chainId,
   });
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
-    item.data.sourceToken,
+    sourceToken,
     item.chainId,
   );
 
   return (
     <Box twClassName="flex-1">
       <ActivityDetailsDualAmountHeader
-        sentToken={item.data.sourceToken}
-        receivedToken={item.data.destinationToken}
+        sentToken={sourceToken}
+        receivedToken={destinationToken}
       />
       <SectionDivider marginVertical={3} />
       <ActivityDetailsMetadata item={item} />
@@ -60,7 +74,7 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
           />
           {canDoItAgain ? (
             <ActivityDetailsDoItAgainButton
-              label={strings('activity_details.do_it_again')}
+              label={getSwapAgainLabel(item.type)}
               onPress={handleDoItAgain}
             />
           ) : null}

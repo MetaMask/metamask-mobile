@@ -24,6 +24,23 @@ jest.mock('../../../../ReactQueryService', () => ({
   },
 }));
 
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
+
+const mockBuild = jest.fn().mockReturnValue({ event: 'mocked' });
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: (...args: unknown[]) => mockAddProperties(...args),
+      build: (...args: unknown[]) => mockBuild(...args),
+    }),
+  },
+}));
+
 describe('handleSocialTraderPositionUrl', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
   const mockInvalidateQueries = ReactQueryService.queryClient
@@ -46,7 +63,9 @@ describe('handleSocialTraderPositionUrl', () => {
         positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
         traderId: 'trader-1',
         source: 'notification',
+        originalEntryPoint: 'notification',
         notificationSubtype: 'follow_newtrade_buy',
+        notificationTemplateVariant: undefined,
       },
     );
   });
@@ -63,7 +82,9 @@ describe('handleSocialTraderPositionUrl', () => {
         positionId: 'position-1',
         traderId: 'trader-1',
         source: 'notification',
+        originalEntryPoint: 'notification',
         notificationSubtype: undefined,
+        notificationTemplateVariant: undefined,
       },
     );
   });
@@ -80,7 +101,9 @@ describe('handleSocialTraderPositionUrl', () => {
         positionId: 'position id/with reserved?chars',
         traderId: 'trader id/with reserved?chars',
         source: 'notification',
+        originalEntryPoint: 'notification',
         notificationSubtype: 'follow newtrade/buy',
+        notificationTemplateVariant: undefined,
       },
     );
     expect(DevLogger.log).toHaveBeenCalledWith(
@@ -90,6 +113,7 @@ describe('handleSocialTraderPositionUrl', () => {
         traderId: 'trader id/with reserved?chars',
         deduplicationId: 'dedup id/with reserved?chars',
         notificationSubtype: 'follow newtrade/buy',
+        notificationTemplateVariant: undefined,
       },
     );
   });
@@ -193,13 +217,50 @@ describe('handleSocialTraderPositionUrl', () => {
         positionId: 'position-1',
         traderId: 'trader-1',
         source: 'notification',
+        originalEntryPoint: 'notification',
         notificationSubtype: undefined,
+        notificationTemplateVariant: undefined,
       },
     );
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
       expect.any(Error),
     );
+  });
+
+  it('extracts notification_template_variant from the URL and forwards it through navigation', () => {
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_perp_long&notification_template_variant=urgency',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      expect.objectContaining({ notificationTemplateVariant: 'urgency' }),
+    );
+  });
+
+  it('includes notification_template_variant on the analytics event when present', () => {
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_perp_long&notification_template_variant=question',
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      notification_subtype: 'follow_newtrade_perp_long',
+      notification_template_variant: 'question',
+    });
+  });
+
+  it('omits notification_template_variant from the analytics event when the param is absent', () => {
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      notification_subtype: 'follow_newtrade_buy',
+    });
   });
 
   it('falls back to social leaderboard on navigation errors', () => {

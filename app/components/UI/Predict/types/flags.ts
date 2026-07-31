@@ -1,8 +1,35 @@
 import { Infer } from '@metamask/superstruct';
 import { PredictFeeCollectionSchema } from '../schemas';
 import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import type {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../constants/feedBanner';
 
 export type PredictFeeCollection = Infer<typeof PredictFeeCollectionSchema>;
+
+export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
+  id: string;
+  title: string;
+  description: string;
+  position: PredictFeedBannerPosition;
+  severity: PredictFeedBannerSeverity;
+  dismissible: boolean;
+}
+
+export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
+  mode: 'live' | 'custom';
+  title?: string;
+  deeplink?: string;
+  contentSource: {
+    /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
+    composition: 'query-results' | 'live-now';
+    /** Raw Polymarket query params, without a leading `?`. */
+    queryParams: string;
+    /** IDs matching `PredictMarket.id` that are removed from custom results. */
+    excludedMarketIds: string[];
+  };
+}
 
 export interface PredictLiveSportsFlag {
   enabled: boolean;
@@ -23,6 +50,7 @@ export interface PredictExtendedSportsMarketsFlag
   extends VersionGatedFeatureFlag {
   leagues: string[];
   enabledSportsMarketTypes: string[];
+  nonRegTimeSportsMarketTypes?: string[];
 }
 
 export interface PredictWorldCupStageConfig {
@@ -54,11 +82,13 @@ export interface PredictFeatureFlags {
   liveSportsLeagues: string[];
   extendedSportsMarketsLeagues: string[];
   enabledSportsMarketTypes: string[];
+  nonRegTimeSportsMarketTypes: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
@@ -66,4 +96,8 @@ export interface PredictFeatureFlags {
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
   queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=149&tag_id=100995&order=volume24hr"
+}
+
+export interface PredictWimbledonTabFlag extends VersionGatedFeatureFlag {
+  queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
 }

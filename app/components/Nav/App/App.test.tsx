@@ -3,7 +3,7 @@ import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
-import { cleanup, render, waitFor } from '@testing-library/react-native';
+import { act, cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -589,7 +589,7 @@ describe('App', () => {
       });
 
       jest.useFakeTimers();
-    });
+    }, 30000);
   });
 
   describe('route registration', () => {
@@ -659,7 +659,6 @@ describe('App', () => {
     });
 
     it('has sheet routes defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
       expect(Routes.SHEET.NETWORK_SELECTOR).toBeDefined();
       expect(Routes.SHEET.ONBOARDING_SHEET).toBeDefined();
       expect(Routes.SHEET.SDK_LOADING).toBeDefined();
@@ -761,6 +760,10 @@ describe('App', () => {
 
   describe('App version handling', () => {
     it('should handle version storage operations', async () => {
+      const getItemSpy = jest
+        .spyOn(StorageWrapper, 'getItem')
+        .mockResolvedValue(null);
+
       const mockStore = configureMockStore();
       const store = mockStore(initialState);
 
@@ -776,9 +779,15 @@ describe('App', () => {
 
       render(<App />, { wrapper: Providers });
 
-      await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalled();
+      // Flush startApp's microtasks. Avoid waitFor here: this suite uses fake
+      // timers and testSetup freezes Date.now, so waitFor's timeout never
+      // elapses and a delayed getItem call hangs until Jest's test timeout.
+      await act(async () => {
+        await Promise.resolve();
       });
+
+      expect(getItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION);
+      getItemSpy.mockRestore();
     });
   });
 
@@ -805,9 +814,11 @@ describe('App', () => {
 
       renderAppForVersionTest(initialState);
 
-      await waitFor(() => {
-        expect(getItemSpy).toHaveBeenCalled();
+      await act(async () => {
+        await Promise.resolve();
       });
+
+      expect(getItemSpy).toHaveBeenCalled();
 
       getItemSpy.mockRestore();
     });
@@ -1180,7 +1191,7 @@ describe('App', () => {
 
   describe('Account management screens', () => {
     it('has account selector route defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
+      expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR).toBeDefined();
     });
 
     it('has address selector route defined', () => {
@@ -2067,29 +2078,54 @@ describe('App', () => {
     });
 
     it('renders the MultichainAddressList screen', async () => {
+      // Nested navigator shares the ADDRESS_LIST route name; seed child state so
+      // the mocked screen mounts without waiting on navigation effects.
+      // Avoid waitFor: App suite uses fake timers and testSetup mocks Date.now,
+      // so waitFor's timeout never elapses and a slow mount hangs until Jest's
+      // 5s test timeout (flaky CI failures).
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-address-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-address-list')).toBeOnTheScreen();
     });
 
     it('renders the MultichainPrivateKeyList screen', async () => {
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-pk-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
     });
 
     it('renders the LockScreen route', async () => {

@@ -52,9 +52,8 @@ export interface PillScrollListProps<T> {
   rowCount?: number;
   listTestId?: string;
   /**
-   * Outer wrapper Tailwind classes. Defaults to Explore spacing (`mt-3 mb-9`).
-   * Pass a slimmer value (e.g. `-mx-4 bg-transparent`) when the parent already
-   * applies vertical gap (e.g. homepage section `Box gap={3}` + column `gap={8}`).
+   * Outer wrapper Tailwind classes. Defaults to transparent background.
+   * Pass vertical spacing (e.g. `bg-transparent py-3`) when the parent owns gap.
    */
   wrapperTwClassName?: string;
 }
@@ -63,7 +62,7 @@ export interface PillScrollListProps<T> {
  * Multi-row horizontal scroll of pill-shaped items. Used for compact movers sections.
  * Splits incoming data evenly between rows.
  */
-const DEFAULT_WRAPPER_TW = '-mx-4 bg-transparent' as const;
+const DEFAULT_WRAPPER_TW = 'bg-transparent' as const;
 
 function PillScrollList<T>({
   data,
@@ -92,7 +91,7 @@ function PillScrollList<T>({
     ));
 
   return (
-    <Box twClassName={wrapperTwClassName}>
+    <Box testID="pill-scroll-list-wrapper" twClassName={wrapperTwClassName}>
       {isLoading && (
         <Box twClassName="px-4">
           <Skeleton rowCount={normalizedRowCount} />

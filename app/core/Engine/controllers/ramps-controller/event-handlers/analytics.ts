@@ -13,9 +13,73 @@ import {
   getHeadlessOrderContext,
   type HeadlessOrderContext,
 } from '../headlessOrderContextRegistry';
+import {
+  hasEmittedTerminalOrderAnalytics,
+  markTerminalOrderAnalyticsEmitted,
+} from '../terminalOrderAnalyticsRegistry';
 // Type-only import so `react` is not pulled into core; mirrors the emission in
 // `useAnalytics` without importing the hook.
-import type { AnalyticsEvents } from '../../../../../components/UI/Ramp/types/depositAnalytics';
+import type {
+  AnalyticsEvents,
+  RampSurface,
+} from '../../../../../components/UI/Ramp/types/depositAnalytics';
+
+/**
+ * Terminal order statuses. `@metamask/ramps-controller` keeps its
+ * `TERMINAL_ORDER_STATUSES` internal, so mirror it here from the exported
+ * `RampsOrderStatus` enum. Kept in lockstep with the controller's set.
+ */
+const TERMINAL_ORDER_STATUSES = new Set<RampsOrderStatus>([
+  Status.Completed,
+  Status.Failed,
+  Status.Cancelled,
+  Status.IdExpired,
+]);
+
+export function isTerminalOrderStatus(status: RampsOrderStatus): boolean {
+  return TERMINAL_ORDER_STATUSES.has(status);
+}
+
+/**
+ * Builds the `RAMPS_TRANSACTION_CONFIRMED` payload for a callback-fetched
+ * order. Mirrors the inline payload in `useTransakRouting` / `BankDetails` and
+ * the unified-buy base in `buildV2AnalyticsPayload`.
+ */
+export function buildRampsTransactionConfirmedParams(
+  order: RampsOrder,
+  options: {
+    rampType: AnalyticsEvents['RAMPS_TRANSACTION_CONFIRMED']['ramp_type'];
+    rampSurface?: RampSurface;
+    region?: string;
+  },
+): AnalyticsEvents['RAMPS_TRANSACTION_CONFIRMED'] {
+  const cryptoAmount = Number(order.cryptoAmount);
+  const feeTotal = Number(order.totalFeesFiat);
+  const computedExchangeRate =
+    cryptoAmount > 0 ? (Number(order.fiatAmount) - feeTotal) / cryptoAmount : 0;
+  const country = options.region ?? order.region ?? '';
+
+  return {
+    ramp_type: options.rampType,
+    ...(options.rampSurface ? { ramp_surface: options.rampSurface } : {}),
+    // TRAM-3696: join key back to the provider order. Never emit empty string.
+    ...(order.providerOrderId && { provider_order_id: order.providerOrderId }),
+    amount_source: Number(order.fiatAmount),
+    amount_destination: cryptoAmount,
+    exchange_rate: Number(order.exchangeRate ?? computedExchangeRate),
+    gas_fee: Number(order.networkFees ?? 0),
+    processing_fee: Number(order.partnerFees ?? 0),
+    total_fee: feeTotal,
+    payment_method_id: order.paymentMethod?.id ?? '',
+    country,
+    ...(options.region ? { region: options.region } : {}),
+    chain_id: order.network?.chainId ?? '',
+    currency_destination: order.cryptoCurrency?.assetId ?? '',
+    currency_destination_symbol: order.cryptoCurrency?.symbol,
+    currency_destination_network: order.network?.name,
+    currency_source: order.fiatCurrency?.symbol ?? '',
+  };
+}
 
 /**
  * Builds the `RAMPS_TRANSACTION_FAILED` payload for a headless order. Mirrors
@@ -33,6 +97,8 @@ function buildHeadlessTransactionFailedParams(
     ramp_surface: context.rampSurface,
     region: context.region,
     country: context.region,
+    // TRAM-3696: a terminal headless failure always has an order. Never empty.
+    ...(order.providerOrderId && { provider_order_id: order.providerOrderId }),
     error_message: order.statusDescription || 'transaction_failed',
     provider_onramp: order.provider?.name || '',
     amount_source: Number(order.fiatAmount),
@@ -89,6 +155,8 @@ function buildV2AnalyticsPayload(
 
   const unifiedBuyBase = {
     ramp_type: 'UNIFIED_BUY_2' as const,
+    // TRAM-3696: join key back to the provider order. Never emit empty string.
+    ...(order.providerOrderId && { provider_order_id: order.providerOrderId }),
     amount_source: order.fiatAmount,
     amount_destination: cryptoAmount,
     exchange_rate: order.exchangeRate ?? computedExchangeRate,
@@ -166,6 +234,17 @@ export function handleOrderStatusChangedForMetrics({
   order: RampsOrder;
   previousStatus: RampsOrderStatus;
 }): void {
+  // TRAM-3691: a terminal order emits its terminal analytics event exactly once
+  // per session. This is the single dedup authority: it guards both the polling
+  // subscription and the direct callback emit (`emitTerminalOrderAnalyticsFromCallback`),
+  // so the two paths cannot double-emit regardless of arrival order.
+  if (
+    TERMINAL_ORDER_STATUSES.has(order.status) &&
+    hasEmittedTerminalOrderAnalytics(order)
+  ) {
+    return;
+  }
+
   // TRAM-3623 AC5: a headless order carries a context entry (written at confirm
   // time by `useTransakRouting`). Handle its terminal failure here, as the
   // SINGLE `orderStatusChanged` metrics subscriber, so it cannot double-emit
@@ -188,6 +267,9 @@ export function handleOrderStatusChangedForMetrics({
             .addProperties({ ...params })
             .build(),
         );
+        // Record the terminal emit so any re-observation of the same order
+        // (callback or a racing poll) cannot double-emit (TRAM-3691).
+        markTerminalOrderAnalyticsEmitted(order);
       } catch (error) {
         Logger.error(error as Error, {
           message:
@@ -221,11 +303,93 @@ export function handleOrderStatusChangedForMetrics({
           .addProperties(analyticsPayload.params)
           .build(),
       );
+      // `buildV2AnalyticsPayload` returns a payload only for terminal statuses
+      // (Completed/Failed/IdExpired/Cancelled), so any emit here is terminal.
+      // Record it so any re-observation of the same order cannot double-emit
+      // (TRAM-3691).
+      markTerminalOrderAnalyticsEmitted(order);
     } catch (error) {
       Logger.error(error as Error, {
         message:
           'RampsController: Failed to track order status changed analytics',
       });
     }
+  }
+}
+
+/**
+ * Emits `RAMPS_TRANSACTION_CONFIRMED` when a callback-fetched order is first
+ * observed in a non-terminal state (TRAM-3738). Terminal orders emit via
+ * `emitTerminalOrderAnalyticsFromCallback` instead.
+ */
+export function emitOrderConfirmedAnalyticsFromCallback(
+  order: RampsOrder,
+  options: {
+    rampType: AnalyticsEvents['RAMPS_TRANSACTION_CONFIRMED']['ramp_type'];
+    rampSurface?: RampSurface;
+    region?: string;
+  },
+): void {
+  if (isTerminalOrderStatus(order.status)) {
+    return;
+  }
+  try {
+    const params = buildRampsTransactionConfirmedParams(order, options);
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED,
+      )
+        .addProperties({ ...params })
+        .build(),
+    );
+  } catch (error) {
+    Logger.error(error as Error, {
+      message:
+        'RampsController: Failed to emit RAMPS_TRANSACTION_CONFIRMED from callback',
+    });
+  }
+}
+
+/**
+ * Emits the terminal analytics event for a callback-fetched order that is
+ * ALREADY terminal on first observation (TRAM-3691).
+ *
+ * Such an order is added via `RampsController.addOrder` and, being terminal, is
+ * never polled - so `RampsController:orderStatusChanged` never fires and
+ * `handleOrderStatusChangedForMetrics` (its sole trigger) never runs. Callers on
+ * the callback path (e.g. the UB2 return in `OrderDetails`) invoke this right
+ * after `addOrder` so the missing `RAMPS_TRANSACTION_COMPLETED` /
+ * `RAMPS_TRANSACTION_FAILED` is emitted.
+ *
+ * No-ops for non-terminal orders (they are polled normally and emit on their
+ * transition). Dedup against the polling path and repeat callbacks is enforced
+ * by `handleOrderStatusChangedForMetrics` itself (the single dedup authority),
+ * so this only needs to gate on terminal status.
+ *
+ * Runs on a UI callback path, so it never throws: an analytics failure must not
+ * surface as a user-facing error or interrupt the surrounding order flow.
+ *
+ * @param order - The callback-fetched order.
+ */
+export function emitTerminalOrderAnalyticsFromCallback(
+  order: RampsOrder,
+): void {
+  if (!isTerminalOrderStatus(order.status)) {
+    return;
+  }
+  try {
+    // Reuse the single emission path. There is no real previous status (this is
+    // the first observation), so pass the current status; the handler keys its
+    // payload off `order.status`, not `previousStatus`, and both dedups and
+    // marks the terminal emit in the registry.
+    handleOrderStatusChangedForMetrics({
+      order,
+      previousStatus: order.status,
+    });
+  } catch (error) {
+    Logger.error(error as Error, {
+      message:
+        'RampsController: Failed to emit terminal order analytics from callback',
+    });
   }
 }

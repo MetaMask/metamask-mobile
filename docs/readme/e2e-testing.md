@@ -81,21 +81,29 @@ You can either use prebuilt app files from Expo (iOS only) or build the app loca
 
 Choose one of the following methods to download the prebuilt iOS app:
 
-**Method A: Using Runway Script (Recommended)**
+**Method A: Using the install script (recommended)**
+
+Requires [GitHub CLI](https://cli.github.com/) (`gh auth login`).
 
 ```bash
-yarn install:ios:runway --skipInstall
+yarn install:ios:dev --skipInstall
 ```
 
-**Method B: Manual Download from Runway**
+**Method B: Manual download from GitHub Actions**
 
-1. Navigate to [Runway builds](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=)
-2. Download the latest version of the app
-3. Copy and rename the build:
+1. Find a successful [`Expo Dev Build`](https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml) run on `main`.
+2. Download the `ios-app-main-dev-expo` artifact:
 
    ```bash
-   # Copy your downloaded .app file to the prebuild path
-   cp /path/to/your/downloaded/AAA.app build/MetaMask.app
+   gh run download RUN_ID --repo MetaMask/metamask-mobile \
+     -n ios-app-main-dev-expo -D build
+   ```
+
+3. Extract the simulator zip:
+
+   ```bash
+   mkdir -p build/MetaMask.app
+   ditto -x -k build/metamask-simulator-*.zip build/MetaMask.app
    ```
 
 #### Option 2: Build the App Locally
@@ -247,7 +255,6 @@ Flask E2E builds use these key environment variables:
 ```bash
 METAMASK_BUILD_TYPE=flask          # Enables Flask build variant
 METAMASK_ENVIRONMENT=e2e           # Enables E2E-specific configurations
-BRIDGE_USE_DEV_APIS=true          # Enables more snaps funcationality and dev APIs
 ```
 
 **Build Script Architecture:**
@@ -322,23 +329,22 @@ yarn test:e2e:android:flask:run
 
 ### Flask vs Main Build Differences
 
-| Aspect            | Main Build                          | Flask Build                                  |
-| ----------------- | ----------------------------------- | -------------------------------------------- |
-| **Snaps Support** | ❌ Limited                          | ✅ Enabled (with `BRIDGE_USE_DEV_APIS=true`) |
-| **Dev APIs**      | ❌ Limited                          | ✅ Full access                               |
-| **App Icon**      | Standard MetaMask                   | Flask logo                                   |
-| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                          |
-| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                              |
-| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask`        |
+| Aspect            | Main Build                          | Flask Build                           |
+| ----------------- | ----------------------------------- | ------------------------------------- |
+| **Snaps Support** | ❌ Limited                          | ✅ Enabled                            |
+| **Dev APIs**      | ❌ Limited                          | ✅ Full access                        |
+| **App Icon**      | Standard MetaMask                   | Flask logo                            |
+| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                   |
+| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                       |
+| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask` |
 
 ### Flask Troubleshooting
 
 **"Installing Snaps is currently disabled" error:**
 
 1. Check if `.js.env` has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT` - remove them
-2. Verify `BRIDGE_USE_DEV_APIS=true` is set during build
-3. Rebuild the app with `yarn test:e2e:*:flask:build`
-4. Verify Flask build by checking app icon/splash screen
+2. Rebuild the app with `yarn test:e2e:*:flask:build`
+3. Verify Flask build by checking app icon/splash screen
 
 **Metro bundler shows wrong `METAMASK_BUILD_TYPE`:**
 
@@ -421,13 +427,7 @@ export BROWSERSTACK_USERNAME='your_username'
 export BROWSERSTACK_ACCESS_KEY='your_access_key'
 ```
 
-For **MM Connect** performance tests on BrowserStack, you also need the **BrowserStack Local tunnel** running so the cloud device can reach the local Browser Playground dapp. Start the [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) binary, then set:
-
-```bash
-export BROWSERSTACK_LOCAL='true'
-```
-
-Do **not** set `BROWSERSTACK_LOCAL=true` unless the tunnel is running. Other BrowserStack performance suites (for example onboarding) run **without** local testing unless you intentionally enable it.
+MetaMask Connect browser E2E coverage now runs via Appium smoke (`SmokeMMConnect` / `tests/smoke-appium/mm-connect/`), not the performance BrowserStack suite.
 
 Update the config file with the appropriate BrowserStack app URL. You’ll need a BrowserStack URL first. To get it:
 
@@ -473,7 +473,7 @@ yarn run-playwright:ios-bs
 
 _Important Note:_ We strongly advise the use of Browserstack for this as we're still going through the migration and the amulator interface isn't yet fully ready.
 
-You need to make sure that the artifact is created. Download the binary from the [runway](https://github.com/MetaMask/metamask-mobile/tree/main?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Playwright.
+You need to make sure that the artifact is created. Download the binary using [`yarn install:ios:dev --skipInstall` / `yarn install:android:dev --skipInstall`](https://github.com/MetaMask/metamask-mobile/tree/main?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Playwright.
 
 Then update the build path in the `ios` or `android` config:
 

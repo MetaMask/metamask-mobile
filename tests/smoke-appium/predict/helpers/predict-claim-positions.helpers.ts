@@ -18,7 +18,10 @@ import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from '../../../api-mocking/mock-responses/polymarket/polymarket-positions-response.js';
-import { remoteFeatureFlagPerpsDisabledForPredictSmoke } from './predict-helpers.js';
+import {
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
+} from './predict-helpers.js';
 
 export const claimPositions = {
   Open: 'Spurs vs. Pelicans',
@@ -29,6 +32,7 @@ export const claimPositions = {
 export const predictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),

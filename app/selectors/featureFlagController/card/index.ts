@@ -18,6 +18,13 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
           name: 'USD Coin',
           symbol: 'USDC',
         },
+        {
+          address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
+          enabled: true,
+          name: 'Money account',
+          symbol: 'VEDA',
+        },
       ],
     },
     'eip155:59144': {
@@ -147,6 +154,16 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     accountsApiUrl: 'https://accounts.api.cx.metamask.io',
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
   },
+  immersve: {
+    enabled: false,
+    network: 'base-sepolia',
+    cardProgramId: '',
+    clientApplicationId: '',
+    partnerAccountId: '',
+    fundingChannelId: '',
+    spenderAddress: '',
+  },
+  immersveCountries: ['GB'],
 };
 
 export interface GateVersionedFeatureFlag {
@@ -157,6 +174,27 @@ export interface GateVersionedFeatureFlag {
 export interface CardFeatureFlag {
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
+  immersve?: ImmersveProgramConfig;
+  immersveCountries?: string[];
+}
+
+export interface CardProgramIdOption {
+  name: string;
+  id: string;
+}
+
+export interface ImmersveProgramConfig {
+  enabled?: boolean;
+  network?: string;
+  cardProgramId?: string;
+  /** Temporary: multi-program list for internal testing selectors. Easy to remove. */
+  cardProgramIds?: CardProgramIdOption[];
+  clientApplicationId?: string;
+  partnerAccountId?: string;
+  fundingChannelId?: string;
+  spenderAddress?: string;
+  apiBaseUrl?: string;
+  appUrl?: string;
 }
 
 export interface SupportedChain {
@@ -233,4 +271,19 @@ export const selectCardForgotPasswordFeatureEnabled = createSelector(
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
+);
+
+export const selectCardFiatCreditFeatureEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardFiatCreditFeature as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectImmersveOnboardingEnabled = createSelector(
+  selectCardFeatureFlag,
+  (cardFeatureFlag) => Boolean(cardFeatureFlag.immersve?.enabled),
 );

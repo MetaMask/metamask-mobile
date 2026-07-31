@@ -42,6 +42,8 @@ import { isTronChainId, isNonEvmChainId } from '../../../core/Multichain/utils';
 
 import { selectTrxStakingEnabled } from '../../featureFlagController/trxStakingEnabled';
 
+const trxNativeTokenAddress = 'tron:728126428/slip44:195';
+
 /**
  * Get the APR for pooled staking based on token type.
  * This helper centralizes APR logic to avoid scattered conditionals.
@@ -211,8 +213,7 @@ const selectEarnTokens = createDeepEqualSelector(
 
       const isNonEvmNative =
         token.isNative && isNonEvmChainId(String(token.chainId));
-      const isTronNative =
-        token.isNative && isTronChainId(token.chainId as Hex);
+      const isTronNative = token.address === trxNativeTokenAddress;
       const isTronStakedToken =
         token.isStaked &&
         isTronChainId(token.chainId as Hex) &&

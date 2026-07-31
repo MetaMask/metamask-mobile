@@ -53,6 +53,26 @@ jest.mock('../../hooks/useDisplayCurrencyValue', () => ({
 
 jest.mock('../../hooks/useInsufficientBalance', () => jest.fn(() => false));
 
+jest.mock('../TokenButton', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+
+  return {
+    TokenButton: ({
+      symbol,
+      securityBadgeAssetId,
+    }: {
+      symbol?: string;
+      securityBadgeAssetId?: string;
+    }) =>
+      createElement(
+        Text,
+        { testID: 'token-button', securityBadgeAssetId },
+        symbol,
+      ),
+  };
+});
+
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 const mockUseShouldRenderMaxOption =
   useShouldRenderMaxOption as jest.MockedFunction<
@@ -969,6 +989,74 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(getByText('TEST')).toBeTruthy();
+    });
+
+    it('passes CAIP asset ID for an EVM ERC-20 token to TokenButton', () => {
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-button').props.securityBadgeAssetId).toBe(
+        'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+      );
+    });
+
+    it('passes CAIP asset ID for a native token to TokenButton', () => {
+      const nativeToken: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        decimals: 18,
+        chainId: '0x1' as `0x${string}`,
+      };
+
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={nativeToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-button').props.securityBadgeAssetId).toBe(
+        'eip155:1/slip44:60',
+      );
+    });
+
+    it('normalizes Polygon native token address before passing CAIP asset ID to TokenButton', () => {
+      const polygonNativeToken: BridgeToken = {
+        address: POLYGON_NATIVE_TOKEN,
+        symbol: 'POL',
+        decimals: 18,
+        chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      };
+
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={polygonNativeToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-button').props.securityBadgeAssetId).toBe(
+        'eip155:137/slip44:966',
+      );
     });
 
     it('shows "Swap from" button when no token and isSourceToken is true', () => {

@@ -67,4 +67,27 @@ describe('mergeActivityItems', () => {
       perpsFill,
     ]);
   });
+
+  it('lets ramp items win over confirmed and local copies of the same hash', () => {
+    const localCopy = makeItem('localTransaction', 1, '0XRAMP');
+    const confirmedCopy = makeItem('apiEvmTransaction', 2, '0xramp');
+    const rampCopy = makeItem('rampOrder', 3, '0xRamp');
+
+    expect(
+      mergeActivityItems([localCopy], [confirmedCopy], [], [], [], [rampCopy]),
+    ).toEqual([rampCopy]);
+  });
+
+  it('keeps two ramp items that share a placeholder 0x hash from collapsing', () => {
+    // Placeholder provider hashes must not be used as Activity keys — see
+    // isPlausibleRampTxHash. After that filter, rows fall back to distinct
+    // order ids, so mergeActivityItems must keep both.
+    const first = makeItem('rampOrder', 2, 'coinbase-m/orders/order-a');
+    const second = makeItem('rampOrder', 1, 'coinbase-m/orders/order-b');
+
+    expect(mergeActivityItems([], [], [], [], [], [first, second])).toEqual([
+      first,
+      second,
+    ]);
+  });
 });

@@ -31,10 +31,12 @@ export const userInitialState: UserState = {
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
   moneyOnboardingSeen: false,
+  moneyEarnBannerDismissedTokens: {},
   tokenOverviewChartType: ChartType.Line,
   tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
   tokenIndicators: [],
   onboardingStepperProgress: {},
+  appInstallEventFired: false,
 };
 
 /**
@@ -165,6 +167,19 @@ const userReducer = (
         ...state,
         moneyOnboardingSeen: action.payload.seen,
       };
+    case UserActionType.SET_MONEY_EARN_BANNER_DISMISSED:
+      return {
+        ...state,
+        moneyEarnBannerDismissedTokens: {
+          ...state.moneyEarnBannerDismissedTokens,
+          [action.payload.key]: true,
+        },
+      };
+    case UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS:
+      return {
+        ...state,
+        moneyEarnBannerDismissedTokens: {},
+      };
     case UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE:
       return {
         ...state,
@@ -187,6 +202,11 @@ const userReducer = (
           ...state.onboardingStepperProgress,
           [action.payload.stepperId]: action.payload.step,
         },
+      };
+    case UserActionType.SET_APP_INSTALL_EVENT_FIRED:
+      return {
+        ...state,
+        appInstallEventFired: true,
       };
     default:
       return state;

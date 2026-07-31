@@ -14,11 +14,25 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 let mockIsUsUnauthenticatedNonCardholder = false;
+let mockRouteParams:
+  | {
+      postOnboardingRedirect?: {
+        type: MoneyPostOnboardingRedirectType;
+        preferredPaymentToken?: {
+          address: `0x${string}`;
+          chainId: `0x${string}`;
+        };
+      };
+    }
+  | undefined;
+const mockInitiateDeposit = jest.fn();
 
 const setWindowDimensions = ({
   height,
@@ -49,6 +63,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -58,9 +73,17 @@ jest.mock('react-redux', () => ({
     .mockImplementation(() => mockIsUsUnauthenticatedNonCardholder),
 }));
 
+let mockApy: { apyPercent?: number; apyPercentFormatted?: string } = {
+  apyPercent: 4,
+  apyPercentFormatted: '4%',
+};
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
-  default: () => ({ apyPercent: 4 }),
+  default: () => mockApy,
+}));
+
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -121,8 +144,14 @@ jest.mock('rive-react-native', () => {
       return <View {...props} />;
     }),
     useRive: () => [jest.fn(), mockRiveRef],
-    useRiveNumber: () => [undefined, mockSetNumber],
-    useRiveString: () => [undefined, mockSetString],
+    useRiveNumber: (_riveRef: unknown, path: string) => [
+      undefined,
+      (value: number) => mockSetNumber(path, value),
+    ],
+    useRiveString: (_riveRef: unknown, path: string) => [
+      undefined,
+      (value: string) => mockSetString(path, value),
+    ],
     useRiveTrigger: (_riveRef: unknown, path: string, callback: () => void) => {
       mockTriggerCallbacks[path] = callback;
     },
@@ -135,7 +164,13 @@ describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTriggerCallbacks = {};
+    mockApy = { apyPercent: 4, apyPercentFormatted: '4%' };
     mockIsUsUnauthenticatedNonCardholder = false;
+    mockRouteParams = undefined;
+    mockInitiateDeposit.mockResolvedValue(undefined);
+    jest.mocked(useMoneyAccountDeposit).mockReturnValue({
+      initiateDeposit: mockInitiateDeposit,
+    });
     setWindowDimensions({ height: 844, width: 390 });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,
@@ -322,6 +357,78 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
+    it('initiates deposit with preferred token after completing onboarding', async () => {
+      const preferredPaymentToken = {
+        address: '0xabc' as const,
+        chainId: '0x1' as const,
+      };
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockOnStateChanged('State Machine 1', 'FinalState');
+      });
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        }),
+      );
+    });
+
+    it('logs error when post-onboarding deposit fails', async () => {
+      const error = new Error('deposit failed');
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockInitiateDeposit.mockRejectedValue(error);
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockOnStateChanged('State Machine 1', 'FinalState');
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('marks onboarding seen when post-onboarding deposit fails', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockInitiateDeposit.mockRejectedValue(new Error('deposit failed'));
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockOnStateChanged('State Machine 1', 'FinalState');
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
+      );
+    });
+
     it('dispatches setMoneyOnboardingSeen when FinalState fires', () => {
       renderMoneyOnboardingView();
 
@@ -366,6 +473,31 @@ describe('MoneyOnboardingView', () => {
       });
     });
 
+    it('navigates to Money home when post-onboarding deposit fails', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockInitiateDeposit.mockImplementationOnce(
+        async ({ onDepositSetupFailure }) => {
+          const error = new Error('deposit setup failed');
+          onDepositSetupFailure?.(error);
+          throw error;
+        },
+      );
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockTriggerCallbacks.close();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    });
+
     it('dispatches setMoneyOnboardingSeen when close trigger fires', () => {
       renderMoneyOnboardingView();
 
@@ -392,15 +524,41 @@ describe('MoneyOnboardingView', () => {
     it('sets transition speed in Rive', () => {
       renderMoneyOnboardingView();
 
-      expect(mockSetNumber).toHaveBeenCalledWith(300);
+      expect(mockSetNumber).toHaveBeenCalledWith('transitionSpeed', 300);
     });
 
     it('sets Rive button text from localized onboarding button label', () => {
       renderMoneyOnboardingView();
 
       expect(mockSetString).toHaveBeenCalledWith(
+        'button',
         strings('money.rive_onboarding.button_text'),
       );
+    });
+
+    it('binds the live APY, percent sign included, to the animation', () => {
+      mockApy = { apyPercent: 4.6, apyPercentFormatted: '4.6%' };
+
+      renderMoneyOnboardingView();
+
+      expect(mockSetString).toHaveBeenCalledWith('apyValue', '4.6%');
+    });
+
+    it('binds the APY digit count so the artboard picks the matching layout', () => {
+      mockApy = { apyPercent: 4.6, apyPercentFormatted: '4.6%' };
+
+      renderMoneyOnboardingView();
+
+      expect(mockSetNumber).toHaveBeenCalledWith('apyAmountDigit', 2);
+    });
+
+    it('binds the fallback APY when the rate has not loaded yet', () => {
+      mockApy = {};
+
+      renderMoneyOnboardingView();
+
+      expect(mockSetString).toHaveBeenCalledWith('apyValue', '4%');
+      expect(mockSetNumber).toHaveBeenCalledWith('apyAmountDigit', 1);
     });
 
     it('starts the overlay hidden and fades it in after Rive initializes', () => {

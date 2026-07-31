@@ -151,6 +151,29 @@ class TransactionPayConfirmation {
     });
   }
 
+  // "You'll receive" row, shown instead of Total for withdraw flows.
+  get receive(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ConfirmationRowComponentIDs.RECEIVE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ConfirmationRowComponentIDs.RECEIVE, {
+          exact: true,
+        }),
+    });
+  }
+
+  // Shared MetaMask Pay withdraw marker (Perps + Predict). No testID.
+  // Detox matches the full "Available balance: $X" string (iOS by.text needs
+  // the amount). Appium uses contains — Android textMatches on `$` is unreliable
+  // and RN may expose the label via content-desc rather than @text.
+  get availableBalance(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(/Available balance: \$[0-9,.]+/u),
+      appium: () =>
+        PlaywrightMatchers.getElementByText('Available balance', false),
+    });
+  }
+
   get transactionFee(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -462,6 +485,11 @@ class TransactionPayConfirmation {
 
   async enterAmountAndContinue(amount: string): Promise<void> {
     await this.tapKeyboardAmount(amount);
+    // Done replaces percentage chips only after hasInput (debounced amountHuman).
+    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
+      timeout: 30_000,
+      description: 'Deposit keyboard Done button after amount entry (hasInput)',
+    });
     await this.tapKeyboardContinueButton();
   }
 
@@ -494,6 +522,28 @@ class TransactionPayConfirmation {
       description: 'Transaction fee row should be visible',
       timeout: 15000,
     });
+  }
+
+  async verifyReceiveVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.receive, {
+      description: "You'll receive row should be visible",
+      timeout: 15000,
+    });
+  }
+
+  async verifyAvailableBalanceVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.availableBalance, {
+      description: 'Available balance row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async verifyReceive(amount: string): Promise<void> {
+    await this.expectText(
+      this.receive,
+      amount,
+      "You'll receive amount should be correct",
+    );
   }
 }
 

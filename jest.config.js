@@ -31,7 +31,10 @@ process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 const isReassureRun = process.env.REASSURE === 'true';
 
 const config = {
-  preset: 'react-native',
+  // RN 0.85 removes the bundled 'react-native' Jest preset in favor of the
+  // extracted '@react-native/jest-preset' package (functionally identical on
+  // RN 0.83). Landed pre-upgrade so the RN 0.85 upgrade PR stays minimal.
+  preset: '@react-native/jest-preset',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
@@ -74,6 +77,7 @@ const config = {
     '.*/e2e/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
+    '.*\\.integration\\.test\\.(ts|tsx)$',
     '.*\\.view\\.test\\.(ts|tsx)$',
   ],
   coverageReporters: ['text-summary', 'lcov'],
@@ -98,6 +102,14 @@ const config = {
     '^@metamask/perps-controller/(.*)$':
       '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
+    // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
+    // bundler baked in a CI-only absolute path (a file:// URL left over from
+    // its CI build environment) instead of the `@nktkas/hyperliquid`
+    // specifier (the ESM build is unaffected). Map it to the same mock used
+    // for the npm package above so jest.requireActual can load
+    // @metamask/perps-controller without crashing, until upstream publishes a fix.
+    '^file:///home/runner/work/hyperliquid/hyperliquid/src/mod\\.ts$':
+      '<rootDir>/app/__mocks__/hyperliquidMock.js',
     '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
@@ -108,6 +120,7 @@ const config = {
     '^expo-screen-orientation(/.*)?$':
       '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
+    '^expo$': '<rootDir>/app/__mocks__/expo.ts',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/spinner$':
       '<rootDir>/app/__mocks__/spinnerMock.js',

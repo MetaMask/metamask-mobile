@@ -1,5 +1,6 @@
 import {
   applyDisplaySign,
+  formatTokenQuantity,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   type TokenAmount,
@@ -28,7 +29,10 @@ export function formatActivityTokenAmount(
     return token.symbol;
   }
 
-  const withSymbol = token.symbol ? `${human} ${token.symbol}` : human;
+  const formattedAmount = formatTokenQuantity(human);
+  const withSymbol = token.symbol
+    ? `${formattedAmount} ${token.symbol}`
+    : formattedAmount;
   return applyDisplaySign(
     withSymbol,
     getDisplaySignPrefix(token.direction, { showPlus }),

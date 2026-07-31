@@ -1,6 +1,7 @@
 import {
   applyDisplaySign,
   calculateFiatFromMarketRates,
+  formatTokenQuantity,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   getTokenAddressForMarketRates,
@@ -62,6 +63,12 @@ describe('activity adapter fiat helpers', () => {
         symbol: 'ETH',
       }),
     ).toBe('1');
+  });
+
+  it('formats token quantities for activity displays', () => {
+    expect(formatTokenQuantity('1.714557')).toBe('1.7146');
+    expect(formatTokenQuantity('0.000745596683158496')).toBe('0.0007456');
+    expect(formatTokenQuantity('0.000001')).toBe('<0.00001');
   });
 
   it('returns no prefix for incoming amounts when plus is disabled', () => {

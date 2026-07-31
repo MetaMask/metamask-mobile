@@ -1,6 +1,7 @@
-import React, { useCallback, useRef } from 'react';
-import { DeviceEventEmitter } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -10,31 +11,36 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Button,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-
-const MOCK_VERIFICATION_CODE = '123456';
+import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  selectQrSyncOtp,
+  selectQrSyncPhase,
+} from '../../../selectors/qrSyncController';
 
 const VerificationCodeBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const phase = useSelector(selectQrSyncPhase);
+  const otp = useSelector(selectQrSyncOtp) ?? '';
 
-  const goBack = useCallback(() => {
-    DeviceEventEmitter.emit('addDeviceVerificationDone');
-    navigation.goBack();
-    setTimeout(() => {
+  const closeSheet = useCallback(() => {
+    if (navigation.canGoBack()) {
       navigation.goBack();
-    }, 100);
+    }
   }, [navigation]);
 
+  useEffect(() => {
+    if (phase !== QrSyncPhases.DISPLAYING_OTP) {
+      closeSheet();
+    }
+  }, [closeSheet, phase]);
+
   return (
-    <BottomSheet ref={bottomSheetRef} goBack={goBack}>
-      <BottomSheetHeader
-        onClose={goBack}
-        closeButtonProps={{ testID: 'verification-code-close-button' }}
-      >
+    <BottomSheet ref={bottomSheetRef} goBack={closeSheet}>
+      <BottomSheetHeader>
         {strings('app_settings.add_device.enter_code_on_extension')}
       </BottomSheetHeader>
       <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
@@ -51,11 +57,8 @@ const VerificationCodeBottomSheet = () => {
           color={TextColor.TextDefault}
           twClassName="my-6"
         >
-          {MOCK_VERIFICATION_CODE}
+          {otp}
         </Text>
-        <Button twClassName="w-full" onPress={goBack}>
-          {strings('app_settings.add_device.done')}
-        </Button>
       </Box>
     </BottomSheet>
   );

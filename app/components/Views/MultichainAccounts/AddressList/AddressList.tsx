@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
@@ -10,7 +11,7 @@ import {
   selectInternalAccountListSpreadByScopesByGroupId,
   selectInternalAccountsByGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
-import { IconName, Toaster, toast } from '@metamask/design-system-react-native';
+import { IconName, toast } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -43,7 +44,7 @@ export const createAddressListNavigationDetails =
  * @returns {JSX.Element} The rendered component.
  */
 export const AddressList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -98,9 +99,7 @@ export const AddressList = () => {
             callback: async () => {
               await copyAddressToClipboard();
               toast({
-                description: strings(
-                  'notifications.address_copied_to_clipboard',
-                ),
+                title: strings('notifications.address_copied_to_clipboard'),
                 hasNoTimeout: false,
               });
             },
@@ -156,7 +155,6 @@ export const AddressList = () => {
         renderItem={renderAddressItem}
         onLoad={onLoad}
       />
-      <Toaster />
     </View>
   );
 };

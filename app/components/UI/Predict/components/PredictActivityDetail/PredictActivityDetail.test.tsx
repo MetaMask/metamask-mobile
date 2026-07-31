@@ -22,6 +22,7 @@ let mockRoute: {
         timestamp: number;
         amount?: number;
         price?: number;
+        size?: number;
       };
       priceImpactPercentage?: number;
       netPnlUsd?: number;
@@ -208,6 +209,68 @@ describe('PredictActivityDetails', () => {
     expect(getByText('Shares bought')).toBeOnTheScreen();
   });
 
+  it('renders shares bought from payload size instead of fee-inclusive amount', () => {
+    // Arrange
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockBuyActivity,
+          amountUsd: 2.129179,
+          entry: {
+            ...mockBuyActivity.entry,
+            amount: 2.129179,
+            price: 0.18,
+            size: 11.11111,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictActivityDetails />,
+      {
+        state: initialState,
+      },
+    );
+
+    // Assert
+    expect(getByText('Shares bought')).toBeOnTheScreen();
+    expect(getByText('11.11')).toBeOnTheScreen();
+    expect(queryByText('11.83')).not.toBeOnTheScreen();
+  });
+
+  it('ignores zero payload size instead of rendering zero shares', () => {
+    // Arrange
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockBuyActivity,
+          amountUsd: 2.129179,
+          entry: {
+            ...mockBuyActivity.entry,
+            amount: 2.129179,
+            price: 0.18,
+            size: 0,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictActivityDetails />,
+      {
+        state: initialState,
+      },
+    );
+
+    // Assert
+    expect(getByText('Shares bought')).toBeOnTheScreen();
+    expect(getByText('11.83')).toBeOnTheScreen();
+    expect(queryByText('0')).not.toBeOnTheScreen();
+  });
+
   it('renders price per share for buy activity', () => {
     // Arrange & Act
     const { getByText } = renderWithProvider(<PredictActivityDetails />, {
@@ -226,6 +289,70 @@ describe('PredictActivityDetails', () => {
 
     // Assert
     expect(getByText('Price impact')).toBeOnTheScreen();
+  });
+
+  it('renders buy stake, shares, and bundled fees from activity size', () => {
+    // Arrange
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockBuyActivity,
+          amountUsd: 2.129179,
+          entry: {
+            ...mockBuyActivity.entry,
+            amount: 2.129179,
+            price: 0.18,
+            size: 11.11111,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { getByText } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Assert
+    expect(getByText('Predicted amount')).toBeOnTheScreen();
+    expect(getByText('$2.00')).toBeOnTheScreen();
+    expect(getByText('Shares bought')).toBeOnTheScreen();
+    expect(getByText('11.11')).toBeOnTheScreen();
+    expect(getByText('Fees')).toBeOnTheScreen();
+    expect(getByText('$0.13')).toBeOnTheScreen();
+  });
+
+  it('falls back to activity amount when price is zero with valid size', () => {
+    // Arrange
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockBuyActivity,
+          amountUsd: 2,
+          entry: {
+            ...mockBuyActivity.entry,
+            amount: 2,
+            price: 0,
+            size: 11.11111,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictActivityDetails />,
+      {
+        state: initialState,
+      },
+    );
+
+    // Assert
+    expect(getByText('Predicted amount')).toBeOnTheScreen();
+    expect(getByText('$2.00')).toBeOnTheScreen();
+    expect(getByText('Shares bought')).toBeOnTheScreen();
+    expect(getByText('11.11')).toBeOnTheScreen();
+    expect(queryByText('Fees')).not.toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed and canGoBack is true', () => {
@@ -314,6 +441,97 @@ describe('PredictActivityDetails - Sell Activity', () => {
 
     // Assert
     expect(getByText('Shares sold')).toBeOnTheScreen();
+  });
+
+  it('renders shares sold from payload size instead of fee-inclusive amount', () => {
+    // Arrange
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockSellActivity,
+          amountUsd: 1.76614,
+          entry: {
+            ...mockSellActivity.entry,
+            amount: 1.76614,
+            price: 0.17,
+            size: 11.11,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictActivityDetails />,
+      {
+        state: initialState,
+      },
+    );
+
+    // Assert
+    expect(getByText('Shares sold')).toBeOnTheScreen();
+    expect(getByText('11.11')).toBeOnTheScreen();
+    expect(queryByText('10.39')).not.toBeOnTheScreen();
+  });
+
+  it('renders sell bundled fees from gross proceeds minus received amount', () => {
+    // Arrange
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockSellActivity,
+          amountUsd: 1.76614,
+          entry: {
+            ...mockSellActivity.entry,
+            amount: 1.76614,
+            price: 0.17,
+            size: 11.11,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { getByText } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Assert
+    expect(getByText('Fees')).toBeOnTheScreen();
+    expect(getByText('$0.12')).toBeOnTheScreen();
+  });
+
+  it('warns and suppresses negative bundled fees', () => {
+    // Arrange
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockSellActivity,
+          amountUsd: 2,
+          entry: {
+            ...mockSellActivity.entry,
+            amount: 2,
+            price: 0.17,
+            size: 10,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { queryByText } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Assert
+    expect(queryByText('Fees')).not.toBeOnTheScreen();
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[PredictActivityDetail] negative bundledFee, suppressing row:',
+      expect.any(Number),
+    );
+
+    warnSpy.mockRestore();
   });
 
   it('renders net PnL for sell activity', () => {

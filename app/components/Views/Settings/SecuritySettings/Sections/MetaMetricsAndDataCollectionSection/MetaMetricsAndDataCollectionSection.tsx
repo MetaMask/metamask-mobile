@@ -29,6 +29,7 @@ import { analytics } from '../../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
@@ -58,7 +59,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.dataCollectionForMarketing,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { autoSignIn } = useAutoSignIn();
 
   const isBasicFunctionalityEnabled = useSelector(

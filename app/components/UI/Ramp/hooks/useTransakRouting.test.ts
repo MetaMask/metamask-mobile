@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { type TransakBuyQuote } from '@metamask/ramps-controller';
+import {
+  RampsOrderStatus,
+  type TransakBuyQuote,
+} from '@metamask/ramps-controller';
 import { useTransakRouting } from './useTransakRouting';
 import { extractOrderCode } from '../utils/extractOrderCode';
 
@@ -42,14 +45,26 @@ jest.mock(
 
 const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
 
+// Selector-aware useSelector mock: the feature-flag selector returns the
+// per-test boolean; every other selector (selectTokens) keeps the token shape.
+let mockIsTransakWidgetUrlProxyEnabled = false;
+
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => ({
-    selected: {
-      chainId: 'eip155:1',
-      assetId: 'eip155:1/erc20:0xasset',
-      symbol: 'ETH',
-    },
-  })),
+  useSelector: jest.fn((selector: (state: unknown) => unknown) => {
+    const { selectRampsTransakWidgetUrlProxyEnabled } = jest.requireActual(
+      '../../../../selectors/featureFlagController/deposit',
+    );
+    if (selector === selectRampsTransakWidgetUrlProxyEnabled) {
+      return mockIsTransakWidgetUrlProxyEnabled;
+    }
+    return {
+      selected: {
+        chainId: 'eip155:1',
+        assetId: 'eip155:1/erc20:0xasset',
+        symbol: 'ETH',
+      },
+    };
+  }),
 }));
 
 const mockUseRampAccountAddress = jest.fn(
@@ -93,7 +108,9 @@ jest.mock('./useRampsOrders', () => ({
 }));
 
 const MOCK_SELECTED_PROVIDER = {
-  id: '/providers/transak-native-staging',
+  // Intentionally the production native id — UAT lists both variants, and
+  // resolveNativeProviderCode must remap this to transak-native-staging.
+  id: 'transak-native',
   name: 'Transak',
 };
 
@@ -117,6 +134,15 @@ jest.mock('./useAnalytics', () => ({
   default: () => mockTrackEvent,
 }));
 
+const mockEmitTerminalOrderAnalyticsFromCallback = jest.fn();
+jest.mock(
+  '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    emitTerminalOrderAnalyticsFromCallback: (order: unknown) =>
+      mockEmitTerminalOrderAnalyticsFromCallback(order),
+  }),
+);
+
 const mockGetUserDetails = jest.fn();
 const mockGetKycRequirement = jest.fn();
 const mockGetAdditionalRequirements = jest.fn();
@@ -125,6 +151,7 @@ const mockGetOrder = jest.fn();
 const mockGetUserLimits = jest.fn();
 const mockRequestOtt = jest.fn();
 const mockGeneratePaymentWidgetUrl = jest.fn();
+const mockCreateWidgetUrl = jest.fn();
 const mockSubmitPurposeOfUsageForm = jest.fn();
 const mockLogoutFromProvider = jest.fn();
 
@@ -148,6 +175,7 @@ jest.mock('./useTransakController', () => ({
     getUserLimits: mockGetUserLimits,
     requestOtt: mockRequestOtt,
     generatePaymentWidgetUrl: mockGeneratePaymentWidgetUrl,
+    createWidgetUrl: mockCreateWidgetUrl,
     submitPurposeOfUsageForm: mockSubmitPurposeOfUsageForm,
   }),
 }));
@@ -164,10 +192,12 @@ jest.mock('./useRampsPaymentMethods', () => ({
   }),
 }));
 
+const mockGetRampsEnvironment = jest.fn(() => 'STAGING');
+
 jest.mock(
-  '../../../../core/Engine/controllers/ramps-controller/transak-service-init',
+  '../../../../core/Engine/controllers/ramps-controller/ramps-service-init',
   () => ({
-    getTransakEnvironment: () => 'STAGING',
+    getRampsEnvironment: () => mockGetRampsEnvironment(),
   }),
 );
 
@@ -177,6 +207,7 @@ jest.mock('../../../../selectors/rampsController', () => ({
 
 jest.mock('../utils/depositUtils', () => ({
   generateThemeParameters: jest.fn(() => ({ theme: 'light' })),
+  generateWidgetThemeParameters: jest.fn(() => ({ widgetTheme: 'light' })),
 }));
 
 let capturedHandleNavigationStateChange:
@@ -239,12 +270,27 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 jest.mock('@metamask/ramps-controller', () => ({
+  RampsEnvironment: {
+    Production: 'PRODUCTION',
+    Staging: 'STAGING',
+    Development: 'DEVELOPMENT',
+  },
+  TransakEnvironment: {
+    Production: 'PRODUCTION',
+    Staging: 'STAGING',
+  },
   TransakOrderIdTransformer: {
     transakOrderIdToDepositOrderId: jest.fn(
       (orderId: string, _env: string) => `transformed-${orderId}`,
     ),
   },
-  normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
+  RampsOrderStatus: {
+    Pending: 'PENDING',
+    Completed: 'COMPLETED',
+    Failed: 'FAILED',
+    Cancelled: 'CANCELLED',
+    IdExpired: 'ID_EXPIRED',
+  },
 }));
 
 jest.mock('../constants', () => ({
@@ -261,6 +307,7 @@ const mockQuote = {
 describe('useTransakRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetRampsEnvironment.mockReturnValue('STAGING');
     capturedHandleNavigationStateChange = null;
     // clearAllMocks resets call records but not return values set via
     // mockReturnValue, so explicitly default getSession back to "no session"
@@ -276,6 +323,11 @@ describe('useTransakRouting', () => {
       id: '/payments/debit-credit-card',
       isManualBankTransfer: false,
     };
+    mockIsTransakWidgetUrlProxyEnabled = false;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('returns expected functions', () => {
@@ -483,6 +535,61 @@ describe('useTransakRouting', () => {
               name: 'Checkout',
               params: expect.objectContaining({
                 url: 'https://payment.example.com',
+                providerName: 'Transak',
+                onNavigationStateChange: expect.any(Function),
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('creates the widget URL via the proxy instead of the OTT flow when the proxy flag is enabled', async () => {
+      mockIsTransakWidgetUrlProxyEnabled = true;
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockCreateWidgetUrl.mockResolvedValue('https://proxy-widget.example.com');
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockCreateWidgetUrl).toHaveBeenCalledWith(
+        mockQuote,
+        MOCK_WALLET_ADDRESS,
+        { widgetTheme: 'light' },
+      );
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+      expect(mockGeneratePaymentWidgetUrl).not.toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
+            expect.objectContaining({
+              name: 'Checkout',
+              params: expect.objectContaining({
+                url: 'https://proxy-widget.example.com',
                 providerName: 'Transak',
                 onNavigationStateChange: expect.any(Function),
               }),
@@ -1693,7 +1800,11 @@ describe('useTransakRouting', () => {
       // ramp_surface is undefined here.
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_TRANSACTION_CONFIRMED',
-        expect.objectContaining({ ramp_type: 'HEADLESS', region: 'us-ca' }),
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          region: 'us-ca',
+          provider_order_id: 'order-hs',
+        }),
       );
       expect(mockReset).not.toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1701,6 +1812,100 @@ describe('useTransakRouting', () => {
         }),
       );
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the staging native provider code when the order has no provider', async () => {
+      mockGetOrder.mockResolvedValue({ ...depositOrder, provider: undefined });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockRefreshOrder).toHaveBeenCalledWith(
+        'transak-native-staging',
+        'order-hs',
+        MOCK_WALLET_ADDRESS,
+      );
+    });
+
+    it('remaps a production native provider on the order to the staging code', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...depositOrder,
+        provider: '/providers/transak-native',
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockRefreshOrder).toHaveBeenCalledWith(
+        'transak-native-staging',
+        'order-hs',
+        MOCK_WALLET_ADDRESS,
+      );
+    });
+
+    it('uses the staging native provider code when ramps env is Development', async () => {
+      mockGetRampsEnvironment.mockReturnValue('DEVELOPMENT');
+      mockGetOrder.mockResolvedValue({
+        ...depositOrder,
+        provider: '/providers/transak-native',
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockRefreshOrder).toHaveBeenCalledWith(
+        'transak-native-staging',
+        'order-hs',
+        MOCK_WALLET_ADDRESS,
+      );
     });
 
     it('carries ramp_surface from the live session on the HEADLESS terminal event', async () => {
@@ -1732,6 +1937,7 @@ describe('useTransakRouting', () => {
           ramp_type: 'HEADLESS',
           ramp_surface: 'money_account',
           region: 'us-ca',
+          provider_order_id: 'order-hs',
         }),
       );
       // Writes the headless context for the terminal-failed subscriber
@@ -1740,6 +1946,42 @@ describe('useTransakRouting', () => {
         rampSurface: 'money_account',
         region: 'us-ca',
       });
+    });
+
+    it('does NOT emit RAMPS_TRANSACTION_CONFIRMED for a terminal-failed order; emits the terminal failure instead (TRAM-3691)', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { rampSurface: 'money_account' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      // Widget payment failed: refreshOrder returns a terminal-failed order.
+      mockRefreshOrder.mockResolvedValue({
+        ...refreshedOrder,
+        status: RampsOrderStatus.Failed,
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.anything(),
+      );
+      expect(mockEmitTerminalOrderAnalyticsFromCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ status: RampsOrderStatus.Failed }),
+      );
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -1873,6 +2115,8 @@ describe('useTransakRouting', () => {
           ramp_surface: 'money_account',
           region: 'us-ca',
           error_message: expect.any(String),
+          // orderId from the callback URL is the provider order id (TRAM-3696).
+          provider_order_id: 'order-hs',
         }),
       );
     });
@@ -1957,6 +2201,7 @@ describe('useTransakRouting', () => {
           ramp_type: 'HEADLESS',
           ramp_surface: 'money_account',
           region: 'us-ca',
+          provider_order_id: 'order-bank-1',
         }),
       );
       // Manual-bank headless branch also writes the terminal-failed context

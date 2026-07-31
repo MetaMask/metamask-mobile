@@ -7,10 +7,15 @@ import { useSendContext } from '../../context/send-context/send-context';
 import { useToAddressValidation } from '../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../hooks/send/useSendActions';
+import { useScanRecipientQrCode } from '../../hooks/send/useScanRecipientQrCode';
 import { RecipientInput } from './recipient-input';
 
 jest.mock('../../context/send-context/send-context', () => ({
   useSendContext: jest.fn(),
+}));
+
+jest.mock('../../hooks/send/useScanRecipientQrCode', () => ({
+  useScanRecipientQrCode: jest.fn(),
 }));
 
 jest.mock('../../hooks/send/useToAddressValidation', () => ({
@@ -35,6 +40,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'send.to': 'To',
       'send.clear': 'Clear',
       'send.paste': 'Paste',
+      'send.scan_qr_code': 'Scan QR code',
       'send.enter_address_to_send_to': 'Enter address to send to',
     };
     return mockStrings[key] || key;
@@ -50,12 +56,14 @@ const mockUseRecipientSelectionMetrics = jest.mocked(
   useRecipientSelectionMetrics,
 );
 const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseScanRecipientQrCode = jest.mocked(useScanRecipientQrCode);
 
 describe('RecipientInput', () => {
   const mockUpdateTo = jest.fn();
   const mockValidateToAddress = jest.fn();
   const mockCaptureRecipientSelected = jest.fn();
   const mockHandleSubmitPress = jest.fn();
+  const mockOpenScanner = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -92,6 +100,10 @@ describe('RecipientInput', () => {
       handleSubmitPress: mockHandleSubmitPress,
       handleCancelPress: jest.fn(),
       handleBackPress: jest.fn(),
+    });
+
+    mockUseScanRecipientQrCode.mockReturnValue({
+      openScanner: mockOpenScanner,
     });
   });
 
@@ -431,5 +443,106 @@ describe('RecipientInput', () => {
     );
 
     expect(getByText('Clear')).toBeOnTheScreen();
+  });
+
+  it('displays the QR scan button alongside paste when input is empty', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
+    );
+
+    expect(getByTestId('recipient-qr-scan-button')).toBeOnTheScreen();
+    expect(getByText('Paste')).toBeOnTheScreen();
+  });
+
+  it('does not display the QR scan button when input has a value', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
+    );
+
+    expect(queryByTestId('recipient-qr-scan-button')).toBeNull();
+  });
+
+  it('opens the scanner when the QR scan button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+      />,
+    );
+
+    fireEvent.press(getByTestId('recipient-qr-scan-button'));
+
+    expect(mockOpenScanner).toHaveBeenCalledTimes(1);
+  });
+
+  it('populates the input and records the QR input method on scan success', () => {
+    const mockResetStateOnInput = jest.fn();
+    const mockSetPastedRecipient = jest.fn();
+    const mockSetAutoFilledInputMethod = jest.fn();
+
+    renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={mockResetStateOnInput}
+        setPastedRecipient={mockSetPastedRecipient}
+        setAutoFilledInputMethod={mockSetAutoFilledInputMethod}
+      />,
+    );
+
+    const scannedAddress = '0x1234567890123456789012345678901234567890';
+    const { onAddressScanned } =
+      mockUseScanRecipientQrCode.mock.calls[
+        mockUseScanRecipientQrCode.mock.calls.length - 1
+      ][0];
+    onAddressScanned(scannedAddress);
+
+    expect(mockResetStateOnInput).toHaveBeenCalled();
+    expect(mockUpdateTo).toHaveBeenCalledWith(scannedAddress);
+    expect(mockSetAutoFilledInputMethod).toHaveBeenCalledWith('qr_code_scan');
+    expect(mockSetPastedRecipient).toHaveBeenCalledWith(scannedAddress);
+  });
+
+  it('records the pasted input method on paste', async () => {
+    const mockAddress = '0x1234567890123456789012345678901234567890';
+    mockClipboardManager.getString.mockResolvedValue(mockAddress);
+    const mockSetAutoFilledInputMethod = jest.fn();
+
+    const { getByText } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={noop}
+        setAutoFilledInputMethod={mockSetAutoFilledInputMethod}
+      />,
+    );
+
+    fireEvent.press(getByText('Paste'));
+
+    await waitFor(() => {
+      expect(mockSetAutoFilledInputMethod).toHaveBeenCalledWith('pasted');
+    });
   });
 });

@@ -7,7 +7,15 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
-import { useCallback, useContext, useState } from 'react';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
+import {
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { ToastContext } from '../../../component-library/components/Toast';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -20,6 +28,7 @@ import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
   normalizeReplacementGasFeeParams,
+  type ReplacementGasFeeValues,
 } from '../../../util/confirmation/gas';
 import {
   getPreviousGasFromController,
@@ -75,8 +84,24 @@ export const SpeedUpCancelModalState = {
 export type SpeedUpCancelModalState =
   (typeof SpeedUpCancelModalState)[keyof typeof SpeedUpCancelModalState];
 
+function isEip1559GasValues(
+  gasValues: GasPriceValue | FeeMarketEIP1559Values,
+): gasValues is FeeMarketEIP1559Values {
+  return 'maxFeePerGas' in gasValues;
+}
+
+function buildReplacementTxParams(
+  type: LedgerReplacementTxTypes,
+  gasValues: GasPriceValue | FeeMarketEIP1559Values,
+): ReplacementTxParams {
+  if (isEip1559GasValues(gasValues)) {
+    return { type, eip1559GasFee: gasValues };
+  }
+  return { type, legacyGasFee: gasValues };
+}
+
 export function useUnifiedTxActions() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     ensureDeviceReady,
     setPendingOperationAddress,
@@ -86,6 +111,10 @@ export function useUnifiedTxActions() {
   } = useHardwareWallet();
   const toastContext = useContext(ToastContext);
   const toastRef = toastContext?.toastRef;
+  const toastRefStable = useRef(toastRef);
+  useLayoutEffect(() => {
+    toastRefStable.current = toastRef;
+  }, [toastRef]);
 
   const gasFeeEstimates = useSelector(selectGasFeeEstimates);
   const accounts = useSelector(selectAccounts);
@@ -108,14 +137,11 @@ export function useUnifiedTxActions() {
     ExtendedKeyringTypes.qr,
   ]);
 
-  const showTransactionUpdateErrorToast = useCallback(
-    (error: unknown) => {
-      toastRef?.current?.showToast(
-        getTransactionUpdateErrorToastOptions(error),
-      );
-    },
-    [toastRef],
-  );
+  const showTransactionUpdateErrorToast = useCallback((error: unknown) => {
+    toastRefStable.current?.current?.showToast(
+      getTransactionUpdateErrorToastOptions(error),
+    );
+  }, []);
 
   const closeSpeedUpCancelModal = useCallback(() => {
     setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
@@ -270,42 +296,62 @@ export function useUnifiedTxActions() {
     return getCancelOrSpeedupValues();
   };
 
-  const speedUpTransaction = async (params?: SpeedUpCancelParams) => {
-    try {
-      if (params && 'error' in params && params.error) {
-        throw new Error(params.error);
-      }
-      if (!speedUpTxId) {
-        throw new Error('Missing transaction id for speed up');
-      }
+  const handleSpeedUpCancelError = useCallback(
+    (error: unknown) => {
+      showTransactionUpdateErrorToast(error);
+      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
+    },
+    [showTransactionUpdateErrorToast],
+  );
 
+  const speedUpTransaction = async (params?: SpeedUpCancelParams) => {
+    if (params && 'error' in params && params.error) {
+      handleSpeedUpCancelError(new Error(params.error));
+      return;
+    }
+    if (!speedUpTxId) {
+      handleSpeedUpCancelError(
+        new Error('Missing transaction id for speed up'),
+      );
+      return;
+    }
+
+    let gasValues: ReplacementGasFeeValues;
+    try {
       const rawGasValues = getParamsToSend(params);
-      const gasValues = getGasValuesForReplacement(
+      gasValues = getGasValuesForReplacement(
         rawGasValues,
         getPreviousGasFromController(speedUpTxId),
         SPEED_UP_RATE,
       );
+    } catch (error: unknown) {
+      handleSpeedUpCancelError(error);
+      return;
+    }
 
+    const speedUpReplacementParams: ReplacementTxParams =
+      gasValues == null
+        ? { type: LedgerReplacementTxTypes.SPEED_UP }
+        : buildReplacementTxParams(
+            LedgerReplacementTxTypes.SPEED_UP,
+            gasValues,
+          );
+
+    try {
       if (isLedgerAccount) {
-        const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
-
         await signLedgerTransaction({
           id: speedUpTxId,
           speedUpParams: { type: 'SpeedUp' },
-          replacementParams: {
-            type: LedgerReplacementTxTypes.SPEED_UP,
-            ...(isEip1559
-              ? { eip1559GasFee: gasValues }
-              : { legacyGasFee: gasValues }),
-          },
+          replacementParams: speedUpReplacementParams,
         });
         return;
       }
 
       if (isQRHardwareAccount) {
         const transactionId = speedUpTxId;
-        navigation.navigate(
-          ...createQRSigningTransactionModalNavDetails({
+        navigateWithDetails(
+          navigation,
+          createQRSigningTransactionModalNavDetails({
             transactionId,
             signMode: QRSignMode.SpeedUp,
             gasValues,
@@ -319,46 +365,52 @@ export function useUnifiedTxActions() {
       await speedUpTx(speedUpTxId, gasValues);
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
-      showTransactionUpdateErrorToast(error);
-      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
+      handleSpeedUpCancelError(error);
     }
   };
 
   const cancelTransaction = async (params?: SpeedUpCancelParams) => {
-    try {
-      if (params && 'error' in params && params.error) {
-        throw new Error(params.error);
-      }
-      if (!cancelTxId) {
-        throw new Error('Missing transaction id for cancel');
-      }
+    if (params && 'error' in params && params.error) {
+      handleSpeedUpCancelError(new Error(params.error));
+      return;
+    }
+    if (!cancelTxId) {
+      handleSpeedUpCancelError(new Error('Missing transaction id for cancel'));
+      return;
+    }
 
+    let gasValues: ReplacementGasFeeValues;
+    try {
       const rawGasValues = getParamsToSend(params);
-      const gasValues = getGasValuesForReplacement(
+      gasValues = getGasValuesForReplacement(
         rawGasValues,
         getPreviousGasFromController(cancelTxId),
         CANCEL_RATE,
       );
+    } catch (error: unknown) {
+      handleSpeedUpCancelError(error);
+      return;
+    }
 
+    const cancelReplacementParams: ReplacementTxParams =
+      gasValues == null
+        ? { type: LedgerReplacementTxTypes.CANCEL }
+        : buildReplacementTxParams(LedgerReplacementTxTypes.CANCEL, gasValues);
+
+    try {
       if (isLedgerAccount) {
-        const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
-
         await signLedgerTransaction({
           id: cancelTxId,
-          replacementParams: {
-            type: LedgerReplacementTxTypes.CANCEL,
-            ...(isEip1559
-              ? { eip1559GasFee: gasValues }
-              : { legacyGasFee: gasValues }),
-          },
+          replacementParams: cancelReplacementParams,
         });
         return;
       }
 
       if (isQRHardwareAccount) {
         const transactionId = cancelTxId;
-        navigation.navigate(
-          ...createQRSigningTransactionModalNavDetails({
+        navigateWithDetails(
+          navigation,
+          createQRSigningTransactionModalNavDetails({
             transactionId,
             signMode: QRSignMode.Cancel,
             gasValues,
@@ -375,15 +427,15 @@ export function useUnifiedTxActions() {
       );
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
-      showTransactionUpdateErrorToast(error);
-      setSpeedUpCancelModalState(SpeedUpCancelModalState.Closed);
+      handleSpeedUpCancelError(error);
     }
   };
 
   const signQRTransaction = useCallback(
     async (transactionMeta: TransactionMeta) => {
-      navigation.navigate(
-        ...createQRSigningTransactionModalNavDetails({
+      navigateWithDetails(
+        navigation,
+        createQRSigningTransactionModalNavDetails({
           transactionId: transactionMeta.id,
           onConfirmationComplete: () => {
             // Modal handles confirmation/rejection internally

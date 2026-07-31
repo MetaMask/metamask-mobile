@@ -10,13 +10,21 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
+  PERPS_CONSTANTS,
   type PriceUpdate,
   type PerpsMarketData,
   type Position,
   type Order,
   type AccountState,
 } from '@metamask/perps-controller';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import { PERPS_CUF_TAG } from '../constants/perpsCufTags';
+import {
+  PERPS_LIFECYCLE_CONTEXT,
+  resetPerpsLifecycleContextForTests,
+} from '../utils/perpsLifecycleContext';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
@@ -26,7 +34,18 @@ import {
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 jest.mock('../services/PerpsConnectionManager');
+jest.mock('../../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+jest.mock('../selectors/featureFlags', () => ({
+  selectPerpsTerminalBackendEnabledFlag: jest.fn(() => true),
+}));
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
@@ -44,6 +63,9 @@ const mockPerpsConnectionManager = PerpsConnectionManager as jest.Mocked<
   typeof PerpsConnectionManager
 >;
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
+const mockTrace = trace as jest.Mock;
+const mockSelectPerpsTerminalBackendEnabledFlag =
+  selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
 
 // Test component that uses the stream hook
 const TestPriceComponent = ({
@@ -82,6 +104,10 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+    resetPerpsLifecycleContextForTests();
+
+    // Restore the default Terminal flag state (enabled) after any per-test override.
+    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
 
     // Create a fresh stream manager for each test
     testStreamManager = new PerpsStreamManager();
@@ -159,6 +185,10 @@ describe('PerpsStreamManager', () => {
     jest.clearAllTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
+    // Restore original implementations for all jest.spyOn() spies so spy
+    // wrappers don't leak into subsequent tests (clearAllMocks only resets
+    // call state, it does not undo the spy).
+    jest.restoreAllMocks();
   });
 
   it('renders children correctly', () => {
@@ -1151,6 +1181,62 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('first price and order book trace tags', () => {
+    const expectedSharedTags = {
+      [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
+      [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]: PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+    };
+
+    it('starts the first-price trace with shared CUF tags', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: jest.fn(),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstPrice,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+
+    it('starts the first-order-book trace with shared CUF tags', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstOrderBook,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+
+    it('starts the prewarmed first-price trace with shared CUF tags', async () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsWebSocketFirstPrice,
+        id: expect.any(String),
+        op: TraceOperation.PerpsOperation,
+        tags: expectedSharedTags,
+      });
+    });
+  });
+
   describe('PriceStreamChannel.prewarm non-blocking behavior', () => {
     it('returns immediately without waiting for getMarkets', async () => {
       // Create a promise that we can control
@@ -1939,6 +2025,9 @@ describe('PerpsStreamManager', () => {
     ];
 
     beforeEach(() => {
+      // Market-data tests await Promise-based fetches. Keep real timers active
+      // so waitFor can poll without relying on the outer suite's fake timers.
+      jest.useRealTimers();
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
       mockEngine.context.PerpsController.getMarketDataWithPrices =
         mockGetMarketDataWithPrices;
@@ -2227,6 +2316,10 @@ describe('PerpsStreamManager', () => {
     it('uses controller preloaded cache when fresh', async () => {
       const callback = jest.fn();
 
+      // Controller preload cache is always direct-sourced, so it is only adopted
+      // when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
+
       // Set up controller with fresh cached market data via per-provider helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
@@ -2277,6 +2370,10 @@ describe('PerpsStreamManager', () => {
       const callback = jest.fn((data: PerpsMarketData[]) => {
         callTimings.push({ data, callIndex: callTimings.length });
       });
+
+      // Controller preload cache is always direct-sourced, so it is only served
+      // synchronously when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
 
       // Set up controller with fresh cached market data via per-provider helper
       (
@@ -2351,6 +2448,60 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
       });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+
+      // Reset state for other tests
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+      };
+    });
+
+    it('does not adopt controller preloaded cache when Terminal backend is enabled', async () => {
+      const callback = jest.fn();
+
+      // Terminal enabled: the controller's direct-sourced preload cache must not be
+      // served/cached as Terminal data — a fresh source-correct fetch must happen.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+
+      const getCachedMock = jest.fn().mockReturnValue(mockMarketData);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = getCachedMock;
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+        activeProvider: 'hyperliquid',
+      };
+
+      const streamManager = new PerpsStreamManager();
+
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // getCachedData() must not synchronously serve the direct controller cache
+      // while in Terminal mode.
+      expect(callback).not.toHaveBeenCalled();
+
+      // fetchMarketData() must skip the controller cache and fetch fresh Terminal data.
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith(
+        expect.objectContaining({ useTerminalApi: true }),
+      );
 
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
@@ -2514,10 +2665,10 @@ describe('PerpsStreamManager', () => {
 
       // Assert - DevLogger should log the discard
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'PerpsStreamManager: Provider/network changed during fetch, discarding data',
+        'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA:mainnet',
-          current: 'providerB:mainnet',
+          fetchedFor: 'providerA:mainnet:terminal',
+          current: 'providerB:mainnet:terminal',
         }),
       );
 
@@ -3251,54 +3402,6 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  describe('pauseAllChannels / resumeAllChannels', () => {
-    const CHANNEL_NAMES = [
-      'prices',
-      'orders',
-      'positions',
-      'fills',
-      'account',
-      'oiCaps',
-      'topOfBook',
-      'candles',
-    ] as const;
-
-    it('pauseAllChannels calls pause() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'pause');
-      }
-
-      testStreamManager.pauseAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].pause).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('resumeAllChannels calls resume() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'resume');
-      }
-
-      testStreamManager.resumeAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].resume).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('does not touch marketData (REST-based, not a stream channel)', () => {
-      const pauseSpy = jest.spyOn(testStreamManager.marketData, 'pause');
-      const resumeSpy = jest.spyOn(testStreamManager.marketData, 'resume');
-
-      testStreamManager.pauseAllChannels();
-      testStreamManager.resumeAllChannels();
-
-      expect(pauseSpy).not.toHaveBeenCalled();
-      expect(resumeSpy).not.toHaveBeenCalled();
-    });
-  });
-
   describe('TopOfBookStreamChannel', () => {
     it('subscribes to top of book with includeOrderBook flag', () => {
       const callback = jest.fn();
@@ -3361,6 +3464,193 @@ describe('PerpsStreamManager', () => {
       testStreamManager.topOfBook.clearCache();
 
       expect(callback).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('FocusedPriceStreamChannel', () => {
+    it('subscribes with includeMarketData: true', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        includeMarketData: true,
+        callback: expect.any(Function),
+      });
+    });
+
+    it('delivers a PriceUpdate for the subscribed symbol', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([
+        { symbol: 'BTC', price: '50000', markPrice: '50050' },
+        { symbol: 'ETH', price: '3000', markPrice: '3010' },
+      ]);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        price: '50000',
+        markPrice: '50050',
+      });
+    });
+
+    it('does not notify for unrelated symbols', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('does not subscribe when symbol is empty', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: '',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('does not deliver an update for the newly-focused symbol to a subscriber still registered for the previous symbol', () => {
+      // Simulates React Navigation keeping a BTC detail screen mounted while
+      // the user navigates to an ETH order/orderbook screen: both
+      // subscribers remain registered on the same singleton channel.
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: ethCallback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      // Fire the tick on the now-active (ETH) WebSocket subscription.
+      const ethPriceCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      ethPriceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+
+      expect(ethCallback).toHaveBeenCalledTimes(1);
+      expect(ethCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH' }),
+      );
+      // The stale BTC subscriber must never receive or cache the ETH tick.
+      expect(btcCallback).not.toHaveBeenCalled();
+    });
+
+    it('reconnects when a different symbol is requested', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      // Simulate a new subscriber requesting a different symbol
+      const mockUnsubscribeBtc = mockSubscribeToPrices.mock.results[0].value;
+      if (typeof mockUnsubscribeBtc === 'function') {
+        // The channel should have stored this; force-invoke via subscribeToSymbol
+      }
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['ETH'] }),
+      );
+    });
+
+    it('clears cache and notifies subscribers with undefined on clearCache', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ symbol: 'BTC', price: '50000', markPrice: '50050' }]);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      testStreamManager.focusedPrice.clearCache();
+
+      expect(callback).toHaveBeenCalledWith(undefined);
+    });
+
+    it('re-focuses to a surviving subscriber symbol on a pop-back style unsubscribe sequence', () => {
+      // BTC detail screen mounts, then the user navigates to an ETH
+      // order/orderbook screen (BTC stays mounted below it), then pops back:
+      // the ETH subscriber unsubscribes while the BTC one is still active.
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+
+      const unsubscribeEth = testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: ethCallback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      // ETH tick reaches only the ETH subscriber while it's focused.
+      const ethPriceCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      ethPriceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+      expect(ethCallback).toHaveBeenCalledTimes(1);
+      expect(btcCallback).not.toHaveBeenCalled();
+
+      // Pop back: the ETH screen unmounts and unsubscribes. The BTC
+      // subscriber is still registered, so the channel should re-focus the
+      // WebSocket onto BTC instead of sitting disconnected.
+      unsubscribeEth();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['BTC'] }),
+      );
+
+      // A subsequent BTC tick reaches the surviving BTC subscriber but never
+      // the already-unsubscribed ETH callback.
+      const btcPriceCallback = mockSubscribeToPrices.mock.calls[2][0].callback;
+      btcPriceCallback([{ symbol: 'BTC', price: '51000', markPrice: '51050' }]);
+
+      expect(btcCallback).toHaveBeenCalledTimes(1);
+      expect(btcCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC' }),
+      );
+      expect(ethCallback).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -3909,6 +4199,10 @@ describe('PerpsStreamManager', () => {
         testStreamManager.topOfBook,
         'disconnect',
       );
+      const focusedPriceDisconnect = jest.spyOn(
+        testStreamManager.focusedPrice,
+        'disconnect',
+      );
       const candlesDisconnect = jest.spyOn(
         testStreamManager.candles,
         'disconnect',
@@ -3926,6 +4220,7 @@ describe('PerpsStreamManager', () => {
       expect(marketDataDisconnect).toHaveBeenCalledTimes(1);
       expect(oiCapsDisconnect).toHaveBeenCalledTimes(1);
       expect(topOfBookDisconnect).toHaveBeenCalledTimes(1);
+      expect(focusedPriceDisconnect).toHaveBeenCalledTimes(1);
       expect(candlesDisconnect).toHaveBeenCalledTimes(1);
 
       // Cleanup
@@ -3937,6 +4232,7 @@ describe('PerpsStreamManager', () => {
       marketDataDisconnect.mockRestore();
       oiCapsDisconnect.mockRestore();
       topOfBookDisconnect.mockRestore();
+      focusedPriceDisconnect.mockRestore();
       candlesDisconnect.mockRestore();
     });
 
@@ -4023,6 +4319,95 @@ describe('PerpsStreamManager', () => {
 
       unsubscribe();
       pricesDisconnect.mockRestore();
+    });
+
+    it('recreates prewarmed price subscription when no direct price subscribers are active', async () => {
+      const firstUnsubscribe = jest.fn();
+      const secondUnsubscribe = jest.fn();
+      mockSubscribeToPrices
+        .mockReturnValueOnce(firstUnsubscribe)
+        .mockReturnValueOnce(secondUnsubscribe);
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      testStreamManager.clearAllChannels();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(
+        mockEngine.context.PerpsController.getMarkets,
+      ).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        includeMarketData: false,
+        callback: expect.any(Function),
+      });
+
+      testStreamManager.prices.cleanupPrewarm();
+      expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses a direct price subscription while restoring prewarm for active subscribers', async () => {
+      const firstPrewarmUnsubscribe = jest.fn();
+      const directUnsubscribe = jest.fn();
+      const restoredPrewarmUnsubscribe = jest.fn();
+      mockSubscribeToPrices
+        .mockReturnValueOnce(firstPrewarmUnsubscribe)
+        .mockReturnValueOnce(directUnsubscribe)
+        .mockReturnValueOnce(restoredPrewarmUnsubscribe);
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      const unsubscribe = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+      });
+
+      // The existing all-market prewarm covers the direct subscriber.
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      testStreamManager.clearAllChannels();
+
+      expect(firstPrewarmUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenNthCalledWith(2, {
+        symbols: ['BTC'],
+        callback: expect.any(Function),
+      });
+      expect(directUnsubscribe).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+      expect(directUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        includeMarketData: false,
+        callback: expect.any(Function),
+      });
+
+      unsubscribe();
+      testStreamManager.prices.cleanupPrewarm();
+      expect(restoredPrewarmUnsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 

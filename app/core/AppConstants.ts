@@ -117,6 +117,8 @@ export default {
     TRAVEL_URL: 'https://travel.metamask.io/access',
     CARD_TOS_URL:
       'https://www.baanxuk.com/docs/CL-Platform-Terms-of-Use-2026.pdf',
+    CARD_FEES_URL:
+      'https://support.metamask.io/manage-crypto/metamask-card/limits-and-fees/',
     PASSWORD_RESET_PATH: '/account/password/request',
     LOGIN_PATH: '/account/login',
   },
@@ -259,6 +261,10 @@ export default {
     DEV: 'https://foxdev2-ag.foxcard.io',
     UAT: 'https://dev.api.baanx.com',
     PRD: 'https://api.baanx.com',
+  },
+  IMMERSVE_API_URL: {
+    DEV: 'https://test.immersve.com',
+    PRD: 'https://api.immersve.com',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
