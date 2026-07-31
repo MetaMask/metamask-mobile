@@ -1,20 +1,9 @@
 import React, { type ReactNode, useMemo } from 'react';
-import { Pressable } from 'react-native';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
-  FontWeight,
   HeaderSubpage,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
@@ -25,6 +14,7 @@ import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
+import PerpsMarketIdentity from '../PerpsMarketIdentity';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
 export interface PerpsMarketInlineHeaderProps {
@@ -81,87 +71,32 @@ export const PerpsMarketInlineHeader = ({
     [market.maxLeverage],
   );
 
-  // Detail layout: the icon + name + ticker + leverage are rendered together
-  // inside a single content-hugging box so they can act as one tap target
-  // without the empty row space becoming clickable.
   const detailIdentity = useMemo(() => {
     if (!useDetailLayout) {
       return null;
     }
 
-    const subtitle = strings('perps.market_details.perp_pair', {
-      ticker: displaySymbol,
-      collateral: PERPS_COLLATERAL_SYMBOL,
-    });
-
-    const renderContent = (pressed: boolean) => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={3}
-        twClassName={`rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
-      >
-        <PerpsTokenLogo
-          symbol={market.symbol}
-          size={40}
-          testID={PerpsMarketHeaderSelectorsIDs.ASSET_ICON}
-        />
-        <Box flexDirection={BoxFlexDirection.Column}>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              numberOfLines={1}
-              testID={PerpsMarketHeaderSelectorsIDs.ASSET_NAME}
-            >
-              {displayTitle}
-            </Text>
-            {leverageBadge}
-            {onIdentityPress ? (
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Xs}
-                color={IconColor.IconAlternative}
-              />
-            ) : null}
-          </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-            testID={PerpsMarketHeaderSelectorsIDs.SUBTITLE}
-          >
-            {subtitle}
-          </Text>
-        </Box>
-      </Box>
-    );
-
-    if (!onIdentityPress) {
-      return renderContent(false);
-    }
-
     return (
-      <Pressable
+      <PerpsMarketIdentity
+        symbol={market.symbol}
+        name={market.name}
+        maxLeverage={market.maxLeverage}
+        size={40}
+        gap={3}
         onPress={onIdentityPress}
-        accessibilityRole="button"
-        accessibilityLabel={strings('perps.market_details.market_list')}
-        testID={PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON}
-      >
-        {({ pressed }) => renderContent(pressed)}
-      </Pressable>
+        testIDs={{
+          assetIcon: PerpsMarketHeaderSelectorsIDs.ASSET_ICON,
+          assetName: PerpsMarketHeaderSelectorsIDs.ASSET_NAME,
+          subtitle: PerpsMarketHeaderSelectorsIDs.SUBTITLE,
+          marketListButton: PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON,
+        }}
+      />
     );
   }, [
     useDetailLayout,
-    displaySymbol,
-    displayTitle,
-    leverageBadge,
     market.symbol,
+    market.name,
+    market.maxLeverage,
     onIdentityPress,
   ]);
 
@@ -185,6 +120,11 @@ export const PerpsMarketInlineHeader = ({
         iconName: isFavorite ? IconName.StarFilled : IconName.Star,
         onPress: onFavoritePress,
         testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+        accessibilityLabel: strings(
+          isFavorite
+            ? 'perps.market_details.remove_from_watchlist'
+            : 'perps.market_details.add_to_watchlist',
+        ),
       });
     } else if (onMorePress) {
       buttons.push({
@@ -208,6 +148,7 @@ export const PerpsMarketInlineHeader = ({
             iconName={IconName.ArrowLeft}
             size={ButtonIconSize.Md}
             onPress={onBackPress}
+            accessibilityLabel={strings('perps.market_details.back')}
             testID={PerpsMarketHeaderSelectorsIDs.BACK_BUTTON}
           />
         ) : undefined

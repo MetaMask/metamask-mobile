@@ -54,7 +54,9 @@ export type MoneyModalsNavigationParamList = {
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;
-  MoneyEarnCryptoInfoSheet: { variant?: 'default' | 'deposit' } | undefined;
+  MoneyEarnCryptoInfoSheet:
+    | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
+    | undefined;
   MoneyGeoBlockSheet: undefined;
 };
 
