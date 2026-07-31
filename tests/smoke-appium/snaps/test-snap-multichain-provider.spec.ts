@@ -126,7 +126,7 @@ async function exerciseMultichainProvider(
 
 appiumTest.describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
   // Long running test due to multiple steps within the test for each chain
-  appiumTest.describe.configure({ mode: 'serial', timeout: 300_000 });
+  appiumTest.describe.configure({ timeout: 300_000 });
 
   for (const chain of CHAINS) {
     appiumTest(
