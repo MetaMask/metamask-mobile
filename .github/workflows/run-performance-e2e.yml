@@ -44,6 +44,23 @@ on:
         required: false
         type: string
         default: ''
+      reuse_main_builds:
+        description: >-
+          When true, skip fresh Android BrowserStack builds and reuse the latest
+          uploaded apps from main-branch CI instead (same behavior as CI test-only PRs).
+          Falls back to a fresh build if no reusable main apps are found. Ignored when
+          manual browserstack_app_url_* inputs are provided.
+        required: false
+        type: boolean
+        default: false
+      source_fingerprint:
+        description: >-
+          Optional @expo/fingerprint hash. When omitted, the workflow computes and
+          posts build-source-hash so Android BrowserStack dual builds can be reused
+          across runs with matching native sources.
+        required: false
+        type: string
+        default: ''
   workflow_call:
     inputs:
       description:
@@ -103,12 +120,21 @@ on:
         required: false
         type: boolean
         default: false
+      source_fingerprint:
+        description: >-
+          @expo/fingerprint hash from the caller (ci.yml native-build-fingerprint).
+          When empty, this workflow computes and posts build-source-hash for
+          Android BrowserStack APK reuse.
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write
   id-token: write
   actions: write
   pull-requests: write
+  statuses: write
 
 concurrency:
   # Include build_variant so e2e, experimental (exp), and release/direct (rc) don't share the same
@@ -164,13 +190,77 @@ jobs:
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
           echo "Branch: $BRANCH_NAME"
 
+  # Same contract as ci.yml native-build-fingerprint → build-android-e2e:
+  # fingerprint must resolve for this job to succeed. Empty fingerprint disables
+  # reuse inside build-android-upload-to-browserstack (resolve job is skipped) but
+  # the dual Gradle path still runs. Download-miss fallback lives in that workflow,
+  # matching build-android-e2e.yml's continue-on-error + native-build gate.
+  ensure-fingerprint:
+    name: Ensure native build fingerprint
+    runs-on: ubuntu-latest
+    outputs:
+      fingerprint: ${{ steps.resolve.outputs.fingerprint }}
+    steps:
+      - name: Use caller-provided fingerprint
+        id: provided
+        if: ${{ inputs.source_fingerprint }}
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source_fingerprint }}
+        run: |
+          echo "fingerprint=$SOURCE_FINGERPRINT" >> "$GITHUB_OUTPUT"
+          echo "Using caller-provided fingerprint: $SOURCE_FINGERPRINT"
+
+      - name: Checkout
+        if: ${{ !inputs.source_fingerprint }}
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        if: ${{ !inputs.source_fingerprint }}
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies with retry
+        if: ${{ !inputs.source_fingerprint }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Compute and post build-source-hash
+        id: computed
+        if: ${{ !inputs.source_fingerprint }}
+        uses: ./.github/actions/post-build-source-hash
+        with:
+          github-token: ${{ github.token }}
+          post-status: 'true'
+          target-sha: ${{ github.sha }}
+
+      - name: Resolve fingerprint output
+        id: resolve
+        env:
+          PROVIDED: ${{ steps.provided.outputs.fingerprint }}
+          COMPUTED: ${{ steps.computed.outputs.fingerprint }}
+        run: |
+          if [ -n "$PROVIDED" ]; then
+            echo "fingerprint=$PROVIDED" >> "$GITHUB_OUTPUT"
+          elif [ -n "$COMPUTED" ]; then
+            echo "fingerprint=$COMPUTED" >> "$GITHUB_OUTPUT"
+          else
+            echo "❌ No fingerprint available" >&2
+            exit 1
+          fi
+          echo "Resolved fingerprint: $(grep fingerprint= "$GITHUB_OUTPUT" | tail -1)"
+
   read-device-matrix:
     name: Read Device Matrix
     runs-on: ubuntu-latest
     needs: [determine-branch-name]
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
-      android_mm_connect_matrix: ${{ steps.read-matrix.outputs.android_mm_connect_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
     steps:
       - name: Checkout code
@@ -189,17 +279,14 @@ jobs:
           # Schedule and workflow_dispatch use the full device matrix.
           if [ -n "$PR_NUMBER" ]; then
             ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
-            ANDROID_MM_CONNECT_MATRIX="$ANDROID_MATRIX"
             IOS_MATRIX='[]'
             echo "PR mode: Android low category devices only (PR: $PR_NUMBER, branch: $BRANCH_NAME)"
           elif [ "${{ github.event_name }}" = "push" ]; then
             ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
-            ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
             IOS_MATRIX=$(jq '[.ios_devices[] | select(.category == "low")]' "$FILE")
             echo "Push mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           else
             ANDROID_MATRIX=$(jq ".android_devices" "$FILE")
-            ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
             IOS_MATRIX=$(jq ".ios_devices" "$FILE")
             echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
           fi
@@ -208,16 +295,12 @@ jobs:
             echo "android_matrix<<EOF"
             echo "$ANDROID_MATRIX"
             echo "EOF"
-            echo "android_mm_connect_matrix<<EOF"
-            echo "$ANDROID_MM_CONNECT_MATRIX"
-            echo "EOF"
             echo "ios_matrix<<EOF"
             echo "$IOS_MATRIX"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
           echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
-          echo "Selected for Android MM-Connect: $(echo "$ANDROID_MM_CONNECT_MATRIX" | jq length)"
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
@@ -318,12 +401,15 @@ jobs:
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [determine-branch-name, resolve-main-browserstack-urls]
+    needs: [determine-branch-name, resolve-main-browserstack-urls, ensure-fingerprint]
     # Build/upload when not reusing main, or when main reuse lookup found nothing.
+    # Fingerprint job must succeed (same as ci.yml native-build-fingerprint → E2E).
+    # Download-miss → fresh dual Gradle fallback is inside build-android-upload-to-browserstack.
     if: >-
       always() &&
       !cancelled() &&
       (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
+      needs.ensure-fingerprint.result == 'success' &&
       (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
       (
         !inputs.reuse_main_builds ||
@@ -332,6 +418,8 @@ jobs:
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
+      source_fingerprint: ${{ needs.ensure-fingerprint.outputs.fingerprint }}
+      main_branch_only: ${{ inputs.reuse_main_builds }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -350,7 +438,7 @@ jobs:
   # =============================================================================
 
   run-android-onboarding-tests:
-    name: Run Android Onboarding Tests
+    name: Performance Test Android (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
@@ -391,7 +479,7 @@ jobs:
     secrets: inherit
 
   run-ios-onboarding-tests:
-    name: Run iOS Onboarding Tests
+    name: Performance Test iOS (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
@@ -431,7 +519,7 @@ jobs:
           echo "Proceeding with imported wallet tests..."
 
   run-android-imported-wallet-tests:
-    name: Run Android Imported Wallet Tests
+    name: Performance Test Android (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
@@ -473,7 +561,7 @@ jobs:
     secrets: inherit
 
   run-ios-imported-wallet-tests:
-    name: Run iOS Imported Wallet Tests
+    name: Performance Test iOS (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       [
@@ -498,85 +586,6 @@ jobs:
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
-  fetch-rn-playground-apk-upload-to-browserstack:
-    name: Fetch RN Playground APK and Upload to BrowserStack
-    runs-on: ubuntu-latest
-    needs: [wait-for-onboarding-completion]
-    if: always() && !cancelled()
-    outputs:
-      browserstack-playground-url: ${{ steps.upload-playground.outputs.browserstack-url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Fetch playground APK from GitHub Releases
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
-        run: ./tests/scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
-
-      - name: Upload playground APK to BrowserStack
-        id: upload-playground
-        run: |
-          echo "Uploading RN Playground APK to BrowserStack..."
-          RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-            -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-            -F "file=@./tmp/rn-playground.apk" \
-            -F "custom_id=RN-Playground-${{ github.run_id }}")
-
-          APP_URL=$(echo "$RESPONSE" | jq -r '.app_url')
-          if [ -z "$APP_URL" ] || [ "$APP_URL" = "null" ]; then
-            echo "Error: Failed to upload playground APK to BrowserStack"
-            echo "Response: $RESPONSE"
-            exit 1
-          fi
-
-          echo "browserstack-url=$APP_URL" >> "$GITHUB_OUTPUT"
-          echo "Playground APK uploaded: $APP_URL"
-
-  run-android-mm-connect-tests:
-    name: Run Android MM-Connect Tests
-    uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      [
-        read-device-matrix,
-        trigger-android-dual-versions,
-        resolve-main-browserstack-urls,
-        fetch-rn-playground-apk-upload-to-browserstack,
-        set-build-names,
-        determine-branch-name,
-        compute-test-selection,
-      ]
-    if: >-
-      always() && !cancelled() &&
-      needs.compute-test-selection.outputs.run_tests == 'true' &&
-      (
-        needs.trigger-android-dual-versions.result == 'skipped' ||
-        needs.trigger-android-dual-versions.result == 'success'
-      ) &&
-      (
-        needs.resolve-main-browserstack-urls.result == 'skipped' ||
-        needs.resolve-main-browserstack-urls.result == 'success'
-      ) &&
-      (
-        inputs.browserstack_app_url_android_imported_wallet != '' ||
-        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '' ||
-        needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url != ''
-      )
-    with:
-      platform: android
-      build_type: mm-connect
-      sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'e2e' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
-      browserstack_app_url: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
-      app_version: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
-      browserstack_playground_url: ${{ needs.fetch-rn-playground-apk-upload-to-browserstack.outputs.browserstack-playground-url }}
-      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
-    secrets: inherit
-
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -584,7 +593,6 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
-        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         wait-for-onboarding-completion,
@@ -642,17 +650,19 @@ jobs:
         env:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node tests/scripts/generate-performance-pr-comment.mjs \
             aggregated-reports/summary.json \
             performance-pr-comment.md
 
-      - name: Delete previous performance results comments
+      - name: Delete previous performance / app-profiling comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments" \
-            --jq '.[] | select(.body | contains("<!-- perf-test-results -->")) | .id')
+          ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments?per_page=100" \
+            --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
             echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
@@ -661,7 +671,7 @@ jobs:
                   --method DELETE > /dev/null 2>&1 || true
               fi
             done
-            echo "Deleted previous performance results comments"
+            echo "Deleted previous performance / app-profiling comments"
           fi
 
       - name: Post PR comment
@@ -681,7 +691,6 @@ jobs:
       [
         run-android-imported-wallet-tests,
         run-android-onboarding-tests,
-        run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         aggregate-results,

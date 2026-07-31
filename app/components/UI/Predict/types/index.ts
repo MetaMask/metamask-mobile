@@ -159,10 +159,19 @@ export type PredictCategory =
 // Sports league types
 export type PredictSportsLeague =
   | 'nfl'
+  | 'cfb'
+  | 'cfl'
   | 'nba'
   | 'wnba'
   | 'mlb'
+  | 'kbo'
+  | 'npb'
+  | 'cpbl'
   | 'nhl'
+  | 'shl'
+  | 'khl'
+  | 'cehl'
+  | 'dehl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -175,6 +184,8 @@ export type PredictSportsLeague =
   | 'bun'
   | 'chi'
   | 'epl'
+  | 'elc'
+  | 'bel1'
   | 'cze1'
   | 'j1100'
   | 'j2100'
@@ -204,7 +215,12 @@ export type PredictSportsLeague =
   | 'fifwc'
   | 'atp'
   | 'wta'
-  | 'itf';
+  | 'itf'
+  | 'cs2'
+  | 'lol'
+  | 'dota2'
+  | 'val'
+  | 'r6siege';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -646,6 +662,8 @@ export interface PredictMarketListParams {
   // search stays on the same feed endpoint (handled in the provider layer, not
   // the UI). Blank/whitespace is ignored (browse mode).
   search?: string;
+  /** Raw Polymarket query params that override matching generated params. */
+  customQueryParams?: string;
   limit?: number;
   afterCursor?: string | null;
 }

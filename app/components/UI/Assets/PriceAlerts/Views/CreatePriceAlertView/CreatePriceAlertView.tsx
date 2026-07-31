@@ -54,10 +54,15 @@ const CreatePriceAlertView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
+  const shouldAutoWatchlistOnCreate =
+    !isEditing &&
+    (existingAbsoluteAlerts?.length ?? 0) === 0 &&
+    (existingPercentAlerts?.length ?? 0) === 0;
   const { saveAlert } = useAlertSaveFlow({
     assetId,
     displayTicker,
     fromManage,
+    shouldAutoWatchlistOnCreate,
   });
   const [alertType, setAlertType] = useState<AlertType>(
     editingAlert?.type ?? initialType ?? 'absolute_price',

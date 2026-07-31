@@ -9,6 +9,7 @@ import {
   CreatePriceAlertTestIds,
   type PercentChangeAlert,
 } from '../../constants';
+import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
 import CreatePriceAlertView from './CreatePriceAlertView';
 
 const mockGoBack = jest.fn();
@@ -39,7 +40,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useAlertSaveFlow', () => ({
   __esModule: true,
-  default: () => ({ saveAlert: jest.fn() }),
+  default: jest.fn(() => ({ saveAlert: jest.fn() })),
 }));
 
 jest.mock('./AbsolutePriceAlertForm', () => ({
@@ -84,6 +85,7 @@ const percentAlert: PercentChangeAlert = {
 };
 
 const mockAnalytics = jest.mocked(useAnalytics)();
+const mockUseAlertSaveFlow = jest.mocked(useAlertSaveFlow);
 const viewedBuilder = () => {
   const calls = jest.mocked(mockAnalytics.createEventBuilder).mock.calls;
   const index = calls.findIndex(
@@ -152,6 +154,58 @@ describe('CreatePriceAlertView', () => {
       token_symbol: 'ETH',
       has_existing_alert: false,
     });
+  });
+
+  it('enables auto-watchlisting when creating the first alert for an asset', () => {
+    mockRouteParams = {
+      ...baseRoute,
+      existingAbsoluteAlerts: [],
+      existingPercentAlerts: [],
+    };
+
+    render(<CreatePriceAlertView />);
+
+    expect(mockUseAlertSaveFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'eip155:1/slip44:60',
+        shouldAutoWatchlistOnCreate: true,
+      }),
+    );
+  });
+
+  it('disables auto-watchlisting while editing an alert', () => {
+    mockRouteParams = {
+      ...baseRoute,
+      editingAlert: absoluteAlert,
+      existingAbsoluteAlerts: [],
+      existingPercentAlerts: [],
+    };
+
+    render(<CreatePriceAlertView />);
+
+    expect(mockUseAlertSaveFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'eip155:1/slip44:60',
+        shouldAutoWatchlistOnCreate: false,
+      }),
+    );
+  });
+
+  it('disables auto-watchlisting when the asset has an existing alert', () => {
+    mockRouteParams = {
+      ...baseRoute,
+      existingAbsoluteAlerts: [absoluteAlert],
+      existingPercentAlerts: [],
+    };
+
+    render(<CreatePriceAlertView />);
+
+    expect(mockUseAlertSaveFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'eip155:1/slip44:60',
+        shouldAutoWatchlistOnCreate: false,
+      }),
+    );
   });
 
   it('tracks creation viewed with has_existing_alert true for an absolute alert', () => {

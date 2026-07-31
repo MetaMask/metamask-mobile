@@ -577,6 +577,11 @@ jest.mock('../../hooks', () => ({
     mode: mockPerpsModeValue,
     setMode: mockSetPerpsMode,
   })),
+  usePerpsMarketAboutTracking: jest.fn(() => ({
+    hasDescription: false,
+    handleAboutLayout: jest.fn(),
+    handleAboutScroll: jest.fn(),
+  })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),

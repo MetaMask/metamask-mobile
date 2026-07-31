@@ -59,7 +59,6 @@ import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnAppium,
-  isWalletHomeReadyOnIOS,
 } from './wallet-home-readiness';
 
 const logger = createLogger({
@@ -72,32 +71,29 @@ const WALLET_HOME_POLL_INTERVAL_MS = 250;
  * Waits for the wallet home screen to be ready after login.
  * On iOS, `wallet-screen` may exist but report `displayed === false` while
  * child indicators are visible — mirrors Detox `toExist` readiness checks.
+ * On Android, polls readiness helpers and re-dismisses system overlays during
+ * the wait (avoids a single visibility assert that can fail under shade/overlays).
  */
 export const waitForWalletHomePlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),
 ): Promise<void> => {
-  if (PlatformDetector.isAndroid()) {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(WalletView.container),
-      {
-        description: 'Wallet should be visible',
-        timeout,
-      },
-    );
-    return;
-  }
-
   const deadline = Date.now() + timeout;
+  const isAndroid = PlatformDetector.isAndroid();
+  const platform = isAndroid ? 'Android' : 'iOS';
+
   while (Date.now() < deadline) {
-    if (await isWalletHomeReadyOnIOS()) {
-      logger.debug('Wallet home ready on iOS');
+    if (await isWalletHomeReadyOnAppium()) {
+      logger.debug(`Wallet home ready on ${platform}`);
       return;
+    }
+    if (isAndroid) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
     await sleep(WALLET_HOME_POLL_INTERVAL_MS);
   }
 
   throw new Error(
-    `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
+    `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
   );
 };
 
@@ -139,7 +135,7 @@ export const ensureAccountListOpenPlaywright = async (
       // list not visible yet
     }
 
-    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+    if (await isWalletHomeReadyOnAppium()) {
       await WalletView.tapIdenticon();
       await Assertions.expectElementToBeVisible(
         AccountListBottomSheet.accountList,
@@ -149,6 +145,10 @@ export const ensureAccountListOpenPlaywright = async (
         },
       );
       return;
+    }
+
+    if (PlatformDetector.isAndroid()) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
 
     try {
@@ -172,8 +172,12 @@ export const dismissToWalletHomePlaywright = async (
   const deadline = Date.now() + timeout;
 
   while (Date.now() < deadline) {
-    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+    if (await isWalletHomeReadyOnAppium()) {
       return;
+    }
+
+    if (PlatformDetector.isAndroid()) {
+      await dismissAndroidSystemOverlaysPlaywright();
     }
 
     try {
@@ -442,10 +446,15 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet home should be visible after onboarding completion',
-      timeout: 15000,
-    });
+    if (FrameworkDetector.isAppium()) {
+      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
+    } else {
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description:
+          'Wallet home should be visible after onboarding completion',
+        timeout: 15000,
+      });
+    }
   }
   //'Should dismiss Enable device Notifications checks alert'
   await closeOnboardingModals(fromResetWallet);
@@ -561,16 +570,16 @@ export const CreateNewWallet = async ({
   }
 
   await MetaMetricsOptInView.tapAgreeButton();
-  // Detox hangs after wallet creation without disabling sync; Appium has no equivalent.
+  // Detox hangs after wallet creation without disabling sync; Appium has no sync layer.
   if (FrameworkDetector.isDetox()) {
     await device.disableSynchronization();
   }
 
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    // iOS Appium: wallet-screen can exist with displayed=false; use readiness helper.
+    // iOS Appium: wallet-screen often exists but reports displayed=false; use readiness helpers.
     if (FrameworkDetector.isAppium()) {
-      await waitForWalletHomePlaywright(15_000);
+      await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(15_000));
     } else {
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description:
@@ -797,19 +806,15 @@ export const loginAndOpenAccountList = async (
   options: {
     scenarioType?: string;
     dismissModals?: boolean;
-    walletTimeout?: number;
     accountListDescription?: string;
   } = {},
 ): Promise<void> => {
   const {
-    walletTimeout = 15_000,
     accountListDescription = 'Account list should be visible',
     ...loginOptions
   } = options;
 
   await loginToAppPlaywright(loginOptions);
-
-  await waitForWalletHomePlaywright(walletTimeout);
 
   await WalletView.tapIdenticon();
 
