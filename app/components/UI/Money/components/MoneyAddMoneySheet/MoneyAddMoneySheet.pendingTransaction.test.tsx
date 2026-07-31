@@ -99,11 +99,12 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 // Keep the real `useMoneyAccountDeposit` + `useConfirmNavigation`; stub only the
 // heavy deposit-building internals so `initiateDeposit` reaches navigation.
-jest.mock('../../utils/moneyAccountTransactions', () => ({
-  buildMoneyAccountDepositBatch: jest.fn().mockResolvedValue({
-    approveTx: { to: '0xapprove', data: '0x', value: '0x0' },
-    depositTx: { to: '0xdeposit', data: '0x', value: '0x0' },
-  }),
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositPlaceholderBatch: jest.fn(() => ({
+    approveTx: { to: '0xapprove', value: '0x0' },
+    depositTx: { to: '0xdeposit', value: '0x0' },
+  })),
   getMoneyAccountDepositAssetAddress: jest.fn(() => '0xasset'),
   getMoneyAccountDepositAssetId: jest.fn(
     () => 'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',

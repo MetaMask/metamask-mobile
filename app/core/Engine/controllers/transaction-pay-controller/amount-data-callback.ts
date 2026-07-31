@@ -3,7 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import { buildMoneyAccountDepositBatch } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import { buildMoneyAccountDepositBatch } from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -64,10 +64,10 @@ export async function getAmountData(
       buildResult = await buildMoneyAccountDepositBatch({
         amount: rawAmount,
         chainId: chainIdHex,
-        boringVault: vaultConfig.boringVault,
-        tellerAddress: vaultConfig.tellerAddress,
-        accountantAddress: vaultConfig.accountantAddress,
-        lensAddress: vaultConfig.lensAddress,
+        boringVault: vaultConfig.boringVault as Hex,
+        tellerAddress: vaultConfig.tellerAddress as Hex,
+        accountantAddress: vaultConfig.accountantAddress as Hex,
+        lensAddress: vaultConfig.lensAddress as Hex,
         provider,
       });
     } catch (error) {

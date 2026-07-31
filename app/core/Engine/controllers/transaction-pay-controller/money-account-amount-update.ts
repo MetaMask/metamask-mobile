@@ -9,7 +9,7 @@ import type { Hex } from '@metamask/utils';
 import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import { MUSD_DECIMALS } from '../../../../components/UI/Earn/constants/musd';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -97,10 +97,10 @@ async function updateMoneyAccountDepositAmountInternal(
   const buildResult = await buildMoneyAccountDepositBatch({
     amount: BigInt(amountRaw),
     chainId,
-    boringVault: vaultConfig.boringVault,
-    tellerAddress: vaultConfig.tellerAddress,
-    accountantAddress: vaultConfig.accountantAddress,
-    lensAddress: vaultConfig.lensAddress,
+    boringVault: vaultConfig.boringVault as Hex,
+    tellerAddress: vaultConfig.tellerAddress as Hex,
+    accountantAddress: vaultConfig.accountantAddress as Hex,
+    lensAddress: vaultConfig.lensAddress as Hex,
     provider,
   });
 

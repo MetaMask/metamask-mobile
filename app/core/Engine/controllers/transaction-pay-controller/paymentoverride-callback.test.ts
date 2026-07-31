@@ -12,7 +12,7 @@ import type { Hex } from '@metamask/utils';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -21,7 +21,11 @@ import { calcTokenValue } from '../../../../util/transactions';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 import { getPaymentOverrideData } from './paymentoverride-callback';
 
-jest.mock('../../../../components/UI/Money/utils/moneyAccountTransactions');
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositBatch: jest.fn(),
+  buildMoneyAccountWithdrawBatch: jest.fn(),
+}));
 jest.mock('../../../../components/UI/Earn/constants/musd', () => ({
   MUSD_DECIMALS: 18,
 }));

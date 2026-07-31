@@ -11,10 +11,10 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
-  buildMoneyAccountDepositBatch,
+  buildMoneyAccountDepositPlaceholderBatch,
   buildMoneyAccountWithdrawBatch,
   getMoneyAccountDepositAssetAddress,
-} from '../utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
@@ -112,17 +112,12 @@ export function useMoneyAccountDeposit() {
         }
         const moneyAccountAddress = primaryMoneyAccount.address;
 
-        const {
-          chainId,
-          boringVault,
-          tellerAddress,
-          accountantAddress,
-          lensAddress,
-        } = vaultConfig;
+        const { chainId, tellerAddress } = vaultConfig;
 
         const chainIdHex = chainId as Hex;
-        const provider = getProviderByChainId(chainIdHex);
-        if (!provider) {
+        // The placeholder batch needs no vault reads, but an unreachable chain
+        // should still fail before we navigate to a confirmation.
+        if (!getProviderByChainId(chainIdHex)) {
           throw new Error(
             `${LOG_TAG} No provider available for chain ${chainId}`,
           );
@@ -130,11 +125,7 @@ export function useMoneyAccountDeposit() {
 
         return {
           chainIdHex,
-          boringVault,
           tellerAddress,
-          accountantAddress,
-          lensAddress,
-          provider,
           moneyAccountAddress,
           networkClientId: resolveNetworkClientId(chainIdHex),
           isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
@@ -182,16 +173,13 @@ export function useMoneyAccountDeposit() {
         // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
         await waitForNextFrame();
 
-        const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-          amount: BigInt(0),
-          chainId: depositSetup.chainIdHex,
-          boringVault: depositSetup.boringVault,
-          tellerAddress: depositSetup.tellerAddress,
-          accountantAddress: depositSetup.accountantAddress,
-          lensAddress: depositSetup.lensAddress,
-          provider: depositSetup.provider,
-          initialiseWithoutData: true,
-        });
+        // Placeholder batch — MM Pay re-encodes both calls via
+        // `updateMoneyAccountDepositTokenAmount` once the user picks an amount.
+        const { approveTx, depositTx } =
+          buildMoneyAccountDepositPlaceholderBatch({
+            chainId: depositSetup.chainIdHex,
+            tellerAddress: depositSetup.tellerAddress as Hex,
+          });
 
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,

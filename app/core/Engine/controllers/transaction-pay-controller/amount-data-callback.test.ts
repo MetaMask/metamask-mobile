@@ -3,13 +3,16 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import { buildMoneyAccountDepositBatch } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import { buildMoneyAccountDepositBatch } from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import { getAmountData } from './amount-data-callback';
 
-jest.mock('../../../../components/UI/Money/utils/moneyAccountTransactions');
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositBatch: jest.fn(),
+}));
 jest.mock('../../../../core/redux/ReduxService', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn().mockReturnValue({}) } },
