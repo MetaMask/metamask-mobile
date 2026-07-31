@@ -1,8 +1,4 @@
 import {
-  BottomSheet,
-  BottomSheetFooter,
-  BottomSheetHeader,
-  BottomSheetRef,
   Box,
   Icon,
   IconColor,
@@ -14,15 +10,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { Modal, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
+import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
 import {
   PRO_POSITION_SORT_OPTIONS,
   type ProPositionSortConfig,
@@ -49,30 +39,16 @@ const PerpsProPositionsSortSheet = ({
   onClose,
   testID = 'perps-pro-positions-sort-sheet',
 }: PerpsProPositionsSortSheetProps) => {
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const wasVisibleRef = useRef(false);
   const [draftField, setDraftField] = useState<ProPositionSortField>(
     sortConfig.field,
   );
   const [draftDirection, setDraftDirection] =
     useState<ProPositionSortDirection>(sortConfig.direction);
 
-  useEffect(() => {
-    const justOpened = isVisible && !wasVisibleRef.current;
-    wasVisibleRef.current = isVisible;
-
-    if (!justOpened) {
-      return;
-    }
-
+  const resetDraft = useCallback(() => {
     setDraftField(sortConfig.field);
     setDraftDirection(sortConfig.direction);
-    sheetRef.current?.onOpenBottomSheet();
-  }, [isVisible, sortConfig.field, sortConfig.direction]);
-
-  const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(onClose);
-  }, [onClose]);
+  }, [sortConfig.direction, sortConfig.field]);
 
   const handleOptionPress = useCallback(
     (field: ProPositionSortField) => {
@@ -89,87 +65,58 @@ const PerpsProPositionsSortSheet = ({
 
   const handleApply = useCallback(() => {
     onApply({ field: draftField, direction: draftDirection });
-    handleClose();
-  }, [draftDirection, draftField, handleClose, onApply]);
-
-  const primaryButtonProps = useMemo(
-    () => ({
-      children: strings('perps.sort.apply'),
-      onPress: handleApply,
-      testID: `${testID}-apply`,
-    }),
-    [handleApply, testID],
-  );
-
-  if (!isVisible) {
-    return null;
-  }
+  }, [draftDirection, draftField, onApply]);
 
   return (
-    <View>
-      <Modal
-        visible
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={handleClose}
-      >
-        <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-          <BottomSheetHeader
-            onClose={handleClose}
-            closeButtonProps={{ testID: `${testID}-close` }}
-          >
-            {strings('perps.sort.sort_by')}
-          </BottomSheetHeader>
+    <PerpsProPositionsOptionSheet
+      isVisible={isVisible}
+      title={strings('perps.sort.sort_by')}
+      onClose={onClose}
+      onApply={handleApply}
+      onOpen={resetDraft}
+      testID={testID}
+    >
+      {PRO_POSITION_SORT_OPTIONS.map((option) => {
+        const isSelected = draftField === option.id;
 
-          {PRO_POSITION_SORT_OPTIONS.map((option) => {
-            const isSelected = draftField === option.id;
-
-            return (
-              <ListItemSelect
-                key={option.id}
-                title={strings(option.labelKey)}
-                variant={ListItemVariant.OneLine}
-                isSelected={isSelected}
-                showSelectedIcon={false}
-                onPress={() => handleOptionPress(option.id)}
-                endAccessory={
-                  isSelected ? (
-                    <Box twClassName="flex-row items-center gap-2">
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
-                        testID={`${testID}-direction-text-${option.id}`}
-                      >
-                        {draftDirection === 'asc'
-                          ? strings('perps.sort.low_to_high')
-                          : strings('perps.sort.high_to_low')}
-                      </Text>
-                      <Icon
-                        name={
-                          draftDirection === 'asc'
-                            ? IconName.Arrow2Up
-                            : IconName.Arrow2Down
-                        }
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                        testID={`${testID}-direction-indicator-${option.id}`}
-                      />
-                    </Box>
-                  ) : undefined
-                }
-                testID={`${testID}-option-${option.id}`}
-              />
-            );
-          })}
-
-          <BottomSheetFooter
-            primaryButtonProps={primaryButtonProps}
-            twClassName="pt-4"
+        return (
+          <ListItemSelect
+            key={option.id}
+            title={strings(option.labelKey)}
+            variant={ListItemVariant.OneLine}
+            isSelected={isSelected}
+            showSelectedIcon={false}
+            onPress={() => handleOptionPress(option.id)}
+            endAccessory={
+              isSelected ? (
+                <Box twClassName="flex-row items-center gap-2">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    testID={`${testID}-direction-text-${option.id}`}
+                  >
+                    {draftDirection === 'asc'
+                      ? strings('perps.sort.low_to_high')
+                      : strings('perps.sort.high_to_low')}
+                  </Text>
+                  <Icon
+                    name={
+                      draftDirection === 'asc'
+                        ? IconName.Arrow2Up
+                        : IconName.Arrow2Down
+                    }
+                    size={IconSize.Md}
+                    color={IconColor.IconAlternative}
+                    testID={`${testID}-direction-indicator-${option.id}`}
+                  />
+                </Box>
+              ) : undefined
+            }
+            testID={`${testID}-option-${option.id}`}
           />
-        </BottomSheet>
-      </Modal>
-    </View>
+        );
+      })}
+    </PerpsProPositionsOptionSheet>
   );
 };
 

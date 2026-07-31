@@ -82,10 +82,7 @@ export const usePerpsProPositionsPanelActions =
     );
     const [adjustMarginPosition, setAdjustMarginPosition] =
       useState<Position | null>(null);
-    const [isCloseAllGeoBlockVisible, setIsCloseAllGeoBlockVisible] =
-      useState(false);
-    const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
-      useState(false);
+    const [isGeoBlockVisible, setIsGeoBlockVisible] = useState(false);
     const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(
       null,
     );
@@ -94,9 +91,35 @@ export const usePerpsProPositionsPanelActions =
     const reversePositionSheetRef = useRef<BottomSheetRef>(null);
     const adjustMarginSheetRef = useRef<BottomSheetRef>(null);
 
-    const closeEligibilityModal = useCallback(() => {
-      setIsEligibilityModalVisible(false);
+    const closeGeoBlockModal = useCallback(() => {
+      setIsGeoBlockVisible(false);
     }, []);
+
+    const showGeoBlockForSource = useCallback(
+      (source: string) => {
+        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+          [PERPS_EVENT_PROPERTY.SOURCE]: source,
+        });
+        setIsGeoBlockVisible(true);
+      },
+      [track],
+    );
+
+    const runGatedEligibleAction = useCallback(
+      (source: string, action: () => void | Promise<void>) => {
+        gate(async () => {
+          if (!isEligible) {
+            showGeoBlockForSource(source);
+            return;
+          }
+
+          await action();
+        });
+      },
+      [gate, isEligible, showGeoBlockForSource],
+    );
 
     const handleCloseAllSheetClose = useCallback(() => {
       setShowCloseAllSheet(false);
@@ -130,45 +153,26 @@ export const usePerpsProPositionsPanelActions =
 
     const handleClosePosition = useCallback(
       (position: Position) => {
-        gate(async () => {
-          if (!isEligible) {
-            track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-              [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-                PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-              [PERPS_EVENT_PROPERTY.SOURCE]:
-                PERPS_EVENT_VALUE.SOURCE.CLOSE_POSITION_ACTION,
-            });
-            setIsEligibilityModalVisible(true);
-            return;
-          }
-
-          navigateToClosePosition(position, PRO_MARKET_SOURCE, {
-            buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
-            buttonLocation: PRO_MARKET_BUTTON_LOCATION,
-          });
-        });
+        runGatedEligibleAction(
+          PERPS_EVENT_VALUE.SOURCE.CLOSE_POSITION_ACTION,
+          () =>
+            navigateToClosePosition(position, PRO_MARKET_SOURCE, {
+              buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+              buttonLocation: PRO_MARKET_BUTTON_LOCATION,
+            }),
+        );
       },
-      [gate, isEligible, navigateToClosePosition, track],
+      [navigateToClosePosition, runGatedEligibleAction],
     );
 
     const handleReversePosition = useCallback(
       (position: Position) => {
-        gate(async () => {
-          if (!isEligible) {
-            track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-              [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-                PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-              [PERPS_EVENT_PROPERTY.SOURCE]:
-                PERPS_EVENT_VALUE.SOURCE.MODIFY_POSITION_ACTION,
-            });
-            setIsEligibilityModalVisible(true);
-            return;
-          }
-
-          setReversePosition(position);
-        });
+        runGatedEligibleAction(
+          PERPS_EVENT_VALUE.SOURCE.MODIFY_POSITION_ACTION,
+          () => setReversePosition(position),
+        );
       },
-      [gate, isEligible, track],
+      [runGatedEligibleAction],
     );
 
     const handleSharePosition = useCallback(
@@ -183,49 +187,41 @@ export const usePerpsProPositionsPanelActions =
 
     const handleEditPositionTpSl = useCallback(
       (position: Position) => {
-        gate(async () => {
-          if (!isEligible) {
-            track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-              [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-                PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-              [PERPS_EVENT_PROPERTY.SOURCE]:
-                PERPS_EVENT_VALUE.SOURCE.AUTO_CLOSE_ACTION,
+        runGatedEligibleAction(
+          PERPS_EVENT_VALUE.SOURCE.AUTO_CLOSE_ACTION,
+          () => {
+            const markPrice = parseFloat(getPositionMarkPrice(position));
+            const currentPrice =
+              Number.isFinite(markPrice) && markPrice > 0
+                ? markPrice
+                : parseFloat(position.entryPrice);
+
+            navigation.navigate(Routes.PERPS.TPSL, {
+              asset: position.symbol,
+              currentPrice,
+              position,
+              initialTakeProfitPrice: position.takeProfitPrice,
+              initialStopLossPrice: position.stopLossPrice,
+              leverage: position.leverage.value,
+              onConfirm: async (
+                positionFromRoute?: Position,
+                takeProfitPrice?: string,
+                stopLossPrice?: string,
+                trackingData?: TPSLTrackingData,
+              ) => {
+                const positionToUse = positionFromRoute ?? position;
+                return handleUpdateTPSL(
+                  positionToUse,
+                  takeProfitPrice,
+                  stopLossPrice,
+                  trackingData,
+                );
+              },
             });
-            setIsEligibilityModalVisible(true);
-            return;
-          }
-
-          const markPrice = parseFloat(getPositionMarkPrice(position));
-          const currentPrice =
-            Number.isFinite(markPrice) && markPrice > 0
-              ? markPrice
-              : parseFloat(position.entryPrice);
-
-          navigation.navigate(Routes.PERPS.TPSL, {
-            asset: position.symbol,
-            currentPrice,
-            position,
-            initialTakeProfitPrice: position.takeProfitPrice,
-            initialStopLossPrice: position.stopLossPrice,
-            leverage: position.leverage.value,
-            onConfirm: async (
-              positionFromRoute?: Position,
-              takeProfitPrice?: string,
-              stopLossPrice?: string,
-              trackingData?: TPSLTrackingData,
-            ) => {
-              const positionToUse = positionFromRoute ?? position;
-              return handleUpdateTPSL(
-                positionToUse,
-                takeProfitPrice,
-                stopLossPrice,
-                trackingData,
-              );
-            },
-          });
-        });
+          },
+        );
       },
-      [gate, handleUpdateTPSL, isEligible, navigation, track],
+      [handleUpdateTPSL, navigation, runGatedEligibleAction],
     );
 
     const isPositionMarginEditable = useCallback(
@@ -239,22 +235,12 @@ export const usePerpsProPositionsPanelActions =
           return;
         }
 
-        gate(async () => {
-          if (!isEligible) {
-            track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-              [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-                PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-              [PERPS_EVENT_PROPERTY.SOURCE]:
-                PERPS_EVENT_VALUE.SOURCE.ADJUST_MARGIN_ACTION,
-            });
-            setIsEligibilityModalVisible(true);
-            return;
-          }
-
-          setAdjustMarginPosition(position);
-        });
+        runGatedEligibleAction(
+          PERPS_EVENT_VALUE.SOURCE.ADJUST_MARGIN_ACTION,
+          () => setAdjustMarginPosition(position),
+        );
       },
-      [gate, isEligible, isPositionMarginEditable, track],
+      [isPositionMarginEditable, runGatedEligibleAction],
     );
 
     const isOrderCancelable = useCallback(
@@ -330,21 +316,11 @@ export const usePerpsProPositionsPanelActions =
     );
 
     const handleCloseAllPress = useCallback(() => {
-      gate(async () => {
-        if (!isEligible) {
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
-          });
-          setIsCloseAllGeoBlockVisible(true);
-          return;
-        }
-
-        setShowCloseAllSheet(true);
-      });
-    }, [gate, isEligible, track]);
+      runGatedEligibleAction(
+        PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
+        () => setShowCloseAllSheet(true),
+      );
+    }, [runGatedEligibleAction]);
 
     const renderActionSheets = useCallback(
       () => (
@@ -373,7 +349,7 @@ export const usePerpsProPositionsPanelActions =
             />
           )}
 
-          {isEligibilityModalVisible && (
+          {isGeoBlockVisible && (
             <View>
               <Modal
                 visible
@@ -383,27 +359,9 @@ export const usePerpsProPositionsPanelActions =
               >
                 <PerpsBottomSheetTooltip
                   isVisible
-                  onClose={closeEligibilityModal}
+                  onClose={closeGeoBlockModal}
                   contentKey="geo_block"
                   testID="perps-pro-positions-panel-geo-block-tooltip"
-                />
-              </Modal>
-            </View>
-          )}
-
-          {isCloseAllGeoBlockVisible && (
-            <View>
-              <Modal
-                visible
-                transparent
-                animationType="none"
-                statusBarTranslucent
-              >
-                <PerpsBottomSheetTooltip
-                  isVisible
-                  onClose={() => setIsCloseAllGeoBlockVisible(false)}
-                  contentKey="geo_block"
-                  testID="perps-pro-positions-panel-close-all-geo-block-tooltip"
                 />
               </Modal>
             </View>
@@ -412,12 +370,11 @@ export const usePerpsProPositionsPanelActions =
       ),
       [
         adjustMarginPosition,
-        closeEligibilityModal,
+        closeGeoBlockModal,
         handleAdjustMarginSheetClose,
         handleCloseAllSheetClose,
         handleReverseSheetClose,
-        isCloseAllGeoBlockVisible,
-        isEligibilityModalVisible,
+        isGeoBlockVisible,
         reversePosition,
         showCloseAllSheet,
       ],

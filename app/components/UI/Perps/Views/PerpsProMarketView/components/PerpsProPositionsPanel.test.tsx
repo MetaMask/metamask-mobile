@@ -78,6 +78,44 @@ const expectTabLabel = (label: string) => {
   expect(screen.getAllByText(label).length).toBeGreaterThan(0);
 };
 
+const openSideFilterSheet = () => {
+  fireEvent.press(
+    screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+    ),
+  );
+};
+
+const applySideFilter = (side: 'all' | 'long' | 'short') => {
+  openSideFilterSheet();
+  fireEvent.press(
+    screen.getByTestId(
+      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-option-${side}`,
+    ),
+  );
+  fireEvent.press(
+    screen.getByTestId(
+      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-apply`,
+    ),
+  );
+};
+
+const applySortByFundingRate = () => {
+  fireEvent.press(
+    screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
+  );
+  fireEvent.press(
+    screen.getByTestId(
+      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-option-fundingRate`,
+    ),
+  );
+  fireEvent.press(
+    screen.getByTestId(
+      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-apply`,
+    ),
+  );
+};
+
 describe('PerpsProPositionsPanel', () => {
   const handleClosePosition = jest.fn();
   const handleReversePosition = jest.fn();
@@ -350,19 +388,7 @@ describe('PerpsProPositionsPanel', () => {
 
     renderPanel('SOL');
 
-    fireEvent.press(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-option-fundingRate`,
-      ),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-apply`,
-      ),
-    );
+    applySortByFundingRate();
 
     const positionRows = screen
       .getAllByTestId(/perps-pro-market-position-row-/)
@@ -421,11 +447,7 @@ describe('PerpsProPositionsPanel', () => {
 
     expect(screen.getByText('All sides')).toBeOnTheScreen();
 
-    fireEvent.press(
-      screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
-      ),
-    );
+    openSideFilterSheet();
 
     expect(
       screen.getByTestId(
@@ -445,21 +467,7 @@ describe('PerpsProPositionsPanel', () => {
 
     renderPanel('SOL');
 
-    fireEvent.press(
-      screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
-      ),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-option-long`,
-      ),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-apply`,
-      ),
-    );
+    applySideFilter('long');
 
     expect(screen.getByText('Long')).toBeOnTheScreen();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
@@ -480,21 +488,7 @@ describe('PerpsProPositionsPanel', () => {
     fireEvent.press(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
     );
-    fireEvent.press(
-      screen.getByTestId(
-        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
-      ),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-option-long`,
-      ),
-    );
-    fireEvent.press(
-      screen.getByTestId(
-        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-apply`,
-      ),
-    );
+    applySideFilter('long');
 
     expect(screen.getByText('No long positions.')).toBeOnTheScreen();
     expect(screen.queryByText('No open SOL positions.')).toBeNull();

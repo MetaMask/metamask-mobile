@@ -1,19 +1,7 @@
-import {
-  BottomSheet,
-  BottomSheetFooter,
-  BottomSheetHeader,
-  BottomSheetRef,
-  ListItemSelect,
-} from '@metamask/design-system-react-native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { Modal, View } from 'react-native';
+import { ListItemSelect } from '@metamask/design-system-react-native';
+import React, { useCallback, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
+import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
 import ProPositionSideFilterIcon from './ProPositionSideFilterIcon';
 import {
   PRO_POSITION_SIDE_FILTER_OPTIONS,
@@ -38,89 +26,46 @@ const PerpsProPositionsSideFilterSheet = ({
   onClose,
   testID = 'perps-pro-positions-side-filter-sheet',
 }: PerpsProPositionsSideFilterSheetProps) => {
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const wasVisibleRef = useRef(false);
   const [draftSideFilter, setDraftSideFilter] =
     useState<ProPositionSideFilter>(sideFilter);
 
-  useEffect(() => {
-    const justOpened = isVisible && !wasVisibleRef.current;
-    wasVisibleRef.current = isVisible;
-
-    if (!justOpened) {
-      return;
-    }
-
+  const resetDraft = useCallback(() => {
     setDraftSideFilter(sideFilter);
-    sheetRef.current?.onOpenBottomSheet();
-  }, [isVisible, sideFilter]);
-
-  const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(onClose);
-  }, [onClose]);
+  }, [sideFilter]);
 
   const handleApply = useCallback(() => {
     onApply(draftSideFilter);
-    handleClose();
-  }, [draftSideFilter, handleClose, onApply]);
-
-  const primaryButtonProps = useMemo(
-    () => ({
-      children: strings('perps.sort.apply'),
-      onPress: handleApply,
-      testID: `${testID}-apply`,
-    }),
-    [handleApply, testID],
-  );
-
-  if (!isVisible) {
-    return null;
-  }
+  }, [draftSideFilter, onApply]);
 
   return (
-    <View>
-      <Modal
-        visible
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={handleClose}
-      >
-        <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-          <BottomSheetHeader
-            onClose={handleClose}
-            closeButtonProps={{ testID: `${testID}-close` }}
-          >
-            {strings('perps.market_type.filter_by')}
-          </BottomSheetHeader>
+    <PerpsProPositionsOptionSheet
+      isVisible={isVisible}
+      title={strings('perps.market_type.filter_by')}
+      onClose={onClose}
+      onApply={handleApply}
+      onOpen={resetDraft}
+      testID={testID}
+    >
+      {PRO_POSITION_SIDE_FILTER_OPTIONS.map((option) => {
+        const isSelected = draftSideFilter === option.id;
 
-          {PRO_POSITION_SIDE_FILTER_OPTIONS.map((option) => {
-            const isSelected = draftSideFilter === option.id;
-
-            return (
-              <ListItemSelect
-                key={option.id}
-                title={strings(option.labelKey)}
-                isSelected={isSelected}
-                showSelectedIcon
-                startAccessory={
-                  <ProPositionSideFilterIcon sideFilter={option.id} />
-                }
-                onPress={() => setDraftSideFilter(option.id)}
-                testID={`${testID}-option-${option.id}`}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-              />
-            );
-          })}
-
-          <BottomSheetFooter
-            primaryButtonProps={primaryButtonProps}
-            twClassName="pt-4"
+        return (
+          <ListItemSelect
+            key={option.id}
+            title={strings(option.labelKey)}
+            isSelected={isSelected}
+            showSelectedIcon
+            startAccessory={
+              <ProPositionSideFilterIcon sideFilter={option.id} />
+            }
+            onPress={() => setDraftSideFilter(option.id)}
+            testID={`${testID}-option-${option.id}`}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: isSelected }}
           />
-        </BottomSheet>
-      </Modal>
-    </View>
+        );
+      })}
+    </PerpsProPositionsOptionSheet>
   );
 };
 
