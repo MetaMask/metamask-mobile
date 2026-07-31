@@ -28,12 +28,12 @@ const PerpsProPositionsEmptyState = ({
     emptyStatePerpsDark,
   );
 
-  const description = filteredTicker
-    ? strings('perps.pro_positions_panel.positions_empty_filtered', {
-        ticker: filteredTicker,
-      })
-    : filteredSideDescriptionKey
-      ? strings(filteredSideDescriptionKey)
+  const description = filteredSideDescriptionKey
+    ? strings(filteredSideDescriptionKey)
+    : filteredTicker
+      ? strings('perps.pro_positions_panel.positions_empty_filtered', {
+          ticker: filteredTicker,
+        })
       : strings('perps.pro_positions_panel.positions_empty');
 
   return (

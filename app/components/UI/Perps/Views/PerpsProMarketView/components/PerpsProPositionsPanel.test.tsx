@@ -8,6 +8,7 @@ import {
   usePerpsLivePositions,
 } from '../../../hooks/stream';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProPositionsPanel from './PerpsProPositionsPanel';
 
@@ -22,11 +23,16 @@ jest.mock('../../../hooks/usePerpsProPositionsPanelActions', () => ({
   usePerpsProPositionsPanelActions: jest.fn(),
 }));
 
+jest.mock('../../../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: jest.fn(),
+}));
+
 const mockUsePerpsLiveOrders = jest.mocked(usePerpsLiveOrders);
 const mockUsePerpsLivePositions = jest.mocked(usePerpsLivePositions);
 const mockUsePerpsProPositionsPanelActions = jest.mocked(
   usePerpsProPositionsPanelActions,
 );
+const mockUsePerpsMarkets = jest.mocked(usePerpsMarkets);
 
 const makePosition = (overrides: Partial<Position> = {}): Position => ({
   symbol: 'BTC',
@@ -101,6 +107,13 @@ describe('PerpsProPositionsPanel', () => {
       isOrderCancelable: () => true,
       isPositionMarginEditable: () => true,
       renderActionSheets: () => null,
+    });
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
     });
   });
 
@@ -394,5 +407,39 @@ describe('PerpsProPositionsPanel', () => {
     expect(screen.getByText('Long')).toBeOnTheScreen();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
     expect(screen.queryByText('SOL')).toBeNull();
+  });
+
+  it('shows side-filter empty copy when ticker-only and side filter hide all matches', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-option-long`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-apply`,
+      ),
+    );
+
+    expect(screen.getByText('No long positions.')).toBeOnTheScreen();
+    expect(screen.queryByText('No open SOL positions.')).toBeNull();
   });
 });

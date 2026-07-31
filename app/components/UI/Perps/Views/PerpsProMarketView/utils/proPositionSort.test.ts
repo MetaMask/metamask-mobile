@@ -54,34 +54,26 @@ describe('sortProPositions', () => {
     ]);
   });
 
-  it('sorts funding rate high to low using sinceOpen funding', () => {
+  it('sorts by market funding rate high to low when configured', () => {
     const positions = [
-      makePosition({
-        symbol: 'BTC',
-        cumulativeFunding: { allTime: '0', sinceOpen: '1.5', sinceChange: '0' },
-      }),
-      makePosition({
-        symbol: 'ETH',
-        cumulativeFunding: {
-          allTime: '0',
-          sinceOpen: '-0.5',
-          sinceChange: '0',
-        },
-      }),
-      makePosition({
-        symbol: 'SOL',
-        cumulativeFunding: {
-          allTime: '0',
-          sinceOpen: '0.25',
-          sinceChange: '0',
-        },
-      }),
+      makePosition({ symbol: 'BTC' }),
+      makePosition({ symbol: 'ETH' }),
+      makePosition({ symbol: 'SOL' }),
     ];
+    const fundingRatesBySymbol = {
+      BTC: 0.015,
+      ETH: -0.005,
+      SOL: 0.0025,
+    };
 
-    const sorted = sortProPositions(positions, {
-      field: 'fundingRate',
-      direction: 'desc',
-    });
+    const sorted = sortProPositions(
+      positions,
+      {
+        field: 'fundingRate',
+        direction: 'desc',
+      },
+      fundingRatesBySymbol,
+    );
 
     expect(sorted.map((position) => position.symbol)).toEqual([
       'BTC',

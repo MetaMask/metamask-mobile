@@ -38,6 +38,7 @@ export const PRO_POSITION_SORT_OPTIONS: {
 const getSortValue = (
   position: Position,
   field: ProPositionSortField,
+  fundingRatesBySymbol?: Readonly<Record<string, number | undefined>>,
 ): number => {
   switch (field) {
     case 'positionValue':
@@ -45,7 +46,7 @@ const getSortValue = (
     case 'unrealizedPnl':
       return parseFloat(position.unrealizedPnl) || 0;
     case 'fundingRate':
-      return parseFloat(position.cumulativeFunding?.sinceOpen ?? '0') || 0;
+      return fundingRatesBySymbol?.[position.symbol] ?? 0;
     default:
       return 0;
   }
@@ -53,16 +54,18 @@ const getSortValue = (
 
 /**
  * Returns a new array of positions sorted by the selected field and direction.
+ * Funding-rate sorts use live market funding rates keyed by position symbol.
  */
 export const sortProPositions = (
   positions: Position[],
   config: ProPositionSortConfig,
+  fundingRatesBySymbol?: Readonly<Record<string, number | undefined>>,
 ): Position[] => {
   const multiplier = config.direction === 'asc' ? 1 : -1;
 
   return [...positions].sort((left, right) => {
-    const leftValue = getSortValue(left, config.field);
-    const rightValue = getSortValue(right, config.field);
+    const leftValue = getSortValue(left, config.field, fundingRatesBySymbol);
+    const rightValue = getSortValue(right, config.field, fundingRatesBySymbol);
 
     if (leftValue === rightValue) {
       return left.symbol.localeCompare(right.symbol);

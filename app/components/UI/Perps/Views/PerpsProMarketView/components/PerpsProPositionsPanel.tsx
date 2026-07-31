@@ -16,6 +16,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
@@ -96,6 +97,15 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     isPositionMarginEditable,
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
+  const { markets } = usePerpsMarkets({ skipInitialFetch: true });
+
+  const fundingRatesBySymbol = useMemo(
+    () =>
+      Object.fromEntries(
+        markets.map((market) => [market.symbol, market.fundingRate]),
+      ),
+    [markets],
+  );
 
   const visiblePositions = useMemo(
     () =>
@@ -113,8 +123,9 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
   );
 
   const sortedVisiblePositions = useMemo(
-    () => sortProPositions(sideFilteredPositions, sortConfig),
-    [sortConfig, sideFilteredPositions],
+    () =>
+      sortProPositions(sideFilteredPositions, sortConfig, fundingRatesBySymbol),
+    [fundingRatesBySymbol, sideFilteredPositions, sortConfig],
   );
 
   const aggregateTotals = useMemo(
@@ -155,9 +166,19 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
 
   const hasPositions = sortedVisiblePositions.length > 0;
   const hasAnyPositions = positions.length > 0;
-  const sideFilterEmptyDescriptionKey =
-    !isTickerOnly && sideFilter !== 'all' && hasAnyPositions
-      ? getProPositionSideFilterEmptyDescriptionKey(sideFilter)
+  const isSideFilterEmpty =
+    sideFilter !== 'all' &&
+    sideFilteredPositions.length === 0 &&
+    visiblePositions.length > 0;
+  const sideFilterEmptyDescriptionKey = isSideFilterEmpty
+    ? getProPositionSideFilterEmptyDescriptionKey(sideFilter)
+    : undefined;
+  const filteredTicker =
+    isTickerOnly &&
+    hasAnyPositions &&
+    visiblePositions.length === 0 &&
+    !isSideFilterEmpty
+      ? symbol
       : undefined;
 
   const renderPositionsTab = () => {
@@ -194,7 +215,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     return (
       <Box twClassName="items-center justify-center px-2 pt-6">
         <PerpsProPositionsEmptyState
-          filteredTicker={isTickerOnly && hasAnyPositions ? symbol : undefined}
+          filteredTicker={filteredTicker}
           filteredSideDescriptionKey={sideFilterEmptyDescriptionKey}
         />
       </Box>
