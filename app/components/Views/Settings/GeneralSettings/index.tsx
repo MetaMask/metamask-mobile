@@ -43,6 +43,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { createStyles } from './GeneralSettings.styles';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { AvatarTypeSelector } from './AvatarTypeSelector';
+import { GeneralSettingsSelectorsIDs } from './GeneralSettings.testIds';
 
 export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
   'general-settings-currency-selector';
@@ -225,6 +226,7 @@ const Settings = ({
       <HeaderStandard
         title={strings('app_settings.general_title')}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: GeneralSettingsSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       <ScrollView style={styles.content}>

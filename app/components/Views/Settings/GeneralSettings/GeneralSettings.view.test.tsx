@@ -1,14 +1,66 @@
 import '../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { renderGeneralSettings } from '../../../../../tests/component-view/renderers/settings';
+import {
+  renderGeneralSettings,
+  renderGeneralSettingsWithBackRoute,
+  SETTINGS_LAUNCHER_LABEL,
+} from '../../../../../tests/component-view/renderers/settings';
 import {
   describeForPlatforms,
   itEach,
 } from '../../../../../tests/component-view/platform';
 import { strings } from '../../../../../locales/i18n';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import Engine from '../../../../core/Engine';
+import { GENERAL_SETTINGS_CURRENCY_SELECTOR } from '.';
+import { GeneralSettingsSelectorsIDs } from './GeneralSettings.testIds';
 
 describeForPlatforms('General Settings component view', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('returns to the previous screen from the header', async () => {
+    const { findByTestId, getByText, queryByTestId } =
+      renderGeneralSettingsWithBackRoute();
+
+    fireEvent.press(getByText(SETTINGS_LAUNCHER_LABEL));
+    const backButton = await findByTestId(
+      GeneralSettingsSelectorsIDs.BACK_BUTTON,
+    );
+
+    fireEvent.press(backButton);
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(GeneralSettingsSelectorsIDs.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+    expect(getByText(SETTINGS_LAUNCHER_LABEL)).toBeOnTheScreen();
+  });
+
+  it('updates both currency controllers', () => {
+    const setCurrentCurrencySpy = jest.spyOn(
+      Engine.context.CurrencyRateController,
+      'setCurrentCurrency',
+    );
+    const setSelectedCurrencySpy = jest.spyOn(
+      Engine.context.AssetsController,
+      'setSelectedCurrency',
+    );
+    const { getByTestId, getByText } = renderGeneralSettings();
+
+    fireEvent.press(getByTestId(GENERAL_SETTINGS_CURRENCY_SELECTOR));
+    fireEvent.press(getByText('EUR - Euro'));
+
+    expect(setCurrentCurrencySpy).toHaveBeenCalledWith('eur');
+    expect(setSelectedCurrencySpy).toHaveBeenCalledWith('eur');
+  });
+
   itEach([
     { label: 'Polycons', type: AvatarAccountType.Maskicon },
     {

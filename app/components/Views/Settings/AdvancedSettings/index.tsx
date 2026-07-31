@@ -162,6 +162,7 @@ const AdvancedSettings = ({
       <HeaderStandard
         title={strings('app_settings.advanced_title')}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: AdvancedViewSelectorsIDs.BACK_BUTTON }}
         includesTopInset
       />
       <KeyboardAwareScrollView
