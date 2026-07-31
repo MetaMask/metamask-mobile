@@ -11,15 +11,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('./QuickBuyPercentageSlider', () => {
-  const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    QuickBuyPercentageSlider: () =>
-      ReactMock.createElement(Text, { testID: 'quick-buy-slider' }),
-  };
-});
-
 jest.mock('./QuickBuyQuickAmounts', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -65,10 +56,6 @@ jest.mock('../QuickBuyConfirmButton', () => {
 });
 
 const baseContext = {
-  sliderPercent: 0,
-  isSliderDisabled: false,
-  handleSliderChange: jest.fn(),
-  handleSliderDragEnd: jest.fn(),
   confirmButtonState: 'idle' as const,
   getButtonLabel: () => 'Buy',
   hasValidAmount: false,
@@ -86,7 +73,6 @@ const baseContext = {
   isPriceImpactError: false,
   features: { payWithSheet: true, quoteDetails: true },
   setActiveScreen: jest.fn(),
-  useKeyboard: false,
   isKeypadOpen: false,
 };
 
@@ -156,24 +142,9 @@ describe('QuickBuyActionFooter', () => {
     expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
   });
 
-  it('renders the slider on the control variant', () => {
-    render(<QuickBuyActionFooter />);
-    expect(screen.getByTestId('quick-buy-slider')).toBeOnTheScreen();
-  });
-
-  it('hides the slider on the keyboard treatment', () => {
+  it('keeps the footer interactive while the keypad is open', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      useKeyboard: true,
-    });
-    render(<QuickBuyActionFooter />);
-    expect(screen.queryByTestId('quick-buy-slider')).toBeNull();
-  });
-
-  it('keeps the footer interactive while the keypad is open on the treatment', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      useKeyboard: true,
       isKeypadOpen: true,
       features: {
         payWithSheet: true,
