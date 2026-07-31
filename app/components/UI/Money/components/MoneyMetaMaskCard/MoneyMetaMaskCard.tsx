@@ -17,8 +17,6 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -47,10 +45,9 @@ interface MoneyMetaMaskCardProps {
    */
   mode?: 'upsell' | 'link' | 'manage' | 'verifying';
   onGetNowPress: () => void;
-  onHeaderPress?: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
-  /** When true, disables the link-mode CTA and header navigation. */
+  /** When true, disables the link-mode CTA. */
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
@@ -113,15 +110,19 @@ const CardRow = ({
       twClassName="gap-4"
     >
       <Image source={imageSource} style={styles.cardImage} />
-      <Box twClassName="gap-2">
+      <Box twClassName="gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
         </Text>
-        <Tag severity={TagSeverity.Success}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+        >
           {strings('money.metamask_card.cashback', {
             percentage: cashbackPercentage,
           })}
-        </Tag>
+        </Text>
       </Box>
     </Box>
     <Button
@@ -139,7 +140,7 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="self-start gap-1 rounded bg-muted px-1.5"
+    twClassName="self-start gap-1"
     testID={testID}
   >
     <Icon
@@ -239,84 +240,6 @@ const LinkContent = ({
   );
 };
 
-const ManageRow = ({
-  imageSource,
-  title,
-  subtitle,
-  isBalanceStale = false,
-  cashbackPercentage,
-  ctaLabel,
-  onPress,
-  containerTestID,
-  ctaTestID,
-  subtitleTestID,
-  privacyMode = false,
-}: {
-  imageSource: ImageSourcePropType;
-  title: string;
-  subtitle?: string;
-  isBalanceStale?: boolean;
-  cashbackPercentage: string;
-  ctaLabel: string;
-  onPress: () => void;
-  containerTestID: string;
-  ctaTestID: string;
-  subtitleTestID?: string;
-  privacyMode?: boolean;
-}) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    testID={containerTestID}
-    twClassName="pt-3 gap-3"
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-3 flex-1"
-    >
-      <Image source={imageSource} style={styles.manageCardImage} />
-      <Box twClassName="gap-1 flex-1">
-        <Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {title}
-          </Text>
-          {subtitle ? (
-            <SensitiveText
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={
-                isBalanceStale
-                  ? TextColor.TextAlternative
-                  : TextColor.TextDefault
-              }
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Medium}
-              testID={subtitleTestID}
-            >
-              {subtitle}
-            </SensitiveText>
-          ) : null}
-        </Box>
-        <Tag severity={TagSeverity.Success}>
-          {strings('money.metamask_card.cashback', {
-            percentage: cashbackPercentage,
-          })}
-        </Tag>
-      </Box>
-    </Box>
-    <Button
-      variant={ButtonVariant.Secondary}
-      size={ButtonSize.Md}
-      onPress={onPress}
-      testID={ctaTestID}
-    >
-      {ctaLabel}
-    </Button>
-  </Box>
-);
-
 const ManageContent = ({
   cardBalance,
   isBalanceStale,
@@ -330,27 +253,57 @@ const ManageContent = ({
   showMetalCard: boolean;
   privacyMode: boolean;
 }) => (
-  <Box twClassName="gap-2" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
-    <ManageRow
-      imageSource={showMetalCard ? mmCardMetal : mmCardRegular}
-      title={strings('money.metamask_card.avail_balance')}
-      subtitle={cardBalance}
-      isBalanceStale={isBalanceStale}
-      cashbackPercentage={showMetalCard ? '3' : '1'}
-      ctaLabel={strings('money.metamask_card.manage_card')}
+  <Box twClassName="gap-7" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="pt-3 gap-3"
+      testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
+    >
+      <Image
+        source={showMetalCard ? mmCardMetal : mmCardRegular}
+        style={styles.manageCardImage}
+      />
+      <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
+        <SensitiveText
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={
+            isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
+          }
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+          testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
+        >
+          {cardBalance}
+        </SensitiveText>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+        >
+          {strings('money.metamask_card.cashback', {
+            percentage: showMetalCard ? '3' : '1',
+          })}
+        </Text>
+      </Box>
+    </Box>
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Lg}
+      isFullWidth
       onPress={onManagePress}
-      containerTestID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
-      ctaTestID={MoneyMetaMaskCardTestIds.MANAGE_BUTTON}
-      subtitleTestID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
-      privacyMode={privacyMode}
-    />
+      testID={MoneyMetaMaskCardTestIds.MANAGE_BUTTON}
+    >
+      {strings('money.metamask_card.manage_card')}
+    </Button>
   </Box>
 );
 
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
   onGetNowPress,
-  onHeaderPress,
   onLinkPress,
   onManagePress,
   showMetalCard = false,
@@ -451,13 +404,6 @@ const MoneyMetaMaskCard = ({
     onManagePress?.();
   }, [trackCardButtonClick, onManagePress]);
 
-  const handleHeaderPress = useCallback(() => {
-    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_HEADER);
-    onHeaderPress?.();
-  }, [trackCardButtonClick, onHeaderPress]);
-
-  const resolvedHeaderPress = onHeaderPress ? handleHeaderPress : undefined;
-
   let content: React.ReactNode = null;
   if (mode === 'link') {
     content = (
@@ -526,12 +472,7 @@ const MoneyMetaMaskCard = ({
       twClassName="px-4 py-3 gap-3"
       testID={MoneyMetaMaskCardTestIds.CONTAINER}
     >
-      <MoneySectionHeader
-        title={strings(headerTitleKey)}
-        onPress={
-          mode === 'link' && isLinkDisabled ? undefined : resolvedHeaderPress
-        }
-      />
+      <MoneySectionHeader title={strings(headerTitleKey)} />
       {content}
     </Box>
   );

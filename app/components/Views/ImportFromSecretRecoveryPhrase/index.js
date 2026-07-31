@@ -108,7 +108,10 @@ import {
   selectQrSyncImportMnemonic,
   selectQrSyncPrimaryMnemonic,
 } from '../../../selectors/qrSyncController';
-import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -212,6 +215,18 @@ const ImportFromSecretRecoveryPhrase = ({
   const [currentInputWord, setCurrentInputWord] = useState('');
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
+
+  // Renders synchronously; `loading` is the submit flag, not an initial fetch.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.IMPORT_SRP,
+    contentReady: true,
+    isEmpty: false,
+  });
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.IMPORT_SRP,
+    destinationReady: true,
+  });
 
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
@@ -568,11 +583,19 @@ const ImportFromSecretRecoveryPhrase = ({
     track(MetaMetricsEvents.WALLET_IMPORTED, {
       biometrics_enabled: Boolean(biometryType),
     });
-    track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-      wallet_setup_type: 'import',
-      new_wallet: false,
-      account_type: AccountType.Imported,
-      ...walletSetupCompletedAttributionProps,
+    // Deferred (not awaited) so navigation isn't blocked on the balance
+    // fetch; fetchImportedWalletFundingAmountRange never rejects and
+    // resolves undefined (prop omitted) on fetch failure or timeout.
+    fetchImportedWalletFundingAmountRange().then((fundingAmountRange) => {
+      track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+        wallet_setup_type: 'import',
+        new_wallet: false,
+        account_type: AccountType.Imported,
+        ...(fundingAmountRange
+          ? { funding_amount_range: fundingAmountRange }
+          : {}),
+        ...walletSetupCompletedAttributionProps,
+      });
     });
 
     fetchAccountsWithActivity();

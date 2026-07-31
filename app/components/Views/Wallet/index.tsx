@@ -77,12 +77,12 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import {
   ToastContext,
   ToastVariants,
+  ButtonIconVariant,
 } from '../../../component-library/components/Toast';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -168,6 +168,7 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
+import { useGetPerpsHomeNavigationTarget } from '../../UI/Perps/utils/perpsModeSwitch';
 import {
   selectPredictEnabledFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
@@ -686,12 +687,12 @@ const Wallet = ({
       labelOptions: [
         {
           label: strings(`privacy_policy.toast_message`),
-          isBold: false,
+          isBold: true,
         },
       ],
       closeButtonOptions: {
-        label: strings(`privacy_policy.toast_action_button`),
-        variant: ButtonVariants.Primary,
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           toast?.closeToast();
@@ -774,12 +775,14 @@ const Wallet = ({
 
   const isPerpsEnabled = isPerpsFlagEnabled;
 
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
   const handlePerpsTabDeepLink = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'deeplink' },
+    const { screen, params } = getPerpsHomeNavigationTarget({
+      source: 'deeplink',
     });
-  }, [navigation]);
+    navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+  }, [navigation, getPerpsHomeNavigationTarget]);
 
   const handleNetworkSelectorDeepLink = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

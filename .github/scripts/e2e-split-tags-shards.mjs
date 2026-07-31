@@ -23,7 +23,7 @@ const env = {
   PR_NUMBER: process.env.PR_NUMBER || '',
   REPOSITORY: process.env.REPOSITORY || 'MetaMask/metamask-mobile',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
-  CHANGED_FILES: process.env.CHANGED_FILES || '',
+  CHANGED_SPEC_FILES: process.env.CHANGED_SPEC_FILES || '',
   RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
   // Path to pre-fetched timings written by the prepare-e2e-timings setup job.
@@ -31,7 +31,7 @@ const env = {
   // qa-stats, ensuring the bin-pack result is identical across all attempts.
   E2E_TIMINGS_PATH: process.env.E2E_TIMINGS_PATH || '',
 };
-// Example of format of CHANGED_FILES: app/components/Foo.tsx tests/e2e/specs/Bar.js
+// Example of format of CHANGED_SPEC_FILES: tests/smoke/wallet/foo.spec.ts tests/regression/swaps/bar.spec.js
 
 const QA_STATS_WORKFLOW_FILE = 'qa-stats.yml';
 const QA_STATS_ARTIFACT_NAME = 'qa-stats';
@@ -531,17 +531,17 @@ function normalizePathForCompare(p) {
 }
 
 /**
- * Parse CHANGED_FILES env var to extract changed spec files
+ * Parse CHANGED_SPEC_FILES env var to extract changed spec files
  * @returns Set of normalized spec file paths
  */
 function getChangedSpecFiles() {
-  const raw = (env.CHANGED_FILES || '').trim();
+  const raw = (env.CHANGED_SPEC_FILES || '').trim();
   if (!raw) return new Set();
 
-  // Handle "changed_files=path1 path2" format
+  // Handle "changed_spec_files=path1 path2" format
   let cleaned = raw;
   const eqIdx = raw.indexOf('=');
-  if (eqIdx > -1 && /changed_files/i.test(raw.slice(0, eqIdx))) {
+  if (eqIdx > -1 && /changed_spec_files/i.test(raw.slice(0, eqIdx))) {
     cleaned = raw.slice(eqIdx + 1).trim();
   }
 

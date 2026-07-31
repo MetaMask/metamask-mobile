@@ -9,6 +9,7 @@ import {
   IconName,
   IconSize,
   ListItemSelect,
+  ListItemVariant,
   Text,
   TextColor,
   TextVariant,
@@ -99,6 +100,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
           <ListItemSelect
             key={option.id}
             title={strings(option.labelKey)}
+            variant={ListItemVariant.OneLine}
             isSelected={isSelected}
             showSelectedIcon={false}
             onPress={() => handleOptionPress(option.id)}

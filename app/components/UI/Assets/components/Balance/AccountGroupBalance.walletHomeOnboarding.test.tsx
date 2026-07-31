@@ -22,9 +22,17 @@ jest.mock('../../../WalletHomeOnboardingSteps', () => {
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
   selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
+  selectUnifiedBalanceBySelectedAccountGroup: jest.fn(() => () => null),
   selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsUnifyState',
+  () => ({
+    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  }),
+);
 
 jest.mock('../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../selectors/networkController'),
