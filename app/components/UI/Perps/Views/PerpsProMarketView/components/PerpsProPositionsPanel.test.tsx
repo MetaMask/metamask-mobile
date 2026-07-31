@@ -264,4 +264,135 @@ describe('PerpsProPositionsPanel', () => {
 
     expect(handleCancelOrder).toHaveBeenCalled();
   });
+
+  it('disables all order cancel buttons while any cancel is in flight', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleCloseAllPress,
+      cancelingOrderId: 'btc-1',
+      isOrderCancelable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets: () => null,
+    });
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    const cancelButtons = screen.getAllByTestId(
+      PerpsProMarketViewSelectorsIDs.ORDER_CANCEL,
+    );
+
+    expect(cancelButtons).toHaveLength(2);
+    cancelButtons.forEach((button) => {
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+  });
+
+  it('opens the sort sheet from the positions settings button', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('sorts positions by position value high to low by default', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', positionValue: '1000' }),
+        makePosition({ symbol: 'SOL', positionValue: '5000' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    const positionTexts = screen
+      .getAllByTestId(/perps-pro-market-position-row-/)
+      .map((node) => node.props.testID);
+
+    expect(positionTexts[0]).toContain('SOL');
+    expect(positionTexts[1]).toContain('BTC');
+  });
+
+  it('opens the side filter sheet from the all sides button', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(screen.getByText('All sides')).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('filters positions to long only when side filter is applied', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-option-long`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-apply`,
+      ),
+    );
+
+    expect(screen.getByText('Long')).toBeOnTheScreen();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
+  });
 });
