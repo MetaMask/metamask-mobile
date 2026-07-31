@@ -72,7 +72,7 @@ on:
       he_concurrency:
         required: false
         type: string
-        default: '1'
+        default: '2'
         description: 'HyperExecute autosplit concurrency (default 2; set 1 if device allocation times out)'
     secrets:
       LT_ACCESS_KEY:
