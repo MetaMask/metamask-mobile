@@ -193,13 +193,9 @@ export async function replayPendingAppInstall(): Promise<void> {
       [UserProfileProperty.INSTALL_DATE_MOBILE]: pending.installDate,
     });
 
-    // Extension parity: every extension event carries a `category` property,
-    // and its App Installed e2e spec pins `category: 'App'` on the
-    // attribution-bearing emission. Mobile mirrors that so one cross-platform
-    // query (event = 'App Installed' AND category = 'App') covers both.
     const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.APP_INSTALLED,
-    ).addProperties({ category: 'App' });
+    );
 
     if (pending.branchAttribution) {
       eventBuilder.addProperties(
@@ -208,17 +204,6 @@ export async function replayPendingAppInstall(): Promise<void> {
     }
 
     analytics.trackEvent(eventBuilder.build());
-
-    // Extension parity: its onboarding consent UI emits a second bare
-    // App Installed with `category: 'Onboarding'` at opt-in, so opted-in
-    // installs produce two rows distinguished only by category. Emitted here
-    // (not from the consent screens) so the fail-closed pending-install
-    // guards also apply to it and wallet resets cannot re-fire it.
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_INSTALLED)
-        .addProperties({ category: 'Onboarding' })
-        .build(),
-    );
 
     // Only mark terminal once the event has actually been handed over while
     // consent is live, so a throw above leaves the install pending for retry.

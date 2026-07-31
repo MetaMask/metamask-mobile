@@ -300,19 +300,10 @@ describe('appInstallEvent', () => {
       );
     });
 
-    // Extension parity: an opted-in install produces two App Installed rows,
-    // one with category App (attribution-bearing) and one with category
-    // Onboarding (bare), matching the background + consent-UI emissions.
-    it('emits two App Installed events with categories App and Onboarding', async () => {
+    it('emits exactly one App Installed event', async () => {
       await replayPendingAppInstall();
 
-      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-        category: 'App',
-      });
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-        category: 'Onboarding',
-      });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(1);
     });
 
     it('marks the event fired and clears the pending install', async () => {
@@ -455,9 +446,8 @@ describe('appInstallEvent', () => {
       await replayPendingAppInstall();
       await replayPendingAppInstall();
 
-      // First replay throws on the first emission; the retry delivers both
-      // the category App and category Onboarding events.
-      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(3);
+      // First replay throws on the emission; the retry delivers it.
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
       expect(mockStore.dispatch).toHaveBeenCalledWith(SET_FIRED);
     });
   });
