@@ -1568,6 +1568,8 @@ describe('useTransactionPayMetrics', () => {
           amount: Number(TOKEN_AMOUNT_MOCK),
           amount_input_type: null,
           error_message: 'unknown',
+          error_reason: null,
+          error_detail: null,
         },
       ]);
     });
@@ -1761,7 +1763,7 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('uses quoteError.message as error_message when available', async () => {
+    it('records quoteError message, reason and joined detail when available', async () => {
       useTransactionPayQuoteErrorMock.mockReturnValue({
         message: 'Insufficient balance',
         reason: 'insufficient-source-balance',
@@ -1778,10 +1780,46 @@ describe('useTransactionPayMetrics', () => {
       await act(async () => noop());
 
       const errors = lastProps()?.mm_pay_quote_errors as
-        | { error_message: string }[]
+        | {
+            error_message: string;
+            error_reason: string | null;
+            error_detail: string | null;
+          }[]
         | undefined;
       expect(errors).toHaveLength(1);
       expect(errors?.[0].error_message).toBe('Insufficient balance');
+      expect(errors?.[0].error_reason).toBe('insufficient-source-balance');
+      expect(errors?.[0].error_detail).toBe(
+        'Required: 1.5 USDC | Current: 1 USDC',
+      );
+    });
+
+    it('does not append an entry when the amount is zero', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          amountHuman: '0',
+        } as TransactionPayRequiredToken,
+      ]);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
     });
   });
 });

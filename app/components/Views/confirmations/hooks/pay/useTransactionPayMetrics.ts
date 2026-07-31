@@ -127,7 +127,13 @@ export function useTransactionPayMetrics() {
 
   // Detect a failed quote-loading cycle: isLoading transitioned true -> false
   // AND ended with no quotes. One entry appended per failed cycle, oldest-first.
-  if (wasQuoteLoadingRef.current && !isQuoteLoading && !hasQuotes) {
+  // Ignore cycles where the amount is zero (nothing to quote for).
+  if (
+    wasQuoteLoadingRef.current &&
+    !isQuoteLoading &&
+    !hasQuotes &&
+    sendingValue > 0
+  ) {
     const inputType = storedMetrics?.properties?.mm_pay_amount_input_type as
       | string
       | undefined;
@@ -142,6 +148,8 @@ export function useTransactionPayMetrics() {
         amount: sendingValue,
         amount_input_type: inputType ?? null,
         error_message: quoteError?.message ?? 'unknown',
+        error_reason: quoteError?.reason ?? null,
+        error_detail: quoteError?.detail?.join(' | ') ?? null,
       },
     ];
   }
