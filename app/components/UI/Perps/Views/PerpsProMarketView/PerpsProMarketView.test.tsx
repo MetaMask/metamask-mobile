@@ -13,8 +13,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
-  PerpsProOrderFormSelectorsIDs,
-  PerpsOrderTypeBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 
@@ -46,6 +44,11 @@ interface MockCandlePeriodBottomSheetProps {
 interface MockBalanceBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
+}
+
+interface MockOrderFormPanelProps {
+  isOrderBookCollapsed?: boolean;
+  onExpandOrderBook?: () => void;
 }
 
 let mockRouteParams: MockRouteParams | undefined = {
@@ -133,6 +136,40 @@ jest.mock('../../components/PerpsBalanceBottomSheet', () => ({
   default: (props: MockBalanceBottomSheetProps) =>
     mockBalanceBottomSheet(props),
 }));
+// The order-form panel now mounts its own provider + business hooks + sheets
+// (order type, leverage, slippage). Its wiring is covered by
+// PerpsProOrderFormPanel.test.tsx and usePerpsProOrderForm.test.ts; here we only
+// need a lightweight placeholder so the layout scaffold assertions still pass.
+jest.mock('./components/PerpsProOrderFormPanel', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Box, ButtonBase } = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+  const { PerpsProMarketViewSelectorsIDs: ids } = jest.requireActual(
+    '../../Perps.testIds',
+  );
+  return {
+    __esModule: true,
+    default: ({
+      isOrderBookCollapsed,
+      onExpandOrderBook,
+    }: MockOrderFormPanelProps) =>
+      ReactActual.createElement(
+        Box,
+        { testID: ids.ORDER_FORM_PANEL },
+        isOrderBookCollapsed
+          ? ReactActual.createElement(
+              ButtonBase,
+              {
+                testID: ids.ORDER_BOOK_EXPAND_BUTTON,
+                onPress: onExpandOrderBook,
+              },
+              ReactActual.createElement(Box, null),
+            )
+          : null,
+      ),
+  };
+});
 
 jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
   __esModule: true,
@@ -180,6 +217,22 @@ jest.mock('../../hooks/stream', () => ({
     isInitialLoading: false,
   })),
   usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/usePerpsProPositionsPanelActions', () => ({
+  usePerpsProPositionsPanelActions: jest.fn(() => ({
+    handleClosePosition: jest.fn(),
+    handleReversePosition: jest.fn(),
+    handleSharePosition: jest.fn(),
+    handleEditPositionTpSl: jest.fn(),
+    handleEditPositionMargin: jest.fn(),
+    handleCancelOrder: jest.fn(),
+    handleCloseAllPress: jest.fn(),
+    cancelingOrderId: null,
+    isOrderCancelable: () => true,
+    isPositionMarginEditable: () => true,
+    renderActionSheets: () => null,
+  })),
 }));
 
 jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
@@ -331,9 +384,6 @@ describe('PerpsProMarketView', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
     ).toBeOnTheScreen();
     expect(
@@ -352,26 +402,6 @@ describe('PerpsProMarketView', () => {
       'keyboardShouldPersistTaps',
       'handled',
     );
-  });
-
-  it('keeps the fixture Place Order action disabled until wiring lands', () => {
-    const { getByTestId } = renderView();
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON),
-    ).toBeDisabled();
-  });
-
-  it('opens the order type sheet from the form', () => {
-    const { getByTestId } = renderView();
-
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    expect(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
   });
 
   it('opens the More candle periods sheet from the chart', () => {
@@ -418,83 +448,6 @@ describe('PerpsProMarketView', () => {
     expect(
       queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET),
     ).not.toBeOnTheScreen();
-  });
-
-  it('updates the form to Market and closes the order type sheet', () => {
-    const { getByTestId, queryByTestId } = renderView();
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
-    );
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    ).toHaveTextContent('Market');
-    expect(
-      queryByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('restores the limit price input when Limit is selected', () => {
-    const { getByTestId, queryByTestId } = renderView();
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
-    );
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
-    );
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('closes the order type sheet without changing the current selection', () => {
-    const { getByTestId, queryByTestId } = renderView();
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    ).toHaveTextContent('Limit');
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders the Pro summary and available balance copy from Figma', () => {
-    const { getByTestId } = renderView();
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.SUMMARY_LIQUIDATION),
-    ).toHaveTextContent(/Est Liquidation/);
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.AVAILABLE_BALANCE),
-    ).toHaveTextContent('-- available');
   });
 
   it('keeps the header fixed while the market summary scrolls', () => {

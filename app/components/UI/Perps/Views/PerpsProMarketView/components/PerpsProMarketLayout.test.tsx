@@ -32,27 +32,34 @@ describe('PerpsProMarketLayout', () => {
     expect(rightColumn).toHaveStyle({ width: 132 });
   });
 
-  it('uses the Figma trading-area dimensions', () => {
+  it('uses content-driven column heights without a fixed trading-area min height', () => {
     const { getByTestId } = renderLayout();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT)).toHaveStyle({
-      minHeight: 682,
+      paddingBottom: 16,
+      paddingHorizontal: 8,
     });
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.LEFT_COLUMN)).toHaveStyle(
+      {
+        alignSelf: 'flex-start',
+      },
+    );
     expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
-    ).toHaveStyle({ width: 24 });
+      getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).toHaveStyle({
+      width: 132,
+      alignSelf: 'flex-start',
+      paddingLeft: 16,
+    });
   });
 
-  it('hides the order book column and divider when collapsed', () => {
+  it('hides the order book column when collapsed', () => {
     const { getByTestId, queryByTestId } = renderLayout({
       isOrderBookCollapsed: true,
     });
 
     expect(
       queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
     ).not.toBeOnTheScreen();
     expect(getByTestId('mock-order-form')).toBeOnTheScreen();
   });
