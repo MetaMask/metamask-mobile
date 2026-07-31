@@ -50,6 +50,7 @@ async function main(): Promise<void> {
   }
 
   // Use cherry-pick version from PR title if present, otherwise use next release version
+  // CodeQL: user-controlled input is intentional; worst case is mislabeling, caught during release validation
   const pullRequestTitle = context.payload.pull_request?.title || '';
   const cherryPickVersion = extractCherryPickVersion(pullRequestTitle);
 
