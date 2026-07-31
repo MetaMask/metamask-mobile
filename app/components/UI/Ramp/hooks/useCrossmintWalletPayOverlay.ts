@@ -21,6 +21,7 @@ import useRampAccountAddress from './useRampAccountAddress';
 
 const CROSSMINT_PROVIDER_ID_FRAGMENT = 'crossmint';
 const APPLE_PAY_PAYMENT_METHOD_SUFFIX = 'apple-pay';
+const GOOGLE_PAY_PAYMENT_METHOD_SUFFIX = 'google-pay';
 const PREPARE_DEBOUNCE_MS = 400;
 
 interface PreparedOverlay {
@@ -29,15 +30,17 @@ interface PreparedOverlay {
   checkoutUrl: string;
 }
 
-export interface UseCrossmintApplePayOverlayResult {
+export interface UseCrossmintWalletPayOverlayResult {
   /**
-   * True when the current selection qualifies for the embedded Apple Pay
-   * overlay (flag on, iOS, Crossmint quote paid with Apple Pay).
+   * True when the current selection qualifies for the embedded wallet-pay
+   * overlay (flag on, Crossmint quote, platform-native wallet-pay method:
+   * Apple Pay on iOS, Google Pay on Android).
    */
   isEligible: boolean;
   /**
-   * The embedded checkout URL rendering the hosted Apple Pay button, or
-   * null while preparing / when not eligible / when preparation failed.
+   * The embedded checkout URL rendering the hosted Apple Pay / Google Pay
+   * button, or null while preparing / when not eligible / when preparation
+   * failed.
    */
   checkoutUrl: string | null;
   /** Best-effort handler for the overlay WebView postMessage events. */
@@ -45,27 +48,47 @@ export interface UseCrossmintApplePayOverlayResult {
 }
 
 /**
- * Prepares Crossmint's embedded Apple Pay checkout for a UB2 quote
+ * Returns whether the payment method is the platform-native wallet-pay
+ * method: Apple Pay on iOS, Google Pay on Android. The wallet-pay sheets
+ * only work on their own platform, so cross-platform combinations (e.g. a
+ * Google Pay quote on iOS) fall through to the standard checkout flow.
+ */
+function isPlatformWalletPayMethod(paymentMethodId?: string): boolean {
+  if (!paymentMethodId) {
+    return false;
+  }
+  if (Device.isIos()) {
+    return paymentMethodId.endsWith(APPLE_PAY_PAYMENT_METHOD_SUFFIX);
+  }
+  if (Device.isAndroid()) {
+    return paymentMethodId.endsWith(GOOGLE_PAY_PAYMENT_METHOD_SUFFIX);
+  }
+  return false;
+}
+
+/**
+ * Prepares Crossmint's embedded wallet-pay checkout for a UB2 quote
  * (LaunchDarkly flag `crossmintApplePayCheckout`).
  *
- * When the quote is a Crossmint quote paid with Apple Pay on iOS, this hook
- * creates the provider order through the on-ramp API buy-widget endpoint
+ * When the quote is a Crossmint quote paid with the platform's wallet-pay
+ * method (Apple Pay on iOS, Google Pay on Android), this hook creates the
+ * provider order through the on-ramp API buy-widget endpoint
  * (`RampsController.getBuyWidgetData`) — no Crossmint API is called from
  * the client — and returns the embedded checkout URL that renders the
- * hosted Apple Pay button inline on the amount screen. The order id
- * returned by the API is registered as a precreated order, so the existing
- * order processor polls it to completion even if the WebView never posts
- * events (`enableApplePay` disables the postMessage polyfill on iOS).
+ * hosted payment button inline on the amount screen. The order id returned
+ * by the API is registered as a precreated order, so the existing order
+ * processor polls it to completion even if the WebView never posts events
+ * (`enableApplePay` disables the postMessage polyfill on iOS).
  *
  * Preparation is debounced and cached per provider/asset/payment/amount so
  * quote refreshes do not create a new Crossmint order on every poll. On any
  * preparation failure the overlay is simply not shown and the standard
  * Continue button remains the checkout path.
  */
-export default function useCrossmintApplePayOverlay(
+export default function useCrossmintWalletPayOverlay(
   quote: Quote | null,
   amount: number,
-): UseCrossmintApplePayOverlayResult {
+): UseCrossmintWalletPayOverlayResult {
   const {
     selectedToken,
     selectedPaymentMethod,
@@ -83,9 +106,8 @@ export default function useCrossmintApplePayOverlay(
 
   const isEligible = Boolean(
     isFlagEnabled &&
-      Device.isIos() &&
       quote?.provider?.includes(CROSSMINT_PROVIDER_ID_FRAGMENT) &&
-      selectedPaymentMethod?.id?.endsWith(APPLE_PAY_PAYMENT_METHOD_SUFFIX) &&
+      isPlatformWalletPayMethod(selectedPaymentMethod?.id) &&
       walletAddress &&
       amount > 0,
   );
@@ -151,7 +173,7 @@ export default function useCrossmintApplePayOverlay(
         }
         Logger.error(error as Error, {
           message:
-            'useCrossmintApplePayOverlay error while preparing Apple Pay checkout',
+            'useCrossmintWalletPayOverlay error while preparing wallet-pay checkout',
         });
       }
     }, PREPARE_DEBOUNCE_MS);
@@ -180,7 +202,7 @@ export default function useCrossmintApplePayOverlay(
     const failure = getCrossmintFailureMessage(message);
     if (failure) {
       Logger.error(new Error(failure), {
-        message: 'useCrossmintApplePayOverlay Crossmint checkout failure',
+        message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
       });
     }
   }, []);

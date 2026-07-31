@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import ApplePayCheckoutOverlay from './ApplePayCheckoutOverlay';
-import { APPLE_PAY_CHECKOUT_OVERLAY_TEST_IDS } from './ApplePayCheckoutOverlay.testIds';
+import WalletPayCheckoutOverlay from './WalletPayCheckoutOverlay';
+import { WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS } from './WalletPayCheckoutOverlay.testIds';
 
 jest.mock('@metamask/react-native-webview', () => {
   const { View } = jest.requireActual('react-native');
@@ -27,43 +27,43 @@ jest.mock('../../../../../util/device', () => ({
 const CHECKOUT_URL =
   'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=abc';
 
-describe('ApplePayCheckoutOverlay', () => {
+describe('WalletPayCheckoutOverlay', () => {
   it('renders the checkout WebView with the provided URL', () => {
     const { getByTestId } = render(
-      <ApplePayCheckoutOverlay
+      <WalletPayCheckoutOverlay
         checkoutUrl={CHECKOUT_URL}
         interactive
         onMessage={jest.fn()}
       />,
     );
 
-    const webView = getByTestId(APPLE_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW);
+    const webView = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW);
     expect(webView.props.accessibilityLabel).toBe(CHECKOUT_URL);
   });
 
   it('receives taps when interactive', () => {
     const { getByTestId } = render(
-      <ApplePayCheckoutOverlay
+      <WalletPayCheckoutOverlay
         checkoutUrl={CHECKOUT_URL}
         interactive
         onMessage={jest.fn()}
       />,
     );
 
-    const host = getByTestId(APPLE_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY);
+    const host = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY);
     expect(host.props.pointerEvents).toBe('auto');
   });
 
   it('ignores taps when not interactive', () => {
     const { getByTestId } = render(
-      <ApplePayCheckoutOverlay
+      <WalletPayCheckoutOverlay
         checkoutUrl={CHECKOUT_URL}
         interactive={false}
         onMessage={jest.fn()}
       />,
     );
 
-    const host = getByTestId(APPLE_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY);
+    const host = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY);
     expect(host.props.pointerEvents).toBe('none');
   });
 });

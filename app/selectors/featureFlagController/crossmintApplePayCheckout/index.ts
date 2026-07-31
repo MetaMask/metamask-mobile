@@ -14,8 +14,9 @@ const DEFAULT_CROSSMINT_APPLE_PAY_CHECKOUT = false;
  * enabled (LaunchDarkly flag `crossmintApplePayCheckout`).
  *
  * When enabled and the selected UB2 quote is a Crossmint quote paid with
- * Apple Pay on iOS, the amount screen replaces the Continue button with
- * Crossmint's hosted Apple Pay button (clipped WebView) that opens the
+ * the platform's wallet-pay method (Apple Pay on iOS, Google Pay on
+ * Android), the amount screen replaces the Continue button with
+ * Crossmint's hosted payment button (clipped WebView) that opens the
  * native OS payment sheet.
  * Handles the version-gated flag shape
  * `{ enabled: boolean, minimumVersion: string }` and boolean overrides.

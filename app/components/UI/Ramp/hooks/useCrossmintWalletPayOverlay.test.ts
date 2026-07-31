@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
 import { useRampsController } from './useRampsController';
-import useCrossmintApplePayOverlay from './useCrossmintApplePayOverlay';
+import useCrossmintWalletPayOverlay from './useCrossmintWalletPayOverlay';
 import type { Quote } from '../types';
 
 jest.mock('react-redux', () => ({
@@ -73,12 +73,17 @@ function setupController({
   } as unknown as ReturnType<typeof useRampsController>);
 }
 
-describe('useCrossmintApplePayOverlay', () => {
+function setPlatform(platform: 'ios' | 'android') {
+  jest.mocked(Device.isIos).mockReturnValue(platform === 'ios');
+  jest.mocked(Device.isAndroid).mockReturnValue(platform === 'android');
+}
+
+describe('useCrossmintWalletPayOverlay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.mocked(useSelector).mockReturnValue(true);
-    jest.mocked(Device.isIos).mockReturnValue(true);
+    setPlatform('ios');
     setupController();
     mockGetBuyWidgetData.mockResolvedValue({
       url: 'https://staging.crossmint.com/sdk/2024-03-05/embedded-checkout?orderId=abc',
@@ -99,7 +104,7 @@ describe('useCrossmintApplePayOverlay', () => {
 
   it('prepares the checkout URL and registers a precreated order', async () => {
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
 
     expect(result.current.isEligible).toBe(true);
@@ -119,10 +124,53 @@ describe('useCrossmintApplePayOverlay', () => {
     );
   });
 
+  it('is eligible for Google Pay on Android', async () => {
+    setPlatform('android');
+    setupController({ paymentMethodId: '/payments/google-pay' });
+
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+
+    expect(result.current.isEligible).toBe(true);
+
+    await settle();
+
+    expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(1);
+    expect(result.current.checkoutUrl).not.toBeNull();
+  });
+
+  it('is not eligible for Google Pay on iOS', async () => {
+    setupController({ paymentMethodId: '/payments/google-pay' });
+
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+
+    await settle();
+
+    expect(result.current.isEligible).toBe(false);
+    expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
+  });
+
+  it('is not eligible for Apple Pay on Android', async () => {
+    setPlatform('android');
+    setupController({ paymentMethodId: '/payments/apple-pay' });
+
+    const { result } = renderHook(() =>
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
+    );
+
+    await settle();
+
+    expect(result.current.isEligible).toBe(false);
+    expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
+  });
+
   it('does not create a duplicate order for the same quote parameters', async () => {
     const { result, rerender } = renderHook(
       ({ quote, amount }: { quote: Quote; amount: number }) =>
-        useCrossmintApplePayOverlay(quote, amount),
+        useCrossmintWalletPayOverlay(quote, amount),
       { initialProps: { quote: crossmintQuote, amount: 25 } },
     );
 
@@ -140,7 +188,7 @@ describe('useCrossmintApplePayOverlay', () => {
   it('prepares a new order when the amount changes', async () => {
     const { rerender } = renderHook(
       ({ quote, amount }: { quote: Quote; amount: number }) =>
-        useCrossmintApplePayOverlay(quote, amount),
+        useCrossmintWalletPayOverlay(quote, amount),
       { initialProps: { quote: crossmintQuote, amount: 25 } },
     );
 
@@ -155,7 +203,7 @@ describe('useCrossmintApplePayOverlay', () => {
     jest.mocked(useSelector).mockReturnValue(false);
 
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
 
     await settle();
@@ -167,7 +215,7 @@ describe('useCrossmintApplePayOverlay', () => {
 
   it('is not eligible for non-Crossmint quotes', async () => {
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(otherProviderQuote, 25),
+      useCrossmintWalletPayOverlay(otherProviderQuote, 25),
     );
 
     await settle();
@@ -176,24 +224,11 @@ describe('useCrossmintApplePayOverlay', () => {
     expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
   });
 
-  it('is not eligible for non-Apple Pay payment methods', async () => {
+  it('is not eligible for non-wallet-pay payment methods', async () => {
     setupController({ paymentMethodId: '/payments/debit-credit-card' });
 
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
-    );
-
-    await settle();
-
-    expect(result.current.isEligible).toBe(false);
-    expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
-  });
-
-  it('is not eligible on Android', async () => {
-    jest.mocked(Device.isIos).mockReturnValue(false);
-
-    const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
 
     await settle();
@@ -203,7 +238,7 @@ describe('useCrossmintApplePayOverlay', () => {
   });
 
   it('is not eligible without a quote', async () => {
-    const { result } = renderHook(() => useCrossmintApplePayOverlay(null, 25));
+    const { result } = renderHook(() => useCrossmintWalletPayOverlay(null, 25));
 
     await settle();
 
@@ -216,7 +251,7 @@ describe('useCrossmintApplePayOverlay', () => {
     mockGetBuyWidgetData.mockRejectedValue(new Error('network error'));
 
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
 
     await settle();
@@ -233,7 +268,7 @@ describe('useCrossmintApplePayOverlay', () => {
     });
 
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
 
     await settle();
@@ -250,7 +285,7 @@ describe('useCrossmintApplePayOverlay', () => {
       .mockImplementation(() => undefined);
 
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
 
     act(() => {
@@ -267,7 +302,7 @@ describe('useCrossmintApplePayOverlay', () => {
     expect(loggerSpy).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'Daily limit exceeded' }),
       expect.objectContaining({
-        message: 'useCrossmintApplePayOverlay Crossmint checkout failure',
+        message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
       }),
     );
   });
@@ -278,7 +313,7 @@ describe('useCrossmintApplePayOverlay', () => {
       .mockImplementation(() => undefined);
 
     const { result } = renderHook(() =>
-      useCrossmintApplePayOverlay(crossmintQuote, 25),
+      useCrossmintWalletPayOverlay(crossmintQuote, 25),
     );
 
     act(() => {

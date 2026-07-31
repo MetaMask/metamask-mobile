@@ -45,8 +45,8 @@ import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
-import useCrossmintApplePayOverlay from '../../hooks/useCrossmintApplePayOverlay';
-import ApplePayCheckoutOverlay from '../../components/ApplePayCheckoutOverlay';
+import useCrossmintWalletPayOverlay from '../../hooks/useCrossmintWalletPayOverlay';
+import WalletPayCheckoutOverlay from '../../components/WalletPayCheckoutOverlay';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
@@ -637,10 +637,10 @@ function BuildQuote() {
     !selectedQuoteLoading &&
     selectedQuote !== null;
 
-  // Crossmint Apple Pay embedded checkout (crossmintApplePayCheckout flag):
-  // pre-creates the order through the on-ramp API so the hosted Apple Pay
-  // button can replace the Continue button on eligible quotes.
-  const crossmintApplePay = useCrossmintApplePayOverlay(
+  // Crossmint wallet-pay embedded checkout (crossmintApplePayCheckout flag):
+  // pre-creates the order through the on-ramp API so the hosted Apple Pay /
+  // Google Pay button can replace the Continue button on eligible quotes.
+  const crossmintWalletPay = useCrossmintWalletPayOverlay(
     hasSettledQuoteAmount ? selectedQuote : null,
     debouncedPollingAmount,
   );
@@ -821,11 +821,11 @@ function BuildQuote() {
             {hasAmount ? (
               <>
                 {actionSectionMessage}
-                {crossmintApplePay.checkoutUrl ? (
-                  <ApplePayCheckoutOverlay
-                    checkoutUrl={crossmintApplePay.checkoutUrl}
+                {crossmintWalletPay.checkoutUrl ? (
+                  <WalletPayCheckoutOverlay
+                    checkoutUrl={crossmintWalletPay.checkoutUrl}
                     interactive={canContinue}
-                    onMessage={crossmintApplePay.onMessage}
+                    onMessage={crossmintWalletPay.onMessage}
                   />
                 ) : (
                   <Button

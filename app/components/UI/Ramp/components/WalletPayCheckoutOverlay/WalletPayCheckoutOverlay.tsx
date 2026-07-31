@@ -7,15 +7,16 @@ import {
 import { Box } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import { colors as commonColors } from '../../../../../styles/common';
-import { APPLE_PAY_CHECKOUT_OVERLAY_TEST_IDS } from './ApplePayCheckoutOverlay.testIds';
+import { WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS } from './WalletPayCheckoutOverlay.testIds';
 
 const MIN_WEBVIEW_HEIGHT = 74;
 
-interface ApplePayCheckoutOverlayProps {
+interface WalletPayCheckoutOverlayProps {
   checkoutUrl: string;
   /**
-   * When true, the WebView receives taps (user presses the real Apple Pay
-   * button). When false, keep mounted for order events but ignore touches.
+   * When true, the WebView receives taps (user presses the real Apple Pay /
+   * Google Pay button). When false, keep mounted for order events but
+   * ignore touches.
    */
   interactive: boolean;
   webviewHeight?: number;
@@ -23,8 +24,8 @@ interface ApplePayCheckoutOverlayProps {
 }
 
 /**
- * Builds a Safari-on-iPhone user agent.
- * Crossmint's RN SDK does this so the hosted Apple Pay button can initialize.
+ * Builds a Safari-on-iPhone (or Chrome-on-Android) user agent.
+ * Crossmint's RN SDK does this so the hosted payment button can initialize.
  */
 function getCrossmintCheckoutUserAgent(): string | undefined {
   if (!Device.isIos()) {
@@ -36,27 +37,31 @@ function getCrossmintCheckoutUserAgent(): string | undefined {
 }
 
 /**
- * Crossmint embedded Apple Pay button (SDK-less WebView).
+ * Crossmint embedded wallet-pay button (SDK-less WebView) — the hosted
+ * Apple Pay button on iOS or Google Pay button on Android, rendered with a
+ * transparent background and clipped to the button area so it can replace
+ * the Continue button inline.
  *
  * The checkout URL comes from the on-ramp API buy-widget endpoint for the
  * Crossmint provider; no Crossmint API is called from the client.
  *
  * Matches working MetaMask Ramp checkout WebViews:
- * - `enableApplePay` (required on iOS; `paymentRequestEnabled` is Android-only)
- * - Visible WebView so the user taps the real Apple Pay control
- * - Safari-like iOS userAgent (Crossmint's RN SDK does the same)
+ * - `enableApplePay` (required on iOS; no-op on Android)
+ * - `paymentRequestEnabled` (required for Google Pay; Android-only)
+ * - Visible WebView so the user taps the real payment control
+ * - Platform-native userAgent (Crossmint's RN SDK does the same)
  *
  * Note: `enableApplePay` disables injectJavaScript and the usual
- * `window.ReactNativeWebView.postMessage` polyfill, so order completion is
- * primarily observed through precreated-order polling; the onMessage handler
- * is a best-effort accelerator.
+ * `window.ReactNativeWebView.postMessage` polyfill on iOS, so order
+ * completion is primarily observed through precreated-order polling; the
+ * onMessage handler is a best-effort accelerator.
  */
-function ApplePayCheckoutOverlay({
+function WalletPayCheckoutOverlay({
   checkoutUrl,
   interactive,
   webviewHeight = MIN_WEBVIEW_HEIGHT,
   onMessage,
-}: ApplePayCheckoutOverlayProps) {
+}: WalletPayCheckoutOverlayProps) {
   const height = Math.max(webviewHeight, MIN_WEBVIEW_HEIGHT);
   const userAgent = useMemo(() => getCrossmintCheckoutUserAgent(), []);
 
@@ -81,10 +86,10 @@ function ApplePayCheckoutOverlay({
     <Box
       style={styles.host}
       pointerEvents={interactive ? 'auto' : 'none'}
-      testID={APPLE_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY}
+      testID={WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY}
     >
       <WebView
-        testID={APPLE_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW}
+        testID={WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW}
         source={{ uri: checkoutUrl }}
         style={styles.webView}
         // Same flags as the Ramp Checkout WebView (working Apple Pay).
@@ -106,4 +111,4 @@ function ApplePayCheckoutOverlay({
   );
 }
 
-export default ApplePayCheckoutOverlay;
+export default WalletPayCheckoutOverlay;
