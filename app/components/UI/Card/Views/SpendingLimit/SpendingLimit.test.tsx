@@ -761,10 +761,10 @@ describe('SpendingLimit Component', () => {
   });
 
   describe('Navigation Blocking', () => {
-    it('registers navigation listener on mount', () => {
+    it('does not register a beforeRemove listener when UI is unlocked', () => {
       render();
 
-      expect(mockAddListener).toHaveBeenCalledWith(
+      expect(mockAddListener).not.toHaveBeenCalledWith(
         'beforeRemove',
         expect.any(Function),
       );
@@ -779,15 +779,20 @@ describe('SpendingLimit Component', () => {
 
       render();
 
-      const mockEvent = { preventDefault: jest.fn() };
-      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+      const mockEvent = {
+        preventDefault: jest.fn(),
+        data: { action: { type: 'GO_BACK' } },
+      };
+      const beforeRemoveCallback = mockAddListener.mock.calls.find(
+        ([eventName]: [string]) => eventName === 'beforeRemove',
+      )?.[1];
 
       beforeRemoveCallback(mockEvent);
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('allows navigation when Money Account linkage is processing outside onboarding', () => {
+    it('does not register a beforeRemove listener when Money Account linkage is processing outside onboarding', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
@@ -797,12 +802,10 @@ describe('SpendingLimit Component', () => {
 
       render();
 
-      const mockEvent = { preventDefault: jest.fn() };
-      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
-
-      beforeRemoveCallback(mockEvent);
-
-      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
     });
 
     it('blocks navigation when Money Account linkage is processing during onboarding', () => {
@@ -815,26 +818,33 @@ describe('SpendingLimit Component', () => {
 
       render({ params: { flow: 'onboarding' } });
 
-      const mockEvent = { preventDefault: jest.fn() };
-      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+      const mockEvent = {
+        preventDefault: jest.fn(),
+        data: { action: { type: 'GO_BACK' } },
+      };
+      const beforeRemoveCallback = mockAddListener.mock.calls.find(
+        ([eventName]: [string]) => eventName === 'beforeRemove',
+      )?.[1];
 
       beforeRemoveCallback(mockEvent);
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('allows navigation when isLoading is false', () => {
+    it('does not register a beforeRemove listener when isLoading is false', () => {
       render();
 
-      const mockEvent = { preventDefault: jest.fn() };
-      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
-
-      beforeRemoveCallback(mockEvent);
-
-      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
     });
 
     it('unsubscribes from navigation listener on unmount', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isUiInteractionLocked: true,
+      });
       const mockUnsubscribe = jest.fn();
       mockAddListener.mockReturnValue(mockUnsubscribe);
 
