@@ -287,7 +287,11 @@ export function useTransactionCustomAmount({
     // Prefetch failures stay speculative. Continue retries the cleared request
     // and uses the existing toast path if the committed update also fails.
     updateTransactionPayAmount(effectiveHuman).then(
-      () => {
+      (isPublished) => {
+        if (!isPublished) {
+          return;
+        }
+
         const prefetchRequest = prefetchQuoteRequestRef.current;
         if (isNewPrefetch && prefetchRequest?.amountHuman === effectiveHuman) {
           prefetchRequest.isAmountPrepared = true;

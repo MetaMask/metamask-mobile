@@ -164,8 +164,7 @@ export function useUpdateTransactionPayAmount() {
 
       if (isMoneyAccountDeposit) {
         if (isAmountUpdateQuotePipelineEnabled) {
-          await updateOptimizedAmount(amountHuman, transactionMeta);
-          return;
+          return updateOptimizedAmount(amountHuman, transactionMeta);
         }
 
         syncMoneyAccountDepositRequiredAssets(

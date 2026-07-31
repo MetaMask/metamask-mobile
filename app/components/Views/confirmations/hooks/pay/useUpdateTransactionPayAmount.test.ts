@@ -227,9 +227,11 @@ describe('useUpdateTransactionPayAmount', () => {
       quotePipelineEnabled: true,
     });
 
-    await result.current.updateTransactionPayAmount('1.23');
+    const unpublishedResult =
+      await result.current.updateTransactionPayAmount('1.23');
     await result.current.updateTransactionPayAmount('1.23');
 
+    expect(unpublishedResult).toBe(false);
     expect(updateMoneyAccountDepositAmountMock).toHaveBeenCalledTimes(2);
   });
 
