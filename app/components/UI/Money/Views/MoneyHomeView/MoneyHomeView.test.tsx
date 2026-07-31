@@ -120,6 +120,12 @@ jest.mock('../../components/MoneyNextBestActionParallax', () => ({
   PARALLAX_ARTBOARD_CARD: 'Parallax Block 2',
 }));
 
+// Animated Rive card thumbnail pulls in device sensors; not exercised here.
+jest.mock('../../components/MoneyCardTiltAnimation', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
