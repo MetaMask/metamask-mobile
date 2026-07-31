@@ -595,4 +595,17 @@ describe('requestPushPermissions', () => {
       markPushNotificationOsPromptRequested(),
     );
   });
+
+  it('does not record the request when the permission flow throws before asking the OS', async () => {
+    jest
+      .spyOn(NotificationService, 'getAllPermissions')
+      .mockRejectedValue(new Error('Timeout'));
+    const mockDispatch = jest.spyOn(store, 'dispatch');
+
+    await expect(requestPushPermissions()).rejects.toThrow('Timeout');
+
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      markPushNotificationOsPromptRequested(),
+    );
+  });
 });

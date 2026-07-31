@@ -339,8 +339,8 @@ const getPushPermissionStatusFromAuthorizationStatus = (
 };
 
 export async function requestPushPermissions() {
-  store.dispatch(markPushNotificationOsPromptRequested());
   const result = await NotificationService.getAllPermissions(true);
+  store.dispatch(markPushNotificationOsPromptRequested());
   return result.permission === 'authorized';
 }
 
