@@ -3454,6 +3454,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyCardTiltAnimationEnabled: {
+    name: 'earnMoneyCardTiltAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyFirstTimeDepositAnimationEnabled: {
     name: 'earnMoneyFirstTimeDepositAnimationEnabled',
     type: FeatureFlagType.Remote,
