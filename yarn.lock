@@ -10521,6 +10521,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/tooling-insight@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/tooling-insight@npm:1.0.0"
+  bin:
+    metamask-daily-anonymizer: ./dist/daily-anonymizer.mjs
+  checksum: 10/bfed6e2f0cb169ffb1f4e61c2b4be0cc71583174f47908c69aa348714631af4a7d62fe5df0c08db34a11659bca69efbac72442e0320beb4772efed50b967616c
+  languageName: node
+  linkType: hard
+
 "@metamask/toprf-secure-backup@npm:^1.1.0":
   version: 1.1.0
   resolution: "@metamask/toprf-secure-backup@npm:1.1.0"
@@ -35936,6 +35945,7 @@ __metadata:
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
+    "@metamask/tooling-insight": "npm:^1.0.0"
     "@metamask/transaction-controller": "npm:^69.3.0"
     "@metamask/transaction-pay-controller": "npm:^26.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.33.1"

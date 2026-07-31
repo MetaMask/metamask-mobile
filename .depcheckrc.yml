@@ -152,6 +152,9 @@ ignores:
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'
 
+  # Consumed by the Yarn plugin and agent hooks, outside of app source
+  - '@metamask/tooling-insight'
+
   # Babel plugins referenced in babel.config.js by their short name (without
   # the `babel-plugin-` prefix). Babel resolves them correctly at build time
   # but depcheck doesn't recognize the indirect reference. See babel.config.js
