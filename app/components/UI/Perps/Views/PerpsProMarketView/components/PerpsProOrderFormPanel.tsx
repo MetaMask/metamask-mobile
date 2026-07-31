@@ -233,13 +233,21 @@ const PerpsProOrderFormContent = ({
   );
 };
 
-const PerpsProOrderFormPanel = ({ market }: PerpsProOrderFormPanelProps) => (
+const PerpsProOrderFormPanel = ({
+  market,
+  isOrderBookCollapsed,
+  onExpandOrderBook,
+}: PerpsProOrderFormPanelProps) => (
   <PerpsOrderProvider
     key={market.symbol}
     initialAsset={market.symbol}
     initialType="market"
   >
-    <PerpsProOrderFormContent market={market} />
+    <PerpsProOrderFormContent
+      market={market}
+      isOrderBookCollapsed={isOrderBookCollapsed}
+      onExpandOrderBook={onExpandOrderBook}
+    />
   </PerpsOrderProvider>
 );
 

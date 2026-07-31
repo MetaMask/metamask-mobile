@@ -46,6 +46,11 @@ interface MockBalanceBottomSheetProps {
   onClose: () => void;
 }
 
+interface MockOrderFormPanelProps {
+  isOrderBookCollapsed?: boolean;
+  onExpandOrderBook?: () => void;
+}
+
 let mockRouteParams: MockRouteParams | undefined = {
   market: {
     symbol: 'BTC',
@@ -137,14 +142,32 @@ jest.mock('../../components/PerpsBalanceBottomSheet', () => ({
 // need a lightweight placeholder so the layout scaffold assertions still pass.
 jest.mock('./components/PerpsProOrderFormPanel', () => {
   const ReactActual = jest.requireActual('react');
-  const { Box } = jest.requireActual('@metamask/design-system-react-native');
+  const { Box, ButtonBase } = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
   const { PerpsProMarketViewSelectorsIDs: ids } = jest.requireActual(
     '../../Perps.testIds',
   );
   return {
     __esModule: true,
-    default: () =>
-      ReactActual.createElement(Box, { testID: ids.ORDER_FORM_PANEL }),
+    default: ({
+      isOrderBookCollapsed,
+      onExpandOrderBook,
+    }: MockOrderFormPanelProps) =>
+      ReactActual.createElement(
+        Box,
+        { testID: ids.ORDER_FORM_PANEL },
+        isOrderBookCollapsed
+          ? ReactActual.createElement(
+              ButtonBase,
+              {
+                testID: ids.ORDER_BOOK_EXPAND_BUTTON,
+                onPress: onExpandOrderBook,
+              },
+              ReactActual.createElement(Box, null),
+            )
+          : null,
+      ),
   };
 });
 
