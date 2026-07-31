@@ -25,6 +25,9 @@ set -euo pipefail
 #   Step 1 (Resolve):  Run with --skipInstall and watch the resolved run id / artifact size.
 #   Step 2 (Download): Inspect build/gh-expo-dev-build/ios/* and build/MetaMask.{app,ipa}.
 #   Step 3 (Install):  Run with --skip-download to install without re-downloading.
+#   Digest cache:      Re-runs skip download when the Actions artifact digest matches
+#                      build/gh-expo-dev-build/<artifact-name>.digest. Use --force-download
+#                      to re-download even when digests match.
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -63,6 +66,7 @@ RUN_ID=""
 UNINSTALL=false
 SKIP_DOWNLOAD=false
 SKIP_INSTALL=false
+FORCE_DOWNLOAD=false
 DEVICE_MODE=false
 ZIP_PATH=""
 DOWNLOAD_SUCCESS=false
@@ -83,7 +87,10 @@ safe_rm_dir() {
 
 cleanup() {
   if [[ "$DOWNLOAD_SUCCESS" == true ]]; then
+    # Remove the downloaded zip/ipa and the empty download dir. Digests live as
+    # siblings under build/gh-expo-dev-build/*.digest and must not be deleted.
     safe_rm "$ZIP_PATH"
+    safe_rm_dir "$DOWNLOAD_DIR"
   fi
 }
 trap cleanup EXIT
@@ -108,6 +115,10 @@ while [[ $# -gt 0 ]]; do
       SKIP_DOWNLOAD=true
       shift
       ;;
+    --force-download)
+      FORCE_DOWNLOAD=true
+      shift
+      ;;
     --skipInstall)
       SKIP_INSTALL=true
       shift
@@ -118,10 +129,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo -e "${RED}Unknown option: $1${NC}"
-      echo "Usage: $0 [--branch main] [--run RUN_ID] [--device] [--skip-download] [--skipInstall] [--uninstall]"
+      echo "Usage: $0 [--branch main] [--run RUN_ID] [--device] [--skip-download] [--force-download] [--skipInstall] [--uninstall]"
       echo "  (default) Targets IOS_SIMULATOR from .js.env (boots if needed); falls back to booted simulator."
       echo "  --device  Targets IOS_DEVICE from .js.env (name or UDID); falls back to single connected iPhone."
       echo "            Auto-connects to Metro after install. Add --skip-download to just reconnect."
+      echo "  --force-download  Re-download even when the local Actions artifact digest matches."
       exit 1
       ;;
   esac
@@ -134,8 +146,16 @@ download_latest_app_simulator() {
   require_gh
 
   local resolved_run_id
+  local target_app="$BUILD_DIR/$APP_NAME"
+  local remote_digest
   resolved_run_id="$(resolve_expo_dev_run "$IOS_SIMULATOR_ARTIFACT_NAME" "$BRANCH" "$RUN_ID")"
   echo "$resolved_run_id" > "$BUILD_DIR/expo-dev-build-run-id.txt"
+
+  if should_skip_artifact_download "$resolved_run_id" "$IOS_SIMULATOR_ARTIFACT_NAME" "$target_app" "$FORCE_DOWNLOAD"; then
+    return 0
+  fi
+
+  remote_digest="$(fetch_artifact_digest "$resolved_run_id" "$IOS_SIMULATOR_ARTIFACT_NAME")"
 
   echo -e "${BLUE}━━━ Step 2: Downloading ${IOS_SIMULATOR_ARTIFACT_NAME} ━━━${NC}"
   rm -rf "$DOWNLOAD_DIR"
@@ -176,13 +196,13 @@ download_latest_app_simulator() {
     exit 1
   fi
 
-  local target_app="$BUILD_DIR/$APP_NAME"
   if [[ "$extracted_app" != "$target_app" ]]; then
     safe_rm_dir "$target_app"
     mv "$extracted_app" "$target_app"
   fi
 
   echo -e "${GREEN}✓ Extracted to ${target_app}${NC}"
+  write_cached_artifact_digest "$IOS_SIMULATOR_ARTIFACT_NAME" "$remote_digest"
   DOWNLOAD_SUCCESS=true
 }
 
@@ -193,8 +213,16 @@ download_latest_app_device() {
   require_gh
 
   local resolved_run_id
+  local target_ipa="$BUILD_DIR/$IPA_NAME"
+  local remote_digest
   resolved_run_id="$(resolve_expo_dev_run "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$BRANCH" "$RUN_ID")"
   echo "$resolved_run_id" > "$BUILD_DIR/expo-dev-build-run-id.txt"
+
+  if should_skip_artifact_download "$resolved_run_id" "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$target_ipa" "$FORCE_DOWNLOAD"; then
+    return 0
+  fi
+
+  remote_digest="$(fetch_artifact_digest "$resolved_run_id" "$IOS_DEVICE_IPA_ARTIFACT_NAME")"
 
   echo -e "${BLUE}━━━ Step 2: Downloading ${IOS_DEVICE_IPA_ARTIFACT_NAME} ━━━${NC}"
   rm -rf "$DOWNLOAD_DIR"
@@ -218,10 +246,10 @@ download_latest_app_device() {
   echo -e "${GREEN}✓ Downloaded: ${downloaded_ipa}${NC}"
 
   echo -e "${BLUE}━━━ Step 3: Staging .ipa ━━━${NC}"
-  local target_ipa="$BUILD_DIR/$IPA_NAME"
   rm -f "$target_ipa"
   cp "$downloaded_ipa" "$target_ipa"
   echo -e "${GREEN}✓ Staged to ${target_ipa}${NC}"
+  write_cached_artifact_digest "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$remote_digest"
   DOWNLOAD_SUCCESS=true
 }
 

@@ -1251,14 +1251,23 @@ export function useQuickBuyController(
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
       const previousToken = selectedSourceToken?.symbol ?? '';
-      if (token.symbol !== previousToken) {
+      const tokenChanged =
+        !selectedSourceToken ||
+        getTokenKey(token) !== getTokenKey(selectedSourceToken);
+
+      if (tokenChanged && token.symbol !== previousToken) {
         trackPayWithSelected(token.symbol, previousToken);
       }
       isManualSelectionRef.current = true;
       setSelectedSourceToken(token);
-      resetAmountState();
+      // Preserve amount across pay-with changes. Only drop max-balance mode when
+      // the token identity changes — re-selecting the same token must keep max
+      // so we still spend the exact on-chain balance (not a fiat round-trip).
+      if (tokenChanged) {
+        setIsMaxSourceAmount(false);
+      }
     },
-    [resetAmountState, selectedSourceToken?.symbol, trackPayWithSelected],
+    [selectedSourceToken, trackPayWithSelected],
   );
 
   const handleSelectDestStable = useCallback(
@@ -1275,7 +1284,6 @@ export function useQuickBuyController(
 
   const handleAmountChange = useCallback(
     (text: string) => {
-      setIsPresetAddFundsMode(false);
       lastInputMethodRef.current =
         QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT;
       const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
@@ -1290,17 +1298,34 @@ export function useQuickBuyController(
         : (sourceToken?.decimals ?? 18);
       if (parts.length === 2 && parts[1].length > maxFractionDigits) return;
       if (hasSourcePrice) {
+        // Match pill behavior: over-balance buy amounts switch the CTA to
+        // Add funds instead of disabled Insufficient funds.
+        const numeric = Number(normalized);
+        const exceedsBalance =
+          tradeMode === 'buy' &&
+          maxSpendFiat > 0 &&
+          Number.isFinite(numeric) &&
+          numeric > maxSpendFiat;
+        setIsPresetAddFundsMode(exceedsBalance);
+
         setFiatAmount(normalized);
         setQuotedFiatAmount(normalized);
         lastCommittedFiatRef.current = normalized;
       } else {
+        setIsPresetAddFundsMode(false);
         setSourceAmountTokens(normalized);
       }
       lastSliderPercentRef.current = 0;
       setSliderPercent(0);
       setIsMaxSourceAmount(false);
     },
-    [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
+    [
+      hasSourcePrice,
+      maxSpendFiat,
+      sourceToken?.decimals,
+      tradeMode,
+      lastInputMethodRef,
+    ],
   );
 
   // Debounced track for custom amount entries — fires once after the user
@@ -1334,6 +1359,20 @@ export function useQuickBuyController(
     lastInputMethodRef,
     lastTrackedAmountRef,
   ]);
+
+  // When the pay-with token changes, maxSpendFiat updates under a preserved
+  // fiat amount — recompute Add-funds so the CTA matches the new balance.
+  useEffect(() => {
+    if (!hasSourcePrice || tradeMode !== 'buy') {
+      return;
+    }
+    const numeric = Number(fiatAmount);
+    if (!Number.isFinite(numeric) || numeric <= 0 || maxSpendFiat <= 0) {
+      setIsPresetAddFundsMode(false);
+      return;
+    }
+    setIsPresetAddFundsMode(numeric > maxSpendFiat);
+  }, [fiatAmount, maxSpendFiat, hasSourcePrice, tradeMode]);
 
   const handleConfirm = useCallback(async () => {
     if (isPresetAddFundsMode && tradeMode === 'buy' && sourceToken) {

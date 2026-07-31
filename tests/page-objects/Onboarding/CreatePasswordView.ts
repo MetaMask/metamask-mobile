@@ -314,17 +314,20 @@ class CreatePasswordView {
   private async readMarketingCheckboxCheckedAppium(
     checkbox: Awaited<ReturnType<typeof asPlaywrightElement>>,
   ): Promise<boolean | undefined> {
-    try {
-      const attributes: Record<string, unknown> = {
-        'aria-checked': await checkbox.getAttribute('aria-checked'),
-        checked: await checkbox.getAttribute('checked'),
-        value: await checkbox.getAttribute('value'),
-      };
+    // Fetch attributes independently. Android UiAutomator2 does not support
+    // `aria-checked`; requesting it first used to abort the whole read and
+    // leave isChecked undefined (see seedless Apple/Telegram perf failures).
+    const attributes: Record<string, unknown> = {};
 
-      return this.parseMarketingCheckboxCheckedState(attributes);
-    } catch {
-      return undefined;
+    for (const name of ['checked', 'value', 'aria-checked'] as const) {
+      try {
+        attributes[name] = await checkbox.getAttribute(name);
+      } catch {
+        // Unsupported on this platform/driver — try the next candidate.
+      }
     }
+
+    return this.parseMarketingCheckboxCheckedState(attributes);
   }
 
   /**
