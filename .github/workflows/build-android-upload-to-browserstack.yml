@@ -6,8 +6,9 @@
 #   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
 #   2. Download + validate both APKs before committing to reuse (continue-on-error).
 #      On download/validation failure → found=false and fall back to fresh dual Gradle builds.
-#      On success → stage as fingerprint-reuse-android-apk-* (collision-safe), then also
-#      publish android-apk-* so this reuse-only run remains a future lookup source.
+#      On success → stage as fingerprint-reuse-android-apk-* (collision-safe), set found=true,
+#      then best-effort publish android-apk-* for future lookup (only after reuse is committed,
+#      so a partial publish cannot break Gradle fallback).
 #   3. On validated hit + main_branch_only (test-only) → re-upload APKs as-is (app JS unchanged).
 #   4. On validated hit + app changes → skip Gradle, @expo/repack-app both profiles with
 #      current JS, then upload (fingerprint ignores JS-only changes).
@@ -306,12 +307,12 @@ jobs:
       # (artifacts can expire between lookup and the later upload job).
       #
       # Two artifact name families:
-      #   1) fingerprint-reuse-android-apk-* — staging names used while we still
-      #      might fall back to fresh Gradle (avoids upload-artifact v4 collisions
-      #      with build.yml's android-apk-* if only one restage succeeds).
-      #   2) android-apk-* — published only after BOTH staging uploads succeed,
-      #      so this reuse-only run remains a find-reusable-build source for later
-      #      runs (lookup requires android-apk-* and only inspects ~10 candidates).
+      #   1) fingerprint-reuse-android-apk-* — collision-safe staging used to decide
+      #      reuse. If staging fails we fall back to Gradle; these names never clash
+      #      with build.yml's android-apk-*.
+      #   2) android-apk-* — published only AFTER found=true is committed, so a
+      #      partial publish can never collide with a fresh-build fallback. Needed
+      #      so reuse-only runs remain find-reusable-build sources (~10-run window).
       - name: Re-stage with-SRP APK on current run
         id: restage-with-srp
         if: steps.validate-downloads.outputs.valid == 'true'
@@ -334,12 +335,48 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
+      # Commit reuse only from collision-safe staging. Never require android-apk-*
+      # publish here — a partial android-apk-* upload before found=false would
+      # break the Gradle fallback via upload-artifact v4 name conflicts.
+      - name: Finalize fingerprint reuse decision
+        id: finalize
+        env:
+          DOWNLOADS_VALID: ${{ steps.validate-downloads.outputs.valid }}
+          RESTAGE_WITH_SRP: ${{ steps.restage-with-srp.outcome }}
+          RESTAGE_WITHOUT_SRP: ${{ steps.restage-without-srp.outcome }}
+          CANDIDATE_RUN_ID: ${{ steps.candidate.outputs.run-id }}
+          CANDIDATE_SOURCE_SHA: ${{ steps.candidate.outputs.source-sha }}
+          CANDIDATE_SOURCE_BRANCH: ${{ steps.candidate.outputs.source-branch }}
+        run: |
+          set -euo pipefail
+
+          if [ "$DOWNLOADS_VALID" = "true" ] \
+            && [ "$RESTAGE_WITH_SRP" = "success" ] \
+            && [ "$RESTAGE_WITHOUT_SRP" = "success" ]; then
+            {
+              echo "found=true"
+              echo "run-id=$CANDIDATE_RUN_ID"
+              echo "source-sha=$CANDIDATE_SOURCE_SHA"
+              echo "source-branch=$CANDIDATE_SOURCE_BRANCH"
+            } >> "$GITHUB_OUTPUT"
+            echo "Fingerprint reuse committed: staging artifacts are on this run (Gradle skipped)."
+          else
+            {
+              echo "found=false"
+              echo "run-id="
+              echo "source-sha="
+              echo "source-branch="
+            } >> "$GITHUB_OUTPUT"
+            if [ "$DOWNLOADS_VALID" = "true" ]; then
+              echo "::warning::Candidate APKs downloaded but staging failed (with-srp=$RESTAGE_WITH_SRP, without-srp=$RESTAGE_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+            fi
+          fi
+
+      # Best-effort lookup-chain publish. Runs only after reuse is committed
+      # (builds already skipped), so partial failure cannot collide with Gradle.
       - name: Publish with-SRP APK for future fingerprint lookup
         id: publish-lookup-with-srp
-        if: >-
-          steps.validate-downloads.outputs.valid == 'true' &&
-          steps.restage-with-srp.outcome == 'success' &&
-          steps.restage-without-srp.outcome == 'success'
+        if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
@@ -349,10 +386,7 @@ jobs:
 
       - name: Publish without-SRP APK for future fingerprint lookup
         id: publish-lookup-without-srp
-        if: >-
-          steps.validate-downloads.outputs.valid == 'true' &&
-          steps.restage-with-srp.outcome == 'success' &&
-          steps.restage-without-srp.outcome == 'success'
+        if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
@@ -360,44 +394,16 @@ jobs:
           path: artifacts/without-srp
           if-no-files-found: error
 
-      # Publish found=true only after both staging + lookup artifacts are on this
-      # run. Downstream Gradle jobs use this output as their reuse gate.
-      - name: Finalize fingerprint reuse decision
-        id: finalize
+      - name: Warn if lookup-chain publish was incomplete
+        if: steps.finalize.outputs.found == 'true'
         env:
-          DOWNLOADS_VALID: ${{ steps.validate-downloads.outputs.valid }}
-          RESTAGE_WITH_SRP: ${{ steps.restage-with-srp.outcome }}
-          RESTAGE_WITHOUT_SRP: ${{ steps.restage-without-srp.outcome }}
           PUBLISH_LOOKUP_WITH_SRP: ${{ steps.publish-lookup-with-srp.outcome }}
           PUBLISH_LOOKUP_WITHOUT_SRP: ${{ steps.publish-lookup-without-srp.outcome }}
-          CANDIDATE_RUN_ID: ${{ steps.candidate.outputs.run-id }}
-          CANDIDATE_SOURCE_SHA: ${{ steps.candidate.outputs.source-sha }}
-          CANDIDATE_SOURCE_BRANCH: ${{ steps.candidate.outputs.source-branch }}
         run: |
-          set -euo pipefail
-
-          if [ "$DOWNLOADS_VALID" = "true" ] \
-            && [ "$RESTAGE_WITH_SRP" = "success" ] \
-            && [ "$RESTAGE_WITHOUT_SRP" = "success" ] \
-            && [ "$PUBLISH_LOOKUP_WITH_SRP" = "success" ] \
-            && [ "$PUBLISH_LOOKUP_WITHOUT_SRP" = "success" ]; then
-            {
-              echo "found=true"
-              echo "run-id=$CANDIDATE_RUN_ID"
-              echo "source-sha=$CANDIDATE_SOURCE_SHA"
-              echo "source-branch=$CANDIDATE_SOURCE_BRANCH"
-            } >> "$GITHUB_OUTPUT"
-            echo "Fingerprint reuse committed: staging + lookup (android-apk-*) artifacts are on this run."
+          if [ "$PUBLISH_LOOKUP_WITH_SRP" != "success" ] || [ "$PUBLISH_LOOKUP_WITHOUT_SRP" != "success" ]; then
+            echo "::warning::Reuse will proceed for this run, but android-apk-* lookup publish was incomplete (with-srp=$PUBLISH_LOOKUP_WITH_SRP, without-srp=$PUBLISH_LOOKUP_WITHOUT_SRP). This run may not be a future fingerprint source."
           else
-            {
-              echo "found=false"
-              echo "run-id="
-              echo "source-sha="
-              echo "source-branch="
-            } >> "$GITHUB_OUTPUT"
-            if [ "$DOWNLOADS_VALID" = "true" ]; then
-              echo "::warning::Candidate APKs downloaded but staging/lookup publish failed (restage with-srp=$RESTAGE_WITH_SRP without-srp=$RESTAGE_WITHOUT_SRP; lookup with-srp=$PUBLISH_LOOKUP_WITH_SRP without-srp=$PUBLISH_LOOKUP_WITHOUT_SRP); falling back to fresh dual Gradle builds."
-            fi
+            echo "Lookup-chain artifacts published (android-apk-*)."
           fi
 
   build-with-srp:
