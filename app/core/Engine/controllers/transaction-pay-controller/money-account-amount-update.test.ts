@@ -7,7 +7,7 @@ import { createDeferredPromise, type Hex } from '@metamask/utils';
 import {
   buildMoneyAccountDepositBatch,
   getMoneyAccountDepositAssetAddress,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -18,7 +18,11 @@ jest.mock('@metamask/transaction-controller', () => ({
   ...jest.requireActual('@metamask/transaction-controller'),
   updateEIP7702BatchData: jest.fn(),
 }));
-jest.mock('../../../../components/UI/Money/utils/moneyAccountTransactions');
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositBatch: jest.fn(),
+  getMoneyAccountDepositAssetAddress: jest.fn(),
+}));
 jest.mock('../../../../core/redux/ReduxService', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn().mockReturnValue({}) } },

@@ -22,7 +22,7 @@ import {
   TOAST_TRACKING_CLEANUP_DELAY_MS,
 } from '../../Earn/constants/musd';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
-import { TELLER_ABI } from '../utils/moneyAccountTransactions';
+import { TELLER_ABI } from '@metamask/money-account-utils';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,

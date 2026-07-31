@@ -15,7 +15,7 @@ import BigNumber from 'bignumber.js';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import { MUSD_DECIMALS } from '../../../../components/UI/Earn/constants/musd';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -144,10 +144,10 @@ async function getMoneyAccountDepositPaymentOverrideData<
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount,
     chainId,
-    boringVault: vaultConfig.boringVault,
-    tellerAddress: vaultConfig.tellerAddress,
-    accountantAddress: vaultConfig.accountantAddress,
-    lensAddress: vaultConfig.lensAddress,
+    boringVault: vaultConfig.boringVault as Hex,
+    tellerAddress: vaultConfig.tellerAddress as Hex,
+    accountantAddress: vaultConfig.accountantAddress as Hex,
+    lensAddress: vaultConfig.lensAddress as Hex,
     provider,
   });
 

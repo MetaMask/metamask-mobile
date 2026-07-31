@@ -98,7 +98,8 @@ jest.mock('@metamask/design-system-react-native', () => {
 // Keep the real `useMoneyAccountWithdrawal` + `useConfirmNavigation`; stub only
 // the heavy withdrawal-building internals so `initiateWithdrawal` reaches
 // navigation.
-jest.mock('../../utils/moneyAccountTransactions', () => ({
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
   buildMoneyAccountWithdrawBatch: jest.fn().mockResolvedValue({
     withdrawTx: { to: '0xwithdraw', data: '0x', value: '0x0' },
     transferTx: { to: '0xtransfer', data: '0x', value: '0x0' },
