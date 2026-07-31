@@ -11,15 +11,15 @@ import {
   SensitiveText,
   SensitiveTextLength,
 } from '@metamask/design-system-react-native';
-import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
-import styleSheet from './DeFiProtocolPositionDetails.styles';
-import { CommonSelectorsIDs } from '../../../util/Common.testIds';
-import { formatWithThreshold } from '../../../util/assets';
-import I18n from '../../../../locales/i18n';
-import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
-import Summary from '../../Base/Summary';
-import { useStyles } from '../../hooks/useStyles';
-import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionDetails.styles';
+import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n from '../../../../../../locales/i18n';
+import DeFiAvatarWithBadge from '../../../DeFiPositions/DeFiAvatarWithBadge';
+import Summary from '../../../../Base/Summary';
+import { useStyles } from '../../../../hooks/useStyles';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 
 export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
   'defi_protocol_position_details_balance';

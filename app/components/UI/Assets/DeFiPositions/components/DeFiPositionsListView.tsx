@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { RefreshControl, ScrollViewProps, View } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import styleSheet from './DeFiPositionsList.styles';
+import { strings } from '../../../../../../locales/i18n';
+import styleSheet from '../../../DeFiPositions/DeFiPositionsList.styles';
 import {
   Text,
   TextColor,
@@ -11,14 +11,14 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../hooks/useStyles';
-import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { DefiEmptyState } from '../DefiEmptyState';
-import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
-import DeFiPositionsControlBar from './DeFiPositionsControlBar';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useTheme } from '../../../util/theme';
+import { useStyles } from '../../../../hooks/useStyles';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { DefiEmptyState } from '../../../DefiEmptyState';
+import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
+import DeFiPositionsControlBar from '../../../DeFiPositions/DeFiPositionsControlBar';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useTheme } from '../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 /**

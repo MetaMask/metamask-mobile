@@ -42,7 +42,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import { useTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import DeFiPositionsListV2 from './DeFiPositionsListV2';
+import DeFiPositionsListV2 from '../Assets/DeFiPositions/components/DeFiPositionsListV2';
 
 export interface DeFiPositionsListProps {
   tabLabel: string;

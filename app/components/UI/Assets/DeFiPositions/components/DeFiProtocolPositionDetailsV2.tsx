@@ -2,9 +2,9 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import type { ImageSourcePropType } from 'react-native';
-import { useParams } from '../../../util/navigation/navUtils';
-import { selectPrivacyMode } from '../../../selectors/preferencesController';
-import DeFiProtocolPositionGroupsV2 from '../Assets/DeFiPositions/components/DeFiProtocolPositionGroupsV2';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import DeFiProtocolPositionGroupsV2 from './DeFiProtocolPositionGroupsV2';
 import DeFiProtocolPositionDetailsView from './DeFiProtocolPositionDetailsView';
 
 interface DeFiProtocolPositionDetailsV2Params {

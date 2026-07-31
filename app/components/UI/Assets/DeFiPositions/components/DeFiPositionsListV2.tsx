@@ -4,11 +4,11 @@ import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import {
   selectPrivacyMode,
   selectTokenSortConfig,
-} from '../../../selectors/preferencesController';
-import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
-import { getMaybeHexChainId } from '../../../util/bridge';
-import DeFiPositionsListItemV2 from '../Assets/DeFiPositions/components/DeFiPositionsListItemV2';
-import { useDeFiPositionsV2 } from '../Assets/DeFiPositions/hooks/useDeFiPositionsV2';
+} from '../../../../../selectors/preferencesController';
+import { selectEnabledNetworksByNamespace } from '../../../../../selectors/networkEnablementController';
+import { getMaybeHexChainId } from '../../../../../util/bridge';
+import DeFiPositionsListItemV2 from './DeFiPositionsListItemV2';
+import { useDeFiPositionsV2 } from '../hooks/useDeFiPositionsV2';
 import DeFiPositionsListView, {
   DeFiPositionsListState,
 } from './DeFiPositionsListView';
