@@ -28,8 +28,9 @@ import SensitiveText, {
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID } from '../Assets/DeFiPositions/components/DeFiProtocolPositionDetailsView';
-import DeFiProtocolPositionDetailsV2 from '../Assets/DeFiPositions/components/DeFiProtocolPositionDetailsV2';
+import DeFiProtocolPositionDetailsV2, {
+  DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
+} from '../Assets/DeFiPositions/components/DeFiProtocolPositionDetailsV2';
 
 export { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID };
 

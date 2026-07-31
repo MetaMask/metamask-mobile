@@ -1,11 +1,14 @@
 import React from 'react';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import DeFiPositionsListV2 from './DeFiPositionsListV2';
-import type { DeFiPositionsListState } from './DeFiPositionsListView';
 import type { UseDeFiPositionsV2Result } from '../hooks/useDeFiPositionsV2';
+import { strings } from '../../../../../../locales/i18n';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockUseDeFiPositionsV2 = jest.fn();
 jest.mock('../hooks/useDeFiPositionsV2', () => ({
@@ -26,39 +29,33 @@ jest.mock('../../../../../selectors/networkEnablementController', () => ({
   selectEnabledNetworksByNamespace: () => mockSelectEnabledNetworks(),
 }));
 
-// Capture what the container maps its data onto and render it minimally.
-let mockLastViewProps: {
-  state: DeFiPositionsListState;
-  isFullView: boolean;
-  refreshing: boolean;
-  onRefresh: () => void;
-} | null = null;
-jest.mock('./DeFiPositionsListView', () => ({
-  __esModule: true,
-  default: (props: {
-    state: DeFiPositionsListState;
-    isFullView: boolean;
-    refreshing: boolean;
-    onRefresh: () => void;
-  }) => {
-    const {
-      View,
-      Text: RNText,
-      TouchableOpacity: RNTouchable,
-    } = jest.requireActual('react-native');
-    mockLastViewProps = props;
-    return (
-      <View>
-        <RNText testID="status">{props.state.status}</RNText>
-        <RNText testID="refreshing">{String(props.refreshing)}</RNText>
-        {props.state.status === 'ready' ? props.state.items : null}
-        <RNTouchable testID="refresh-btn" onPress={props.onRefresh}>
-          <RNText>refresh</RNText>
-        </RNTouchable>
-      </View>
-    );
-  },
-}));
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => {
+  const { AnalyticsEventBuilder: MockAnalyticsEventBuilder } =
+    jest.requireActual('../../../../../util/analytics/AnalyticsEventBuilder');
+  return {
+    useAnalytics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MockAnalyticsEventBuilder.createEventBuilder,
+    }),
+  };
+});
+
+jest.mock('../../../DeFiPositions/DeFiPositionsControlBar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="control-bar" />,
+  };
+});
+
+jest.mock('../../../DefiEmptyState', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    DefiEmptyState: () => <View testID="defi-empty-state" />,
+  };
+});
 
 jest.mock('./DeFiPositionsListItemV2', () => ({
   __esModule: true,
@@ -112,7 +109,6 @@ const renderComponent = (isFullView = true) =>
 describe('DeFiPositionsListV2', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLastViewProps = null;
     mockSelectTokenSortConfig.mockReturnValue({
       key: 'tokenFiatAmount',
       order: 'dsc',
@@ -131,23 +127,31 @@ describe('DeFiPositionsListV2', () => {
     });
   });
 
-  it('maps loading to the loading state', () => {
+  it('renders the loading message when loading', () => {
     mockUseDeFiPositionsV2.mockReturnValue(makeHookResult({ isLoading: true }));
 
-    const { getByTestId } = renderComponent();
+    const { getByText, queryByTestId } = renderComponent();
 
-    expect(getByTestId('status')).toHaveTextContent('loading');
+    expect(
+      getByText(strings('defi_positions.loading_positions')),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('control-bar')).toBeNull();
   });
 
-  it('maps error to the error state', () => {
+  it('renders the error messages when in error state', () => {
     mockUseDeFiPositionsV2.mockReturnValue(makeHookResult({ isError: true }));
 
-    const { getByTestId } = renderComponent();
+    const { getByText } = renderComponent();
 
-    expect(getByTestId('status')).toHaveTextContent('error');
+    expect(
+      getByText(strings('defi_positions.error_cannot_load_page')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('defi_positions.error_visit_again')),
+    ).toBeOnTheScreen();
   });
 
-  it('renders one list item per position and forwards privacy mode', () => {
+  it('renders the control bar and list items when ready with items', () => {
     mockSelectPrivacyMode.mockReturnValue(true);
     mockUseDeFiPositionsV2.mockReturnValue(
       makeHookResult({
@@ -155,11 +159,24 @@ describe('DeFiPositionsListV2', () => {
       }),
     );
 
-    const { getAllByTestId } = renderComponent();
+    const { getByTestId, getAllByTestId } = renderComponent();
 
+    expect(getByTestId('control-bar')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST),
+    ).toBeOnTheScreen();
     const items = getAllByTestId('list-item');
     expect(items).toHaveLength(1);
     expect(items[0]).toHaveTextContent('Aave V3|100|true');
+  });
+
+  it('renders the empty state when ready with no items', () => {
+    const { getByTestId, queryByTestId } = renderComponent();
+
+    expect(getByTestId('defi-empty-state')).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST),
+    ).toBeNull();
   });
 
   it('filters out positions on disabled EVM networks', () => {
@@ -177,7 +194,7 @@ describe('DeFiPositionsListV2', () => {
 
     const items = getAllByTestId('list-item');
     expect(items).toHaveLength(1);
-    expect(items[0]).toHaveTextContent('OnMainnet');
+    expect(items[0]).toHaveTextContent('OnMainnet|100|false');
   });
 
   it('keeps non-EVM positions regardless of the enabled EVM networks', () => {
@@ -196,7 +213,9 @@ describe('DeFiPositionsListV2', () => {
 
     const { getAllByTestId } = renderComponent();
 
-    expect(getAllByTestId('list-item')[0]).toHaveTextContent('Solana');
+    expect(getAllByTestId('list-item')[0]).toHaveTextContent(
+      'Solana|100|false',
+    );
   });
 
   it('sorts by fiat value descending', () => {
@@ -259,25 +278,109 @@ describe('DeFiPositionsListV2', () => {
     expect(items[1]).toContain('Zebra');
   });
 
-  it('forwards isFullView to the view', () => {
-    renderComponent(false);
+  it('renders a scroll view with pull-to-refresh in full view', () => {
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({
+        positions: [makePosition({})],
+      }),
+    );
 
-    expect(mockLastViewProps?.isFullView).toBe(false);
+    const { getByTestId } = renderComponent(true);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW),
+    ).toBeOnTheScreen();
   });
 
-  it('calls refresh and toggles refreshing when pulled to refresh', async () => {
+  it('calls refresh when pulled to refresh in full view', async () => {
     const refresh = jest.fn().mockResolvedValue(undefined);
-    mockUseDeFiPositionsV2.mockReturnValue(makeHookResult({ refresh }));
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({
+        positions: [makePosition({})],
+        refresh,
+      }),
+    );
 
-    const { getByTestId } = renderComponent();
+    const { getByTestId } = renderComponent(true);
 
-    expect(getByTestId('refreshing')).toHaveTextContent('false');
-
-    fireEvent.press(getByTestId('refresh-btn'));
+    const scrollView = getByTestId(
+      WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+    );
+    await act(async () => {
+      await scrollView.props.refreshControl.props.onRefresh();
+    });
 
     expect(refresh).toHaveBeenCalledTimes(1);
     await waitFor(() =>
-      expect(getByTestId('refreshing')).toHaveTextContent('false'),
+      expect(
+        getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW).props
+          .refreshControl.props.refreshing,
+      ).toBe(false),
     );
+  });
+
+  it('tracks the position screen viewed event once when ready in full view', () => {
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({
+        positions: [
+          makePosition({ protocolId: 'A' }),
+          makePosition({ protocolId: 'B' }),
+          makePosition({ protocolId: 'C' }),
+        ],
+      }),
+    );
+
+    renderComponent(true);
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.POSITION_SCREEN_VIEWED,
+      )
+        .addProperties({
+          item_count: 3,
+          location: 'homepage',
+          is_empty: false,
+          screen_type: 'defi',
+        })
+        .build(),
+    );
+  });
+
+  it('reports is_empty when ready with no items', () => {
+    renderComponent(true);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.POSITION_SCREEN_VIEWED,
+      )
+        .addProperties({
+          item_count: 0,
+          location: 'homepage',
+          is_empty: true,
+          screen_type: 'defi',
+        })
+        .build(),
+    );
+  });
+
+  it('does not track the screen viewed event when not in full view', () => {
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({
+        positions: [makePosition({}), makePosition({ protocolId: 'B' })],
+      }),
+    );
+
+    renderComponent(false);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not track the screen viewed event while loading', () => {
+    mockUseDeFiPositionsV2.mockReturnValue(makeHookResult({ isLoading: true }));
+
+    renderComponent(true);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

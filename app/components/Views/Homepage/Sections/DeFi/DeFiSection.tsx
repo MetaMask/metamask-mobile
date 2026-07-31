@@ -162,8 +162,6 @@ const DeFiSectionV1 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
   },
 );
 
-DeFiSectionV1.displayName = 'DeFiSectionV1';
-
 /**
  * DeFiSection - homepage DeFi positions section.
  *
@@ -182,7 +180,5 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     );
   },
 );
-
-DeFiSection.displayName = 'DeFiSection';
 
 export default DeFiSection;

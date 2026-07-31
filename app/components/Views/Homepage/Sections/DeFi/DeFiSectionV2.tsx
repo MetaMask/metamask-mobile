@@ -49,18 +49,11 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const privacyMode = useSelector(selectPrivacyMode);
     const title = strings('homepage.sections.defi');
 
-    // Do not pass isLoading while idle, or visibility resets and never triggers
-    // the first fetch (see plan §5 / useSectionViewportVisible).
     const { isVisible, onLayout: visibilityOnLayout } =
       useSectionViewportVisible(sectionViewRef, { isLoading: false });
 
-    const {
-      positions,
-      isLoading,
-      isError,
-      hasFetched,
-      refresh: refreshV2,
-    } = useDeFiPositionsV2({ enabled: true, isVisible });
+    const { positions, isLoading, isError, hasFetched, refresh } =
+      useDeFiPositionsV2({ enabled: true, isVisible });
 
     const displayedPositions = useMemo(
       () =>
@@ -71,12 +64,8 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     );
 
     const handleViewAllDeFi = useCallback(() => {
-      navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW as never);
+      navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW);
     }, [navigation]);
-
-    const refresh = useCallback(async () => {
-      await refreshV2();
-    }, [refreshV2]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -136,6 +125,9 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       );
     }
 
+    // V2 fetches only when scrolled into view, so before the first fetch we are
+    // idle (not loading). Keep a measurable skeleton so layout/viewport
+    // detection still works; collapse to null only after a confirmed empty fetch.
     const showIdlePlaceholder = !hasFetched && !isLoading && !isError;
 
     return (
@@ -149,7 +141,7 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
         />
         <SectionRow>
           {isLoading || showIdlePlaceholder ? (
-            <DeFiPositionsSkeleton rows={showIdlePlaceholder ? 1 : 3} />
+            <DeFiPositionsSkeleton />
           ) : (
             displayedPositions.map((position) => (
               <DeFiPositionsListItemV2
@@ -164,7 +156,5 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     );
   },
 );
-
-DeFiSectionV2.displayName = 'DeFiSectionV2';
 
 export default DeFiSectionV2;

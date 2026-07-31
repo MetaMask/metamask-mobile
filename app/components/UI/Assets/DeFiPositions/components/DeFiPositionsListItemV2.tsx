@@ -45,7 +45,7 @@ const DeFiPositionsListItemV2: React.FC<DeFiPositionsListItemV2Props> = ({
   );
 
   const networkIconAvatar = useMemo(
-    () => (hexChainId ? NetworkBadgeSource(hexChainId as Hex) : undefined),
+    () => NetworkBadgeSource(hexChainId as Hex),
     [hexChainId],
   );
 

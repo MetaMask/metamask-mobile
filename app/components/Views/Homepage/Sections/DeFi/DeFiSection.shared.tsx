@@ -14,9 +14,8 @@ export interface DeFiSectionProps {
 
 /**
  * Skeleton placeholder for loading / idle state - matches DeFi list item layout.
- * Idle uses a shorter skeleton so the section stays measurable (≥30% viewport).
  */
-export const DeFiPositionsSkeleton = ({ rows = 3 }: { rows?: number }) => {
+export const DeFiPositionsSkeleton = ({ rows = 1 }: { rows?: number }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
 

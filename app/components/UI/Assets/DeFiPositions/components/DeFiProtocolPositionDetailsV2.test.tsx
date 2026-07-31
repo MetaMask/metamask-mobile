@@ -1,8 +1,13 @@
 import React from 'react';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import DeFiProtocolPositionDetailsV2 from './DeFiProtocolPositionDetailsV2';
+import DeFiProtocolPositionDetailsV2, {
+  DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
+} from './DeFiProtocolPositionDetailsV2';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 
 const mockUseParams = jest.fn();
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -16,14 +21,10 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: () => mockSelectPrivacyMode(),
 }));
 
-let mockLastDetailsViewProps: Record<string, unknown> | null = null;
-jest.mock('./DeFiProtocolPositionDetailsView', () => ({
-  __esModule: true,
-  default: (props: { children: React.ReactNode }) => {
-    const { View } = jest.requireActual('react-native');
-    mockLastDetailsViewProps = props;
-    return <View testID="details-view">{props.children}</View>;
-  },
+const mockPop = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ pop: mockPop }),
 }));
 
 let mockLastGroupsProps: Record<string, unknown> | null = null;
@@ -48,10 +49,22 @@ const mockGroup: DeFiProtocolPositionGroup = {
   sections: [],
 };
 
+const renderWithGroup = (
+  group: DeFiProtocolPositionGroup | undefined = mockGroup,
+  networkIconAvatar: number | undefined = 42,
+) => {
+  mockUseParams.mockReturnValue({
+    protocolPositionGroup: group,
+    networkIconAvatar,
+  });
+  return renderWithProvider(<DeFiProtocolPositionDetailsV2 />, {
+    state: mockInitialState,
+  });
+};
+
 describe('DeFiProtocolPositionDetailsV2', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLastDetailsViewProps = null;
     mockLastGroupsProps = null;
     mockSelectPrivacyMode.mockReturnValue(false);
   });
@@ -67,60 +80,63 @@ describe('DeFiProtocolPositionDetailsV2', () => {
       { state: mockInitialState },
     );
 
-    expect(queryByTestId('details-view')).toBeNull();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER),
+    ).toBeNull();
     expect(queryByTestId('position-groups')).toBeNull();
   });
 
-  it('renders the details view and groups from the navigation params', () => {
-    mockUseParams.mockReturnValue({
-      protocolPositionGroup: mockGroup,
-      networkIconAvatar: 42,
-    });
+  it('renders the container, title, formatted market value and groups', () => {
+    const { getByTestId, getByText } = renderWithGroup();
 
-    const { getByTestId } = renderWithProvider(
-      <DeFiProtocolPositionDetailsV2 />,
-      { state: mockInitialState },
-    );
-
-    expect(getByTestId('details-view')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER),
+    ).toBeOnTheScreen();
+    expect(getByText('Aave V3')).toBeOnTheScreen();
+    expect(
+      getByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
+    ).toHaveTextContent('$4,100.50');
     expect(getByTestId('position-groups')).toBeOnTheScreen();
   });
 
-  it('maps the group fields onto the details view props', () => {
+  it('formats an undefined market value as zero', () => {
+    const { getByTestId } = renderWithGroup({
+      ...mockGroup,
+      marketValue: undefined as unknown as number,
+    });
+
+    expect(
+      getByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
+    ).toHaveTextContent('$0.00');
+  });
+
+  it('hides the market value in privacy mode', () => {
     mockSelectPrivacyMode.mockReturnValue(true);
-    mockUseParams.mockReturnValue({
-      protocolPositionGroup: mockGroup,
-      networkIconAvatar: 42,
-    });
 
-    renderWithProvider(<DeFiProtocolPositionDetailsV2 />, {
-      state: mockInitialState,
-    });
+    const { getByTestId, queryByText } = renderWithGroup();
 
-    expect(mockLastDetailsViewProps).toMatchObject({
-      title: 'Aave V3',
-      marketValue: 4100.5,
-      iconUrl: 'https://example.com/aave.png',
-      networkIconAvatar: 42,
-      privacyMode: true,
-    });
+    expect(queryByText('$4,100.50')).toBeNull();
+    expect(
+      getByTestId(DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID),
+    ).toBeOnTheScreen();
   });
 
   it('forwards the group, network avatar and privacy mode to the groups component', () => {
     mockSelectPrivacyMode.mockReturnValue(true);
-    mockUseParams.mockReturnValue({
-      protocolPositionGroup: mockGroup,
-      networkIconAvatar: 42,
-    });
-
-    renderWithProvider(<DeFiProtocolPositionDetailsV2 />, {
-      state: mockInitialState,
-    });
+    renderWithGroup();
 
     expect(mockLastGroupsProps).toMatchObject({
       protocolPositionGroup: mockGroup,
       networkIconAvatar: 42,
       privacyMode: true,
     });
+  });
+
+  it('navigates back when the back button is pressed', () => {
+    const { getByTestId } = renderWithGroup();
+
+    fireEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
+
+    expect(mockPop).toHaveBeenCalledTimes(1);
   });
 });
