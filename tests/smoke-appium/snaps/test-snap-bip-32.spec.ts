@@ -1,0 +1,168 @@
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokeSnaps } from '../../tags.js';
+import Assertions from '../../framework/Assertions.js';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
+import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
+import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
+import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
+
+const multiSrpFixture = new FixtureBuilder()
+  .withMultiSRPKeyringController()
+  .build();
+
+appiumTest.describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
+  appiumTest.describe.configure({ timeout: 150_000 });
+
+  appiumTest(
+    'can connect to BIP-32 snap',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: true },
+        async () => {
+          await loginAndOpenTestSnaps();
+          await TestSnaps.installSnap('connectBip32Button');
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'can get BIP-32 public key',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: false },
+        async () => {
+          await TestSnaps.tapButton('getPublicKeyBip32Button');
+          await TestSnaps.checkResultSpan(
+            'bip32PublicKeyResultSpan',
+            '"0x043e98d696ae15caef75fa8dd204a7c5c08d1272b2218ba3c20feeb4c691eec366606ece56791c361a2320e7fad8bcbb130f66d51c591fc39767ab2856e93f8dfb"',
+          );
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'can sign BIP-32 message using secp256k1',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: false },
+        async () => {
+          await TestSnaps.fillMessage('messageSecp256k1Input', 'foo bar');
+          await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
+          await Assertions.expectTextDisplayed('Signature request');
+          await TestSnaps.approveSignRequest();
+          await TestSnaps.checkResultSpan(
+            'bip32MessageResultSecp256k1Span',
+            '"0x3045022100b3ade2992ea3e5eb58c7550e9bddad356e9554233c8b099ebc3cb418e9301ae2022064746e15ae024808f0ba5d860e44dc4c97e65c8cba6f5ef9ea2e8c819930d2dc"',
+          );
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'can sign BIP-32 message using ed25519',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: false },
+        async () => {
+          await TestSnaps.fillMessage('messageEd25519Input', 'foo bar');
+          await TestSnaps.tapButton('signMessageBip32ed25519Button');
+          await Assertions.expectTextDisplayed('Signature request');
+          await TestSnaps.approveSignRequest();
+          await TestSnaps.checkResultSpan(
+            'bip32MessageResultEd25519Span',
+            '"0xf3215b4d6c59aac7e01b4ceef530d1e2abf4857926b85a81aaae3894505699243768a887b7da4a8c2e0f25196196ba290b6531050db8dc15c252bdd508532a0a"',
+          );
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'can sign BIP-32 message using ed25519Bip32',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: false },
+        async () => {
+          await TestSnaps.fillMessage('messageEd25519Bip32Input', 'foo bar');
+          await TestSnaps.tapButton('signMessageBip32ed25519Bip32Button');
+          await Assertions.expectTextDisplayed('Signature request');
+          await TestSnaps.approveSignRequest();
+          await TestSnaps.checkResultSpan(
+            'bip32MessageResultEd25519Bip32Span',
+            '"0xc279ee3e49f7e392a4e511136c39791e076f9be01d8648f3f1586ecf0f41def1739fa2978f90cfb2da4cf53ccb99405558cffcc4d190199b6949b03b1b8dae05"',
+          );
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'can sign BIP-32 message using secp256k1 and SRP 1',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: false },
+        async () => {
+          await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 1');
+          await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
+          await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
+          await Assertions.expectTextDisplayed('Signature request');
+          await TestSnaps.approveSignRequest();
+          await TestSnaps.checkResultSpan(
+            'bip32MessageResultSecp256k1Span',
+            '"0x3045022100bd7301b5288fcc15e9c19bf548b666356230343a57f4ef0327a8e81f19ac562c022062698ed00a36e9ddd1563e1dc2e357d747bdfb233192ee1597cabb6c7210a6ba"',
+          );
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'can sign BIP-32 message using secp256k1 and SRP 2',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: false },
+        async () => {
+          await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 2');
+          await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
+          await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
+          await Assertions.expectTextDisplayed('Signature request');
+          await TestSnaps.approveSignRequest();
+          await TestSnaps.checkResultSpan(
+            'bip32MessageResultSecp256k1Span',
+            '"0x3045022100ad81b36b28f5f5dd47f45a46b2e7cf42e501d2e9b5768627b0702c100f80eb3c02200a481cbbe22b47b4ea6cd923a7da22952f5b21a0dc52e841dcd08f7af8c74e05"',
+          );
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'fails when choosing the invalid entropy source',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { fixture: multiSrpFixture, restartDevice: false },
+        async () => {
+          await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
+          await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
+          await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
+          await Assertions.expectTextDisplayed(
+            'Entropy source with ID "invalid" not found.',
+            { timeout: 30_000 },
+          );
+          await TestSnaps.dismissAlert();
+        },
+      );
+    },
+  );
+});
