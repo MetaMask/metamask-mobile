@@ -3,10 +3,6 @@ import {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import React, { useState, useContext, useMemo } from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { View, Switch, ActivityIndicator, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -16,6 +12,11 @@ import {
 import { useStyles } from '../../../../hooks/useStyles';
 import { usePerpsNetworkConfig, usePerpsNetwork } from '../../hooks';
 import { PerpsTestnetToggleSelectorsIDs } from '../../Perps.testIds';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 const PerpsTestnetToggleStyles = () =>
   StyleSheet.create({
@@ -67,7 +68,7 @@ export const PerpsTestnetToggle = () => {
 
   return (
     <View style={styles.container} testID={PerpsTestnetToggleSelectorsIDs.ROOT}>
-      <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+      <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
         {strings('perps.developer_options.hyperliquid_network_toggle')}
       </Text>
       <Switch
@@ -82,7 +83,7 @@ export const PerpsTestnetToggle = () => {
           testID={PerpsTestnetToggleSelectorsIDs.LOADING_INDICATOR}
         />
       ) : (
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
           {isTestnetEnabled
             ? strings('perps.testnet')
             : strings('perps.mainnet')}

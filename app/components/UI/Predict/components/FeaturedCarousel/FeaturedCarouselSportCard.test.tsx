@@ -210,6 +210,56 @@ const createMockSportMarket = (
   ...overrides,
 });
 
+const createMockEsportsDrawMarket = (): PredictMarket => {
+  const homeOutcome = createMockOutcome([
+    { id: 'token-home', title: 'Yes', price: 0.44 },
+  ]);
+  homeOutcome.id = 'outcome-home';
+  homeOutcome.sportsMarketType = 'moneyline';
+  homeOutcome.groupItemTitle = 'Nigma';
+  homeOutcome.negRisk = true;
+
+  const drawOutcome = createMockOutcome([
+    { id: 'token-draw', title: 'Yes', price: 0.22 },
+  ]);
+  drawOutcome.id = 'outcome-draw';
+  drawOutcome.sportsMarketType = 'moneyline';
+  drawOutcome.groupItemTitle = 'Draw';
+  drawOutcome.negRisk = true;
+
+  const awayOutcome = createMockOutcome([
+    { id: 'token-away', title: 'Yes', price: 0.34 },
+  ]);
+  awayOutcome.id = 'outcome-away';
+  awayOutcome.sportsMarketType = 'moneyline';
+  awayOutcome.groupItemTitle = '1win';
+  awayOutcome.negRisk = true;
+
+  return createMockSportMarket({
+    title: 'Nigma vs 1win',
+    outcomes: [awayOutcome, drawOutcome, homeOutcome],
+    game: createMockGame({
+      league: 'dota2',
+      period: '0/2',
+      score: { away: 0, home: 0, raw: '000-000|0-0|Bo2' },
+      homeTeam: {
+        id: 'nigma',
+        name: 'Nigma',
+        logo: 'https://example.com/nigma.png',
+        abbreviation: 'NIGMA',
+        color: 'purple',
+      },
+      awayTeam: {
+        id: '1win',
+        name: '1win',
+        logo: 'https://example.com/1win.png',
+        abbreviation: '1WIN',
+        color: 'green',
+      },
+    }),
+  });
+};
+
 describe('FeaturedCarouselSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -311,6 +361,112 @@ describe('FeaturedCarouselSportCard', () => {
     expect(getByText('40%')).toBeOnTheScreen();
   });
 
+  it('renders UCL outcomes in home-draw-away league order', () => {
+    const market = createMockSportMarket();
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 0)),
+    ).toHaveTextContent('Lakers');
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 2)),
+    ).toHaveTextContent('Celtics');
+  });
+
+  it('renders WNBA outcomes in away-home league order', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        league: 'wnba',
+        score: { away: 49, home: 59, raw: '49-59' },
+        awayTeam: {
+          id: 'portland-fire',
+          name: 'Portland Fire',
+          logo: 'https://example.com/portland-fire.png',
+          abbreviation: 'POR',
+          color: 'orange',
+          alias: 'PortlandFire',
+        },
+        homeTeam: {
+          id: 'connecticut-sun',
+          name: 'Connecticut Sun',
+          logo: 'https://example.com/connecticut-sun.png',
+          abbreviation: 'CONN',
+          color: 'red',
+          alias: 'Sun',
+        },
+      }),
+      outcomes: [
+        createMockOutcome([
+          { id: 'portland-token', title: 'Portland Fire', price: 0.16 },
+          { id: 'connecticut-token', title: 'Connecticut Sun', price: 0.85 },
+        ]),
+      ],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 0)),
+    ).toHaveTextContent('Portland Fire');
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(0, 1)),
+    ).toHaveTextContent('Connecticut Sun');
+  });
+
+  it('opens the WNBA away outcome from the left carousel button', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        league: 'wnba',
+        awayTeam: {
+          id: 'portland-fire',
+          name: 'Portland Fire',
+          logo: 'https://example.com/portland-fire.png',
+          abbreviation: 'POR',
+          color: 'orange',
+          alias: 'PortlandFire',
+        },
+        homeTeam: {
+          id: 'connecticut-sun',
+          name: 'Connecticut Sun',
+          logo: 'https://example.com/connecticut-sun.png',
+          abbreviation: 'CONN',
+          color: 'red',
+          alias: 'Sun',
+        },
+      }),
+      outcomes: [
+        createMockOutcome([
+          { id: 'portland-token', title: 'Portland Fire', price: 0.16 },
+          { id: 'connecticut-token', title: 'Connecticut Sun', price: 0.85 },
+        ]),
+      ],
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(0, 0)),
+    );
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcomeToken: expect.objectContaining({
+          id: 'portland-token',
+        }),
+      }),
+    );
+  });
+
   it('renders draw button for UCL leagues', () => {
     const market = createMockSportMarket({
       game: createMockGame({ league: 'ucl' }),
@@ -324,6 +480,70 @@ describe('FeaturedCarouselSportCard', () => {
     expect(
       getByText(`${strings('predict.outcome_draw')} 20%`),
     ).toBeOnTheScreen();
+  });
+
+  it('renders explicit esports draw buttons and routes the draw outcome', () => {
+    const market = createMockEsportsDrawMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('44%')).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 22%`),
+    ).toBeOnTheScreen();
+    expect(getByText('34%')).toBeOnTheScreen();
+
+    fireEvent.press(getByText(`${strings('predict.outcome_draw')} 22%`));
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcome: expect.objectContaining({ id: 'outcome-draw' }),
+        outcomeToken: expect.objectContaining({ id: 'token-draw' }),
+      }),
+    );
+  });
+
+  it('renders two-way esports markets without draw buttons', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        league: 'dota2',
+        homeTeam: {
+          id: 'nigma',
+          name: 'Nigma',
+          logo: 'https://example.com/nigma.png',
+          abbreviation: 'NIGMA',
+          color: 'purple',
+        },
+        awayTeam: {
+          id: '1win',
+          name: '1win',
+          logo: 'https://example.com/1win.png',
+          abbreviation: '1WIN',
+          color: 'green',
+        },
+      }),
+      outcomes: [
+        createMockOutcome([
+          { id: 'token-home', title: 'Nigma', price: 0.58 },
+          { id: 'token-away', title: '1win', price: 0.42 },
+        ]),
+      ],
+    });
+    market.outcomes[0].sportsMarketType = 'moneyline';
+
+    const { getByText, queryByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('58%')).toBeOnTheScreen();
+    expect(getByText('42%')).toBeOnTheScreen();
+    expect(
+      queryByText(new RegExp(strings('predict.outcome_draw'), 'i')),
+    ).not.toBeOnTheScreen();
   });
 
   it.each(['nba', 'nfl'] as const)(

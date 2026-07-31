@@ -11,6 +11,7 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
+  selectIsSlippageUserOverride,
   selectIsSubmittingTx,
   selectSlippage,
 } from '../../../../../../core/redux/slices/bridge';
@@ -216,6 +217,7 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   })),
   selectIsSubmittingTx: jest.fn(),
   selectDestAddress: jest.fn(),
+  selectIsSlippageUserOverride: jest.fn(),
   selectSlippage: jest.fn(),
   selectIsEvmNonEvmBridge: jest.fn(),
   selectIsNonEvmNonEvmBridge: jest.fn(),
@@ -382,6 +384,7 @@ const setupDefaultMocks = () => {
     '0xWALLET',
   );
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
+  (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(true);
   (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
   (selectIsEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
   (selectIsNonEvmNonEvmBridge as unknown as jest.Mock).mockReturnValue(false);
@@ -733,6 +736,32 @@ describe('useQuickBuyController', () => {
       expect(result.current.isConfirmDisabled).toBe(false);
     });
 
+    it('enables Add Funds when keypad entry exceeds the available balance', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleAmountChange('250');
+      });
+
+      expect(result.current.fiatAmount).toBe('250');
+      expect(result.current.isPresetAddFundsMode).toBe(true);
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.quick_buy.add_funds',
+      );
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
     it('routes to Ramp buy when Add Funds is confirmed', async () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '0.1',
@@ -793,6 +822,107 @@ describe('useQuickBuyController', () => {
 
       expect(mockGoToBuy).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('skips quote fetching when a pill exceeds the available balance', () => {
+      // Balance 0.1 ETH @ 2000 => maxSpendFiat 200; the 250 pill exceeds it.
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(250, 250);
+      });
+
+      // The amount handed to the quotes hook is suppressed (undefined), so no
+      // bridge request runs while the CTA routes to Ramp.
+      const calls = (useQuickBuyQuotes as jest.Mock).mock.calls;
+      expect(calls[calls.length - 1][0].sourceTokenAmount).toBeUndefined();
+      // Existing add-funds behaviour is preserved: actionable, labelled "Add funds".
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.quick_buy.add_funds',
+      );
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('keeps Add Funds actionable (not loading) even if quotes report loading', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+      // Force a mid-flight fetch: even if a prior valid-amount request is still
+      // reporting loading, the add-funds CTA must not spin.
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: undefined,
+        sortedQuotes: [],
+        destTokenAmount: undefined,
+        isQuoteLoading: true,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(250, 250);
+      });
+
+      // The quote layer still reports a blocking load, but preset add-funds mode
+      // decouples the CTA from it — the button stays idle and tappable.
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
+      expect(result.current.confirmButtonState).toBe('idle');
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('still fetches quotes for a within-balance pill', () => {
+      // Balance 10 ETH @ 200 => maxSpendFiat 2000; the 50 pill is well within it.
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '10',
+        atomicBalance: '10000000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 200 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(50, 50);
+      });
+
+      // 50 / 200 = 0.25 ETH is passed through untouched — quotes still fetch.
+      const calls = (useQuickBuyQuotes as jest.Mock).mock.calls;
+      expect(calls[calls.length - 1][0].sourceTokenAmount).toBe('0.25');
+      expect(result.current.isPresetAddFundsMode).toBe(false);
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.trader_position.buy',
+      );
     });
 
     it('exposes usdToCurrentCurrencyRate from native currency rates', () => {
@@ -963,7 +1093,7 @@ describe('useQuickBuyController', () => {
   });
 
   describe('handleSelectSourceToken', () => {
-    it('updates the selected token and resets amount + slider state', () => {
+    it('updates the selected token and preserves the entered amount', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
@@ -998,8 +1128,78 @@ describe('useQuickBuyController', () => {
       });
 
       expect(result.current.selectedSourceToken).toEqual(usdt);
-      expect(result.current.fiatAmount).toBe('');
+      expect(result.current.fiatAmount).toBe('25');
       expect(result.current.sliderPercent).toBe(0);
+    });
+
+    it('keeps max-spend mode when the same pay-with token is re-selected', () => {
+      const FULL_BALANCE = '0.10003';
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: FULL_BALANCE,
+        atomicBalance: '100030000000000000',
+      });
+      const stablecoin = createSourceToken({
+        symbol: 'MUSD',
+        currencyExchangeRate: 0.9997,
+        balance: FULL_BALANCE,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [stablecoin],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(100);
+        result.current.handleSliderDragEnd(100);
+      });
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+
+      act(() => {
+        result.current.handleSelectSourceToken(stablecoin);
+      });
+
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+    });
+
+    it('clears max-spend mode when switching to a different pay-with token', () => {
+      const FULL_BALANCE = '0.10003';
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: FULL_BALANCE,
+        atomicBalance: '100030000000000000',
+      });
+      const musd = createSourceToken({
+        symbol: 'MUSD',
+        currencyExchangeRate: 0.9997,
+        balance: FULL_BALANCE,
+      });
+      const usdt = createSourceToken({
+        symbol: 'USDT',
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        currencyExchangeRate: 1,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [musd, usdt],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(100);
+        result.current.handleSliderDragEnd(100);
+      });
+      expect(result.current.sourceTokenAmount).toBe(FULL_BALANCE);
+
+      act(() => {
+        result.current.handleSelectSourceToken(usdt);
+      });
+
+      expect(result.current.sourceTokenAmount).not.toBe(FULL_BALANCE);
+      expect(result.current.fiatAmount).not.toBe('');
     });
 
     it('tracks pay_with_selected when the user picks a different token', () => {

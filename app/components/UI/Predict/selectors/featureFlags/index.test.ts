@@ -1,7 +1,10 @@
+import type { Json } from '@metamask/utils';
 import {
   selectExtendedSportsMarketsLeagues,
   selectPredictBottomSheetEnabledFlag,
   selectPredictEnabledFlag,
+  selectPredictFeedBannerConfig,
+  selectPredictFeedCarouselConfig,
   selectPredictFakOrdersEnabledFlag,
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictFeatureFlags,
@@ -34,9 +37,15 @@ import {
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
 import {
+  DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../../constants/feedBanner';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -2115,6 +2124,177 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictFeaturedCarouselEnabledFlag(state);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictFeedBannerConfig', () => {
+    const validFlag = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      id: 'predict-message-1',
+      title: 'Predict update',
+      description: 'Scheduled maintenance begins soon.',
+      position: PredictFeedBannerPosition.AfterBalance,
+      severity: PredictFeedBannerSeverity.Info,
+      dismissible: true,
+    };
+    const createState = (predictFeedBanner: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictFeedBanner },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns a valid enabled banner config', () => {
+      const result = selectPredictFeedBannerConfig(createState(validFlag));
+
+      expect(result).toStrictEqual(validFlag);
+    });
+
+    it('unwraps a threshold flag value', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ name: 'treatment', value: validFlag }),
+      );
+
+      expect(result).toStrictEqual(validFlag);
+    });
+
+    it('returns the disabled default when the flag is disabled', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, enabled: false }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+
+    it('returns the disabled default for malformed content', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, title: '' }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+
+    it('returns the disabled default when the version requirement is not met', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, minimumVersion: '99.0.0' }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+  });
+
+  describe('selectPredictFeedCarouselConfig', () => {
+    const validFlag = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      mode: 'custom',
+      title: '  Wimbledon  ',
+      deeplink: '  https://link.metamask.io/predict?feed=sports&tab=tennis  ',
+      contentSource: {
+        composition: 'query-results',
+        queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
+        excludedMarketIds: [' market-1 ', 'market-1', ' ', 'market-2'],
+      },
+    };
+    const createState = (predictFeedCarousel: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictFeedCarousel },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns a normalized custom carousel config', () => {
+      const result = selectPredictFeedCarouselConfig(createState(validFlag));
+
+      expect(result).toStrictEqual({
+        ...validFlag,
+        title: 'Wimbledon',
+        deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
+        contentSource: {
+          composition: 'query-results',
+          queryParams: 'tag_slug=tennis&order=volume24hr',
+          excludedMarketIds: ['market-1', 'market-2'],
+        },
+      });
+    });
+
+    it('accepts custom mode without a deeplink', () => {
+      const { deeplink: _deeplink, ...flagWithoutDeeplink } = validFlag;
+
+      const result = selectPredictFeedCarouselConfig(
+        createState(flagWithoutDeeplink),
+      );
+
+      expect(result.mode).toBe('custom');
+      expect(result.deeplink).toBeUndefined();
+    });
+
+    it.each([undefined, '   '])(
+      'accepts custom mode with title %p',
+      (title) => {
+        const { title: _title, ...flagWithoutTitle } = validFlag;
+        const flag =
+          title === undefined ? flagWithoutTitle : { ...validFlag, title };
+        const result = selectPredictFeedCarouselConfig(createState(flag));
+
+        expect(result.mode).toBe('custom');
+        expect(result.title).toBeUndefined();
+      },
+    );
+
+    it('unwraps a threshold flag value', () => {
+      const result = selectPredictFeedCarouselConfig(
+        createState({ name: 'treatment', value: validFlag }),
+      );
+
+      expect(result.mode).toBe('custom');
+      expect(result.title).toBe('Wimbledon');
+    });
+
+    it('returns live mode when the flag is absent', () => {
+      const result = selectPredictFeedCarouselConfig(createState(null));
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
+    });
+
+    it.each([
+      { ...validFlag, enabled: false },
+      { ...validFlag, mode: 'live' },
+      { ...validFlag, deeplink: 'https://example.com/predict' },
+      { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
+      {
+        ...validFlag,
+        contentSource: {
+          ...validFlag.contentSource,
+          composition: 'automatic',
+        },
+      },
+      {
+        ...validFlag,
+        contentSource: { ...validFlag.contentSource, queryParams: 123 },
+      },
+      {
+        ...validFlag,
+        contentSource: {
+          ...validFlag.contentSource,
+          excludedMarketIds: ['market-1', 2],
+        },
+      },
+      { ...validFlag, minimumVersion: 'not-semver' },
+      { ...validFlag, minimumVersion: '99.0.0' },
+    ])('returns live mode for unavailable or malformed config %#', (flag) => {
+      const result = selectPredictFeedCarouselConfig(createState(flag));
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
     });
   });
 });

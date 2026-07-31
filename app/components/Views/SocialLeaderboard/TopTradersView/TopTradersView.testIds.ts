@@ -9,7 +9,10 @@ export const TopTradersViewSelectorsIDs = {
   NOTIFICATION_BUTTON: 'top-traders-view-notification-button',
   NOTIFICATIONS_BANNER: 'top-traders-view-notifications-banner',
   TRADER_LIST: 'top-traders-view-list',
-  TAB_FILTER_ALL: 'tab-filter-all',
-  TAB_FILTER_TOKENS: 'tab-filter-tokens',
-  TAB_FILTER_PERPS: 'tab-filter-perps',
+  TYPE_SELECTOR: 'top-traders-view-type-selector',
+  PINNED_TYPE_SELECTOR: 'top-traders-view-pinned-type-selector',
+  TIMEFRAME_SELECTOR: 'top-traders-view-timeframe-selector',
+  PINNED_TIMEFRAME_SELECTOR: 'top-traders-view-pinned-timeframe-selector',
+  SORT_SELECTOR: 'top-traders-view-sort-selector',
+  PINNED_SORT_SELECTOR: 'top-traders-view-pinned-sort-selector',
 };

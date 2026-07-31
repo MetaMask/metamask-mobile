@@ -4,6 +4,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -35,7 +37,7 @@ const PerpsSelectModifyActionView: React.FC<
   onReversePosition,
   testID,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsSelectModifyAction'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -107,10 +109,14 @@ const PerpsSelectModifyActionView: React.FC<
           break;
 
         case 'reduce_position':
-          // Open close position screen
+          // Open close position screen — this entry is the reduce-exposure CTA.
           navigateToClosePosition(
             position,
             PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+            {
+              buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+              buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+            },
           );
           break;
 

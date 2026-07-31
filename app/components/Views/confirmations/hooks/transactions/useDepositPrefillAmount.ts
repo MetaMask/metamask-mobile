@@ -3,8 +3,8 @@ import { BigNumber } from 'bignumber.js';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import {
   selectDepositLimits,
@@ -14,8 +14,7 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
-import { hasTransactionType } from '../../utils/transaction';
-import { isStablecoin } from '../../utils/token';
+import { isRouteToken } from '../../utils/relayFixedSpread';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
@@ -73,11 +72,10 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
       return undefined;
     }
 
-    const stable = isStablecoin(
-      payToken.address as Hex,
-      payToken.chainId as Hex,
-      relayFixedSpread,
-    );
+    const stable = isRouteToken(relayFixedSpread, {
+      chainId: payToken.chainId,
+      address: payToken.address,
+    });
     const percentage = stable ? 100 : 50;
 
     const raw = new BigNumber(percentage)

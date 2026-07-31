@@ -132,7 +132,14 @@ jobs:
 
           BRANCH_NAME="${{ inputs.branch_name || github.ref_name }}"
           BRANCH_SLUG="$(printf '%s' "$BRANCH_NAME" | sed 's/[^A-Za-z0-9._-]/_/g' | cut -c1-40)"
+          # Stable per-branch custom_id (no run_id). BrowserStack overwrites the
+          # previous app for the same custom_id, so resolve can look up
+          # recent_apps/MetaMask-Android-*-main exactly.
+          WITH_SRP_CUSTOM_ID="MetaMask-Android-With-SRP-${BRANCH_SLUG}"
+          WITHOUT_SRP_CUSTOM_ID="MetaMask-Android-Without-SRP-${BRANCH_SLUG}"
           echo "BrowserStack custom_id branch slug: $BRANCH_SLUG"
+          echo "With-SRP custom_id: $WITH_SRP_CUSTOM_ID"
+          echo "Without-SRP custom_id: $WITHOUT_SRP_CUSTOM_ID"
 
           # Initialize outputs
           {
@@ -157,7 +164,7 @@ jobs:
             WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
               -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
               -F "file=@$WITH_SRP_APK" \
-              -F "custom_id=MetaMask-Android-With-SRP-${BRANCH_SLUG}-${{ github.run_id }}")
+              -F "custom_id=$WITH_SRP_CUSTOM_ID")
 
             WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url // empty')
             WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id // empty')
@@ -190,7 +197,7 @@ jobs:
             WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
               -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
               -F "file=@$WITHOUT_SRP_APK" \
-              -F "custom_id=MetaMask-Android-Without-SRP-${BRANCH_SLUG}-${{ github.run_id }}")
+              -F "custom_id=$WITHOUT_SRP_CUSTOM_ID")
 
             WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url // empty')
             WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id // empty')

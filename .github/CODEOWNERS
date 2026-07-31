@@ -89,12 +89,10 @@ app/components/Views/confirmations/external/staking             @MetaMask/confir
 app/components/Views/confirmations/hooks/useIsExternalAppRequest.ts @MetaMask/confirmations @MetaMask/product-safety
 app/core/Analytics/events/confirmations                         @MetaMask/confirmations
 app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
-app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
 app/core/Engine/controllers/signature-controller                @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller              @MetaMask/confirmations
 app/core/Engine/controllers/transaction-pay-controller          @MetaMask/confirmations
 app/core/Engine/messengers/approval-controller-messenger        @MetaMask/confirmations
-app/core/Engine/messengers/gas-fee-controller-messenger         @MetaMask/confirmations
 app/core/Engine/messengers/signature-controller-messenger       @MetaMask/confirmations
 app/core/Engine/messengers/transaction-controller-messenger     @MetaMask/confirmations
 app/core/Engine/messengers/transaction-pay-controller-messenger @MetaMask/confirmations
@@ -310,13 +308,13 @@ app/components/Views/Homepage/index.ts           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/context/           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/hooks/             @MetaMask/mobile-core-ux
 app/components/Views/Homepage/components/        @MetaMask/mobile-core-ux
-app/selectors/featureFlagController/homepage/    @MetaMask/mobile-core-ux @MetaMask/mobile-platform
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
 
 # Web3auth Team
-app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
+app/core/Engine/wallet-init/instance-options/seedless-onboarding-controller.ts @MetaMask/web3auth
+app/core/Engine/wallet-init/instance-options/seedless-onboarding-controller.test.ts @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/Engine/controllers/qr-sync-controller-init.ts      @MetaMask/web3auth
 app/core/Engine/messengers/qr-sync-controller-messenger     @MetaMask/web3auth
@@ -374,8 +372,6 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
-.github/workflows/run-e2e-regression-tests-android.yml          @MetaMask/qa
-.github/workflows/run-e2e-regression-tests-ios.yml              @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-android.yml               @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-ios.yml                   @MetaMask/qa
@@ -391,7 +387,6 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-system-tests.yml                          @MetaMask/qa
 .github/scripts/e2e-*.mjs                                       @MetaMask/qa
 .github/scripts/collect-qa-stats.mjs                            @MetaMask/qa
-.github/scripts/generate-regression-slack-summary.mjs           @MetaMask/qa
 
 # Co-owned by Swaps and Money Movement teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
@@ -402,6 +397,7 @@ app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/gas-fee-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform

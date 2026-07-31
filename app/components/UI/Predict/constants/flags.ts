@@ -1,5 +1,7 @@
 import {
   PredictExtendedSportsMarketsFlag,
+  PredictFeedBannerConfig,
+  PredictFeedCarouselConfig,
   PredictFeeCollection,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
@@ -7,6 +9,32 @@ import {
   PredictWimbledonTabFlag,
   PredictWorldCupConfig,
 } from '../types/flags';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from './feedBanner';
+
+export const DEFAULT_PREDICT_FEED_CAROUSEL_FLAG: PredictFeedCarouselConfig = {
+  enabled: false,
+  minimumVersion: '',
+  mode: 'live',
+  contentSource: {
+    composition: 'query-results',
+    queryParams: '',
+    excludedMarketIds: [],
+  },
+};
+
+export const DEFAULT_PREDICT_FEED_BANNER_FLAG: PredictFeedBannerConfig = {
+  enabled: false,
+  minimumVersion: '',
+  id: '',
+  title: '',
+  description: '',
+  position: PredictFeedBannerPosition.AfterWorldCupBanner,
+  severity: PredictFeedBannerSeverity.Info,
+  dismissible: false,
+};
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
   enabled: true,

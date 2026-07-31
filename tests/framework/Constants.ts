@@ -105,6 +105,24 @@ export const DEFAULT_ACTION_TIMEOUT_MS = 5_000;
 /** WebDriver HTTP timeout for BrowserStack session creation (grid can take several minutes). */
 export const DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS = 300_000;
 
+/**
+ * WDIO HTTP request retries for BrowserStack hub calls (including POST /session).
+ * Busy grids often abort session creation once; a higher count recovers without
+ * burning a full Playwright test retry.
+ */
+export const DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT = 5;
+
+/**
+ * Outer attempts in BrowserStackProvider.getDriver() when session creation fails
+ * with a transient hub/timeout error after WDIO's own connection retries.
+ * This is the session-only retry path — Playwright test retries stay at the
+ * shared CI default and are not raised for product/threshold failures.
+ */
+export const DEFAULT_BROWSERSTACK_SESSION_CREATE_MAX_ATTEMPTS = 5;
+
+/** Backoff between BrowserStackProvider session-create attempts, in ms. */
+export const DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS = 5_000;
+
 /** BrowserStack maximum allowed idle timeout between WebDriver commands, in seconds. */
 export const DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS = 300;
 
@@ -197,6 +215,7 @@ export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
  */
 export enum E2EDeeplinkSchemes {
   PERPS = 'e2e://perps/',
+  QR_SYNC = 'e2e://qr-sync/',
 }
 
 /**

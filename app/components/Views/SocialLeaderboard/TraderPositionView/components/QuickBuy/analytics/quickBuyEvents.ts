@@ -32,7 +32,6 @@ export const QuickBuyEventProperties = {
   STATUS: 'status',
   TRADE_TYPE: 'trade_type',
   TRADER_ADDRESS: 'trader_address',
-  TRADER_TRADE_TYPE: 'trader_trade_type',
   TX_HASH: 'tx_hash',
 } as const;
 
@@ -58,7 +57,7 @@ export const QuickBuyEventValues = {
     SUCCESS: 'success',
     FAILED: 'failed',
   },
-  TRADER_TRADE_TYPE: {
+  TRADE_TYPE: {
     BUY: 'buy',
     SELL: 'sell',
   },

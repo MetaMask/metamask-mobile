@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import {
@@ -21,6 +23,10 @@ import {
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import {
+  navigateToPerpsHomeTarget,
+  useGetPerpsHomeNavigationTarget,
+} from '../utils/perpsModeSwitch';
 
 /**
  * Navigation handler result interface
@@ -48,7 +54,11 @@ export interface PerpsNavigationHandlers {
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
   navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
-  navigateToClosePosition: (position: Position, source?: string) => void;
+  navigateToClosePosition: (
+    position: Position,
+    source?: string,
+    entry?: { buttonClicked?: string; buttonLocation?: string },
+  ) => void;
   navigateToOrderDetails: (order: Order) => void;
 
   // Utility navigation
@@ -84,7 +94,7 @@ export interface PerpsNavigationHandlers {
  * @returns Object containing all navigation handler functions
  */
 export const usePerpsNavigation = (): PerpsNavigationHandlers => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
@@ -137,13 +147,14 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
   const navigateToHome = useCallback(
     (source?: string) => {
-      navigation.navigate(Routes.PERPS.PERPS_HOME, {
-        source,
-      });
+      const target = getPerpsHomeNavigationTarget({ source });
+      navigateToPerpsHomeTarget(navigation, target);
     },
-    [navigation],
+    [navigation, getPerpsHomeNavigationTarget],
   );
 
   const navigateToMarketList = useCallback(
@@ -223,8 +234,17 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const navigateToClosePosition = useCallback(
-    (position: Position, source?: string) => {
-      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position, source });
+    (
+      position: Position,
+      source?: string,
+      entry?: { buttonClicked?: string; buttonLocation?: string },
+    ) => {
+      navigation.navigate(Routes.PERPS.CLOSE_POSITION, {
+        position,
+        source,
+        buttonClicked: entry?.buttonClicked,
+        buttonLocation: entry?.buttonLocation,
+      });
     },
     [navigation],
   );

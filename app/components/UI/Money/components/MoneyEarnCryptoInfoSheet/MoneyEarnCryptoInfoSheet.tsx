@@ -1,9 +1,13 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Text,
   TextVariant,
@@ -18,22 +22,32 @@ import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.test
 
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
-import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import {
+  BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
 
 interface MoneyEarnCryptoInfoSheetParams {
+  showMoneyHomeCta?: boolean;
   variant?: MoneyEarnCryptoInfoSheetVariant;
 }
 
 const MoneyEarnCryptoInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { variant = 'default' } = useParams<MoneyEarnCryptoInfoSheetParams>();
+  const { showMoneyHomeCta = false, variant = 'default' } =
+    useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyAccountBalance();
+  const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
+    useMoneyNavigation();
 
-  const { trackBottomSheetViewed } = useMoneyAnalytics({
+  const { trackBottomSheetViewed, trackButtonClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
   });
 
@@ -46,6 +60,20 @@ const MoneyEarnCryptoInfoSheet = () => {
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  const handleGoToMoneyHome = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: isOnboardingRedirectNeeded
+        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
+        : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+      label_key: 'money.earn_crypto_info_sheet.go_to_money_account',
+      redirect_target: isOnboardingRedirectNeeded
+        ? SCREEN_NAMES.MONEY_ONBOARDING
+        : SCREEN_NAMES.MONEY_HOME,
+    });
+    navigateToMoneyHome();
+  }, [isOnboardingRedirectNeeded, navigateToMoneyHome, trackButtonClicked]);
 
   const title =
     variant === 'deposit'
@@ -77,6 +105,18 @@ const MoneyEarnCryptoInfoSheet = () => {
             percentage: apyPercent ?? '-',
           })}
         </Text>
+        {showMoneyHomeCta && (
+          <Button
+            isFullWidth
+            onPress={handleGoToMoneyHome}
+            size={ButtonSize.Lg}
+            testID={MoneyEarnCryptoInfoSheetTestIds.MONEY_HOME_BUTTON}
+            variant={ButtonVariant.Secondary}
+            twClassName="mt-4"
+          >
+            {strings('money.earn_crypto_info_sheet.go_to_money_account')}
+          </Button>
+        )}
       </View>
     </BottomSheet>
   );

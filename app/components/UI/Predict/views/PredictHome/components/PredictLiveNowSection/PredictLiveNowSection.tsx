@@ -11,16 +11,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
+import AppConstants from '../../../../../../../core/AppConstants';
+import SharedDeeplinkManager from '../../../../../../../core/DeeplinkManager/DeeplinkManager';
+import Logger from '../../../../../../../util/Logger';
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
 import { PaginationDots } from '../../../../components/PaginationDots/PaginationDots';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import type { PredictMarket as PredictMarketType } from '../../../../types';
-import type { PredictNavigationParamList } from '../../../../types/navigation';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
 import { usePredictLiveNowSection } from './usePredictLiveNowSection';
 
@@ -38,20 +41,17 @@ interface PredictLiveNowSectionProps {
 type CarouselItem = PredictMarketType | undefined;
 
 /**
- * Predict home "Live Now" carousel (PRED-834).
+ * Configurable Predict home feed carousel.
  *
- * Horizontal rail interleaving live sports markets with the BTC Up/Down crypto
- * card (see {@link usePredictLiveNowSection}), reusing the shared
- * `PredictMarket` carousel card. Renders skeletons while loading and hides
- * itself entirely when there is no data (empty/error) so it never blocks the
- * home screen.
+ * Live mode preserves the PRED-834 sports and Crypto Up/Down rail. Custom mode
+ * uses the remote title, optional destination, and content source. The section
+ * hides itself on empty/error so it never blocks the home screen.
  */
 const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   testID = PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { width: screenWidth } = useWindowDimensions();
   const cardWidth = useMemo(
     () => screenWidth * CARD_WIDTH_RATIO,
@@ -60,15 +60,29 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   // Cards snap on width + gap, so the active-dot math must divide by the same
   // interval (not just cardWidth) to stay in sync with the snapped card.
   const snapInterval = useMemo(() => cardWidth + CARD_GAP, [cardWidth]);
-  const { items, isLoading, isEmpty } = usePredictLiveNowSection();
+  const { items, isLoading, isEmpty, config } = usePredictLiveNowSection();
   const [activeIndex, setActiveIndex] = useState(0);
+  const isCustom = config.mode === 'custom';
+  const isHeaderInteractive = !isCustom || Boolean(config.deeplink);
 
-  const handleSeeAll = useCallback(() => {
+  const handleHeaderPress = useCallback(() => {
     Engine.context.PredictController.trackHomeSectionInteraction({
       sectionId: PredictEventValues.SECTION_ID.LIVE_NOW,
       actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
       entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
     });
+
+    if (isCustom && config.deeplink) {
+      SharedDeeplinkManager.getInstance()
+        .parse(config.deeplink, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+        })
+        .catch((error) => {
+          Logger.error(error, 'Predict feed carousel: failed to open deeplink');
+        });
+      return;
+    }
+
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.FEED,
       params: {
@@ -76,7 +90,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
     });
-  }, [navigation]);
+  }, [config.deeplink, isCustom, navigation]);
 
   useEffect(() => {
     const lastIndex = items.length - 1;
@@ -147,13 +161,20 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="my-2">
-      {/* "See all" navigates to the generic PredictFeedView (feedId 'live'). */}
+    <Box testID={testID}>
       <SectionHeader
         testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER}
-        title={strings('predict.home.live_now_title')}
-        isInteractive
-        onPress={handleSeeAll}
+        title={
+          isCustom && config.title
+            ? config.title
+            : strings('predict.home.live_now_title')
+        }
+        isInteractive={isHeaderInteractive}
+        onPress={isHeaderInteractive ? handleHeaderPress : undefined}
+        endIconProps={{
+          testID: PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER_CHEVRON,
+        }}
+        twClassName="p-0 mb-2"
       />
 
       <Box twClassName="-mx-4">

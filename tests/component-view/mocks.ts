@@ -112,6 +112,8 @@ jest.mock('../../app/core/Engine', () => {
           supportsPinView: true,
           supportsCashback: true,
           supportsCredit: true,
+          supportsSensitiveDetailsView: false,
+          supportsTravel: true,
         }),
       },
       PhishingController: {
@@ -370,9 +372,11 @@ jest.mock('../../app/core/Engine', () => {
         subscribeToMarketPrices: jest.fn(() => () => undefined),
         subscribeToCryptoPrices: jest.fn(() => () => undefined),
         subscribeToGameUpdates: jest.fn(() => () => undefined),
+        subscribeToConnectionStatus: jest.fn(() => () => undefined),
         getConnectionStatus: jest.fn(() => ({
           marketConnected: false,
           sportsConnected: false,
+          rtdsConnected: false,
         })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),

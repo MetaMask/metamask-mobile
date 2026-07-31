@@ -1,8 +1,35 @@
 import { Infer } from '@metamask/superstruct';
 import { PredictFeeCollectionSchema } from '../schemas';
 import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import type {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../constants/feedBanner';
 
 export type PredictFeeCollection = Infer<typeof PredictFeeCollectionSchema>;
+
+export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
+  id: string;
+  title: string;
+  description: string;
+  position: PredictFeedBannerPosition;
+  severity: PredictFeedBannerSeverity;
+  dismissible: boolean;
+}
+
+export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
+  mode: 'live' | 'custom';
+  title?: string;
+  deeplink?: string;
+  contentSource: {
+    /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
+    composition: 'query-results' | 'live-now';
+    /** Raw Polymarket query params, without a leading `?`. */
+    queryParams: string;
+    /** IDs matching `PredictMarket.id` that are removed from custom results. */
+    excludedMarketIds: string[];
+  };
+}
 
 export interface PredictLiveSportsFlag {
   enabled: boolean;

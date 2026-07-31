@@ -16,13 +16,15 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { TRANSACTION_TYPES } from '../../../../util/transactions';
 import { calculateTotalGas } from '../../TransactionElement/utils-gas';
 import {
-  renderFromWei,
   addCurrencySymbol,
   balanceToFiatNumber,
-  weiToFiatNumber,
-  weiToFiat,
   formatAmountWithThreshold,
 } from '../../../../util/number';
+import {
+  renderFromWei,
+  weiToFiatNumber,
+  weiToFiat,
+} from '../../../../util/number/bigint';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { toFormattedAddress } from '../../../../util/address';
@@ -229,7 +231,11 @@ export const decodeSwapsTx = (args: {
             sourceAmountFiatNumber,
             currentCurrency,
           ),
-          summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+          summaryFee: weiToFiat(
+            totalGas,
+            conversionRate,
+            currentCurrency as Parameters<typeof weiToFiat>[2],
+          ),
           summaryTotalAmount: summaryTotalAmountNativeTokenFiat,
           summarySecondaryTotalAmount: summaryTotalAmountNativeToken,
         };

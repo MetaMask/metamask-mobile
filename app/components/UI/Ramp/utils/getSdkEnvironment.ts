@@ -1,13 +1,12 @@
 import { SdkEnvironment } from '../types/legacyDeposit';
 
 /**
- * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
- * Otherwise (legacy .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
+ * When RAMPS_ENVIRONMENT is set (set by builds.yml), uses it directly.
+ * Otherwise (e.g. Jest, environments without builds.yml), uses METAMASK_ENVIRONMENT switch.
  */
 export function getSdkEnvironment() {
-  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
-    const rampsEnv = process.env.RAMPS_ENVIRONMENT;
-    return rampsEnv === 'production'
+  if (process.env.RAMPS_ENVIRONMENT) {
+    return process.env.RAMPS_ENVIRONMENT === 'production'
       ? SdkEnvironment.Production
       : SdkEnvironment.Staging;
   }

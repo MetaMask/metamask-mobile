@@ -1,11 +1,14 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
@@ -13,14 +16,18 @@ import {
   updateAtomicBatchData,
   updateTransaction,
 } from '../../../../../util/transaction-controller';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
-import { hasTransactionType } from '../../utils/transaction';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import { updateMoneyAccountDepositAmount } from '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from './useTransactionPayData';
 
 const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
@@ -35,7 +42,11 @@ export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const fiatPayment = useTransactionPayFiatPayment();
   const accountOverride = useTransactionAccountOverride();
+  const isMoneyAccountDepositQuotePipelineEnabled = useSelector(
+    selectMoneyAccountDepositQuotePipelineEnabled,
+  );
 
   const applyMoneyAccountAmountUpdates = useCallback(
     async (
@@ -87,6 +98,24 @@ export function useUpdateTransactionPayAmount() {
           TransactionType.moneyAccountDeposit,
         ])
       ) {
+        const depositIntent = getMoneyAccountDepositIntent(
+          transactionMeta.batchId,
+        );
+        // Initially optimize only generic/convert crypto deposits. addMusd uses
+        // the Relay max/gas-station path and card uses the multi-stage fiat path,
+        // so both retain the existing pipeline until validated separately.
+        const isOptimizedDepositIntent =
+          (depositIntent === undefined || depositIntent === 'convert') &&
+          !fiatPayment?.selectedPaymentMethodId;
+
+        if (
+          isMoneyAccountDepositQuotePipelineEnabled &&
+          isOptimizedDepositIntent
+        ) {
+          await updateMoneyAccountDepositAmount(transactionMeta, amountHuman);
+          return;
+        }
+
         syncMoneyAccountDepositRequiredAssets(
           transactionMeta,
           amountHuman,
@@ -114,14 +143,16 @@ export function useUpdateTransactionPayAmount() {
         return;
       }
 
-      updateTokenAmount(amountHuman);
+      await updateTokenAmount(amountHuman);
     },
     [
       transactionMeta,
       applyMoneyAccountAmountUpdates,
       updateTokenAmount,
       requiredTokens,
+      fiatPayment?.selectedPaymentMethodId,
       accountOverride,
+      isMoneyAccountDepositQuotePipelineEnabled,
     ],
   );
 
@@ -148,6 +179,7 @@ function syncMoneyAccountDepositRequiredAssets(
     updateTransaction(
       {
         ...transactionMeta,
+        txParams: { ...transactionMeta.txParams },
         requiredAssets: [{ ...existing[0], amount }, ...existing.slice(1)],
       },
       'Money Account deposit: sync requiredAssets amount',

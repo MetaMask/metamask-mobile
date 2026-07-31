@@ -6,9 +6,9 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Box,
   Icon,
   IconColor,
   IconSize,
@@ -142,7 +142,7 @@ export const useMoneyAccountCardLinkage =
   (): UseMoneyAccountCardLinkageReturn => {
     const { toastRef } = useContext(ToastContext);
     const theme = useTheme();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const dispatch = useDispatch();
     const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -225,12 +225,10 @@ export const useMoneyAccountCardLinkage =
           iconName: IconName.Loading,
           hasNoTimeout: true,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Spinner
-                color={IconColor.IconDefault}
-                spinnerIconProps={{ size: IconSize.Lg }}
-              />
-            </Box>
+            <Spinner
+              color={IconColor.IconDefault}
+              spinnerIconProps={{ size: IconSize.Lg }}
+            />
           ),
         });
       },
@@ -250,13 +248,11 @@ export const useMoneyAccountCardLinkage =
           iconColor: theme.colors.success.default,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Icon
-                name={IconName.Confirmation}
-                color={IconColor.SuccessDefault}
-                size={IconSize.Lg}
-              />
-            </Box>
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
           ),
         });
       },
@@ -276,13 +272,11 @@ export const useMoneyAccountCardLinkage =
           iconColor: theme.colors.error.default,
           hasNoTimeout: false,
           startAccessory: (
-            <Box twClassName="pr-3">
-              <Icon
-                name={IconName.Error}
-                color={IconColor.ErrorDefault}
-                size={IconSize.Lg}
-              />
-            </Box>
+            <Icon
+              name={IconName.Error}
+              color={IconColor.ErrorDefault}
+              size={IconSize.Lg}
+            />
           ),
         });
       },

@@ -3,22 +3,20 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Icon,
-  IconColor,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   IconName,
-  IconSize,
+  KeyValueColumn,
   SectionHeader,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import LegacyText, {
-  TextColor as LegacyTextColor,
-  TextVariant as LegacyTextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
@@ -34,7 +32,6 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -47,45 +44,36 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  // Subscribe to live price updates including funding rate
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
-    throttleMs: 2000, // Update every 2 seconds for funding rate
+    throttleMs: 2000,
   });
 
-  // Get live funding rate and oracle price from WebSocket subscription
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
-  // Use markPrice (oracle/mark price) for oracle price display, not price (mid price)
   const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
 
-  // Compute funding rate value and display once
   const fundingRateData = useMemo(() => {
-    // Determine the actual funding value to use
     let fundingValue: number;
     let displayText: string;
 
     if (liveFunding !== undefined) {
-      // Use live funding if available
       fundingValue = liveFunding;
       displayText = formatFundingRate(liveFunding);
     } else if (
       marketStats.fundingRate &&
       marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
     ) {
-      // Fall back to marketStats if no live data
       fundingValue =
         parseFloat(marketStats.fundingRate.replace('%', '')) /
         FUNDING_RATE_CONFIG.PercentageMultiplier;
       displayText = marketStats.fundingRate;
     } else {
-      // Default to zero
       fundingValue = 0;
       displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
     }
 
-    // Determine color based on value
     const color =
-      fundingValue >= 0 ? LegacyTextColor.Success : LegacyTextColor.Error;
+      fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
     return {
       value: fundingValue,
@@ -94,19 +82,15 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     };
   }, [liveFunding, marketStats.fundingRate]);
 
-  // Render funding rate value with countdown
   const fundingValueContent = useMemo(
     () => (
       <View style={styles.fundingRateContainer}>
-        <LegacyText
-          variant={LegacyTextVariant.BodyMD}
-          color={fundingRateData.color}
-        >
+        <Text variant={TextVariant.BodyMd} color={fundingRateData.color}>
           {fundingRateData.displayText}
-        </LegacyText>
+        </Text>
         <FundingCountdown
-          variant={LegacyTextVariant.BodySM}
-          color={LegacyTextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           style={styles.fundingCountdown}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
@@ -125,6 +109,23 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     ],
   );
 
+  const oraclePriceContent = useMemo(
+    () => (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE}
+      >
+        {liveOraclePrice
+          ? formatPerpsFiat(parseFloat(liveOraclePrice), {
+              ranges: PRICE_RANGES_UNIVERSAL,
+            })
+          : '-'}
+      </Text>
+    ),
+    [liveOraclePrice],
+  );
+
   const statsTitle = useMemo(
     () => (
       <Box
@@ -136,11 +137,11 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           {strings('perps.market.stats')}
         </Text>
         {dexName ? (
-          <Tag label={dexName.toUpperCase()} style={styles.dexTag} />
+          <Tag severity={TagSeverity.Neutral}>{dexName.toUpperCase()}</Tag>
         ) : null}
       </Box>
     ),
-    [dexName, styles.dexTag],
+    [dexName],
   );
 
   return (
@@ -148,157 +149,63 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       <SectionHeader title={statsTitle} />
 
       <Box paddingHorizontal={4}>
-        <View style={styles.statsRowsContainer}>
-          {/* Order Book - Clickable row */}
-          {onOrderBookPress && (
-            <TouchableOpacity
-              style={[styles.orderBookRow, styles.statsRowFirst]}
-              onPress={onOrderBookPress}
-              testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
-            >
-              <View style={styles.orderBookRowContent}>
-                <LegacyText
-                  variant={LegacyTextVariant.BodyMD}
-                  color={LegacyTextColor.Alternative}
-                >
-                  {strings('perps.market.order_book')}
-                </LegacyText>
-              </View>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </TouchableOpacity>
-          )}
+        <View style={styles.statisticsGrid}>
+          <View style={styles.statisticsRow}>
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.24h_volume')}
+              value={marketStats.volume24h}
+            />
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.open_interest')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('open_interest'),
+                testID:
+                  PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
+              }}
+              value={marketStats.openInterest}
+            />
+          </View>
 
-          {/* 24h volume */}
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('perps.market.24h_volume'),
-                variant: LegacyTextVariant.BodyMD,
-                color: LegacyTextColor.Alternative,
-              },
-            }}
-            value={{
-              label: {
-                text: marketStats.volume24h,
-                variant: LegacyTextVariant.BodyMD,
-                color: LegacyTextColor.Default,
-              },
-            }}
-            style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
-          />
-
-          {/* Open interest with tooltip */}
-          <KeyValueRow
-            field={{
-              label: (
-                <View style={styles.labelWithIcon}>
-                  <LegacyText
-                    variant={LegacyTextVariant.BodyMD}
-                    color={LegacyTextColor.Alternative}
-                  >
-                    {strings('perps.market.open_interest')}
-                  </LegacyText>
-                  <TouchableOpacity
-                    onPress={() => onTooltipPress('open_interest')}
-                    testID="perps-market-details-open-interest-info-icon"
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.IconAlternative}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ),
-            }}
-            value={{
-              label: {
-                text: marketStats.openInterest,
-                variant: LegacyTextVariant.BodyMD,
-                color: LegacyTextColor.Default,
-              },
-            }}
-            style={styles.statsRow}
-          />
-
-          {/* Funding rate with tooltip and countdown */}
-          <KeyValueRow
-            field={{
-              label: (
-                <View style={styles.labelWithIcon}>
-                  <LegacyText
-                    variant={LegacyTextVariant.BodyMD}
-                    color={LegacyTextColor.Alternative}
-                  >
-                    {strings('perps.market.funding_rate')}
-                  </LegacyText>
-                  <TouchableOpacity
-                    onPress={() => onTooltipPress('funding_rate')}
-                    testID="perps-market-details-funding-rate-info-icon"
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.IconAlternative}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ),
-            }}
-            value={{
-              label: fundingValueContent,
-            }}
-            style={styles.statsRow}
-          />
-
-          {/* Oracle price (markPrice) - last row without bottom border */}
-          <KeyValueRow
-            field={{
-              label: (
-                <View style={styles.labelWithIcon}>
-                  <LegacyText
-                    variant={LegacyTextVariant.BodyMD}
-                    color={LegacyTextColor.Alternative}
-                  >
-                    {strings('perps.market.oracle_price')}
-                  </LegacyText>
-                  <TouchableOpacity
-                    onPress={() => onTooltipPress('oracle_price')}
-                    testID="perps-market-details-oracle-price-info-icon"
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.IconAlternative}
-                    />
-                  </TouchableOpacity>
-                </View>
-              ),
-            }}
-            value={{
-              label: (
-                <LegacyText
-                  variant={LegacyTextVariant.BodyMD}
-                  color={LegacyTextColor.Default}
-                  testID={
-                    PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE
-                  }
-                >
-                  {liveOraclePrice
-                    ? formatPerpsFiat(parseFloat(liveOraclePrice), {
-                        ranges: PRICE_RANGES_UNIVERSAL,
-                      })
-                    : '-'}
-                </LegacyText>
-              ),
-            }}
-            style={styles.statsRowLast}
-          />
+          <View style={styles.statisticsRow}>
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.funding_rate')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('funding_rate'),
+                testID:
+                  PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
+              }}
+              value={fundingValueContent}
+            />
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.oracle_price')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('oracle_price'),
+                testID: 'perps-market-details-oracle-price-info-icon',
+              }}
+              value={oraclePriceContent}
+            />
+          </View>
         </View>
+
+        {onOrderBookPress ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            size={ButtonSize.Lg}
+            onPress={onOrderBookPress}
+            style={styles.orderBookButton}
+            testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
+          >
+            {strings('perps.market.order_book')}
+          </Button>
+        ) : null}
       </Box>
     </Box>
   );
