@@ -28,16 +28,17 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'NetworkController:networkRemoved',
   // RpcDataSource + StakedBalanceDataSource
   'NetworkController:stateChange',
-  // Snap + WS + tx + preferences
-  'BackendWebSocketService:connectionStateChanged',
+  // Snap + tx + preferences
   'AccountsController:accountBalancesUpdated',
   'PermissionController:stateChange',
   'SnapController:snapInstalled',
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
-  // Real-time post-tx balances (AccountActivityService WS path)
+  // Real-time post-tx balances + per-chain status (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
+  // core#9517: AccountActivityDataSource chain-claiming from WS status
+  'AccountActivityService:statusChanged',
   // AccountsApiDataSource: re-evaluate Accounts API vs RPC when remote flags change
   'RemoteFeatureFlagController:stateChange',
 ] as const;
@@ -68,11 +69,6 @@ export function getAssetsControllerMessenger(
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'AccountsController:getSelectedAccount',
-      'BackendWebSocketService:subscribe',
-      'BackendWebSocketService:getConnectionInfo',
-      'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-      'BackendWebSocketService:addChannelCallback',
-      'BackendWebSocketService:removeChannelCallback',
       'SnapController:handleRequest',
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',
