@@ -31,6 +31,7 @@ import {
 import {
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
+  isSpreadLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
 import { getTokenImage } from '../../utils/sports';
@@ -710,6 +711,12 @@ function replaceAll(s: string, search: string, replace: string) {
 }
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
+  isSpreadLikeMarketType(market.sportsMarketType);
+
+// Ball-sport spread titles name a single team plus its line ("FC-Dallas -3.5"),
+// so the sign is redundant once tokens carry it. Esports handicap titles
+// describe both sides ("GenOne (-1.5) vs NEW VISION (+1.5)") and must keep it.
+const isBallSportSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
@@ -718,7 +725,7 @@ const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
 
-  if (isSpreadMarket(market)) {
+  if (isBallSportSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
     return groupItemTitle.replace(/-(?=\d)/, '');
@@ -1094,7 +1101,7 @@ export const parsePolymarketEvents = (
 
       const outcomeGroups =
         outcomesForGroups.length > 0
-          ? buildOutcomeGroups(outcomesForGroups)
+          ? buildOutcomeGroups(outcomesForGroups, eventLeague ?? undefined)
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
@@ -1380,6 +1387,7 @@ export const fetchEventsFromPolymarketApi = async (
  * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
+ * - `customQueryParams` overrides matching generated params while preserving repeated values. Pagination and page size remain app-controlled.
  */
 export const buildMarketListQueryParams = (
   params: PredictMarketListParams = {},
@@ -1394,11 +1402,10 @@ export const buildMarketListQueryParams = (
     limit = 20,
     afterCursor,
     search,
+    customQueryParams,
   } = params;
 
-  const queryParams = new URLSearchParams({
-    limit: String(limit),
-  });
+  const queryParams = new URLSearchParams();
 
   switch (status) {
     case 'closed':
@@ -1442,13 +1449,23 @@ export const buildMarketListQueryParams = (
     queryParams.set('live', 'true');
   }
 
-  if (afterCursor) {
-    queryParams.set('after_cursor', afterCursor);
-  }
-
   const trimmedSearch = search?.trim();
   if (trimmedSearch) {
     queryParams.set('title_search', trimmedSearch);
+  }
+
+  const customParams = new URLSearchParams(customQueryParams?.trim());
+  // Clear generated values first, then append all custom values so repeated
+  // parameters override rather than merge with generated defaults.
+  const customKeys = new Set<string>();
+  customParams.forEach((_value, key) => customKeys.add(key));
+  customKeys.forEach((key) => queryParams.delete(key));
+  customParams.forEach((value, key) => queryParams.append(key, value));
+
+  queryParams.set('limit', String(limit));
+  queryParams.delete('after_cursor');
+  if (afterCursor) {
+    queryParams.set('after_cursor', afterCursor);
   }
 
   return queryParams;

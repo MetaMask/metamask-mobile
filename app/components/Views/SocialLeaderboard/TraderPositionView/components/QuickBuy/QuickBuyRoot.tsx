@@ -14,16 +14,8 @@ import React, {
 import type { LayoutChangeEvent } from 'react-native';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
-import { useABTest } from '../../../../../../hooks/useABTest';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
-import {
-  SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
-  SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
-  SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
-} from './abTestConfig';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
@@ -107,17 +99,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // True once a dismissal is requested via the CTA/Cancel so the content drops
   // with the sheet instead of running its horizontal screen-exit transition.
   const [isClosing, setIsClosing] = useState(false);
-  const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const surfaceClass = useElevatedSurface();
-
-  // Keyboard vs slider A/B test. Resolved here so `Experiment Viewed` fires
-  // once the sheet is actually shown (this component only mounts when visible).
-  const { variant, variantName } = useABTest(
-    SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
-    SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
-    SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
-  );
-  const useKeyboard = variant.useKeyboard;
 
   const directionSV = useSharedValue<ScreenDirection>(1);
   // Suppresses the enter animation on the initial screen when the sheet opens;
@@ -179,12 +161,11 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       if (height <= 0) {
         return;
       }
-      // On the keyboard treatment the amount screen grows/shrinks with the
-      // keypad. Keep refreshing the baseline there so Pay with / Quotes lock to
-      // whatever height the main page currently has — not the taller
-      // keypad-open height from first mount. editQuickAmounts stays dynamic and
-      // never writes this baseline.
-      if (useKeyboard && activeScreen === 'amount') {
+      // The amount screen grows/shrinks with the keypad. Keep refreshing the
+      // baseline there so Pay with / Quotes lock to whatever height the main
+      // page currently has — not the taller keypad-open height from first
+      // mount. editQuickAmounts stays dynamic and never writes this baseline.
+      if (activeScreen === 'amount') {
         setLockedHeight(height);
         return;
       }
@@ -192,7 +173,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
         setLockedHeight(height);
       }
     },
-    [useKeyboard, activeScreen, lockedHeight],
+    [activeScreen, lockedHeight],
   );
 
   // Keep the bottom safe-area inset only on screens that pin a CTA at the
@@ -203,13 +184,11 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     activeScreen === 'editQuickAmounts' ||
     activeScreen === 'priceImpactConfirm';
 
-  // `editQuickAmounts` stays dynamic for its always-open edit keypad (full
-  // intrinsic height). The amount screen is dynamic only in the keyboard A/B
-  // treatment. All other screens use the locked height so sub-screens like
-  // Pay with don't collapse.
+  // `editQuickAmounts` and the amount screen stay dynamic for their keypads.
+  // All other screens use the locked height so sub-screens like Pay with don't
+  // collapse.
   const isDynamicHeightScreen =
-    activeScreen === 'editQuickAmounts' ||
-    (useKeyboard && activeScreen === 'amount');
+    activeScreen === 'editQuickAmounts' || activeScreen === 'amount';
   const shouldLockHeight = lockedHeight !== null && !isDynamicHeightScreen;
 
   return (
@@ -220,14 +199,12 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     >
       {isContentReady ? (
         <QuickBuyProvider
-          key={variantName}
           target={target}
           onClose={requestClose}
           features={features}
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
-          useKeyboard={useKeyboard}
         >
           <Box
             testID="quick-buy-content-container"
@@ -258,7 +235,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           </Box>
         </QuickBuyProvider>
       ) : (
-        <QuickBuyBottomSheetSkeleton useKeyboard={useKeyboard} />
+        <QuickBuyBottomSheetSkeleton />
       )}
     </BottomSheetDialog>
   );

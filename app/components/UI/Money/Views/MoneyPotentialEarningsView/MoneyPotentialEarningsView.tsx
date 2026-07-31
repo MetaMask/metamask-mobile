@@ -86,6 +86,7 @@ const MoneyPotentialEarningsView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_VIEW_HEADER,
     });
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
@@ -110,6 +111,7 @@ const MoneyPotentialEarningsView = () => {
       token_position_in_list: tokenIndex + 1,
       token_chain_id: defaultToken.chainId ?? '',
       tokens_in_list: eligibleTokens.length,
+      token_has_balance: new BigNumber(defaultToken.balance).gt(0),
     });
 
     try {
@@ -140,6 +142,7 @@ const MoneyPotentialEarningsView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: eligibleTokens.length,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({
@@ -167,6 +170,7 @@ const MoneyPotentialEarningsView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: eligibleTokens.length,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({

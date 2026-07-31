@@ -124,7 +124,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     }
 
     return (
-      <Box twClassName="items-center justify-center px-4 pt-6">
+      <Box twClassName="items-center justify-center px-2 pt-6">
         <PerpsProPositionsEmptyState
           filteredTicker={isTickerOnly && hasAnyPositions ? symbol : undefined}
         />
@@ -152,7 +152,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     }
 
     return (
-      <Box twClassName="items-center justify-center px-4 pt-6">
+      <Box twClassName="items-center justify-center px-2 pt-6">
         <PerpsProOrdersEmptyState />
       </Box>
     );
@@ -163,14 +163,20 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL}
       twClassName="py-3"
     >
+      {/* TabsBar hardcodes its own px-4 (16px) internally — 8px more than
+          the px-2 (8px) inset the rest of this panel's rows use below, which
+          reads as extra padding on the tab labels. Pull it back in with a
+          matching negative margin instead of touching the shared component's
+          own padding (used by other tab bars across the app). */}
       <TabsBar
         tabs={tabs}
         activeIndex={activeIndex}
         onTabPress={setActiveIndex}
+        twClassName="-mx-2"
         testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
       />
       {activeIndex === POSITIONS_TAB_INDEX && (
-        <Box twClassName="items-start px-4 pt-3">
+        <Box twClassName="items-start px-2 pt-3">
           <Checkbox
             label={strings('perps.pro_positions_panel.ticker_only', {
               ticker: symbol,
