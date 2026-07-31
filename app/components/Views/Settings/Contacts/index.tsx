@@ -54,11 +54,7 @@ type ContactsProps = ContactsOwnProps & ContactsStateProps;
 /**
  * View that contains app information
  */
-export const Contacts = ({
-  addressBook,
-  navigation,
-  chainId,
-}: ContactsProps) => {
+const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const [reloadAddressList, setReloadAddressList] = useState(false);
