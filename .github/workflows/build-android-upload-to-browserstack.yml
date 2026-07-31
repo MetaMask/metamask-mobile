@@ -6,8 +6,8 @@
 #   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
 #   2. Download + validate both APKs before committing to reuse (continue-on-error).
 #      On download/validation failure → found=false and fall back to fresh dual Gradle builds.
-#      On success → re-stage APKs as artifacts on this run so upload does not depend on the
-#      prior run still having them.
+#      On success → stage as fingerprint-reuse-android-apk-* (collision-safe), then also
+#      publish android-apk-* so this reuse-only run remains a future lookup source.
 #   3. On validated hit + main_branch_only (test-only) → re-upload APKs as-is (app JS unchanged).
 #   4. On validated hit + app changes → skip Gradle, @expo/repack-app both profiles with
 #      current JS, then upload (fingerprint ignores JS-only changes).
@@ -345,7 +345,6 @@ jobs:
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
-          retention-days: 1
           if-no-files-found: error
 
       - name: Publish without-SRP APK for future fingerprint lookup
@@ -359,7 +358,6 @@ jobs:
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
-          retention-days: 1
           if-no-files-found: error
 
       # Publish found=true only after both staging + lookup artifacts are on this
