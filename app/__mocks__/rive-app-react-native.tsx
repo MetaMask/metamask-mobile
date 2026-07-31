@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View, ViewProps } from 'react-native';
 
 /**
@@ -141,9 +141,12 @@ export const useRiveFile = (_input?: unknown, _options?: unknown) => ({
 
 export const useRive = () => {
   const methods = useMemo(() => createRiveViewMethods(), []);
+  // Stable ref object across renders, mirroring the real useRive's useRef —
+  // call sites listing riveRef in deps must not tear down effects each render.
+  const riveRef = useRef(methods);
   const setHybridRef = useMemo(() => ({ f: jest.fn() }), []);
   return {
-    riveRef: { current: methods },
+    riveRef,
     riveViewRef: methods,
     setHybridRef,
   };
