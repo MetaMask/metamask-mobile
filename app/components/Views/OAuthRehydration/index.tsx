@@ -76,6 +76,8 @@ import {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
@@ -157,6 +159,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [loading, isDeletingInProgress],
   );
   const navigation = useNavigation<AppNavigationProp>();
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    destinationReady: true,
+  });
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 

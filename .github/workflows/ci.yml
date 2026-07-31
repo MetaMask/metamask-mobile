@@ -1344,7 +1344,7 @@ jobs:
     needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -1401,7 +1401,7 @@ jobs:
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||

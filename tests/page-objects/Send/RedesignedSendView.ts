@@ -5,6 +5,7 @@ import {
   Utilities,
   Assertions,
   EncapsulatedElementType,
+  encapsulated,
 } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
@@ -29,7 +30,15 @@ class SendView {
   }
 
   get zeroButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('0', 1);
+    return encapsulated({
+      detox: () => Matchers.getElementByText('0', 1),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById('keypad-key-0', { exact: true }),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId('keypad-key-0'),
+      },
+    });
   }
 
   get amountFiveButton(): EncapsulatedElementType {
@@ -192,16 +201,19 @@ class SendView {
       },
       appium: async () => {
         const isIOS = await PlatformDetector.isIOS();
-        let el;
         if (isIOS) {
-          // On iOS, the input has AXUniqueId "textfield" instead of "recipient-address-input"
-          el = await PlaywrightMatchers.getElementById('textfield');
+          const wrapper = await PlaywrightMatchers.getElementById('textfield', {
+            exact: true,
+          });
+          await PlaywrightGestures.waitAndTap(wrapper);
+          await PlaywrightGestures.typeViaIosKeyboard(address);
         } else {
-          el = await PlaywrightMatchers.getElementById(
+          const el = await PlaywrightMatchers.getElementById(
             RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+            { exact: true },
           );
+          await el.fill(address);
         }
-        await PlaywrightGestures.typeText(el, address);
         await PlaywrightGestures.hideKeyboard();
       },
     });
@@ -227,7 +239,7 @@ class SendView {
         const el = await PlaywrightMatchers.getElementById(
           RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
         );
-        await PlaywrightGestures.waitAndTap(el);
+        await PlaywrightGestures.waitAndTap(el, { timeout: 20000 });
       },
     });
   }

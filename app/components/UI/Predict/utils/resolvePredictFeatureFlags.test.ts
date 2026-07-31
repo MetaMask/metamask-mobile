@@ -7,6 +7,7 @@ import {
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
 import { DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES } from '../constants/sports';
+import { SUPPORTED_SPORTS_MARKET_TYPES } from '../providers/polymarket/constants';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
@@ -830,27 +831,9 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.enabledSportsMarketTypes).toEqual([
-        'moneyline',
-        'spreads',
-        'totals',
-        'both_teams_to_score',
-        'both_teams_to_score_first_half',
-        'both_teams_to_score_second_half',
-        'first_half_totals',
-        'second_half_totals',
-        'soccer_first_to_score',
-        'soccer_halftime_result',
-        'soccer_second_half_result',
-        'soccer_player_goals',
-        'soccer_team_to_advance',
-        'soccer_extra_time',
-        'soccer_penalty_shootout',
-        'team_totals',
-        'soccer_team_totals',
-        'basketball_team_to_score_first',
-        'soccer_exact_score',
-      ]);
+      expect(result.enabledSportsMarketTypes).toEqual(
+        Array.from(SUPPORTED_SPORTS_MARKET_TYPES),
+      );
     });
 
     it('keeps the new full-tie-outcome market types when enabled', () => {
@@ -961,6 +944,7 @@ describe('resolvePredictFeatureFlags', () => {
               'MONEYLINE',
               'spreads',
               'totals',
+              'first_half_moneyline',
               'soccer_halftime_result',
               'soccer_player_goals',
               'points',
@@ -973,6 +957,7 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
+        'first_half_moneyline',
         'soccer_halftime_result',
         'soccer_player_goals',
       ]);

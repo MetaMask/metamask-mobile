@@ -168,6 +168,7 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
+import { useGetPerpsHomeNavigationTarget } from '../../UI/Perps/utils/perpsModeSwitch';
 import {
   selectPredictEnabledFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
@@ -394,6 +395,8 @@ const Wallet = ({
   );
   const isMoneyAccountVisible =
     isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const showMoneyBalanceCard =
+    isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
 
   /**
    * Provider configuration for the current selected network
@@ -774,12 +777,14 @@ const Wallet = ({
 
   const isPerpsEnabled = isPerpsFlagEnabled;
 
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
   const handlePerpsTabDeepLink = useCallback(() => {
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'deeplink' },
+    const { screen, params } = getPerpsHomeNavigationTarget({
+      source: 'deeplink',
     });
-  }, [navigation]);
+    navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+  }, [navigation, getPerpsHomeNavigationTarget]);
 
   const handleNetworkSelectorDeepLink = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1026,7 +1031,7 @@ const Wallet = ({
       {(!isMoneyAccountEnabled || isMoneyAccountGeoEligible) &&
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
-      {isMoneyAccountVisible && <MoneyBalanceCard />}
+      {showMoneyBalanceCard && <MoneyBalanceCard />}
     </View>
   );
 

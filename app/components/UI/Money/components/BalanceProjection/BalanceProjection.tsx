@@ -23,6 +23,7 @@ import { isPositiveNumberOrZero } from '../../utils/number';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
+  COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
@@ -75,6 +76,7 @@ export function BalanceProjection({
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_PROJECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
