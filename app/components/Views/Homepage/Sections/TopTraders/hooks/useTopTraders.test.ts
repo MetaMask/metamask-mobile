@@ -545,6 +545,7 @@ describe('useTopTraders', () => {
         expect.objectContaining({
           enabled: true,
           refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
         }),
       );
     });
@@ -560,6 +561,7 @@ describe('useTopTraders', () => {
         expect.objectContaining({
           enabled: false,
           refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
         }),
       );
     });
@@ -579,6 +581,7 @@ describe('useTopTraders', () => {
         expect.objectContaining({
           enabled: true,
           refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
         }),
       );
     });
