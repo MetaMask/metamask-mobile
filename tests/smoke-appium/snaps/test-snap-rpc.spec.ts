@@ -5,15 +5,19 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
+const multiSrpFixture = new FixtureBuilder()
+  .withMultiSRPKeyringController()
+  .build();
+
 appiumTest.describe(SmokeSnaps('Snap RPC Tests'), () => {
+  appiumTest.describe.configure({ timeout: 150_000 });
+
   appiumTest(
     'can use the cross-snap RPC endowment and produce a public key',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(
         currentDeviceDetails,
-        {
-          fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
-        },
+        { fixture: multiSrpFixture, restartDevice: true },
         async () => {
           await loginAndOpenTestSnaps();
           await TestSnaps.installSnap('connectBip32Button');

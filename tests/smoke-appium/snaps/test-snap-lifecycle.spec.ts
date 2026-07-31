@@ -8,17 +8,23 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 // TODO: Re-introduce onStart lifecycle hook coverage when the framework can set
 // StorageService source code (required for the Snap to run and call onStart).
 appiumTest.describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
+  appiumTest.describe.configure({ timeout: 150_000 });
+
   appiumTest(
     'runs the onInstall lifecycle hook when the Snap is installed',
     async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(currentDeviceDetails, {}, async () => {
-        await loginAndOpenTestSnaps();
-        await TestSnaps.installSnap('connectLifeCycleButton');
-        await Assertions.expectTextDisplayed(
-          'The Snap was installed successfully, and the "onInstall" handler was called.',
-          { timeout: 30_000 },
-        );
-      });
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { restartDevice: true },
+        async () => {
+          await loginAndOpenTestSnaps();
+          await TestSnaps.installSnap('connectLifeCycleButton');
+          await Assertions.expectTextDisplayed(
+            'The Snap was installed successfully, and the "onInstall" handler was called.',
+            { timeout: 30_000 },
+          );
+        },
+      );
     },
   );
 });

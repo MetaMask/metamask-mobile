@@ -5,18 +5,24 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('UI Links Snap Test'), () => {
+  appiumTest.describe.configure({ timeout: 150_000 });
+
   appiumTest(
     'displays a link in the UI',
     async ({ driver: _driver, currentDeviceDetails }) => {
-      await withSnapsFixtures(currentDeviceDetails, {}, async () => {
-        await loginAndOpenTestSnaps();
-        await TestSnaps.installSnap('connectDialogSnapButton');
-        await TestSnaps.tapButton('sendConfirmationButton');
-        await TestSnaps.expectSnapDialogLinkDisplayed({ timeout: 30_000 });
-        // Today there's no way to assert that the link opened the device browser. Instead we just test that
-        // the link is displayed.
-        // TODO: Assert that the browser has been opened and that the correct page has been displayed
-      });
+      await withSnapsFixtures(
+        currentDeviceDetails,
+        { restartDevice: true },
+        async () => {
+          await loginAndOpenTestSnaps();
+          await TestSnaps.installSnap('connectDialogSnapButton');
+          await TestSnaps.tapButton('sendConfirmationButton');
+          await TestSnaps.expectSnapDialogLinkDisplayed({ timeout: 30_000 });
+          // Today there's no way to assert that the link opened the device browser. Instead we just test that
+          // the link is displayed.
+          // TODO: Assert that the browser has been opened and that the correct page has been displayed
+        },
+      );
     },
   );
 });

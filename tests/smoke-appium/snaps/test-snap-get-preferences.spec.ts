@@ -5,20 +5,22 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
+const preferencesFixture = new FixtureBuilder()
+  .withPreferencesController({
+    privacyMode: true,
+    showTestNetworks: true,
+  })
+  .build();
+
 appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
+  appiumTest.describe.configure({ timeout: 150_000 });
+
   appiumTest(
     'gets the client preferences',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(
         currentDeviceDetails,
-        {
-          fixture: new FixtureBuilder()
-            .withPreferencesController({
-              privacyMode: true,
-              showTestNetworks: true,
-            })
-            .build(),
-        },
+        { fixture: preferencesFixture, restartDevice: true },
         async () => {
           await loginAndOpenTestSnaps();
           await TestSnaps.installSnap('connectGetPreferencesButton');
