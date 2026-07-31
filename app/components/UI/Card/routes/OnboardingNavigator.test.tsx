@@ -66,14 +66,6 @@ jest.mock('@react-navigation/native-stack', () => {
           {children}
         </View>
       ),
-      Group: ({
-        children,
-        ...props
-      }: React.PropsWithChildren<Record<string, unknown>>) => (
-        <View testID="stack-group" {...props}>
-          {children}
-        </View>
-      ),
       Screen: ({
         children,
         ...props

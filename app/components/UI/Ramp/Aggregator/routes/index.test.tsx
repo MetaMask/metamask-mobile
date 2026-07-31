@@ -8,10 +8,18 @@ import { RampType } from '../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-jest.mock('@react-navigation/native-stack', () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  require('../../../../../util/test/mockNativeStackNavigator').createMockNativeStackModule(),
-);
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn().mockReturnValue({
+    Navigator: ({ children }: { children: React.ReactNode }) => children,
+    Screen: ({
+      name,
+      component: Component,
+    }: {
+      name: string;
+      component: React.ComponentType;
+    }) => <Component key={name} />,
+  }),
+}));
 
 jest.mock('../sdk', () => ({
   RampSDKProvider: ({ children }: { children: React.ReactNode }) => children,

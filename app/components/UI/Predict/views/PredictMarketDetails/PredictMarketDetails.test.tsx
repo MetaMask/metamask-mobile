@@ -64,10 +64,12 @@ jest.mock('../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/native-stack', () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  require('../../../../../util/test/mockNativeStackNavigator').createMockNativeStackModule(),
-);
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
+    Navigator: ({ children }: { children: React.ReactNode }) => children,
+    Screen: ({ children }: { children: React.ReactNode }) => children,
+  }),
+}));
 
 // Minimal mock to add testID pattern for icon assertions
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {

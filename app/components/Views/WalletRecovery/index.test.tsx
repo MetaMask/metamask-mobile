@@ -6,8 +6,16 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import WalletRecovery from './index';
 
 jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn(() => ({
+    Navigator: ({ children }: { children: React.ReactNode }) => children,
+    Screen: ({ children }: { children: React.ReactNode }) => children,
+  })),
 }));
 
 jest.mock('../SelectSRP', () => {
