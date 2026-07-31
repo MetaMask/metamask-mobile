@@ -114,7 +114,7 @@ function buildActiveQuoteState(
   return createBridgeTestState({
     bridgeControllerOverrides: {
       quotesLoadingStatus: RequestStatus.FETCHED,
-      quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+      quotes: [mockQuoteWithMetadata],
       quotesLastFetched: Date.now(),
       ...(overrides.bridgeControllerOverrides ?? {}),
     },
@@ -219,7 +219,7 @@ describe('BridgeViewFooter', () => {
         bridgeControllerOverrides: {
           quoteRequest: { insufficientBal: false },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {
@@ -250,7 +250,7 @@ describe('BridgeViewFooter', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {
@@ -417,22 +417,22 @@ describe('BridgeViewFooter', () => {
           ...mockUseBridgeQuoteData,
           isLoading: false,
           activeQuote: {
-            ...(mockQuoteWithMetadata as unknown as QuoteResponse),
+            ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
               destAsset: {
-                ...mockQuoteWithMetadata.quote.destAsset,
+                ...mockQuoteWithMetadata.quote.dest.asset,
                 symbol: 'mUSD',
               },
               feeData: { metabridge: { quoteBpsFee: 0, baseBpsFee: 87.5 } },
             },
-          } as unknown as QuoteResponse,
+          },
         }));
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -476,24 +476,24 @@ describe('BridgeViewFooter', () => {
           ...mockUseBridgeQuoteData,
           isLoading: false,
           activeQuote: {
-            ...(mockQuoteWithMetadata as unknown as QuoteResponse),
+            ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
               destAsset: {
-                ...mockQuoteWithMetadata.quote.destAsset,
+                ...mockQuoteWithMetadata.quote.dest.asset,
                 symbol: 'mUSD',
               },
               feeData: {
                 metabridge: { quoteBpsFee: undefined, baseBpsFee: undefined },
               },
             },
-          } as unknown as QuoteResponse,
+          },
         }));
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {

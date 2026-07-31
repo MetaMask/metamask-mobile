@@ -133,7 +133,7 @@ describe('useBridgeQuoteData', () => {
     }));
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -405,7 +405,7 @@ describe('useBridgeQuoteData', () => {
     }));
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -447,7 +447,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides: {
-        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotes: mockQuotes,
         quotesLoadingStatus: RequestStatus.LOADING,
         quoteFetchError: null,
       },
@@ -477,7 +477,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides: {
-        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotes: mockQuotes,
         quotesLoadingStatus: null,
         quoteFetchError: null,
       },
@@ -521,7 +521,7 @@ describe('useBridgeQuoteData', () => {
     isQuoteExpired.mockReturnValueOnce(true);
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };

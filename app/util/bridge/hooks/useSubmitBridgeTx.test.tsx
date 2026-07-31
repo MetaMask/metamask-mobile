@@ -8,13 +8,13 @@ import {
   DummyQuotesNoApproval,
   DummyQuotesWithApproval,
 } from '../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import { QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
 
-type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+type BridgeQuoteResponse = QuoteResponse;
 interface MockABTestResult {
   variant: unknown;
   variantName: string;
@@ -189,7 +189,7 @@ describe('useSubmitBridgeTx', () => {
     } as TransactionMeta);
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+      quoteResponse: mockQuoteResponse,
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(

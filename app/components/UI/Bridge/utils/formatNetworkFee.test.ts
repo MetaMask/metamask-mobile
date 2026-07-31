@@ -1,4 +1,8 @@
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import {
+  QuoteMetadata,
+  QuoteResponse,
+  toQuoteMetadataV2,
+} from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
 import formatFiat from '../../../../util/formatFiat';
 import { isNumberValue } from '../../../../util/number';
@@ -52,9 +56,9 @@ describe('formatNetworkFee', () => {
           amount: '0.002',
           valueInCurrency: '5.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(mockIsGaslessQuote).toHaveBeenCalledWith(quote.quote);
       expect(mockFormatFiat).toHaveBeenCalledWith(new BigNumber('5.00'), 'USD');
@@ -66,11 +70,11 @@ describe('formatNetworkFee', () => {
         quote: { gasIncluded: true },
         includedTxFees: {
           amount: '0.002',
-          valueInCurrency: null,
+          valueInCurrency: undefined,
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -80,12 +84,12 @@ describe('formatNetworkFee', () => {
       const quote = {
         quote: { gasIncluded: true },
         includedTxFees: {
-          amount: null,
+          amount: undefined,
           valueInCurrency: '5.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -100,9 +104,9 @@ describe('formatNetworkFee', () => {
           amount: 'invalid',
           valueInCurrency: '5.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -118,9 +122,9 @@ describe('formatNetworkFee', () => {
           amount: '0.002',
           valueInCurrency: 'invalid',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -129,9 +133,12 @@ describe('formatNetworkFee', () => {
     it('returns "-" when includedTxFees is not set', () => {
       const quote = {
         quote: { gasIncluded: true },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee(
+        'USD',
+        toQuoteMetadataV2(quote as QuoteResponse & QuoteMetadata),
+      );
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -144,9 +151,9 @@ describe('formatNetworkFee', () => {
           amount: '0.01',
           valueInCurrency: '10.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -156,15 +163,15 @@ describe('formatNetworkFee', () => {
   describe('non-gasless quotes — totalNetworkFee path', () => {
     it('returns "-" when totalNetworkFee is undefined', () => {
       const quote = {} as QuoteResponse & QuoteMetadata;
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
       expect(result).toBe('-');
     });
 
     it('returns "-" when totalNetworkFee is null', () => {
       const quote = {
-        totalNetworkFee: null,
-      } as unknown as QuoteResponse & QuoteMetadata;
-      const result = formatNetworkFee('USD', quote);
+        totalNetworkFee: undefined,
+      };
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
       expect(result).toBe('-');
     });
 
@@ -173,12 +180,12 @@ describe('formatNetworkFee', () => {
 
       const quote = {
         totalNetworkFee: {
-          amount: null,
+          amount: undefined,
           valueInCurrency: '100',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
       expect(result).toBe('-');
     });
 
@@ -189,11 +196,11 @@ describe('formatNetworkFee', () => {
       const quote = {
         totalNetworkFee: {
           amount: '0.01',
-          valueInCurrency: null,
+          valueInCurrency: undefined,
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
       expect(result).toBe('-');
     });
 
@@ -205,9 +212,9 @@ describe('formatNetworkFee', () => {
           amount: 'invalid',
           valueInCurrency: '100',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
       expect(result).toBe('-');
       expect(isNumberValue).toHaveBeenCalledWith('invalid');
     });
@@ -221,9 +228,9 @@ describe('formatNetworkFee', () => {
           amount: '0.01',
           valueInCurrency: 'invalid',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
       expect(result).toBe('-');
       expect(isNumberValue).toHaveBeenCalledWith('0.01');
       expect(isNumberValue).toHaveBeenCalledWith('invalid');
@@ -240,9 +247,9 @@ describe('formatNetworkFee', () => {
           amount: '0.01',
           valueInCurrency: '10.50',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(isNumberValue).toHaveBeenCalledWith('0.01');
       expect(isNumberValue).toHaveBeenCalledWith('10.50');
@@ -261,9 +268,9 @@ describe('formatNetworkFee', () => {
           amount: '0.02',
           valueInCurrency: '25.00',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('EUR', quote);
+      const result = formatNetworkFee('EUR', toQuoteMetadataV2(quote));
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('25.00'), 'EUR');
       expect(result).toBe('€25.00');
@@ -280,9 +287,9 @@ describe('formatNetworkFee', () => {
           amount: '0.000001',
           valueInCurrency: '0.005',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('0.005'), 'USD');
       expect(result).toBe('<$0.01');
@@ -297,9 +304,9 @@ describe('formatNetworkFee', () => {
           amount: '0',
           valueInCurrency: '0',
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('0'), 'USD');
       expect(result).toBe('$0');
@@ -320,9 +327,9 @@ describe('formatNetworkFee', () => {
             valueInCurrency: '8.00',
           },
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('8.00'), 'USD');
       expect(result).toBe('$8.00');
@@ -346,9 +353,9 @@ describe('formatNetworkFee', () => {
             valueInCurrency: '3.50',
           },
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(formatFiat).toHaveBeenCalledWith(new BigNumber('3.50'), 'USD');
       expect(result).toBe('$3.50');
@@ -359,12 +366,12 @@ describe('formatNetworkFee', () => {
         gasFee: {
           total: {
             amount: '0.002',
-            valueInCurrency: null,
+            valueInCurrency: undefined,
           },
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -374,13 +381,13 @@ describe('formatNetworkFee', () => {
       const quote = {
         gasFee: {
           total: {
-            amount: null,
+            amount: undefined,
             valueInCurrency: '8.00',
           },
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -396,9 +403,9 @@ describe('formatNetworkFee', () => {
             valueInCurrency: 'bad',
           },
         },
-      } as unknown as QuoteResponse & QuoteMetadata;
+      };
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();
@@ -407,7 +414,7 @@ describe('formatNetworkFee', () => {
     it('returns "-" when neither totalNetworkFee nor gasFee.total is available', () => {
       const quote = {} as QuoteResponse & QuoteMetadata;
 
-      const result = formatNetworkFee('USD', quote);
+      const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 
       expect(result).toBe('-');
       expect(mockFormatFiat).not.toHaveBeenCalled();

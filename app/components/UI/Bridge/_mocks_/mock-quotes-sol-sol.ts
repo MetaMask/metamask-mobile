@@ -2,6 +2,7 @@ import {
   ActionTypes,
   validateQuoteResponseV1,
   type QuoteResponseV1,
+  toQuoteResponseV2,
 } from '@metamask/bridge-controller';
 
 const mockQuotes: QuoteResponseV1[] = [
@@ -96,4 +97,4 @@ const mockQuotes: QuoteResponseV1[] = [
 
 mockQuotes.forEach((quote) => validateQuoteResponseV1(quote));
 
-export default mockQuotes;
+export default mockQuotes.map(toQuoteResponseV2);
