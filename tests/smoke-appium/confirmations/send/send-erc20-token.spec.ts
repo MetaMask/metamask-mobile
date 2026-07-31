@@ -1,19 +1,20 @@
-/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
+import { test as appiumTest } from '../../../framework/fixtures/playwright/index.js';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-} from '../../../framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
-import SendView from '../../../page-objects/Send/RedesignedSendView';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import { DappVariants } from '../../../framework/Constants';
-import { SmokeConfirmations } from '../../../tags';
-import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
-import { loginToApp } from '../../../flows/wallet.flow';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { AnvilManager } from '../../../seeder/anvil-manager';
+} from '../../../framework/fixtures/FixtureBuilder.js';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
+import SendView from '../../../page-objects/Send/RedesignedSendView.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { DappVariants } from '../../../framework/Constants.js';
+import { SmokeConfirmations } from '../../../tags.js';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils.js';
+import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
+import { LocalNodeType } from '../../../framework/types.js';
+import { AnvilManager } from '../../../seeder/anvil-manager.js';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
-import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers.js';
+import { getDecodedProxiedURL } from '../../notifications/utils/helpers.js';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
@@ -272,7 +273,7 @@ async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
     eth_getBlockByNumber: {
       number: '0x1234567',
       hash: '0xabc123',
-      timestamp: '0x' + Math.floor(Date.now() / 1000).toString(16),
+      timestamp: '0x6830d400',
       gasLimit: '0x1c9c380',
       gasUsed: '0x5208',
       baseFeePerGas: '0x3B9ACA00',
@@ -397,161 +398,178 @@ async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
   }
 }
 
-describe(SmokeConfirmations('Send ERC20 asset'), () => {
-  it('should send USDC send maxto an address', async () => {
-    await withFixtures(
-      {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
-        fixture: ({ localNodes }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-          const rpcPort =
-            node instanceof AnvilManager
-              ? (node.getPort() ?? AnvilPort())
-              : undefined;
+appiumTest.describe(SmokeConfirmations('Send ERC20 asset'), () => {
+  appiumTest.describe.configure({ timeout: 2500000 });
 
-          const fixture = new FixtureBuilder()
-            .withNetworkController({
-              chainId: LOCAL_CHAIN_ID,
-              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Local RPC',
-              ticker: 'ETH',
-            })
-            .withTokens(
-              [
+  appiumTest(
+    'sends USDC MAX to an address',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          dapps: [
+            {
+              dappVariant: DappVariants.TEST_DAPP,
+            },
+          ],
+          fixture: ({ localNodes }) => {
+            const node = localNodes?.[0] as unknown as AnvilManager;
+            const rpcPort =
+              node instanceof AnvilManager
+                ? (node.getPort() ?? AnvilPort())
+                : undefined;
+
+            const fixture = new FixtureBuilder()
+              .withNetworkController({
+                chainId: LOCAL_CHAIN_ID,
+                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+                type: 'custom',
+                nickname: 'Local RPC',
+                ticker: 'ETH',
+              })
+              .withTokens(
+                [
+                  {
+                    address: USDC_ADDRESS,
+                    symbol: 'USDC',
+                    decimals: 6,
+                    name: 'USD Coin',
+                  },
+                ],
+                LOCAL_CHAIN_ID,
+                TEST_ACCOUNT,
+              )
+              .withTokenRates(LOCAL_CHAIN_ID, USDC_ADDRESS, 1)
+              .withTokensForAllPopularNetworks([
                 {
-                  address: USDC_ADDRESS,
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'ETH',
+                  decimals: 18,
+                  name: 'Ethereum',
+                },
+                {
+                  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
                   symbol: 'USDC',
                   decimals: 6,
                   name: 'USD Coin',
                 },
-              ],
-              LOCAL_CHAIN_ID,
-              TEST_ACCOUNT,
-            )
-            .withTokenRates(LOCAL_CHAIN_ID, USDC_ADDRESS, 1)
-            .withTokensForAllPopularNetworks([
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                decimals: 18,
-                name: 'Ethereum',
-              },
-              {
-                address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-                symbol: 'USDC',
-                decimals: 6,
-                name: 'USD Coin',
-              },
-              {
-                address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-                symbol: 'DAI',
-                decimals: 18,
-                name: 'Dai Stablecoin',
-              },
-            ])
-            .build();
-
-          fixture.state.engine.backgroundState.TokenBalancesController.tokenBalances =
-            {
-              ...fixture.state.engine.backgroundState.TokenBalancesController
-                .tokenBalances,
-              [TEST_ACCOUNT]: {
-                ...fixture.state.engine.backgroundState.TokenBalancesController
-                  .tokenBalances[TEST_ACCOUNT],
-                [LOCAL_CHAIN_ID]: {
-                  [USDC_ADDRESS]: '0x2540be400',
+                {
+                  address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                  symbol: 'DAI',
+                  decimals: 18,
+                  name: 'Dai Stablecoin',
                 },
+              ])
+              .build();
+
+            fixture.state.engine.backgroundState.TokenBalancesController.tokenBalances =
+              {
+                ...fixture.state.engine.backgroundState.TokenBalancesController
+                  .tokenBalances,
+                [TEST_ACCOUNT]: {
+                  ...fixture.state.engine.backgroundState
+                    .TokenBalancesController.tokenBalances[TEST_ACCOUNT],
+                  [LOCAL_CHAIN_ID]: {
+                    [USDC_ADDRESS]: '0x2540be400',
+                  },
+                },
+              };
+
+            const backgroundState = fixture.state.engine.backgroundState;
+            const selectedAccountId =
+              backgroundState.AccountsController.internalAccounts
+                .selectedAccount;
+            const existingAssetsController =
+              (backgroundState.AssetsController ??
+                {}) as Partial<AssetsControllerState>;
+            const now = Date.now();
+
+            backgroundState.AssetsController = {
+              ...existingAssetsController,
+              selectedCurrency: 'usd',
+              assetsInfo: {
+                ...existingAssetsController.assetsInfo,
+                [LOCAL_NATIVE_ASSET_ID]: {
+                  type: 'native',
+                  symbol: 'ETH',
+                  name: 'Ethereum',
+                  decimals: 18,
+                },
+                [LOCAL_USDC_ASSET_ID]: {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  decimals: 6,
+                },
+              },
+              assetsBalance: {
+                ...existingAssetsController.assetsBalance,
+                [selectedAccountId]: {
+                  ...existingAssetsController.assetsBalance?.[
+                    selectedAccountId
+                  ],
+                  [LOCAL_NATIVE_ASSET_ID]: {
+                    amount: '10',
+                  },
+                  [LOCAL_USDC_ASSET_ID]: {
+                    amount: '10000',
+                  },
+                },
+              },
+              assetsPrice: {
+                ...existingAssetsController.assetsPrice,
+                [LOCAL_NATIVE_ASSET_ID]: {
+                  assetPriceType: 'fungible' as const,
+                  price: 1,
+                  usdPrice: 1,
+                  lastUpdated: now,
+                },
+                [LOCAL_USDC_ASSET_ID]: {
+                  assetPriceType: 'fungible' as const,
+                  price: 1,
+                  usdPrice: 1,
+                  lastUpdated: now,
+                },
+              },
+              customAssets: {
+                ...existingAssetsController.customAssets,
+                [selectedAccountId]: [
+                  ...new Set([
+                    ...(existingAssetsController.customAssets?.[
+                      selectedAccountId
+                    ] ?? []),
+                    LOCAL_USDC_ASSET_ID,
+                  ]),
+                ],
               },
             };
 
-          const backgroundState = fixture.state.engine.backgroundState;
-          const selectedAccountId =
-            backgroundState.AccountsController.internalAccounts.selectedAccount;
-          const existingAssetsController = (backgroundState.AssetsController ??
-            {}) as Partial<AssetsControllerState>;
-          const now = Date.now();
-
-          backgroundState.AssetsController = {
-            ...existingAssetsController,
-            selectedCurrency: 'usd',
-            assetsInfo: {
-              ...existingAssetsController.assetsInfo,
-              [LOCAL_NATIVE_ASSET_ID]: {
-                type: 'native',
-                symbol: 'ETH',
-                name: 'Ethereum',
-                decimals: 18,
-              },
-              [LOCAL_USDC_ASSET_ID]: {
-                type: 'erc20',
-                symbol: 'USDC',
-                name: 'USD Coin',
-                decimals: 6,
+            return fixture;
+          },
+          localNodeOptions: [
+            {
+              type: LocalNodeType.anvil,
+              options: {
+                chainId: 1337,
               },
             },
-            assetsBalance: {
-              ...existingAssetsController.assetsBalance,
-              [selectedAccountId]: {
-                ...existingAssetsController.assetsBalance?.[selectedAccountId],
-                [LOCAL_NATIVE_ASSET_ID]: {
-                  amount: '10',
-                },
-                [LOCAL_USDC_ASSET_ID]: {
-                  amount: '10000',
-                },
-              },
-            },
-            assetsPrice: {
-              ...existingAssetsController.assetsPrice,
-              [LOCAL_NATIVE_ASSET_ID]: {
-                assetPriceType: 'fungible' as const,
-                price: 1,
-                usdPrice: 1,
-                lastUpdated: now,
-              },
-              [LOCAL_USDC_ASSET_ID]: {
-                assetPriceType: 'fungible' as const,
-                price: 1,
-                usdPrice: 1,
-                lastUpdated: now,
-              },
-            },
-            customAssets: {
-              ...existingAssetsController.customAssets,
-              [selectedAccountId]: [
-                ...new Set([
-                  ...(existingAssetsController.customAssets?.[
-                    selectedAccountId
-                  ] ?? []),
-                  LOCAL_USDC_ASSET_ID,
-                ]),
-              ],
-            },
-          };
-
-          return fixture;
+          ],
+          testSpecificMock: setupAccountsApiMocks,
+          restartDevice: true,
+          currentDeviceDetails,
         },
-        testSpecificMock: setupAccountsApiMocks,
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await device.disableSynchronization();
+        async () => {
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
 
-        // send Max USDC
-        await WalletView.tapWalletSendButton();
-        await SendView.selectERC20Token();
-        await SendView.pressAmountMaxButton();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await FooterActions.tapCancelButton();
-      },
-    );
-  });
+          // send Max USDC
+          await WalletView.tapWalletSendButton();
+          await SendView.selectERC20Token();
+          await SendView.pressAmountMaxButton();
+          await SendView.pressContinueButton();
+          await SendView.inputRecipientAddress(RECIPIENT);
+          await SendView.pressReviewButton();
+          await FooterActions.tapCancelButton();
+        },
+      );
+    },
+  );
 });
