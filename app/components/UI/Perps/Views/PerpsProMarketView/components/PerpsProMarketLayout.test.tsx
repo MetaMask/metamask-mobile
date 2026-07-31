@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { fireEvent, render, within } from '@testing-library/react-native';
+import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
 
@@ -32,35 +32,35 @@ describe('PerpsProMarketLayout', () => {
     expect(rightColumn).toHaveStyle({ width: 132 });
   });
 
-  it('uses the Figma trading-area dimensions', () => {
+  it('uses content-driven column heights without a fixed trading-area min height', () => {
     const { getByTestId } = renderLayout();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT)).toHaveStyle({
-      minHeight: 682,
+      paddingBottom: 16,
+      paddingHorizontal: 8,
     });
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.LEFT_COLUMN)).toHaveStyle(
+      {
+        alignSelf: 'flex-start',
+      },
+    );
     expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
-    ).toHaveStyle({ width: 24 });
+      getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).toHaveStyle({
+      width: 132,
+      alignSelf: 'flex-start',
+      paddingLeft: 16,
+    });
   });
 
-  it('hides the order book and shows expand when collapsed', () => {
-    const onExpandOrderBook = jest.fn();
+  it('hides the order book column when collapsed', () => {
     const { getByTestId, queryByTestId } = renderLayout({
       isOrderBookCollapsed: true,
-      onExpandOrderBook,
     });
 
     expect(
       queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
     ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
-    ).not.toBeOnTheScreen();
     expect(getByTestId('mock-order-form')).toBeOnTheScreen();
-
-    fireEvent.press(
-      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON),
-    );
-    expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
   });
 });

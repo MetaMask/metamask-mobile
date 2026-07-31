@@ -43,6 +43,11 @@ export interface PerpsMarketIdentityProps {
    */
   onPress?: () => void;
   testIDs?: PerpsMarketIdentityTestIDs;
+  /**
+   * When provided, replaces the default `[Ticker]-[collateral] perp`
+   * subtitle row entirely (e.g. Pro's scroll-linked live price crossfade).
+   */
+  subtitleContent?: React.ReactNode;
 }
 
 /**
@@ -60,6 +65,7 @@ const PerpsMarketIdentity = ({
   nameStyle,
   onPress,
   testIDs,
+  subtitleContent,
 }: PerpsMarketIdentityProps) => {
   const displaySymbol = getPerpsDisplaySymbol(symbol);
   const displayTitle = name || displaySymbol;
@@ -100,15 +106,17 @@ const PerpsMarketIdentity = ({
             />
           ) : null}
         </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          testID={testIDs?.subtitle}
-        >
-          {subtitle}
-        </Text>
+        {subtitleContent ?? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            testID={testIDs?.subtitle}
+          >
+            {subtitle}
+          </Text>
+        )}
       </Box>
     </Box>
   );

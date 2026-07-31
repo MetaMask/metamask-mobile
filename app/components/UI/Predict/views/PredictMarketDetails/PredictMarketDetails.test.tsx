@@ -146,10 +146,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-jest.mock('../../../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({})),
-}));
-
 jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn(
     (value: number, options?: { maximumDecimals?: number }) =>
