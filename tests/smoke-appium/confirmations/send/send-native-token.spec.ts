@@ -1,7 +1,6 @@
 import { test as appiumTest } from '../../../framework/fixtures/playwright/index.js';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../../framework/fixtures/FixtureBuilder.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
 import SendView from '../../../page-objects/Send/RedesignedSendView.js';
@@ -23,7 +22,6 @@ import type { AssetsControllerState } from '@metamask/assets-controller';
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper.js';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
-const TEST_ACCOUNT = DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase();
 const LOCAL_NATIVE_ASSET_ID = 'eip155:1337/slip44:60';
 
 function buildNativeSendFixture() {

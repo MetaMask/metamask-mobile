@@ -273,7 +273,7 @@ async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
     eth_getBlockByNumber: {
       number: '0x1234567',
       hash: '0xabc123',
-      timestamp: '0x' + Math.floor(Date.now() / 1000).toString(16),
+      timestamp: '0x6830d400',
       gasLimit: '0x1c9c380',
       gasUsed: '0x5208',
       baseFeePerGas: '0x3B9ACA00',
