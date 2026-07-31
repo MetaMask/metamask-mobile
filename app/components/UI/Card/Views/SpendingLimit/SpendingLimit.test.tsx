@@ -1,7 +1,6 @@
 // Mock hooks first - must be hoisted before imports
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockAddListener = jest.fn();
 const mockSetParams = jest.fn();
 const mockSubmitDelegation = jest.fn();
 const mockShowToast = jest.fn();
@@ -16,13 +15,14 @@ const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
   addProperties: mockAddProperties,
   build: mockBuild,
 }));
+const mockUsePreventRemove = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
-    addListener: mockAddListener,
+    addListener: jest.fn(),
     setParams: mockSetParams,
     dispatch: mockNavigationDispatch,
   }),
@@ -33,6 +33,10 @@ jest.mock('@react-navigation/native', () => ({
       payload: { name: routeName, params },
     })),
   },
+}));
+
+jest.mock('../../../../../util/navigation/usePreventRemove', () => ({
+  usePreventRemove: (...args: unknown[]) => mockUsePreventRemove(...args),
 }));
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
@@ -373,9 +377,6 @@ describe('SpendingLimit Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitDelegation.mockResolvedValue(undefined);
-
-    // Mock addListener to return an unsubscribe function
-    mockAddListener.mockReturnValue(jest.fn());
 
     // Mock useFocusEffect - store the callback but don't execute automatically
     // to avoid infinite render loops in tests
@@ -761,16 +762,16 @@ describe('SpendingLimit Component', () => {
   });
 
   describe('Navigation Blocking', () => {
-    it('does not register a beforeRemove listener when UI is unlocked', () => {
+    it('does not prevent remove when UI is unlocked', () => {
       render();
 
-      expect(mockAddListener).not.toHaveBeenCalledWith(
-        'beforeRemove',
+      expect(mockUsePreventRemove).toHaveBeenCalledWith(
+        false,
         expect.any(Function),
       );
     });
 
-    it('blocks navigation when UI interaction is locked', () => {
+    it('prevents remove when UI interaction is locked', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
@@ -779,20 +780,13 @@ describe('SpendingLimit Component', () => {
 
       render();
 
-      const mockEvent = {
-        preventDefault: jest.fn(),
-        data: { action: { type: 'GO_BACK' } },
-      };
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
-
-      beforeRemoveCallback(mockEvent);
-
-      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(mockUsePreventRemove).toHaveBeenCalledWith(
+        true,
+        expect.any(Function),
+      );
     });
 
-    it('does not register a beforeRemove listener when Money Account linkage is processing outside onboarding', () => {
+    it('does not prevent remove when Money Account linkage is processing outside onboarding', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
@@ -802,13 +796,13 @@ describe('SpendingLimit Component', () => {
 
       render();
 
-      expect(mockAddListener).not.toHaveBeenCalledWith(
-        'beforeRemove',
+      expect(mockUsePreventRemove).toHaveBeenCalledWith(
+        false,
         expect.any(Function),
       );
     });
 
-    it('blocks navigation when Money Account linkage is processing during onboarding', () => {
+    it('prevents remove when Money Account linkage is processing during onboarding', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
@@ -818,41 +812,10 @@ describe('SpendingLimit Component', () => {
 
       render({ params: { flow: 'onboarding' } });
 
-      const mockEvent = {
-        preventDefault: jest.fn(),
-        data: { action: { type: 'GO_BACK' } },
-      };
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
-
-      beforeRemoveCallback(mockEvent);
-
-      expect(mockEvent.preventDefault).toHaveBeenCalled();
-    });
-
-    it('does not register a beforeRemove listener when isLoading is false', () => {
-      render();
-
-      expect(mockAddListener).not.toHaveBeenCalledWith(
-        'beforeRemove',
+      expect(mockUsePreventRemove).toHaveBeenCalledWith(
+        true,
         expect.any(Function),
       );
-    });
-
-    it('unsubscribes from navigation listener on unmount', () => {
-      mockUseSpendingLimit.mockReturnValue({
-        ...getDefaultUseSpendingLimitMock(),
-        isUiInteractionLocked: true,
-      });
-      const mockUnsubscribe = jest.fn();
-      mockAddListener.mockReturnValue(mockUnsubscribe);
-
-      const { unmount } = render();
-
-      unmount();
-
-      expect(mockUnsubscribe).toHaveBeenCalled();
     });
   });
 

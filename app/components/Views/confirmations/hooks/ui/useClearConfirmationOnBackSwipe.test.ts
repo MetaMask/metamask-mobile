@@ -6,9 +6,16 @@ import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import useClearConfirmationOnBackSwipe from './useClearConfirmationOnBackSwipe';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import type { PreventRemoveCallback } from '../../../../../util/navigation/usePreventRemove';
+
+const mockUsePreventRemove = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../../util/navigation/usePreventRemove', () => ({
+  usePreventRemove: (...args: unknown[]) => mockUsePreventRemove(...args),
 }));
 
 jest.mock('../useConfirmActions', () => ({
@@ -29,19 +36,23 @@ jest.mock('../../context/confirmation-context', () => ({
 }));
 
 describe('useClearConfirmationOnBackSwipe', () => {
-  const mockUnsubscribe = jest.fn();
-  const mockAddListener = jest.fn().mockReturnValue(mockUnsubscribe);
   const mockDispatch = jest.fn();
   const mockBackHandlerRemove = jest.fn();
   const mockOnReject = jest.fn();
   const mockAction = { type: 'GO_BACK' };
 
+  const getPreventRemoveCallback = (): PreventRemoveCallback => {
+    const lastCall =
+      mockUsePreventRemove.mock.calls[
+        mockUsePreventRemove.mock.calls.length - 1
+      ];
+    return lastCall[1] as PreventRemoveCallback;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAddListener.mockReturnValue(mockUnsubscribe);
 
     (useNavigation as jest.Mock).mockReturnValue({
-      addListener: mockAddListener,
       goBack: jest.fn(),
       dispatch: mockDispatch,
     });
@@ -60,18 +71,21 @@ describe('useClearConfirmationOnBackSwipe', () => {
     });
   });
 
-  it('does not set up listeners if confirmation is not full screen', () => {
+  it('does not prevent remove when confirmation is not full screen', () => {
     (useFullScreenConfirmation as jest.Mock).mockReturnValue({
       isFullScreenConfirmation: false,
     });
 
     renderHook(() => useClearConfirmationOnBackSwipe());
 
-    expect(mockAddListener).not.toHaveBeenCalled();
+    expect(mockUsePreventRemove).toHaveBeenCalledWith(
+      false,
+      expect.any(Function),
+    );
     expect(mockOnReject).not.toHaveBeenCalled();
   });
 
-  describe('iOS behavior', () => {
+  describe('prevent-remove callback', () => {
     beforeEach(() => {
       (Device.isIos as jest.Mock).mockReturnValue(true);
       (Device.isAndroid as jest.Mock).mockReturnValue(false);
@@ -80,53 +94,40 @@ describe('useClearConfirmationOnBackSwipe', () => {
       });
     });
 
-    it('adds a beforeRemove listener when mounted', () => {
+    it('prevents remove when confirmation is full screen', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
 
-      expect(mockAddListener).toHaveBeenCalledTimes(1);
-      expect(mockAddListener).toHaveBeenCalledWith(
-        'beforeRemove',
+      expect(mockUsePreventRemove).toHaveBeenCalledWith(
+        true,
         expect.any(Function),
       );
     });
 
-    it('calls onReject with skipNavigation when beforeRemove is triggered', () => {
+    it('rejects with skipNavigation and re-dispatches the original action', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
 
-      beforeRemoveCallback({
-        preventDefault: jest.fn(),
-        data: { action: mockAction },
-      });
+      getPreventRemoveCallback()({ data: { action: mockAction } });
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
       expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
       expect(mockDispatch).toHaveBeenCalledWith(mockAction);
     });
 
-    it('does not reject on beforeRemove when confirmation is submitting', () => {
+    it('does not reject when confirmation is submitting', () => {
       (useConfirmationContext as jest.Mock).mockReturnValue({
         mmPayRequestInProgressNavHandler: { current: false },
         isConfirmationSubmittingRef: { current: true },
       });
 
       renderHook(() => useClearConfirmationOnBackSwipe());
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
 
-      beforeRemoveCallback({
-        preventDefault: jest.fn(),
-        data: { action: mockAction },
-      });
+      getPreventRemoveCallback()({ data: { action: mockAction } });
 
       expect(mockOnReject).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(mockAction);
     });
 
-    it('reads the submitting ref at beforeRemove event time', () => {
+    it('reads the submitting ref when the prevent-remove callback runs', () => {
       const isConfirmationSubmittingRef = { current: false };
       (useConfirmationContext as jest.Mock).mockReturnValue({
         mmPayRequestInProgressNavHandler: { current: false },
@@ -134,40 +135,25 @@ describe('useClearConfirmationOnBackSwipe', () => {
       });
 
       renderHook(() => useClearConfirmationOnBackSwipe());
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
 
       isConfirmationSubmittingRef.current = true;
-      beforeRemoveCallback({
-        preventDefault: jest.fn(),
-        data: { action: mockAction },
-      });
+      getPreventRemoveCallback()({ data: { action: mockAction } });
 
       expect(mockOnReject).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(mockAction);
     });
 
-    it('does not reject twice when beforeRemove fires multiple times', () => {
+    it('rejects at most once when the prevent-remove callback runs multiple times', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
+      const callback = getPreventRemoveCallback();
 
-      beforeRemoveCallback({
-        preventDefault: jest.fn(),
-        data: { action: mockAction },
-      });
-      beforeRemoveCallback({
-        preventDefault: jest.fn(),
-        data: { action: mockAction },
-      });
+      callback({ data: { action: mockAction } });
+      callback({ data: { action: mockAction } });
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
 
-    it('intercepts beforeRemove and calls the handler when mmPayRequestInProgressNavHandler is set', () => {
-      const mockPreventDefault = jest.fn();
+    it('runs the MM Pay handler and does not reject or re-dispatch', () => {
       const mockHandler = jest.fn();
       (useConfirmationContext as jest.Mock).mockReturnValue({
         mmPayRequestInProgressNavHandler: { current: mockHandler },
@@ -175,29 +161,15 @@ describe('useClearConfirmationOnBackSwipe', () => {
       });
 
       renderHook(() => useClearConfirmationOnBackSwipe());
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
 
-      beforeRemoveCallback({
-        preventDefault: mockPreventDefault,
-        data: { action: mockAction },
-      });
+      getPreventRemoveCallback()({ data: { action: mockAction } });
 
-      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
       expect(mockHandler).toHaveBeenCalledTimes(1);
       expect(mockOnReject).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('calls unsubscribe when unmounted', () => {
-      const { unmount } = renderHook(() => useClearConfirmationOnBackSwipe());
-      unmount();
-
-      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not set up Android back handler', () => {
+    it('does not set up Android back handler on iOS', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
 
       expect(BackHandler.addEventListener).not.toHaveBeenCalled();
@@ -254,32 +226,17 @@ describe('useClearConfirmationOnBackSwipe', () => {
       expect(mockBackHandlerRemove).toHaveBeenCalledTimes(1);
     });
 
-    it('adds a beforeRemove listener when mounted', () => {
+    it('rejects with skipNavigation via the prevent-remove callback', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
 
-      expect(mockAddListener).toHaveBeenCalledWith(
-        'beforeRemove',
-        expect.any(Function),
-      );
-    });
-
-    it('calls onReject with skipNavigation when beforeRemove is triggered', () => {
-      renderHook(() => useClearConfirmationOnBackSwipe());
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
-
-      beforeRemoveCallback({
-        preventDefault: jest.fn(),
-        data: { action: mockAction },
-      });
+      getPreventRemoveCallback()({ data: { action: mockAction } });
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
       expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
       expect(mockDispatch).toHaveBeenCalledWith(mockAction);
     });
 
-    it('intercepts hardware back when mmPayRequestInProgressNavHandler is true', () => {
+    it('intercepts hardware back when mmPayRequestInProgressNavHandler is set', () => {
       (useConfirmationContext as jest.Mock).mockReturnValue({
         mmPayRequestInProgressNavHandler: { current: true },
         isConfirmationSubmittingRef: { current: false },
