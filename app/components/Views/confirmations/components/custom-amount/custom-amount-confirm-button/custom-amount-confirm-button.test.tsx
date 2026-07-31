@@ -7,14 +7,16 @@ import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountS
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
-import { useAlerts } from '../../../context/alert-system-context';
+import {
+  useAlerts,
+  AlertsContextParams,
+} from '../../../context/alert-system-context';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Alert } from '../../../types/alerts';
-import { AlertsContextParams } from '../../../context/alert-system-context';
 import { useRoute } from '@react-navigation/native';
 
 jest.mock('../../../context/alert-system-context');
@@ -131,7 +133,9 @@ describe('CustomAmountConfirmButton', () => {
     });
 
     await act(async () => {
-      fireEvent.press(getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON));
+      fireEvent.press(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      );
     });
 
     expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(true);

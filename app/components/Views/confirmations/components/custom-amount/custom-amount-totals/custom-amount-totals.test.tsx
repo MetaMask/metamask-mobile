@@ -16,14 +16,14 @@ jest.mock('../../rows/bridge-time-row', () => ({
 }));
 
 jest.mock('../../rows/total-row', () => {
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     TotalRow: () => <View testID="total-row" />,
   };
 });
 
 jest.mock('../../rows/receive-row', () => {
-  const { View } = require('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     ReceiveRow: () => <View testID="receive-row" />,
   };
