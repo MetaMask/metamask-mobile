@@ -190,6 +190,15 @@ export async function scrollAndroidWebIdIntoView(
     options.scrollLabels,
   );
   if (viaUiScrollable) {
+    // Text-label fallback may match a nearby unique anchor (not the target
+    // resource-id). Re-resolve by id now that the section should be materialized.
+    const byId = await tryFindNativeWebIdElement(
+      webId,
+      IN_PLACE_FIND_TIMEOUT_MS,
+    );
+    if (byId) {
+      return byId;
+    }
     return viaUiScrollable;
   }
 
