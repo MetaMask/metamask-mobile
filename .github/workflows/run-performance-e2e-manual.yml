@@ -66,9 +66,10 @@ permissions:
   statuses: write
 
 concurrency:
-  # Scheduled e2e/exp runs share one queue. Manual runs are isolated by ref and
+  # Keep e2e and exp schedules in separate queues so a long e2e run cannot
+  # cancel the pending experimental run. Manual runs are isolated by ref and
   # variant so they do not block the scheduled cadence.
-  group: performance-e2e-trigger-${{ github.event_name == 'schedule' && 'scheduled' || github.ref }}-${{ github.event_name == 'schedule' && 'all' || inputs.build_variant }}
+  group: performance-e2e-trigger-${{ github.event_name == 'schedule' && github.event.schedule || github.ref }}-${{ github.event_name == 'schedule' && 'scheduled' || inputs.build_variant }}
   cancel-in-progress: false
 
 jobs:
