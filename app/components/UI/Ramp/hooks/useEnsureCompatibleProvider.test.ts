@@ -67,7 +67,7 @@ describe('useEnsureCompatibleProvider', () => {
     expect(mockSetSelectedProvider).not.toHaveBeenCalled();
   });
 
-  it('does not switch the provider to itself', () => {
+  it('does not switch when the only provider does not support the asset', () => {
     const provider = makeProvider('transak-native');
     setup(provider, [provider]);
 
