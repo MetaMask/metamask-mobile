@@ -87,7 +87,9 @@ describe('resolveABTestAssignment', () => {
       });
     });
 
-    it('prefers the threshold group over the legacy flag value shape', () => {
+    it('prefers a local flag value override over the threshold group', () => {
+      // A local override lands in the flag value (via selectRemoteFeatureFlags)
+      // and must win over the remote threshold group assignment.
       expect(
         resolveABTestAssignment(
           { [flagKey]: { name: 'control' } },
@@ -96,7 +98,7 @@ describe('resolveABTestAssignment', () => {
           { [flagKey]: 'treatment' },
         ),
       ).toEqual({
-        variantName: 'treatment',
+        variantName: 'control',
         isActive: true,
       });
     });

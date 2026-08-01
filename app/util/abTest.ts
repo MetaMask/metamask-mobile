@@ -29,10 +29,12 @@ const getFlagVariantName = (flagValue: unknown): string | undefined => {
  *
  * As of @metamask/remote-feature-flag-controller@5, threshold flags return the
  * selected value directly and the selected group name is stored separately in
- * `featureFlagThresholdGroups`. We read the variant name from there first,
- * falling back to the legacy flag-value shape for string flags.
+ * `featureFlagThresholdGroups`. We read the variant name from the flag value
+ * first, since `selectRemoteFeatureFlags` merges `localOverrides` there (so a
+ * local override can force a variant), and fall back to the threshold group for
+ * the normal remote case where the flag value carries no variant name.
  *
- * @param featureFlags - The resolved remote feature flags.
+ * @param featureFlags - The resolved remote feature flags (with local overrides merged).
  * @param flagKey - The A/B test flag key.
  * @param validVariants - The declared variant names for the test.
  * @param thresholdGroups - The `featureFlagThresholdGroups` map from controller state.
@@ -45,7 +47,7 @@ export const resolveABTestAssignment = (
   thresholdGroups?: Record<string, string> | null,
 ): ABTestResolution => {
   const variantName =
-    thresholdGroups?.[flagKey] ?? getFlagVariantName(featureFlags?.[flagKey]);
+    getFlagVariantName(featureFlags?.[flagKey]) ?? thresholdGroups?.[flagKey];
   const isActive = Boolean(variantName && validVariants.includes(variantName));
 
   return {
