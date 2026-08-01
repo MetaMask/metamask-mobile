@@ -105,6 +105,7 @@ appiumTest.describe(SmokeSnaps('Background Events Snap Tests'), () => {
             'scheduleBackgroundEventResultSpan',
           );
           await TestSnaps.fillMessage('cancelBackgroundEventInput', eventId);
+          await TestSnaps.blurActiveWebViewInput();
           await TestSnaps.tapButton('cancelBackgroundEventButton');
 
           await TestSnaps.tapButton('getBackgroundEventResultButton');

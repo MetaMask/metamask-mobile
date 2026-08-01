@@ -144,6 +144,10 @@ export type BrowserTabProps = SharedTabProps & {
    */
   fromWhatsHappening?: boolean;
   /**
+   * Whether browser was opened from the Market Insights view
+   */
+  fromMarketInsights?: boolean;
+  /**
    * Whether browser was opened from the Money tab
    */
   fromMoney?: boolean;
