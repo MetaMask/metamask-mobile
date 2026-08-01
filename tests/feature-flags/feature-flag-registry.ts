@@ -3454,6 +3454,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyCardTiltAnimationEnabled: {
+    name: 'earnMoneyCardTiltAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyFirstTimeDepositAnimationEnabled: {
     name: 'earnMoneyFirstTimeDepositAnimationEnabled',
     type: FeatureFlagType.Remote,
@@ -5565,6 +5573,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         url: 'https://braze-images.com/appboy/communication/assets/image_assets/images/6a29c2c64cef47009e1a3019/original.png',
         width: 720,
       },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictSportsFeed: {
+    name: 'predictSportsFeed',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
