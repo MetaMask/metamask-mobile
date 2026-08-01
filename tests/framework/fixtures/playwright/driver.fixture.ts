@@ -195,6 +195,9 @@ export const driverFixture = {
       if (!reuseEnabled) {
         try {
           if (drv) {
+            // Always pass drv so providers (including BrowserStack via
+            // BaseServiceProvider) actually deleteSession — a no-arg /
+            // missing cleanupSession must not leave cloud sessions open.
             if (deviceProvider.cleanupSession) {
               await deviceProvider.cleanupSession(drv);
             } else {
