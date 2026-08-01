@@ -166,6 +166,33 @@ export function snapUiNativeIosXPath(testID: string): string {
   return `//*[@name="${testID}"]`;
 }
 
+/**
+ * JSX Snap count — scoped under the Snap UI scrollview so bare "0"/"1" cannot
+ * match unrelated wallet chrome (especially on Android contains-text matchers).
+ *
+ * iOS: count StaticTexts are accessible=false; the SnapUI card parent exposes
+ * label "Hover for explanation, Count, N, Increment".
+ */
+export function snapUIJsxCountIosXPath(count: string): string {
+  const scrollView = SnapUIRendererSelectorIDs.scrollView;
+  return `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Count, ${count}")]`;
+}
+
+export function snapUIJsxCountAndroidXPath(count: string): string {
+  const scrollView = SnapUIRendererSelectorIDs.scrollView;
+  return `//*[contains(@resource-id,"${scrollView}")]//*[@text="${count}" or @content-desc="${count}" or contains(@content-desc,"Count, ${count}")]`;
+}
+
+export function snapUIJsxIncrementIosXPath(): string {
+  const scrollView = SnapUIRendererSelectorIDs.scrollView;
+  return `//*[@name="${scrollView}"]//*[@name="Increment"]`;
+}
+
+export function snapUIJsxIncrementAndroidXPath(): string {
+  const scrollView = SnapUIRendererSelectorIDs.scrollView;
+  return `//*[contains(@resource-id,"${scrollView}")]//*[@text="Increment" or @content-desc="Increment"]`;
+}
+
 export function snapUISelectorItemAndroidUIAutomator(text: string): string {
   const id = SnapUIRendererSelectorIDs.selectorItem;
   return `.resourceIdMatches(".*${id}.*").childSelector(new UiSelector().text("${text}"))`;

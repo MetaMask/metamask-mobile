@@ -16,12 +16,17 @@ import {
   snapUISelectorItemAndroidUIAutomator,
   snapUISelectorItemIosXPath,
   SNAP_UI_DROPDOWN_SHEET_TITLE,
+  snapUIJsxCountAndroidXPath,
+  snapUIJsxCountIosXPath,
+  snapUIJsxIncrementAndroidXPath,
+  snapUIJsxIncrementIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import type { TapOptions } from '../../framework/types';
 import WebView, { type WebViewByIdOptions } from '../../framework/WebView';
 import Gestures from '../../framework/Gestures';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
@@ -139,6 +144,59 @@ class TestSnaps {
             { lastElement: false, index: 0 },
           ),
       },
+    });
+  }
+
+  /** JSX Snap counter ("0" / "1"), scoped under the Snap UI scrollview. */
+  jsxCountElement(count: string): EncapsulatedElementType {
+    const scrollViewId = SnapUIRendererSelectorIDs.scrollView;
+    return encapsulated({
+      detox: () =>
+        element(
+          by.text(count).withAncestor(by.id(scrollViewId)),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            snapUIJsxCountAndroidXPath(count),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(snapUIJsxCountIosXPath(count)),
+      },
+    });
+  }
+
+  get jsxIncrementButton(): EncapsulatedElementType {
+    const scrollViewId = SnapUIRendererSelectorIDs.scrollView;
+    return encapsulated({
+      detox: () =>
+        element(
+          by.text('Increment').withAncestor(by.id(scrollViewId)),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            snapUIJsxIncrementAndroidXPath(),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(snapUIJsxIncrementIosXPath()),
+      },
+    });
+  }
+
+  async tapJsxIncrementButton(): Promise<void> {
+    if (PlatformDetector.isIOSAppium()) {
+      // Count/Increment StaticTexts are often accessible=false on iOS Appium;
+      // skip waitForDisplayed and tap the scoped scrollview child by name.
+      await UnifiedGestures.waitAndTap(this.jsxIncrementButton, {
+        checkForDisplayed: false,
+        description: 'JSX Increment',
+      });
+      return;
+    }
+
+    await Gestures.tap(this.jsxIncrementButton, {
+      elemDescription: 'JSX Increment',
     });
   }
 
