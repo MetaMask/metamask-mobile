@@ -5,7 +5,8 @@ import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Merged set/get/clear per section; Android WebView scrolls are slow on CI/local.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 300_000 });
 
   appiumTest(
     'connects to the State Snap',
@@ -22,184 +23,131 @@ appiumTest.describe(SmokeSnaps('Manage State Snap Tests'), () => {
   );
 
   appiumTest.describe('new state functions', () => {
-    appiumTest.describe('encrypted state', () => {
-      appiumTest(
-        'sets and retrieves state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.fillMessage('dataStateInput', '"bar"');
-              await TestSnaps.fillMessage('setStateKeyInput', 'foo');
-              await TestSnaps.blurActiveWebViewInput();
-              await TestSnaps.tapButton('sendStateButton');
-              await TestSnaps.checkResultJson('encryptedStateResultSpan', {
-                foo: 'bar',
-              });
+    appiumTest(
+      'encrypted state: sets, retrieves, and clears',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withSnapsFixtures(
+          currentDeviceDetails,
+          { restartDevice: false },
+          async () => {
+            await TestSnaps.fillMessage('dataStateInput', '"bar"');
+            await TestSnaps.fillMessage('setStateKeyInput', 'foo');
+            await TestSnaps.blurActiveWebViewInput();
+            await TestSnaps.tapButton('sendStateButton');
+            await TestSnaps.checkResultJson('encryptedStateResultSpan', {
+              foo: 'bar',
+            });
 
-              await TestSnaps.fillMessage('getStateInput', 'foo');
-              await TestSnaps.blurActiveWebViewInput();
-              await TestSnaps.tapButton('sendGetStateButton');
-              await TestSnaps.checkResultSpan('getStateResultSpan', '"bar"');
-            },
-          );
-        },
-      );
+            await TestSnaps.fillMessage('getStateInput', 'foo');
+            await TestSnaps.blurActiveWebViewInput();
+            await TestSnaps.tapButton('sendGetStateButton');
+            await TestSnaps.checkResultSpan('getStateResultSpan', '"bar"');
 
-      appiumTest(
-        'clears the state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.tapButton('clearStateButton');
-              await TestSnaps.checkResultSpan(
-                'encryptedStateResultSpan',
-                'null',
-              );
-            },
-          );
-        },
-      );
-    });
+            // Clear while still in the encrypted section — avoid a lone
+            // clear+assert after the viewport has moved elsewhere.
+            await TestSnaps.tapButton('clearStateButton');
+            await TestSnaps.checkResultSpan('encryptedStateResultSpan', 'null');
+          },
+        );
+      },
+    );
 
-    appiumTest.describe('unencrypted state', () => {
-      appiumTest(
-        'sets and retrieves unencrypted state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.fillMessage('dataUnencryptedStateInput', '"bar"');
-              await TestSnaps.fillMessage('setStateKeyUnencryptedInput', 'foo');
-              await TestSnaps.blurActiveWebViewInput();
-              await TestSnaps.tapButton('sendUnencryptedStateButton');
-              await TestSnaps.checkResultJson('unencryptedStateResultSpan', {
-                foo: 'bar',
-              });
+    appiumTest(
+      'unencrypted state: sets, retrieves, and clears',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withSnapsFixtures(
+          currentDeviceDetails,
+          { restartDevice: false },
+          async () => {
+            await TestSnaps.fillMessage('dataUnencryptedStateInput', '"bar"');
+            await TestSnaps.fillMessage('setStateKeyUnencryptedInput', 'foo');
+            await TestSnaps.blurActiveWebViewInput();
+            await TestSnaps.tapButton('sendUnencryptedStateButton');
+            await TestSnaps.checkResultJson('unencryptedStateResultSpan', {
+              foo: 'bar',
+            });
 
-              await TestSnaps.fillMessage('getUnencryptedStateInput', 'foo');
-              await TestSnaps.blurActiveWebViewInput();
-              await TestSnaps.tapButton('sendGetUnencryptedStateButton');
-              await TestSnaps.checkResultSpan(
-                'getStateUnencryptedResultSpan',
-                '"bar"',
-              );
-            },
-          );
-        },
-      );
+            await TestSnaps.fillMessage('getUnencryptedStateInput', 'foo');
+            await TestSnaps.blurActiveWebViewInput();
+            await TestSnaps.tapButton('sendGetUnencryptedStateButton');
+            await TestSnaps.checkResultSpan(
+              'getStateUnencryptedResultSpan',
+              '"bar"',
+            );
 
-      appiumTest(
-        'clears the unencrypted state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.tapButton('clearStateUnencryptedButton');
-              await TestSnaps.checkResultSpan(
-                'unencryptedStateResultSpan',
-                'null',
-              );
-            },
-          );
-        },
-      );
-    });
+            await TestSnaps.tapButton('clearStateUnencryptedButton');
+            await TestSnaps.checkResultSpan(
+              'unencryptedStateResultSpan',
+              'null',
+            );
+          },
+        );
+      },
+    );
   });
 
   appiumTest.describe('legacy state functions', () => {
-    appiumTest.describe('encrypted state', () => {
-      appiumTest(
-        'sets and retrieves state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.fillMessage('dataManageStateInput', '23');
-              await TestSnaps.blurActiveWebViewInput();
-              await TestSnaps.tapButton('sendManageStateButton');
-              await TestSnaps.checkResultSpan(
-                'sendManageStateResultSpan',
-                'true',
-              );
-              await TestSnaps.checkResultJson('retrieveManageStateResultSpan', {
-                items: ['23'],
-              });
-            },
-          );
-        },
-      );
+    appiumTest(
+      'encrypted state: sets, retrieves, and clears',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withSnapsFixtures(
+          currentDeviceDetails,
+          { restartDevice: false },
+          async () => {
+            await TestSnaps.fillMessage('dataManageStateInput', '23');
+            await TestSnaps.blurActiveWebViewInput();
+            await TestSnaps.tapButton('sendManageStateButton');
+            await TestSnaps.checkResultSpan(
+              'sendManageStateResultSpan',
+              'true',
+            );
+            await TestSnaps.checkResultJson('retrieveManageStateResultSpan', {
+              items: ['23'],
+            });
 
-      appiumTest(
-        'clears the state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.tapButton('clearManageStateButton');
-              await TestSnaps.checkResultSpan(
-                'clearManageStateResultSpan',
-                'true',
-              );
-              await TestSnaps.checkResultJson('retrieveManageStateResultSpan', {
-                items: [],
-              });
-            },
-          );
-        },
-      );
-    });
+            await TestSnaps.tapButton('clearManageStateButton');
+            await TestSnaps.checkResultSpan(
+              'clearManageStateResultSpan',
+              'true',
+            );
+            await TestSnaps.checkResultJson('retrieveManageStateResultSpan', {
+              items: [],
+            });
+          },
+        );
+      },
+    );
 
-    appiumTest.describe('unencrypted state', () => {
-      appiumTest(
-        'sets and retrieves unencrypted state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.fillMessage(
-                'dataUnencryptedManageStateInput',
-                '23',
-              );
-              await TestSnaps.blurActiveWebViewInput();
-              await TestSnaps.tapButton('sendUnencryptedManageStateButton');
-              await TestSnaps.checkResultJson(
-                'retrieveManageStateUnencryptedResultSpan',
-                { items: ['23'] },
-              );
-            },
-          );
-        },
-      );
+    appiumTest(
+      'unencrypted state: sets, retrieves, and clears',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withSnapsFixtures(
+          currentDeviceDetails,
+          { restartDevice: false },
+          async () => {
+            await TestSnaps.fillMessage(
+              'dataUnencryptedManageStateInput',
+              '23',
+            );
+            await TestSnaps.blurActiveWebViewInput();
+            await TestSnaps.tapButton('sendUnencryptedManageStateButton');
+            await TestSnaps.checkResultJson(
+              'retrieveManageStateUnencryptedResultSpan',
+              { items: ['23'] },
+            );
 
-      appiumTest(
-        'clears the unencrypted state',
-        async ({ driver: _driver, currentDeviceDetails }) => {
-          await withSnapsFixtures(
-            currentDeviceDetails,
-            { restartDevice: false },
-            async () => {
-              await TestSnaps.tapButton('clearUnencryptedManageStateButton');
-              await TestSnaps.checkResultSpan(
-                'clearUnencryptedManageStateResultSpan',
-                'true',
-              );
-              await TestSnaps.checkResultJson(
-                'retrieveManageStateUnencryptedResultSpan',
-                { items: [] },
-              );
-            },
-          );
-        },
-      );
-    });
+            await TestSnaps.tapButton('clearUnencryptedManageStateButton');
+            await TestSnaps.checkResultSpan(
+              'clearUnencryptedManageStateResultSpan',
+              'true',
+            );
+            await TestSnaps.checkResultJson(
+              'retrieveManageStateUnencryptedResultSpan',
+              { items: [] },
+            );
+          },
+        );
+      },
+    );
   });
 });
