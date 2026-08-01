@@ -35,7 +35,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
    * Providers that cache a browser (e.g. EmulatorProvider) should override
    * this so they can also clear their local reference.
    */
-  async cleanupSession?(drv?: Browser): Promise<void> {
+  async cleanupSession(drv?: Browser): Promise<void> {
     if (!drv) {
       this.sessionId = undefined;
       this.logger.debug(

@@ -1,5 +1,5 @@
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
-import { ProviderName, type WebDriverConfig } from '../../types.ts';
+import { ProviderName } from '../../types.ts';
 
 describe('isAppiumSessionReuseEnabled', () => {
   // Bracket access — babel transform-inline-environment-variables must not
@@ -25,7 +25,7 @@ describe('isAppiumSessionReuseEnabled', () => {
 
     const result = isAppiumSessionReuseEnabled({
       device: { provider: ProviderName.BROWSERSTACK, name: 'Pixel' },
-    } as Pick<WebDriverConfig, 'device'>);
+    });
 
     expect(result).toBe(false);
   });
@@ -36,7 +36,7 @@ describe('isAppiumSessionReuseEnabled', () => {
 
     const result = isAppiumSessionReuseEnabled({
       device: { provider: ProviderName.EMULATOR, name: 'Pixel' },
-    } as Pick<WebDriverConfig, 'device'>);
+    });
 
     expect(result).toBe(false);
   });
@@ -47,7 +47,7 @@ describe('isAppiumSessionReuseEnabled', () => {
 
     const result = isAppiumSessionReuseEnabled({
       device: { provider: ProviderName.EMULATOR, name: 'Pixel' },
-    } as Pick<WebDriverConfig, 'device'>);
+    });
 
     expect(result).toBe(true);
   });
@@ -58,7 +58,7 @@ describe('isAppiumSessionReuseEnabled', () => {
 
     const result = isAppiumSessionReuseEnabled({
       device: { provider: ProviderName.SIMULATOR, name: 'iPhone' },
-    } as Pick<WebDriverConfig, 'device'>);
+    });
 
     expect(result).toBe(true);
   });

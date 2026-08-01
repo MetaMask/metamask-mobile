@@ -9,9 +9,11 @@ import { ProviderName, type WebDriverConfig } from '../../types.ts';
  * - APPIUM_SESSION_REUSE=true|1: force on
  * - default: true for emulator/simulator
  */
-export function isAppiumSessionReuseEnabled(
-  projectUse: Pick<WebDriverConfig, 'device'>,
-): boolean {
+export function isAppiumSessionReuseEnabled(projectUse: {
+  // Playwright `project.use` makes config fields optional even when WebDriverConfig
+  // declares them required.
+  device?: WebDriverConfig['device'];
+}): boolean {
   if (projectUse.device?.provider === ProviderName.BROWSERSTACK) {
     return false;
   }

@@ -1,10 +1,10 @@
-import type { FullProject, WorkerInfo } from '@playwright/test';
+import type { Fixtures, FullProject, WorkerInfo } from '@playwright/test';
 import { createServiceProvider, type ServiceProvider } from '../../services';
 import type { WebDriverConfig } from '../../types.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import { FrameworkDetector } from '../../FrameworkDetector.ts';
 import UnifiedGestures from '../../UnifiedGestures.ts';
-import type { SharedAppiumSession } from './types.ts';
+import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
 
 const logger = createPlaywrightLogger('deviceProvider');
 
@@ -14,7 +14,11 @@ const logger = createPlaywrightLogger('deviceProvider');
  * this fixture only creates the provider once and tears down session+server
  * at worker end.
  */
-export const workerDeviceProviderFixture = {
+export const workerDeviceProviderFixture: Fixtures<
+  // No test-scoped fixtures declared here.
+  object,
+  WorkerLevelFixtures
+> = {
   deviceProvider: [
     async (
       {}, // eslint-disable-line no-empty-pattern
@@ -35,7 +39,7 @@ export const workerDeviceProviderFixture = {
         `Worker device provider "${providerName}" fixture ended (sessionId=${deviceProvider.sessionId ?? 'none'})`,
       );
     },
-    { scope: 'worker' as const },
+    { scope: 'worker' },
   ],
 
   sharedSession: [
@@ -83,6 +87,6 @@ export const workerDeviceProviderFixture = {
         logger.error('Worker cleanupProvider failed:', error);
       }
     },
-    { scope: 'worker' as const },
+    { scope: 'worker' },
   ],
 };
