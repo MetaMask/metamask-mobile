@@ -2,12 +2,15 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokeSnaps } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../framework/Assertions.js';
+import Utilities from '../../framework/Utilities.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
 import { testSnapPreinstalledAnalyticsExpectations } from '../../helpers/analytics/expectations/test-snap-preinstalled.analytics.js';
+import { getEventsPayloads } from '../../helpers/analytics/helpers.js';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 const preinstalledFixture = new FixtureBuilder().withMetaMetricsOptIn().build();
+const TEST_EVENT = 'Test Event';
 
 appiumTest.describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
   // TODO(Appium): displays the Snap settings page
@@ -25,7 +28,7 @@ appiumTest.describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
           analyticsExpectations: testSnapPreinstalledAnalyticsExpectations,
           restartDevice: true,
         },
-        async () => {
+        async ({ mockServer }) => {
           await loginAndOpenTestSnaps();
           await TestSnaps.tapButton('showPreinstalledDialogButton');
           await Assertions.expectTextDisplayed(
@@ -33,6 +36,12 @@ appiumTest.describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
           );
           await TestSnaps.tapCancelButton();
           await TestSnaps.tapButton('trackEventButton');
+
+          await Utilities.waitUntil(
+            async () =>
+              (await getEventsPayloads(mockServer, [TEST_EVENT])).length > 0,
+            { timeout: 5_000, interval: 1_000 },
+          );
         },
       );
     },
