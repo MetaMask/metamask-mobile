@@ -66,10 +66,18 @@ export const useTopTraders = (
     fetchOptions,
   ];
 
+  // Pause while locked so queryFn never reaches SocialService.#getAuthHeaders →
+  // AuthenticationController.getBearerToken (throws "wallet is locked").
+  // Also disable automatic focus/reconnect refetches: ReactQueryService wires
+  // AppState → focusManager, and react-data-query uses staleTime: 0, so a
+  // foreground/reconnect can otherwise run queryFn before React commits
+  // enabled:false after background auto-lock. Unlock flips enabled true and fetches.
   const { data, isLoading, isFetching, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
       enabled: (options?.enabled ?? true) && isUnlocked,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     });
 
   const leaderboardQueryParams = useMemo(
