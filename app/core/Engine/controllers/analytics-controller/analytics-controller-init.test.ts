@@ -154,6 +154,7 @@ describe('analyticsControllerInit', () => {
         state: expect.objectContaining({ analyticsId: 'test-analytics-id' }),
         platformAdapter: expect.any(Object),
         isAnonymousEventsFeatureEnabled: true,
+        isGeolocationEnabled: false,
       });
     });
 
