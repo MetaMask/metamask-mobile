@@ -66,9 +66,9 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');
-          await Assertions.expectTextDisplayed(
-            'This is an alert dialog. It has a single button: "OK".',
-          );
+          // Android Appium often omits/escapes quotes in alert copy; assert stable substrings.
+          await Assertions.expectTextDisplayed('This is an alert dialog');
+          await Assertions.expectTextDisplayed('single button');
           await TestSnaps.tapOkButton();
         },
       );
