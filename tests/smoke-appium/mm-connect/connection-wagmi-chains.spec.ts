@@ -1,7 +1,11 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
 
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  ensureAccountGroupsFinishedLoading,
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
@@ -23,8 +27,6 @@ import {
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
-  unlockIfLockScreenVisible,
-  ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 import {
   launchMobileBrowser,

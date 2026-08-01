@@ -586,6 +586,16 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 # CI note: scheduled/feature-branch performance workflows use build_variant=e2e
 # (GitHub environment build-e2e). E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately
 # in performance-test-runner for the flags API. Release workflows use build_variant=rc.
+#
+# Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
+# procedure as Detox E2E (build-android-e2e.yml), via find-reusable-build in
+# build-android-upload-to-browserstack.yml:
+#   - miss → fresh dual Gradle builds
+#   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is
+#   - hit + app changes → skip Gradle, @expo/repack-app both profiles with current JS,
+#     then upload (fingerprint ignores JS-only changes, so repack avoids stale JS)
+# Separate from Appium smoke main-e2e APKs and from reuse_main_builds BrowserStack
+# custom_id resolution on main (test-only fast path that skips the dual-build job).
 ```
 
 ### Sentry Performance Instrumentation (Optional)
