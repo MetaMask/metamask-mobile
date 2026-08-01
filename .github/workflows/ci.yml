@@ -1240,6 +1240,7 @@ jobs:
       performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
+      source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
