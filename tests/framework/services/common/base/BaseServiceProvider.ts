@@ -31,7 +31,24 @@ export abstract class BaseServiceProvider implements ServiceProvider {
   }
 
   /**
-   * Optional cleanup - override in subclasses if needed
+   * Optional session cleanup - override in subclasses if needed
+   */
+  async cleanupSession?(drv?: Browser): Promise<void> {
+    this.logger.debug(
+      `Session cleanup for ${this.constructor.name}` +
+        (drv ? ` (driver sessionId=${drv.sessionId})` : ''),
+    );
+  }
+
+  /**
+   * Optional provider cleanup - override in subclasses if needed
+   */
+  async cleanupProvider?(): Promise<void> {
+    this.logger.debug(`Provider cleanup for ${this.constructor.name}`);
+  }
+
+  /**
+   * Legacy cleanup — prefer cleanupSession + cleanupProvider.
    */
   async cleanup?(): Promise<void> {
     this.logger.debug(`Cleanup for ${this.constructor.name}`);

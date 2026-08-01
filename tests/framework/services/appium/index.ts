@@ -13,3 +13,4 @@ export {
   startFailureRecording,
   stopFailureRecordingAndAttach,
 } from './ScreenRecording.ts';
+export { isSessionAlive, switchToNativeContext } from './sessionHealth.ts';
