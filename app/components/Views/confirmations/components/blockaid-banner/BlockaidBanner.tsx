@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { View } from 'react-native-animatable';
+import { useSelector } from 'react-redux';
 import { captureException } from '@sentry/react-native';
 import { deflate } from 'react-native-gzip';
+import type { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import { AccordionHeaderHorizontalAlignment } from '../../../../../component-library/components/Accordions/Accordion';
@@ -28,7 +30,7 @@ import {
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
 } from '../../../../../constants/urls';
-import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AppConstants from '../../../../../core/AppConstants';
 import { ConfirmationTopSheetSelectorsIDs } from '../../ConfirmationView.testIds';
@@ -59,6 +61,9 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   } = bannerProps;
   const { styles, theme } = useStyles(styleSheet, { style });
   const [reportUrl, setReportUrl] = useState<string>('');
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   useEffect(() => {
     if (!securityAlertResponse) {
@@ -80,7 +85,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       jsonRpcMethod: req.method,
       jsonRpcParams: JSON.stringify(req.params),
       blockNumber: block,
-      chain: BLOCKAID_SUPPORTED_NETWORK_NAMES[chainId],
+      chain: networkConfigurations?.[chainId as Hex]?.name,
       classification: reason,
       resultType: result_type,
       reproduce: JSON.stringify(features),
@@ -90,7 +95,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       const compressed = await deflate(JSON.stringify(reportData));
       setReportUrl(getReportUrl(compressed));
     })();
-  }, [securityAlertResponse]);
+  }, [securityAlertResponse, networkConfigurations]);
 
   if (!securityAlertResponse) {
     return null;
