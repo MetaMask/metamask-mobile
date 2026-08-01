@@ -97,14 +97,14 @@ appiumTest.describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
           await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
           await TestSnaps.tapButton('signEntropyMessageButton');
           await TestSnaps.approveSignRequest();
-          await TestSnaps.dismissAlert();
-          // Assert on stable substrings due to iOS Appium rendering variations
+          // Assert on stable substrings due to Appium rendering variations
           await Assertions.expectTextDisplayed('Entropy source with ID', {
             timeout: 30_000,
           });
           await Assertions.expectTextDisplayed('not found', {
             timeout: 30_000,
           });
+          await TestSnaps.dismissAlert();
         },
       );
     },
