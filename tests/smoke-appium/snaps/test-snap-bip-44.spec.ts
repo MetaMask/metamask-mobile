@@ -11,7 +11,7 @@ const multiSrpFixture = new FixtureBuilder()
   .build();
 
 appiumTest.describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
-  appiumTest.describe.configure({ timeout: 150_000 });
+  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
 
   appiumTest(
     'can connect to BIP-44 snap',
