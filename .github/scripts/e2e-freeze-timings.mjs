@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Fetches E2E test timing data and writes it to a file so it can be uploaded
- * as a run-scoped artifact and reused by every shard (including re-runs).
+ * Fetches E2E / Appium test timing data and writes it to a file so it can be
+ * uploaded as a run-scoped artifact and reused by every shard (including re-runs).
  *
  * Timing source priority:
  *   1. qa-stats artifact from the merge-base commit of the PR branch and main
@@ -12,7 +12,8 @@
  *
  * Outputs:
  *   - Writes e2e-timings.json to OUTPUT_PATH (default: ./e2e-timings.json)
- *   - Sets GITHUB_OUTPUT available=true|false
+ *     Shape: { e2e_test_times?: {...}, appium_test_times?: {...} }
+ *   - Sets GITHUB_OUTPUT available=true|false (true if either map is non-empty)
  */
 
 import fs from 'node:fs';
@@ -29,7 +30,6 @@ const QA_STATS_WORKFLOW_FILE = 'qa-stats.yml';
 const QA_STATS_ARTIFACT_NAME = 'qa-stats';
 const QA_STATS_JSON_FILENAME = 'qa-stats.json';
 
-const [OWNER, REPO] = REPOSITORY.split('/');
 const API_BASE = `https://api.github.com/repos/${REPOSITORY}`;
 
 /**
@@ -55,10 +55,18 @@ async function githubRest(url) {
 }
 
 /**
- * Download and extract qa-stats.json from a GitHub Actions run artifact.
- * Returns the e2e_test_times map, or null on any failure.
+ * @param {unknown} value
+ * @returns {value is Record<string, unknown>}
+ */
+function isNonEmptyObject(value) {
+  return Boolean(value && typeof value === 'object' && Object.keys(value).length > 0);
+}
+
+/**
+ * Download and extract timing maps from a GitHub Actions run artifact.
+ * Returns `{ e2e_test_times?, appium_test_times? }` or null when neither exists.
  * @param {number} runId
- * @returns {Promise<object|null>}
+ * @returns {Promise<{ e2e_test_times?: object, appium_test_times?: object } | null>}
  */
 async function extractTimingsFromRun(runId) {
   const artifactsData = await githubRest(`${API_BASE}/actions/runs/${runId}/artifacts`);
@@ -110,10 +118,15 @@ async function extractTimingsFromRun(runId) {
   if (!fs.existsSync(jsonPath)) return null;
 
   const parsed = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-  const times = parsed?.e2e_test_times;
-  if (!times || typeof times !== 'object' || Object.keys(times).length === 0) return null;
-
-  return times;
+  /** @type {{ e2e_test_times?: object, appium_test_times?: object }} */
+  const out = {};
+  if (isNonEmptyObject(parsed?.e2e_test_times)) {
+    out.e2e_test_times = parsed.e2e_test_times;
+  }
+  if (isNonEmptyObject(parsed?.appium_test_times)) {
+    out.appium_test_times = parsed.appium_test_times;
+  }
+  return Object.keys(out).length > 0 ? out : null;
 }
 
 /**
@@ -140,7 +153,6 @@ async function getMergeBaseSha() {
 
 /**
  * Fetch timings from the qa-stats artifact produced for a specific commit SHA.
- * Returns null if no matching run or artifact is found.
  * @param {string} sha
  * @returns {Promise<object|null>}
  */
@@ -182,6 +194,20 @@ function setOutput(name, value) {
   }
 }
 
+/**
+ * @param {{ e2e_test_times?: object, appium_test_times?: object }} times
+ */
+function describeTimings(times) {
+  const parts = [];
+  if (isNonEmptyObject(times.e2e_test_times)) {
+    parts.push(`e2e=${Object.keys(times.e2e_test_times).length}`);
+  }
+  if (isNonEmptyObject(times.appium_test_times)) {
+    parts.push(`appium=${Object.keys(times.appium_test_times).length}`);
+  }
+  return parts.join(', ') || 'empty';
+}
+
 async function main() {
   if (!GITHUB_TOKEN) {
     console.log('ℹ️  No GITHUB_TOKEN — skipping timings fetch');
@@ -198,7 +224,7 @@ async function main() {
       console.log(`🔍 Resolved merge-base SHA: ${mergeBaseSha.slice(0, 8)}`);
       times = await fetchTimingsForSha(mergeBaseSha);
       if (times) {
-        console.log(`✅ Using merge-base timings (${Object.keys(times).length} entries)`);
+        console.log(`✅ Using merge-base timings (${describeTimings(times)})`);
       } else {
         console.log('ℹ️  No qa-stats artifact found for merge-base — trying latest main');
       }
@@ -214,7 +240,7 @@ async function main() {
     try {
       times = await fetchLatestMainTimings();
       if (times) {
-        console.log(`✅ Using latest-main timings (${Object.keys(times).length} entries)`);
+        console.log(`✅ Using latest-main timings (${describeTimings(times)})`);
       } else {
         console.log('ℹ️  No qa-stats artifact on latest main run');
       }
@@ -231,8 +257,8 @@ async function main() {
 
   const outputDir = path.dirname(path.resolve(OUTPUT_PATH));
   fs.mkdirSync(outputDir, { recursive: true });
-  fs.writeFileSync(OUTPUT_PATH, JSON.stringify({ e2e_test_times: times }, null, 2));
-  console.log(`💾 Wrote timings to ${OUTPUT_PATH}`);
+  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(times, null, 2));
+  console.log(`💾 Wrote timings to ${OUTPUT_PATH} (${describeTimings(times)})`);
   setOutput('available', 'true');
 }
 

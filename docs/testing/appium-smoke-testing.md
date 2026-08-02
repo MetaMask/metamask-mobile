@@ -210,7 +210,17 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smok
 
 - **Build:** `build` workflow produces `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
 - **Tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
-- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — downloads artifacts, runs `prepare-ios-appium-runner.mjs`, executes Playwright with `--grep` per smoke tag.
+- **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — downloads artifacts, runs `prepare-ios-appium-runner.mjs`, selects shard files, executes Playwright with `--grep` per smoke tag.
+
+### Duration-aware sharding
+
+Appium smoke no longer uses Playwright `--shard=N/M` (equal test **count**). CI bin-packs specs by historical duration, same idea as Detox:
+
+1. `qa-stats` collects `appium_test_times` from `playwright-json-report-appium-*` artifacts
+2. `prepare-e2e-timings` freezes `{ e2e_test_times, appium_test_times }` once per run
+3. `.github/scripts/e2e-split-tags-shards.mjs` with `SHARD_MODE=appium` assigns files to each matrix split
+
+Until `appium_test_times` exists on main qa-stats, shards fall back to alphabetical equal-count (behavior equivalent to the old `--shard` split).
 
 ## Adding a new Appium smoke spec
 

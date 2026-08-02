@@ -1422,13 +1422,14 @@ jobs:
         inputs.runner_provider != 'bitrise' &&
         inputs.runner_provider != 'namespace' &&
         !cancelled() &&
-        needs.build-android-apks.result == 'success'
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-    needs: [build-android-apks, smart-e2e-selection]
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
@@ -1452,6 +1453,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped') &&
         (
           (
             github.ref == 'refs/heads/main' &&
@@ -1467,7 +1469,7 @@ jobs:
       contents: read
       checks: write
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'

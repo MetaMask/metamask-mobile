@@ -44,6 +44,14 @@ import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
 import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const {
+  getAppiumPlatformFromArtifactName,
+  aggregateTimingsFromPlaywrightJson,
+  roundTimingAcc,
+} = require('./shared/playwright-json-timings.cjs');
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
@@ -1184,6 +1192,57 @@ async function collectE2ETestTimes() {
   return acc;
 }
 
+// ---------------------------------------------------------------------------
+// Appium per-spec wall-clock timings (top-level `appium_test_times` namespace)
+// Consumed by e2e-split-tags-shards.mjs (SHARD_MODE=appium) for time-based
+// bin-packing of Appium smoke shards (Playwright --shard is equal-count only).
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the `appium_test_times` map from Playwright JSON report artifacts
+ * (`playwright-json-report-appium-*-{android|ios}-smoke*`).
+ *
+ * @returns {Promise<Record<string, { android?: number, ios?: number }>>}
+ */
+async function collectAppiumTestTimes() {
+  const artifacts = await getArtifactList();
+  const appiumArtifacts = artifacts
+    .map((a) => ({
+      artifact: a,
+      platform: getAppiumPlatformFromArtifactName(a.name),
+    }))
+    .filter(({ platform }) => platform);
+
+  console.log(
+    `[appium_test_times] found ${appiumArtifacts.length} Playwright JSON artifact(s)`,
+  );
+  if (appiumArtifacts.length === 0) return {};
+
+  const acc = {};
+  for (const { artifact, platform } of appiumArtifacts) {
+    const destDir = await downloadArtifact(artifact.name);
+    let report;
+    try {
+      const raw = await readFile(join(destDir, 'playwright-report.json'), 'utf8');
+      report = JSON.parse(raw);
+    } catch (err) {
+      console.log(
+        `[appium_test_times] skip ${artifact.name}: ${err?.message || err}`,
+      );
+      continue;
+    }
+    aggregateTimingsFromPlaywrightJson(report, platform, acc);
+  }
+
+  roundTimingAcc(acc);
+
+  const specCount = Object.keys(acc).length;
+  console.log(
+    `[appium_test_times] aggregated timings for ${specCount} spec file(s)`,
+  );
+  return acc;
+}
+
 /**
  * Counts executed performance scenarios by scanning *.spec.js files
  * under tests/performance/ and counting non-skipped test() calls.
@@ -1273,6 +1332,7 @@ async function main() {
     { namespace: 'integration', collect: collectIntegrationTestCount },
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'e2e_test_times', collect: collectE2ETestTimes },
+    { namespace: 'appium_test_times', collect: collectAppiumTestTimes },
     { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
     { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },

@@ -277,23 +277,61 @@ jobs:
           fi
         shell: bash
 
+      # Frozen timings from prepare-e2e-timings (includes appium_test_times when
+      # qa-stats has collected Playwright JSON). Missing artifact → equal-count.
+      - name: Download frozen E2E timings (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        id: download-frozen-timings-namespace
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./e2e-timings/
+      - name: Download frozen E2E timings (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        id: download-frozen-timings-current
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-timings-${{ github.run_id }}
+          path: ./e2e-timings/
+
+      - name: Select Appium shard files (duration-aware)
+        id: appium-shard
+        run: node .github/scripts/e2e-split-tags-shards.mjs
+        env:
+          SHARD_MODE: appium
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+          PLATFORM: ${{ inputs.platform }}
+          SPLIT_NUMBER: ${{ inputs.split_number }}
+          TOTAL_SPLITS: ${{ inputs.total_splits }}
+          BASE_DIR: ./tests/smoke-appium
+          OUTPUT_PATH: ./appium-shard-files.txt
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          E2E_TIMINGS_PATH: ${{ (steps.download-frozen-timings-namespace.outcome == 'success' || steps.download-frozen-timings-current.outcome == 'success') && './e2e-timings/e2e-timings.json' || '' }}
+
       - name: Verify Appium runner connectivity (iOS)
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.appium-shard.outputs.file_count != '0' }}
         run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
         env:
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
 
       - name: Run Appium smoke tests (Android)
         id: run-tests-android
-        if: ${{ inputs.platform == 'android' }}
+        if: ${{ inputs.platform == 'android' && steps.appium-shard.outputs.file_count != '0' }}
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
-        run: >-
-          yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project android-smoke
-          --grep "${{ steps.appium-grep.outputs.pattern }}"
-          --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
+        shell: bash
+        run: |
+          ARGS=()
+          while IFS= read -r f; do
+            [[ -n "$f" ]] && ARGS+=("$f")
+          done < ./appium-shard-files.txt
+          yarn playwright test "${ARGS[@]}" \
+            --config tests/playwright.smoke-appium.config.ts \
+            --project android-smoke \
+            --grep "${{ steps.appium-grep.outputs.pattern }}" \
+            ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
@@ -315,15 +353,19 @@ jobs:
 
       - name: Run Appium smoke tests (iOS)
         id: run-tests-ios
-        if: ${{ inputs.platform == 'ios' }}
+        if: ${{ inputs.platform == 'ios' && steps.appium-shard.outputs.file_count != '0' }}
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
-        run: >-
-          yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project ios-smoke
-          --grep "${{ steps.appium-grep.outputs.pattern }}"
-          --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
+        shell: bash
+        run: |
+          ARGS=()
+          while IFS= read -r f; do
+            [[ -n "$f" ]] && ARGS+=("$f")
+          done < ./appium-shard-files.txt
+          yarn playwright test "${ARGS[@]}" \
+            --config tests/playwright.smoke-appium.config.ts \
+            --project ios-smoke \
+            --grep "${{ steps.appium-grep.outputs.pattern }}" \
+            ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
@@ -344,6 +386,10 @@ jobs:
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      - name: Skip empty Appium shard
+        if: ${{ steps.appium-shard.outputs.file_count == '0' }}
+        run: echo "Empty duration-aware shard — no specs assigned; skipping Playwright."
 
       - name: Upload Playwright HTML report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}

@@ -7,15 +7,25 @@ import { extractTestResults } from './e2e-extract-test-results.mjs';
 // 1) Find all specs files that include the given E2E tags
 // 2) Compute sharding split using time-based bin-packing when the latest
 //    `qa-stats` artifact from the QA Stats workflow on `main` is available
-//    and exposes an `e2e_test_times` entry. Otherwise fall back to
-//    equal-count alphabetical split.
+//    and exposes timings (`e2e_test_times` for Detox, `appium_test_times` for
+//    Appium). Otherwise fall back to equal-count alphabetical split.
 // 3) On re-runs, skip passed tests and only run failed/not-executed tests
 // 4) Flaky test detector mechanism in PRs (test retries)
-// 5) Log and run the selected specs for the given shard split
+// 5) Log and run the selected specs (Detox) — or write the file list (Appium)
+//
+// SHARD_MODE:
+//   detox (default) — exclude smoke-appium/, run yarn Detox CI script
+//   appium          — only smoke-appium/, write OUTPUT_PATH list for Playwright
+
+const SHARD_MODE = (process.env.SHARD_MODE || 'detox').toLowerCase();
+const isAppiumMode = SHARD_MODE === 'appium';
 
 const env = {
+  SHARD_MODE,
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,
-  BASE_DIR: process.env.BASE_DIR || './tests/',
+  BASE_DIR:
+    process.env.BASE_DIR ||
+    (isAppiumMode ? './tests/smoke-appium' : './tests/'),
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE || 'main',
   PLATFORM: process.env.PLATFORM || 'ios',
   SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),
@@ -30,6 +40,12 @@ const env = {
   // When set, shards use this frozen snapshot instead of fetching live from
   // qa-stats, ensuring the bin-pack result is identical across all attempts.
   E2E_TIMINGS_PATH: process.env.E2E_TIMINGS_PATH || '',
+  // qa-stats namespace key for timings (defaults by SHARD_MODE).
+  TIMINGS_KEY:
+    process.env.TIMINGS_KEY ||
+    (isAppiumMode ? 'appium_test_times' : 'e2e_test_times'),
+  // Appium mode: write selected files here and exit (no Detox yarn run).
+  OUTPUT_PATH: process.env.OUTPUT_PATH || './appium-shard-files.txt',
 };
 // Example of format of CHANGED_SPEC_FILES: tests/smoke/wallet/foo.spec.ts tests/regression/swaps/bar.spec.js
 
@@ -125,24 +141,25 @@ async function shouldSkipFlakinessDetection() {
 }
 
 /**
- * Check if a file is a spec file eligible for the Detox runner.
+ * Check if a file is a spec file eligible for the current SHARD_MODE.
  *
- * Excludes:
+ * Detox mode excludes:
  *   - `quarantine/` specs (skipped in CI)
- *   - `smoke-appium/` specs — these are Playwright + Appium specs run via
- *     tests/playwright.smoke-appium.config.ts, and are explicitly ignored by
- *     the Detox Jest config (jest.e2e.detox.config.js `testPathIgnorePatterns`).
- *     They still carry Smoke* tags, so without this exclusion the tag-based
- *     selection feeds them to the Detox runner, which then finds 0 matching
- *     tests and exits 1.
+ *   - `smoke-appium/` specs — Playwright + Appium (selected in appium mode)
+ *
+ * Appium mode includes only `smoke-appium/` specs (BASE_DIR defaults there).
  * @param {*} filePath - The path to the file
  * @returns True if the file is a spec file, false otherwise
  */
 function isSpecFile(filePath) {
   const segments = filePath.split(path.sep);
-  return (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
-    !segments.includes('quarantine') &&
-    !segments.includes('smoke-appium');
+  if (!(filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts'))) {
+    return false;
+  }
+  if (segments.includes('quarantine')) return false;
+  // Appium mode scopes via BASE_DIR (default ./tests/smoke-appium).
+  if (isAppiumMode) return true;
+  return !segments.includes('smoke-appium');
 }
 
 /**
@@ -160,15 +177,6 @@ function* walk(dir) {
       yield fullPath;
     }
   }
-}
-
-/**
- * Appium smoke specs live under tests/smoke-appium/ and are sharded by Playwright, not Detox.
- * This will be changed in the future when Detox is removed and all E2E tests are run by Playwright.
- * @param {string} filePath
- */
-function isDetoxSpecFile(filePath) {
-  return !timingLookupKey(filePath).includes('smoke-appium/');
 }
 
 /**
@@ -248,7 +256,7 @@ async function githubRest(url) {
 }
 
 /**
- * Return the `e2e_test_times` map used for bin-packing shards.
+ * Return the timings map used for bin-packing shards (`env.TIMINGS_KEY`).
  *
  * Source priority:
  *   1. Frozen timings written by the prepare-e2e-timings setup job
@@ -261,15 +269,18 @@ async function githubRest(url) {
  * @returns {Promise<{ [filePath: string]: { ios?: number, android?: number } } | null>}
  */
 async function fetchE2ETestTimes() {
+  const timingsKey = env.TIMINGS_KEY;
+
   // Use the frozen timings snapshot when available (preferred path).
   if (env.E2E_TIMINGS_PATH && fs.existsSync(env.E2E_TIMINGS_PATH)) {
     try {
       const parsed = JSON.parse(fs.readFileSync(env.E2E_TIMINGS_PATH, 'utf8'));
-      const times = parsed?.e2e_test_times;
+      const times = parsed?.[timingsKey];
       if (times && typeof times === 'object' && Object.keys(times).length > 0) {
-        console.log(`⏱️  Using frozen timings from ${env.E2E_TIMINGS_PATH} (${Object.keys(times).length} entries)`);
+        console.log(`⏱️  Using frozen ${timingsKey} from ${env.E2E_TIMINGS_PATH} (${Object.keys(times).length} entries)`);
         return times;
       }
+      console.log(`ℹ️  Frozen timings missing ${timingsKey} — falling back to live fetch`);
     } catch (e) {
       console.log(`ℹ️  Failed to read frozen timings (${e?.message || e}) — falling back to live fetch`);
     }
@@ -345,9 +356,9 @@ async function fetchE2ETestTimes() {
     }
 
     const parsed = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    const times = parsed?.e2e_test_times;
+    const times = parsed?.[timingsKey];
     if (!times || typeof times !== 'object' || Object.keys(times).length === 0) {
-      console.log('ℹ️  qa-stats artifact has no e2e_test_times entry yet — falling back to alphabetical split');
+      console.log(`ℹ️  qa-stats artifact has no ${timingsKey} entry yet — falling back to alphabetical split`);
       return null;
     }
 
@@ -356,6 +367,18 @@ async function fetchE2ETestTimes() {
     console.log(`ℹ️  qa-stats artifact unavailable (${e?.message || String(e)}) — falling back to alphabetical split`);
     return null;
   }
+}
+
+/**
+ * Write a value to GITHUB_OUTPUT if available (multiline-safe).
+ * @param {string} name
+ * @param {string} value
+ */
+function setGithubOutput(name, value) {
+  const outputFile = process.env.GITHUB_OUTPUT;
+  if (!outputFile) return;
+  const delim = `ghadelim_${name}_${Date.now()}`;
+  fs.appendFileSync(outputFile, `${name}<<${delim}\n${value}\n${delim}\n`);
 }
 
 /**
@@ -606,13 +629,17 @@ function applyFlakinessDetection(splitFiles) {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  console.log('🚀 Starting E2E tests...');
+  console.log(
+    isAppiumMode
+      ? '🚀 Selecting Appium smoke shard files...'
+      : '🚀 Starting E2E tests...',
+  );
   console.log(`GitHub Actions: attempt ${env.RUN_ATTEMPT}`);
+  console.log(`SHARD_MODE=${env.SHARD_MODE} TIMINGS_KEY=${env.TIMINGS_KEY}`);
 
   // 1) Find all specs files that include the given E2E tags
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG) // TODO - review this function (!).
-    .filter(isDetoxSpecFile);
+  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG);
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
@@ -623,7 +650,25 @@ async function main() {
   if (runFiles.length === 0) {
     console.log(`⚠️  No test files for split ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS} (only ${allMatches.length} test files found, but ${env.TOTAL_SPLITS} runners configured).`);
     console.log(`    💡 Tip: Reduce shard splits or add more tests to this tag ${env.TEST_SUITE_TAG}`);
+    if (isAppiumMode) {
+      fs.writeFileSync(env.OUTPUT_PATH, '');
+      setGithubOutput('files', '');
+      setGithubOutput('file_count', '0');
+      console.log(`Wrote empty shard list → ${env.OUTPUT_PATH}`);
+    }
     process.exit(0);
+  }
+
+  // Appium: write the selected file list for Playwright; skip Detox run/flakiness.
+  if (isAppiumMode) {
+    const header = `\n🧪 Appium shard ${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}: ${runFiles.length} file(s)`;
+    const body = runFiles.map((f) => `  - ${f}`).join('\n');
+    console.log(`${header}\n${body}`);
+    fs.writeFileSync(env.OUTPUT_PATH, `${runFiles.join('\n')}\n`);
+    setGithubOutput('files', runFiles.join('\n'));
+    setGithubOutput('file_count', String(runFiles.length));
+    console.log(`Wrote ${runFiles.length} path(s) → ${env.OUTPUT_PATH}`);
+    return;
   }
 
   // 3) On re-runs, skip passed tests and only run failed/not-executed tests
