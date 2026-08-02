@@ -1,0 +1,104 @@
+diff --git a/dist/providers/HyperLiquidProvider.mjs b/dist/providers/HyperLiquidProvider.mjs
+index ce6e65981441ee060a118abd1b6e0bc5588f4842..62877680d32bca58bb70972727a77137c89c0bce 100644
+--- a/dist/providers/HyperLiquidProvider.mjs
++++ b/dist/providers/HyperLiquidProvider.mjs
+@@ -25,7 +25,7 @@ import { TradingReadinessCache, PerpsSigningCache } from "../services/TradingRea
+ import { PerpsAnalyticsEvent } from "../types/index.mjs";
+ import { HL_ABSTRACTION_WIRE, HL_UNIFIED_ACCOUNT_MODE, hyperLiquidModeFoldsSpot } from "../types/hyperliquid-types.mjs";
+ import { addSpotBalanceToAccountState, aggregateAccountStates } from "../utils/accountUtils.mjs";
+-import { ensureError, isHyperLiquidUserNotFoundError, isKeyringLockedError } from "../utils/errorUtils.mjs";
++import { ensureError, isHyperLiquidMultiSigRequiredError, isHyperLiquidUserNotFoundError, isKeyringLockedError } from "../utils/errorUtils.mjs";
+ import { shouldDeferUnifiedAccountSetup } from "../utils/hyperLiquidAbstraction.mjs";
+ import { adaptAccountStateFromSDK, adaptHyperLiquidLedgerUpdateToUserHistoryItem, adaptMarketFromSDK, adaptOrderFromSDK, adaptPositionFromSDK, buildAssetMapping, formatHyperLiquidPrice, formatHyperLiquidSize, parseAssetName } from "../utils/hyperLiquidAdapter.mjs";
+ import { createErrorResult, getMaxOrderValue, getSupportedPaths, validateAssetSupport, validateBalance, validateCoinExists, validateDepositParams, validateOrderParams, validateWithdrawalParams } from "../utils/hyperLiquidValidation.mjs";
+@@ -3983,6 +3983,22 @@ async function _HyperLiquidProvider_ensureUnifiedAccountEnabled(options) {
+         currentMode = await infoClient.userAbstraction({
+             user: userAddress,
+         });
++        const multiSigSigners = await infoClient.userToMultiSigSigners({
++            user: userAddress,
++        });
++        if (multiSigSigners !== null) {
++            __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('HyperLiquidProvider: Multi-sig Hyperliquid account, skipping unified account migration', { user: userAddress, network });
++            __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
++                [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.NOT_APPLICABLE,
++                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'multi_sig_account',
++            });
++            TradingReadinessCache.set(network, userAddress, {
++                attempted: true,
++                enabled: false,
++            });
++            completeInFlight();
++            return;
++        }
+         if (currentMode === 'unifiedAccount' ||
+             currentMode === 'portfolioMargin') {
+             // portfolioMargin is a superset of unifiedAccount — it already supports
+@@ -4100,6 +4116,22 @@ async function _HyperLiquidProvider_ensureUnifiedAccountEnabled(options) {
+             completeInFlight();
+             return;
+         }
++        if (isHyperLiquidMultiSigRequiredError(error)) {
++            __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").debugLogger.log('[ensureUnifiedAccountEnabled] Multi-sig Hyperliquid account, skipping unified account migration', { user: userAddress, network, currentMode });
++            __classPrivateFieldGet(this, _HyperLiquidProvider_deps, "f").metrics.trackPerpsEvent(PerpsAnalyticsEvent.AccountSetup, {
++                ...(currentMode && {
++                    [PERPS_EVENT_PROPERTY.PREVIOUS_ABSTRACTION_MODE]: currentMode,
++                }),
++                [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.NOT_APPLICABLE,
++                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'multi_sig_account',
++            });
++            TradingReadinessCache.set(network, userAddress, {
++                attempted: true,
++                enabled: false,
++            });
++            completeInFlight();
++            return;
++        }
+         // Cache failure ONLY for the user-prompted path
+         // (`dexAbstraction → unifiedAccount` via `userSetAbstraction`). The
+         // rationale for caching is "don't re-prompt a user who already saw the
+diff --git a/dist/utils/errorUtils.cjs b/dist/utils/errorUtils.cjs
+index 324bc88d2912809fc7a7977800b5e553c0eec593..e1dd0014f881304cdecdd90b1b6a7a9d17cba71c 100644
+--- a/dist/utils/errorUtils.cjs
++++ b/dist/utils/errorUtils.cjs
+@@ -85,4 +85,17 @@ function isHyperLiquidUserNotFoundError(error) {
+     return (lower.includes('user or api wallet') && lower.includes('does not exist'));
+ }
+ exports.isHyperLiquidUserNotFoundError = isHyperLiquidUserNotFoundError;
++/**
++ * Hyperliquid rejects single-wallet exchange writes when the account has been
++ * converted to multi-sig. MetaMask currently supports only single-signer
++ * wallets for agent/user exchange actions.
++ *
++ * @param error - The caught error.
++ * @returns True if the error indicates multi-sig signing is required.
++ */
++function isHyperLiquidMultiSigRequiredError(error) {
++    const lower = ensureError(error).message.toLowerCase();
++    return lower.includes('multi-sig required') || lower.includes('multisig required');
++}
++exports.isHyperLiquidMultiSigRequiredError = isHyperLiquidMultiSigRequiredError;
+ //# sourceMappingURL=errorUtils.cjs.map
+\ No newline at end of file
+diff --git a/dist/utils/errorUtils.mjs b/dist/utils/errorUtils.mjs
+index f8e18790a628809e0519805a32da7a9e8d97d460..4a7ed135a6848b2034e62d7575e6ee7770a1d536 100644
+--- a/dist/utils/errorUtils.mjs
++++ b/dist/utils/errorUtils.mjs
+@@ -78,4 +78,16 @@ export function isHyperLiquidUserNotFoundError(error) {
+     const lower = ensureError(error).message.toLowerCase();
+     return (lower.includes('user or api wallet') && lower.includes('does not exist'));
+ }
++/**
++ * Hyperliquid rejects single-wallet exchange writes when the account has been
++ * converted to multi-sig. MetaMask currently supports only single-signer
++ * wallets for agent/user exchange actions.
++ *
++ * @param error - The caught error.
++ * @returns True if the error indicates multi-sig signing is required.
++ */
++export function isHyperLiquidMultiSigRequiredError(error) {
++    const lower = ensureError(error).message.toLowerCase();
++    return lower.includes('multi-sig required') || lower.includes('multisig required');
++}
+ //# sourceMappingURL=errorUtils.mjs.map
+\ No newline at end of file
