@@ -10,7 +10,6 @@ import {
 import { Json } from '@metamask/utils';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import PlaywrightAssertions from './PlaywrightAssertions.ts';
-import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -30,11 +29,6 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      // Switch context BEFORE resolving the matcher so its findElement is
-      // minted against UiAutomator2, not the webview automator. Passing a
-      // thunk defers the find until after the switch, avoiding a cross-engine
-      // request-shape error on the confirmation screen post webview sign.
-      await PlaywrightContextHelpers.switchToNativeContext();
       const resolved = typeof elem === 'function' ? elem() : elem;
       return PlaywrightAssertions.expectElementToBeVisible(
         asPlaywrightElement(resolved as EncapsulatedElementType),
@@ -85,7 +79,6 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      await PlaywrightContextHelpers.switchToNativeContext();
       const resolved = typeof elem === 'function' ? elem() : elem;
       return PlaywrightAssertions.expectElementToNotBeVisible(
         asPlaywrightElement(resolved as EncapsulatedElementType),
@@ -230,7 +223,6 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      await PlaywrightContextHelpers.switchToNativeContext();
       return PlaywrightAssertions.expectElementToHaveLabel(
         asPlaywrightElement(elem),
         label,
