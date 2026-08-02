@@ -80,6 +80,44 @@ index 324bc88d2912809fc7a7977800b5e553c0eec593..e1dd0014f881304cdecdd90b1b6a7a9d
 +exports.isHyperLiquidMultiSigRequiredError = isHyperLiquidMultiSigRequiredError;
  //# sourceMappingURL=errorUtils.cjs.map
 \ No newline at end of file
+diff --git a/dist/utils/errorUtils.d.cts b/dist/utils/errorUtils.d.cts
+index ea6fff32f6e5a0306219cb5dbfbecc2c86cfd40b..fcc8e3db55eed0d5c3f51bcf324ccffb8035ac5b 100644
+--- a/dist/utils/errorUtils.d.cts
++++ b/dist/utils/errorUtils.d.cts
+@@ -35,4 +35,13 @@ export declare function ensureError(error: unknown, context?: string): Error;
+  * @returns True if the error matches the Hyperliquid "user not on chain yet" rejection.
+  */
+ export declare function isHyperLiquidUserNotFoundError(error: unknown): boolean;
++/**
++ * Hyperliquid rejects single-wallet exchange writes when the account has been
++ * converted to multi-sig. MetaMask currently supports only single-signer
++ * wallets for agent/user exchange actions.
++ *
++ * @param error - The caught error.
++ * @returns True if the error indicates multi-sig signing is required.
++ */
++export declare function isHyperLiquidMultiSigRequiredError(error: unknown): boolean;
+ //# sourceMappingURL=errorUtils.d.cts.map
+\ No newline at end of file
+diff --git a/dist/utils/errorUtils.d.mts b/dist/utils/errorUtils.d.mts
+index 227a443e74bb0c849796fe98ff7bec0f515313d1..a80998ac9709f88da2a2cf2f421d1d7c7702e2fe 100644
+--- a/dist/utils/errorUtils.d.mts
++++ b/dist/utils/errorUtils.d.mts
+@@ -35,4 +35,13 @@ export declare function ensureError(error: unknown, context?: string): Error;
+  * @returns True if the error matches the Hyperliquid "user not on chain yet" rejection.
+  */
+ export declare function isHyperLiquidUserNotFoundError(error: unknown): boolean;
++/**
++ * Hyperliquid rejects single-wallet exchange writes when the account has been
++ * converted to multi-sig. MetaMask currently supports only single-signer
++ * wallets for agent/user exchange actions.
++ *
++ * @param error - The caught error.
++ * @returns True if the error indicates multi-sig signing is required.
++ */
++export declare function isHyperLiquidMultiSigRequiredError(error: unknown): boolean;
+ //# sourceMappingURL=errorUtils.d.mts.map
+\ No newline at end of file
 diff --git a/dist/utils/errorUtils.mjs b/dist/utils/errorUtils.mjs
 index f8e18790a628809e0519805a32da7a9e8d97d460..4a7ed135a6848b2034e62d7575e6ee7770a1d536 100644
 --- a/dist/utils/errorUtils.mjs
