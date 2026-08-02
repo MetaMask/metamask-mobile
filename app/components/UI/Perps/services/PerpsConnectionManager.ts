@@ -957,13 +957,6 @@ class PerpsConnectionManagerClass {
           error,
           'PerpsConnectionManager.connect',
         );
-        if (
-          errorInstance.message.toLowerCase().includes('multi-sig required')
-        ) {
-          DevLogger.log(
-            '[PR-TAT-3214] BUG_MARKER: ApiRequestError Multi-sig required during Perps connection for imported account',
-          );
-        }
         if (!suppressError) {
           this.setError(errorInstance);
         }
