@@ -18,6 +18,7 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
+import type { EnsureDeviceReadyOptions } from '../../../../core/HardwareWallet/types';
 import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
 export const useConfirmActions = () => {
@@ -43,6 +44,15 @@ export const useConfirmActions = () => {
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
   const isQrAccount = useIsConfirmationFromQrAccount();
+
+  const ensureDeviceReadyOptions = useMemo<EnsureDeviceReadyOptions>(
+    () => ({
+      requireBlindSigning:
+        Boolean(isTransactionReq) &&
+        transactionMetadata?.type !== TransactionType.simpleSend,
+    }),
+    [isTransactionReq, transactionMetadata?.type],
+  );
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -105,6 +115,7 @@ export const useConfirmActions = () => {
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
+      ensureDeviceReadyOptions,
     }),
     [
       approvalRequest?.requestData?.from,
@@ -113,6 +124,7 @@ export const useConfirmActions = () => {
       onTransactionConfirm,
       executeApproval,
       isTransactionReq,
+      ensureDeviceReadyOptions,
     ],
   );
 

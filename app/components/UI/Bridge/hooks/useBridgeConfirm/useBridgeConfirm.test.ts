@@ -6,6 +6,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
+import { getDeviceIdForAddress } from '../../../../../core/HardwareWallet/helpers';
 import { HardwareWalletsSwapsStatus } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
@@ -39,6 +40,30 @@ jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
 }));
+
+const mockEnsureDeviceReady = jest.fn();
+const mockSetPendingOperationAddress = jest.fn();
+const mockShowHardwareWalletError = jest.fn();
+
+jest.mock('../../../../../core/HardwareWallet', () => ({
+  useHardwareWallet: () => ({
+    ensureDeviceReady: mockEnsureDeviceReady,
+    setPendingOperationAddress: mockSetPendingOperationAddress,
+    showHardwareWalletError: mockShowHardwareWalletError,
+  }),
+  isUserCancellation: jest.fn(
+    (err: unknown) => err instanceof Error && err.name === 'UserCancellation',
+  ),
+}));
+
+jest.mock('../../../../../core/HardwareWallet/helpers', () => ({
+  getDeviceIdForAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks', () => ({
+  useABTest: jest.fn(),
+}));
+const mockUseABTest = jest.mocked(useABTest);
 
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -79,6 +104,13 @@ describe('useBridgeConfirm', () => {
       id: 'tx-meta-id',
       hash: '0xabc',
       status: 'submitted',
+    });
+    mockEnsureDeviceReady.mockResolvedValue(true);
+    jest.mocked(getDeviceIdForAddress).mockResolvedValue('mock-device-id');
+    mockUseABTest.mockReturnValue({
+      variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Treatment],
+      variantName: PostTradeModalVariant.Treatment,
+      isActive: true,
     });
   });
 
@@ -308,6 +340,93 @@ describe('useBridgeConfirm', () => {
         ).bridge.hardwareWalletsSwaps.totalSteps,
       ).toBe(1);
     });
+
+    it('checks blind signing before navigating to the HW signing screen', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(getDeviceIdForAddress).toHaveBeenCalledWith(WALLET_ADDRESS);
+      expect(mockEnsureDeviceReady).toHaveBeenCalledWith('mock-device-id', {
+        requireBlindSigning: true,
+      });
+    });
+
+    it('does not navigate when device is not ready (user cancelled)', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      mockEnsureDeviceReady.mockResolvedValue(false);
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
+    });
+
+    it('shows HW error and does not navigate when blind signing check throws', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const blindSignError = new Error('blind signing disabled');
+      mockEnsureDeviceReady.mockRejectedValue(blindSignError);
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockShowHardwareWalletError).toHaveBeenCalledWith(blindSignError);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not show HW error for user cancellation errors', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const cancelError = new Error('cancelled');
+      cancelError.name = 'UserCancellation';
+      mockEnsureDeviceReady.mockRejectedValue(cancelError);
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('resets isSubmittingTx to false when device is not ready', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      mockEnsureDeviceReady.mockResolvedValue(false);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      await waitFor(() => {
+        expect(
+          (store.getState() as { bridge: { isSubmittingTx: boolean } }).bridge
+            .isSubmittingTx,
+        ).toBe(false);
+      });
+    });
+
+    it('clears pending operation address after the gate', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockSetPendingOperationAddress).toHaveBeenCalledWith(
+        WALLET_ADDRESS,
+      );
+      expect(mockSetPendingOperationAddress).toHaveBeenCalledWith(null);
+    });
   });
 
   describe.each([
@@ -353,8 +472,6 @@ describe('useBridgeConfirm', () => {
         'Error submitting bridge tx',
         expect.any(Error),
       );
-
-      consoleSpy.mockRestore();
     });
 
     it('opens the post-trade bottom sheet in failed state after the error', async () => {

@@ -159,7 +159,10 @@ describe('useDeviceConnectionFlow', () => {
       expect(createAdapterWithCallbacks).toHaveBeenCalledWith(
         HardwareWalletType.Qr,
       );
-      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('default');
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith(
+        'default',
+        undefined,
+      );
     });
 
     it('calls onFlowStart callback', async () => {
@@ -649,6 +652,34 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
+    it('forwards active readiness options after device selection', async () => {
+      const ensureDeviceReadyOptions = { requireBlindSigning: true };
+      const mockAdapter = createMockAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady(null, ensureDeviceReadyOptions),
+      );
+
+      await act(async () => {
+        await result.current.connect('device-123');
+      });
+
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith(
+        'device-123',
+        ensureDeviceReadyOptions,
+      );
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
     it('returns early when flow cancelled after connect', async () => {
       const mockAdapter = createMockAdapter();
       const refs = createMockRefs();
@@ -802,7 +833,48 @@ describe('useDeviceConnectionFlow', () => {
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Connecting,
       });
-      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('device-123');
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith(
+        'device-123',
+        undefined,
+      );
+    });
+
+    it('forwards active readiness options when retrying after an error', async () => {
+      const ensureDeviceReadyOptions = { requireBlindSigning: true };
+      const retryError = new Error('retryable readiness error');
+      const mockAdapter = createMockAdapter({
+        ensureDeviceReady: jest
+          .fn()
+          .mockRejectedValueOnce(retryError)
+          .mockResolvedValue(true),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs, deviceId: 'device-123' });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady(
+          'device-123',
+          ensureDeviceReadyOptions,
+        ),
+      );
+      mockAdapter.ensureDeviceReady.mockClear();
+
+      await act(async () => {
+        await result.current.retryEnsureDeviceReady();
+      });
+
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith(
+        'device-123',
+        ensureDeviceReadyOptions,
+      );
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
     });
 
     it('enters scanning when no deviceId or no adapter', async () => {

@@ -50,7 +50,7 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123');
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', undefined);
     expect(mockSetPendingOperationAddress).toHaveBeenNthCalledWith(
       1,
       defaultOptions.fromAddress,
@@ -98,7 +98,7 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockEnsureDeviceReady).toHaveBeenCalledWith(undefined);
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith(undefined, undefined);
     expect(executeApproval).toHaveBeenCalledTimes(1);
   });
 
@@ -148,19 +148,55 @@ describe('useLedgerConfirm', () => {
   });
 
   it('rejects only once when cancellation callback fires after error', async () => {
-    executeApproval.mockRejectedValueOnce(new Error('fail'));
-    mockShowAwaitingConfirmation.mockImplementation(
-      (_type: string, cancelCb: () => void) => {
-        setTimeout(cancelCb, 0);
-      },
+    jest.useFakeTimers();
+    try {
+      executeApproval.mockRejectedValueOnce(new Error('fail'));
+      mockShowAwaitingConfirmation.mockImplementation(
+        (_type: string, cancelCb: () => void) => {
+          setTimeout(cancelCb, 0);
+        },
+      );
+
+      const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(onReject).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('passes ensureDeviceReadyOptions to ensureDeviceReady', async () => {
+    const options = { requireBlindSigning: false };
+
+    const { result } = renderHook(() =>
+      useLedgerConfirm({
+        ...defaultOptions,
+        ensureDeviceReadyOptions: options,
+      }),
     );
 
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', options);
+  });
+
+  it('passes undefined options when ensureDeviceReadyOptions not provided', async () => {
     const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
 
     await act(async () => {
       await result.current.onConfirm();
     });
 
-    expect(onReject).toHaveBeenCalledTimes(1);
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', undefined);
   });
 });

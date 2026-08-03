@@ -300,6 +300,7 @@ describe('HardwareWalletProvider', () => {
         // Verify the adapter method was called
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalledWith(
           'device-123',
+          undefined,
         );
       });
 
