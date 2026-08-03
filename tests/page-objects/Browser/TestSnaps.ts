@@ -18,8 +18,6 @@ import {
   SNAP_UI_DROPDOWN_SHEET_TITLE,
   snapUIJsxCountAndroidXPath,
   snapUIJsxCountIosXPath,
-  snapUIJsxIncrementAndroidXPath,
-  snapUIJsxIncrementIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
@@ -165,27 +163,10 @@ class TestSnaps {
     });
   }
 
-  get jsxIncrementButton(): EncapsulatedElementType {
-    const scrollViewId = SnapUIRendererSelectorIDs.scrollView;
-    return encapsulated({
-      detox: () =>
-        element(
-          by.text('Increment').withAncestor(by.id(scrollViewId)),
-        ) as unknown as DetoxElement,
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            snapUIJsxIncrementAndroidXPath(),
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByXPath(snapUIJsxIncrementIosXPath()),
-      },
-    });
-  }
-
   async tapJsxIncrementButton(): Promise<void> {
+    const button = Matchers.getElementByText('Increment');
     await Gestures.waitAndTap(
-      this.jsxIncrementButton,
+      button,
       this.snapUiTapOptions({ elemDescription: 'JSX Increment' }),
     );
   }

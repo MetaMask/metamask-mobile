@@ -183,16 +183,6 @@ export function snapUIJsxCountAndroidXPath(count: string): string {
   return `//*[contains(@resource-id,"${scrollView}")]//*[@text="${count}" or @content-desc="${count}" or contains(@content-desc,"Count, ${count}")]`;
 }
 
-export function snapUIJsxIncrementIosXPath(): string {
-  const scrollView = SnapUIRendererSelectorIDs.scrollView;
-  return `//*[@name="${scrollView}"]//*[@name="Increment"]`;
-}
-
-export function snapUIJsxIncrementAndroidXPath(): string {
-  const scrollView = SnapUIRendererSelectorIDs.scrollView;
-  return `//*[contains(@resource-id,"${scrollView}")]//*[@text="Increment" or @content-desc="Increment"]`;
-}
-
 export function snapUISelectorItemAndroidUIAutomator(text: string): string {
   const id = SnapUIRendererSelectorIDs.selectorItem;
   return `.resourceIdMatches(".*${id}.*").childSelector(new UiSelector().text("${text}"))`;
