@@ -6,20 +6,13 @@ import {
 } from './balanceAnimation';
 
 describe('toDisplayAmount', () => {
-  it('rounds to the rendered precision', () => {
-    expect(toDisplayAmount(1234.5678)).toBe(1234.57);
-  });
-
-  it('collapses sub-cent dust to zero', () => {
-    expect(toDisplayAmount(0.004)).toBe(0);
-  });
-
-  it('keeps a value at exactly the dust threshold', () => {
-    expect(toDisplayAmount(0.01)).toBe(0.01);
-  });
-
-  it('collapses negative dust to zero', () => {
-    expect(toDisplayAmount(-0.004)).toBe(0);
+  it.each([
+    ['rounds to the rendered precision', 1234.5678, 1234.57],
+    ['collapses sub-cent dust to zero', 0.004, 0],
+    ['collapses negative dust to zero', -0.004, 0],
+    ['keeps a value at exactly the dust threshold', 0.01, 0.01],
+  ])('%s', (_name, input, expected) => {
+    expect(toDisplayAmount(input)).toBe(expected);
   });
 
   it('treats share-price drift below the rendered precision as no change', () => {

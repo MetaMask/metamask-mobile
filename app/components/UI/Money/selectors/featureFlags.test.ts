@@ -961,48 +961,24 @@ describe('selectMoneyBalanceAnimationEnabledFlag', () => {
     process.env = originalEnv;
   });
 
-  it('returns true when remote flag is enabled and version requirement is met', () => {
-    mockedValidate.mockReturnValue(true);
+  it.each([
+    ['remote flag is enabled and the version requirement is met', true, 'true'],
+    ['remote flag is disabled', false, 'false'],
+    // Unreleased, so an absent remote flag must not turn it on.
+    ['remote flag is absent and env is unset', undefined, undefined],
+    ['remote flag is absent but env opts in', undefined, 'true'],
+  ])('resolves when the %s', (_name, remote, env) => {
+    mockedValidate.mockReturnValue(remote);
+    if (env === undefined) {
+      delete process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED;
+    } else {
+      process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED = env;
+    }
+    const state = createState({ earnMoneyBalanceAnimationEnabled: remote });
 
-    const state = createState({
-      earnMoneyBalanceAnimationEnabled: {
-        enabled: true,
-        minimumVersion: '1.0.0',
-      },
-    });
-
-    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(true);
-  });
-
-  it('returns false when remote flag is disabled', () => {
-    mockedValidate.mockReturnValue(false);
-
-    const state = createState({
-      earnMoneyBalanceAnimationEnabled: {
-        enabled: false,
-        minimumVersion: '1.0.0',
-      },
-    });
-
-    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(false);
-  });
-
-  it('defaults to false when remote flag returns undefined and env is unset', () => {
-    mockedValidate.mockReturnValue(undefined);
-    delete process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED;
-
-    const state = createState({ _unique: 'balance-animation-default-off' });
-
-    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(false);
-  });
-
-  it('returns true when env var opts in and remote is undefined', () => {
-    mockedValidate.mockReturnValue(undefined);
-    process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED = 'true';
-
-    const state = createState({ _unique: 'balance-animation-env-on' });
-
-    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(true);
+    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(
+      remote ?? env === 'true',
+    );
   });
 });
 

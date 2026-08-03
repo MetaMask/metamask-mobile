@@ -239,23 +239,22 @@ const MoneyHomeView = () => {
     selectMoneyBalanceAnimationEnabledFlag,
   );
   const freshAmount =
-    totalFiatFormatted === undefined ? undefined : Number(totalFiatRaw ?? 0);
-  // Withholding the amount keeps the animation bookkeeping idle while the
-  // feature is off, rather than tracking a figure nothing renders.
+    totalFiatRaw === undefined ? undefined : Number(totalFiatRaw);
+  // Tracked even while the feature is off, so a remote flag arriving mid-session
+  // switches to a figure that is already current rather than rolling up from a
+  // seed the static balance has long since moved past.
   const { amount: balanceAmount, animated: isBalanceAnimated } =
-    useMoneyBalanceAnimation(
-      isBalanceAnimationEnabled ? freshAmount : undefined,
-    );
+    useMoneyBalanceAnimation(freshAmount);
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
-  } else if (totalFiatFormatted !== undefined) {
+  } else if (totalFiatFormatted !== undefined && freshAmount !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = {
       kind: 'balance',
       value: totalFiatFormatted,
-      amount: balanceAmount ?? Number(totalFiatRaw ?? 0),
+      amount: balanceAmount ?? freshAmount,
       animated: isBalanceAnimated,
     };
   } else {

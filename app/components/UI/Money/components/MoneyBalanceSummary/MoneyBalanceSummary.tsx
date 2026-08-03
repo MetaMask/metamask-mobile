@@ -18,8 +18,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextShimmer from '../TextShimmer';
-import MoneyAnimatedBalance from '../MoneyAnimatedBalance';
-import MoneyBalanceMetricsWarmer from '../MoneyAnimatedBalance/MoneyBalanceMetricsWarmer';
+import MoneyAnimatedBalance, {
+  MoneyBalanceMetricsWarmer,
+} from '../MoneyAnimatedBalance';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';

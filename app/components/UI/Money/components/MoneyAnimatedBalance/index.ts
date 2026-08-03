@@ -1,1 +1,1 @@
-export { default } from './MoneyAnimatedBalance';
+export { default, MoneyBalanceMetricsWarmer } from './MoneyAnimatedBalance';

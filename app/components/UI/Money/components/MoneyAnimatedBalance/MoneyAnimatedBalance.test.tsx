@@ -1,6 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import MoneyAnimatedBalance from './MoneyAnimatedBalance';
+import MoneyAnimatedBalance, {
+  MoneyBalanceMetricsWarmer,
+} from './MoneyAnimatedBalance';
 
 const mockNumberFlow = jest.fn();
 jest.mock('number-flow-react-native', () => ({
@@ -23,33 +25,13 @@ describe('MoneyAnimatedBalance', () => {
     expect(getByTestId('balance')).toBeOnTheScreen();
   });
 
-  it('renders the given amount', () => {
-    render(<MoneyAnimatedBalance amount={9999.99} animated testID="balance" />);
-
-    expect(mockNumberFlow).toHaveBeenCalledWith(
-      expect.objectContaining({ value: 9999.99 }),
-    );
-  });
-
-  it('passes the animation decision through', () => {
-    render(
-      <MoneyAnimatedBalance
-        amount={1234.56}
-        animated={false}
-        testID="balance"
-      />,
-    );
-
-    expect(mockNumberFlow).toHaveBeenCalledWith(
-      expect.objectContaining({ animated: false }),
-    );
-  });
-
-  it('formats as whole-cent US dollars', () => {
-    render(<MoneyAnimatedBalance amount={1234.56} animated testID="balance" />);
+  it('renders the amount as whole-cent US dollars, honouring the animation decision', () => {
+    render(<MoneyAnimatedBalance amount={9999.99} animated={false} />);
 
     expect(mockNumberFlow).toHaveBeenCalledWith(
       expect.objectContaining({
+        value: 9999.99,
+        animated: false,
         locales: 'en-US',
         format: {
           style: 'currency',
@@ -62,10 +44,26 @@ describe('MoneyAnimatedBalance', () => {
   });
 
   it('resolves design system typography into a concrete text style', () => {
-    render(<MoneyAnimatedBalance amount={1234.56} animated testID="balance" />);
+    render(<MoneyAnimatedBalance amount={1234.56} animated />);
 
     const { style } = mockNumberFlow.mock.calls[0][0];
     expect(style.fontSize).toEqual(expect.any(Number));
     expect(style.fontFamily).toEqual(expect.any(String));
+  });
+
+  it('warms metrics with the same font configuration as the balance', () => {
+    render(<MoneyBalanceMetricsWarmer />);
+    const warmer = mockNumberFlow.mock.calls[0][0];
+
+    mockNumberFlow.mockClear();
+    render(<MoneyAnimatedBalance amount={1234.56} animated />);
+    const balance = mockNumberFlow.mock.calls[0][0];
+
+    // A drift here would measure into a different cache entry, leaving the
+    // real balance unmeasured and losing its first roll.
+    expect(warmer.style).toEqual(balance.style);
+    expect(warmer.format).toEqual(balance.format);
+    expect(warmer.locales).toEqual(balance.locales);
+    expect(warmer.animated).toBe(false);
   });
 });

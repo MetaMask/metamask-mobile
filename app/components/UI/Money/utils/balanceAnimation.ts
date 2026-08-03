@@ -4,31 +4,28 @@ import { DUST_THRESHOLD } from './moneyFormatFiat';
 export const MONEY_BALANCE_FRACTION_DIGITS = 2;
 
 /**
- * Collapses sub-cent dust to zero and rounds to the rendered precision, mirroring
- * the formatter. Two amounts compare equal exactly when they would render as the
- * same text, so "did the balance change" means "would the user see a different
- * number" rather than "did any wei move".
+ * Collapses sub-cent dust to zero and rounds to the rendered precision,
+ * mirroring the formatter. Two amounts compare equal exactly when they would
+ * render as the same text, so "the balance changed" means "the user would see a
+ * different number" rather than "any wei moved".
  *
  * @param amount - The raw dollar amount.
  * @returns The amount at rendered precision.
  */
-export const toDisplayAmount = (amount: number): number => {
-  if (Math.abs(amount) < DUST_THRESHOLD) {
-    return 0;
-  }
-  return Number(amount.toFixed(MONEY_BALANCE_FRACTION_DIGITS));
-};
+export const toDisplayAmount = (amount: number): number =>
+  Math.abs(amount) < DUST_THRESHOLD
+    ? 0
+    : Number(amount.toFixed(MONEY_BALANCE_FRACTION_DIGITS));
 
 export interface BalanceAnimationParams {
-  /** The amount about to be rendered, at display precision. */
   nextAmount: number;
-  /** The amount currently rendered, undefined before the first resolved value. */
+  /** Undefined before the first resolved value. */
   previousAmount: number | undefined;
   /** Whether the account or currency in view changed. */
   isIdentityChange: boolean;
-  /** Whether this is the first balance resolved since mount or an identity change. */
+  /** Whether this is the first balance since mount or an identity change. */
   isInitialResolution: boolean;
-  /** Whether a money-affecting transaction confirmed and has not been consumed. */
+  /** Whether a money-affecting transaction confirmed and is unconsumed. */
   hasPendingUserOp: boolean;
 }
 
@@ -51,18 +48,12 @@ export const shouldAnimateBalanceChange = ({
   isInitialResolution,
   hasPendingUserOp,
 }: BalanceAnimationParams): boolean => {
-  if (isIdentityChange) {
-    return false;
-  }
   // Nothing to roll from on a first ever load.
-  if (previousAmount === undefined) {
+  if (isIdentityChange || previousAmount === undefined) {
     return false;
   }
   if (nextAmount === previousAmount) {
     return false;
   }
-  if (isInitialResolution) {
-    return true;
-  }
-  return hasPendingUserOp;
+  return isInitialResolution || hasPendingUserOp;
 };
