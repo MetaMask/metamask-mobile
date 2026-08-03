@@ -57,6 +57,7 @@ import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
   selectIsCardholder,
+  selectIsCardStateResolved,
 } from '../../../../../selectors/cardController';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import {
@@ -157,6 +158,7 @@ const MoneyHomeView = () => {
         refetchBalance(),
         refetchInterest(),
         refreshMusdFiatRate(),
+        Engine.context.CardController.fetchCardHomeData({ force: true }),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -203,6 +205,7 @@ const MoneyHomeView = () => {
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyEarningSectionEnabled = useSelector(
@@ -233,6 +236,7 @@ const MoneyHomeView = () => {
     isMoneyAccountVisible,
     hasMoneyAccountBaseRequirements,
     hasMoneyAccountRequirements,
+    isCardStateResolved,
   });
 
   const isBalanceAnimationEnabled = useSelector(
