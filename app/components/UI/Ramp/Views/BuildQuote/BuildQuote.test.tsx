@@ -116,14 +116,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   ) => navigation.reset(state),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    RampsController: {
-      setSelectedProviderForAsset: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
@@ -192,10 +184,6 @@ const mockUseAnalytics = jest.requireMock(
 const mockUseDebouncedValue = jest.requireMock(
   '../../../../hooks/useDebouncedValue',
 ).useDebouncedValue as jest.Mock;
-
-const mockSetSelectedProviderForAsset = jest.requireMock(
-  '../../../../../core/Engine',
-).context.RampsController.setSelectedProviderForAsset as jest.Mock;
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -361,7 +349,6 @@ const buildRampsControllerResult = (overrides = {}) => ({
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSetSelectedProviderForAsset.mockReset();
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: unknown) => value);
@@ -1759,7 +1746,6 @@ describe('BuildQuote', () => {
       };
 
       it('auto-switches to a supporting provider instead of showing the modal', () => {
-        mockSetSelectedProviderForAsset.mockReturnValue(true);
         mockUnavailableController({
           selectedProvider: paypalProvider,
           providers: [paypalProvider, coinbaseProvider],
@@ -1776,7 +1762,9 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
+          autoSelected: true,
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1802,7 +1790,7 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1812,7 +1800,6 @@ describe('BuildQuote', () => {
       });
 
       it('auto-switches even when provider was manually selected', () => {
-        mockSetSelectedProviderForAsset.mockReturnValue(true);
         mockUnavailableController({
           selectedProvider: paypalProvider,
           providers: [paypalProvider, coinbaseProvider],
@@ -1829,7 +1816,9 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
+          autoSelected: true,
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
