@@ -276,7 +276,6 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     [traders],
   );
 
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
 
   // Current step (index into SLIDE_BY_STEP_INDEX): 0 Trade, 1 Follow, 2 Notify

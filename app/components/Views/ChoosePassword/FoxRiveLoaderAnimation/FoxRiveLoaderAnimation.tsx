@@ -34,7 +34,6 @@ const FoxRiveLoaderAnimation = forwardRef<
   FoxRiveLoaderAnimationProps
 >((_props, ref) => {
   const { riveFile } = useRiveFile(onboardingRiveFile);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveRef, riveViewRef, setHybridRef } = useRive();
   const { colors } = useTheme();
   const tw = useTailwind();

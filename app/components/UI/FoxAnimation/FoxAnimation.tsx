@@ -86,7 +86,6 @@ const FoxAnimation = ({
   const styles = createStyles(hasFooter, insets);
 
   const { riveFile } = useRiveFile(FoxAnimationRive);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
   const { riveHandlers } = useRivePerformance({
     animationId: OnboardingRiveAnimationIds.FOX_APPEAR,

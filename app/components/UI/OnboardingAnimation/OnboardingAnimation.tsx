@@ -73,7 +73,6 @@ const OnboardingAnimation = ({
   onInteractiveContentReady?: () => void;
 }) => {
   const { riveFile } = useRiveFile(MetaMaskWordmarkAnimation);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
   const logoPosition = useMemo(() => new Animated.Value(0), []);
   const buttonsOpacity = useMemo(

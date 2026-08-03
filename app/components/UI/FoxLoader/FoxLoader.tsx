@@ -68,7 +68,6 @@ const FoxLoaderAnimation = ({
   const screenW = screenDims.width;
   const { styles } = useStyles(styleSheet, { screenH, screenW });
   const { riveFile } = useRiveFile(splashRiveFile);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveRef, riveViewRef, setHybridRef } = useRive();
   const isPlaying = riveViewRef != null;
   const exitTriggered = useRef(false);

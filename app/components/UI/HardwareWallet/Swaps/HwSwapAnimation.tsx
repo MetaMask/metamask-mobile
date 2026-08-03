@@ -73,7 +73,6 @@ export interface HwSwapAnimationProps {
  */
 export function HwSwapAnimation({ progress }: HwSwapAnimationProps) {
   const { riveFile } = useRiveFile(genericHardwareWalletRiveFile);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
 
   useEffect(() => {

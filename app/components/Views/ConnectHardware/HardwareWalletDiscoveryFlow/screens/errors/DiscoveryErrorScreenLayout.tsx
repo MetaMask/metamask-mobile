@@ -42,7 +42,6 @@ const DiscoveryErrorScreenLayout = ({
   const tw = useTailwind();
   const useStaticImage = Boolean(imageSource);
   const { riveFile } = useRiveFile(HardwareWalletRive);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
 
   useEffect(() => {

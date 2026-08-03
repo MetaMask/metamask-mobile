@@ -48,7 +48,6 @@ const SearchingForDevice = ({
 }: SearchingForDeviceProps) => {
   const tw = useTailwind();
   const { riveFile } = useRiveFile(HardwareWalletRive);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
 
   useEffect(() => {

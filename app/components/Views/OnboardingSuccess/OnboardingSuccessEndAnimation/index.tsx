@@ -26,7 +26,6 @@ const OnboardingSuccessEndAnimation: React.FC<
   OnboardingSuccessEndAnimationProps
 > = ({ onAnimationComplete: _onAnimationComplete }) => {
   const { riveFile } = useRiveFile(onboardingLoaderEndAnimation);
-  // riveViewRef non-null == view ready for inputs (Nitro equivalent of legacy onPlay)
   const { riveViewRef, setHybridRef } = useRive();
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
