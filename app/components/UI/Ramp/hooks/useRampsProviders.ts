@@ -41,6 +41,18 @@ export interface UseRampsProvidersResult {
     options?: { autoSelected?: boolean },
   ) => void;
   /**
+   * Switches providers.selected to the first provider that serves the given
+   * CAIP-19 asset, when the currently selected provider does not.
+   * No-op when providers are not loaded, the current provider already serves
+   * the asset, or no alternative does. Returns true if a switch was made.
+   *
+   * Delegates to RampsController:setSelectedProviderForAsset (MetaMask/core#9759).
+   */
+  setSelectedProviderForAsset: (
+    assetId: string,
+    options?: { autoSelected?: boolean },
+  ) => boolean;
+  /**
    * Whether the providers request is currently loading.
    */
   isLoading: boolean;
@@ -135,6 +147,20 @@ export function useRampsProviders(options?: {
     [],
   );
 
+  // TODO: remove cast once @metamask/ramps-controller preview is pinned (MetaMask/core#9759)
+  const setSelectedProviderForAsset = useCallback(
+    (assetId: string, setOptions?: { autoSelected?: boolean }): boolean =>
+      (
+        Engine.context.RampsController as unknown as {
+          setSelectedProviderForAsset: (
+            assetId: string,
+            options?: { autoSelected?: boolean },
+          ) => boolean;
+        }
+      ).setSelectedProviderForAsset(assetId, setOptions),
+    [],
+  );
+
   useEffect(() => {
     if (
       enableSideEffects &&
@@ -176,6 +202,7 @@ export function useRampsProviders(options?: {
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
     error,
   };

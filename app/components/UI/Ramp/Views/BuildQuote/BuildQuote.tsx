@@ -156,6 +156,7 @@ function BuildQuote() {
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     selectedToken,
     paymentMethods,
     paymentMethodsLoading,
@@ -273,16 +274,14 @@ function BuildQuote() {
       return;
     }
 
+    // Keep providers in deps: ensures the effect re-runs when the provider
+    // list loads or refreshes, giving the controller a chance to find a
+    // compatible provider even if it was called too early.
+    if (providers.length === 0) return;
+
     if (effectiveAssetId) {
-      const supportingProvider = providers.find(
-        (p) =>
-          p.id !== selectedProvider?.id &&
-          providerSupportsAsset(p, effectiveAssetId),
-      );
-      if (supportingProvider) {
-        setSelectedProvider(supportingProvider, { autoSelected: true });
-        return;
-      }
+      const switched = setSelectedProviderForAsset(effectiveAssetId);
+      if (switched) return;
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -309,7 +308,7 @@ function BuildQuote() {
     selectedProvider?.id,
     focusTrigger,
     providers,
-    setSelectedProvider,
+    setSelectedProviderForAsset,
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';
