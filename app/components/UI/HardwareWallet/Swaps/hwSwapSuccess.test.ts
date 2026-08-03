@@ -59,4 +59,68 @@ describe('completeHwSwapSuccess', () => {
     expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
+
+  describe('send flow root-stack pop', () => {
+    // The send origin registers HardwareWalletsSwaps on the root stack, so the
+    // screen must be popped before targeting activity — otherwise React
+    // Navigation resolves activity in a child navigator and cascades focus back
+    // up, popping the root stack in the same frame. Android's native stack does
+    // not survive that and leaves a blank, unusable screen.
+    it('pops the signing screen before navigating to activity', () => {
+      const mockGoBack = jest.fn();
+
+      completeHwSwapSuccess({
+        dispatch: mockDispatch,
+        navigation: {
+          navigate: mockNavigate,
+          canGoBack: () => true,
+          goBack: mockGoBack,
+        },
+        toastRef: undefined,
+        isSendFlow: true,
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      // Order matters: settle the root stack, then navigate.
+      expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('does not pop when there is nothing to go back to', () => {
+      const mockGoBack = jest.fn();
+
+      completeHwSwapSuccess({
+        dispatch: mockDispatch,
+        navigation: {
+          navigate: mockNavigate,
+          canGoBack: () => false,
+          goBack: mockGoBack,
+        },
+        toastRef: undefined,
+        isSendFlow: true,
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('leaves bridge untouched — single navigate, no pop', () => {
+      const mockGoBack = jest.fn();
+
+      completeHwSwapSuccess({
+        dispatch: mockDispatch,
+        navigation: {
+          navigate: mockNavigate,
+          canGoBack: () => true,
+          goBack: mockGoBack,
+        },
+        toastRef: undefined,
+      });
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+  });
 });

@@ -11,14 +11,16 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 
-import Routes from '../../../../constants/navigation/Routes';
 import {
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import { completeHwSwapSuccess } from './hwSwapSuccess';
+import {
+  completeHwSwapSuccess,
+  navigateToActivityFromHwFlow,
+} from './hwSwapSuccess';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -165,8 +167,13 @@ export function useHwSwapLifecycle({
   const completeSignedFlow = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
     hasAutoNavigatedRef.current = true;
-    completeHwSwapSuccess({ dispatch, navigation, toastRef });
-  }, [dispatch, navigation, toastRef]);
+    completeHwSwapSuccess({
+      dispatch,
+      navigation,
+      toastRef,
+      isSendFlow: strategy.isSendFlow,
+    });
+  }, [dispatch, navigation, toastRef, strategy.isSendFlow]);
 
   const reconcileStuckFlowProgress = useCallback(() => {
     const current = progressRef.current;
@@ -350,8 +357,9 @@ export function useHwSwapLifecycle({
   const handleDone = useCallback(() => {
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  }, [dispatch, navigation, clearCachedSubmission]);
+    // Same root-stack hazard as the auto-navigate path above.
+    navigateToActivityFromHwFlow(navigation, strategy.isSendFlow);
+  }, [dispatch, navigation, clearCachedSubmission, strategy.isSendFlow]);
 
   return {
     isRetrying,
