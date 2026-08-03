@@ -1,5 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react-native';
-import type { Order, Position } from '@metamask/perps-controller';
+import type {
+  Order,
+  PerpsMarketData,
+  Position,
+} from '@metamask/perps-controller';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -9,7 +13,11 @@ import {
 } from '../../../hooks/stream';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  getPerpsProOrderRowSelector,
+  getPerpsProPositionRowSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
 import PerpsProPositionsPanel from './PerpsProPositionsPanel';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -69,10 +77,16 @@ const makeOrder = (overrides: Partial<Order> = {}): Order => ({
   ...overrides,
 });
 
-const renderPanel = (symbol = 'SOL') =>
-  renderWithProvider(<PerpsProPositionsPanel symbol={symbol} />, {
-    state: { engine: { backgroundState } },
-  });
+const renderPanel = (
+  symbol = 'SOL',
+  onSelectMarket?: (market: Partial<PerpsMarketData>) => void,
+) =>
+  renderWithProvider(
+    <PerpsProPositionsPanel symbol={symbol} onSelectMarket={onSelectMarket} />,
+    {
+      state: { engine: { backgroundState } },
+    },
+  );
 
 const expectTabLabel = (label: string) => {
   expect(screen.getAllByText(label).length).toBeGreaterThan(0);
@@ -354,6 +368,96 @@ describe('PerpsProPositionsPanel', () => {
     cancelButtons.forEach((button) => {
       expect(button.props.accessibilityState?.disabled).toBe(true);
     });
+  });
+
+  it('switches to the full market data of a tapped position row', () => {
+    const onSelectMarket = jest.fn();
+    const ethMarket = { symbol: 'ETH', maxLeverage: '25x' };
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [ethMarket],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    fireEvent.press(screen.getByTestId(getPerpsProPositionRowSelector('ETH')));
+
+    expect(onSelectMarket).toHaveBeenCalledWith(ethMarket);
+  });
+
+  it('falls back to a symbol-only market when the row asset is not in the market list', () => {
+    const onSelectMarket = jest.fn();
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    fireEvent.press(screen.getByTestId(getPerpsProPositionRowSelector('ETH')));
+
+    expect(onSelectMarket).toHaveBeenCalledWith({ symbol: 'ETH' });
+  });
+
+  it('switches to the market of a tapped order row', () => {
+    const onSelectMarket = jest.fn();
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'eth-1', symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(screen.getByTestId(getPerpsProOrderRowSelector('ETH', 0)));
+
+    expect(onSelectMarket).toHaveBeenCalledWith({ symbol: 'ETH' });
+  });
+
+  it('leaves rows non-interactive when no market switch handler is provided', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(screen.queryByLabelText('Switch to the ETH market')).toBeNull();
+  });
+
+  it('matches the ticker-only filter on the full market symbol for HIP-3 markets', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'dex1:SOL' }),
+        makePosition({ symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('dex1:SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expectTabLabel('Positions (1)');
+    expect(
+      screen.getByTestId('perps-pro-market-position-row-dex1:SOL'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('perps-pro-market-position-row-SOL'),
+    ).toBeNull();
   });
 
   it('subscribes to market data for funding-rate sort', () => {

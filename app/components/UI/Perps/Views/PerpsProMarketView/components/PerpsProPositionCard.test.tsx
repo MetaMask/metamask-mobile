@@ -101,6 +101,44 @@ describe('PerpsProPositionCard', () => {
     expect(onEditTpSl).toHaveBeenCalledWith(position);
   });
 
+  it('invokes the market switch handler when the card is pressed', () => {
+    const onPress = jest.fn();
+
+    render(<PerpsProPositionCard position={position} onPress={onPress} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_ROW),
+    );
+
+    expect(onPress).toHaveBeenCalledWith(position);
+  });
+
+  it('exposes the market switch as a labelled action for screen readers', () => {
+    render(<PerpsProPositionCard position={position} onPress={jest.fn()} />);
+
+    expect(screen.getByLabelText('Switch to the ETH market')).toBeOnTheScreen();
+  });
+
+  it('keeps action buttons scoped to their own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onClose = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_CLOSE),
+    );
+
+    expect(onClose).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
   it('invokes edit margin when the margin value text is pressed', () => {
     const onEditMargin = jest.fn();
 

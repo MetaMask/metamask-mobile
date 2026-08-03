@@ -6,17 +6,18 @@ import {
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
-import {
-  TimeDuration,
-  getPerpsDisplaySymbol,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
+import { TimeDuration, type PerpsMarketData } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { AnimationDuration } from '@metamask/design-tokens';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -59,6 +60,8 @@ import { createStyles } from './PerpsProMarketView.styles';
  */
 const PerpsProMarketView = () => {
   const { styles } = useStyles(createStyles, {});
+  const navigation =
+    useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const routeMarket = route.params?.market;
@@ -81,6 +84,23 @@ const PerpsProMarketView = () => {
     return fullMarket || routeMarket;
   }, [hasFormattedMaxLeverage, markets, routeMarket]);
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+
+  // Swapping the route param rather than pushing keeps a single Pro screen on
+  // the stack, so tapping through positions/orders doesn't build up history.
+  const handleSelectMarket = useCallback(
+    (nextMarket: PerpsMarketData | Partial<PerpsMarketData>) => {
+      if (!nextMarket.symbol || nextMarket.symbol === routeMarket?.symbol) {
+        return;
+      }
+
+      navigation.setParams({
+        market: nextMarket,
+        source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
+        source_section: undefined,
+      });
+    },
+    [navigation, routeMarket?.symbol],
+  );
 
   const handleCollapseOrderBook = useCallback(() => {
     setIsOrderBookCollapsed(true);
@@ -193,7 +213,6 @@ const PerpsProMarketView = () => {
     );
   }
 
-  const symbol = getPerpsDisplaySymbol(market.symbol);
   const marketPrice = (() => {
     if (!market.price) {
       return undefined;
@@ -274,7 +293,10 @@ const PerpsProMarketView = () => {
             }
           />
           <SectionDivider marginVertical={0} />
-          <PerpsProPositionsPanel symbol={symbol} />
+          <PerpsProPositionsPanel
+            symbol={market.symbol}
+            onSelectMarket={handleSelectMarket}
+          />
         </Animated.View>
       </Animated.ScrollView>
       <PerpsCandlePeriodBottomSheet

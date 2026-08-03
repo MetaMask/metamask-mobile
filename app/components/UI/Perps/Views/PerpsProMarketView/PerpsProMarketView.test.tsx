@@ -1,7 +1,11 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
 import { Box, ButtonBase } from '@metamask/design-system-react-native';
-import { CandlePeriod, PerpsMode } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  PerpsMode,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -11,6 +15,7 @@ import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
+  getPerpsProPositionRowSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
 } from '../../Perps.testIds';
@@ -60,6 +65,7 @@ let mockRouteParams: MockRouteParams | undefined = {
   },
 };
 const mockTrack = jest.fn();
+const mockSetParams = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
   track: mockTrack,
 }));
@@ -198,6 +204,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useRoute: () => ({ params: mockRouteParams }),
+    useNavigation: () => ({ setParams: mockSetParams }),
   };
 });
 
@@ -284,6 +291,25 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
   })),
 }));
 
+const mockUsePerpsLivePositions = jest.requireMock('../../hooks/stream')
+  .usePerpsLivePositions as jest.Mock;
+
+const ethPosition: Position = {
+  symbol: 'ETH',
+  size: '1.5',
+  entryPrice: '2900',
+  positionValue: '4350',
+  unrealizedPnl: '150',
+  marginUsed: '1450',
+  leverage: { type: 'cross', value: 3 },
+  liquidationPrice: '2500',
+  maxLeverage: 50,
+  returnOnEquity: '0.103',
+  cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+  takeProfitCount: 0,
+  stopLossCount: 0,
+};
+
 const renderView = () =>
   renderWithProvider(<PerpsProMarketView />, {
     state: { engine: { backgroundState } },
@@ -307,6 +333,40 @@ describe('PerpsProMarketView', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
+  });
+
+  it('swaps the route market in place when a positions-panel row is tapped', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [ethPosition],
+      isInitialLoading: false,
+    });
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(getPerpsProPositionRowSelector('ETH')));
+
+    expect(mockSetParams).toHaveBeenCalledWith({
+      market: { symbol: 'ETH' },
+      source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
+      source_section: undefined,
+    });
+  });
+
+  it('ignores a row tap for the market already being displayed', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [{ ...ethPosition, symbol: 'BTC' }],
+      isInitialLoading: false,
+    });
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(getPerpsProPositionRowSelector('BTC')));
+
+    expect(mockSetParams).not.toHaveBeenCalled();
   });
 
   it.each([
