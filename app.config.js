@@ -82,6 +82,32 @@ module.exports = {
     ],
     'expo-asset',
     '@react-native-community/datetimepicker',
+    // NOTE: This repo is a bare workflow project with a checked-in ios/
+    // directory, so `expo prebuild` is never run against it and this plugin
+    // config is NOT automatically applied to ios/MetaMask.xcodeproj. It is
+    // declared here for documentation/parity purposes only (e.g. so this
+    // config accurately reflects the widgets that exist, for anyone running
+    // `expo config` or a future prebuild-based migration). The actual native
+    // wiring lives in ios/ExpoWidgetsTarget/, ios/Podfile, and was created by
+    // scripts/ios/setup-expo-widgets-target.rb. See docs/widgets/README.md
+    // before adding or removing an entry from `widgets` below — you'll also
+    // need to hand-edit ios/ExpoWidgetsTarget/index.swift and add a matching
+    // <WidgetName>.swift file.
+    [
+      'expo-widgets',
+      {
+        groupIdentifier: 'group.io.metamask.MetaMask',
+        widgets: [
+          {
+            name: 'BalanceWidget',
+            supportedFamilies: ['systemSmall', 'systemMedium'],
+            displayName: 'Balance',
+            description: 'Shows your total wallet balance at a glance.',
+            contentMarginsDisabled: false,
+          },
+        ],
+      },
+    ],
   ],
   android: {
     package:

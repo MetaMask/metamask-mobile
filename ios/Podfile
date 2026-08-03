@@ -3,6 +3,7 @@ source 'https://github.com/CocoaPods/Specs.git'
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 require File.join(File.dirname(`node --print "require.resolve('react-native-permissions/package.json')"`), "scripts/setup")
+require File.join(File.dirname(`node --print "require.resolve('expo-widgets/package.json')"`), "scripts/autolinking")
 
 require 'json'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
@@ -120,6 +121,47 @@ target 'MetaMask-Flask' do
 	common_target_logic
 end
 
+# ExpoWidgetsTarget: the WidgetKit + Live Activities app extension that hosts
+# all `expo-widgets` widgets (see app/core/Widgets/ and docs/widgets/README.md).
+#
+# This mirrors what the `expo-widgets` config plugin's `withPodsLinking`
+# generates. It is applied by hand — rather than by `expo prebuild` — because
+# this is a bare workflow project with a checked-in ios/ directory that the
+# plugin never runs against. Keep this block in sync if `expo-widgets` is
+# upgraded and its Podfile template changes
+# (node_modules/expo-widgets/plugin/src/withPodsLinking.ts).
+target 'ExpoWidgetsTarget' do
+  # Only autolinks `expo`, `expo-widgets`, and `@expo/ui` — the extension does
+  # not need the full set of Expo modules the main app uses.
+  use_expo_modules_widgets!
+
+  if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
+    widgets_config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
+  else
+    widgets_config_command = [
+      'node',
+      '--no-warnings',
+      '--eval',
+      'require(require.resolve(\'expo-modules-autolinking\', { paths: [require.resolve(\'expo/package.json\')] }))(process.argv.slice(1))',
+      'react-native-config',
+      '--json',
+      '--platform',
+      'ios'
+    ]
+  end
+
+  widgets_config = use_expo_native_module!(widgets_config_command)
+
+  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
+
+  use_react_native!(
+    :path => widgets_config[:reactNativePath],
+    :hermes_enabled => true,
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
+  )
+end
+
 if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
   config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
 else
@@ -137,7 +179,54 @@ end
 
 config = use_native_modules!(config_command)
 
+# KNOWN LIMITATION / WORKAROUND — see docs/widgets/README.md
+# ("Known limitation: the widget extension links every autolinked pod") and
+# https://github.com/expo/expo/issues/44695.
+#
+# React Native's New Architecture codegen (ReactCodegen / ReactAppDependencyProvider)
+# is generated from a single, Podfile-wide scan of package.json — it is NOT
+# scoped per `target` block. Because `ExpoWidgetsTarget` also calls
+# `use_react_native!` (required so ExpoModulesCore/ExpoUI can link React's
+# shared C++ infra), its `ReactCodegen` pod ends up compiling a TurboModule
+# spec for *every* autolinked native module in the whole app (Braze, Sentry,
+# Firebase, Branch, ...) — even though the widget's JS layer never calls any
+# of them (see createMetaMaskWidget.ios.ts for why it structurally can't).
+# Some of those SDKs call APIs that are unavailable in app extensions (e.g.
+# `UIApplication.shared`), which then fail to *compile* once CocoaPods marks
+# their pod target `APPLICATION_EXTENSION_API_ONLY = YES` (required because
+# `ExpoWidgetsTarget`, an app extension, also depends on them transitively).
+#
+# This function silences that compile-time check for every pod the widget
+# extension pulls in (other than the Expo/React-* pods `expo_widgets_post_install`
+# already un-flags). It does NOT make the underlying SDK code
+# extension-safe — it only lets it compile. This is safe at *runtime* (that
+# code is never reached from the widget), but Apple's App Store binary
+# validation may still flag extension-unavailable symbols in the shipped
+# extension binary. Revisit before shipping — see docs/widgets/README.md.
+def expo_widgets_disable_extension_api_only_workaround!(installer)
+  widgets_aggregate = installer.aggregate_targets.find { |t| t.name.include?('ExpoWidgetsTarget') }
+  return unless widgets_aggregate
+
+  pod_names_used_by_widgets = widgets_aggregate.pod_targets.map(&:pod_name)
+
+  installer.pods_project.targets.each do |target|
+    next unless pod_names_used_by_widgets.include?(target.name)
+    next if target.name == 'ExpoModulesCore' || target.name == 'ExpoUI' || target.name.start_with?('React-')
+
+    target.build_configurations.each do |config|
+      config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'NO'
+    end
+  end
+end
+
 post_install do |installer|
+  # ExpoModulesCore/ExpoUI/React-* pods are compiled with
+  # APPLICATION_EXTENSION_API_ONLY by default, but the widget extension needs
+  # to link against them, which requires this to be disabled for those pods
+  # specifically (the ExpoWidgetsTarget itself stays APPLICATION_EXTENSION_API_ONLY=YES).
+  expo_widgets_post_install(installer)
+  expo_widgets_disable_extension_api_only_workaround!(installer)
+
   react_native_post_install(
     installer,
     config[:reactNativePath],

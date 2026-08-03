@@ -359,8 +359,14 @@ PODS:
     - ExpoModulesCore
   - ExpoSplashScreen (55.0.21):
     - ExpoModulesCore
+  - ExpoUI (55.0.17):
+    - ExpoModulesCore
+    - React-RCTFabric
   - ExpoWebBrowser (55.0.16):
     - ExpoModulesCore
+  - ExpoWidgets (55.0.20):
+    - ExpoModulesCore
+    - ExpoUI
   - EXStructuredHeaders (55.0.2)
   - EXUpdates (55.0.24):
     - boost
@@ -4530,7 +4536,9 @@ DEPENDENCIES:
   - ExpoScreenOrientation (from `../node_modules/expo-screen-orientation/ios`)
   - ExpoSensors (from `../node_modules/expo-sensors/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
+  - "ExpoUI (from `../node_modules/@expo/ui/ios`)"
   - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
+  - ExpoWidgets (from `../node_modules/expo-widgets/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
   - EXUpdatesInterface (from `../node_modules/expo-updates-interface/ios`)
@@ -4786,8 +4794,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-sensors/ios"
   ExpoSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
+  ExpoUI:
+    :path: "../node_modules/@expo/ui/ios"
   ExpoWebBrowser:
     :path: "../node_modules/expo-web-browser/ios"
+  ExpoWidgets:
+    :path: "../node_modules/expo-widgets/ios"
   EXStructuredHeaders:
     :path: "../node_modules/expo-structured-headers/ios"
   EXUpdates:
@@ -5121,7 +5133,9 @@ SPEC CHECKSUMS:
   ExpoScreenOrientation: d6f7486ab8c0dca13220ee8f8b64511563570838
   ExpoSensors: f52b1ac7794da9c91be3d893aae612475f1ab94a
   ExpoSplashScreen: 049301b226bce8284fcafb7923fcad3a43f23a9f
+  ExpoUI: 3d10642147c44f94a4557f1defe2efd3244349af
   ExpoWebBrowser: 5847267c496125abe38afccae97d34cb6ecc5340
+  ExpoWidgets: 9f03b9998ca22113af289608b9ea2ddcae47f0ee
   EXStructuredHeaders: 93ad4f31a2eec124428675e28aca11de243ee1e4
   EXUpdates: c836cf96a9575268eb4499d290d930b9152465fe
   EXUpdatesInterface: 4c11f4d1594526258f14d09817dc407acbf24e3b
@@ -5298,6 +5312,6 @@ SPEC CHECKSUMS:
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: 765be4dd3d78fecfb151a4b9e4a55956b1ebf8aa
+PODFILE CHECKSUM: df61d69858e778eb13152472150b46168f44879b
 
 COCOAPODS: 1.16.2

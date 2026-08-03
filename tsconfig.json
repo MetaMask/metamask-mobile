@@ -67,7 +67,16 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    // Lets tsc resolve extensionless imports of platform-split files (e.g.
+    // `./BalanceWidget` -> `BalanceWidget.ios.tsx`), matching Metro's own
+    // platform-extension resolution used at bundle/runtime. tsc has no
+    // concept of "which platform am I compiling for", so it always resolves
+    // to the first matching suffix (`.ios`) — this only affects which
+    // variant gets type-checked at the *import site*; each platform file is
+    // still fully type-checked on its own when tsc walks it directly. See
+    // docs/widgets/README.md.
+    "moduleSuffixes": [".ios", ".android", ".native", ""]
   },
   "include": [
     "app/declarations/index.d.ts",

@@ -201,17 +201,18 @@ If the user asks to implement a ticket directly from Jira:
 
 ## Documentation References
 
-| Documentation             | Path                                         |
-| ------------------------- | -------------------------------------------- |
-| Architecture              | `/docs/readme/architecture.md`               |
-| Environment Setup         | `/docs/readme/environment.md`                |
-| E2E Testing               | `/docs/readme/e2e-testing.md`                |
-| Debugging                 | `/docs/readme/debugging.md`                  |
-| Performance               | `/docs/performance/`                         |
-| Storybook                 | `/docs/readme/storybook.md`                  |
-| Troubleshooting           | `/docs/readme/troubleshooting.md`            |
-| MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
-| E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
+| Documentation                 | Path                                         |
+| ----------------------------- | -------------------------------------------- |
+| Architecture                  | `/docs/readme/architecture.md`               |
+| Environment Setup             | `/docs/readme/environment.md`                |
+| E2E Testing                   | `/docs/readme/e2e-testing.md`                |
+| Debugging                     | `/docs/readme/debugging.md`                  |
+| Performance                   | `/docs/performance/`                         |
+| Storybook                     | `/docs/readme/storybook.md`                  |
+| Troubleshooting               | `/docs/readme/troubleshooting.md`            |
+| iOS Widgets & Live Activities | `/docs/widgets/README.md`                    |
+| MetaMask Contributor Docs     | https://github.com/MetaMask/contributor-docs |
+| E2E CI Decision Tree          | `.github/guidelines/E2E_DECISION_TREE.md`    |
 
 ## Test Guidelines
 
@@ -246,3 +247,15 @@ bash scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
+
+## iOS Widgets & Live Activities
+
+For adding or modifying a home screen widget or Live Activity, use the canonical standard:
+
+- `docs/widgets/README.md` (architecture, theming, data flow, adding a widget/Live Activity, testing, possibilities/limitations)
+
+Cursor rule entrypoint:
+
+- `.cursor/rules/widget-development.mdc`
+
+Foundation code lives in `app/core/Widgets/` (JS/TS) and `ios/ExpoWidgetsTarget/` (native, iOS-only). See `app/core/Widgets/widgets/BalanceWidget.ios.tsx` for the reference widget.

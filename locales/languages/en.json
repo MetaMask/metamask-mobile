@@ -3159,6 +3159,11 @@
       "subtitle": "Back up your accounts and sync settings."
     }
   },
+  "widgets": {
+    "balance_widget": {
+      "label": "Total balance"
+    }
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",

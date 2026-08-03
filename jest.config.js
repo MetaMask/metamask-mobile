@@ -91,6 +91,13 @@ const config = {
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
     '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
+    // expo-widgets/@expo/ui call throwing `requireNativeModule`/`requireNativeView`
+    // at import time — see app/core/Widgets/ (widgets platform foundation) and
+    // the mock files themselves for details.
+    '^expo-widgets$': '<rootDir>/app/__mocks__/expo-widgets.ts',
+    '^@expo/ui/swift-ui/modifiers$':
+      '<rootDir>/app/__mocks__/@expo/ui/swift-ui-modifiers.ts',
+    '^@expo/ui/swift-ui$': '<rootDir>/app/__mocks__/@expo/ui/swift-ui.ts',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
     '^@metamask/perps-controller$':

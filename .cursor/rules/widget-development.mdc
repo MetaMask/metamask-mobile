@@ -1,0 +1,86 @@
+---
+description: Build iOS home screen widgets and Live Activities on the expo-widgets foundation in app/core/Widgets/ — closures, platform split, theming, data flow
+globs: app/core/Widgets/**/*.{ts,tsx},ios/ExpoWidgetsTarget/**/*.swift
+alwaysApply: false
+---
+
+# iOS Widgets & Live Activities
+
+> Canonical human guide: [`docs/widgets/README.md`](../../docs/widgets/README.md) — read it before adding a widget. This rule is the condensed, actionable version.
+
+## Canonical source (SSOT)
+
+- `app/core/Widgets/` — all JS/TS foundation code (theme bridge, wrappers, `WidgetUpdaterService`)
+- `ios/ExpoWidgetsTarget/` — the native WidgetKit extension target (Swift)
+- `app/core/Widgets/widgets/BalanceWidget.ios.tsx` + `.android.ts` — the reference widget; copy its shape for new widgets
+
+## The one non-negotiable rule: no closures inside `'widget'`-directive functions
+
+`babel-preset-expo` replaces any function whose body starts with `'widget';` with a **string literal** of its own source — at build time, including under Jest. The stringified function has no access to its surrounding module: no imports, no module-scope constants, no Redux, no i18n, no `Logger`, nothing except its own params and `@expo/ui/swift-ui`(/modifiers).
+
+### ✅ Everything the layout needs arrives as props
+
+```tsx
+function BalanceWidgetLayout(props: BalanceWidgetProps & WithWidgetTheme, environment: WidgetEnvironment) {
+  'widget';
+  const theme = environment.colorScheme === 'dark' ? props.theme.dark : props.theme.light;
+  return <Text modifiers={[foregroundStyle(theme.colors.textDefault)]}>{props.balanceDisplay}</Text>;
+}
+```
+
+### ❌ Never reference an import/selector/module constant from inside the layout
+
+```tsx
+// FORBIDDEN — `getWidgetTheme` and `selectPrivacyMode` are undefined inside the JSC sandbox
+function BalanceWidgetLayout(props: BalanceWidgetProps, environment: WidgetEnvironment) {
+  'widget';
+  const theme = getWidgetTheme(environment.colorScheme); // ReferenceError at runtime
+  return <Text>{selectPrivacyMode(store.getState()) ? '•••' : props.balance}</Text>;
+}
+```
+
+Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()` instead, and pass the result as props.
+
+## Platform split — required for every file touching `expo-widgets`/`@expo/ui`
+
+`expo-widgets`/`@expo/ui`'s JS entry points call a *throwing* `requireNativeModule`/`requireNativeView` at import time — merely importing them on Android crashes the app.
+
+- ✅ `MyThing.ios.ts(x)` — real implementation, imports `expo-widgets`/`@expo/ui/swift-ui`
+- ✅ `MyThing.android.ts` — no-op stub, same exported names/types (duplicate small prop interfaces rather than value-importing from the `.ios` file)
+- ✅ Import both via the **extensionless** path (`from './MyThing'`) so Metro/`tsc` pick the right platform file
+- ❌ Never `import ... from './MyThing.ios'` (explicit `.ios` suffix) for a *value* — this bypasses Metro's platform exclusion and bundles it into Android too. `import type` is fine (fully erased by Babel).
+- ❌ Never import `expo-widgets` or `@expo/ui/swift-ui` from a file lacking an `.ios.` extension
+
+## Theming
+
+- Use `app/core/Widgets/WidgetTheme.ts`'s `WidgetTheme` shape — never hand-roll colors/fonts, and never reach for `useTailwind()`/`@metamask/design-system-react-native` (no such runtime exists in the widget sandbox).
+- Only solid (non-alpha) design tokens are exposed (`border.default`, not `border.muted`) — `@expo/ui` parses 8-digit hex as `#AARRGGBB`, `@metamask/design-tokens`'s alpha tokens are `#RRGGBBAA`.
+- Always pass **both** `theme.light` and `theme.dark` via `WithWidgetTheme`, and pick the active one inside the layout using `environment.colorScheme` — never resolve "the current theme" outside the layout function (it would only update on the next app-triggered push, not instantly on an OS appearance change).
+
+## Data flow
+
+- `WidgetUpdaterService` is the **only** place that reads Redux/selectors on behalf of a widget. Add one `computeXProps()` + `pushXWidgetUpdate()` method pair per widget, called from `pushUpdates()`.
+- It debounces (`UPDATE_DEBOUNCE_MS`, 2s) and skips redundant `updateSnapshot()` calls when computed props are unchanged — don't fight this by pushing from elsewhere.
+
+## Testing
+
+- A `'widget'`-directive function becomes a string under Jest too — you cannot render its JSX. Test registration (`createWidget` called with the right name; layout is now a `string`) from the widget's own file, and test all real logic (formatting, masking, debounce) from `WidgetUpdaterService.test.ts`. See `docs/widgets/README.md#testing-widgets`.
+- Mocks already exist: `app/__mocks__/expo-widgets.ts`, `app/__mocks__/@expo/ui/swift-ui.ts`, `app/__mocks__/@expo/ui/swift-ui-modifiers.ts` — registered in `jest.config.js`'s `moduleNameMapper`. Add new `@expo/ui` submodule mocks there the same way if you import something not yet covered.
+
+## Adding a new widget — checklist
+
+1. `app/core/Widgets/widgets/MyWidget.ios.tsx` — props interface + `'widget'` layout + `createMetaMaskWidget(name, layout)`
+2. `app/core/Widgets/widgets/MyWidget.android.ts` — no-op stub, `createMetaMaskWidget` from `../createMetaMaskWidget.android`
+3. `WidgetUpdaterService.ts` — `computeMyWidgetProps()` + `pushMyWidgetUpdate()`, called from `pushUpdates()`
+4. `ios/ExpoWidgetsTarget/MyWidget.swift` — copy `BalanceWidget.swift`, matching `name` exactly to the JS registration name
+5. `ios/ExpoWidgetsTarget/index.swift` — add `MyWidget()` to the `WidgetBundle` (4-widget-per-bundle WidgetKit limit)
+6. Add the new `.swift` file to the `ExpoWidgetsTarget` Xcode target membership
+7. Document the widget in `app.config.js`'s `expo-widgets` plugin `widgets` array (documentation-only in this bare-workflow repo — never auto-applied)
+8. Tests + a simulator check (light/dark mode, data updates)
+
+## Enforcement
+
+- **REJECT** any reference inside a `'widget'`-directive function to something other than its own params/`@expo/ui/swift-ui`
+- **REJECT** `import ... from 'expo-widgets'` / `'@expo/ui/swift-ui'` in a file without an `.ios.` extension
+- **REJECT** explicit `.ios`-suffixed *value* imports of platform-split files
+- **REQUIRE** a `.android.ts` no-op counterpart for every new `.ios.ts(x)` file under `app/core/Widgets/`
