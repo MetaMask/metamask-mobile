@@ -778,10 +778,13 @@ const findActionButtonByPrice = (price: number) =>
   getActionButtons().find((button) => getActionButtonPrice(button) === price);
 
 describe('PredictMarketDetails', () => {
+  beforeEach(() => {
+    mockIsBuySheetOpen = false;
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
     mockRunAfterInteractions.mockReset();
-    mockIsBuySheetOpen = false;
   });
 
   afterAll(() => {

@@ -209,12 +209,11 @@ describe('PredictFeedView (component view)', () => {
     fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
     expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
-    expect(trackSearchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        interactionType: 'opened',
-        entryPoint: 'home_section',
-      }),
-    );
+    expect(trackSearchSpy).toHaveBeenCalledWith({
+      interactionType: 'opened',
+      predictFeedTab: 'all',
+      entryPoint: 'home_section',
+    });
 
     trackSearchSpy.mockRestore();
   });
@@ -232,13 +231,13 @@ describe('PredictFeedView (component view)', () => {
     await findByText('Sports');
 
     await waitFor(() => {
-      expect(trackFeedViewedSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          feedId: 'sports',
-          trackingMode: 'focus',
-          entryPoint: 'home_section',
-        }),
-      );
+      expect(trackFeedViewedSpy).toHaveBeenCalledWith({
+        feedId: 'sports',
+        tabId: 'all',
+        filterId: 'games',
+        trackingMode: 'focus',
+        entryPoint: 'home_section',
+      });
     });
 
     trackFeedViewedSpy.mockRestore();
@@ -258,12 +257,11 @@ describe('PredictFeedView (component view)', () => {
     fireEvent.press(getAllByText('Basketball')[0]);
 
     await waitFor(() => {
-      expect(trackTabSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          feedId: 'sports',
-          entryPoint: 'home_section',
-        }),
-      );
+      expect(trackTabSpy).toHaveBeenCalledWith({
+        feedId: 'sports',
+        tabId: 'basketball',
+        entryPoint: 'home_section',
+      });
     });
 
     trackTabSpy.mockRestore();
@@ -292,13 +290,13 @@ describe('PredictFeedView (component view)', () => {
     await waitFor(() => {
       expect(listMarketsSpy.mock.calls.length).toBeGreaterThan(callsBefore);
     });
-    expect(trackFilterSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        feedId: 'sports',
-        isDynamicFilter: false,
-        entryPoint: 'home_section',
-      }),
-    );
+    expect(trackFilterSpy).toHaveBeenCalledWith({
+      feedId: 'sports',
+      tabId: 'all',
+      filterId: 'props',
+      isDynamicFilter: false,
+      entryPoint: 'home_section',
+    });
 
     listMarketsSpy.mockRestore();
     trackFilterSpy.mockRestore();
