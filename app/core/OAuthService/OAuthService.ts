@@ -266,6 +266,20 @@ export class OAuthService {
     try {
       let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
+      // Node details are independent of the OAuth result and are required by
+      // SeedlessOnboardingController.authenticate(). Start loading them while
+      // the user completes provider login and the auth-token exchange.
+      const preloadToprfNodeDetailsPromise = whenEngineReady()
+        .then(
+          async () =>
+            await Engine.context.SeedlessOnboardingController.preloadToprfNodeDetails(),
+        )
+        .catch((error) => {
+          Logger.log(error as Error, {
+            message: 'Failed to preload TOPRF node details',
+          });
+        });
+
       const result = await this.#executeProviderLogin(
         loginHandler,
         parentTraceContext,
@@ -328,6 +342,10 @@ export class OAuthService {
 
         let seedlessAuthSuccess = false;
         try {
+          // Wait for the original preload request before authenticating so a
+          // cold cache does not issue a duplicate node-details request.
+          await preloadToprfNodeDetailsPromise;
+
           trace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             op: TraceOperation.OnboardingSecurityOp,
