@@ -618,6 +618,13 @@ export function isSentryEnabled(): boolean {
   return client.getOptions().enabled !== false;
 }
 
+/**
+ * Shared reactNavigationIntegration instance.
+ * Created at module load so it can be registered with the NavigationContainer
+ * (via registerNavigationContainer) independently of when Sentry.init is called.
+ */
+export const navIntegration = Sentry.reactNavigationIntegration();
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,
@@ -635,7 +642,12 @@ export async function setupSentry(
     // Ensure consent cache is populated early
     const hasConsent = await hasMetricsConsent();
 
-    const integrations = [dedupeIntegration(), extraErrorDataIntegration()];
+    const integrations = [
+      dedupeIntegration(),
+      extraErrorDataIntegration(),
+      Sentry.reactNativeTracingIntegration(),
+      navIntegration,
+    ];
     const environment = deriveSentryEnvironment(
       __DEV__,
       METAMASK_ENVIRONMENT,
@@ -666,6 +678,9 @@ export async function setupSentry(
 
     // Set EAS update context after Sentry initialization
     setEASUpdateContext();
+
+    // Filterable marker for nav-tracing rollout; used to isolate transactions in Sentry queries.
+    Sentry.setTag('perf_fix', 'nav-tracing-v1');
   };
   await init();
 }

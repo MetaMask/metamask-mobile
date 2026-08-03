@@ -10,6 +10,7 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { navIntegration } from '../../../util/sentry/utils';
 
 const navigationContainerThemeCapture: {
   theme?: { colors?: { background?: string } };
@@ -23,6 +24,12 @@ jest.mock('../../../util/trace', () => {
     endTrace: jest.fn(),
   };
 });
+
+jest.mock('../../../util/sentry/utils', () => ({
+  navIntegration: {
+    registerNavigationContainer: jest.fn(),
+  },
+}));
 
 jest.mock('../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../util/theme');
@@ -85,6 +92,19 @@ describe('NavigationProvider', () => {
 
     expect(NavigationService.navigation).toBeDefined();
     expect(NavigationService.navigation).toHaveProperty('navigate');
+  });
+
+  it('registers the navigation container ref with Sentry reactNavigationIntegration', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(navIntegration.registerNavigationContainer).toHaveBeenCalledTimes(1);
+    expect(navIntegration.registerNavigationContainer).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: expect.any(Function) }),
+    );
   });
 
   it('Measures performance trace order when navigation provider is initialized', () => {

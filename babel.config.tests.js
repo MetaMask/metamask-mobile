@@ -60,6 +60,8 @@ const newOverrides = [
       'app/selectors/featureFlagController/seedlessTelegramLogin/index.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      'app/util/sentry/utils.ts',
+      'app/util/sentry/utils.test.ts',
       'app/core/devApiEnv.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',

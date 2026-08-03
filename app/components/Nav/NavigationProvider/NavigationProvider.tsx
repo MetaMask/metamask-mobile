@@ -18,6 +18,7 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
+import { navIntegration } from '../../../util/sentry/utils';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -53,7 +54,8 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   };
 
   /**
-   * Sets the navigation ref on the NavigationService
+   * Sets the navigation ref on the NavigationService and registers it with
+   * Sentry's reactNavigationIntegration so onboarding screens emit TTID/TTFD spans.
    */
   const setNavigationRef = (ref: NavigationContainerRef<ParamListBase>) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
@@ -61,6 +63,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       return;
     }
     NavigationService.navigation = ref;
+    navIntegration.registerNavigationContainer(ref);
   };
 
   return (

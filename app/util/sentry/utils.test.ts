@@ -5,6 +5,8 @@ import {
   captureUserFeedback,
   getClient,
   getGlobalScope,
+  init as sentryInit,
+  setTag as sentrySetTag,
 } from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
@@ -17,6 +19,8 @@ import {
   rewriteBreadcrumb,
   setEASUpdateContext,
   isSentryEnabled,
+  navIntegration,
+  setupSentry,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
@@ -60,6 +64,12 @@ jest.mock('../device', () => ({
 
 jest.mock('./tags', () => ({
   getTraceTags: jest.fn(() => ({ mockTag: 'mockValue' })),
+}));
+
+jest.mock('../trace', () => ({
+  hasMetricsConsent: jest.fn().mockResolvedValue(true),
+  // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
+  TraceName: { UIStartup: 'UIStartup' },
 }));
 
 jest.mock('../../constants/ota', () => ({
@@ -1272,5 +1282,49 @@ describe('setEASUpdateContext', () => {
       error,
     );
     expect(scopeMock.setTag).not.toHaveBeenCalled();
+  });
+});
+
+describe('navIntegration', () => {
+  it('is exported and exposes registerNavigationContainer', () => {
+    expect(navIntegration).toBeDefined();
+    expect(typeof navIntegration.registerNavigationContainer).toBe('function');
+  });
+});
+
+describe('setupSentry', () => {
+  const mockedInit = jest.mocked(sentryInit);
+  const mockedSetTag = jest.mocked(sentrySetTag);
+
+  const originalDsn = process.env.MM_SENTRY_DSN;
+
+  beforeEach(() => {
+    mockedInit.mockClear();
+    mockedSetTag.mockClear();
+    process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
+  });
+
+  afterEach(() => {
+    process.env.MM_SENTRY_DSN = originalDsn;
+  });
+
+  it('initialises Sentry with reactNativeTracingIntegration and navIntegration', async () => {
+    await setupSentry();
+
+    expect(mockedInit).toHaveBeenCalledTimes(1);
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      integrations: { name: string }[];
+    };
+    const integrationNames = initOptions.integrations.map((i) => i.name);
+
+    expect(integrationNames).toContain('ReactNativeTracing');
+    expect(integrationNames).toContain('ReactNavigation');
+  });
+
+  it('sets the perf_fix nav-tracing-v1 tag after initialisation', async () => {
+    await setupSentry();
+
+    expect(mockedSetTag).toHaveBeenCalledWith('perf_fix', 'nav-tracing-v1');
   });
 });

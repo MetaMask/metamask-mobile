@@ -1094,6 +1094,13 @@ jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
   startTransaction: jest.fn(),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
+  })),
 
   // User feedback
   lastEventId: jest.fn(),
