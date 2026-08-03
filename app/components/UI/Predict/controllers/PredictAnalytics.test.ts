@@ -37,8 +37,8 @@ describe('PredictAnalytics', () => {
   const getDevLoggerMock = () =>
     DevLogger.log as jest.MockedFunction<typeof DevLogger.log>;
 
-  const getTrackedEvent = (): TrackedEvent =>
-    getTrackEventMock().mock.calls[0][0] as TrackedEvent;
+  const getTrackedEvent = (index = 0): TrackedEvent =>
+    getTrackEventMock().mock.calls[index][0] as TrackedEvent;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,6 +115,43 @@ describe('PredictAnalytics', () => {
         amount_usd: 150,
       });
       expect(getDevLoggerMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks Trade Considered after an initiated Predict buy', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.INITIATED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+      });
+
+      const predictTradeEvent = getTrackedEvent();
+      const tradeConsideredEvent = getTrackedEvent(1);
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
+      expect(predictTradeEvent.name).toBe(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION.category,
+      );
+      expect(tradeConsideredEvent.name).toBe(
+        MetaMetricsEvents.TRADE_CONSIDERED.category,
+      );
+      expect(tradeConsideredEvent.properties).toEqual({
+        trade_type: 'predict',
+        implementation_type: 'native',
+      });
+    });
+
+    it('does not track Trade Considered for an initiated Predict sell', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.INITIATED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+      });
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
     });
 
     it('tracks failed status with completionDuration and failureReason', async () => {
