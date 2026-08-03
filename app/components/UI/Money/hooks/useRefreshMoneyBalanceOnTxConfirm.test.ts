@@ -147,9 +147,14 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     const handler = getConfirmedHandler();
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
+
+    // The mark is raised synchronously, before the refresh is kicked off, so
+    // there is no async window to poll for here.
+    expect(store.dispatch).toHaveBeenCalledWith(markMoneyBalanceUserOp());
+
+    // Let the refresh settle so its retries cannot outlive the test.
     await waitFor(() => {
       expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
-      expect(store.dispatch).toHaveBeenCalledWith(markMoneyBalanceUserOp());
     });
   });
 
