@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, ImageSourcePropType } from 'react-native';
+import { Image } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -23,6 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
+import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
 import styles from './MoneyMetaMaskCard.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -85,13 +86,13 @@ interface MoneyMetaMaskCardProps {
 }
 
 const CardRow = ({
-  imageSource,
+  isMetalCard,
   cardName,
   cashbackPercentage,
   onPress,
   testID,
 }: {
-  imageSource: ImageSourcePropType;
+  isMetalCard: boolean;
   cardName: string;
   cashbackPercentage: string;
   onPress: () => void;
@@ -109,7 +110,7 @@ const CardRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-4"
     >
-      <Image source={imageSource} style={styles.cardImage} />
+      <MoneyCardTiltAnimation isMetalCard={isMetalCard} />
       <Box twClassName="gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
@@ -261,10 +262,7 @@ const ManageContent = ({
       twClassName="pt-3 gap-3"
       testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
     >
-      <Image
-        source={showMetalCard ? mmCardMetal : mmCardRegular}
-        style={styles.manageCardImage}
-      />
+      <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
       <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
         <SensitiveText
           variant={TextVariant.BodyMd}
@@ -448,7 +446,7 @@ const MoneyMetaMaskCard = ({
           {strings('money.metamask_card.subtitle')}
         </Text>
         <CardRow
-          imageSource={mmCardRegular}
+          isMetalCard={false}
           cardName={strings('money.metamask_card.virtual_card')}
           cashbackPercentage="1"
           onPress={handleGetNowPress}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
@@ -8,6 +9,8 @@ import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
 import { merge } from 'lodash';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { getAssetImageUrl } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/transactions/useTransactionBatchesMetadata');
@@ -18,6 +21,13 @@ jest.mock('../../../hooks/tokens/useTokenWithBalance', () => ({
     .mockReturnValue({ asset: { logo: 'logo.png' } }),
 }));
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+  getAssetImageUrl: jest.fn(),
+}));
+jest.mock(
+  '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => jest.fn(() => null),
+);
 
 describe('GasFeeTokenIcon', () => {
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
@@ -28,8 +38,11 @@ describe('GasFeeTokenIcon', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const mockGetAssetImageUrl = jest.mocked(getAssetImageUrl);
+  const mockAvatarToken = jest.mocked(AvatarToken);
 
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseNetworkInfo.mockReturnValue({
       networkImage: 10,
       networkNativeCurrency: 'ETH',
@@ -41,11 +54,17 @@ describe('GasFeeTokenIcon', () => {
     } as Partial<
       ReturnType<typeof useTransactionMetadataRequest>
     > as ReturnType<typeof useTransactionMetadataRequest>);
-    jest.clearAllMocks();
+    mockUseTokenWithBalance.mockReturnValue({
+      image: 'logo.png',
+      symbol: 'TOKEN',
+    } as ReturnType<typeof useTokenWithBalance>);
+    mockGetAssetImageUrl.mockReturnValue(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xtoken.png',
+    );
   });
 
   it('renders the token icon when tokenAddress is not the native', () => {
-    const tokenAddress = '0xTokenAddress';
+    const tokenAddress = '0xTokenAddress' as Hex;
 
     const { getByTestId } = renderWithProvider(
       <GasFeeTokenIcon tokenAddress={tokenAddress} />,
@@ -53,6 +72,37 @@ describe('GasFeeTokenIcon', () => {
     );
 
     expect(getByTestId('token-icon')).toBeOnTheScreen();
+  });
+
+  it('falls back to CDN token image when TokensController image is missing', () => {
+    const tokenAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
+    const chainId = '0xe708' as Hex;
+    const cdnImageUrl =
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png';
+
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId,
+    } as Partial<
+      ReturnType<typeof useTransactionMetadataRequest>
+    > as ReturnType<typeof useTransactionMetadataRequest>);
+    mockUseTokenWithBalance.mockReturnValue({
+      image: undefined,
+      symbol: 'mUSD',
+    } as unknown as ReturnType<typeof useTokenWithBalance>);
+    mockGetAssetImageUrl.mockReturnValue(cdnImageUrl);
+
+    renderWithProvider(<GasFeeTokenIcon tokenAddress={tokenAddress} />, {
+      state: transferTransactionStateMock,
+    });
+
+    expect(mockGetAssetImageUrl).toHaveBeenCalledWith(tokenAddress, chainId);
+    expect(mockAvatarToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        imageSource: { uri: cdnImageUrl },
+        name: 'mUSD',
+      }),
+      undefined,
+    );
   });
 
   it('renders the native token icon when tokenAddress is the native', () => {
