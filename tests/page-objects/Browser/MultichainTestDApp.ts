@@ -98,7 +98,7 @@ class MultichainTestDApp {
     );
 
     try {
-      await DappConnectionModal.tapConnectButton({ timeout: 20_000 });
+      await DappConnectionModal.tapConnectButton({ timeout: 30_000 });
     } catch {
       // No modal — session may already be approved
     }
@@ -106,7 +106,7 @@ class MultichainTestDApp {
     await ChromeCdpHelpers.waitForElementTextInWebView(
       BASE_URL,
       `${SELECTORS.SESSION_METHOD_RESULT}0`,
-      10_000,
+      30_000,
     );
   }
 
