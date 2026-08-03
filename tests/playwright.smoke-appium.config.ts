@@ -56,8 +56,13 @@ const junitReportPath = suiteName
   : './test-reports/appium-smoke-junit.xml';
 const jsonReportPath = process.env.PLAYWRIGHT_JSON_OUTPUT_FILE?.trim();
 
+// OpenRPC api-specs are colocated under smoke-appium/api-specs but must not run
+// as part of Appium smoke tag suites.
+const includeApiSpecs = process.env.APPIUM_RUN_API_SPECS === '1';
+
 export default defineConfig({
   testDir: './smoke-appium',
+  ...(includeApiSpecs ? {} : { testIgnore: ['**/api-specs/**'] as const }),
   fullyParallel: false,
   // Per-test timeout: cold WDA build on CI can take up to 10 min plus test time.
   timeout: 15 * 60 * 1000,
