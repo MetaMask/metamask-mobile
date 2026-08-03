@@ -19,6 +19,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import TextShimmer from '../TextShimmer';
 import MoneyAnimatedBalance from '../MoneyAnimatedBalance';
+import MoneyBalanceMetricsWarmer from '../MoneyAnimatedBalance/MoneyBalanceMetricsWarmer';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
@@ -173,6 +174,7 @@ const MoneyBalanceSummary = ({
       testID={MoneyBalanceSummaryTestIds.CONTAINER}
     >
       {renderBalanceSlot()}
+      {displayState.kind !== 'balance' && <MoneyBalanceMetricsWarmer />}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

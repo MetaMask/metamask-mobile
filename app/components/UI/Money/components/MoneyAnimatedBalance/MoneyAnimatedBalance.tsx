@@ -1,8 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
 import { NumberFlow } from 'number-flow-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { MONEY_BALANCE_FRACTION_DIGITS } from '../../utils/balanceAnimation';
+import {
+  MONEY_BALANCE_LOCALES,
+  MONEY_BALANCE_NUMBER_FORMAT,
+  useMoneyBalanceTextStyle,
+} from './moneyBalanceNumberFlow';
 
 interface MoneyAnimatedBalanceProps {
   /** The amount to render, in dollars. */
@@ -23,21 +26,16 @@ const MoneyAnimatedBalance = ({
   animated,
   testID,
 }: MoneyAnimatedBalanceProps) => {
-  const tw = useTailwind();
+  const style = useMoneyBalanceTextStyle();
 
   return (
     <View testID={testID}>
       <NumberFlow
         value={amount}
         animated={animated}
-        locales="en-US"
-        format={{
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: MONEY_BALANCE_FRACTION_DIGITS,
-          maximumFractionDigits: MONEY_BALANCE_FRACTION_DIGITS,
-        }}
-        style={tw.style('text-display-lg font-default-bold text-default')}
+        locales={MONEY_BALANCE_LOCALES}
+        format={MONEY_BALANCE_NUMBER_FORMAT}
+        style={style}
       />
     </View>
   );
