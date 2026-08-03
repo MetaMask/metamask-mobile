@@ -36,6 +36,8 @@ ignores:
   # ESBuild is used for AI E2E script compilation
   - 'esbuild'
   - 'esbuild-register'
+  # Used via `node -r @babel/register` in package.json scripts (not an import)
+  - '@babel/register'
   # tsx runs all scripts/tooling/*.ts files directly (CLI wrapper, MCP server, yarn pre/post hooks, report CLI)
   - 'tsx'
   # agent-device is used as a CLI (`yarn agent-device`), not imported
