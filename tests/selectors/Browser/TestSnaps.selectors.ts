@@ -121,14 +121,33 @@ export const EntropyDropDownSelectorWebIDS = {
   multichainNetworkDropdown: 'select-multichain-chain',
 };
 
-export const NativeDropdownSelectorWebIDS = {
-  snapUISelector: 'snap-ui-renderer__selector',
-  snapUIDropdown: 'snap-ui-renderer__dropdown',
-};
-
 /** Native Snap UI renderer element IDs used outside web dropdown option maps. */
 export const SnapUIRendererSelectorIDs = {
   selectorItem: 'snap-ui-renderer__selector-item',
+  scrollView: 'snap-ui-renderer__scrollview',
+  dropdown: 'snap-ui-renderer__dropdown',
+  selector: 'snap-ui-renderer__selector',
+  checkbox: 'snap-ui-renderer__checkbox',
+  radio: 'snap-ui-renderer__radio',
+  radioButton: 'snap-ui-renderer__radio-button',
+  dateTimeTouchable: 'snap-ui-renderer__date-time-picker--datetime-touchable',
+  dateTouchable: 'snap-ui-renderer__date-time-picker--date-touchable',
+  timeTouchable: 'snap-ui-renderer__date-time-picker--time-touchable',
+  dateTimeInput: 'snap-ui-renderer__date-time-picker--datetime-input',
+  dateInput: 'snap-ui-renderer__date-time-picker--date-input',
+  timeInput: 'snap-ui-renderer__date-time-picker--time-input',
+};
+
+/** Android: read-only date/time inputs (touchables often vanish when disabled). */
+export const SNAP_UI_DATE_PICKER_INPUT_IDS = [
+  SnapUIRendererSelectorIDs.dateTimeInput,
+  SnapUIRendererSelectorIDs.dateInput,
+  SnapUIRendererSelectorIDs.timeInput,
+] as const;
+
+export const NativeDropdownSelectorWebIDS = {
+  snapUISelector: SnapUIRendererSelectorIDs.selector,
+  snapUIDropdown: SnapUIRendererSelectorIDs.dropdown,
 };
 
 /** Native Snap UI dialog custom input (Detox / Android Appium testID). */
@@ -136,23 +155,32 @@ export const SnapUIInputSelectorIDs = {
   customDialogInput: 'custom-input-snap-ui-input',
 };
 
-/**
- * iOS Appium XPath for the dialog custom input — testID is not exposed in
- * the XCUITest page source, so target the textfield under the Snap UI scrollview.
- */
+/** iOS: XCUITest often omits `*-snap-ui-input`; use scrollview textfield instead. */
 export const SnapUIInputSelectorXPaths = {
-  customDialogInputIos:
+  textfieldIos:
     '//*[@name="snap-ui-renderer__scrollview"]//*[@name="textfield"]',
 };
+
+/** iOS Appium XPath by testID/`name` (nodes may be accessible=false / visible=false). */
+export function snapUiNativeIosXPath(testID: string): string {
+  return `//*[@name="${testID}"]`;
+}
 
 export function snapUISelectorItemAndroidUIAutomator(text: string): string {
   const id = SnapUIRendererSelectorIDs.selectorItem;
   return `.resourceIdMatches(".*${id}.*").childSelector(new UiSelector().text("${text}"))`;
 }
 
+/** iOS SnapUIDropdown bottom-sheet title (`snap_ui.dropdown.title`). */
+export const SNAP_UI_DROPDOWN_SHEET_TITLE = 'Select an option';
+
+/** iOS dropdown/selector sheet option — scoped to SelectorItem (not in-form radios). */
 export function snapUISelectorItemIosXPath(text: string): string {
   const id = SnapUIRendererSelectorIDs.selectorItem;
-  return `//*[@name="${id}" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="${id}"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`;
+  return [
+    `//*[@name="${id}" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")]`,
+    `//*[@name="${id}"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
+  ].join(' | ');
 }
 
 /**
