@@ -22,29 +22,48 @@ jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
 }));
 
 const mockRefetchLegalDocs = jest.fn();
-const mockUseImmersveSupportedRegions = jest.fn(() => ({
-  region: null,
-  onboardingDocuments: [
-    {
-      id: 'generalTermsOfUse',
-      title: 'Terms of Use',
-      url: 'https://example.com/terms',
-    },
-    {
-      id: 'privacyPolicy',
-      title: 'Privacy Policy',
-      url: 'https://example.com/privacy',
-    },
-  ],
-  permanentDocuments: [],
-  isLoading: false,
-  error: null,
-  refetch: mockRefetchLegalDocs,
-}));
+const mockUseImmersveSupportedRegions = jest.fn(
+  (
+    _regionCode?: string | null,
+    _options?: { enabled?: boolean },
+  ): {
+    region: null;
+    onboardingDocuments: {
+      id: string;
+      title: string;
+      url: string;
+    }[];
+    permanentDocuments: never[];
+    isLoading: boolean;
+    error: Error | null;
+    refetch: jest.Mock;
+  } => ({
+    region: null,
+    onboardingDocuments: [
+      {
+        id: 'generalTermsOfUse',
+        title: 'Terms of Use',
+        url: 'https://example.com/terms',
+      },
+      {
+        id: 'privacyPolicy',
+        title: 'Privacy Policy',
+        url: 'https://example.com/privacy',
+      },
+    ],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: mockRefetchLegalDocs,
+  }),
+);
 
 jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
   __esModule: true,
-  default: (...args: unknown[]) => mockUseImmersveSupportedRegions(...args),
+  default: (...args: unknown[]) =>
+    (
+      mockUseImmersveSupportedRegions as unknown as (...a: unknown[]) => unknown
+    )(...args),
 }));
 
 // Mock navigation

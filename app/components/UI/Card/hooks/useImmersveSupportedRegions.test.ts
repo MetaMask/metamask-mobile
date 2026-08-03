@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import useImmersveSupportedRegions from './useImmersveSupportedRegions';
 import Engine from '../../../../core/Engine';
 import type { CardApiImmersveSupportedRegionsResponse } from '../../../../core/Engine/controllers/card-controller/services/immersve-supported-regions.types';
-import { selectImmersveOnboardingEnabled, selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
+import {
+  selectImmersveOnboardingEnabled,
+  selectCardFeatureFlag,
+} from '../../../../selectors/featureFlagController/card';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),

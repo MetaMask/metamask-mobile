@@ -35,7 +35,7 @@ const TOKEN_SET = {
 describe('ImmersveService', () => {
   describe('constructor', () => {
     it('does not bake a baseURL into the axios instance', () => {
-      createService('https://a.example');
+      createService({ baseUrl: 'https://a.example' });
 
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
