@@ -5,6 +5,7 @@ import type {
 } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { armPushNotificationOsPermissionBaseline } from '../../../util/notifications/utils/push-notification-os-permission-baseline';
 
 const CLIENT_TYPE = 'mobile' as const;
 const GET_NOTIFICATION_PREFERENCES_ACTION =
@@ -54,6 +55,9 @@ export const enableNotifications = async (
   await Engine.context.NotificationServicesController.enableMetamaskNotifications(
     options,
   );
+  // Capture the granted baseline now, so a later system-settings revocation is
+  // detected on resume. No-op if push did not actually get enabled.
+  await armPushNotificationOsPermissionBaseline();
 };
 
 /**
@@ -111,6 +115,9 @@ export const disableNotifications = async () => {
 export const enablePushNotifications = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.enablePushNotifications();
+  // Capture the granted baseline now, so a later system-settings revocation is
+  // detected on resume even if the first resume is already revoked.
+  await armPushNotificationOsPermissionBaseline();
 };
 
 /**

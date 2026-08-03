@@ -1,14 +1,16 @@
-import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectIsMetaMaskPushNotificationsEnabled } from '../../../selectors/notifications';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { isPushPermissionGranted } from '../services/NotificationService';
-import { mmStorage } from '../settings';
-import { STORAGE_IDS } from '../settings/storage/constants';
+import {
+  enqueuePushOsPermissionBaselineTask,
+  readPushOsPermissionBaseline,
+  storeComputedPushOsPermissionBaseline,
+  writePushOsPermissionBaseline,
+} from './push-notification-os-permission-baseline';
 
 const trackPushNotificationsDisabled = (): void => {
   analytics.trackEvent(
@@ -32,7 +34,9 @@ const trackPushNotificationsDisabled = (): void => {
  * granted while push notifications were enabled) against the current OS
  * permission. This is meant to be called when the app becomes active (mount +
  * background→active), so a change made in the system settings while the app was
- * away is caught when the user returns.
+ * away is caught when the user returns. The baseline is armed at enable time via
+ * armPushNotificationOsPermissionBaseline so a first-resume-already-revoked case
+ * is still caught.
  *
  * The persisted last result both gates the event to users who actually had
  * notifications enabled and dedupes it: after firing, it flips to `false`, so
@@ -45,30 +49,17 @@ const runDetection = async (): Promise<void> => {
 
   try {
     const osPermissionGranted = await isPushPermissionGranted();
-    const previouslyGranted =
-      mmStorage.getLocal(STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT) ===
-      true;
+    const previouslyGranted = readPushOsPermissionBaseline();
 
     // Granted -> revoked transition: the user turned notifications off in the
     // system settings after having push notifications enabled.
     if (previouslyGranted && !osPermissionGranted) {
       trackPushNotificationsDisabled();
-      mmStorage.saveLocal(
-        STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
-        false,
-      );
+      writePushOsPermissionBaseline(false);
       return;
     }
 
-    // Update the last result: it is only "true" while push notifications are
-    // enabled in-app AND the OS still grants permission.
-    const pushEnabled = selectIsMetaMaskPushNotificationsEnabled(
-      store.getState(),
-    );
-    mmStorage.saveLocal(
-      STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
-      Boolean(pushEnabled && osPermissionGranted),
-    );
+    storeComputedPushOsPermissionBaseline(osPermissionGranted);
   } catch (error) {
     Logger.error(
       error as Error,
@@ -77,16 +68,6 @@ const runDetection = async (): Promise<void> => {
   }
 };
 
-// Serializes runs so overlapping invocations (e.g. the mount check and a
-// background→active check firing close together) never both read a stale
-// "granted" last result and emit duplicate events. Each call waits for the
-// previous run to persist before it reads. `runDetection` never rejects, so the
-// chain cannot get stuck.
-let inFlight: Promise<void> = Promise.resolve();
-
 /** @see runDetection */
 export const detectPushNotificationOsPermissionRevocation =
-  (): Promise<void> => {
-    inFlight = inFlight.then(runDetection, runDetection);
-    return inFlight;
-  };
+  (): Promise<void> => enqueuePushOsPermissionBaselineTask(runDetection);

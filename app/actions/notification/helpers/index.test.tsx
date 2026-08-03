@@ -17,10 +17,18 @@ import {
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
+import { armPushNotificationOsPermissionBaseline } from '../../../util/notifications/utils/push-notification-os-permission-baseline';
 
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
+
+jest.mock(
+  '../../../util/notifications/utils/push-notification-os-permission-baseline',
+  () => ({
+    armPushNotificationOsPermissionBaseline: jest.fn().mockResolvedValue(undefined),
+  }),
+);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -71,6 +79,11 @@ describe('helpers - enableNotificationServices()', () => {
     expect(
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalledWith({ registerPushNotifications: false });
+  });
+
+  it('arms the push OS-permission baseline after enabling', async () => {
+    await enableNotifications();
+    expect(armPushNotificationOsPermissionBaseline).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -230,6 +243,11 @@ describe('helpers - enablePushNotifications()', () => {
     expect(
       Engine.context.NotificationServicesController.enablePushNotifications,
     ).toHaveBeenCalled();
+  });
+
+  it('arms the push OS-permission baseline after enabling', async () => {
+    await enablePushNotifications();
+    expect(armPushNotificationOsPermissionBaseline).toHaveBeenCalledTimes(1);
   });
 });
 
