@@ -1,5 +1,5 @@
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectIsMetaMaskPushNotificationsEnabled } from '../../../selectors/notifications';
+import Engine from '../../../core/Engine';
 import { analytics } from '../../analytics/analytics';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { isNotificationsFeatureEnabled } from '../constants';
@@ -16,8 +16,13 @@ jest.mock('../../analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../store', () => ({
-  store: { getState: jest.fn(() => ({})) },
+jest.mock('../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      NotificationServicesPushController: { state: { isPushEnabled: false } },
+    },
+  },
 }));
 
 jest.mock('../services/NotificationService', () => ({
@@ -28,19 +33,20 @@ jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
 
-jest.mock('../../../selectors/notifications', () => ({
-  selectIsMetaMaskPushNotificationsEnabled: jest.fn(),
-}));
-
 const mockIsPushPermissionGranted = jest.mocked(isPushPermissionGranted);
 const mockIsNotificationsFeatureEnabled = jest.mocked(
   isNotificationsFeatureEnabled,
 );
-const mockSelectPushEnabled = jest.mocked(
-  selectIsMetaMaskPushNotificationsEnabled,
-);
 const mockTrackEvent = jest.mocked(analytics.trackEvent);
 const mockIdentify = jest.mocked(analytics.identify);
+
+const setControllerPushEnabled = (value: boolean) => {
+  (
+    Engine.context.NotificationServicesPushController.state as {
+      isPushEnabled: boolean;
+    }
+  ).isPushEnabled = value;
+};
 
 const LAST_RESULT_KEY = STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT;
 
@@ -51,7 +57,7 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
     jest.clearAllMocks();
     mmStorage.saveLocal(LAST_RESULT_KEY, false);
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-    mockSelectPushEnabled.mockReturnValue(true);
+    setControllerPushEnabled(true);
   });
 
   it('does nothing when the notifications feature is disabled', async () => {
@@ -65,7 +71,7 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
 
   it('arms the baseline while push is enabled and OS permission is granted', async () => {
     mmStorage.saveLocal(LAST_RESULT_KEY, false);
-    mockSelectPushEnabled.mockReturnValue(true);
+    setControllerPushEnabled(true);
     mockIsPushPermissionGranted.mockResolvedValue(true);
 
     await detectPushNotificationOsPermissionRevocation();
@@ -132,7 +138,7 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
 
   it('does not arm the baseline when OS permission is granted but push is disabled in-app', async () => {
     mmStorage.saveLocal(LAST_RESULT_KEY, false);
-    mockSelectPushEnabled.mockReturnValue(false);
+    setControllerPushEnabled(false);
     mockIsPushPermissionGranted.mockResolvedValue(true);
 
     await detectPushNotificationOsPermissionRevocation();
@@ -150,7 +156,7 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
 
     // User re-grants permission with push enabled -> baseline re-arms.
     mockIsPushPermissionGranted.mockResolvedValue(true);
-    mockSelectPushEnabled.mockReturnValue(true);
+    setControllerPushEnabled(true);
     await detectPushNotificationOsPermissionRevocation();
     expect(getLastResult()).toBe(true);
 

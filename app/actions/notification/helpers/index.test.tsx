@@ -26,7 +26,9 @@ jest.mock('../../../util/notifications', () => ({
 jest.mock(
   '../../../util/notifications/utils/push-notification-os-permission-baseline',
   () => ({
-    armPushNotificationOsPermissionBaseline: jest.fn().mockResolvedValue(undefined),
+    armPushNotificationOsPermissionBaseline: jest
+      .fn()
+      .mockResolvedValue(undefined),
   }),
 );
 

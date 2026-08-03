@@ -69,5 +69,5 @@ const runDetection = async (): Promise<void> => {
 };
 
 /** @see runDetection */
-export const detectPushNotificationOsPermissionRevocation =
-  (): Promise<void> => enqueuePushOsPermissionBaselineTask(runDetection);
+export const detectPushNotificationOsPermissionRevocation = (): Promise<void> =>
+  enqueuePushOsPermissionBaselineTask(runDetection);

@@ -1,10 +1,19 @@
-import { store } from '../../../store';
-import { selectIsMetaMaskPushNotificationsEnabled } from '../../../selectors/notifications';
+import Engine from '../../../core/Engine';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { isPushPermissionGranted } from '../services/NotificationService';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
+
+// Read push-enabled from the controller directly, NOT the Redux selector.
+// Controller state changes reach Redux through a 250ms batcher, so a selector
+// read right after enablePushNotifications/enableMetamaskNotifications would see
+// a stale `false` and fail to arm the baseline. The controller sets its own
+// state synchronously during the awaited enable, so it is authoritative here.
+const isControllerPushEnabled = (): boolean =>
+  Boolean(
+    Engine.context.NotificationServicesPushController?.state?.isPushEnabled,
+  );
 
 /** Reads the persisted "OS permission was granted while push was enabled" flag. */
 export const readPushOsPermissionBaseline = (): boolean =>
@@ -25,10 +34,9 @@ export const writePushOsPermissionBaseline = (value: boolean): void =>
 export const storeComputedPushOsPermissionBaseline = (
   osPermissionGranted: boolean,
 ): void => {
-  const pushEnabled = selectIsMetaMaskPushNotificationsEnabled(
-    store.getState(),
+  writePushOsPermissionBaseline(
+    Boolean(isControllerPushEnabled() && osPermissionGranted),
   );
-  writePushOsPermissionBaseline(Boolean(pushEnabled && osPermissionGranted));
 };
 
 // Single serialization chain shared with the detection side so an arm and a

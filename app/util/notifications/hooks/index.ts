@@ -6,7 +6,6 @@ import { useNotificationOsPermissionEffect } from './useNotificationOsPermission
  */
 const useNotificationHandler = () => {
   useStartupNotificationsEffect();
-  // Detects OS notification-permission being revoked from the system settings.
   useNotificationOsPermissionEffect();
 };
 
