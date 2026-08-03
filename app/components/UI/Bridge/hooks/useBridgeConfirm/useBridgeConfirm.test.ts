@@ -236,6 +236,12 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
+      const sourceAmount = mockQuoteWithMetadata.sentAmount;
+      const destAmount = mockQuoteWithMetadata.toTokenAmount;
+      if (!sourceAmount || !destAmount) {
+        throw new Error('Mock quote is missing token amounts');
+      }
+
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.BRIDGE.ROOT,
         expect.objectContaining({
@@ -243,8 +249,8 @@ describe('useBridgeConfirm', () => {
           params: expect.objectContaining({
             submissionParams: expect.objectContaining({
               postTradeModalParams: expect.objectContaining({
-                sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-                destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+                sourceAmount: sourceAmount.amount,
+                destAmount: destAmount.amount,
               }),
             }),
           }),
