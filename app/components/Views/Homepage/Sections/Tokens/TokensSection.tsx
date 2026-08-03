@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   SectionDivider,
@@ -19,7 +20,7 @@ import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
-import { selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance } from '../../../../../selectors/assets/assets-list';
+import { makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance } from '../../../../../selectors/assets/assets-list';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
@@ -27,7 +28,6 @@ import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenB
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import { RootState } from '../../../../../reducers';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
@@ -65,15 +65,22 @@ const MAX_TOKENS_DISPLAYED = 5;
 const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const isZeroBalanceAccount = useIsZeroBalanceAccount();
-    const { popularNetworks: popularChainIds } = useNetworkEnablement();
-    const sortedTokenKeys = useSelector((state: RootState) =>
-      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
-        state,
-        popularChainIds,
-      ),
+    const { popularNetworks } = useNetworkEnablement();
+    const popularChainIdsKey = (popularNetworks ?? []).join(',');
+    const popularChainIds = useMemo(
+      () => (popularChainIdsKey ? popularChainIdsKey.split(',') : []),
+      [popularChainIdsKey],
     );
+    const selectSortedTokenKeys = useMemo(
+      () =>
+        makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+          popularChainIds,
+        ),
+      [popularChainIds],
+    );
+    const sortedTokenKeys = useSelector(selectSortedTokenKeys);
     const accountGroupBalance = useSelector(
       selectAccountGroupBalanceForEmptyState,
     );

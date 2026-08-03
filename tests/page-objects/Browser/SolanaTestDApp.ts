@@ -1,6 +1,5 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
 import Matchers from '../../framework/Matchers';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
@@ -10,43 +9,23 @@ import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { Utilities } from '../../framework';
 
 /**
- * Get a test element by data-testid
- * @param dataTestId - The data-testid of the element
- * @param options.tag - The tag of the element having the data-testid attribute (e.g. 'div', 'input', etc.). Defaults to 'div'
- * @param options.extraXPath - The extra xpath to the element (e.g. '/div/button'), useful for accessing elements we aren't able to assign a data-testid to
- * @returns The test element
- */
-function getTestElement(
-  dataTestId: string,
-  options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement | PlaywrightElement> {
-  const { tag = 'div', extraXPath = '' } = options;
-  const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
-
-  return Matchers.getElementByXPath(
-    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-    xpath,
-  );
-}
-
-/**
  * Class to interact with the Multichain Test DApp via the WebView
  */
 class SolanaTestDApp {
   get connectButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.connect, {
+    return Matchers.getTestElement(dataTestIds.testPage.header.connect, {
       extraXPath: '/div/button',
     });
   }
 
   get disconnectButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.disconnect, {
+    return Matchers.getTestElement(dataTestIds.testPage.header.disconnect, {
       extraXPath: '/button',
     });
   }
 
   get endpointSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.endpoint, {
+    return Matchers.getTestElement(dataTestIds.testPage.header.endpoint, {
       tag: 'input',
     });
   }
@@ -108,13 +87,13 @@ class SolanaTestDApp {
         await this.tapButton(this.walletButtonSelector);
       },
       getConnectionStatus: async () => {
-        const connectionStatusDiv = await getTestElement(
+        const connectionStatusDiv = await Matchers.getTestElement(
           dataTestIds.testPage.header.connectionStatus,
         );
         return await connectionStatusDiv.getText();
       },
       getAccount: async () => {
-        const account = await getTestElement(
+        const account = await Matchers.getTestElement(
           dataTestIds.testPage.header.account,
           { extraXPath: '/a' },
         );
@@ -127,15 +106,18 @@ class SolanaTestDApp {
     return {
       signMessage: async () => {
         await this.tapButton(
-          getTestElement(dataTestIds.testPage.signMessage.signMessage, {
-            tag: 'button',
-          }),
+          Matchers.getTestElement(
+            dataTestIds.testPage.signMessage.signMessage,
+            {
+              tag: 'button',
+            },
+          ),
         );
       },
       getSignedMessage: () =>
         Utilities.executeWithRetry(
           async () => {
-            const el = await getTestElement(
+            const el = await Matchers.getTestElement(
               dataTestIds.testPage.signMessage.signedMessage,
               { tag: 'pre' },
             );
@@ -150,29 +132,41 @@ class SolanaTestDApp {
     return {
       signTransaction: async () => {
         await this.tapButton(
-          getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
-            tag: 'button',
-          }),
+          Matchers.getTestElement(
+            dataTestIds.testPage.sendSol.signTransaction,
+            {
+              tag: 'button',
+            },
+          ),
         );
       },
       sendTransaction: async () => {
         await this.tapButton(
-          getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
-            tag: 'button',
-          }),
+          Matchers.getTestElement(
+            dataTestIds.testPage.sendSol.sendTransaction,
+            {
+              tag: 'button',
+            },
+          ),
         );
       },
       getSignedTransaction: async () =>
         (
-          await getTestElement(dataTestIds.testPage.sendSol.signedTransaction, {
-            tag: 'pre',
-          })
+          await Matchers.getTestElement(
+            dataTestIds.testPage.sendSol.signedTransaction,
+            {
+              tag: 'pre',
+            },
+          )
         ).getText(),
       getTransactionHash: async () =>
         (
-          await getTestElement(dataTestIds.testPage.sendSol.transactionHash, {
-            tag: 'pre',
-          })
+          await Matchers.getTestElement(
+            dataTestIds.testPage.sendSol.transactionHash,
+            {
+              tag: 'pre',
+            },
+          )
         ).getText(),
     };
   }

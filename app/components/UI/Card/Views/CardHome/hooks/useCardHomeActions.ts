@@ -188,7 +188,7 @@ export function useCardHomeActions({
           { label: strings('card.card_home.card_details.copied') },
         ],
         iconName: IconName.Copy,
-        iconColor: theme.colors.success.default,
+        iconColor: theme.colors.icon.default,
         hasNoTimeout: false,
       });
     },

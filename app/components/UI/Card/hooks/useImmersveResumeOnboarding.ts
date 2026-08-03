@@ -39,8 +39,14 @@ export const useImmersveResumeOnboarding = () => {
 
       await signIn({ country, address });
 
+      const resume = await controller.getResumeCardInfo();
+      if (resume?.cardProgramId) {
+        controller.setSelectedCardProgramId(resume.cardProgramId);
+      }
+
       const id = await resolveImmersveFundingSourceId({
         fundingChannelId: cardFeatureFlag.immersve?.fundingChannelId,
+        existingId: resume?.fundingSourceIds?.[0],
       });
       dispatch(setImmersveFundingSourceId(id));
 

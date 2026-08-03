@@ -33,8 +33,10 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
-import { resolvePredictSportCardButtons } from '../../utils/sports';
+import {
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
@@ -74,7 +76,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   const { game: predictGame } = usePredictGame(market, { live: true });
   const game = predictGame as PredictMarketGame;
   const config = getLeagueConfig(game.league);
-  const showDraw = isDrawCapableLeague(game.league);
+  const showDraw = isDrawCapableMarket({ game, outcomes: market.outcomes });
 
   const liveData = useMemo(
     () => ({

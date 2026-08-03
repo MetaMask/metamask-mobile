@@ -161,6 +161,7 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     clientApplicationId: '',
     partnerAccountId: '',
     fundingChannelId: '',
+    spenderAddress: '',
   },
   immersveCountries: ['GB'],
 };
@@ -191,6 +192,7 @@ export interface ImmersveProgramConfig {
   clientApplicationId?: string;
   partnerAccountId?: string;
   fundingChannelId?: string;
+  spenderAddress?: string;
   apiBaseUrl?: string;
   appUrl?: string;
 }

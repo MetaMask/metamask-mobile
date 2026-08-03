@@ -1233,7 +1233,7 @@ jobs:
           )
         )
       }}
-    needs: [get_requirements, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
@@ -1242,12 +1242,14 @@ jobs:
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
     permissions:
       contents: write
       id-token: write
       actions: write
       pull-requests: write
+      statuses: write
 
   build-android-apks:
     name: 'Build Android APKs'
@@ -1344,7 +1346,7 @@ jobs:
     needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -1401,7 +1403,7 @@ jobs:
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -1444,7 +1446,8 @@ jobs:
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
     # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests, or change page-objects/selectors/locators/framework
+    # PRs: skipped by default; add run-appium-ios-tests, or change
+    # page-objects/selectors/locators/framework/smoke-appium
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
@@ -1495,7 +1498,7 @@ jobs:
       test_suite_tag: FixtureValidation
       split_number: 1
       total_splits: 1
-      test-timeout-minutes: 60
+      test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
       # Appium iOS is pinned to Cirrus (current), same as appium-smoke-tests-ios.

@@ -63,6 +63,8 @@ export const REWARDS_VIEW_SELECTORS = {
   // Earn rewards section
   EARN_REWARDS_PREVIEW: 'rewards-view-earn-rewards-preview',
   EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',
+  EARN_REWARDS_MUSD_DISCLAIMER_LINK:
+    'rewards-view-earn-rewards-musd-disclaimer-link',
   EARN_REWARDS_CARD_CARD: 'rewards-view-earn-rewards-card-card',
   // Campaigns
   CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',

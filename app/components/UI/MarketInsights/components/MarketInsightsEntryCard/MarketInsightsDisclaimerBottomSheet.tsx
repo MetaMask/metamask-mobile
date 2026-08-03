@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
+import { Modal, View } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -40,27 +41,40 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
   );
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      twClassName={surfaceClass}
-    >
-      <BottomSheetHeader onClose={handleClose}>
-        {strings('market_insights.disclaimer_modal.title')}
-      </BottomSheetHeader>
+    <View>
+      <Modal
+        visible
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={handleClose}
+      >
+        <BottomSheet
+          ref={bottomSheetRef}
+          onClose={onClose}
+          twClassName={surfaceClass}
+        >
+          <BottomSheetHeader onClose={handleClose}>
+            {strings('market_insights.disclaimer_modal.title')}
+          </BottomSheetHeader>
 
-      <Box paddingHorizontal={4}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('market_insights.disclaimer_modal.body')}
-        </Text>
-      </Box>
+          <Box paddingHorizontal={4}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.disclaimer_modal.body')}
+            </Text>
+          </Box>
 
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        primaryButtonProps={primaryButtonProps}
-        twClassName="pt-6"
-      />
-    </BottomSheet>
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+            primaryButtonProps={primaryButtonProps}
+            twClassName="pt-6"
+          />
+        </BottomSheet>
+      </Modal>
+    </View>
   );
 };
 

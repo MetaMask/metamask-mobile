@@ -58,6 +58,7 @@ const mockTraders = [
     username: 'alice',
     percentageChange: 96.2,
     pnlValue: 963000,
+    winRatePercent: 92,
     pnlPerChain: { base: 963000 },
     isFollowing: false,
   },
@@ -216,25 +217,27 @@ describe('TopTradersSection', () => {
     });
   });
 
-  it('queries with all chains so the cache key aligns with TopTradersView "All"', () => {
+  it('queries spot-only chains sorted by P&L over 7 days, matching the leaderboard landing state', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
+
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        chains: ['base', 'solana', 'ethereum'],
+        sort: 'pnl',
+        timeframe: '7d',
         limit: 50,
       }),
     );
   });
 
-  it('queries with spot-only chains when social leaderboard perps are disabled', () => {
-    mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => false);
+  it('queries the same spot-only chains when social leaderboard perps are enabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
 
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
         chains: ['base', 'solana', 'ethereum'],
-        limit: 50,
       }),
     );
   });
@@ -283,7 +286,7 @@ describe('TopTradersSection', () => {
   it('opens the Social Leaderboard (routing through the onboarding gate) when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Weekly Top Traders'));
+    fireEvent.press(screen.getByText('Top traders'));
 
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
       expect.any(Function),
@@ -294,7 +297,7 @@ describe('TopTradersSection', () => {
   it('navigates to the trader profile with correct params when a card is tapped', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.PROFILE,
