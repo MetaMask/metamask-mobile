@@ -35,6 +35,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
+import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
@@ -273,16 +274,14 @@ function BuildQuote() {
       return;
     }
 
+    if (providers.length === 0) return;
+
     if (effectiveAssetId) {
-      const supportingProvider = providers.find(
-        (p) =>
-          p.id !== selectedProvider?.id &&
-          providerSupportsAsset(p, effectiveAssetId),
-      );
-      if (supportingProvider) {
-        setSelectedProvider(supportingProvider, { autoSelected: true });
-        return;
-      }
+      const switched =
+        Engine.context.RampsController.setSelectedProviderForAsset(
+          effectiveAssetId,
+        );
+      if (switched) return;
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -309,7 +308,6 @@ function BuildQuote() {
     selectedProvider?.id,
     focusTrigger,
     providers,
-    setSelectedProvider,
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';
