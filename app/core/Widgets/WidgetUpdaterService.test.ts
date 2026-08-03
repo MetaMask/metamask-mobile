@@ -9,9 +9,16 @@ import { darkWidgetTheme, lightWidgetTheme } from './WidgetTheme';
 import { WidgetUpdaterServiceImplementation } from './WidgetUpdaterService';
 import { BalanceWidget } from './widgets/BalanceWidget';
 
-jest.mock('../../selectors/assets/balances', () => ({
-  selectBalanceBySelectedAccountGroup: jest.fn(),
-}));
+// `selectBalanceBySelectedAccountGroup` is a selector *factory*. Production
+// instantiates it exactly once, so the mock hands back the same selector
+// instance on every call and tests vary the *balance it resolves to* rather
+// than swapping in a new selector.
+jest.mock('../../selectors/assets/balances', () => {
+  const balanceSelector = jest.fn();
+  return {
+    selectBalanceBySelectedAccountGroup: jest.fn(() => balanceSelector),
+  };
+});
 
 jest.mock('../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(),
@@ -43,14 +50,9 @@ const mockSelectBalanceBySelectedAccountGroup = jest.mocked(
 );
 const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 
-type BalanceSelector = ReturnType<typeof selectBalanceBySelectedAccountGroup>;
-
-/** Builds the memoized-selector-shaped return value `selectBalanceBySelectedAccountGroup()` produces, for `.mockReturnValue()`. */
-function mockBalanceSelector(
-  balance: { totalBalanceInUserCurrency: number; userCurrency: string } | null,
-): BalanceSelector {
-  return jest.fn().mockReturnValue(balance) as unknown as BalanceSelector;
-}
+/** The single selector instance the mocked factory always returns. */
+const mockBalanceSelector =
+  selectBalanceBySelectedAccountGroup() as unknown as jest.Mock;
 
 describe('WidgetUpdaterService', () => {
   let service: WidgetUpdaterServiceImplementation;
@@ -79,12 +81,10 @@ describe('WidgetUpdaterService', () => {
       dispatch: jest.fn(),
     } as never;
 
-    mockSelectBalanceBySelectedAccountGroup.mockReturnValue(
-      mockBalanceSelector({
-        totalBalanceInUserCurrency: 1234.56,
-        userCurrency: 'usd',
-      }),
-    );
+    mockBalanceSelector.mockReturnValue({
+      totalBalanceInUserCurrency: 1234.56,
+      userCurrency: 'usd',
+    });
     mockSelectPrivacyMode.mockReturnValue(false);
 
     service = WidgetUpdaterServiceImplementation.getInstance();
@@ -137,9 +137,7 @@ describe('WidgetUpdaterService', () => {
     });
 
     it('falls back to 0/usd when there is no selected account group', () => {
-      mockSelectBalanceBySelectedAccountGroup.mockReturnValue(
-        mockBalanceSelector(null),
-      );
+      mockBalanceSelector.mockReturnValue(null);
 
       service.initialize();
 
@@ -156,26 +154,20 @@ describe('WidgetUpdaterService', () => {
 
       // The balance changes across the 3 rapid-fire notifications; only the
       // last one should actually reach the widget once the debounce settles.
-      mockSelectBalanceBySelectedAccountGroup.mockReturnValue(
-        mockBalanceSelector({
-          totalBalanceInUserCurrency: 1,
-          userCurrency: 'usd',
-        }),
-      );
+      mockBalanceSelector.mockReturnValue({
+        totalBalanceInUserCurrency: 1,
+        userCurrency: 'usd',
+      });
       subscribedListener?.();
-      mockSelectBalanceBySelectedAccountGroup.mockReturnValue(
-        mockBalanceSelector({
-          totalBalanceInUserCurrency: 2,
-          userCurrency: 'usd',
-        }),
-      );
+      mockBalanceSelector.mockReturnValue({
+        totalBalanceInUserCurrency: 2,
+        userCurrency: 'usd',
+      });
       subscribedListener?.();
-      mockSelectBalanceBySelectedAccountGroup.mockReturnValue(
-        mockBalanceSelector({
-          totalBalanceInUserCurrency: 3,
-          userCurrency: 'usd',
-        }),
-      );
+      mockBalanceSelector.mockReturnValue({
+        totalBalanceInUserCurrency: 3,
+        userCurrency: 'usd',
+      });
       subscribedListener?.();
 
       jest.advanceTimersByTime(1999);
@@ -204,18 +196,32 @@ describe('WidgetUpdaterService', () => {
       service.initialize();
       (BalanceWidget.updateSnapshot as jest.Mock).mockClear();
 
-      mockSelectBalanceBySelectedAccountGroup.mockReturnValue(
-        mockBalanceSelector({
-          totalBalanceInUserCurrency: 9999,
-          userCurrency: 'usd',
-        }),
-      );
+      mockBalanceSelector.mockReturnValue({
+        totalBalanceInUserCurrency: 9999,
+        userCurrency: 'usd',
+      });
       subscribedListener?.();
       jest.advanceTimersByTime(2000);
 
       expect(BalanceWidget.updateSnapshot).toHaveBeenCalledWith(
         expect.objectContaining({ balanceDisplay: 'formatted:9999:usd' }),
       );
+    });
+
+    it('reuses one selector instance instead of rebuilding it per push', () => {
+      // Rebuilding the factory's selector on every read defeats memoization
+      // (re-running the all-wallets aggregation) and floods the logs with
+      // Reselect dev warnings.
+      service.initialize();
+
+      mockBalanceSelector.mockReturnValue({
+        totalBalanceInUserCurrency: 42,
+        userCurrency: 'usd',
+      });
+      subscribedListener?.();
+      jest.advanceTimersByTime(2000);
+
+      expect(mockSelectBalanceBySelectedAccountGroup).not.toHaveBeenCalled();
     });
   });
 

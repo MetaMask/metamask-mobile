@@ -25,6 +25,14 @@ const UPDATE_DEBOUNCE_MS = 2000;
 const HIDDEN_BALANCE_DISPLAY = '•'.repeat(9);
 
 /**
+ * `selectBalanceBySelectedAccountGroup` is a selector *factory* — each call
+ * builds a fresh `createSelector` instance. It must be instantiated once and
+ * reused, otherwise every read re-runs the (expensive) all-wallets balance
+ * aggregation from scratch and re-triggers Reselect's dev-only warnings.
+ */
+const selectBalance = selectBalanceBySelectedAccountGroup();
+
+/**
  * Subscribes to the Redux store and pushes throttled snapshot updates to
  * every registered widget whenever the data it depends on changes.
  *
@@ -127,7 +135,7 @@ class WidgetUpdaterServiceImplementation {
 
   private computeBalanceWidgetProps(): BalanceWidgetProps & WithWidgetTheme {
     const state = ReduxService.store.getState();
-    const balance = selectBalanceBySelectedAccountGroup()(state);
+    const balance = selectBalance(state);
     const isPrivacyModeEnabled = selectPrivacyMode(state);
 
     const balanceDisplay = isPrivacyModeEnabled
