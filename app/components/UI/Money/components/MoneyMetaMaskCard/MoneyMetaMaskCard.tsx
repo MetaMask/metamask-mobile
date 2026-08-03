@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, ImageSourcePropType } from 'react-native';
+import { Image } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -17,12 +17,14 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
+import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
 import styles from './MoneyMetaMaskCard.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -43,7 +45,7 @@ interface MoneyMetaMaskCardProps {
    * 'link': card-linking CTA layout.
    * 'manage': cardholder management layout with available balance and metal upsell.
    */
-  mode?: 'upsell' | 'link' | 'manage' | 'verifying';
+  mode?: 'upsell' | 'link' | 'manage' | 'verifying' | 'loading';
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
@@ -85,13 +87,13 @@ interface MoneyMetaMaskCardProps {
 }
 
 const CardRow = ({
-  imageSource,
+  isMetalCard,
   cardName,
   cashbackPercentage,
   onPress,
   testID,
 }: {
-  imageSource: ImageSourcePropType;
+  isMetalCard: boolean;
   cardName: string;
   cashbackPercentage: string;
   onPress: () => void;
@@ -109,7 +111,7 @@ const CardRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-4"
     >
-      <Image source={imageSource} style={styles.cardImage} />
+      <MoneyCardTiltAnimation isMetalCard={isMetalCard} />
       <Box twClassName="gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
@@ -261,10 +263,7 @@ const ManageContent = ({
       twClassName="pt-3 gap-3"
       testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
     >
-      <Image
-        source={showMetalCard ? mmCardMetal : mmCardRegular}
-        style={styles.manageCardImage}
-      />
+      <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
       <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
         <SensitiveText
           variant={TextVariant.BodyMd}
@@ -437,6 +436,17 @@ const MoneyMetaMaskCard = ({
         />
       </Box>
     );
+  } else if (mode === 'loading') {
+    content = (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="py-3"
+        testID={MoneyMetaMaskCardTestIds.LOADING_SPINNER}
+      >
+        <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
+      </Box>
+    );
   } else {
     content = (
       <>
@@ -448,7 +458,7 @@ const MoneyMetaMaskCard = ({
           {strings('money.metamask_card.subtitle')}
         </Text>
         <CardRow
-          imageSource={mmCardRegular}
+          isMetalCard={false}
           cardName={strings('money.metamask_card.virtual_card')}
           cashbackPercentage="1"
           onPress={handleGetNowPress}
@@ -461,7 +471,7 @@ const MoneyMetaMaskCard = ({
   let headerTitleKey: string;
   if (mode === 'link') {
     headerTitleKey = 'money.metamask_card.link_title';
-  } else if (mode === 'manage' || mode === 'verifying') {
+  } else if (mode === 'manage' || mode === 'verifying' || mode === 'loading') {
     headerTitleKey = 'money.metamask_card.title';
   } else {
     headerTitleKey = 'money.metamask_card.upsell_title';
