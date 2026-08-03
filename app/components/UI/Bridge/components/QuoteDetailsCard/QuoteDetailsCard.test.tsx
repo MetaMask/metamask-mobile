@@ -10,7 +10,11 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  toQuoteResponseV2,
+  validateQuoteResponseV1,
+} from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 
@@ -65,7 +69,7 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
         feeData: {
           metabridge: {
             amount: '1000000', // Non-zero fee to show disclaimer
-            asset: mockQuotes[0].quote.feeData.metabridge.asset,
+            asset: mockQuotes[0].quote.feeData.metabridge[0].asset,
           },
         },
       },
@@ -443,7 +447,7 @@ describe('QuoteDetailsCard', () => {
 
     mockModule.useBridgeQuoteData.mockImplementation(() => ({
       quoteFetchError: null,
-      activeQuote: mockQuotesGasIncluded[0],
+      activeQuote: toQuoteResponseV2(mockQuotesGasIncluded[0]),
       destTokenAmount: '24.44',
       isLoading: false,
       formattedQuoteData: {
@@ -630,7 +634,7 @@ describe('QuoteDetailsCard', () => {
           ...mockQuotes[0].quote,
           priceData: {
             ...mockQuotes[0].quote.priceData,
-            priceImpact: null,
+            priceImpact: { amount: null },
           },
         },
       },
@@ -664,7 +668,10 @@ describe('QuoteDetailsCard', () => {
         ...mockQuotes[0],
         quote: {
           ...mockQuotes[0].quote,
-          priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '15.0' },
+          priceData: {
+            ...mockQuotes[0].quote.priceData,
+            priceImpact: { amount: '15.0' },
+          },
           gasIncluded: false,
           gasIncluded7702: false,
         },
@@ -714,7 +721,10 @@ describe('QuoteDetailsCard', () => {
         ...mockQuotes[0],
         quote: {
           ...mockQuotes[0].quote,
-          priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '0.04' },
+          priceData: {
+            ...mockQuotes[0].quote.priceData,
+            priceImpact: { amount: '0.04' },
+          },
           gasIncluded: false,
           gasIncluded7702: false,
         },
@@ -789,7 +799,10 @@ describe('QuoteDetailsCard', () => {
         ...mockQuotes[0],
         quote: {
           ...mockQuotes[0].quote,
-          priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '0.04' },
+          priceData: {
+            ...mockQuotes[0].quote.priceData,
+            priceImpact: { amount: '0.04' },
+          },
           gasIncluded: false,
           gasIncluded7702: false,
         },
@@ -826,7 +839,10 @@ describe('QuoteDetailsCard', () => {
         ...mockQuotes[0],
         quote: {
           ...mockQuotes[0].quote,
-          priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '0.10' },
+          priceData: {
+            ...mockQuotes[0].quote.priceData,
+            priceImpact: { amount: '0.10' },
+          },
           gasIncluded: false,
           gasIncluded7702: false,
         },
@@ -863,7 +879,10 @@ describe('QuoteDetailsCard', () => {
         ...mockQuotes[0],
         quote: {
           ...mockQuotes[0].quote,
-          priceData: { ...mockQuotes[0].quote.priceData, priceImpact: '25.0' },
+          priceData: {
+            ...mockQuotes[0].quote.priceData,
+            priceImpact: { amount: '25.0' },
+          },
           gasIncluded: true,
           gasIncluded7702: false,
         },
@@ -898,10 +917,12 @@ describe('QuoteDetailsCard', () => {
         quoteFetchError: null,
         activeQuote: {
           ...mockQuotes[0],
-          minToTokenAmount: {
-            amount: '23.50',
-            usd: null,
-            valueInCurrency: null,
+          quote: {
+            ...mockQuotes[0].quote,
+            dest: {
+              ...mockQuotes[0].quote.dest,
+              minAmountNormalized: '23.50',
+            },
           },
         },
         destTokenAmount: '24.44',
@@ -933,7 +954,13 @@ describe('QuoteDetailsCard', () => {
         quoteFetchError: null,
         activeQuote: {
           ...mockQuotes[0],
-          minToTokenAmount: undefined,
+          quote: {
+            ...mockQuotes[0].quote,
+            dest: {
+              ...mockQuotes[0].quote.dest,
+              minAmountNormalized: undefined,
+            },
+          },
         },
         destTokenAmount: '24.44',
         isLoading: false,

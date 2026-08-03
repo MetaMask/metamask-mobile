@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteResponse } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { formatCurrency } from '../../utils/currencyUtils';
 
@@ -17,7 +17,7 @@ export const usePriceImpactFiat = (
 
   if (!activeQuote) return undefined;
 
-  const priceImpact = activeQuote.priceImpact?.valueInCurrency;
+  const priceImpact = activeQuote.quote.priceData?.priceImpact?.valueInCurrency;
   if (!priceImpact) return undefined;
 
   return formatCurrency(priceImpact, currentCurrency);

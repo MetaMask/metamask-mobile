@@ -32,6 +32,7 @@ import { startCase } from 'lodash';
 import { QUOTES_PLACEHOLDER_DATA } from './constants';
 import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSortedEvent';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { sumAmounts } from '@metamask/bridge-controller';
 
 export const QuoteSelectorView = () => {
   const { styles } = useStyles(createStyles, {});
@@ -78,23 +79,24 @@ export const QuoteSelectorView = () => {
       (quote) =>
         ({
           formattedTotalCost: formatFiat(
-            new BigNumber(quote.sentAmount?.valueInCurrency ?? '0').plus(
+            new BigNumber(quote.quote.src.valueInCurrency ?? '0').plus(
               isGaslessQuote(quote.quote)
-                ? (quote.includedTxFees?.valueInCurrency ?? '0')
-                : (quote.totalNetworkFee?.valueInCurrency ??
-                    quote.gasFee?.total?.valueInCurrency ??
+                ? (sumAmounts(quote.quote.feeData?.txFee)?.valueInCurrency ??
+                    '0')
+                : (sumAmounts(quote.quote.feeData?.network)?.valueInCurrency ??
                     '0'),
             ),
             currency,
           ),
-          receiveAmount: destToken
-            ? fromTokenMinimalUnit(
-                quote.quote.destTokenAmount,
-                destToken.decimals,
-              )
-            : undefined,
+          receiveAmount:
+            destToken && quote.quote.dest.amount
+              ? fromTokenMinimalUnit(
+                  quote.quote.dest.amount,
+                  destToken.decimals,
+                )
+              : undefined,
           provider: {
-            name: startCase(quote.quote.bridges[0]),
+            name: startCase(quote.quote.protocols[0] ?? quote.quote.aggregator),
           },
           quoteRequestId: quote.quote.requestId,
           onPress: onQuoteSelect,

@@ -1,5 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { FeatureId, toQuoteResponseV2 } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  mergeQuoteMetadata,
+  toQuoteResponseV2,
+} from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -14,7 +18,6 @@ import {
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
   selectDestAddress,
-  selectIsSlippageUserOverride,
   selectSlippage,
 } from '../../../../../../core/redux/slices/bridge';
 import {
@@ -135,35 +138,58 @@ const createDestToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
     ...overrides,
   }) as BridgeToken;
 
-const createFetchedQuote = (overrides = {}) =>
-  toQuoteResponseV2({
-    quote: {
-      requestId: 'quote-1',
-      srcAsset: {
-        address: '0x0000000000000000000000000000000000000000',
-        chainId: 1,
-        assetId: 'eip155:1/slip44:60',
-        symbol: 'ETH',
-        decimals: 18,
-        name: 'Ethereum',
-      },
-      destAsset: {
-        address: '0xDEST',
-        chainId: 8453,
-        assetId: 'eip155:8453/erc20:0xDEST',
-        symbol: 'TEST',
-        decimals: 6,
-        name: 'Test',
-      },
-      srcChainId: 1,
-      destChainId: 8453,
-      srcTokenAmount: '10000000000000000',
-      destTokenAmount: '5000000',
-      minDestTokenAmount: '4950000',
+const createFetchedQuote = (overrides = {}) => ({
+  quote: {
+    requestId: 'quote-1',
+    bridgeId: 'quote-1',
+    bridges: ['provider-1'],
+    steps: [],
+    srcAsset: {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: 1,
+      assetId: 'eip155:1/slip44:60',
+      symbol: 'ETH',
+      decimals: 18,
+      name: 'Ethereum',
     },
-    estimatedProcessingTimeInSeconds: 30,
-    ...overrides,
-  });
+    destAsset: {
+      address: '0xDEST',
+      chainId: 8453,
+      assetId: 'eip155:8453/erc20:0xDEST',
+      symbol: 'TEST',
+      decimals: 6,
+      name: 'Test',
+    },
+    feeData: {
+      metabridge: {
+        amount: '0',
+        asset: {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: 1,
+          assetId: 'eip155:1/slip44:60',
+          symbol: 'ETH',
+          decimals: 18,
+          name: 'Ethereum',
+        },
+      },
+    },
+    srcChainId: 1,
+    destChainId: 8453,
+    srcTokenAmount: '10000000000000000',
+    destTokenAmount: '5000000',
+    minDestTokenAmount: '4950000',
+  },
+  estimatedProcessingTimeInSeconds: 30,
+  trade: {
+    chainId: 1,
+    value: '0x0',
+    data: '0x0',
+    from: '0x0000000000000000000000000000000000000000',
+    to: '0xDEST',
+    gasLimit: 100,
+  },
+  ...overrides,
+});
 
 const mockRootState = {
   engine: {
@@ -692,11 +718,16 @@ describe('useQuickBuyQuotes', () => {
 
   it('enriches raw quotes via selectBridgeQuotes and returns the recommended quote', async () => {
     const fetched = createFetchedQuote();
-    const enriched = { ...fetched, gasFee: { effective: { amount: '0.001' } } };
+    const enriched = mergeQuoteMetadata(toQuoteResponseV2(fetched), {
+      gasFee: { total: { amount: '0.001' } },
+    });
     fetchQuotesMock.mockResolvedValue([fetched]);
     mockSelectBridgeQuotesBase.mockImplementation((controllerFields) =>
       controllerFields.quotes.length > 0
-        ? { sortedQuotes: [enriched], recommendedQuote: enriched }
+        ? {
+            sortedQuotes: [enriched],
+            recommendedQuote: enriched,
+          }
         : { sortedQuotes: [], recommendedQuote: null },
     );
 
@@ -719,7 +750,7 @@ describe('useQuickBuyQuotes', () => {
     expect(result.current.destTokenAmount).toBe('5');
 
     const lastCallFields = mockSelectBridgeQuotesBase.mock.calls.at(-1)?.[0];
-    expect(lastCallFields.quotes).toEqual([fetched]);
+    expect(lastCallFields.quotes).toEqual([toQuoteResponseV2(fetched)]);
   });
 
   it('flags isQuoteRequestStale when slippage changes after quotes settle, then clears once refetched', async () => {
@@ -834,7 +865,7 @@ describe('useQuickBuyQuotes', () => {
 
   describe('streaming path', () => {
     const streamedQuote = (requestId: string) => {
-      const quote = createFetchedQuote();
+      const quote = toQuoteResponseV2(createFetchedQuote());
       quote.quote.requestId = requestId;
       return quote;
     };

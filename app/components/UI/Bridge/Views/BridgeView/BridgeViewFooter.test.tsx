@@ -334,7 +334,7 @@ describe('BridgeViewFooter', () => {
           activeQuote: {
             ...mockQuoteWithMetadata,
             quote: {
-              feeData: { metabridge: { quoteBpsFee: 57.5, baseBpsFee: 90 } },
+              feeData: { metabridge: [{ quoteBpsFee: 57.5, baseBpsFee: 90 }] },
             },
           },
         }));
@@ -380,11 +380,13 @@ describe('BridgeViewFooter', () => {
               ...mockQuoteWithMetadata,
               quote: {
                 feeData: {
-                  metabridge: {
-                    quoteBpsFee: 57.5,
-                    baseBpsFee: 90,
-                    discountType,
-                  },
+                  metabridge: [
+                    {
+                      quoteBpsFee: 57.5,
+                      baseBpsFee: 90,
+                      discountType,
+                    },
+                  ],
                 },
               },
             },
@@ -420,11 +422,13 @@ describe('BridgeViewFooter', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              destAsset: {
-                ...mockQuoteWithMetadata.quote.dest.asset,
-                symbol: 'mUSD',
+              dest: {
+                asset: {
+                  ...mockQuoteWithMetadata.quote.dest.asset,
+                  symbol: 'mUSD',
+                },
               },
-              feeData: { metabridge: { quoteBpsFee: 0, baseBpsFee: 87.5 } },
+              feeData: { metabridge: [{ quoteBpsFee: 0, baseBpsFee: 87.5 }] },
             },
           },
         }));
@@ -432,7 +436,6 @@ describe('BridgeViewFooter', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {

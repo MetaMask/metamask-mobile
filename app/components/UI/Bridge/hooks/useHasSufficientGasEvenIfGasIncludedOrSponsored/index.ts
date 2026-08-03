@@ -3,6 +3,7 @@ import {
   formatChainIdToHex,
   isBitcoinChainId,
   isNonEvmChainId,
+  sumAmounts,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
 import { ethers } from 'ethers';
@@ -17,7 +18,7 @@ interface Props {
 }
 
 /**
- * @returns null if the gas token balance is not available, true if the gas token balance is sufficient, false if the gas token balance is insufficient
+ * @returns null if the gas token balance is not available, true if the gas token balance is sufficient, false if the gas token balance is insufficientb
  * NOTE: THIS IS FOR GASLESS COUNTER METRICS PURPOSES ONLY. It intentionally calculates balance insufficiency irrespective of gasless or sponsored quotes.
  * This is intentionally the same calculation logic as useHasSufficientGas, but disentangled from the gasless or sponsored logic.
  * Separating the logic inside of useHasSufficientGas would also work and would cleaner but is too risky just for the sake of gasless counter metrics.
@@ -25,7 +26,7 @@ interface Props {
 export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
   quote,
 }: Props): boolean | null => {
-  const sourceChainId = quote?.quote.srcChainId;
+  const sourceChainId = quote?.chainId;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
   if (sourceChainId) {
@@ -46,10 +47,7 @@ export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
   });
 
   // quote.gasFee.total.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
-  const gasAmount =
-    sourceChainId && isBitcoinChainId(sourceChainId)
-      ? (quote?.totalNetworkFee?.amount ?? quote?.gasFee?.total?.amount)
-      : quote?.gasFee?.total?.amount;
+  const gasAmount = sumAmounts(quote?.quote.feeData?.network)?.normalizedAmount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null
       ? new BigNumber(gasAmount).toFixed()

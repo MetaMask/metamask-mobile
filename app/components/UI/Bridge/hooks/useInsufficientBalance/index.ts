@@ -3,7 +3,11 @@ import { useSelector } from 'react-redux';
 import { selectMinSolBalance } from '../../../../../selectors/bridgeController';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
-import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  isNativeAddress,
+  isSolanaChainId,
+  sumAmounts,
+} from '@metamask/bridge-controller';
 import { selectBridgeQuotes } from '../../../../../core/redux/slices/bridge';
 import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
@@ -79,7 +83,7 @@ const useIsInsufficientBalance = ({
   const gasSponsored = ignoreGasFees ? false : bestQuote?.quote?.gasSponsored;
   const gasAmount = ignoreGasFees
     ? undefined
-    : bestQuote?.gasFee?.total?.amount;
+    : sumAmounts(bestQuote?.quote.feeData.network)?.normalizedAmount;
 
   return useMemo(() => {
     const isValidAmount =
@@ -117,10 +121,10 @@ const useIsInsufficientBalance = ({
     // NOTE: If gas is sponsored/included, we skip adding gas to the calculation but still check token balance
     let atomicGasFee = BigNumber.from(0);
     if (isNativeToken && !isGasless && !gasSponsored) {
-      const effectiveGasFee = isNumberValue(gasAmount)
-        ? // we guard against null and undefined values of gasAmount when checked isNumberValue
-          new BigNumberJS(gasAmount as string | number).toFixed()
-        : null;
+      const effectiveGasFee =
+        isNumberValue(gasAmount) && gasAmount
+          ? new BigNumberJS(gasAmount).toFixed()
+          : null;
 
       if (effectiveGasFee) {
         atomicGasFee = parseAmount(effectiveGasFee, token.decimals);

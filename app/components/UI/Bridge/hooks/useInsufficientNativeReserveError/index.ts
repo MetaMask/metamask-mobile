@@ -5,7 +5,7 @@ import {
   isBitcoinChainId,
   isNativeAddress,
   isNonEvmChainId,
-  type QuoteMetadata,
+  sumAmounts,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
@@ -137,8 +137,11 @@ export const useInsufficientNativeReserveError = ({
   let btcQuoteNetworkFeeBaseUnits = BigNumberJS(0);
   let btcQuoteSourceOverheadBaseUnits = BigNumberJS(0);
   if (isBitcoinReserveChain && activeQuote) {
-    const networkFeeAmount = activeQuote.totalNetworkFee?.amount;
-    const sentAmount = activeQuote.sentAmount?.amount;
+    const networkFeeAmount = sumAmounts(
+      activeQuote.quote.feeData.network,
+      activeQuote.quote.feeData.relayer,
+    )?.normalizedAmount;
+    const sentAmount = activeQuote.quote.src?.normalizedAmount;
     const networkFeeBaseUnits = networkFeeAmount
       ? toBaseUnitBigNumber(networkFeeAmount, token.decimals)
       : undefined;

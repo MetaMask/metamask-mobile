@@ -20,6 +20,7 @@ import {
   selectControllerFields,
   setSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
+import { merge } from 'lodash';
 
 const defaultSelectBridgeQuotesResults: ReturnType<
   typeof bridgeController.selectBridgeQuotes
@@ -203,7 +204,7 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          priceData: { priceImpact: '0.04' },
+          priceData: { priceImpact: { amount: '0.04' } },
           gasIncluded,
           gasIncluded7702,
         },
@@ -228,9 +229,9 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.activeQuote?.quote.priceData?.priceImpact).toEqual(
-        '0.04',
-      );
+      expect(
+        result.current.activeQuote?.quote.priceData?.priceImpact?.amount,
+      ).toEqual('0.04');
       // priceImpact 0.04 (4%) < warning threshold 0.05 (5%) → shouldShowPriceImpactWarning is false
       expect(result.current.shouldShowPriceImpactWarning).toEqual(
         shouldShowPriceImpactWarning,
@@ -716,13 +717,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee with fiat formatter for normal values', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
-          valueInCurrency: '10',
+      recommendedQuote: merge(mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.01',
+                valueInCurrency: '10',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -737,13 +743,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee as "<$0.01" when value is less than 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.0001',
-          valueInCurrency: '0.005',
+      recommendedQuote: merge(mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.0001',
+                valueInCurrency: '0.005',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -758,13 +769,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee normally when value is exactly 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.0001',
-          valueInCurrency: '0.01',
+      recommendedQuote: merge(mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.0001',
+                valueInCurrency: '0.01',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -779,13 +795,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee normally when value is 0', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0',
-          valueInCurrency: '0',
+      recommendedQuote: merge(mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0',
+                valueInCurrency: '0',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -1210,12 +1231,14 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destAsset: {
-            ...mockQuoteWithMetadata.quote.destAsset,
-            address:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-            assetId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          dest: {
+            asset: {
+              ...mockQuoteWithMetadata.quote.dest.asset,
+              address:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+              assetId:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            },
           },
         },
       };
@@ -1224,12 +1247,14 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destAsset: {
-            ...mockQuoteWithMetadata.quote.destAsset,
-            address: '0x0000000000000000000000000000000000000000',
-            assetId:
-              bridgeController.getNativeAssetForChainId(1151111081099710)
-                .assetId,
+          dest: {
+            asset: {
+              ...mockQuoteWithMetadata.quote.dest.asset,
+              address: '0x0000000000000000000000000000000000000000',
+              assetId:
+                bridgeController.getNativeAssetForChainId(1151111081099710)
+                  .assetId,
+            },
           },
         },
       };
@@ -1315,7 +1340,7 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           srcAsset: {
-            ...mockQuoteWithMetadata.quote.srcAsset,
+            ...mockQuoteWithMetadata.quote.src.asset,
             address: '0x1111111111111111111111111111111111111111',
           },
         },
@@ -1932,6 +1957,7 @@ describe('useBridgeQuoteData', () => {
 
       rerender({ state: testState });
 
+      expect(result.current).toStrictEqual(firstResult);
       expect(result.current).toBe(firstResult);
     });
   });

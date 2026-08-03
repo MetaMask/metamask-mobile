@@ -75,8 +75,13 @@ export const useBridgeConfirm = ({
     }
 
     const modalTokenParams = {
-      sourceAmount: sourceAmount ?? activeQuote.sentAmount?.amount,
-      destAmount: activeQuote.toTokenAmount?.amount,
+      sourceAmount:
+        sourceAmount ??
+        activeQuote.quote.src.normalizedAmount ??
+        activeQuote.quote.src.amount,
+      destAmount:
+        activeQuote.quote.dest.normalizedAmount ??
+        activeQuote.quote.dest.amount,
       sourceToken,
       destToken,
     };

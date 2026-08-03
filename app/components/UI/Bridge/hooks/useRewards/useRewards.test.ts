@@ -10,8 +10,9 @@ import {
   QuoteMetadata,
   toQuoteResponseV2,
   mergeQuoteMetadata,
-  type QuoteResponse,
+  type QuoteResponseV1,
 } from '@metamask/bridge-controller';
+import { merge } from 'lodash';
 // Mock dependencies
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -22,7 +23,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 // Mock useBridgeQuoteData hook
-const mockActiveQuote: QuoteResponse = {
+const mockQuoteV1: QuoteResponseV1 = {
   quote: {
     requestId:
       '0xd12f19d577efae2b92748c1abc32d8be78a5e73a99d74e16cada270a2ad99516' as Hex,
@@ -125,9 +126,9 @@ const metadata: QuoteMetadata = {
   },
 };
 
-validateQuoteResponseV1(mockQuote);
+validateQuoteResponseV1(mockQuoteV1);
 const mockActiveQuote = mergeQuoteMetadata(
-  toQuoteResponseV2(mockQuote),
+  toQuoteResponseV2(mockQuoteV1),
   metadata,
 );
 
@@ -376,7 +377,7 @@ describe('useRewards', () => {
             swapContext: {
               srcAsset: {
                 id: 'eip155:1/slip44:60',
-                amount: '991250000000000000',
+                amount: '1000000000000000000',
               },
               destAsset: {
                 id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
