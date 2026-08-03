@@ -3,70 +3,92 @@ import { useMemo } from 'react';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { PRODUCT_SAFETY_EVENTS } from '../../../core/Analytics/events/product-safety';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import useBalanceChanges from '../../UI/SimulationDetails/useBalanceChanges';
+import { calculateTotalFiat } from '../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
+import { FIAT_UNAVAILABLE } from '../../UI/SimulationDetails/types';
+import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
   Answers,
-  QuestionId,
+  QUESTIONNAIRE_VERSION,
+  type Step,
+  getAnswerRecord,
   getRedFlagCount,
-  getRedFlagQuestions,
+  stepLabelFromIndex,
 } from './scam-questionnaire.constants';
+
+export type CompletionStatus = 'clean' | 'payment_stopped' | 'proceeded';
+
+// Mirrors the arithmetic behind `simulation_sending_assets_total_value` on
+// transaction events so the two stay comparable. `undefined` rather than `0`
+// when rates are unavailable, so the property is omitted instead of reporting
+// the send as free.
+function useValueAtRisk(): number | undefined {
+  const transactionMeta = useTransactionMetadataRequest();
+  const { value: balanceChanges } = useBalanceChanges({
+    chainId: transactionMeta?.chainId ?? '0x1',
+    simulationData: transactionMeta?.simulationData,
+    networkClientId: transactionMeta?.networkClientId ?? '',
+  });
+
+  return useMemo(() => {
+    const sendingAssets = balanceChanges.filter((c) => c.amount.isNegative());
+    const usdAmounts = sendingAssets.map((c) => c.usdAmount);
+    const hasRates = usdAmounts.some((a) => a !== FIAT_UNAVAILABLE);
+    if (!hasRates) return undefined;
+    const total = calculateTotalFiat(usdAmounts);
+    return Math.abs(total.toNumber());
+  }, [balanceChanges]);
+}
 
 export function useScamQuestionnaireMetrics() {
   const { createEventBuilder, trackEvent } = useAnalytics();
+  const valueAtRisk = useValueAtRisk();
 
   return useMemo(() => {
     const fire = (
       event: IMetaMetricsEvent,
       properties: Record<string, unknown> = {},
     ) => {
-      trackEvent(createEventBuilder(event).addProperties(properties).build());
+      trackEvent(
+        createEventBuilder(event)
+          .addProperties({
+            ...properties,
+            questionnaire_version: QUESTIONNAIRE_VERSION,
+          })
+          .build(),
+      );
     };
 
     return {
-      trackStarted: () => fire(PRODUCT_SAFETY_EVENTS.SECURITY_CHECK_STARTED),
-
-      trackQuestionAnswered: (
-        question: QuestionId,
-        answerKey: string,
-        isRedFlag: boolean,
-      ) =>
-        fire(PRODUCT_SAFETY_EVENTS.SECURITY_CHECK_QUESTION_ANSWERED, {
-          question,
-          answer_key: answerKey,
-          is_red_flag: isRedFlag,
+      // `step: 'warning'` covers the warning screen, so reaching it and never
+      // resolving is still visible as a funnel step. Answers live on
+      // `Completed` only — here they'd lag a step, since a step's answer isn't
+      // committed until the user leaves it.
+      trackViewed: (step: Step) =>
+        fire(PRODUCT_SAFETY_EVENTS.SCAM_QUESTIONNAIRE_VIEWED, {
+          step: stepLabelFromIndex(step),
         }),
 
-      trackCompletedClean: () =>
-        fire(PRODUCT_SAFETY_EVENTS.SECURITY_CHECK_COMPLETED_CLEAN, {
-          red_flag_count: 0,
-        }),
-
-      trackDismissed: (lastStep: number, answers: Answers) =>
-        fire(PRODUCT_SAFETY_EVENTS.SECURITY_CHECK_DISMISSED, {
-          last_step: lastStep,
-          red_flag_count_so_far: getRedFlagCount(answers),
-        }),
-
-      trackWarningShown: (answers: Answers) =>
-        fire(PRODUCT_SAFETY_EVENTS.SCAM_WARNING_SHOWN, {
+      trackContactSupport: (answers: Answers) =>
+        fire(PRODUCT_SAFETY_EVENTS.SCAM_QUESTIONNAIRE_CONTACT_SUPPORT, {
+          ...getAnswerRecord(answers),
           red_flag_count: getRedFlagCount(answers),
-          red_flag_questions: getRedFlagQuestions(answers),
+          simulation_sending_assets_total_value: valueAtRisk,
         }),
 
-      trackWarningStopped: (answers: Answers) =>
-        fire(PRODUCT_SAFETY_EVENTS.SCAM_WARNING_STOPPED, {
+      trackCompleted: ({
+        status,
+        answers,
+      }: {
+        status: CompletionStatus;
+        answers: Answers;
+      }) =>
+        fire(PRODUCT_SAFETY_EVENTS.SCAM_QUESTIONNAIRE_COMPLETED, {
+          status,
+          ...getAnswerRecord(answers),
           red_flag_count: getRedFlagCount(answers),
-        }),
-
-      trackWarningContactSupport: (answers: Answers) =>
-        fire(PRODUCT_SAFETY_EVENTS.SCAM_WARNING_CONTACT_SUPPORT, {
-          red_flag_count: getRedFlagCount(answers),
-        }),
-
-      trackWarningProceeded: (answers: Answers) =>
-        fire(PRODUCT_SAFETY_EVENTS.SCAM_WARNING_PROCEEDED, {
-          red_flag_count: getRedFlagCount(answers),
-          red_flag_questions: getRedFlagQuestions(answers),
+          simulation_sending_assets_total_value: valueAtRisk,
         }),
     };
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, trackEvent, valueAtRisk]);
 }
