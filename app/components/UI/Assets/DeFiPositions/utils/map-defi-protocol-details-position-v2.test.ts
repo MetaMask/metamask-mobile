@@ -1,5 +1,8 @@
-import type { DeFiUnderlyingPosition } from '@metamask/assets-controllers';
-import AppConstants from '../../../../../core/AppConstants';
+import {
+  getNativeTokenAddress,
+  type DeFiUnderlyingPosition,
+} from '@metamask/assets-controllers';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { mapDefiProtocolDetailsPositionV2ToToken } from './map-defi-protocol-details-position-v2';
 
 describe('mapDefiProtocolDetailsPositionV2ToToken', () => {
@@ -30,7 +33,7 @@ describe('mapDefiProtocolDetailsPositionV2ToToken', () => {
     });
   });
 
-  it('marks native assets and uses the zero address', () => {
+  it('marks native assets and uses the chain native token address', () => {
     const nativePosition: DeFiUnderlyingPosition = {
       ...position,
       assetId: 'eip155:59144/slip44:60',
@@ -43,9 +46,42 @@ describe('mapDefiProtocolDetailsPositionV2ToToken', () => {
     ).toMatchObject({
       name: 'Ethereum',
       symbol: 'ETH',
-      address: AppConstants.ZERO_ADDRESS,
+      address: getNativeTokenAddress('0xe708'),
       isNative: true,
     });
+  });
+
+  it('uses Polygon native token address for Polygon slip44 assets', () => {
+    const polygonNativePosition: DeFiUnderlyingPosition = {
+      ...position,
+      assetId: 'eip155:137/slip44:966',
+      chainId: 'eip155:137',
+      symbol: 'POL',
+      name: 'Polygon',
+    };
+
+    expect(
+      mapDefiProtocolDetailsPositionV2ToToken(polygonNativePosition),
+    ).toMatchObject({
+      isNative: true,
+      address: getNativeTokenAddress('0x89'),
+      chainId: '0x89',
+    });
+  });
+
+  it('returns a checksummed hex address for an ERC-20 asset', () => {
+    const lowercaseAddress = '0xae7ab96520de3a18e5e111b5eaab095312d7fe84';
+    const erc20Position: DeFiUnderlyingPosition = {
+      ...position,
+      assetId: `eip155:1/erc20:${lowercaseAddress}`,
+      chainId: 'eip155:1',
+    };
+
+    const { address } = mapDefiProtocolDetailsPositionV2ToToken(erc20Position);
+
+    expect(address).toBe(toChecksumHexAddress(lowercaseAddress));
+    expect(address).not.toBe(lowercaseAddress);
+    expect(address).toMatch(/[A-F]/u);
   });
 
   it('leaves market value undefined when unavailable', () => {
@@ -70,5 +106,22 @@ describe('mapDefiProtocolDetailsPositionV2ToToken', () => {
     expect(
       mapDefiProtocolDetailsPositionV2ToToken(invalidBalancePosition).balance,
     ).toBe(0);
+  });
+
+  it('passes a non-EVM CAIP chain id and asset id through unchanged', () => {
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const solanaAssetId = `${solanaChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
+    const solanaPosition: DeFiUnderlyingPosition = {
+      ...position,
+      assetId: solanaAssetId,
+      chainId: solanaChainId,
+    };
+
+    expect(
+      mapDefiProtocolDetailsPositionV2ToToken(solanaPosition),
+    ).toMatchObject({
+      chainId: solanaChainId,
+      address: solanaAssetId,
+    });
   });
 });

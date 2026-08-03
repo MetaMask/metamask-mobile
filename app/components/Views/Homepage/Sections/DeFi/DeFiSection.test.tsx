@@ -51,6 +51,12 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+const mockSelectEnabledNetworks = jest.fn();
+jest.mock('../../../../../selectors/networkEnablementController', () => ({
+  ...jest.requireActual('../../../../../selectors/networkEnablementController'),
+  selectEnabledNetworksByNamespace: () => mockSelectEnabledNetworks(),
+}));
+
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -123,12 +129,15 @@ const createMockPosition = (name: string) => ({
   },
 });
 
-const createMockV2Position = (protocolId: string) => ({
+const createMockV2Position = (
+  protocolId: string,
+  overrides: { chainId?: string; marketValue?: number } = {},
+) => ({
   protocolId,
   productName: protocolId,
   protocolIconUrl: `https://example.com/${protocolId}.png`,
-  chainId: 'eip155:1',
-  marketValue: 1000,
+  chainId: overrides.chainId ?? 'eip155:1',
+  marketValue: overrides.marketValue ?? 1000,
   iconGroup: [],
   sections: [],
 });
@@ -142,6 +151,8 @@ describe('DeFiSection', () => {
     jest
       .requireMock('../../../../../selectors/deFiPositionsV2SectionEnabled')
       .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
+
+    mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
 
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [],
@@ -390,6 +401,48 @@ describe('DeFiSection', () => {
 
       expect(screen.getByText('aave')).toBeOnTheScreen();
       expect(screen.getByText('uniswap')).toBeOnTheScreen();
+    });
+
+    it('filters out V2 positions on disabled EVM networks', () => {
+      mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+      mockUseDeFiPositionsV2.mockReturnValue({
+        positions: [
+          createMockV2Position('aave'),
+          createMockV2Position('avalanche-lending', {
+            chainId: 'eip155:43114',
+          }),
+        ],
+        isLoading: false,
+        isError: false,
+        hasFetched: true,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      renderWithProvider(
+        <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(screen.getByText('aave')).toBeOnTheScreen();
+      expect(screen.queryByText('avalanche-lending')).toBeNull();
+    });
+
+    it('collapses when all V2 positions are on disabled networks', () => {
+      mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+      mockUseDeFiPositionsV2.mockReturnValue({
+        positions: [
+          createMockV2Position('avalanche-only', { chainId: 'eip155:43114' }),
+        ],
+        isLoading: false,
+        isError: false,
+        hasFetched: true,
+        refresh: jest.fn().mockResolvedValue(undefined),
+      });
+
+      const { toJSON } = renderWithProvider(
+        <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(toJSON()).toBeNull();
     });
 
     it('does not call V1 _executePoll on focus when V2 is enabled', () => {

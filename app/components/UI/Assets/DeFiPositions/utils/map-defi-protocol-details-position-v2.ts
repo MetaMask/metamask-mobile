@@ -1,6 +1,7 @@
-import type {
-  DeFiPositionType,
-  DeFiUnderlyingPosition,
+import {
+  getNativeTokenAddress,
+  type DeFiPositionType,
+  type DeFiUnderlyingPosition,
 } from '@metamask/assets-controllers';
 import {
   formatChainIdToHex,
@@ -8,7 +9,6 @@ import {
 } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { isCaipChainId, parseCaipAssetType, type Hex } from '@metamask/utils';
-import AppConstants from '../../../../../core/AppConstants';
 
 /**
  * Mobile token cell shape consumed by DeFi protocol details UI.
@@ -37,17 +37,35 @@ function toTokenCellChainId(
   return chainId;
 }
 
+/**
+ * Resolves the token-cell `address` for a DeFi underlying position.
+ *
+ * - Non-EVM: return the CAIP asset id unchanged.
+ * - EVM slip44 (native): return the chain's native token address (or zero).
+ * - EVM erc20: return the checksummed contract address.
+ *
+ * @param position - Underlying position from `DeFiPositionsControllerV2` state.
+ * @returns Token cell address appropriate for the chain/asset type.
+ */
 function toTokenCellAddress(position: DeFiUnderlyingPosition): string {
+  if (isNonEvmChainId(position.chainId)) {
+    return position.assetId;
+  }
+
   const { assetReference, assetNamespace } = parseCaipAssetType(
     position.assetId,
   );
+  const hexChainId = toTokenCellChainId(position.chainId) as Hex;
 
   if (assetNamespace === 'slip44') {
-    // Native assets use the zero address so existing avatar helpers recognize ETH.
-    return AppConstants.ZERO_ADDRESS;
+    return getNativeTokenAddress(hexChainId);
   }
 
-  return toChecksumHexAddress(assetReference) ?? assetReference;
+  if (assetNamespace === 'erc20') {
+    return toChecksumHexAddress(assetReference);
+  }
+
+  return position.assetId;
 }
 
 /**

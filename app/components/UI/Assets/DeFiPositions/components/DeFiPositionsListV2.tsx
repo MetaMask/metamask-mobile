@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { RefreshControl, ScrollViewProps, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import {
   Text,
   TextColor,
@@ -24,7 +23,6 @@ import {
   selectTokenSortConfig,
 } from '../../../../../selectors/preferencesController';
 import { selectEnabledNetworksByNamespace } from '../../../../../selectors/networkEnablementController';
-import { getMaybeHexChainId } from '../../../../../util/bridge';
 import { useStyles } from '../../../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../../../DefiEmptyState';
@@ -36,6 +34,7 @@ import { useTheme } from '../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import DeFiPositionsListItemV2 from './DeFiPositionsListItemV2';
 import { useDeFiPositionsV2 } from '../hooks/useDeFiPositionsV2';
+import { filterDeFiPositionsByEnabledNetworks } from '../utils/filter-defi-positions-by-enabled-networks';
 
 interface DeFiPositionsListV2Props {
   isFullView: boolean;
@@ -69,22 +68,10 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   });
 
   const formattedPositions = useMemo(() => {
-    const enabledEvmNetworks =
-      enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155] ?? {};
-    const enabledHexChainIds = new Set(
-      Object.keys(enabledEvmNetworks).filter(
-        (chainId) => enabledEvmNetworks[chainId as Hex],
-      ),
+    const filtered = filterDeFiPositionsByEnabledNetworks(
+      positions,
+      enabledNetworksByNamespace,
     );
-
-    const filtered = positions.filter((position) => {
-      const hexChainId = getMaybeHexChainId(position.chainId);
-      if (hexChainId) {
-        return enabledHexChainIds.has(hexChainId);
-      }
-      // Non-EVM (e.g. Solana): include when present in V2 results.
-      return true;
-    });
 
     return [...filtered].sort((a, b) => {
       if (tokenSortConfig.key === 'tokenFiatAmount') {

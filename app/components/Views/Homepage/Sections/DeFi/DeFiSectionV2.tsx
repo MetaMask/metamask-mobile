@@ -18,7 +18,9 @@ import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsV2 } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectEnabledNetworksByNamespace } from '../../../../../selectors/networkEnablementController';
 import DeFiPositionsListItemV2 from '../../../../UI/Assets/DeFiPositions/components/DeFiPositionsListItemV2';
+import { filterDeFiPositionsByEnabledNetworks } from '../../../../UI/Assets/DeFiPositions/utils/filter-defi-positions-by-enabled-networks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHomeViewedEvent, {
@@ -47,6 +49,9 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation<AppNavigationProp>();
     const privacyMode = useSelector(selectPrivacyMode);
+    const enabledNetworksByNamespace = useSelector(
+      selectEnabledNetworksByNamespace,
+    );
     const title = strings('homepage.sections.defi');
 
     const { isVisible, onLayout: visibilityOnLayout } =
@@ -55,13 +60,16 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const { positions, isLoading, isError, hasFetched, refresh } =
       useDeFiPositionsV2({ enabled: true, isVisible });
 
-    const displayedPositions = useMemo(
-      () =>
-        [...positions]
-          .sort((a, b) => b.marketValue - a.marketValue)
-          .slice(0, MAX_POSITIONS_DISPLAYED),
-      [positions],
-    );
+    const displayedPositions = useMemo(() => {
+      const filtered = filterDeFiPositionsByEnabledNetworks(
+        positions,
+        enabledNetworksByNamespace,
+      );
+
+      return [...filtered]
+        .sort((a, b) => b.marketValue - a.marketValue)
+        .slice(0, MAX_POSITIONS_DISPLAYED);
+    }, [positions, enabledNetworksByNamespace]);
 
     const handleViewAllDeFi = useCallback(() => {
       navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW);
