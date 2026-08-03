@@ -65,9 +65,11 @@ export interface UseDeFiPositionsV2Result {
 
 /**
  * Drives DeFi V2 surfaces: fetches (without forceRefresh) when the section
- * enters the viewport — including while still empty/idle — and on account
- * group change while visible. Pull-to-refresh uses {@link refresh} with
- * `forceRefresh: true` to bypass the apiClient cache.
+ * first enters the viewport for an account group, and again on account group
+ * change while visible. Successful results are not auto-refetched on
+ * scroll-away/back — pull-to-refresh uses {@link refresh} with
+ * `forceRefresh: true`. Failed fetches still retry when the section becomes
+ * visible again.
  *
  * @param options - Enablement and viewport visibility gates.
  * @returns Merged positions plus loading/error flags and a refresh helper.
@@ -130,6 +132,19 @@ export function useDeFiPositionsV2({
 
   useEffect(() => {
     if (!shouldFetch) {
+      // Clear loading if the section left the viewport (or unlock/enable
+      // flipped off) while a fetch was in flight — the cancelled finally
+      // path intentionally skips setIsFetching(false) so an older request
+      // cannot clear loading for a newer account-group fetch.
+      setIsFetching(false);
+      return;
+    }
+
+    // Skip scroll-back refetch after a successful fetch for this group.
+    // Errors still retry on re-entry; force refresh stays on pull-to-refresh.
+    // Intentionally read these flags only when shouldFetch / group changes —
+    // do not depend on them or a settled error would immediately re-fetch.
+    if (hasFetchedForCurrentGroup && !isError) {
       return;
     }
 
@@ -158,6 +173,7 @@ export function useDeFiPositionsV2({
       cancelled = true;
       cancelIdleTask();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see skip-guard comment above
   }, [shouldFetch, selectedAccountGroupId]);
 
   const positions = useMemo(

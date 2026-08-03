@@ -124,4 +124,21 @@ describe('mapDefiProtocolDetailsPositionV2ToToken', () => {
       address: solanaAssetId,
     });
   });
+
+  it('returns the asset id unchanged when it is not a CAIP asset type', () => {
+    const rawAssetId = '0xae7ab96520de3a18e5e111b5eaab095312d7fe84';
+    const nonCaipAssetPosition: DeFiUnderlyingPosition = {
+      ...position,
+      assetId: rawAssetId as DeFiUnderlyingPosition['assetId'],
+      chainId: 'eip155:1',
+    };
+
+    expect(
+      mapDefiProtocolDetailsPositionV2ToToken(nonCaipAssetPosition),
+    ).toMatchObject({
+      address: rawAssetId,
+      isNative: false,
+      chainId: '0x1',
+    });
+  });
 });

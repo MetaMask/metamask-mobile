@@ -8,7 +8,12 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { isCaipChainId, parseCaipAssetType, type Hex } from '@metamask/utils';
+import {
+  isCaipAssetType,
+  isCaipChainId,
+  parseCaipAssetType,
+  type Hex,
+} from '@metamask/utils';
 
 /**
  * Mobile token cell shape consumed by DeFi protocol details UI.
@@ -41,6 +46,7 @@ function toTokenCellChainId(
  * Resolves the token-cell `address` for a DeFi underlying position.
  *
  * - Non-EVM: return the CAIP asset id unchanged.
+ * - Non-CAIP asset type: return the asset id unchanged.
  * - EVM slip44 (native): return the chain's native token address (or zero).
  * - EVM erc20: return the checksummed contract address.
  *
@@ -49,6 +55,10 @@ function toTokenCellChainId(
  */
 function toTokenCellAddress(position: DeFiUnderlyingPosition): string {
   if (isNonEvmChainId(position.chainId)) {
+    return position.assetId;
+  }
+
+  if (!isCaipAssetType(position.assetId)) {
     return position.assetId;
   }
 
@@ -90,8 +100,9 @@ function getNormalizedBalance(position: DeFiUnderlyingPosition): number {
 export function mapDefiProtocolDetailsPositionV2ToToken(
   position: DeFiUnderlyingPosition,
 ): DeFiDetailsPositionTokenV2 {
-  const { assetNamespace } = parseCaipAssetType(position.assetId);
-  const isNative = assetNamespace === 'slip44';
+  const isNative =
+    isCaipAssetType(position.assetId) &&
+    parseCaipAssetType(position.assetId).assetNamespace === 'slip44';
   const normalizedBalance = getNormalizedBalance(position);
 
   return {

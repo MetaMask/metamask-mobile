@@ -195,6 +195,127 @@ describe('useDeFiPositionsV2', () => {
     expect(result.current.hasFetched).toBe(false);
   });
 
+  it('clears isLoading when the section scrolls out of view during a fetch', async () => {
+    let resolveFetch: () => void = () => undefined;
+    mockFetchDeFiPositions.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    const { result, rerender } = renderHook(
+      ({ isVisible }) => useDeFiPositionsV2({ enabled: true, isVisible }),
+      { initialProps: { isVisible: true } },
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      rerender({ isVisible: false });
+    });
+
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      resolveFetch();
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('does not refetch on scroll-back after a successful fetch for the group', async () => {
+    const { rerender } = renderHook(
+      ({ isVisible }) => useDeFiPositionsV2({ enabled: true, isVisible }),
+      { initialProps: { isVisible: true } },
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      rerender({ isVisible: false });
+    });
+    await act(async () => {
+      rerender({ isVisible: true });
+      await Promise.resolve();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries on scroll-back after a failed fetch', async () => {
+    mockFetchDeFiPositions.mockRejectedValueOnce(new Error('network'));
+
+    const { result, rerender } = renderHook(
+      ({ isVisible }) => useDeFiPositionsV2({ enabled: true, isVisible }),
+      { initialProps: { isVisible: true } },
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.isError).toBe(true);
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      rerender({ isVisible: false });
+    });
+    await act(async () => {
+      rerender({ isVisible: true });
+      await Promise.resolve();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(2);
+    expect(result.current.isError).toBe(false);
+  });
+
+  it('refetches when the selected account group changes while visible', async () => {
+    let selectedGroupId = 'group-1';
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsUnlocked) {
+        return true;
+      }
+      if (selector === selectSelectedAccountGroupId) {
+        return selectedGroupId;
+      }
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [{ id: 'account-1' }];
+      }
+      if (selector === selectDeFiPositionsV2State) {
+        return {};
+      }
+      return undefined;
+    });
+
+    const { rerender } = renderHook(() =>
+      useDeFiPositionsV2({ enabled: true, isVisible: true }),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+
+    selectedGroupId = 'group-2';
+    await act(async () => {
+      rerender();
+      await Promise.resolve();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(2);
+  });
+
   it('refresh bypasses visibility and force-refreshes', async () => {
     const { result } = renderHook(() =>
       useDeFiPositionsV2({ enabled: true, isVisible: false }),

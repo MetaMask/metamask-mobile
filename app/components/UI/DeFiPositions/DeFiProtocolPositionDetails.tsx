@@ -21,7 +21,6 @@ import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import Summary from '../../Base/Summary';
 import { useSelector } from 'react-redux';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
-import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
@@ -116,17 +115,23 @@ const DeFiProtocolPositionDetailsV1: React.FC = () => {
 /**
  * DeFiProtocolPositionDetails - protocol details screen.
  *
- * Feature-flag switch: renders the V2 implementation when the V2 flag is on,
- * otherwise the (unchanged) V1 implementation.
+ * Branches on which nav param is present (not the feature flag), so a mid-
+ * session flag flip — or landing with the other shape — still renders the
+ * matching implementation. Prefers V2 when `protocolPositionGroup` is set.
  */
 const DeFiProtocolPositionDetails: React.FC = () => {
-  const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
+  const { protocolPositionGroup, protocolAggregate } =
+    useParams<DeFiProtocolPositionDetailsParams>();
 
-  return isV2Enabled ? (
-    <DeFiProtocolPositionDetailsV2 />
-  ) : (
-    <DeFiProtocolPositionDetailsV1 />
-  );
+  if (protocolPositionGroup) {
+    return <DeFiProtocolPositionDetailsV2 />;
+  }
+
+  if (protocolAggregate) {
+    return <DeFiProtocolPositionDetailsV1 />;
+  }
+
+  return null;
 };
 
 export default DeFiProtocolPositionDetails;
