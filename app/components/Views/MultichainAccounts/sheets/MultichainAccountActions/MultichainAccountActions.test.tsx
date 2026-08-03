@@ -195,6 +195,21 @@ describe('MultichainAccountActions', () => {
     });
   });
 
+  it('calls endTrace if navigating to address list throws', () => {
+    const navigationError = new Error('navigation failed');
+    mockNavigate.mockImplementationOnce(() => {
+      throw navigationError;
+    });
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
+
+    expect(() => fireEvent.press(addressesButton)).toThrow(navigationError);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
+    });
+  });
+
   it('navigates to edit account name when rename account button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
 
