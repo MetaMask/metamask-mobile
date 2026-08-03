@@ -142,6 +142,18 @@ describe('useCustomAmountStage', () => {
       expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
+    it('keeps showing prefetched totals during a background quote refresh', () => {
+      setupState({
+        isQuotesLoading: true,
+        quotes: [{}],
+        quotesLastUpdated: 1,
+      });
+
+      const { result } = runDerived({ hasPrefetchedQuote: true });
+
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
+    });
+
     it('derives NoQuote when the fetch settled with no quotes', () => {
       setupState({ isQuotesLoading: false, quotes: [] });
 
@@ -222,6 +234,22 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+    });
+
+    it('clears a Loading commit immediately when the current amount was prefetched', () => {
+      setupState({
+        isQuotesLoading: true,
+        quotes: [{}],
+        quotesLastUpdated: 1,
+      });
+
+      const { result } = runHook({ hasPrefetchedQuote: true });
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
     });
 
     it('clears a no-op Loading re-commit immediately (amount unchanged)', () => {

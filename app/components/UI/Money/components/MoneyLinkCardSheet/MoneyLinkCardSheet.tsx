@@ -21,6 +21,7 @@ import {
   selectCardHomeData,
   selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
+import Engine from '../../../../../core/Engine';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { CardType } from '../../../Card/types';
@@ -64,6 +65,12 @@ const MoneyLinkCardSheet = () => {
   const cardType = isMetalCard ? 'metal' : 'virtual';
   const isCardDataReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+
+  useEffect(() => {
+    if (cardHomeDataStatus === 'idle') {
+      Engine.context.CardController.fetchCardHomeData();
+    }
+  }, [cardHomeDataStatus]);
 
   useEffect(() => {
     if (hasTrackedViewRef.current || !isCardDataReady) return;
