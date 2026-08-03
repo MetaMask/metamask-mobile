@@ -26,7 +26,6 @@ import {
 import type { TapOptions } from '../../framework/types';
 import WebView, { type WebViewByIdOptions } from '../../framework/WebView';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
@@ -185,19 +184,10 @@ class TestSnaps {
   }
 
   async tapJsxIncrementButton(): Promise<void> {
-    if (PlatformDetector.isIOSAppium()) {
-      // Count/Increment StaticTexts are often accessible=false on iOS Appium;
-      // skip waitForDisplayed and tap the scoped scrollview child by name.
-      await UnifiedGestures.waitAndTap(this.jsxIncrementButton, {
-        checkForDisplayed: false,
-        description: 'JSX Increment',
-      });
-      return;
-    }
-
-    await Gestures.tap(this.jsxIncrementButton, {
-      elemDescription: 'JSX Increment',
-    });
+    await Gestures.waitAndTap(
+      this.jsxIncrementButton,
+      this.snapUiTapOptions({ elemDescription: 'JSX Increment' }),
+    );
   }
 
   /** iOS: skip displayed/enabled waits for Snap UI nodes with visible=false. */
