@@ -2120,6 +2120,10 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
+        pendingMasSeriesOptIn: {
+          needsRetry: false,
+          subscriptionId: null,
+        },
         benefits: [],
         benefitsLoading: false,
         benefitsError: false,
@@ -2268,6 +2272,10 @@ describe('rewardsReducer', () => {
           failedAccounts: 0,
           wasInterrupted: false,
           initialSubscriptionId: null,
+        },
+        pendingMasSeriesOptIn: {
+          needsRetry: false,
+          subscriptionId: null,
         },
         benefits: [],
         benefitsLoading: false,
