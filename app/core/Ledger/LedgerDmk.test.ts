@@ -145,16 +145,19 @@ describe('LedgerDmk', () => {
     const mockSessionId = 'mock-session-id';
     it('calls keyring.updateSessionId', async () => {
       await connectLedgerDmkHardware(mockSessionId, 'bar');
+
       expect(mockBridge.updateSessionId).toHaveBeenCalled();
     });
 
     it('calls keyring.getAppAndVersion', async () => {
       await connectLedgerDmkHardware(mockSessionId, 'bar');
+
       expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
-    it('returns app name correctly', async () => {
+    it('returns the app name from the bridge', async () => {
       const value = await connectLedgerDmkHardware(mockSessionId, 'bar');
+
       expect(value).toBe('appName');
     });
 
@@ -249,7 +252,7 @@ describe('LedgerDmk', () => {
       ).rejects.toThrow('Expected LedgerKeyring');
     });
 
-    it('throws when the bridge lacks updateSessionId and skips app metadata request', async () => {
+    it('throws when the bridge lacks updateSessionId', async () => {
       const updateSessionId = mockBridge.updateSessionId;
       delete (mockBridge as { updateSessionId?: unknown }).updateSessionId;
 
@@ -271,7 +274,7 @@ describe('LedgerDmk', () => {
       }
     });
 
-    it('throws when updateSessionId fails to bind the session and skips app metadata request', async () => {
+    it('throws when updateSessionId fails to bind the session', async () => {
       mockBridge.updateSessionId.mockResolvedValueOnce(false);
 
       const error = await connectLedgerDmkHardware(mockSessionId, 'bar').catch(
@@ -288,7 +291,7 @@ describe('LedgerDmk', () => {
   });
 
   describe('connectLedgerDmkDevice', () => {
-    it('connects through the keyring bridge and returns the session id', async () => {
+    it('returns the session id from the keyring bridge connection', async () => {
       const device = { id: 'device-1' } as DiscoveredDevice;
       mockBridge.connect.mockResolvedValue('bridge-session-id');
 
