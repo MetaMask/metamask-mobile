@@ -61,11 +61,12 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   );
   const [refreshing, setRefreshing] = useState(false);
 
-  const { positions, isLoading, isError, refresh } = useDeFiPositionsV2({
-    enabled: true,
-    // Full view / list surface is the viewport — fetch immediately when mounted.
-    isVisible: true,
-  });
+  const { positions, isLoading, isError, hasFetched, refresh } =
+    useDeFiPositionsV2({
+      enabled: true,
+      // Full view / list surface is the viewport — fetch immediately when mounted.
+      isVisible: true,
+    });
 
   const formattedPositions = useMemo(() => {
     const filtered = filterDeFiPositionsByEnabledNetworks(
@@ -97,7 +98,10 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   }, [refresh]);
 
   const listLength = formattedPositions.length;
-  const isReady = !isLoading && !isError;
+  // Idle before the deferred first fetch settles looks like loaded-empty
+  // (isLoading false, positions []). Gate on hasFetched like DeFiSectionV2.
+  const isReady = hasFetched && !isLoading && !isError;
+  const showIdlePlaceholder = !hasFetched && !isLoading && !isError;
 
   const scrollViewProps = useMemo((): ScrollViewProps => {
     const base: ScrollViewProps = {
@@ -145,7 +149,7 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
     );
   }, [isFullView, isReady, listLength, trackEvent, createEventBuilder]);
 
-  if (isLoading) {
+  if (isLoading || showIdlePlaceholder) {
     return (
       <View style={styles.emptyView}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

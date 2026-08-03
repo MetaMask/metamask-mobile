@@ -138,6 +138,20 @@ describe('DeFiPositionsListV2', () => {
     expect(queryByTestId('control-bar')).toBeNull();
   });
 
+  it('renders the loading message before the first fetch settles', () => {
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({ hasFetched: false }),
+    );
+
+    const { getByText, queryByTestId } = renderComponent();
+
+    expect(
+      getByText(strings('defi_positions.loading_positions')),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('defi-empty-state')).toBeNull();
+    expect(queryByTestId('control-bar')).toBeNull();
+  });
+
   it('renders the error messages when in error state', () => {
     mockUseDeFiPositionsV2.mockReturnValue(makeHookResult({ isError: true }));
 
@@ -378,6 +392,16 @@ describe('DeFiPositionsListV2', () => {
 
   it('does not track the screen viewed event while loading', () => {
     mockUseDeFiPositionsV2.mockReturnValue(makeHookResult({ isLoading: true }));
+
+    renderComponent(true);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not track the screen viewed event before the first fetch settles', () => {
+    mockUseDeFiPositionsV2.mockReturnValue(
+      makeHookResult({ hasFetched: false }),
+    );
 
     renderComponent(true);
 
