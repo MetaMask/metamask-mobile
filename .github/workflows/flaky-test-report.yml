@@ -48,8 +48,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Playwright test health report
-        # Bumped for MMQA-2013 / MetaMask/github-tools#274 (test-source-prefix support).
-        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@c733aff51645dfc04cfe4ec6a3627941d402dbb0
+        # MetaMask/github-tools#274 (MMQA-2013) — test-source-prefix + path normalization.
+        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@a4a179a9ad2d02f6acb3c781e1b22a38bbc8dbca
         with:
           repository: ${{ github.event.repository.name }}
           workflow-ids: ci.yml
