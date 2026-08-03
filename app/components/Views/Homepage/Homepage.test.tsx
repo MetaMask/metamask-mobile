@@ -56,10 +56,12 @@ jest.mock('./Sections/NFTs/hooks', () => ({
 }));
 
 // Mock feature flags - enable all sections
+const mockPerpsEnabled = true;
 jest.mock('../../UI/Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(() => true),
+  selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
 }));
 
+const mockPerpsConnectionProvider = jest.fn();
 jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
   const ReactLib = jest.requireActual<typeof import('react')>('react');
   const PerpsConnectionContext = ReactLib.createContext({
@@ -75,8 +77,16 @@ jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
 
   return {
     PerpsConnectionContext,
-    PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    PerpsConnectionProvider: ({
       children,
+      isEnabled,
+    }: {
+      children: React.ReactNode;
+      isEnabled?: boolean;
+    }) => {
+      mockPerpsConnectionProvider({ isEnabled });
+      return children;
+    },
   };
 });
 
@@ -264,6 +274,18 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
   })),
 }));
 
+const mockBalanceBreakdownSection = jest.fn();
+jest.mock('./Sections/BalanceBreakdown', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockBalanceBreakdownSection(props);
+      return <View testID="balance-breakdown-section-mock" />;
+    },
+  };
+});
+
 jest.mock('./Sections/TopTraders/hooks', () => ({
   useTopTraders: jest.fn(() => ({
     traders: [],
@@ -409,6 +431,57 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+  });
+
+  it('uses one enabled Perps connection provider for the homepage', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: true,
+    });
+  });
+
+  it('keeps the shared provider inert when Perps is disabled', () => {
+    jest
+      .requireMock('../../UI/Perps')
+      .selectPerpsEnabledFlag.mockReturnValue(false);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: false,
+    });
+  });
+
+  it('renders the treatment breakdown before homepage sections when provided', () => {
+    const balanceBreakdownSectionProps = {
+      accountGroupBalanceProps: {},
+      hideRows: false,
+      layout: 'icons' as const,
+    };
+
+    renderWithProvider(
+      <Homepage balanceBreakdownSectionProps={balanceBreakdownSectionProps} />,
+      { state: stateWithPreferences },
+    );
+
+    expect(
+      screen.getByTestId('balance-breakdown-section-mock'),
+    ).toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
+      balanceBreakdownSectionProps,
+    );
+  });
+
+  it('does not render a breakdown section for control', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(
+      screen.queryByTestId('balance-breakdown-section-mock'),
+    ).not.toBeOnTheScreen();
+    expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
