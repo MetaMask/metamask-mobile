@@ -59,8 +59,8 @@ class DappConnectionModal {
   get editNetworksButton(): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '(//android.widget.TextView[@text="Edit"])[2]',
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
         ),
     });
   }
