@@ -66,7 +66,7 @@ import TEMPO_NATIVE from './tempo-native.png';
 import ARC_NATIVE from './arc-native-token-logo.png';
 import ROBINHOOD from './robinhood.png';
 import GNOSIS_NATIVE from './gnosis-native-token-logo.png';
-import ZERO_G_NATIVE from './0g-mainnet-logo.png';
+import ZERO_G_NATIVE from './0g-native-logo.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
