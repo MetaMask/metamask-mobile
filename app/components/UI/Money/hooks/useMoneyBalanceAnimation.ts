@@ -49,6 +49,7 @@ const useMoneyBalanceAnimation = (
   const identity = `${address ?? ''}|${currency}`;
   const identityRef = useRef(identity);
   const hasResolvedRef = useRef(false);
+  const lastAmountRef = useRef(amount);
 
   const [rendered, setRendered] = useState<RenderedBalance | undefined>(() => {
     const seed = isPersistedMoneyBalanceUsable(lastKnownBalance, {
@@ -62,14 +63,15 @@ const useMoneyBalanceAnimation = (
       : { amount: toDisplayAmount(seed), animated: false };
   });
 
-  // Mirrors `rendered` so the effect can read the committed value without
-  // depending on it, which would re-run on every animation flip.
   const renderedRef = useRef(rendered);
 
   useEffect(() => {
     if (amount === undefined) {
       return undefined;
     }
+
+    const hasNewAmount = lastAmountRef.current !== amount;
+    lastAmountRef.current = amount;
 
     const nextAmount = toDisplayAmount(amount);
     const isIdentityChange = identityRef.current !== identity;
@@ -83,6 +85,9 @@ const useMoneyBalanceAnimation = (
 
     const previousAmount = renderedRef.current?.amount;
     if (previousAmount === nextAmount) {
+      if (hasNewAmount && hasPendingUserOp) {
+        dispatch(clearMoneyBalanceUserOp());
+      }
       return undefined;
     }
 
@@ -107,15 +112,10 @@ const useMoneyBalanceAnimation = (
       return undefined;
     }
 
-    // NumberFlow renders static text until it has measured the font, and a value
-    // changing before then lands without animating. A cached balance has no
-    // loading phase to measure during, so the roll waits a frame for it.
     const frame = requestAnimationFrame(commit);
     return () => cancelAnimationFrame(frame);
   }, [amount, identity, hasPendingUserOp, dispatch]);
 
-  // `rendered` still holds the previous account's figure until the effect
-  // commits — reporting it would show one account's balance under another's.
   const isStaleIdentity = identityRef.current !== identity;
 
   return {

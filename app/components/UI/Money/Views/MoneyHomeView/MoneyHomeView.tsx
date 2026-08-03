@@ -240,9 +240,6 @@ const MoneyHomeView = () => {
   );
   const freshAmount =
     totalFiatRaw === undefined ? undefined : Number(totalFiatRaw);
-  // Tracked even while the feature is off, so a remote flag arriving mid-session
-  // switches to a figure that is already current rather than rolling up from a
-  // seed the static balance has long since moved past.
   const { amount: balanceAmount, animated: isBalanceAnimated } =
     useMoneyBalanceAnimation(freshAmount);
 

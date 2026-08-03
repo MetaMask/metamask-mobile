@@ -95,8 +95,6 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
         isPerpsPredictMoneyActivity(transactionMeta);
       if (!affectsMoneyBalance) return;
 
-      // Marks the balance change as user-caused so the display rolls to it
-      // instead of swapping silently the way a background poll does.
       store.dispatch(markMoneyBalanceUserOp());
 
       refreshMoneyBalanceQueries(address).catch((error) => {

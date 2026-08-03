@@ -73,7 +73,6 @@ describe('useMoneyBalanceAnimation', () => {
   it('rolls from the anchor to the first resolved balance', async () => {
     const { result } = renderBalance(120.5);
 
-    // The roll is held back a frame so NumberFlow can measure its font first.
     expect(result.current.amount).toBe(100);
 
     await waitFor(() => expect(result.current.amount).toBe(120.5));
@@ -119,6 +118,20 @@ describe('useMoneyBalanceAnimation', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(clearMoneyBalanceUserOp());
   });
 
+  it('consumes the signal when the balance settles without moving the rendered figure', () => {
+    arrangeSelectors({ lastKnownBalance: null });
+    const { result, rerender } = renderBalance(120.5);
+    expect(result.current.amount).toBe(120.5);
+
+    arrangeSelectors({ lastKnownBalance: null, hasPendingUserOp: true });
+    rerender(120.5);
+    mockDispatch.mockClear();
+
+    rerender(120.504);
+
+    expect(mockDispatch).toHaveBeenCalledWith(clearMoneyBalanceUserOp());
+  });
+
   it('ignores drift below the rendered precision', () => {
     arrangeSelectors({ lastKnownBalance: null });
     const { result, rerender } = renderBalance(120.5);
@@ -148,8 +161,6 @@ describe('useMoneyBalanceAnimation', () => {
     arrangeSelectors({ lastKnownBalance: null });
     rerender(undefined);
 
-    // Reporting the previous figure here would show one account's balance
-    // under another's name.
     expect(result.current.amount).toBeUndefined();
     expect(result.current.animated).toBe(false);
   });

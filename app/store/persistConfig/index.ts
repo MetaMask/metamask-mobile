@@ -207,13 +207,6 @@ type PersistedMoneyBalanceState = Omit<
   'hasPendingUserOp'
 >;
 
-/**
- * `hasPendingUserOp` marks a balance change as caused by the user so the
- * display rolls to it. It is meaningful only for the transaction that raised
- * it — persisting it would let a later background update animate as though the
- * user had caused it, and a flag raised for a balance that never moves at
- * display precision would never be consumed.
- */
 const persistMoneyBalanceTransform = createTransform<
   MoneyBalanceSliceState,
   PersistedMoneyBalanceState

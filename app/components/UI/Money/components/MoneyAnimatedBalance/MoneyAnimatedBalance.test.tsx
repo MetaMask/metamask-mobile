@@ -59,8 +59,6 @@ describe('MoneyAnimatedBalance', () => {
     render(<MoneyAnimatedBalance amount={1234.56} animated />);
     const balance = mockNumberFlow.mock.calls[0][0];
 
-    // A drift here would measure into a different cache entry, leaving the
-    // real balance unmeasured and losing its first roll.
     expect(warmer.style).toEqual(balance.style);
     expect(warmer.format).toEqual(balance.format);
     expect(warmer.locales).toEqual(balance.locales);

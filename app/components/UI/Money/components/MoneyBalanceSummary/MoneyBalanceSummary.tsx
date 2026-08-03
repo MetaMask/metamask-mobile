@@ -122,8 +122,6 @@ const MoneyBalanceSummary = ({
   const renderBalanceSlot = () => {
     switch (displayState.kind) {
       case 'balance':
-        // Rolling digits cannot render bullets, so privacy mode keeps the
-        // static SensitiveText path — as does the feature flag being off.
         if (privacyMode || !isBalanceAnimationEnabled) {
           return wrapPressable(
             <SensitiveText

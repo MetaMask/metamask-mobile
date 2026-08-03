@@ -8,11 +8,6 @@ export interface PersistedMoneyBalance {
   address: string;
   /** Formatted fiat balance, e.g. "$2,384.34". */
   value: string;
-  /**
-   * Numeric balance behind `value`. Absent for entries persisted before this
-   * field existed, in which case the balance animation has no anchor to roll
-   * from on the next launch.
-   */
   amount?: number;
   /** Currency code the value was formatted in, e.g. "USD". */
   currency: string;
@@ -22,11 +17,6 @@ export interface PersistedMoneyBalance {
 
 export interface MoneyBalanceSliceState {
   lastKnownBalance: PersistedMoneyBalance | null;
-  /**
-   * Set when a money-affecting transaction confirms, and consumed by the balance
-   * display once the resulting figure lands. Distinguishes a change the user
-   * caused from one that arrived on a background poll.
-   */
   hasPendingUserOp: boolean;
 }
 

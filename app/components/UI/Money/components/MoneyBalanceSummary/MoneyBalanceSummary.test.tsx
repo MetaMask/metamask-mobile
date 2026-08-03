@@ -59,8 +59,6 @@ describe('MoneyBalanceSummary', () => {
       />,
     );
 
-    // The rolling digits carry the figure on their accessibility label; the
-    // rendered text also contains NumberFlow's offscreen glyph measurement.
     expect(getByLabelText('$123.45')).toBeOnTheScreen();
   });
 

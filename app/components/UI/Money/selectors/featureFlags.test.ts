@@ -964,7 +964,6 @@ describe('selectMoneyBalanceAnimationEnabledFlag', () => {
   it.each([
     ['remote flag is enabled and the version requirement is met', true, 'true'],
     ['remote flag is disabled', false, 'false'],
-    // Unreleased, so an absent remote flag must not turn it on.
     ['remote flag is absent and env is unset', undefined, undefined],
     ['remote flag is absent but env opts in', undefined, 'true'],
   ])('resolves when the %s', (_name, remote, env) => {
