@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
@@ -18,8 +16,6 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPredictBalanceAlert({
   pendingAmount,
@@ -39,27 +35,18 @@ export function useInsufficientPredictBalanceAlert({
     TransactionType.predictWithdraw,
   ]);
 
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
-  );
-  const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
-
   const isPendingInput = pendingAmount !== undefined;
 
   const isInsufficient = useMemo(() => {
     if (!isPredictWithdraw) return false;
 
-    // When the destination is the Money Account, the withdrawn funds bridge
-    // into it and the vault deposit runs post-Relay; the predict balance/fees
-    // check does not apply. useInsufficientMoneyAccountBalanceAlert covers it.
-    if (isMoneyPaymentOverride) return false;
-
     if (new BigNumber(predictBalanceHuman ?? '0').isLessThan(amountHuman)) {
       return true;
     }
 
-    // Skip during input — totals may be stale.
+    // Predict withdraws are EXACT_INPUT: fees are deducted from the receive
+    // amount, never added on top of the entered amount. Only guard against
+    // fees consuming the entire withdrawal.
     if (
       !isPendingInput &&
       hasQuotes &&
@@ -71,11 +58,7 @@ export function useInsufficientPredictBalanceAlert({
         .plus(totals.fees.targetNetwork?.usd ?? 0)
         .plus(totals.fees.metaMask?.usd ?? 0);
 
-      if (
-        new BigNumber(amountHuman)
-          .plus(totalFees)
-          .isGreaterThan(predictBalanceHuman ?? '0')
-      ) {
+      if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
     }
@@ -84,7 +67,6 @@ export function useInsufficientPredictBalanceAlert({
   }, [
     amountHuman,
     hasQuotes,
-    isMoneyPaymentOverride,
     isPendingInput,
     isPredictWithdraw,
     predictBalanceHuman,

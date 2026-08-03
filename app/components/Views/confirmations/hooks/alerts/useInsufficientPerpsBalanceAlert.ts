@@ -4,7 +4,6 @@ import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
@@ -17,7 +16,6 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
@@ -40,27 +38,14 @@ export function useInsufficientPerpsBalanceAlert({
         ?.withdrawableBalance,
   );
 
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
-  );
-  const isMoneyAccountWithdraw =
-    paymentOverride === PaymentOverride.MoneyAccount;
-
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
-  const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
 
   const isPendingInput = pendingAmount !== undefined;
 
   const isInsufficient = useMemo(() => {
     if (!isPerpsWithdraw) return false;
-
-    // When the destination is the Money Account, the withdrawn funds bridge
-    // into it and the vault deposit runs post-Relay; the perps balance/fees
-    // check does not apply. useInsufficientMoneyAccountBalanceAlert covers it.
-    if (isMoneyPaymentOverride) return false;
 
     if (
       withdrawableBalance !== undefined &&
@@ -85,27 +70,12 @@ export function useInsufficientPerpsBalanceAlert({
       if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
-
-      // Standard withdrawals deduct fees from the receive amount, so only
-      // money-account withdrawals need balance to cover amount + fees.
-      if (
-        isMoneyAccountWithdraw &&
-        withdrawableBalance !== undefined &&
-        withdrawableBalance !== null &&
-        new BigNumber(amountHuman)
-          .plus(totalFees)
-          .isGreaterThan(withdrawableBalance)
-      ) {
-        return true;
-      }
     }
 
     return false;
   }, [
     amountHuman,
     hasQuotes,
-    isMoneyPaymentOverride,
-    isMoneyAccountWithdraw,
     isPendingInput,
     isPerpsWithdraw,
     withdrawableBalance,

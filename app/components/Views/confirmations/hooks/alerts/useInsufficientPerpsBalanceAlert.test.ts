@@ -241,7 +241,7 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert when amount + fees exceed withdrawable balance for money account withdrawal', () => {
+  it('does not alert for money account withdrawal when amount + fees exceed balance', () => {
     useTokenAmountMock.mockReturnValue({
       amountPrecise: '40',
     } as ReturnType<typeof useTokenAmount>);
@@ -261,8 +261,7 @@ describe('useInsufficientPerpsBalanceAlert', () => {
 
     const { result } = runHook({ isMoneyAccountWithdraw: true });
 
-    expect(result.current).toHaveLength(1);
-    expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
+    expect(result.current).toStrictEqual([]);
   });
 
   it('does not alert for standard withdrawal when amount + fees exceed balance', () => {
