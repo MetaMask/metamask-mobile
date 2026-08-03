@@ -595,12 +595,13 @@ jobs:
       needs.ensure-fingerprint.result == 'success' &&
       (needs.upload-reused-apks-to-testmu.result == 'skipped' || needs.upload-reused-apks-to-testmu.result == 'success') &&
       (
-          (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
+          !inputs.browserstack_app_url_android_onboarding &&
+          !inputs.browserstack_app_url_android_imported_wallet &&
           (
             !inputs.reuse_main_builds ||
             needs.resolve-main-browserstack-urls.outputs.found != 'true'
           )
-        ) ||
+        ||
         (
           inputs.enable_testmu_benchmark != false &&
           needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
