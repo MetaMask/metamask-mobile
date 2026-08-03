@@ -1,13 +1,13 @@
 /**
  * Component View tests for the Account Already Exists screen.
  *
- * Mirrors (partial):
- * - tests/smoke/seedless/apple-login-existing-user.spec.ts
- * - tests/smoke/seedless/google-login-existing-user.spec.ts
+ * Replaces former Appium seedless existing-user specs:
+ * - tests/smoke-appium/seedless/apple-login-existing-user.spec.ts (removed)
+ * - tests/smoke-appium/seedless/google-login-existing-user.spec.ts (removed)
  *
- * CV covers Account Already Exists UI and Login navigation after OAuth detects
- * an existing user. Full E2E still required for OAuth mockttp, onboarding sheet,
- * and native provider flows — see SocialLoginIosUser.view.test.tsx and E2E specs.
+ * CV owns Account Already Exists UI and Login / different-method navigation.
+ * OAuth → AccountAlreadyExists routing remains covered by
+ * Onboarding/index.test.tsx. Keep Appium for new-user Google/Apple smokes only.
  *
  * Run:
  * yarn jest -c jest.config.view.js AccountStatus.view.test.tsx --runInBand

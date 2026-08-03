@@ -11,8 +11,9 @@ import Routes from '../../../constants/navigation/Routes';
 /**
  * Component View tests for ImportNewSecretRecoveryPhrase (multi-SRP import flow).
  *
- * Mirrors (partial): tests/smoke-appium/accounts/import-srp.spec.ts
- * — screen render, disabled import button, and SRP validation error.
+ * Covers screen render / validation from accounts import-srp Appium;
+ * former google-login-add-srp Appium smoke removed. Successful vault import
+ * remains on SmokeAccounts import-srp.
  *
  * Run: yarn jest -c jest.config.view.js ImportNewSecretRecoveryPhrase.view.test.tsx --runInBand
  */
