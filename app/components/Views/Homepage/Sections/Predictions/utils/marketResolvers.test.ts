@@ -27,7 +27,7 @@ const createMarket = (
   image: 'https://example.com/image.png',
   status: 'open',
   recurrence: Recurrence.NONE,
-  category: 'world-cup',
+  category: 'sports',
   tags: ['world-cup'],
   outcomes: [],
   liquidity: 0,
