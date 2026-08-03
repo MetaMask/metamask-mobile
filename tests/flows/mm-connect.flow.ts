@@ -117,7 +117,10 @@ export async function loginCreateAccountsAndOpenDapp(
       for (let i = 0; i < extraHdAccounts; i++) {
         await AccountListBottomSheet.tapAddAccountButtonV2();
       }
-      await AccountListBottomSheet.tapAccountByName(MM_CONNECT_ACCOUNT_1_NAME);
+      await AccountListBottomSheet.tapAccountByNameV2(
+        MM_CONNECT_ACCOUNT_1_NAME,
+        true,
+      );
     }
     await launchMobileBrowser({ safelyOnboardChrome: true });
     await navigateToDapp(dappUrl);
