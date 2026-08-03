@@ -45,6 +45,7 @@ import {
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
   PERPS_CONNECTION_SOURCE,
+  PERPS_STALE_GRACE_PERIOD_TIMER_TOLERANCE_MS,
 } from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
@@ -567,8 +568,32 @@ class PerpsConnectionManagerClass {
 
     if (Device.isIos()) {
       // iOS: Start background timer, schedule with setTimeout, then stop immediately
+      const deadline = Date.now() + PERPS_CONSTANTS.ConnectionGracePeriodMs;
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
+        // `BackgroundTimer.stop()` below ends the background task as soon as the
+        // timer is armed, so iOS suspends the JS thread for the whole background
+        // period and this callback cannot run on schedule — it runs on the first
+        // tick after the app resumes, ahead of the AppState `active` event that
+        // would otherwise cancel it. Disconnecting there tears down a connection
+        // the user has just come back to, and every Perps read taken during the
+        // re-initialisation that follows fails with CLIENT_NOT_INITIALIZED —
+        // surfaced to the user as "<asset> is not a tradable asset" (TAT-3645).
+        // A callback this far past its deadline is therefore stale: the app is
+        // foregrounded again and `resumeFromForeground` owns the connection, so
+        // it pings and soft-reconnects only if the socket really did die.
+        if (
+          Date.now() - deadline >
+          PERPS_STALE_GRACE_PERIOD_TIMER_TOLERANCE_MS
+        ) {
+          DevLogger.log(
+            'PerpsConnectionManager: Ignoring stale grace period timer (app resumed from suspension)',
+          );
+          this.gracePeriodTimer = null;
+          this.isInGracePeriod = false;
+          return;
+        }
+
         this.performActualDisconnection().catch((error) => {
           Logger.error(
             ensureError(

@@ -160,6 +160,20 @@ export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
 
 /**
+ * How late an iOS grace-period disconnection timer may fire before it is treated
+ * as stale (TAT-3645).
+ *
+ * iOS suspends the JS thread while the app is backgrounded, so the grace-period
+ * timer cannot run on schedule — it fires on the first tick after the app
+ * resumes, which is exactly when the connection must be kept. A callback that
+ * overshoots its deadline by more than this tolerance therefore means the app
+ * was suspended and is now foregrounded again. The tolerance is generous enough
+ * to absorb ordinary JS-thread jitter while staying far below any real
+ * background gap.
+ */
+export const PERPS_STALE_GRACE_PERIOD_TIMER_TOLERANCE_MS = 5000;
+
+/**
  * Development-only configuration for testing and debugging
  * These constants are only active when __DEV__ is true
  */

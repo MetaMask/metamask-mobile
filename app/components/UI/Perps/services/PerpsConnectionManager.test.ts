@@ -130,10 +130,14 @@ const mockClearPendingPerpsCufTraces =
 const mockEndPerpsCufTrace = endPerpsCufTrace as jest.MockedFunction<
   typeof endPerpsCufTrace
 >;
-import { TradingReadinessCache } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  TradingReadinessCache,
+} from '@metamask/perps-controller';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
+import Device from '../../../../util/device';
 import { PerpsConnectionManager } from './PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
@@ -1325,6 +1329,92 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.positions.clearCache,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('scheduleGracePeriodDisconnection — stale iOS timer (TAT-3645)', () => {
+    const SCHEDULED_AT = 1_700_000_000_000;
+    const SUSPENDED_FOR_MS = 90_000;
+
+    interface SchedulableManager {
+      connectionRefCount: number;
+      scheduleGracePeriodDisconnection: () => void;
+    }
+
+    beforeEach(async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.disconnect.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+      mockPerpsController.disconnect.mockClear();
+      jest.mocked(Device.isIos).mockReturnValue(true);
+      jest.mocked(Device.isAndroid).mockReturnValue(false);
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('ignores a timer that fires long past its deadline because iOS suspended the JS thread', async () => {
+      const manager = PerpsConnectionManager as unknown as SchedulableManager;
+      manager.connectionRefCount = 0;
+      jest.setSystemTime(SCHEDULED_AT);
+
+      manager.scheduleGracePeriodDisconnection();
+      // The app is suspended for far longer than the grace period, so the timer
+      // only runs once the user unlocks the device and JS resumes.
+      jest.setSystemTime(
+        SCHEDULED_AT +
+          PERPS_CONSTANTS.ConnectionGracePeriodMs +
+          SUSPENDED_FOR_MS,
+      );
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isInGracePeriod).toBe(
+        false,
+      );
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Ignoring stale grace period timer'),
+      );
+    });
+
+    it('keeps the live connection usable after a stale timer is ignored', async () => {
+      const manager = PerpsConnectionManager as unknown as SchedulableManager;
+      manager.connectionRefCount = 0;
+      jest.setSystemTime(SCHEDULED_AT);
+
+      manager.scheduleGracePeriodDisconnection();
+      jest.setSystemTime(
+        SCHEDULED_AT +
+          PERPS_CONSTANTS.ConnectionGracePeriodMs +
+          SUSPENDED_FOR_MS,
+      );
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+
+      // Nothing was torn down, so a screen mounting right after unlock still
+      // reads market data instead of failing with CLIENT_NOT_INITIALIZED.
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isConnected).toBe(true);
+      expect(state.isInitialized).toBe(true);
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('still disconnects when the timer fires on schedule', async () => {
+      const manager = PerpsConnectionManager as unknown as SchedulableManager;
+      manager.connectionRefCount = 0;
+      jest.setSystemTime(SCHEDULED_AT);
+
+      manager.scheduleGracePeriodDisconnection();
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).toHaveBeenCalled();
     });
   });
 
