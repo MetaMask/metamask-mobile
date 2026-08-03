@@ -48,7 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Playwright test health report
-        # MetaMask/github-tools#274 (MMQA-2013) — test-source-prefix + path normalization.
         uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@a4a179a9ad2d02f6acb3c781e1b22a38bbc8dbca
         with:
           repository: ${{ github.event.repository.name }}
@@ -58,5 +57,4 @@ jobs:
           lookback-days: ${{ github.event_name == 'workflow_dispatch' && inputs.lookback_days || '1' }}
           top-n: '10'
           report-title: Playwright Test Health Report (Mobile Appium)
-          # Appium smoke testDir is tests/smoke-appium; Playwright paths are testDir-relative.
           test-source-prefix: tests/smoke-appium
