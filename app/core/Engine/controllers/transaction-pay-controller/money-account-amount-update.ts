@@ -91,6 +91,14 @@ async function updateMoneyAccountDepositAmountInternal(
   const amountRaw = calcTokenValue(amountHuman, MUSD_DECIMALS)
     .decimalPlaces(0, BigNumber.ROUND_UP)
     .toFixed(0);
+
+  // Pay pushes every amount change, including the field being cleared. There is
+  // nothing to commit for a zero amount, and the deposit builder rejects it
+  // rather than encode a deposit that mints nothing.
+  if (BigInt(amountRaw) === 0n) {
+    return false;
+  }
+
   const depositAssetAddress = getMoneyAccountDepositAssetAddress(chainId);
   const buildResult = await buildMoneyAccountDepositBatch({
     amount: BigInt(amountRaw),

@@ -184,7 +184,7 @@
     ]
   },
   "resolutions": {
-    "@metamask/money-account-utils": "npm:@metamask-previews/money-account-utils@1.0.0-preview-a42e8d0d2",
+    "@metamask/money-account-utils": "npm:@metamask-previews/money-account-utils@1.0.0-preview-7aa2077d5",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",

@@ -9457,16 +9457,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-utils@npm:@metamask-previews/money-account-utils@1.0.0-preview-a42e8d0d2":
-  version: 1.0.0-preview-a42e8d0d2
-  resolution: "@metamask-previews/money-account-utils@npm:1.0.0-preview-a42e8d0d2"
+"@metamask/money-account-utils@npm:@metamask-previews/money-account-utils@1.0.0-preview-7aa2077d5":
+  version: 1.0.0-preview-7aa2077d5
+  resolution: "@metamask-previews/money-account-utils@npm:1.0.0-preview-7aa2077d5"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/abstract-provider": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@metamask/transaction-controller": "npm:^69.3.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/5858ec4f36284b86479613a0382eb4b70a7901ef961652ec0bea36ff7c33618b522c86f26f369982ac6b75ed255d115bd0324526f961fb4396460a89f63c0651
+  checksum: 10/679309862773a322301c69b49c037307695068b79fc4fe4fe95177b71146fdf125a11c9f0cff7be038130b406caa6cf710c8ea345c11e75aabf2260656b3d7f0
   languageName: node
   linkType: hard
 

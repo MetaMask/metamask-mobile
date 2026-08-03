@@ -12,7 +12,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
   buildMoneyAccountDepositPlaceholderBatch,
-  buildMoneyAccountWithdrawBatch,
+  buildMoneyAccountWithdrawPlaceholderBatch,
   getMoneyAccountDepositAssetAddress,
 } from '@metamask/money-account-utils';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -253,10 +253,11 @@ export function useMoneyAccountWithdrawal() {
       throw new Error(`${LOG_TAG} Missing recipient EVM address`);
     }
 
-    const { chainId, tellerAddress, accountantAddress } = vaultConfig;
+    const { chainId, tellerAddress } = vaultConfig;
 
-    const provider = getProviderByChainId(chainId);
-    if (!provider) {
+    // The placeholder batch needs no vault reads, but an unreachable chain
+    // should still fail before we navigate to a confirmation.
+    if (!getProviderByChainId(chainId)) {
       throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
     }
 
@@ -273,17 +274,10 @@ export function useMoneyAccountWithdrawal() {
       // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
       await waitForNextFrame();
 
-      // Placeholder amount — MM Pay re-encodes both calls via
+      // Placeholder batch — MM Pay re-encodes both calls via
       // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
-      const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(0),
-        chainId,
-        tellerAddress,
-        accountantAddress,
-        moneyAccountAddress: primaryMoneyAccount.address as Hex,
-        recipient: recipient as Hex,
-        provider,
-      });
+      const { withdrawTx, transferTx } =
+        buildMoneyAccountWithdrawPlaceholderBatch({ chainId, tellerAddress });
 
       await addTransactionBatch({
         disableHook: true,
