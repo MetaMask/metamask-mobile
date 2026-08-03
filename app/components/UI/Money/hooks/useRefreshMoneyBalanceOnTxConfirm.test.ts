@@ -149,9 +149,8 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
       expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+      expect(store.dispatch).toHaveBeenCalledWith(markMoneyBalanceUserOp());
     });
-
-    expect(store.dispatch).toHaveBeenCalledWith(markMoneyBalanceUserOp());
   });
 
   it('does not mark a transaction that leaves the Money balance alone', () => {

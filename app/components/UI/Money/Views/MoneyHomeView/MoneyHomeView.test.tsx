@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
@@ -2021,14 +2021,14 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-      await Promise.resolve();
-
-      expect(Logger.default.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: expect.stringContaining('mUSD row'),
-        }),
-      );
+      await waitFor(() => {
+        expect(Logger.default.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: expect.stringContaining('mUSD row'),
+          }),
+        );
+      });
     });
 
     it('tracks the mUSD row Add click with the deposit redirect target', () => {
@@ -2391,14 +2391,14 @@ describe('MoneyHomeView', () => {
         ),
       );
 
-      await Promise.resolve();
-
-      expect(Logger.default.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          message: expect.stringContaining('MoneyHomeView'),
-        }),
-      );
+      await waitFor(() => {
+        expect(Logger.default.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: expect.stringContaining('MoneyHomeView'),
+          }),
+        );
+      });
     });
   });
 
