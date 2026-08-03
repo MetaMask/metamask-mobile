@@ -339,6 +339,10 @@ describe('PerpsProMarketView', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('swaps the route market in place when a positions-panel row is tapped', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [ethPosition],
@@ -389,8 +393,6 @@ describe('PerpsProMarketView', () => {
     rerender(<PerpsProMarketView />);
 
     expect(scrollToSpy).toHaveBeenCalledWith({ y: 0, animated: false });
-
-    scrollToSpy.mockRestore();
   });
 
   it.each([
