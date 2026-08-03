@@ -127,13 +127,13 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 
 Performance E2E never runs on push. Coverage comes from PR selection on `main` plus a fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
 
-| Event                             | Behavior                                                                                                                   |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                                       |
-| PR targeting `main`               | Smart E2E Selection decides which performance tags to run (or none). The `run-performance-tests` label forces the full Android low-profile suite regardless of the AI's decision. |
-| PR targeting `release/*` or `stable` | No automatic performance run — Smart E2E Selection returns no performance tags for these base branches. The `run-performance-tests` label still forces a full run. |
-| Scheduled (Mon–Sat)                | Two staggered schedules from `main`: `e2e` builds every 3 hours starting at 00:00 UTC, `exp` builds every 3 hours starting at 01:00 UTC. |
-| Manual dispatch                    | Run against any branch/tag/commit with any build variant (`e2e`, `exp`, or `rc`).                                          |
+| Event                                 | Behavior                                                                                                                                                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                                                                                             |
+| PR targeting `main`                   | Smart E2E Selection decides which performance tags to run (or none). The `run-performance-tests` label forces the full Android low-profile suite regardless of the AI's decision. |
+| PR targeting `release/*` or `stable`  | No automatic performance run — CI ignores AI performance selection for these base branches. The `run-performance-tests` label still forces a full run.                            |
+| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.                                                                                |
+| Manual dispatch                       | Run against any branch/tag/commit with any build variant (`e2e`, `exp`, or `rc`).                                                                                                 |
 
 Workflow layout:
 
