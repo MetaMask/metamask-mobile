@@ -102,6 +102,7 @@ const defaultControllerReturn = {
   providers: mockProviders,
   selectedProvider: mockProviders[0],
   setSelectedProvider: mockSetSelectedProvider,
+  setSelectedProviderForAsset: jest.fn(),
   selectedPaymentMethod: {
     id: '/payments/debit-credit-card-1',
     paymentType: 'debit-credit-card',
