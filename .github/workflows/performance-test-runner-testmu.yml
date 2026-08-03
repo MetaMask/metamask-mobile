@@ -62,11 +62,6 @@ on:
         required: true
         type: string
         description: 'TestMu AI username'
-      he_concurrency:
-        required: false
-        type: string
-        default: '2'
-        description: 'HyperExecute autosplit concurrency'
       # LT_ACCESS_KEY is a secret (passed via secrets: inherit / secrets.LT_ACCESS_KEY).
       # It cannot be a workflow_call input — secrets.* is illegal in caller `with:`.
       he_concurrency:
