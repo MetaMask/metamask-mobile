@@ -1,18 +1,18 @@
 import type { OpenrpcDocument } from '@open-rpc/meta-schema';
 import { MOCK_RPC_PORT } from './openrpc-document.js';
 
-interface ClosableTransport {
-  close?: () => void;
+interface StoppableTransport {
+  stop?: () => void;
 }
 
 interface OpenRpcMockServer {
   start: () => void;
-  transports?: ClosableTransport[];
+  transports?: StoppableTransport[];
 }
 
 /**
  * Start `@open-rpc/mock-server` for api-specs (wallet fixture points at :8545).
- * Returns a stop handle — Server has no public stop API, so we close transports.
+ * Returns a stop handle — Server has no public stop API, so we stop transports.
  */
 export function startOpenRpcMockServer(
   openrpcDocument: OpenrpcDocument,
@@ -29,7 +29,8 @@ export function startOpenRpcMockServer(
     stop: () => {
       for (const transport of server.transports ?? []) {
         try {
-          transport.close?.();
+          // HTTPTransport (server-js) exposes stop(), not close().
+          transport.stop?.();
         } catch {
           // Best-effort teardown between Playwright workers / retries.
         }
