@@ -485,9 +485,10 @@ export type RewardsControllerOptInToCampaignAction = {
 
 /**
  * Opt a subscription into multiple campaigns in one batch.
- * POSTs each opt-in sequentially, then invalidates once per campaign and
- * publishes a single `campaignOptedIn` so UI listeners do not refetch after
- * every intermediate opt-in (important for series campaigns).
+ * POSTs each opt-in sequentially (up to 3 attempts per campaign on throw or
+ * non-opted-in response), continues after exhausted failures, then invalidates
+ * once per campaign and publishes a single `campaignOptedIn` so UI listeners
+ * do not refetch after every intermediate opt-in (important for series campaigns).
  * Participant-status cache entries are re-seeded from the POST responses so
  * post-event status fetches hit cache instead of the network.
  * @param campaignIds - Campaign IDs to opt into, in call order.
