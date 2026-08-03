@@ -388,7 +388,7 @@ describe('PerpsProMarketView', () => {
     };
     rerender(<PerpsProMarketView />);
 
-    expect(scrollToSpy).toHaveBeenCalledWith({ y: 0, animated: true });
+    expect(scrollToSpy).toHaveBeenCalledWith({ y: 0, animated: false });
 
     scrollToSpy.mockRestore();
   });

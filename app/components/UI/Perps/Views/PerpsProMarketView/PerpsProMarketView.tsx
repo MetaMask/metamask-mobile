@@ -112,9 +112,10 @@ const PerpsProMarketView = () => {
 
   // Bring the chart back into view when the active market changes (e.g. the
   // user tapped a positions/orders row while scrolled down). Matches Lite's
-  // related-markets behaviour in PerpsMarketDetailsView.
+  // related-markets behaviour in PerpsMarketDetailsView, including
+  // `animated: false` so a near-top scroll doesn't flash an animation.
   useEffect(() => {
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   }, [market?.symbol]);
 
   const handleCollapseOrderBook = useCallback(() => {
