@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import {
+  PerpsProMarketViewSelectorsIDs,
+  PerpsProOrderFormSelectorsIDs,
+} from '../../../../Perps.testIds';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
@@ -73,6 +76,39 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it('shows available balance with add funds action below the size input', () => {
+      renderForm({
+        availableBalance: '$250 available',
+        onAddFundsPress: jest.fn(),
+      });
+
+      expect(screen.getByTestId(ids.AVAILABLE_BALANCE)).toHaveTextContent(
+        '$250 available',
+      );
+      expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('announces the available balance and the add funds action to screen readers', () => {
+      renderForm({
+        availableBalance: '$250 available',
+        onAddFundsPress: jest.fn(),
+      });
+
+      const addFundsButton = screen.getByTestId(ids.ADD_FUNDS_BUTTON);
+
+      expect(addFundsButton).toHaveAccessibleName('$250 available');
+      expect(addFundsButton.props.accessibilityHint).toBe('Add funds');
+    });
+
+    it('calls onAddFundsPress when the available balance text is pressed', () => {
+      const onAddFundsPress = jest.fn();
+      renderForm({ availableBalance: '$250 available', onAddFundsPress });
+
+      fireEvent.press(screen.getByTestId(ids.AVAILABLE_BALANCE));
+
+      expect(onAddFundsPress).toHaveBeenCalledTimes(1);
     });
 
     it('connects each iOS numeric input to its own keyboard accessory', () => {
@@ -194,6 +230,22 @@ describe('PerpsProOrderForm', () => {
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
     });
 
+    it('calls onSlippagePress when the slippage value is pressed', () => {
+      const onSlippagePress = jest.fn();
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          slippage: '0.50% / 1%',
+          onSlippagePress,
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
+
+      expect(onSlippagePress).toHaveBeenCalledTimes(1);
+    });
+
     it('disables Place Order when requested', () => {
       renderForm({ isPlaceOrderDisabled: true });
 
@@ -212,6 +264,68 @@ describe('PerpsProOrderForm', () => {
       renderForm({ orderType: 'limit' });
 
       expect(screen.getByTestId(testID)).toBeDisabled();
+    });
+  });
+
+  describe('direction control', () => {
+    it('fills the remaining row width whether or not the order book icon is shown', () => {
+      const { rerender } = renderForm();
+
+      expect(screen.getByTestId(ids.DIRECTION_CONTROL)).toHaveStyle({
+        flexGrow: 1,
+      });
+
+      rerender(
+        <PerpsProOrderForm {...createProps({ isOrderBookCollapsed: true })} />,
+      );
+
+      expect(screen.getByTestId(ids.DIRECTION_CONTROL)).toHaveStyle({
+        flexGrow: 1,
+      });
+    });
+
+    it('calls onDirectionChange when the order book icon is also shown', () => {
+      const onDirectionChange = jest.fn();
+      renderForm({ isOrderBookCollapsed: true, onDirectionChange });
+
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+
+      expect(onDirectionChange).toHaveBeenCalledWith('short');
+    });
+  });
+
+  describe('order book expand icon', () => {
+    it('omits the order book icon by default', () => {
+      renderForm();
+
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the order book icon when the order book is collapsed', () => {
+      renderForm({ isOrderBookCollapsed: true });
+
+      expect(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onExpandOrderBook when the order book icon is pressed', () => {
+      const onExpandOrderBook = jest.fn();
+      renderForm({ isOrderBookCollapsed: true, onExpandOrderBook });
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        ),
+      );
+
+      expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -253,6 +367,14 @@ describe('PerpsProOrderForm', () => {
 
       expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
         height: 20,
+      });
+    });
+
+    it('uses no horizontal padding on summary rows so they align with the form', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+        paddingHorizontal: 0,
       });
     });
   });

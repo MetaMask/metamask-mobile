@@ -38,7 +38,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
     buyErrors,
     sellErrors,
     focusedField,
-    focusedValue,
+    keypadValue,
     isValid,
     handleFieldPress,
     handleKeypadChange,
@@ -122,7 +122,7 @@ const QuickBuyEditQuickAmountsScreen: React.FC = () => {
 
       <Box twClassName="px-4 pt-3 pb-4" testID="quick-buy-edit-amounts-keypad">
         <KeypadComponent
-          value={focusedValue}
+          value={keypadValue}
           onChange={handleKeypadChange}
           currency={keypadCurrency}
           decimals={keypadDecimals}

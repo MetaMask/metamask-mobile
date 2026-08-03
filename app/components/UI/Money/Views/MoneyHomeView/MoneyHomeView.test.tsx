@@ -46,6 +46,8 @@ import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
@@ -95,6 +97,7 @@ const mockDepositTokens = [
     address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     chainId: '0x1',
     decimals: 6,
+    balance: '5000',
     balanceInSelectedCurrency: '$5,000.00',
     fiat: { balance: 5000 },
   },
@@ -115,6 +118,12 @@ jest.mock('../../components/MoneyNextBestActionParallax', () => ({
   default: () => null,
   PARALLAX_ARTBOARD_FUND: 'Parallax Block 1',
   PARALLAX_ARTBOARD_CARD: 'Parallax Block 2',
+}));
+
+// Animated Rive card thumbnail pulls in device sensors; not exercised here.
+jest.mock('../../components/MoneyCardTiltAnimation', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
@@ -267,13 +276,16 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 
 const mockTrackButtonClicked = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
+const mockTrackTooltipClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackButtonClicked: mockTrackButtonClicked,
-    trackTooltipClicked: jest.fn(),
+    trackTooltipClicked: mockTrackTooltipClicked,
     trackSurfaceClicked: mockTrackSurfaceClicked,
-    trackTokenButtonClicked: jest.fn(),
-    trackTokenSurfaceClicked: jest.fn(),
+    trackTokenButtonClicked: mockTrackTokenButtonClicked,
+    trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
     trackActivitySurfaceClicked: jest.fn(),
     trackScreenViewed: jest.fn(),
   })),
@@ -1300,6 +1312,18 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  it('tracks source context when the section info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
+
+    expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
+    });
+  });
+
   it('navigates to Card root when Get now row is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -2313,6 +2337,37 @@ describe('MoneyHomeView', () => {
             address: mockDepositTokens[0].address,
           }),
         }),
+      );
+    });
+
+    it('tracks positive balance when a token Convert button is pressed', async () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const potentialEarnings = getByTestId(
+        MoneyPotentialEarningsTestIds.CONTAINER,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          within(potentialEarnings).getByText(
+            strings('money.potential_earnings.add'),
+          ),
+        );
+      });
+
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ token_has_balance: true }),
+      );
+    });
+
+    it('tracks positive balance when a token row is pressed', async () => {
+      const { getByText } = renderWithProvider(<MoneyHomeView />);
+
+      await act(async () => {
+        fireEvent.press(getByText(mockDepositTokens[0].name));
+      });
+
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith(
+        expect.objectContaining({ token_has_balance: true }),
       );
     });
 

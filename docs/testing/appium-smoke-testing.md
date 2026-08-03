@@ -178,6 +178,24 @@ Ensure the emulator is running before starting tests.
 
 Both use `tests/playwright.smoke-appium.config.ts`. Pass standard Playwright flags: `--grep`, file paths, `--debug`, etc.
 
+## Session reuse and soft reload
+
+Local emulator/simulator Appium smoke **reuses one WebDriver session per Playwright worker** by default, and resets the app between tests via soft reload (`clearAppData` → `NATIVE_APP` context → relaunch → wait for `/state.json`).
+
+| Concern                               | Behavior                                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Session create                        | Once per worker (happy path). Logs `Reusing WebDriver session sessionId=...` on later tests. |
+| Between tests (`restartDevice: true`) | Soft reload — does **not** create a new Appium session.                                      |
+| Unhealthy session                     | Test-scoped `driver` fixture recreates once (`sessionRecreated=true` annotation).            |
+| BrowserStack                          | Session reuse stays **off** (legacy per-test sessions).                                      |
+| Rollback                              | `APPIUM_SESSION_REUSE=false` restores per-test session delete.                               |
+
+Helpers:
+
+- `isAppiumSessionReuseEnabled` — `tests/framework/fixtures/playwright/sessionReuse.ts`
+- `softReloadAppForFixtures` — `tests/framework/services/appium/softReloadApp.ts`
+- Worker fixtures — `deviceProvider` + `sharedSession` in `tests/framework/fixtures/playwright/`
+
 ## Reports and artifacts
 
 | Output                        | Path                                  |
