@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import AccountListFooter from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
@@ -9,9 +10,18 @@ import Logger from '../../../../../util/Logger';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectWalletsMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useAccountWalletOperationsLoadingStates } from '../../../../../util/accounts/useAccountWalletOperationsLoadingStates';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -42,6 +52,16 @@ jest.mock(
     useAccountWalletOperationsLoadingStates: jest.fn(),
   }),
 );
+jest.mock('../../../../../util/trace', () => ({
+  TraceName: {
+    CreateMultichainAccount: 'Create Multichain Account',
+  },
+  TraceOperation: {
+    AccountCreate: 'account.create',
+  },
+  endTrace: jest.fn(),
+  trace: jest.fn(),
+}));
 
 // Mock InteractionManager
 const { InteractionManager } = jest.requireActual('react-native');
@@ -52,10 +72,14 @@ const mockUseAccountWalletOperationsLoadingStates =
   useAccountWalletOperationsLoadingStates as jest.MockedFunction<
     typeof useAccountWalletOperationsLoadingStates
   >;
+const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+  typeof useFocusEffect
+>;
 
 describe('AccountListFooter', () => {
   const mockWalletId = 'keyring:test-wallet-id' as const;
   const mockKeyringId = 'test-keyring-id';
+  let focusCleanup: (() => void) | undefined;
 
   const mockWallet = {
     id: mockWalletId,
@@ -75,6 +99,12 @@ describe('AccountListFooter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    focusCleanup = undefined;
+
+    mockUseFocusEffect.mockImplementation((callback) => {
+      const cleanup = callback();
+      focusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
+    });
 
     (mockEngine as unknown as { context: unknown }).context = {
       MultichainAccountService: mockMultichainAccountService,
@@ -102,6 +132,42 @@ describe('AccountListFooter', () => {
         return { done: Promise.resolve() };
       },
     );
+  });
+
+  describe('Tracing', () => {
+    it('ends the create account trace when the screen loses focus during account creation', async () => {
+      let resolveCreateAccount: (() => void) | undefined;
+      const createAccountPromise = new Promise<void>((resolve) => {
+        resolveCreateAccount = resolve;
+      });
+      mockMultichainAccountService.createNextMultichainAccountGroup.mockReturnValue(
+        createAccountPromise,
+      );
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByText('Add account'));
+      focusCleanup?.();
+
+      expect(trace).toHaveBeenCalledWith({
+        name: TraceName.CreateMultichainAccount,
+        op: TraceOperation.AccountCreate,
+      });
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CreateMultichainAccount,
+      });
+
+      resolveCreateAccount?.();
+
+      await waitFor(() => {
+        expect(getByText('Add account')).toBeOnTheScreen();
+      });
+    });
   });
 
   describe('Rendering', () => {

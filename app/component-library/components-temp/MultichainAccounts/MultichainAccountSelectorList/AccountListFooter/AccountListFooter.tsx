@@ -1,6 +1,14 @@
-import React, { memo, useCallback, useState, useEffect, useMemo } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 
 import {
   Icon,
@@ -38,6 +46,7 @@ interface AccountListFooterProps {
 const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
+    const activeCreateTraceRef = useRef(false);
     const { styles } = useStyles(createStyles, {});
     const {
       areAnyOperationsLoading,
@@ -67,12 +76,35 @@ const AccountListFooter = memo(
     const wallet = walletsMap?.[walletId];
     const walletInfo = useWalletInfo(wallet);
 
+    const endCreateMultichainAccountTrace = useCallback(() => {
+      if (!activeCreateTraceRef.current) {
+        return;
+      }
+
+      activeCreateTraceRef.current = false;
+      endTrace({ name: TraceName.CreateMultichainAccount });
+    }, []);
+
     // End trace when the loading finishes
     useEffect(() => {
       if (!isLoading) {
-        endTrace({ name: TraceName.CreateMultichainAccount });
+        endCreateMultichainAccountTrace();
       }
-    }, [isLoading]);
+    }, [endCreateMultichainAccountTrace, isLoading]);
+
+    // End trace if the user navigates away before account creation completes.
+    useFocusEffect(
+      useCallback(
+        () => endCreateMultichainAccountTrace,
+        [endCreateMultichainAccountTrace],
+      ),
+    );
+
+    // Also end trace on unmount as a fallback for non-focus-driven teardown.
+    useEffect(
+      () => endCreateMultichainAccountTrace,
+      [endCreateMultichainAccountTrace],
+    );
 
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
@@ -114,6 +146,7 @@ const AccountListFooter = memo(
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.AccountCreate,
       });
+      activeCreateTraceRef.current = true;
 
       // Force immediate state update
       setIsLoading(true);
