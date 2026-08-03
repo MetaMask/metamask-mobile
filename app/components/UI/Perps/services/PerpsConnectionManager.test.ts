@@ -137,6 +137,7 @@ import {
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
+import { AppState } from 'react-native';
 import Device from '../../../../util/device';
 import { PerpsConnectionManager } from './PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
@@ -740,15 +741,15 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.getAccountState.mockResolvedValue({});
       await PerpsConnectionManager.connect();
 
-      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+      const latestStoreCallback = storeCallbacks[storeCallbacks.length - 1];
 
       // Simulate two rapid state changes within 50ms
       (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
-      storeCallback();
+      latestStoreCallback();
       (
         selectSelectedInternalAccountByScope as unknown as jest.Mock
       ).mockReturnValue(() => ({ address: '0xnew' }));
-      storeCallback();
+      latestStoreCallback();
 
       // Advance past the 50ms debounce window
       jest.advanceTimersByTime(60);
@@ -803,9 +804,9 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.getAccountState.mockResolvedValue({});
       await PerpsConnectionManager.connect();
 
-      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+      const latestStoreCallback = storeCallbacks[storeCallbacks.length - 1];
       (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
-      storeCallback();
+      latestStoreCallback();
 
       const m = PerpsConnectionManager as unknown as {
         stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null;
@@ -1001,6 +1002,10 @@ describe('PerpsConnectionManager', () => {
     describe('clearAllDexAbstractionCache (deprecated)', () => {
       it('delegates to clearAllSigningCache for backward compatibility', () => {
         // Act
+        // The deprecation warning is the point of this test: the deprecated
+        // alias must keep delegating until it is removed, so calling it here is
+        // unavoidable.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         PerpsConnectionManager.clearAllDexAbstractionCache();
 
         // Assert - should still clear all, just with new log message
@@ -1333,13 +1338,19 @@ describe('PerpsConnectionManager', () => {
   });
 
   describe('scheduleGracePeriodDisconnection — stale iOS timer (TAT-3645)', () => {
-    const SCHEDULED_AT = 1_700_000_000_000;
-    const SUSPENDED_FOR_MS = 90_000;
-
     interface SchedulableManager {
       connectionRefCount: number;
       scheduleGracePeriodDisconnection: () => void;
     }
+
+    const armGracePeriodWhileAppIs = (
+      appState: 'active' | 'background',
+    ): void => {
+      const manager = PerpsConnectionManager as unknown as SchedulableManager;
+      manager.connectionRefCount = 0;
+      AppState.currentState = appState;
+      manager.scheduleGracePeriodDisconnection();
+    };
 
     beforeEach(async () => {
       mockPerpsController.init.mockResolvedValue();
@@ -1353,21 +1364,16 @@ describe('PerpsConnectionManager', () => {
 
     afterEach(() => {
       jest.useRealTimers();
+      // Device mock return values survive jest.clearAllMocks(), so reset them
+      // here or every later describe inherits isIos() === true.
+      jest.mocked(Device.isIos).mockReset();
+      jest.mocked(Device.isAndroid).mockReset();
+      AppState.currentState = 'active';
     });
 
-    it('ignores a timer that fires long past its deadline because iOS suspended the JS thread', async () => {
-      const manager = PerpsConnectionManager as unknown as SchedulableManager;
-      manager.connectionRefCount = 0;
-      jest.setSystemTime(SCHEDULED_AT);
+    it('ignores a timer armed while backgrounded, because iOS can only run it once the app resumes', async () => {
+      armGracePeriodWhileAppIs('background');
 
-      manager.scheduleGracePeriodDisconnection();
-      // The app is suspended for far longer than the grace period, so the timer
-      // only runs once the user unlocks the device and JS resumes.
-      jest.setSystemTime(
-        SCHEDULED_AT +
-          PERPS_CONSTANTS.ConnectionGracePeriodMs +
-          SUSPENDED_FOR_MS,
-      );
       jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
       await Promise.resolve();
 
@@ -1380,17 +1386,20 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
-    it('keeps the live connection usable after a stale timer is ignored', async () => {
-      const manager = PerpsConnectionManager as unknown as SchedulableManager;
-      manager.connectionRefCount = 0;
-      jest.setSystemTime(SCHEDULED_AT);
+    it('ignores a backgrounded timer even for a lock barely longer than the grace period', async () => {
+      // A 20-25s lock overshoots the deadline by only a few seconds. Arm-time
+      // state still identifies it as a resume, so there is no blind band.
+      armGracePeriodWhileAppIs('background');
 
-      manager.scheduleGracePeriodDisconnection();
-      jest.setSystemTime(
-        SCHEDULED_AT +
-          PERPS_CONSTANTS.ConnectionGracePeriodMs +
-          SUSPENDED_FOR_MS,
-      );
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs + 1000);
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+    });
+
+    it('keeps the live connection usable after a stale timer is ignored', async () => {
+      armGracePeriodWhileAppIs('background');
+
       jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
       await Promise.resolve();
 
@@ -1404,12 +1413,11 @@ describe('PerpsConnectionManager', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('still disconnects when the timer fires on schedule', async () => {
-      const manager = PerpsConnectionManager as unknown as SchedulableManager;
-      manager.connectionRefCount = 0;
-      jest.setSystemTime(SCHEDULED_AT);
+    it('still disconnects when the grace period was armed while the app is active', async () => {
+      // In-app reference-count drop: the timer runs on schedule, so the normal
+      // grace-period disconnection must be preserved.
+      armGracePeriodWhileAppIs('active');
 
-      manager.scheduleGracePeriodDisconnection();
       jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
       await Promise.resolve();
       await Promise.resolve();

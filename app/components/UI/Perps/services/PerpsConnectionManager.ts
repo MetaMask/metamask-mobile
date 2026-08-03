@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import {
   addEventListener as netInfoAddEventListener,
   type NetInfoState,
@@ -45,7 +46,6 @@ import {
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
   PERPS_CONNECTION_SOURCE,
-  PERPS_STALE_GRACE_PERIOD_TIMER_TOLERANCE_MS,
 } from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
@@ -568,26 +568,31 @@ class PerpsConnectionManagerClass {
 
     if (Device.isIos()) {
       // iOS: Start background timer, schedule with setTimeout, then stop immediately
-      const deadline = Date.now() + PERPS_CONSTANTS.ConnectionGracePeriodMs;
+      //
+      // `BackgroundTimer.stop()` below ends the background task as soon as the
+      // timer is armed, so iOS suspends the JS thread for the rest of the
+      // background period. A grace period armed *because the app left the
+      // foreground* therefore cannot run its callback on schedule — it can only
+      // run once the app resumes, and it does so ahead of the AppState `active`
+      // event. Disconnecting there tears down a connection the user has just
+      // come back to, and every Perps read taken during the re-initialisation
+      // that follows fails with CLIENT_NOT_INITIALIZED — surfaced to the user as
+      // "<asset> is not a tradable asset" (TAT-3645).
+      //
+      // Checking whether the app is active *at fire time* does not work:
+      // `AppState.currentState` still reads `background` at that instant. So
+      // capture the state at ARM time instead. Armed while backgrounded means
+      // the callback is by definition running on a resume, whatever the lock
+      // lasted, and `resumeFromForeground` owns the connection from here — it
+      // pings and soft-reconnects only if the socket really did die. A grace
+      // period armed while the app is still active (an in-app reference-count
+      // drop) is unaffected: it runs on schedule and disconnects normally.
+      const armedWhileBackgrounded = AppState.currentState !== 'active';
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
-        // `BackgroundTimer.stop()` below ends the background task as soon as the
-        // timer is armed, so iOS suspends the JS thread for the whole background
-        // period and this callback cannot run on schedule — it runs on the first
-        // tick after the app resumes, ahead of the AppState `active` event that
-        // would otherwise cancel it. Disconnecting there tears down a connection
-        // the user has just come back to, and every Perps read taken during the
-        // re-initialisation that follows fails with CLIENT_NOT_INITIALIZED —
-        // surfaced to the user as "<asset> is not a tradable asset" (TAT-3645).
-        // A callback this far past its deadline is therefore stale: the app is
-        // foregrounded again and `resumeFromForeground` owns the connection, so
-        // it pings and soft-reconnects only if the socket really did die.
-        if (
-          Date.now() - deadline >
-          PERPS_STALE_GRACE_PERIOD_TIMER_TOLERANCE_MS
-        ) {
+        if (armedWhileBackgrounded) {
           DevLogger.log(
-            'PerpsConnectionManager: Ignoring stale grace period timer (app resumed from suspension)',
+            'PerpsConnectionManager: Ignoring stale grace period timer (armed on background, fired after resume)',
           );
           this.gracePeriodTimer = null;
           this.isInGracePeriod = false;
