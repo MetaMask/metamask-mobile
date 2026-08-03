@@ -9039,7 +9039,11 @@
         "account_label": "Account",
         "account_description": "Your MetaMask Card will be associated with this account.",
         "account_exists_toast": "You already have a card account.",
-        "card_program_label": "Card program (testing)"
+        "card_program_label": "Card program (testing)",
+        "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
+        "clickwrap_and": " and ",
+        "clickwrap_suffix": ".",
+        "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {
         "title": "Confirm your email",

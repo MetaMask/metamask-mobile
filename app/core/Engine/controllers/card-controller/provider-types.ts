@@ -169,6 +169,8 @@ export interface CardDetails {
   lastFour: string;
   holderName?: string;
   isFreezable?: boolean;
+  /** ISO region code from Immersve LIST/detail (e.g. "GB"). */
+  regionCode?: string;
 }
 
 export interface CardSecureViewParams {

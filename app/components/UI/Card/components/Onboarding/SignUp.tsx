@@ -60,6 +60,8 @@ import { selectCardSelectedCardProgramId } from '../../../../../selectors/cardCo
 import RadioButton from '../../../../../component-library/components/RadioButton';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
+import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -203,6 +205,15 @@ const SignUp = () => {
       (cardFeatureFlag.immersveCountries ?? []).includes(selectedCountry.key),
   );
 
+  const {
+    onboardingDocuments,
+    isLoading: isLegalDocsLoading,
+    error: legalDocsError,
+    refetch: refetchLegalDocs,
+  } = useImmersveSupportedRegions(
+    isImmersveCountry ? selectedCountry?.key : undefined,
+  );
+
   // Temporary: only show the program picker for Immersve onboarding.
   const showCardProgramSelector =
     isImmersveCountry && cardProgramIds.length > 1;
@@ -221,8 +232,15 @@ const SignUp = () => {
     }
     if (isImmersveCountry) {
       // Email + phone are collected; SIWE binds to the selected account.
+      // Legal docs must be loaded before Continue (clickwrap agreement).
       return (
-        !email || !isPhoneValid || !immersveAddress || isImmersveSubmitting
+        !email ||
+        !isPhoneValid ||
+        !immersveAddress ||
+        isImmersveSubmitting ||
+        isLegalDocsLoading ||
+        Boolean(legalDocsError) ||
+        onboardingDocuments.length === 0
       );
     }
     return (
@@ -239,6 +257,9 @@ const SignUp = () => {
     isImmersveCountry,
     immersveAddress,
     isImmersveSubmitting,
+    isLegalDocsLoading,
+    legalDocsError,
+    onboardingDocuments.length,
     email,
     isPhoneValid,
     password,
@@ -642,6 +663,19 @@ const SignUp = () => {
 
   const renderActions = () => (
     <>
+      {isImmersveCountry ? (
+        <Box twClassName="mb-2">
+          <ImmersveLegalClickwrap
+            documents={onboardingDocuments}
+            isLoading={isLegalDocsLoading}
+            error={legalDocsError}
+            treatEmptyAsError
+            onRetry={() => {
+              void refetchLegalDocs();
+            }}
+          />
+        </Box>
+      ) : null}
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}

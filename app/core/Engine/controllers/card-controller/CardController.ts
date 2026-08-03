@@ -1167,6 +1167,21 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => provider.getResumeCardInfo(tokens));
   }
 
+  /**
+   * Fetches Immersve supported regions + legal documents via MetaMask Card API.
+   * Unauthenticated; usable during SignUp before Immersve SIWE.
+   */
+  async getImmersveSupportedRegions() {
+    const provider = this.providers.immersve;
+    if (!(provider instanceof ImmersveProvider)) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Immersve provider is not available',
+      );
+    }
+    return provider.getSupportedRegions();
+  }
+
   async getSpendingPrerequisites(
     fundingSourceId: string,
     params: CardSpendingPrerequisitesParams,

@@ -69,10 +69,12 @@ function createProvider(featureFlag: CardFeatureFlag | null = FEATURE_FLAG) {
     post: jest.fn(),
     patch: jest.fn(),
     request: jest.fn(),
+    getSupportedRegions: jest.fn(),
   } as unknown as ImmersveService & {
     get: jest.Mock;
     post: jest.Mock;
     patch: jest.Mock;
+    getSupportedRegions: jest.Mock;
   };
   const provider = new ImmersveProvider({
     service,
@@ -956,6 +958,7 @@ describe('ImmersveProvider', () => {
         lastFour: '1234',
         holderName: 'John Doe',
         isFreezable: true,
+        regionCode: undefined,
       });
       expect(data.primaryFundingAsset).toStrictEqual({
         symbol: 'USDC',
@@ -973,6 +976,36 @@ describe('ImmersveProvider', () => {
       expect(data.actions).toStrictEqual([
         { type: 'add_funds', enabled: true },
       ]);
+    });
+
+    it('maps regionCode from Immersve card detail onto CardHomeData.card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'GB' }] },
+          cardDetail: { ...activeCardDetail, regionCode: 'GB' },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('GB');
+    });
+
+    it('falls back to LIST regionCode when card detail omits it', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'AU' }] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('AU');
     });
 
     it('swallows non-auth errors and returns empty data', async () => {
@@ -1296,6 +1329,75 @@ describe('ImmersveProvider', () => {
       await expect(
         provider.getCardSensitiveDetails(TOKENS),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.NoCard });
+    });
+  });
+
+  describe('getSupportedRegions', () => {
+    const supportedRegionsResponse = {
+      provider: 'immersve' as const,
+      regions: [
+        {
+          code: 'GB',
+          name: 'United Kingdom',
+          isAvailable: true,
+          unstructuredAddressAllowed: false,
+          documents: {
+            generalTermsOfUse: {
+              title: 'Terms',
+              url: 'https://example.com/terms',
+            },
+            privacyPolicy: {
+              title: 'Privacy',
+              url: 'https://example.com/privacy',
+            },
+            disclosures: [],
+            marketCompliance: [],
+          },
+        },
+      ],
+    };
+
+    it('returns Card API supported-regions response', async () => {
+      const { provider, service } = createProvider();
+      service.getSupportedRegions.mockResolvedValue(supportedRegionsResponse);
+
+      const result = await provider.getSupportedRegions();
+
+      expect(result).toStrictEqual(supportedRegionsResponse);
+      expect(service.getSupportedRegions).toHaveBeenCalledTimes(1);
+    });
+
+    it('maps 502 to ServerError with temporary unavailability message', async () => {
+      const { provider, service } = createProvider();
+      service.getSupportedRegions.mockRejectedValue(
+        new CardApiError(
+          502,
+          '/v1/providers/immersve/supported-regions',
+          'Upstream unavailable',
+        ),
+      );
+
+      await expect(provider.getSupportedRegions()).rejects.toMatchObject({
+        code: CardProviderErrorCode.ServerError,
+        statusCode: 502,
+        message: 'Immersve supported regions are temporarily unavailable',
+      });
+    });
+
+    it('maps missing base URL CardApiError to Network provider error', async () => {
+      const { provider, service } = createProvider();
+      service.getSupportedRegions.mockRejectedValue(
+        new CardApiError(
+          0,
+          '/v1/providers/immersve/supported-regions',
+          'Card API base URL is not configured',
+        ),
+      );
+
+      await expect(provider.getSupportedRegions()).rejects.toMatchObject({
+        code: CardProviderErrorCode.Network,
+        statusCode: 0,
+      });
     });
   });
 });

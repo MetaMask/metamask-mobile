@@ -14,8 +14,17 @@ beforeEach(() => {
   mockRequest.mockResolvedValue({ data: { result: 'ok' }, status: 200 });
 });
 
-const createService = (baseUrl = 'https://api.test.immersve.com') =>
-  new ImmersveService({ getBaseUrl: () => baseUrl });
+const createService = ({
+  baseUrl = 'https://api.test.immersve.com',
+  cardApiBaseUrl = 'https://card.test-api.cx.metamask.io',
+}: {
+  baseUrl?: string;
+  cardApiBaseUrl?: string;
+} = {}) =>
+  new ImmersveService({
+    getBaseUrl: () => baseUrl,
+    getCardApiBaseUrl: () => cardApiBaseUrl,
+  });
 
 const TOKEN_SET = {
   accessToken: 'access-token',
@@ -46,7 +55,10 @@ describe('ImmersveService', () => {
   describe('get', () => {
     it('resolves baseURL from the thunk on each request', async () => {
       let base = 'https://first.example';
-      const service = new ImmersveService({ getBaseUrl: () => base });
+      const service = new ImmersveService({
+        getBaseUrl: () => base,
+        getCardApiBaseUrl: () => 'https://card.example',
+      });
 
       await service.get('/v1/test');
       expect(mockRequest).toHaveBeenLastCalledWith(
@@ -243,6 +255,96 @@ describe('ImmersveService', () => {
       const service = createService();
 
       await expect(service.get('/api/accounts')).rejects.toThrow(TypeError);
+    });
+  });
+
+  describe('getSupportedRegions', () => {
+    const supportedRegionsResponse = {
+      provider: 'immersve' as const,
+      regions: [
+        {
+          code: 'GB',
+          name: 'United Kingdom',
+          isAvailable: true,
+          unstructuredAddressAllowed: false,
+          documents: {
+            generalTermsOfUse: {
+              title: 'Terms',
+              url: 'https://example.com/terms',
+            },
+            privacyPolicy: {
+              title: 'Privacy',
+              url: 'https://example.com/privacy',
+            },
+            disclosures: [],
+            marketCompliance: [],
+          },
+        },
+      ],
+    };
+
+    it('GETs supported-regions from Card API base URL without client key', async () => {
+      mockRequest.mockResolvedValue({
+        data: supportedRegionsResponse,
+        status: 200,
+      });
+      const service = createService();
+
+      const result = await service.getSupportedRegions();
+
+      expect(result).toStrictEqual(supportedRegionsResponse);
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseURL: 'https://card.test-api.cx.metamask.io',
+          url: '/v1/providers/immersve/supported-regions',
+          method: 'GET',
+        }),
+      );
+      const call = mockRequest.mock.calls[0][0];
+      expect(call.headers['x-client-key']).toBeUndefined();
+    });
+
+    it('does not send Immersve Authorization bearer for supported-regions', async () => {
+      mockRequest.mockResolvedValue({
+        data: supportedRegionsResponse,
+        status: 200,
+      });
+      const service = createService();
+
+      await service.getSupportedRegions();
+
+      const call = mockRequest.mock.calls[0][0];
+      expect(call.headers.Authorization).toBeUndefined();
+    });
+
+    it('throws CardApiError when Card API base URL is missing', async () => {
+      const service = createService({ cardApiBaseUrl: '' });
+
+      await expect(service.getSupportedRegions()).rejects.toMatchObject({
+        statusCode: 0,
+        path: '/v1/providers/immersve/supported-regions',
+        responseBody: 'Card API base URL is not configured',
+      });
+      expect(mockRequest).not.toHaveBeenCalled();
+    });
+
+    it('throws CardApiError with 502 when Card API returns bad gateway', async () => {
+      const axiosError = new Error('Bad Gateway') as Error & {
+        isAxiosError: boolean;
+        response: { status: number; data: string };
+      };
+      axiosError.isAxiosError = true;
+      axiosError.response = { status: 502, data: 'Upstream unavailable' };
+
+      mockRequest.mockRejectedValue(axiosError);
+      (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
+      const service = createService();
+
+      await expect(service.getSupportedRegions()).rejects.toMatchObject({
+        statusCode: 502,
+        path: '/v1/providers/immersve/supported-regions',
+        responseBody: 'Upstream unavailable',
+      });
     });
   });
 });

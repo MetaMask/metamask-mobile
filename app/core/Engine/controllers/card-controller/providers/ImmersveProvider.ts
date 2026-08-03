@@ -15,6 +15,7 @@ import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
+import type { CardApiImmersveSupportedRegionsResponse } from '../services/immersve-supported-regions.types';
 import {
   AuthTokenValidity,
   CardAction,
@@ -215,6 +216,7 @@ interface ImmersveCardListItem {
   cardProgramId?: string;
   panLast4?: string;
   network?: string;
+  regionCode?: string;
 }
 
 interface ImmersveCardListResponse {
@@ -633,6 +635,25 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  /**
+   * Fetches Immersve supported regions + legal documents via MetaMask Card API.
+   * No Immersve auth required.
+   */
+  async getSupportedRegions(): Promise<CardApiImmersveSupportedRegionsResponse> {
+    try {
+      return await this.service.getSupportedRegions();
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 502) {
+        throw new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'Immersve supported regions are temporarily unavailable',
+          502,
+        );
+      }
+      throw mapApiError(error, 'getSupportedRegions');
+    }
+  }
+
   private async resolveCurrentCard(
     tokens: CardAuthTokens,
   ): Promise<ImmersveCardListItem | null> {
@@ -694,7 +715,11 @@ export class ImmersveProvider implements ICardProvider {
         `/api/cards/${card.id}`,
         tokens,
       );
-      const cardDetails = this.mapImmersveCard(detail);
+      const cardDetails = this.mapImmersveCard({
+        ...detail,
+        // LIST is the AC source for regionCode; detail may omit it.
+        regionCode: detail.regionCode ?? card.regionCode,
+      });
       const fundingAssets = await this.fetchFundingAssets(
         detail.fundingSourceIds ?? [],
         tokens,
@@ -737,7 +762,10 @@ export class ImmersveProvider implements ICardProvider {
         `/api/cards/${card.id}`,
         tokens,
       );
-      return this.mapImmersveCard(detail);
+      return this.mapImmersveCard({
+        ...detail,
+        regionCode: detail.regionCode ?? card.regionCode,
+      });
     } catch (error) {
       throw mapApiError(error, 'getCardDetails');
     }
@@ -792,6 +820,7 @@ export class ImmersveProvider implements ICardProvider {
       lastFour: detail.panLast4 ?? '',
       holderName: detail.cardholderName,
       isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
+      regionCode: detail.regionCode,
     };
   }
 

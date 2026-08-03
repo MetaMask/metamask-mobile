@@ -7,6 +7,7 @@ import { resolveBaanxConfig } from './services/baanx-config';
 import { ImmersveService } from './services/ImmersveService';
 import { ImmersveProvider } from './providers/ImmersveProvider';
 import { resolveImmersveConfig } from './services/immersve-config';
+import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
 import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
@@ -66,6 +67,10 @@ export const cardControllerInit: MessengerClientInitFunction<
     service: new ImmersveService({
       getBaseUrl: () =>
         getCardFeatureFlag()?.immersve?.apiBaseUrl || immersveConfig.baseUrl,
+      getCardApiBaseUrl: () =>
+        getDefaultCardApiBaseUrlForMetaMaskEnv(
+          process.env.METAMASK_ENVIRONMENT,
+        ),
     }),
     config: immersveConfig,
     getCardFeatureFlag,

@@ -95,6 +95,7 @@ import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
 import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
@@ -136,6 +137,13 @@ const CardHome = () => {
     (a) => a.type === 'enable_card',
   );
   const isImmersve = useSelector(selectCardActiveProviderId) === 'immersve';
+  const cardRegionCode = data?.card?.regionCode;
+  const {
+    permanentDocuments: immersveLegalDocuments,
+    isLoading: isImmersveLegalDocsLoading,
+  } = useImmersveSupportedRegions(cardRegionCode, {
+    enabled: isImmersve && Boolean(cardRegionCode),
+  });
   const cardTermsAndConditionsUrl = useMemo(
     () =>
       isImmersve
@@ -725,6 +733,12 @@ const CardHome = () => {
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
           supportEmail={supportEmail}
+          legalDocuments={
+            isImmersve && immersveLegalDocuments.length > 0
+              ? immersveLegalDocuments
+              : undefined
+          }
+          hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />
