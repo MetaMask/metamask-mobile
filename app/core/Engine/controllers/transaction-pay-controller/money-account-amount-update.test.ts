@@ -9,7 +9,10 @@ import {
   getMoneyAccountDepositAssetAddress,
 } from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  type MoneyAccountVaultConfig,
+  selectMoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Engine from '../../index';
 import { updateMoneyAccountDepositAmount } from './money-account-amount-update';
@@ -48,12 +51,12 @@ const SECOND_ASSET_ADDRESS =
 const APPROVE_DATA = '0x1234' as Hex;
 const DEPOSIT_DATA = '0x5678' as Hex;
 const BATCH_DATA = '0x9abc' as Hex;
-const VAULT_CONFIG = {
+const VAULT_CONFIG: MoneyAccountVaultConfig = {
   chainId: CHAIN_ID,
-  boringVault: '0xBoringVault',
-  tellerAddress: '0xTeller',
-  accountantAddress: '0xAccountant',
-  lensAddress: '0xLens',
+  boringVault: '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae',
+  tellerAddress: '0x2d49ea58a4c70b62c8b56de971310d9e999c8117',
+  accountantAddress: '0x7382c5b8b51b8c4f127b3123c1039581baa5a06b',
+  lensAddress: '0xa816ecd922de94c6879ad23b9a884db257f20947',
 };
 
 const selectVaultConfigMock = jest.mocked(selectMoneyAccountVaultConfig);

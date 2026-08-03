@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { CaipAssetType, Hex } from '@metamask/utils';
+import type { CaipAssetType } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   getMoneyAccountDepositAssetId,
@@ -25,7 +25,7 @@ export function useMoneyAccountDepositAssetId(): CaipAssetType {
 
   return useMemo(
     () =>
-      getMoneyAccountDepositAssetId(vaultConfig?.chainId as Hex) ??
+      getMoneyAccountDepositAssetId(vaultConfig?.chainId) ??
       MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
     [vaultConfig?.chainId],
   );
