@@ -246,6 +246,10 @@ jest.mock('../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
 
+jest.mock('../hooks/useMoneyAccountSweepstakesOptIn', () => ({
+  useResumePendingMasSeriesOptIn: jest.fn(),
+}));
+
 jest.mock('../hooks/useOndoOutcomeToast', () => ({
   useOndoOutcomeToast: jest.fn(),
 }));
