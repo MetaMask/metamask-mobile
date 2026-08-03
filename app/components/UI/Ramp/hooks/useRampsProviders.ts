@@ -147,18 +147,12 @@ export function useRampsProviders(options?: {
     [],
   );
 
-  // TODO: remove cast + guard once @metamask/ramps-controller preview is pinned (MetaMask/core#9759)
   const setSelectedProviderForAsset = useCallback(
-    (assetId: string, setOptions?: { autoSelected?: boolean }): boolean => {
-      const ctrl = Engine.context.RampsController as unknown as {
-        setSelectedProviderForAsset?: (
-          assetId: string,
-          options?: { autoSelected?: boolean },
-        ) => boolean;
-      };
-      if (typeof ctrl.setSelectedProviderForAsset !== 'function') return false;
-      return ctrl.setSelectedProviderForAsset(assetId, setOptions);
-    },
+    (assetId: string, setOptions?: { autoSelected?: boolean }): boolean =>
+      Engine.context.RampsController.setSelectedProviderForAsset(
+        assetId,
+        setOptions,
+      ),
     [],
   );
 
