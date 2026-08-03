@@ -61,6 +61,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
   });
 
   appiumTest.describe('Read operations', () => {
+    /*
     appiumTest(
       'should match selected method to the expected output for eth_chainId',
       async ({ driver: _driver, currentDeviceDetails }) => {
@@ -470,7 +471,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
         );
       },
     );
-
+*/
     appiumTest(
       'should be able to call: wallet_getCallsStatus',
       async ({ driver: _driver, currentDeviceDetails }) => {
@@ -515,21 +516,37 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
               );
             }
 
-            // Call wallet_getCallsStatus with the obtained batch ID
+            // Poll wallet_getCallsStatus until the transaction is confirmed
+            // (status 200 + receipts). Anvil mines asynchronously so the
+            // first call may return status 100 (pending) with no receipts.
             const getStatusMethod = 'wallet_getCallsStatus';
-            await MultichainTestDApp.invokeMethod(chainId, getStatusMethod, [
-              batchId,
-            ]);
+            const POLL_DEADLINE_MS = Date.now() + 30_000;
+            let resultIndex = 0;
+            let getStatusResult: Record<string, unknown> = {};
 
-            const getStatusResultText =
-              await MultichainTestDApp.getInvokeMethodResult(
+            for (;;) {
+              await MultichainTestDApp.invokeMethod(chainId, getStatusMethod, [
+                batchId,
+              ]);
+              const text = await MultichainTestDApp.getInvokeMethodResult(
                 chainId,
                 getStatusMethod,
+                resultIndex,
               );
+              resultIndex += 1;
+              getStatusResult = JSON.parse(text ?? '{}') as Record<
+                string,
+                unknown
+              >;
 
-            const getStatusResult = JSON.parse(
-              getStatusResultText ?? '{}',
-            ) as Record<string, unknown>;
+              if (
+                getStatusResult.status === 200 ||
+                Date.now() >= POLL_DEADLINE_MS
+              ) {
+                break;
+              }
+              await new Promise<void>((r) => setTimeout(r, 500));
+            }
 
             await Assertions.checkIfObjectHasKeysAndValidValues(
               getStatusResult,

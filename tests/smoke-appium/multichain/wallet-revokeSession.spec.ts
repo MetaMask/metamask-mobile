@@ -68,6 +68,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
             );
 
           await MultichainTestDApp.tapRevokeSessionButton();
+          await MultichainTestDApp.tapGetSessionButton();
 
           const sessionAfterRevoke = await MultichainTestDApp.getSessionData();
           const assertionsAfterRevoke =

@@ -1,4 +1,7 @@
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  dismissPushNotificationExistingUserSheet,
+} from '../../flows/wallet.flow.js';
 import { navigateToBrowserView } from '../../flows/browser.flow.js';
 import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
@@ -51,6 +54,10 @@ class MultichainTestDApp {
       await loginToAppPlaywright({ scenarioType: 'e2e' });
     }
     await navigateToBrowserView();
+    // On fresh CI Android devices the push-notification opt-in sheet ("Never
+    // miss a move") can reappear after navigation even though loginToApp
+    // already dismissed it once. Dismiss it again before touching the browser.
+    await dismissPushNotificationExistingUserSheet();
     await BrowserView.tapUrlInputBox();
     await BrowserView.navigateToURL(BASE_URL + urlParams);
   }
@@ -129,18 +136,24 @@ class MultichainTestDApp {
     if (!text)
       throw new Error(`getSessionData: timed out waiting for #${resultId}`);
     const parsed = JSON.parse(text);
+    const scopes =
+      parsed !== null && typeof parsed === 'object'
+        ? parsed.sessionScopes
+        : undefined;
     return {
-      success: Boolean(
-        parsed.sessionScopes && Object.keys(parsed.sessionScopes).length > 0,
-      ),
-      sessionScopes: parsed.sessionScopes ?? {},
+      success: Boolean(scopes && Object.keys(scopes).length > 0),
+      sessionScopes: scopes ?? {},
     };
   }
 
-  async getSessionChangedEventData(index = 0): Promise<string | null> {
-    return ChromeCdpHelpers.readTextByIdInWebView(
+  async getSessionChangedEventData(
+    index = 0,
+    timeoutMs = 10_000,
+  ): Promise<string | null> {
+    return ChromeCdpHelpers.waitForElementTextInWebView(
       BASE_URL,
       `${SELECTORS.WALLET_SESSION_CHANGED_RESULT}${index}`,
+      timeoutMs,
     );
   }
 
