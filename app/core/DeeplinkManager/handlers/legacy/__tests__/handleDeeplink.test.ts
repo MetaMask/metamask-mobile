@@ -38,6 +38,7 @@ jest.mock('../../../../../util/Logger', () => ({
 jest.mock('../../../../AppStateEventListener', () => ({
   AppStateEventProcessor: {
     setCurrentDeeplink: jest.fn(),
+    promoteCurrentDeeplinkSource: jest.fn(),
   },
 }));
 
@@ -77,6 +78,8 @@ describe('handleDeeplink', () => {
   const mockLoggerError = Logger.error as jest.Mock;
   const mockSetCurrentDeeplink =
     AppStateEventProcessor.setCurrentDeeplink as jest.Mock;
+  const mockPromoteCurrentDeeplinkSource =
+    AppStateEventProcessor.promoteCurrentDeeplinkSource as jest.Mock;
   const mockIsMwpDeeplink = SDKConnectV2.isMwpDeeplink as unknown as jest.Mock;
   const mockHandleMwpDeeplink = SDKConnectV2.handleMwpDeeplink as jest.Mock;
   const mockTrackEvent = analytics.trackEvent as jest.Mock;
@@ -268,6 +271,37 @@ describe('handleDeeplink', () => {
 
       expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    // On Android, Braze opens push deeplinks itself, so RN Linking reports the
+    // same URI with no source and races the ORIGIN_BRAZE delivery. Whichever
+    // loses is suppressed here, so the origin has to survive suppression or the
+    // open is misattributed to `deeplink`.
+    it('records the push origin of a suppressed duplicate', () => {
+      const testUri = 'https://link.metamask.io/swap';
+
+      handleDeeplink({ uri: testUri });
+      handleDeeplink({ uri: testUri, source: 'braze' });
+
+      expect(mockPromoteCurrentDeeplinkSource).toHaveBeenCalledWith(
+        testUri,
+        'braze',
+      );
+      // Still suppressed for navigation.
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes the missing source through when the suppressed duplicate is untagged', () => {
+      const testUri = 'https://link.metamask.io/swap';
+
+      handleDeeplink({ uri: testUri, source: 'braze' });
+      handleDeeplink({ uri: testUri });
+
+      expect(mockPromoteCurrentDeeplinkSource).toHaveBeenCalledWith(
+        testUri,
+        undefined,
+      );
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(1);
     });
   });
 

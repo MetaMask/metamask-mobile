@@ -5,6 +5,7 @@ import type {
 } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Routes from '../../../../constants/navigation/Routes';
+import type { PostTradeBottomSheetParams } from '../../Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 
 /**
  * Signing-session origin. Bridge is the default; send activates only when
@@ -39,6 +40,11 @@ export interface SubmissionParams {
   quoteResponse: QuoteResponse;
   location?: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Token/amount context for the post-trade modal after HW signing completes. */
+  postTradeModalParams?: Pick<
+    PostTradeBottomSheetParams,
+    'sourceAmount' | 'destAmount' | 'sourceToken' | 'destToken'
+  >;
 }
 
 /**
