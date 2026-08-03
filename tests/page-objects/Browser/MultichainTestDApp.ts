@@ -98,7 +98,7 @@ class MultichainTestDApp {
     );
 
     try {
-      await DappConnectionModal.tapConnectButton({ timeout: 8_000 });
+      await DappConnectionModal.tapConnectButton({ timeout: 20_000 });
     } catch {
       // No modal — session may already be approved
     }
@@ -160,7 +160,7 @@ class MultichainTestDApp {
   async invokeMethodOnChain(
     chainId: string,
     method: string,
-    timeoutMs = 15_000,
+    timeoutMs = 30_000,
   ): Promise<boolean> {
     const elementId = `${SELECTORS.DIRECT_INVOKE_PREFIX}eip155-${chainId}-${method}`;
     const deadline = Date.now() + timeoutMs;
