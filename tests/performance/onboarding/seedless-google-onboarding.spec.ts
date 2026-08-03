@@ -10,7 +10,9 @@ import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
+  resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
+import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import {
   Performance,
   System,
@@ -24,6 +26,8 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+
+const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -79,6 +83,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
 
       const password = getPasswordForScenario('onboarding') ?? '';
+      const productionFeatureFlags = await fetchProductionFeatureFlags(
+        'main',
+        testEnvironment,
+      );
 
       await OnboardingView.tapCreateNewWalletButton();
       await timer1.measure(async () => {
@@ -147,15 +155,21 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
-        await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
+
+        const predictGtmOnboardingModalEnabled =
+          await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
+
+        if (predictGtmOnboardingModalEnabled) {
+          await timer5.measure(async () => {
+            await PlaywrightAssertions.expectElementToBeVisible(
+              asPlaywrightElement(PredictModalView.notNowButton),
+              {
+                timeout: 10000,
+                description: 'Predict modal should be visible',
+              },
+            );
+          });
+        }
 
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
@@ -167,10 +181,14 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timer6];
+        const timers = [timer1, timer2, timer4];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
+        if (predictGtmOnboardingModalEnabled) {
+          timers.push(timer5);
+        }
+        timers.push(timer6);
         performanceTracker.addTimers(...timers);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
