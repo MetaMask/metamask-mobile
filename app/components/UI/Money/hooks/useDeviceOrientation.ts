@@ -19,6 +19,9 @@ const NEUTRAL_TRACKING_SECONDS = 4;
 const ROLL_GAIN_FLOOR = 0.15;
 // Low-pass factor: higher = snappier but noisier, lower = smoother but laggier.
 const SMOOTHING = 0.2;
+// Exponent shaping the reported tilt. Above 1 the response is gentle near the
+// neutral and unchanged at the extremes.
+const RESPONSE_EXPONENT = 2;
 const HZ_LOW_END = 30;
 const HZ_DEFAULT = 60;
 const ONE_GIGABYTE = 1024 * 1024 * 1024;
@@ -121,6 +124,20 @@ export function accelerationToTilt(
   };
 }
 
+/**
+ * Shapes a normalized [-1, 1] tilt into the value reported to callers.
+ *
+ * Low-pass smoothing cannot separate hand tremor from a slow deliberate tilt —
+ * both move the reading by a little each frame — and smoothing harder only
+ * trades jitter for lag. Scaling the output by how far the device has actually
+ * turned does separate them: tremor sits where the curve is flat and is
+ * attenuated by an order of magnitude, a full tilt still reaches full travel,
+ * and no latency is added. Pure so it can be unit-tested directly.
+ */
+export function applyResponseCurve(tilt: number): number {
+  return Math.sign(tilt) * Math.abs(tilt) ** RESPONSE_EXPONENT;
+}
+
 interface UseDeviceOrientationOptions {
   enabled?: boolean;
 }
@@ -129,8 +146,9 @@ interface UseDeviceOrientationOptions {
  * Reports device tilt as a normalized, clamped [-1, 1] value per axis, derived
  * from the accelerometer's absolute orientation (gravity), relative to an
  * adaptive neutral that follows the posture the device is held in on both
- * axes. Readings are normalized across platforms first. Unlike integrating the
- * gyroscope, this is drift-free.
+ * axes. Readings are normalized across platforms first, then smoothed and
+ * shaped so hand tremor does not register. Unlike integrating the gyroscope,
+ * this is drift-free.
  *
  * @param onOrientation - receives (x, y) roll/pitch in the [-1, 1] range.
  */
@@ -179,7 +197,10 @@ export function useDeviceOrientation(
           x: smoothed.current.x + SMOOTHING * (tilt.x - smoothed.current.x),
           y: smoothed.current.y + SMOOTHING * (tilt.y - smoothed.current.y),
         };
-        onOrientationRef.current(smoothed.current.x, smoothed.current.y);
+        onOrientationRef.current(
+          applyResponseCurve(smoothed.current.x),
+          applyResponseCurve(smoothed.current.y),
+        );
       },
       error: () => undefined,
     });

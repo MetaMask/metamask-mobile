@@ -66,7 +66,7 @@ perfTest.describe(
         await LoginView.tapLoginButton();
         await timer1.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            asPlaywrightElement(WalletView.hamburgerMenuButton),
             {
               description: 'Wallet balance should be visible',
               timeout: 30 * 1000, // 30 seconds

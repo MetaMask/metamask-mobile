@@ -60,6 +60,7 @@ import {
   getTokensControllerAllIgnoredTokens,
   getTokensControllerAllTokens,
 } from './assets-migration';
+import { isAssetSupportActivation } from '../stellar/stellar-assets';
 import { filterExcludedAssets } from '../../enablement/assets/networks-customization';
 
 /**
@@ -343,6 +344,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -497,6 +499,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;
@@ -509,6 +512,13 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       );
     },
   );
+
+export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
+  (chainIds: string[]) => (state: RootState) =>
+    selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      chainIds,
+    );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(

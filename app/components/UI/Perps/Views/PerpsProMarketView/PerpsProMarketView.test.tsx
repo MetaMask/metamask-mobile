@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
 import { Box, ButtonBase } from '@metamask/design-system-react-native';
-import { CandlePeriod } from '@metamask/perps-controller';
+import { CandlePeriod, PerpsMode } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -11,13 +11,18 @@ import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
+  PerpsBalanceBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
-  PerpsProOrderFormSelectorsIDs,
-  PerpsOrderTypeBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
+import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 
 interface MockRouteParams {
-  market?: { symbol: string; price?: string };
+  market?: {
+    symbol: string;
+    price?: string;
+    name?: string;
+    maxLeverage?: string;
+  };
   source?: string;
   source_section?: string;
 }
@@ -36,13 +41,34 @@ interface MockCandlePeriodBottomSheetProps {
   testID?: string;
 }
 
+interface MockBalanceBottomSheetProps {
+  isVisible: boolean;
+  onClose: () => void;
+}
+
+interface MockOrderFormPanelProps {
+  isOrderBookCollapsed?: boolean;
+  onExpandOrderBook?: () => void;
+}
+
 let mockRouteParams: MockRouteParams | undefined = {
-  market: { symbol: 'BTC', price: '$90,000.00' },
+  market: {
+    symbol: 'BTC',
+    price: '$90,000.00',
+    name: 'Bitcoin',
+    maxLeverage: '40x',
+  },
 };
 const mockTrack = jest.fn();
 const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
   track: mockTrack,
 }));
+
+const mockHandleBackPress = jest.fn();
+const mockHandleMarketListPress = jest.fn();
+const mockHandleFavoritePress = jest.fn();
+const mockHandlePerpsModeChange = jest.fn();
+const mockHeaderPerpsMode = PerpsMode.Pro;
 
 const mockPerpsProChartPanel = jest.fn(
   ({ symbol, onMorePress }: MockChartPanelProps) => (
@@ -89,10 +115,61 @@ const mockCandlePeriodBottomSheet = jest.fn(
     ) : null,
 );
 
+const mockBalanceBottomSheet = jest.fn(
+  ({ isVisible, onClose }: MockBalanceBottomSheetProps) =>
+    isVisible ? (
+      <Box testID={PerpsBalanceBottomSheetSelectorsIDs.CONTAINER}>
+        <ButtonBase testID="mock-balance-sheet-close" onPress={onClose}>
+          <Box />
+        </ButtonBase>
+      </Box>
+    ) : null,
+);
+
 jest.mock('./components/PerpsProChartPanel', () => ({
   __esModule: true,
   default: (props: MockChartPanelProps) => mockPerpsProChartPanel(props),
 }));
+
+jest.mock('../../components/PerpsBalanceBottomSheet', () => ({
+  __esModule: true,
+  default: (props: MockBalanceBottomSheetProps) =>
+    mockBalanceBottomSheet(props),
+}));
+// The order-form panel now mounts its own provider + business hooks + sheets
+// (order type, leverage, slippage). Its wiring is covered by
+// PerpsProOrderFormPanel.test.tsx and usePerpsProOrderForm.test.ts; here we only
+// need a lightweight placeholder so the layout scaffold assertions still pass.
+jest.mock('./components/PerpsProOrderFormPanel', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Box, ButtonBase } = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+  const { PerpsProMarketViewSelectorsIDs: ids } = jest.requireActual(
+    '../../Perps.testIds',
+  );
+  return {
+    __esModule: true,
+    default: ({
+      isOrderBookCollapsed,
+      onExpandOrderBook,
+    }: MockOrderFormPanelProps) =>
+      ReactActual.createElement(
+        Box,
+        { testID: ids.ORDER_FORM_PANEL },
+        isOrderBookCollapsed
+          ? ReactActual.createElement(
+              ButtonBase,
+              {
+                testID: ids.ORDER_BOOK_EXPAND_BUTTON,
+                onPress: onExpandOrderBook,
+              },
+              ReactActual.createElement(Box, null),
+            )
+          : null,
+      ),
+  };
+});
 
 jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
   __esModule: true,
@@ -105,6 +182,17 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     mockUsePerpsEventTracking(options),
 }));
 
+jest.mock('../../hooks/usePerpsProMarketHeaderActions', () => ({
+  usePerpsProMarketHeaderActions: jest.fn(() => ({
+    perpsMode: mockHeaderPerpsMode,
+    isWatchlist: false,
+    handleBackPress: mockHandleBackPress,
+    handleMarketListPress: mockHandleMarketListPress,
+    handleFavoritePress: mockHandleFavoritePress,
+    handlePerpsModeChange: mockHandlePerpsModeChange,
+  })),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -113,7 +201,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// PerpsProPositionsPanel uses live stream hooks; avoid PerpsStreamProvider requirement.
+// Live stream hooks used by the positions panel and stats bar; mock the barrel
+// fully (no requireActual) so the view renders without a PerpsStreamProvider.
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: null,
@@ -126,6 +215,23 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(() => ({
     positions: [],
     isInitialLoading: false,
+  })),
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/usePerpsProPositionsPanelActions', () => ({
+  usePerpsProPositionsPanelActions: jest.fn(() => ({
+    handleClosePosition: jest.fn(),
+    handleReversePosition: jest.fn(),
+    handleSharePosition: jest.fn(),
+    handleEditPositionTpSl: jest.fn(),
+    handleEditPositionMargin: jest.fn(),
+    handleCancelOrder: jest.fn(),
+    handleCloseAllPress: jest.fn(),
+    cancelingOrderId: null,
+    isOrderCancelable: () => true,
+    isPositionMarginEditable: () => true,
+    renderActionSheets: () => null,
   })),
 }));
 
@@ -146,6 +252,38 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   })),
 }));
 
+// The default mock route already has a formatted `maxLeverage` ("40x"), so
+// this enrichment hook's markets list is never actually consulted in most
+// tests — mocked (rather than requireActual) to avoid needing a real
+// PerpsStreamProvider in the tree, and overridable per-test via
+// `mockUsePerpsMarketsImpl` for the enrichment test below.
+const mockUsePerpsMarketsImpl = jest.fn(
+  (_options?: UsePerpsMarketsOptions) => ({
+    markets: [] as { symbol: string; maxLeverage: string }[],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  }),
+);
+jest.mock('../../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: (options?: UsePerpsMarketsOptions) =>
+    mockUsePerpsMarketsImpl(options),
+}));
+
+jest.mock('../../hooks/usePerpsMarketStats', () => ({
+  usePerpsMarketStats: jest.fn(() => ({
+    high24h: '$50,000.00',
+    low24h: '$45,000.00',
+    volume24h: '$1,234,567.89',
+    openInterest: '$987,654.32',
+    fundingRate: '0.0125%',
+    currentPrice: 90000,
+    isLoading: false,
+    refresh: jest.fn(),
+  })),
+}));
+
 const renderView = () =>
   renderWithProvider(<PerpsProMarketView />, {
     state: { engine: { backgroundState } },
@@ -154,7 +292,21 @@ const renderView = () =>
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = { market: { symbol: 'BTC', price: '$90,000.00' } };
+    mockRouteParams = {
+      market: {
+        symbol: 'BTC',
+        price: '$90,000.00',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      },
+    };
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
   });
 
   it.each([
@@ -223,13 +375,13 @@ describe('PerpsProMarketView', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR),
     ).toBeOnTheScreen();
     expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR_SCROLL),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
@@ -250,26 +402,6 @@ describe('PerpsProMarketView', () => {
       'keyboardShouldPersistTaps',
       'handled',
     );
-  });
-
-  it('keeps the fixture Place Order action disabled until wiring lands', () => {
-    const { getByTestId } = renderView();
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON),
-    ).toBeDisabled();
-  });
-
-  it('opens the order type sheet from the form', () => {
-    const { getByTestId } = renderView();
-
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    expect(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
   });
 
   it('opens the More candle periods sheet from the chart', () => {
@@ -318,83 +450,6 @@ describe('PerpsProMarketView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('updates the form to Market and closes the order type sheet', () => {
-    const { getByTestId, queryByTestId } = renderView();
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
-    );
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    ).toHaveTextContent('Market');
-    expect(
-      queryByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('restores the limit price input when Limit is selected', () => {
-    const { getByTestId, queryByTestId } = renderView();
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
-    );
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
-    );
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('closes the order type sheet without changing the current selection', () => {
-    const { getByTestId, queryByTestId } = renderView();
-    fireEvent.press(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    );
-
-    fireEvent.press(
-      getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON),
-    );
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.ORDER_TYPE_BUTTON),
-    ).toHaveTextContent('Limit');
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders the Pro summary and available balance copy from Figma', () => {
-    const { getByTestId } = renderView();
-
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.SUMMARY_LIQUIDATION),
-    ).toHaveTextContent(/Est Liquidation/);
-    expect(
-      getByTestId(PerpsProOrderFormSelectorsIDs.AVAILABLE_BALANCE),
-    ).toHaveTextContent('-- available');
-  });
-
   it('keeps the header fixed while the market summary scrolls', () => {
     const { getByTestId } = renderView();
 
@@ -410,15 +465,15 @@ describe('PerpsProMarketView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the asset symbol from route params in the header', () => {
+  it('shows the asset name from route params in the header', () => {
     const { getByTestId } = renderView();
 
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
-    ).toHaveTextContent(/^BTC$/);
+    ).toHaveTextContent(/^Bitcoin$/);
   });
 
-  it('removes the HIP-3 dex prefix from the header symbol', () => {
+  it('falls back to the display symbol when the market has no name', () => {
     mockRouteParams = { market: { symbol: 'xyz:TSLA' } };
 
     const { getByTestId } = renderView();
@@ -426,6 +481,99 @@ describe('PerpsProMarketView', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
     ).toHaveTextContent(/^TSLA$/);
+  });
+
+  it('enriches minimal route market data with maxLeverage from usePerpsMarkets', () => {
+    // Some navigation sources (e.g. Recent Activity, deep links) pass
+    // minimal market data without a formatted `maxLeverage`.
+    mockRouteParams = { market: { symbol: 'BTC', name: 'Bitcoin' } };
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [{ symbol: 'BTC', maxLeverage: '40x' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByText } = renderView();
+
+    expect(getByText('40x')).toBeOnTheScreen();
+  });
+
+  it('does not re-fetch markets when route data already has a formatted maxLeverage', () => {
+    renderView();
+
+    expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith(
+      expect.objectContaining({ skipInitialFetch: true }),
+    );
+  });
+
+  it('renders the redesigned header controls from Figma', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_ASSET_ICON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the perp pair subtitle beneath the asset name', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SUBTITLE),
+    ).toHaveTextContent('BTC-USD perp');
+  });
+
+  it('wires header actions from usePerpsProMarketHeaderActions', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_MARKET_LIST_BUTTON),
+    );
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    );
+
+    expect(mockHandleBackPress).toHaveBeenCalledTimes(1);
+    expect(mockHandleMarketListPress).toHaveBeenCalledTimes(1);
+    expect(mockHandleFavoritePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens and closes the balance bottom sheet from the wallet button', () => {
+    const { getByTestId, queryByTestId } = renderView();
+
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('mock-balance-sheet-close'));
+
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('uses the Figma shell heights', () => {

@@ -5,6 +5,7 @@ import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
@@ -12,10 +13,7 @@ import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmo
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import {
@@ -24,9 +22,11 @@ import {
 } from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
 import {
+  useIsTransactionPayQuoteLoading,
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayQuotesLastUpdated,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
@@ -43,6 +43,14 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
+
+interface DepositPrefetchQuoteRequest {
+  amountHuman: string;
+  payTokenKey: string;
+  isAmountPrepared: boolean;
+  quoteBaseline: number | undefined;
+  sawQuoteLoading: boolean;
+}
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -72,6 +80,8 @@ export function useTransactionCustomAmount({
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
+  const isQuoteLoading = useIsTransactionPayQuoteLoading();
+  const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
   const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
@@ -82,6 +92,19 @@ export function useTransactionCustomAmount({
   // only dispatch when the input type actually changes.
   const lastAmountInputTypeRef = useRef<string | null>(null);
   const amountChangeTimeRef = useRef<number>(0);
+  const prefetchQuoteRequestRef = useRef<
+    DepositPrefetchQuoteRequest | undefined
+  >(undefined);
+  const prefetchedQuoteAmountHumanRef = useRef<string | undefined>(undefined);
+  const prefetchedQuotePayTokenKeyRef = useRef<string | undefined>(undefined);
+  const [prefetchedQuoteAmountHuman, setPrefetchedQuoteAmountHuman] =
+    useState<string>();
+  const [prefetchedQuotePayTokenKey, setPrefetchedQuotePayTokenKey] =
+    useState<string>();
+  const isQuoteLoadingRef = useRef(isQuoteLoading);
+  const quotesLastUpdatedRef = useRef(quotesLastUpdated);
+  isQuoteLoadingRef.current = isQuoteLoading;
+  quotesLastUpdatedRef.current = quotesLastUpdated;
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -113,17 +136,63 @@ export function useTransactionCustomAmount({
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
   const { payToken } = useTransactionPayToken();
+  const payTokenKey = `${payToken?.chainId ?? ''}:${
+    payToken?.address.toLowerCase() ?? ''
+  }`;
   const { setIsMaxDeposit } = useConfirmationContext();
 
   useEffect(() => {
     depositMaxHumanRef.current = null;
     userHasEditedRef.current = false;
+    prefetchQuoteRequestRef.current = undefined;
+    prefetchedQuoteAmountHumanRef.current = undefined;
+    prefetchedQuotePayTokenKeyRef.current = undefined;
+    setPrefetchedQuoteAmountHuman(undefined);
+    setPrefetchedQuotePayTokenKey(undefined);
     setIsMaxDeposit(false);
   }, [payToken?.address, payToken?.chainId, setIsMaxDeposit]);
 
-  const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
+  const { isAmountUpdateQuotePipelineEnabled, updateTransactionPayAmount } =
+    useUpdateTransactionPayAmount();
 
   const depositPrefill = useDepositPrefillAmount();
+
+  useEffect(() => {
+    if (!isMoneyAccountDeposit || !isAmountUpdateQuotePipelineEnabled) {
+      return;
+    }
+
+    const prefetchRequest = prefetchQuoteRequestRef.current;
+    if (!prefetchRequest?.isAmountPrepared) {
+      return;
+    }
+
+    if (isQuoteLoading) {
+      prefetchRequest.sawQuoteLoading = true;
+      return;
+    }
+
+    const hasNewerQuote =
+      prefetchRequest.sawQuoteLoading &&
+      quotesLastUpdated !== undefined &&
+      (prefetchRequest.quoteBaseline === undefined ||
+        quotesLastUpdated > prefetchRequest.quoteBaseline);
+    if (
+      hasNewerQuote &&
+      (prefetchedQuoteAmountHumanRef.current !== prefetchRequest.amountHuman ||
+        prefetchedQuotePayTokenKeyRef.current !== prefetchRequest.payTokenKey)
+    ) {
+      prefetchedQuoteAmountHumanRef.current = prefetchRequest.amountHuman;
+      prefetchedQuotePayTokenKeyRef.current = prefetchRequest.payTokenKey;
+      setPrefetchedQuoteAmountHuman(prefetchRequest.amountHuman);
+      setPrefetchedQuotePayTokenKey(prefetchRequest.payTokenKey);
+    }
+  }, [
+    isAmountUpdateQuotePipelineEnabled,
+    isMoneyAccountDeposit,
+    isQuoteLoading,
+    quotesLastUpdated,
+  ]);
 
   const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
   useEffect(() => {
@@ -196,6 +265,8 @@ export function useTransactionCustomAmount({
     if (amountFiat === '0' || amountFiat === '') {
       debounceSetAmountDelayed.flush();
     }
+
+    return () => debounceSetAmountDelayed.cancel();
   }, [amountHuman, amountFiat, debounceSetAmountDelayed]);
 
   useEffect(() => {
@@ -207,6 +278,63 @@ export function useTransactionCustomAmount({
       Boolean(amountHumanDebounced?.length) && amountHumanDebounced !== '0',
     );
   }, [amountHumanDebounced]);
+
+  useEffect(() => {
+    if (!isAmountUpdateQuotePipelineEnabled || amountHumanDebounced === '0') {
+      return;
+    }
+
+    const depositMaxHuman = depositMaxHumanRef.current;
+    const effectiveHuman = depositMaxHuman ?? amountHumanDebounced;
+    const isNewPrefetch =
+      prefetchQuoteRequestRef.current?.amountHuman !== effectiveHuman ||
+      prefetchQuoteRequestRef.current?.payTokenKey !== payTokenKey;
+    if (isNewPrefetch) {
+      prefetchQuoteRequestRef.current = {
+        amountHuman: effectiveHuman,
+        payTokenKey,
+        isAmountPrepared: false,
+        quoteBaseline: quotesLastUpdatedRef.current,
+        sawQuoteLoading: false,
+      };
+      prefetchedQuoteAmountHumanRef.current = undefined;
+      setPrefetchedQuoteAmountHuman(undefined);
+    }
+
+    // Prefetch failures stay speculative. Continue retries the cleared request
+    // and uses the existing toast path if the committed update also fails.
+    updateTransactionPayAmount(effectiveHuman).then(
+      (isPublished) => {
+        if (!isPublished) {
+          return;
+        }
+
+        const prefetchRequest = prefetchQuoteRequestRef.current;
+        if (
+          isNewPrefetch &&
+          prefetchRequest?.amountHuman === effectiveHuman &&
+          prefetchRequest.payTokenKey === payTokenKey
+        ) {
+          prefetchRequest.isAmountPrepared = true;
+          prefetchRequest.quoteBaseline = quotesLastUpdatedRef.current;
+          prefetchRequest.sawQuoteLoading = isQuoteLoadingRef.current;
+        }
+      },
+      () => {
+        if (
+          prefetchQuoteRequestRef.current?.amountHuman === effectiveHuman &&
+          prefetchQuoteRequestRef.current.payTokenKey === payTokenKey
+        ) {
+          prefetchQuoteRequestRef.current = undefined;
+        }
+      },
+    );
+  }, [
+    amountHumanDebounced,
+    isAmountUpdateQuotePipelineEnabled,
+    payTokenKey,
+    updateTransactionPayAmount,
+  ]);
 
   const setIsMax = useCallback(
     (value: boolean) => {
@@ -271,9 +399,11 @@ export function useTransactionCustomAmount({
   );
 
   const updatePendingAmountPercentage = useCallback(
-    (percentage: number) => {
+    (percentage: number): boolean => {
       if (!balanceUsd) {
-        return;
+        // No balance to derive a percentage/Max amount from — signal the caller
+        // that nothing was applied so it can avoid submitting the page.
+        return false;
       }
 
       const newAmount = formatFiatAmount(
@@ -331,6 +461,7 @@ export function useTransactionCustomAmount({
       setIsMaxDeposit(isMaxMoneyAccountDeposit);
 
       setAmountFiat(newAmount);
+      return true;
     },
     [
       balanceUsd,
@@ -387,12 +518,19 @@ export function useTransactionCustomAmount({
     setConfirmationMetric,
   ]);
 
+  const effectiveCurrentAmountHuman = depositMaxHumanRef.current ?? amountHuman;
+  const hasPrefetchedQuote =
+    isAmountUpdateQuotePipelineEnabled &&
+    prefetchedQuoteAmountHuman === effectiveCurrentAmountHuman &&
+    prefetchedQuotePayTokenKey === payTokenKey;
+
   return {
     amountFiat,
     amountFiatDebounced,
     amountHuman,
     amountHumanDebounced,
     hasInput,
+    hasPrefetchedQuote,
     isDepositPrefillEnabled: depositPrefill.enabled,
     isDepositPrefilled: depositPrefill.hasPrefilled,
     isDepositPrefillLoading: depositPrefill.isLoading,

@@ -94,6 +94,7 @@ jest.mock('../../../util/trace', () => ({
 
 const mockCaptureException = jest.fn();
 jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
@@ -2225,11 +2226,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      const passwordSetupTrace = expect.objectContaining({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+      });
+
+      expect(mockTrace).not.toHaveBeenCalledWith(passwordSetupTrace);
 
       unmount();
 
-      expect(mockEndTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalledWith(passwordSetupTrace);
     });
 
     it('traces error and reports to Sentry when wallet import fails with onboardingTraceCtx', async () => {

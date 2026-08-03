@@ -725,15 +725,19 @@ export function mapLocalTransaction(
     case TransactionType.swapApproval:
     case TransactionType.tokenMethodApprove:
     case TransactionType.tokenMethodSetApprovalForAll: {
+      const approvalToken = getApprovalToken();
+      // ERC-20 `approve(spender, 0)` is a spending-cap revoke.
+      const isRevoke = approvalToken?.amount === '0';
+
       return {
-        type: 'approveSpendingCap',
+        type: isRevoke ? 'revokeSpendingCap' : 'approveSpendingCap',
         chainId,
         status,
         timestamp,
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getApprovalToken(),
+          token: approvalToken,
           ...(fees ? { fees } : {}),
         },
       };

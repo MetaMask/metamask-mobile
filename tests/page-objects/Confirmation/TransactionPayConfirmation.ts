@@ -485,6 +485,11 @@ class TransactionPayConfirmation {
 
   async enterAmountAndContinue(amount: string): Promise<void> {
     await this.tapKeyboardAmount(amount);
+    // Done replaces percentage chips only after hasInput (debounced amountHuman).
+    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
+      timeout: 30_000,
+      description: 'Deposit keyboard Done button after amount entry (hasInput)',
+    });
     await this.tapKeyboardContinueButton();
   }
 

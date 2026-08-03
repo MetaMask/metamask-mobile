@@ -24,6 +24,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import BigNumber from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import moneyEarnBannerArrow from '../../../../../images/money-earn-banner-arrow.png';
 import moneyEarnBannerCoin from '../../../../../images/money-earn-banner-coin.png';
@@ -185,6 +186,7 @@ const MoneyEarnBannerContent = ({
   const symbol =
     getTokenDisplaySymbol(asset.address, asset.symbol) ?? asset.symbol;
   const ctaLabel = strings('money.earn_banner.cta', { symbol });
+  const hasBalance = new BigNumber(asset.balance).gt(0);
 
   const beginAddFunds = useCallback((): boolean => {
     const preferredPaymentToken = {
@@ -227,8 +229,15 @@ const MoneyEarnBannerContent = ({
       token_position_in_list: 1,
       token_chain_id: asset.chainId ?? '',
       tokens_in_list: 1,
+      token_has_balance: hasBalance,
     });
-  }, [asset.chainId, asset.symbol, beginAddFunds, trackTokenSurfaceClicked]);
+  }, [
+    asset.chainId,
+    asset.symbol,
+    beginAddFunds,
+    hasBalance,
+    trackTokenSurfaceClicked,
+  ]);
 
   const handleCtaPress = useCallback(() => {
     const redirectedToOnboarding = beginAddFunds();
@@ -247,12 +256,14 @@ const MoneyEarnBannerContent = ({
       token_position_in_list: 1,
       token_chain_id: asset.chainId ?? '',
       tokens_in_list: 1,
+      token_has_balance: hasBalance,
     });
   }, [
     asset.chainId,
     asset.symbol,
     beginAddFunds,
     ctaLabel,
+    hasBalance,
     trackTokenButtonClicked,
   ]);
 
@@ -264,12 +275,14 @@ const MoneyEarnBannerContent = ({
       token_position_in_list: 1,
       token_chain_id: asset.chainId ?? '',
       tokens_in_list: 1,
+      token_has_balance: hasBalance,
     });
     dispatch(setMoneyEarnBannerDismissed(tokenKey));
   }, [
     asset.chainId,
     asset.symbol,
     dispatch,
+    hasBalance,
     tokenKey,
     trackTokenButtonClicked,
   ]);

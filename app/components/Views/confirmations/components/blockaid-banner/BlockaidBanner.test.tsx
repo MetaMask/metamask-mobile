@@ -1,6 +1,8 @@
 import React from 'react';
 
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { deflate } from 'react-native-gzip';
+import type { Hex } from '@metamask/utils';
 
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
@@ -17,17 +19,33 @@ jest.mock('../../../../../util/blockaid', () => ({
 
 jest.mock('react-native-gzip', () => ({
   // TODO: Replace "any" with type
+  // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deflate: (val: any) => val,
+  deflate: jest.fn((val: any) => val),
 }));
 
-const mockState: DeepPartial<RootState> = {
+const MAINNET_CHAIN_ID: Hex = '0x1';
+
+const stateWithNetwork = (
+  chainId: Hex,
+  name: string,
+): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
       PreferencesController: { securityAlertsEnabled: true },
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          [chainId]: { chainId, name },
+        },
+      },
     },
   },
-};
+});
+
+const mockState: DeepPartial<RootState> = stateWithNetwork(
+  MAINNET_CHAIN_ID,
+  'Ethereum',
+);
 
 const mockFeatures = [
   'We found attack vectors in this request',
@@ -198,6 +216,28 @@ describe('BlockaidBanner', () => {
 
     expect(wrapper.queryByTestId(TESTID_ACCORDIONHEADER)).toBeNull();
     expect(wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
+  });
+
+  it('reports the network name for a chain absent from the legacy Blockaid network map', async () => {
+    const ROBINHOOD_CHAIN_ID: Hex = '0x1237';
+
+    renderWithProvider(
+      <BlockaidBanner
+        securityAlertResponse={{
+          ...securityAlertResponse,
+          result_type: ResultType.Warning,
+          reason: Reason.approvalFarming,
+          chainId: ROBINHOOD_CHAIN_ID,
+        }}
+      />,
+      { state: stateWithNetwork(ROBINHOOD_CHAIN_ID, 'Robinhood Chain') },
+    );
+
+    await waitFor(() => {
+      expect(deflate).toHaveBeenCalledWith(
+        expect.stringContaining('"chain":"Robinhood Chain"'),
+      );
+    });
   });
 
   it('should render normal banner alert if resultType is failed', () => {

@@ -586,6 +586,16 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 # CI note: scheduled/feature-branch performance workflows use build_variant=e2e
 # (GitHub environment build-e2e). E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately
 # in performance-test-runner for the flags API. Release workflows use build_variant=rc.
+#
+# Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
+# procedure as Detox E2E (build-android-e2e.yml), via find-reusable-build in
+# build-android-upload-to-browserstack.yml:
+#   - miss → fresh dual Gradle builds
+#   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is
+#   - hit + app changes → skip Gradle, @expo/repack-app both profiles with current JS,
+#     then upload (fingerprint ignores JS-only changes, so repack avoids stale JS)
+# Separate from Appium smoke main-e2e APKs and from reuse_main_builds BrowserStack
+# custom_id resolution on main (test-only fast path that skips the dual-build job).
 ```
 
 ### Sentry Performance Instrumentation (Optional)
@@ -661,11 +671,16 @@ node tests/scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
 | `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
 
-### App profiling check (on-demand PR diff)
+### App profiling check (automatic on PR failures)
 
-When a performance scenario fails on a PR, the results comment includes an
-**App profiling check** command. Paste it as a PR comment to compare BrowserStack
-`profilingSummary` against the last green run of that scenario on `main`:
+When a PR performance run has failed scenarios, the results comment includes
+an inline **App profiling check** under each failed scenario that has a prior
+usable baseline on `main` (short summary + collapsed metric table). Scenarios
+without a prior baseline are omitted from that block.
+
+Header uses ⚠️ when there are failed tests.
+
+Manual re-run remains available via:
 
 ```text
 @metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run <RUN_ID>
@@ -677,8 +692,9 @@ Or compare all failed scenarios from that run:
 @metamaskbot app-profiling-check --all --run <RUN_ID>
 ```
 
-This runs `.github/workflows/app-profiling-check.yml`, which downloads
-`aggregated-reports` for the current run + baseline and posts a diff comment.
+This uses `.github/workflows/app-profiling-check.yml` (bot command /
+`workflow_dispatch`). The automatic PR path embeds profiling into the
+performance results comment from `run-performance-e2e.yml`.
 
 ### HTML Dashboard Features
 
