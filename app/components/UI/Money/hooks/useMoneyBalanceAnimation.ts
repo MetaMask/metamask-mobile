@@ -49,7 +49,6 @@ const useMoneyBalanceAnimation = (
   const identity = `${address ?? ''}|${currency}`;
   const identityRef = useRef(identity);
   const hasResolvedRef = useRef(false);
-  const lastAmountRef = useRef(amount);
 
   const [rendered, setRendered] = useState<RenderedBalance | undefined>(() => {
     const seed = isPersistedMoneyBalanceUsable(lastKnownBalance, {
@@ -70,9 +69,6 @@ const useMoneyBalanceAnimation = (
       return undefined;
     }
 
-    const hasNewAmount = lastAmountRef.current !== amount;
-    lastAmountRef.current = amount;
-
     const nextAmount = toDisplayAmount(amount);
     const isIdentityChange = identityRef.current !== identity;
     if (isIdentityChange) {
@@ -85,9 +81,6 @@ const useMoneyBalanceAnimation = (
 
     const previousAmount = renderedRef.current?.amount;
     if (previousAmount === nextAmount) {
-      if (hasNewAmount && hasPendingUserOp) {
-        dispatch(clearMoneyBalanceUserOp());
-      }
       return undefined;
     }
 

@@ -8,7 +8,10 @@ import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { markMoneyBalanceUserOp } from '../../../../core/redux/slices/moneyBalance';
+import {
+  clearMoneyBalanceUserOp,
+  markMoneyBalanceUserOp,
+} from '../../../../core/redux/slices/moneyBalance';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
   isMoneyAccountTx,
@@ -71,6 +74,10 @@ const refreshMoneyBalanceQueries = async (address: string) => {
 
     if (changed) return;
   }
+
+  // The balance never moved, so nothing will consume the signal that this
+  // transaction raised.
+  store.dispatch(clearMoneyBalanceUserOp());
 
   Logger.error(
     new Error(

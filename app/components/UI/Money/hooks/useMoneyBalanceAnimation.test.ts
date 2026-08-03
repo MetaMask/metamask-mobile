@@ -118,10 +118,9 @@ describe('useMoneyBalanceAnimation', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(clearMoneyBalanceUserOp());
   });
 
-  it('consumes the signal when the balance settles without moving the rendered figure', () => {
+  it('keeps the signal through drift that does not move the rendered figure', () => {
     arrangeSelectors({ lastKnownBalance: null });
-    const { result, rerender } = renderBalance(120.5);
-    expect(result.current.amount).toBe(120.5);
+    const { rerender } = renderBalance(120.5);
 
     arrangeSelectors({ lastKnownBalance: null, hasPendingUserOp: true });
     rerender(120.5);
@@ -129,7 +128,7 @@ describe('useMoneyBalanceAnimation', () => {
 
     rerender(120.504);
 
-    expect(mockDispatch).toHaveBeenCalledWith(clearMoneyBalanceUserOp());
+    expect(mockDispatch).not.toHaveBeenCalledWith(clearMoneyBalanceUserOp());
   });
 
   it('ignores drift below the rendered precision', () => {

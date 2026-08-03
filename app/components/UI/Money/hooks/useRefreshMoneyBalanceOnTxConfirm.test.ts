@@ -13,7 +13,10 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 import { store } from '../../../../store';
-import { markMoneyBalanceUserOp } from '../../../../core/redux/slices/moneyBalance';
+import {
+  clearMoneyBalanceUserOp,
+  markMoneyBalanceUserOp,
+} from '../../../../core/redux/slices/moneyBalance';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../store', () => ({
@@ -154,6 +157,26 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
     });
   });
+
+  it('clears the signal when the balance never moves, so nothing consumes it later', async () => {
+    const unchanged = {
+      musdBalance: '1000000',
+      vmusdValueInMusd: '2000000',
+      totalBalance: '3000000',
+    };
+    mockGetQueryData.mockReturnValue(unchanged);
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler(makeTx(TransactionType.moneyAccountDeposit));
+
+    await waitFor(
+      () => {
+        expect(store.dispatch).toHaveBeenCalledWith(clearMoneyBalanceUserOp());
+      },
+      { timeout: 15000 },
+    );
+  }, 20000);
 
   it('does not mark a transaction that leaves the Money balance alone', () => {
     renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
