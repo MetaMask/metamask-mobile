@@ -101,6 +101,27 @@ describe('useTokenLogo', () => {
     });
   });
 
+  describe('referential stability', () => {
+    it('returns stable styles and handlers across re-renders when bg sets are omitted', () => {
+      const { result, rerender } = renderHook(
+        ({ symbol }) => useTokenLogo({ symbol, size: 44 }),
+        { initialProps: { symbol: 'USDC' } },
+      );
+
+      const first = result.current;
+
+      // Re-render with identical inputs (and omitted bg sets, which previously
+      // defaulted to a fresh Set each render and busted the style memos).
+      rerender({ symbol: 'USDC' });
+
+      expect(result.current.containerStyle).toBe(first.containerStyle);
+      expect(result.current.imageStyle).toBe(first.imageStyle);
+      expect(result.current.handleLoadStart).toBe(first.handleLoadStart);
+      expect(result.current.handleLoadEnd).toBe(first.handleLoadEnd);
+      expect(result.current.handleError).toBe(first.handleError);
+    });
+  });
+
   describe('State reset on symbol change', () => {
     it('should reset loading and error states when symbol changes', () => {
       const { result, rerender } = renderHook(
