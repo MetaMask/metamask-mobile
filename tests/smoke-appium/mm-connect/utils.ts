@@ -2,20 +2,9 @@
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import WalletView from '../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import {
-  PlaywrightGestures,
-  PlaywrightAssertions,
-  sleep,
-  createLogger,
-} from '../../framework';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import { sleep, createLogger } from '../../framework';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-
-export { unlockIfLockScreenVisible } from '../../page-objects/MMConnect/unlockHelpers';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
@@ -127,36 +116,6 @@ function resolvePlaygroundApkPath(): string {
       '     cd android && ./gradlew assembleRelease\n' +
       '  3. Set RN_PLAYGROUND_APK_PATH to the APK location\n\n' +
       'See tests/smoke-appium/mm-connect/README.md for full setup instructions.',
-  );
-}
-
-/**
- * Wait for the wallet to be visible, then cycle the app twice to ensure all
- * account groups (including Solana) are created and syncing completes.
- * Must be called after login.
- */
-export async function ensureAccountGroupsFinishedLoading(
-  currentDeviceDetails: CurrentDeviceDetails,
-): Promise<void> {
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
-  );
-  await PlaywrightGestures.terminateApp(currentDeviceDetails);
-  await PlaywrightGestures.activateApp(currentDeviceDetails);
-  await loginToAppPlaywright();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
-  );
-  await WalletView.tapIdenticon();
-  await AccountListBottomSheet.waitForAccountSyncToComplete();
-  await PlaywrightGestures.terminateApp(currentDeviceDetails);
-  await PlaywrightGestures.activateApp(currentDeviceDetails);
-  await loginToAppPlaywright();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(WalletView.container),
-    { timeout: 15000 },
   );
 }
 

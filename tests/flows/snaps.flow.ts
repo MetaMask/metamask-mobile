@@ -1,14 +1,15 @@
 import { Assertions } from '../framework';
-import Utilities from '../framework/Utilities';
 import AccountMenu from '../page-objects/AccountMenu/AccountMenu';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestSnaps from '../page-objects/Browser/TestSnaps';
 import SettingsView from '../page-objects/Settings/SettingsView';
 import SnapSettingsView from '../page-objects/Settings/SnapSettingsView';
+import TrendingView from '../page-objects/Trending/TrendingView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
 import { navigateToBrowserView, waitForTestSnapsToLoad } from './browser.flow';
 import { loginToAppPlaywright } from './wallet.flow';
+import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 
 /**
  * Logs in with the e2e wallet fixture and navigates to the test-snaps page.
@@ -43,7 +44,8 @@ export const navigateFromBrowserToSnapSettings = async (): Promise<void> => {
 
 /**
  * Navigate from Snap Settings back to the in-app browser (test-snaps page).
- * Walks back through Snap Settings → Settings → Account menu → browser.
+ * Walks back through Snap Settings → Settings → Account menu → Explore →
+ * Browser, then selects the test-snaps tab by host a11y label.
  */
 export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
   await SnapSettingsView.tapBackButton();
@@ -60,6 +62,8 @@ export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
   });
   await AccountMenu.tapBack();
 
-  await navigateToBrowserView();
+  await TabBarComponent.tapExploreButton();
+  await TrendingView.tapBrowserButton();
+  await BrowserView.selectTabByPartialUrl(new URL(TEST_SNAPS_URL).origin);
   await waitForTestSnapsToLoad();
 };
