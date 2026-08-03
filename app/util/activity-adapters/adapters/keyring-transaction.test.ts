@@ -168,6 +168,33 @@ describe('mapKeyringTransaction', () => {
     );
   });
 
+  it('maps a send transaction missing its chain instead of throwing', () => {
+    // `chain` is required by the keyring API, but the data comes from a snap. One malformed
+    // transaction must degrade to a single row, not take down the whole list.
+    const item = mapKeyringTransaction({
+      transaction: {
+        id: 'no-chain-id',
+        chain: undefined,
+        account: '00000000-0000-4000-8000-000000000000',
+        status: TransactionStatus.Confirmed,
+        timestamp: 1716367781,
+        type: TransactionType.Send,
+        from: [{ address: 'from-address', asset: null }],
+        to: [{ address: 'to-address', asset: null }],
+        fees: [],
+        events: [],
+      } as unknown as Transaction,
+    });
+
+    expect(item).toEqual(
+      expect.objectContaining({
+        type: 'send',
+        chainId: undefined,
+        hash: 'no-chain-id',
+      }),
+    );
+  });
+
   it('maps trustline approve transactions to assetActivation activity items', () => {
     const item = mapKeyringTransaction({
       transaction: {

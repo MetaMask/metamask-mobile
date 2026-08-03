@@ -19,6 +19,7 @@ import { configureUseAnalyticsExternalLinkMock } from '../../../util/test/analyt
 import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 jest.useFakeTimers();
 
 jest.mock('../../../util/analytics/externalLinkTracking', () => ({
@@ -107,7 +108,7 @@ describe('MultichainTransactionsView', () => {
   const mockTransactions = [
     {
       id: 'tx-123',
-      chainId: 'solana:mainnet',
+      chain: SolScope.Mainnet,
       from: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
       to: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
       value: '1500000000',
@@ -117,7 +118,7 @@ describe('MultichainTransactionsView', () => {
     },
     {
       id: 'tx-456',
-      chainId: 'solana:mainnet',
+      chain: SolScope.Mainnet,
       from: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
       to: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
       value: '2000000000',
@@ -158,6 +159,13 @@ describe('MultichainTransactionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
+
+    // Plain property, so clearAllMocks doesn't touch it — reset it explicitly
+    // or a later test can assert against a previous test's button.
+    const { default: MockButton } = jest.requireMock(
+      '../../../component-library/components/Buttons/Button',
+    ) as { default: { lastProps: ButtonProps } };
+    MockButton.lastProps = {} as ButtonProps;
 
     configureUseAnalyticsExternalLinkMock();
     mockUseTheme.mockReturnValue({
@@ -263,6 +271,47 @@ describe('MultichainTransactionsView', () => {
       jest.mocked(ActivityListItemRow).mock.calls[0][0],
     ).not.toHaveProperty('title');
     expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
+  });
+
+  it('keeps swaps carrying bridge history on the redesigned row instead of the legacy bridge row', async () => {
+    const bridgeHistoryItem = {
+      status: { srcChain: { txHash: 'tx-123' } },
+      quote: {
+        srcChainId: SolScope.Mainnet,
+        destChainId: SolScope.Mainnet,
+        srcAsset: { chainId: SolScope.Mainnet, symbol: 'SOL' },
+        destAsset: { chainId: SolScope.Mainnet, symbol: 'USDC' },
+      },
+    };
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        return { transactions: mockTransactions };
+      }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      if (selector === selectBridgeHistoryForAccount) {
+        return { 'bridge-1': bridgeHistoryItem };
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+      />,
+    );
+
+    expect(ActivityListItemRow).toHaveBeenCalledWith(
+      expect.objectContaining({ bridgeHistoryItem }),
+      undefined,
+    );
   });
 
   it('does not render view more link for bitcoin activity', async () => {

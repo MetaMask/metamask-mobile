@@ -1,39 +1,46 @@
 import type { Transaction } from '@metamask/keyring-api';
 import type { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
   TRANSACTION_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
-import { mapKeyringTransaction } from '../../../util/activity-adapters';
-
-export const mapMultichainTransactionToActivityItem = ({
-  transaction,
-  chainId,
-}: {
-  transaction: Transaction;
-  chainId: SupportedCaipChainId;
-}) =>
-  mapKeyringTransaction({
-    transaction: {
-      ...transaction,
-      chain: transaction.chain ?? chainId,
-    },
-  });
+import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
+import { isBridgeTxHistoryItemBridge } from '../../UI/Bridge/utils/transaction-history';
 
 export const getMultichainTransactionDetailEventProperties = ({
   transaction,
   chainId,
   location,
+  bridgeHistoryItem,
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
   location?: TransactionDetailLocation;
-}) => ({
-  transaction_type: transaction.type?.toLowerCase() ?? 'unknown',
-  transaction_status: transaction.status ?? 'unknown',
-  location: location ?? TransactionDetailLocation.Home,
-  chain_id_source: String(chainId),
-  chain_id_destination: String(chainId),
-});
+  bridgeHistoryItem?: BridgeHistoryItem;
+}) => {
+  const baseProperties = {
+    transaction_type: transaction.type?.toLowerCase() ?? 'unknown',
+    transaction_status: transaction.status ?? 'unknown',
+    location: location ?? TransactionDetailLocation.Home,
+    chain_id_source: String(chainId),
+    chain_id_destination: String(chainId),
+  };
+
+  if (!bridgeHistoryItem) {
+    return baseProperties;
+  }
+
+  const { quote } = bridgeHistoryItem;
+  return {
+    ...baseProperties,
+    transaction_type: isBridgeTxHistoryItemBridge(bridgeHistoryItem)
+      ? 'bridge'
+      : 'swap',
+    chain_id_source: String(quote.srcAsset.chainId),
+    chain_id_destination: String(quote.destAsset.chainId),
+    monetized_primitive: MonetizedPrimitive.Swaps,
+  };
+};
 
 export { TRANSACTION_DETAIL_EVENTS };

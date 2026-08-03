@@ -11,10 +11,8 @@ import {
 } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import {
-  useBridgeHistoryItemBySrcTxHash,
-  findBridgeHistoryItemBySrcTxHash,
-} from '../Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
@@ -70,6 +68,21 @@ export const AssetDetailsActivityListItem = ({
     Record<string, { address: string; symbol?: string; decimals?: number }[]>
   >;
   const accountImportTime = selectedInternalAccount?.metadata.importTime;
+
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
+  const { actionId } = tx;
+  const bridgeHistoryItem = useMemo(
+    () =>
+      findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: actionId,
+        transactionHash: tx.hash,
+      }),
+    [bridgeHistory, tx.id, actionId, tx.hash],
+  );
+
   const activityItem = useMemo(() => {
     const resolvedChainId = (tx.chainId ?? tokenChainId ?? currentChainId) as
       | Hex
@@ -98,22 +111,18 @@ export const AssetDetailsActivityListItem = ({
       nativeAssetSymbol,
       currentChainId,
       tokenChainId,
+      bridgeHistoryItem,
     });
   }, [
     allTokens,
     assetSymbol,
+    bridgeHistoryItem,
     currentChainId,
     groupEvmAccount?.address,
     networkConfigurations,
     tokenChainId,
     tx,
   ]);
-
-  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
-  const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
-    bridgeHistoryItemsBySrcTxHash,
-    activityItem.hash,
-  );
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {

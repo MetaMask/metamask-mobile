@@ -13,6 +13,7 @@ import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureF
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
 import { resolveActivityListItemTitle } from '../ActivityListItemRow/ActivityListItemRow';
 
@@ -71,10 +72,17 @@ const createTransaction = (
 });
 
 describe('AssetDetailsActivityListItem', () => {
+  let bridgeHistory: Record<string, unknown> = {};
+
   beforeEach(() => {
     jest.clearAllMocks();
+    bridgeHistory = {};
 
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBridgeHistoryForAccount) {
+        return bridgeHistory;
+      }
+
       if (selector === selectSelectedInternalAccount) {
         return { metadata: { importTime: 2000 } };
       }
@@ -137,6 +145,10 @@ describe('AssetDetailsActivityListItem', () => {
 
   it('does not render account import marker when import time is null', () => {
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBridgeHistoryForAccount) {
+        return bridgeHistory;
+      }
+
       if (selector === selectSelectedInternalAccount) {
         return { metadata: { importTime: null } };
       }
@@ -182,6 +194,10 @@ describe('AssetDetailsActivityListItem', () => {
 
   it('routes to the ActivityDetails screen when the redesign is enabled', () => {
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBridgeHistoryForAccount) {
+        return bridgeHistory;
+      }
+
       if (selector === selectSelectedInternalAccount) {
         return { metadata: { importTime: 2000 } };
       }

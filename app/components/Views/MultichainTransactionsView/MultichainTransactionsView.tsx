@@ -37,11 +37,11 @@ import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagC
 import {
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  mapKeyringTransaction,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
 import ActivityListDateHeader from '../../UI/ActivityListItemRow/ActivityListDateHeader';
 import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
-import { mapMultichainTransactionToActivityItem } from './MultichainAssetDetailsActivityListItem.utils';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -172,14 +172,18 @@ const MultichainTransactionsView = ({
       shouldUseActivityRedesign
         ? groupActivityListItems(
             visibleMultichainTransactions.map((transaction) =>
-              mapMultichainTransactionToActivityItem({
+              mapKeyringTransaction({
                 transaction,
-                chainId,
+                bridgeHistory: bridgeHistoryItemsBySrcTxHash[transaction.id],
               }),
             ),
           )
         : visibleMultichainTransactions,
-    [chainId, shouldUseActivityRedesign, visibleMultichainTransactions],
+    [
+      bridgeHistoryItemsBySrcTxHash,
+      shouldUseActivityRedesign,
+      visibleMultichainTransactions,
+    ],
   );
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -233,6 +237,19 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
+    if (shouldUseActivityRedesign) {
+      return (
+        <MultichainAssetDetailsActivityListItem
+          transaction={item}
+          bridgeHistoryItem={bridgeHistoryItem}
+          navigation={nav}
+          index={index}
+          chainId={chainId}
+          location={location}
+        />
+      );
+    }
+
     if (bridgeHistoryItem) {
       return (
         <MultichainBridgeTransactionListItem
@@ -240,21 +257,6 @@ const MultichainTransactionsView = ({
           bridgeHistoryItem={bridgeHistoryItem}
           navigation={nav}
           index={index}
-          location={location}
-        />
-      );
-    }
-
-    if (
-      isActivityRedesignEnabled &&
-      location === TransactionDetailLocation.AssetDetails
-    ) {
-      return (
-        <MultichainAssetDetailsActivityListItem
-          transaction={item}
-          navigation={nav}
-          index={index}
-          chainId={chainId}
           location={location}
         />
       );
