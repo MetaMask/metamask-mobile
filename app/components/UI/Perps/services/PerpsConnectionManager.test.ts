@@ -1344,7 +1344,7 @@ describe('PerpsConnectionManager', () => {
     }
 
     const armGracePeriodWhileAppIs = (
-      appState: 'active' | 'background',
+      appState: 'active' | 'inactive' | 'background',
     ): void => {
       const manager = PerpsConnectionManager as unknown as SchedulableManager;
       manager.connectionRefCount = 0;
@@ -1383,6 +1383,21 @@ describe('PerpsConnectionManager', () => {
       );
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Ignoring stale grace period timer'),
+      );
+    });
+
+    it('ignores a timer armed on the inactive edge, which is what a real iOS lock arms on', async () => {
+      // PerpsAlwaysOnProvider disconnects on the `active -> inactive` edge and
+      // iOS backgrounding fires active -> inactive -> background, so `inactive`
+      // is the state production actually arms in.
+      armGracePeriodWhileAppIs('inactive');
+
+      jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
+      await Promise.resolve();
+
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isInGracePeriod).toBe(
+        false,
       );
     });
 

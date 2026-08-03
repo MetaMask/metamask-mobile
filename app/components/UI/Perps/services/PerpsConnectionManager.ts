@@ -587,6 +587,13 @@ class PerpsConnectionManagerClass {
       // pings and soft-reconnects only if the socket really did die. A grace
       // period armed while the app is still active (an in-app reference-count
       // drop) is unaffected: it runs on schedule and disconnects normally.
+      //
+      // Net effect on iOS: a grace period armed by backgrounding never
+      // disconnects. That is not a behaviour regression — the timer never ran
+      // during the background window before this change either, it only ran
+      // late, on resume, which is the bug. Teardown while backgrounded is the
+      // OS's job (it suspends the process and the socket with it), and
+      // `resumeFromForeground` re-validates on the way back.
       const armedWhileBackgrounded = AppState.currentState !== 'active';
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
