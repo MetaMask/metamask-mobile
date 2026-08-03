@@ -154,7 +154,6 @@ export type PredictCategory =
   | 'crypto'
   | 'politics'
   | 'hot'
-  | 'world-cup'
   | 'wimbledon';
 
 // Sports league types
