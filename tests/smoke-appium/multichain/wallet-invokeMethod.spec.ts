@@ -61,7 +61,6 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
   });
 
   appiumTest.describe('Read operations', () => {
-    /*
     appiumTest(
       'should match selected method to the expected output for eth_chainId',
       async ({ driver: _driver, currentDeviceDetails }) => {
@@ -471,7 +470,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
         );
       },
     );
-*/
+
     appiumTest(
       'should be able to call: wallet_getCallsStatus',
       async ({ driver: _driver, currentDeviceDetails }) => {
