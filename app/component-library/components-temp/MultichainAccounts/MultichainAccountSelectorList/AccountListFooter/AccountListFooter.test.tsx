@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import AccountListFooter from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
@@ -20,7 +20,7 @@ import {
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
 jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn(),
+  useNavigation: jest.fn(),
 }));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -72,14 +72,16 @@ const mockUseAccountWalletOperationsLoadingStates =
   useAccountWalletOperationsLoadingStates as jest.MockedFunction<
     typeof useAccountWalletOperationsLoadingStates
   >;
-const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
-  typeof useFocusEffect
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
 >;
 
 describe('AccountListFooter', () => {
   const mockWalletId = 'keyring:test-wallet-id' as const;
   const mockKeyringId = 'test-keyring-id';
-  let focusCleanup: (() => void) | undefined;
+  let blurListener: (() => void) | undefined;
+  const mockAddListener = jest.fn();
+  const mockRemoveListener = jest.fn();
 
   const mockWallet = {
     id: mockWalletId,
@@ -99,12 +101,17 @@ describe('AccountListFooter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    focusCleanup = undefined;
-
-    mockUseFocusEffect.mockImplementation((callback) => {
-      const cleanup = callback();
-      focusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
+    blurListener = undefined;
+    mockRemoveListener.mockClear();
+    mockAddListener.mockImplementation((event, listener) => {
+      if (event === 'blur') {
+        blurListener = listener;
+      }
+      return mockRemoveListener;
     });
+    mockUseNavigation.mockReturnValue({
+      addListener: mockAddListener,
+    } as unknown as ReturnType<typeof useNavigation>);
 
     (mockEngine as unknown as { context: unknown }).context = {
       MultichainAccountService: mockMultichainAccountService,
@@ -135,7 +142,7 @@ describe('AccountListFooter', () => {
   });
 
   describe('Tracing', () => {
-    it('ends the create account trace when the screen loses focus during account creation', async () => {
+    it('ends the create account trace when the screen blurs during account creation', async () => {
       let resolveCreateAccount: (() => void) | undefined;
       const createAccountPromise = new Promise<void>((resolve) => {
         resolveCreateAccount = resolve;
@@ -152,7 +159,7 @@ describe('AccountListFooter', () => {
       );
 
       fireEvent.press(getByText('Add account'));
-      focusCleanup?.();
+      blurListener?.();
 
       expect(trace).toHaveBeenCalledWith({
         name: TraceName.CreateMultichainAccount,
@@ -166,6 +173,43 @@ describe('AccountListFooter', () => {
 
       await waitFor(() => {
         expect(getByText('Add account')).toBeOnTheScreen();
+      });
+    });
+
+    it('does not end the create account trace when the FlashList cell unmounts during creation', async () => {
+      let resolveCreateAccount: (() => void) | undefined;
+      const createAccountPromise = new Promise<void>((resolve) => {
+        resolveCreateAccount = resolve;
+      });
+      mockMultichainAccountService.createNextMultichainAccountGroup.mockReturnValue(
+        createAccountPromise,
+      );
+
+      const { getByText, unmount } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByText('Add account'));
+      expect(trace).toHaveBeenCalledWith({
+        name: TraceName.CreateMultichainAccount,
+        op: TraceOperation.AccountCreate,
+      });
+
+      // Simulate FlashList clipping the footer cell while creation is in flight.
+      unmount();
+
+      expect(mockRemoveListener).toHaveBeenCalled();
+      expect(endTrace).not.toHaveBeenCalled();
+
+      resolveCreateAccount?.();
+
+      await waitFor(() => {
+        expect(endTrace).toHaveBeenCalledWith({
+          name: TraceName.CreateMultichainAccount,
+        });
       });
     });
   });

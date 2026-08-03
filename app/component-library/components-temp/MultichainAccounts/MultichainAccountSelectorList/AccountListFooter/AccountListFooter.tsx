@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import {
   Icon,
@@ -47,6 +47,7 @@ const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const activeCreateTraceRef = useRef(false);
+    const navigation = useNavigation();
     const { styles } = useStyles(createStyles, {});
     const {
       areAnyOperationsLoading,
@@ -85,26 +86,25 @@ const AccountListFooter = memo(
       endTrace({ name: TraceName.CreateMultichainAccount });
     }, []);
 
-    // End trace when the loading finishes
+    // End trace when the loading finishes.
     useEffect(() => {
       if (!isLoading) {
         endCreateMultichainAccountTrace();
       }
     }, [endCreateMultichainAccountTrace, isLoading]);
 
-    // End trace if the user navigates away before account creation completes.
-    useFocusEffect(
-      useCallback(
-        () => endCreateMultichainAccountTrace,
-        [endCreateMultichainAccountTrace],
-      ),
-    );
+    // End the active span if the screen blurs before creation completes.
+    // Use a navigation blur listener (not useFocusEffect / unmount cleanup):
+    // this footer is a FlashList cell with removeClippedSubviews, so scrolling
+    // can tear the cell down while account creation is still running.
+    useEffect(() => {
+      const unsubscribe = navigation.addListener(
+        'blur',
+        endCreateMultichainAccountTrace,
+      );
 
-    // Also end trace on unmount as a fallback for non-focus-driven teardown.
-    useEffect(
-      () => endCreateMultichainAccountTrace,
-      [endCreateMultichainAccountTrace],
-    );
+      return unsubscribe;
+    }, [endCreateMultichainAccountTrace, navigation]);
 
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
@@ -112,6 +112,7 @@ const AccountListFooter = memo(
           new Error('No keyring ID found for wallet'),
           'Cannot create account without keyring ID',
         );
+        endCreateMultichainAccountTrace();
         setIsLoading(false);
         return;
       }
@@ -136,9 +137,16 @@ const AccountListFooter = memo(
           'error while trying to add a new multichain account',
         );
       } finally {
+        // End here so the span still closes if the FlashList cell was clipped
+        // (unmounted) before creation finished and local isLoading state is gone.
+        endCreateMultichainAccountTrace();
         setIsLoading(false);
       }
-    }, [walletInfo?.keyringId, onAccountCreated]);
+    }, [
+      endCreateMultichainAccountTrace,
+      onAccountCreated,
+      walletInfo?.keyringId,
+    ]);
 
     const handlePress = useCallback(() => {
       // Start the trace before setting the loading state
