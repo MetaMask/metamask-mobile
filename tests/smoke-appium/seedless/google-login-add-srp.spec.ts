@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeSeedlessOnboardingExtended } from '../../tags.js';
+import { SmokeSeedlessOnboarding } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import Assertions from '../../framework/Assertions.js';
@@ -28,7 +28,7 @@ const googleNewUserWithFeatureFlagsMock = async (
 };
 
 appiumTest.describe(
-  SmokeSeedlessOnboardingExtended('Google Login - Add New SRP'),
+  SmokeSeedlessOnboarding('Google Login - Add New SRP'),
   () => {
     appiumTest(
       'creates wallet with Google login and adds a new SRP',

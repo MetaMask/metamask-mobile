@@ -3,10 +3,12 @@ import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
 import { DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES } from '../constants/sports';
+import { SUPPORTED_SPORTS_MARKET_TYPES } from '../providers/polymarket/constants';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
@@ -40,6 +42,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
     });
   });
@@ -427,6 +430,97 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
+    });
+  });
+
+  describe('predictSportsFeed', () => {
+    it('returns bundled config when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictSportsFeed).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
+    });
+
+    it('falls back to bundled config when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'tabs' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportsFeed: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            tabs: [],
+          },
+        },
+      });
+
+      expect(result.predictSportsFeed).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
+    });
+
+    it('uses remote sports feed config when version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'tabs' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const remoteSportsFeed = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        tabs: [
+          {
+            id: 'soccer',
+            titleKey: 'predict.feed.tabs.soccer',
+            tagSlug: 'soccer',
+            chips: [
+              {
+                id: 'games',
+                kind: 'games',
+                titleKey: 'predict.feed.filters.games',
+              },
+              {
+                id: 'mls',
+                kind: 'tag',
+                titleKey: 'predict.feed.filters.mls',
+                tagSlug: 'mls',
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportsFeed: remoteSportsFeed,
+        },
+      });
+
+      expect(result.predictSportsFeed).toEqual(remoteSportsFeed);
+    });
+
+    it('falls back to bundled config when schema parsing fails', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportsFeed: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            tabs: [{ chips: [] }],
+          },
+        },
+      });
+
+      expect(result.predictSportsFeed).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      );
     });
   });
 
@@ -830,27 +924,9 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.enabledSportsMarketTypes).toEqual([
-        'moneyline',
-        'spreads',
-        'totals',
-        'both_teams_to_score',
-        'both_teams_to_score_first_half',
-        'both_teams_to_score_second_half',
-        'first_half_totals',
-        'second_half_totals',
-        'soccer_first_to_score',
-        'soccer_halftime_result',
-        'soccer_second_half_result',
-        'soccer_player_goals',
-        'soccer_team_to_advance',
-        'soccer_extra_time',
-        'soccer_penalty_shootout',
-        'team_totals',
-        'soccer_team_totals',
-        'basketball_team_to_score_first',
-        'soccer_exact_score',
-      ]);
+      expect(result.enabledSportsMarketTypes).toEqual(
+        Array.from(SUPPORTED_SPORTS_MARKET_TYPES),
+      );
     });
 
     it('keeps the new full-tie-outcome market types when enabled', () => {
@@ -961,6 +1037,7 @@ describe('resolvePredictFeatureFlags', () => {
               'MONEYLINE',
               'spreads',
               'totals',
+              'first_half_moneyline',
               'soccer_halftime_result',
               'soccer_player_goals',
               'points',
@@ -973,6 +1050,7 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
+        'first_half_moneyline',
         'soccer_halftime_result',
         'soccer_player_goals',
       ]);

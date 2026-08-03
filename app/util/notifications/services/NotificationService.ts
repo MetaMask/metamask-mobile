@@ -9,6 +9,7 @@ import notifee, {
 import { Linking, Alert as NativeAlert, Platform } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { store } from '../../../store';
+import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import Logger from '../../../util/Logger';
 import {
   ChannelId,
@@ -286,8 +287,8 @@ class NotificationsService {
         // Notifee can only store and handle data strings
         data: { dataStr: JSON.stringify(data) },
         android: {
+          // Omit largeIcon — same fox as smallIcon caused a duplicate on Android.
           smallIcon: 'ic_notification_small',
-          largeIcon: 'ic_notification',
           channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
           pressAction: {
             id: pressActionId,
@@ -339,6 +340,7 @@ const getPushPermissionStatusFromAuthorizationStatus = (
 
 export async function requestPushPermissions() {
   const result = await NotificationService.getAllPermissions(true);
+  store.dispatch(markPushNotificationOsPromptRequested());
   return result.permission === 'authorized';
 }
 

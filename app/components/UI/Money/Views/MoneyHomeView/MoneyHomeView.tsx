@@ -35,7 +35,6 @@ import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList, {
   MAX_PREVIEW_ITEMS as MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
 } from '../../components/MoneyActivityList';
-import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
@@ -57,9 +56,13 @@ import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
   selectIsCardholder,
+  selectIsCardStateResolved,
 } from '../../../../../selectors/cardController';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEarningSectionEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -153,6 +156,7 @@ const MoneyHomeView = () => {
         refetchBalance(),
         refetchInterest(),
         refreshMusdFiatRate(),
+        Engine.context.CardController.fetchCardHomeData({ force: true }),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -199,8 +203,12 @@ const MoneyHomeView = () => {
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyEarningSectionEnabled = useSelector(
+    selectMoneyEarningSectionEnabledFlag,
+  );
   const isMoneyAccountGeoEligible = useSelector(
     selectIsMoneyAccountGeoEligible,
   );
@@ -226,6 +234,7 @@ const MoneyHomeView = () => {
     isMoneyAccountVisible,
     hasMoneyAccountBaseRequirements,
     hasMoneyAccountRequirements,
+    isCardStateResolved,
   });
 
   let displayState: MoneyBalanceDisplayState;
@@ -381,13 +390,6 @@ const MoneyHomeView = () => {
     [navigation, trackButtonClicked],
   );
 
-  const handleFooterAddMoneyPress = useCallback(() => {
-    handleAddPress({
-      labelKey: 'money.footer.add_money',
-      componentName: COMPONENT_NAMES.MONEY_FOOTER,
-    });
-  }, [handleAddPress]);
-
   const handleMusdRowAddPress = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -433,15 +435,6 @@ const MoneyHomeView = () => {
       },
     ]);
   }, [navigation, metamaskCardMode]);
-
-  const handleCardHeaderPress = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_CARD_SECTION_HEADER,
-      redirect_target: SCREEN_NAMES.CARD_HOME,
-    });
-
-    navigateToCardHome();
-  }, [navigateToCardHome, trackSurfaceClicked]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -535,6 +528,7 @@ const MoneyHomeView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -568,6 +562,7 @@ const MoneyHomeView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: tokenCount,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({
@@ -597,6 +592,7 @@ const MoneyHomeView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: tokenCount,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({
@@ -614,15 +610,6 @@ const MoneyHomeView = () => {
     },
     [initiateDeposit, trackTokenSurfaceClicked],
   );
-
-  const handlePotentialEarningsHeaderPress = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
-      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
-    });
-
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
-  }, [navigation, trackSurfaceClicked]);
 
   const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
     trackButtonClicked({
@@ -668,15 +655,6 @@ const MoneyHomeView = () => {
     },
     [navigation, trackSurfaceClicked],
   );
-
-  const handleActivityHeaderPress = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
-      redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
-    });
-
-    navigation.navigate(Routes.MONEY.ACTIVITY as never);
-  }, [navigation, trackSurfaceClicked]);
 
   const handleViewAllActivityPress = useCallback(() => {
     trackButtonClicked({
@@ -740,7 +718,6 @@ const MoneyHomeView = () => {
           <MoneyMetaMaskCard
             mode={metamaskCardMode}
             onGetNowPress={navigateToCardHome}
-            onHeaderPress={handleCardHeaderPress}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
             showMetalCard={hasMetalCard}
@@ -764,7 +741,7 @@ const MoneyHomeView = () => {
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
-  if (hasBalanceValue && isFunded) {
+  if (isMoneyEarningSectionEnabled && hasBalanceValue && isFunded) {
     contentSections.push({
       key: 'earnings',
       node: (
@@ -825,7 +802,6 @@ const MoneyHomeView = () => {
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
           onViewAllPress={handleViewAllActivityPress}
-          onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
           privacyMode={privacyMode}
         />
@@ -844,7 +820,6 @@ const MoneyHomeView = () => {
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}
           onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
-          onHeaderPress={handlePotentialEarningsHeaderPress}
           onInfoPress={handleEarnCryptoInfoPress}
           privacyMode={privacyMode}
         />
@@ -953,7 +928,6 @@ const MoneyHomeView = () => {
             {section.node}
           </React.Fragment>
         ))}
-        <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
       </ScrollView>
     </Box>
   );

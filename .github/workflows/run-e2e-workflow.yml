@@ -44,8 +44,8 @@ on:
         required: false
         type: string
         default: 'e2e'
-      changed_files:
-        description: 'Changed files'
+      changed_spec_files:
+        description: 'Space-separated list of changed E2E spec file paths, used to run modified specs twice for flakiness detection'
         required: false
         type: string
         default: ''
@@ -82,12 +82,11 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PLATFORM: ${{ inputs.platform }}
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
-      CHANGED_FILES: ${{ inputs.changed_files }}
+      CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
       GITHUB_CI: 'true'
       SPLIT_NUMBER: ${{ inputs.split_number }}
       TOTAL_SPLITS: ${{ inputs.total_splits }}
       RAMP_INTERNAL_BUILD: 'true'
-      BRIDGE_USE_DEV_APIS: 'true'
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}

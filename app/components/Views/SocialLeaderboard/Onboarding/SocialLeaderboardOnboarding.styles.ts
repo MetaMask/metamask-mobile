@@ -73,7 +73,6 @@ const createStyles = () =>
     // Social Leaderboard toast reads identically to the rest of the app.
     toastAccessory: {
       alignSelf: 'flex-start',
-      marginRight: 12,
       paddingTop: 4,
     },
     title: {

@@ -7,9 +7,7 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  Icon,
   IconName,
-  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Tag,
@@ -47,40 +45,33 @@ import {
 interface PerpsProOrderCardProps {
   order: Order;
   testID?: string;
+  onCancel?: (order: Order) => void;
+  isCancelDisabled?: boolean;
 }
 
 interface KeyValueItemProps {
   label: string;
   value: string;
-  isEditable?: boolean;
   isHidden?: boolean;
 }
 
 const KeyValueItem = ({
   label,
   value,
-  isEditable = false,
   isHidden = false,
 }: KeyValueItemProps) => (
   <Box>
     <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
       {label}
     </Text>
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-1"
+    <SensitiveText
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      isHidden={isHidden}
+      length={SensitiveTextLength.Short}
     >
-      <SensitiveText
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        isHidden={isHidden}
-        length={SensitiveTextLength.Short}
-      >
-        {value}
-      </SensitiveText>
-      {isEditable && <Icon name={IconName.Edit} size={IconSize.Sm} />}
-    </Box>
+      {value}
+    </SensitiveText>
   </Box>
 );
 
@@ -110,7 +101,12 @@ const getOrderTypeLabel = (order: Order): string => {
 /**
  * Read-only summary of an open perps order in the Pro market view.
  */
-const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
+const PerpsProOrderCard = ({
+  order,
+  testID,
+  onCancel,
+  isCancelDisabled = false,
+}: PerpsProOrderCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const displaySymbol = getPerpsDisplaySymbol(order.symbol);
   const direction = getOrderPositionDirection(order);
@@ -162,7 +158,7 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-4 px-4 py-2"
+        twClassName="gap-4 px-2 py-2"
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -197,7 +193,7 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
         <Tag severity={TagSeverity.Neutral}>{getOrderTypeLabel(order)}</Tag>
       </Box>
 
-      <Box twClassName="px-4">
+      <Box twClassName="px-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -207,7 +203,6 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
             <KeyValueItem
               label={strings('perps.pro_positions_panel.order_card.size')}
               value={`${size} ${displaySymbol}`}
-              isEditable
             />
             <KeyValueItem
               label={strings(
@@ -231,7 +226,6 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
             <KeyValueItem
               label={strings('perps.pro_positions_panel.order_card.tp_sl')}
               value={tpSl}
-              isEditable
               isHidden={privacyMode}
             />
           </Box>
@@ -239,7 +233,6 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
             <KeyValueItem
               label={strings('perps.pro_positions_panel.order_card.price')}
               value={price}
-              isEditable
               isHidden={privacyMode}
             />
             <KeyValueItem
@@ -253,13 +246,16 @@ const PerpsProOrderCard = ({ order, testID }: PerpsProOrderCardProps) => {
         </Box>
       </Box>
 
-      <Box twClassName="px-4">
+      <Box twClassName="px-2">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
           isDanger
           startIconName={IconName.Close}
           twClassName="w-full border-muted bg-background-default"
+          onPress={() => onCancel?.(order)}
+          isDisabled={isCancelDisabled}
+          testID={PerpsProMarketViewSelectorsIDs.ORDER_CANCEL}
         >
           {strings('perps.pro_positions_panel.order_card.cancel')}
         </Button>

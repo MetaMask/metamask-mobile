@@ -86,6 +86,8 @@ export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBannerDismissed`;
 
+export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
+
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
 
 export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;

@@ -1,6 +1,6 @@
 import type { Mockttp } from 'mockttp';
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeSeedlessOnboardingExtended } from '../../tags.js';
+import { SmokeSeedlessOnboarding } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
@@ -27,7 +27,7 @@ const enableAddDeviceSyncFlag = async (mockServer: Mockttp) => {
 };
 
 appiumTest.describe(
-  SmokeSeedlessOnboardingExtended('QR sync SRP — mobile ↔ extension'),
+  SmokeSeedlessOnboarding('QR sync SRP — mobile ↔ extension'),
   () => {
     appiumTest(
       'new user: imports SRP from extension sync and lands on wallet home',

@@ -539,7 +539,6 @@ jobs:
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
-          BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -601,7 +600,6 @@ jobs:
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
           METRO_MAX_WORKERS: '6'
-          BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'

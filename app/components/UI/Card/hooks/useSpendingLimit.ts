@@ -574,7 +574,6 @@ const useSpendingLimit = ({
       ],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -590,7 +589,6 @@ const useSpendingLimit = ({
         ],
         iconName: IconName.Danger,
         iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.error.muted,
         hasNoTimeout: false,
       });
     },
@@ -618,7 +616,9 @@ const useSpendingLimit = ({
         });
         if (success) {
           try {
-            await Engine.context.CardController.fetchCardHomeData();
+            await Engine.context.CardController.fetchCardHomeData({
+              force: true,
+            });
           } catch (error) {
             Logger.error(
               error as Error,
@@ -674,7 +674,7 @@ const useSpendingLimit = ({
 
       // Wait for backend to process, then refresh card home data
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await Engine.context.CardController.fetchCardHomeData();
+      await Engine.context.CardController.fetchCardHomeData({ force: true });
 
       if (!isOnboardingFlow) {
         showSuccessToast();

@@ -61,7 +61,6 @@ jobs:
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
       NODE_OPTIONS: '--max-old-space-size=8192'
-      BRIDGE_USE_DEV_APIS: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       SEEDLESS_ONBOARDING_ENABLED: 'true'
       MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -579,7 +578,6 @@ jobs:
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
           METRO_MAX_WORKERS: '6'
-          BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
