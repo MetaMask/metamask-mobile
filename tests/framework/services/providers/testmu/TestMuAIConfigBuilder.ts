@@ -98,6 +98,7 @@ export class TestMuAIConfigBuilder {
       devicelog: true,
       network: true,
       appProfiling: true,
+      smartHeal: true,
       ...(platformName === 'android' ? { autoGrantPermissions: true } : {}),
       ...(!isLocal ? { geoLocation } : {}),
       ...(isLocal
