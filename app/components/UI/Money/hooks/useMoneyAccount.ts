@@ -114,21 +114,20 @@ export function useMoneyAccountDeposit() {
 
         const { chainId, tellerAddress } = vaultConfig;
 
-        const chainIdHex = chainId as Hex;
         // The placeholder batch needs no vault reads, but an unreachable chain
         // should still fail before we navigate to a confirmation.
-        if (!getProviderByChainId(chainIdHex)) {
+        if (!getProviderByChainId(chainId)) {
           throw new Error(
             `${LOG_TAG} No provider available for chain ${chainId}`,
           );
         }
 
         return {
-          chainIdHex,
+          chainId,
           tellerAddress,
           moneyAccountAddress,
-          networkClientId: resolveNetworkClientId(chainIdHex),
-          isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
+          networkClientId: resolveNetworkClientId(chainId),
+          isGasFeeSponsored: isMonadMainnetChainId(chainId),
         };
       };
 
@@ -177,8 +176,8 @@ export function useMoneyAccountDeposit() {
         // `updateMoneyAccountDepositTokenAmount` once the user picks an amount.
         const { approveTx, depositTx } =
           buildMoneyAccountDepositPlaceholderBatch({
-            chainId: depositSetup.chainIdHex,
-            tellerAddress: depositSetup.tellerAddress as Hex,
+            chainId: depositSetup.chainId,
+            tellerAddress: depositSetup.tellerAddress,
           });
 
         // We only set the transaction from the money account perspective.
@@ -196,9 +195,7 @@ export function useMoneyAccountDeposit() {
           origin: ORIGIN_METAMASK,
           requiredAssets: [
             {
-              address: getMoneyAccountDepositAssetAddress(
-                depositSetup.chainIdHex,
-              ),
+              address: getMoneyAccountDepositAssetAddress(depositSetup.chainId),
               amount: '0x0' as Hex,
               standard: 'erc20',
             },
@@ -258,14 +255,13 @@ export function useMoneyAccountWithdrawal() {
 
     const { chainId, tellerAddress, accountantAddress } = vaultConfig;
 
-    const chainIdHex = chainId as Hex;
-    const provider = getProviderByChainId(chainIdHex);
+    const provider = getProviderByChainId(chainId);
     if (!provider) {
       throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
     }
 
-    const networkClientId = resolveNetworkClientId(chainIdHex);
-    const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
+    const networkClientId = resolveNetworkClientId(chainId);
+    const isGasFeeSponsored = isMonadMainnetChainId(chainId);
 
     // Show the confirmation skeleton while the withdrawal batch is created.
     navigateToConfirmation({
@@ -281,9 +277,9 @@ export function useMoneyAccountWithdrawal() {
       // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
       const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
         amount: BigInt(0),
-        chainId: chainIdHex,
-        tellerAddress: tellerAddress as Hex,
-        accountantAddress: accountantAddress as Hex,
+        chainId,
+        tellerAddress,
+        accountantAddress,
         moneyAccountAddress: primaryMoneyAccount.address as Hex,
         recipient: recipient as Hex,
         provider,

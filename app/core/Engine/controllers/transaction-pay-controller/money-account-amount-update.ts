@@ -95,10 +95,10 @@ async function updateMoneyAccountDepositAmountInternal(
   const buildResult = await buildMoneyAccountDepositBatch({
     amount: BigInt(amountRaw),
     chainId,
-    boringVault: vaultConfig.boringVault as Hex,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
-    lensAddress: vaultConfig.lensAddress as Hex,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
     provider,
   });
 

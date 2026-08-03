@@ -58,10 +58,10 @@ export async function updateMoneyAccountDepositTokenAmount(
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount: toMusdBaseUnits(amountHuman),
     chainId: chainIdHex,
-    boringVault: vaultConfig.boringVault as Hex,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
-    lensAddress: vaultConfig.lensAddress as Hex,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
     provider,
   });
 
@@ -96,8 +96,8 @@ export async function updateMoneyAccountWithdrawTokenAmount(
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
     amount: toMusdBaseUnits(amountHuman),
     chainId: chainIdHex,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
     recipient: recipient as Hex,
     provider,
@@ -131,10 +131,10 @@ export async function getMoneyAccountDepositTransactionsData(
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount: toMusdBaseUnits(amountHuman),
     chainId,
-    boringVault: vaultConfig.boringVault as Hex,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
-    lensAddress: vaultConfig.lensAddress as Hex,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
     provider,
   });
 
@@ -159,7 +159,7 @@ export async function getMoneyAccountWithdrawTransactionsData(
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
   const recipient = recipientOverride ?? selectEvmAddress(state);
-  if (!vaultConfig || !primaryMoneyAccount?.address) return [];
+  if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
 
   const provider = getProviderByChainId(chainId);
   if (!provider) return [];
@@ -167,8 +167,8 @@ export async function getMoneyAccountWithdrawTransactionsData(
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
     amount: toMusdBaseUnits(amountHuman),
     chainId,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
     recipient: recipient as Hex,
     provider,

@@ -59,8 +59,8 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
     amount,
     chainId,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
     moneyAccountAddress,
     recipient,
     provider,
@@ -144,10 +144,10 @@ async function getMoneyAccountDepositPaymentOverrideData<
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount,
     chainId,
-    boringVault: vaultConfig.boringVault as Hex,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
-    lensAddress: vaultConfig.lensAddress as Hex,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
     provider,
   });
 
