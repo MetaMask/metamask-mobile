@@ -23,6 +23,10 @@ on:
         required: true
         type: string
         description: 'App version'
+      branch_name:
+        required: true
+        type: string
+        description: 'Branch name used for performance observability'
       browserstack_build_name:
         required: true
         type: string
@@ -32,6 +36,11 @@ on:
         type: string
         default: test
         description: 'Sentry DSN target: test or real'
+      build_variant:
+        required: false
+        type: string
+        default: e2e
+        description: 'App build variant used for performance observability'
       feature_flags_environment:
         required: false
         type: string
