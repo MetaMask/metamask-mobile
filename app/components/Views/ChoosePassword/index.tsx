@@ -56,6 +56,7 @@ import {
 import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
+  shouldShowPasswordMismatchError,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -401,10 +402,10 @@ const ChoosePassword = () => {
     if (loading) return { valid: false, shouldTrack: false };
 
     if (!canSubmit) {
-      const shouldTrackMismatch =
-        password !== '' &&
-        confirmPassword !== '' &&
-        password !== confirmPassword;
+      const shouldTrackMismatch = shouldShowPasswordMismatchError(
+        password,
+        confirmPassword,
+      );
 
       if (shouldTrackMismatch) {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
@@ -786,8 +787,7 @@ const ChoosePassword = () => {
   }, []);
 
   const checkError = useCallback(
-    () =>
-      password !== '' && confirmPassword !== '' && password !== confirmPassword,
+    () => shouldShowPasswordMismatchError(password, confirmPassword),
     [password, confirmPassword],
   );
 

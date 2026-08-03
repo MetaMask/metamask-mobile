@@ -604,6 +604,23 @@ describe('ChoosePassword', () => {
       ).toBeOnTheScreen();
     });
 
+    it('does not show a password mismatch error before confirm reaches the minimum length', async () => {
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const { passwordInput, confirmPasswordInput } =
+        getFormElements(component);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test123456!');
+        fireEvent.changeText(confirmPasswordInput, 'x');
+      });
+
+      expect(
+        component.queryByText(strings('choose_password.password_error')),
+      ).toBeNull();
+    });
+
     it('submit button is disabled when passwords do not match', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
