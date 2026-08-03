@@ -3,6 +3,10 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
+import {
+  ConfirmationFooterSelectorIDs,
+  ConfirmationUIType,
+} from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { unlockIfLockScreenVisible } from '../../flows/wallet.flow';
 
 const logger = createLogger({
@@ -28,26 +32,31 @@ const JUST_ONCE_XPATHS = [
 const CHOOSER_TIMEOUT_MS = 45_000;
 const POLL_MS = 500;
 
+export type DeeplinkReadySheet = 'connect' | 'sign' | 'any';
+
 class AndroidScreenHelpers {
   /**
    * After a dapp deeplink, select MetaMask from the Android app chooser (if
-   * shown) and wait for the connect sheet. Auto-lock often appears instead of
-   * the sheet — unlock when the password screen is visible, then keep waiting.
+   * shown) and wait for the expected MetaMask sheet. Auto-lock often appears
+   * instead of the sheet — unlock when the password screen is visible, then
+   * keep waiting.
    */
-  async tapOpenDeeplinkWithMetaMask(): Promise<void> {
+  async tapOpenDeeplinkWithMetaMask({
+    awaitSheet = 'connect',
+  }: {
+    awaitSheet?: DeeplinkReadySheet;
+  } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
         PlaywrightUtilities.collapseStatusBar();
 
         const deadline = Date.now() + CHOOSER_TIMEOUT_MS;
         while (Date.now() < deadline) {
-          PlaywrightUtilities.collapseStatusBar();
-
           await unlockIfLockScreenVisible();
 
-          if (await this.isConnectSheetVisible()) {
+          if (await this.isExpectedSheetVisible(awaitSheet)) {
             logger.debug(
-              'MetaMask connect sheet already visible; skipping chooser',
+              `MetaMask ${awaitSheet} sheet already visible; skipping chooser`,
             );
             return;
           }
@@ -69,18 +78,18 @@ class AndroidScreenHelpers {
               delay: 200,
             });
             await this.tapJustOnceIfPresent();
-            // After chooser, lock screen or connect sheet may appear.
+            // After chooser, lock screen or expected sheet may appear.
             // Do not catch here — failures after tap must surface clearly.
             const sheetDeadline = Date.now() + 20_000;
             while (Date.now() < sheetDeadline) {
               await unlockIfLockScreenVisible();
-              if (await this.isConnectSheetVisible()) {
+              if (await this.isExpectedSheetVisible(awaitSheet)) {
                 return;
               }
               await sleep(POLL_MS);
             }
             throw new Error(
-              'Tapped MetaMask in Android deeplink chooser, but connect sheet did not appear within 20s',
+              `Tapped MetaMask in Android deeplink chooser, but ${awaitSheet} sheet did not appear within 20s`,
             );
           }
 
@@ -88,10 +97,26 @@ class AndroidScreenHelpers {
         }
 
         throw new Error(
-          `Android MetaMask deeplink chooser / connect sheet not shown after ${CHOOSER_TIMEOUT_MS}ms`,
+          `Android MetaMask deeplink chooser / ${awaitSheet} sheet not shown after ${CHOOSER_TIMEOUT_MS}ms`,
         );
       },
     });
+  }
+
+  private async isExpectedSheetVisible(
+    awaitSheet: DeeplinkReadySheet,
+  ): Promise<boolean> {
+    if (awaitSheet === 'connect' || awaitSheet === 'any') {
+      if (await this.isConnectSheetVisible()) {
+        return true;
+      }
+    }
+    if (awaitSheet === 'sign' || awaitSheet === 'any') {
+      if (await this.isSignSheetVisible()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private async isConnectSheetVisible(): Promise<boolean> {
@@ -103,6 +128,27 @@ class AndroidScreenHelpers {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * True when a redesign confirmation (sign / typed-data / tx) is on screen.
+   */
+  private async isSignSheetVisible(): Promise<boolean> {
+    for (const testId of [
+      ConfirmationUIType.MODAL,
+      ConfirmationUIType.FLAT,
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    ]) {
+      try {
+        const el = await PlaywrightMatchers.getElementById(testId);
+        if (await el.isVisible()) {
+          return true;
+        }
+      } catch {
+        // Selector not present; try next test id.
+      }
+    }
+    return false;
   }
 
   private async tapJustOnceIfPresent(): Promise<void> {

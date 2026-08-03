@@ -63,20 +63,25 @@ class SignModal {
   async tapCancelButton({
     shouldCooldown = false,
     timeToCooldown = 1000,
+    timeout = 15_000,
   }: {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
+    timeout?: number;
   } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.cancelButton);
-          await element.waitForDisplayed({
-            timeout: 5000,
-            timeoutMsg: 'SignModal: cancel button not visible',
-          });
-          await element.click();
-        });
+        await PlaywrightAssertions.expectConditionWithRetry(
+          async () => {
+            const element = await asPlaywrightElement(this.cancelButton);
+            await element.waitForDisplayed({
+              timeout,
+              timeoutMsg: 'SignModal: cancel button not visible',
+            });
+            await element.click();
+          },
+          { maxRetries: 3, interval: 1000 },
+        );
       },
     });
     if (shouldCooldown) {
