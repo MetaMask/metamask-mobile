@@ -16,6 +16,7 @@ const ENV_SENTRY_RELEASE = 'E2E_PERFORMANCE_SENTRY_RELEASE';
 const ENV_SENTRY_BUILD_VARIANT = 'E2E_PERFORMANCE_BUILD_VARIANT';
 const ENV_SENTRY_CI_BUILD_VARIANT = 'E2E_PERFORMANCE_CI_BUILD_VARIANT';
 const ENV_SENTRY_RELEASE_VERSION = 'E2E_PERFORMANCE_RELEASE_VERSION';
+const ENV_SENTRY_GITHUB_REF_NAME = 'E2E_PERFORMANCE_GITHUB_REF_NAME';
 const ENV_GITHUB_SERVER_URL = 'GITHUB_SERVER_URL';
 const ENV_GITHUB_REPOSITORY = 'GITHUB_REPOSITORY';
 const ENV_GITHUB_RUN_ID = 'GITHUB_RUN_ID';
@@ -136,9 +137,17 @@ function normalizeCiBuildVariant(variant?: string): CiBuildVariant {
   return 'unknown';
 }
 
+function resolveGithubRefName(): string | null {
+  return (
+    getEnvValue(ENV_SENTRY_GITHUB_REF_NAME)?.trim() ||
+    getEnvValue(ENV_GITHUB_REF_NAME)?.trim() ||
+    null
+  );
+}
+
 /**
  * Prefer explicit E2E_PERFORMANCE_RELEASE_VERSION; otherwise parse
- * `release/X.Y.Z` (and optional suffixes) from GITHUB_REF_NAME.
+ * `release/X.Y.Z` (and optional suffixes) from the effective GitHub ref name.
  */
 function resolveReleaseVersion(): string | null {
   const explicit = getEnvValue(ENV_SENTRY_RELEASE_VERSION)?.trim();
@@ -146,7 +155,7 @@ function resolveReleaseVersion(): string | null {
     return explicit;
   }
 
-  const refName = getEnvValue(ENV_GITHUB_REF_NAME)?.trim();
+  const refName = resolveGithubRefName();
   if (!refName) {
     return null;
   }
@@ -403,7 +412,7 @@ export async function publishPerformanceScenarioToSentry(
     getEnvValue(ENV_SENTRY_CI_BUILD_VARIANT),
   );
   const releaseVersion = resolveReleaseVersion();
-  const githubRef = getEnvValue(ENV_GITHUB_REF_NAME) ?? null;
+  const githubRef = resolveGithubRefName();
   const githubRunId = getEnvValue(ENV_GITHUB_RUN_ID) ?? null;
   const testFilePath = options.testFilePath || '';
 

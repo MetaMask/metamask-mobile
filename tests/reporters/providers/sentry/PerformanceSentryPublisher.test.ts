@@ -67,6 +67,8 @@ describe('PerformanceSentryPublisher', () => {
   const originalSentryEnabled = process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
   const originalBuildVariant = process.env.E2E_PERFORMANCE_BUILD_VARIANT;
   const originalCiBuildVariant = process.env.E2E_PERFORMANCE_CI_BUILD_VARIANT;
+  const originalPerformanceGithubRef =
+    process.env.E2E_PERFORMANCE_GITHUB_REF_NAME;
   const originalReleaseVersion = process.env.E2E_PERFORMANCE_RELEASE_VERSION;
   const originalGithubRefName = process.env.GITHUB_REF_NAME;
   const originalGithubServerUrl = process.env.GITHUB_SERVER_URL;
@@ -89,6 +91,7 @@ describe('PerformanceSentryPublisher', () => {
     delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
     delete process.env.E2E_PERFORMANCE_BUILD_VARIANT;
     delete process.env.E2E_PERFORMANCE_CI_BUILD_VARIANT;
+    delete process.env.E2E_PERFORMANCE_GITHUB_REF_NAME;
     delete process.env.E2E_PERFORMANCE_RELEASE_VERSION;
     delete process.env.GITHUB_REF_NAME;
     delete process.env.GITHUB_SERVER_URL;
@@ -104,6 +107,10 @@ describe('PerformanceSentryPublisher', () => {
     restoreEnv('E2E_PERFORMANCE_SENTRY_ENABLED', originalSentryEnabled);
     restoreEnv('E2E_PERFORMANCE_BUILD_VARIANT', originalBuildVariant);
     restoreEnv('E2E_PERFORMANCE_CI_BUILD_VARIANT', originalCiBuildVariant);
+    restoreEnv(
+      'E2E_PERFORMANCE_GITHUB_REF_NAME',
+      originalPerformanceGithubRef,
+    );
     restoreEnv('E2E_PERFORMANCE_RELEASE_VERSION', originalReleaseVersion);
     restoreEnv('GITHUB_REF_NAME', originalGithubRefName);
     restoreEnv('GITHUB_SERVER_URL', originalGithubServerUrl);
@@ -632,6 +639,34 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.tags.build_variant).toBe('rc');
     expect(payload.tags.ci_build_variant).toBe('unknown');
     expect(payload.spans[0].data.ci_build_variant).toBe('unknown');
+  });
+
+  it('uses the performance branch override for GitHub tags', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    process.env.GITHUB_REF_NAME = '1234/merge';
+    process.env.E2E_PERFORMANCE_GITHUB_REF_NAME = 'release/7.60.0';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    await publishPerformanceScenarioToSentry({
+      metrics: createMetrics(),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      tags: [],
+      status: 'passed',
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.tags.github_ref).toBe('release/7.60.0');
+    expect(payload.tags.release_version).toBe('7.60.0');
+    expect(payload.spans[0].data.github_ref).toBe('release/7.60.0');
   });
 
   it('derives release_version from release/* github ref when env is unset', async () => {
