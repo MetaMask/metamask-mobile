@@ -134,7 +134,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         }
         await PlaywrightGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
-
+        await dismissOnboardingInterestQuestionnaire();
         await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(OnboardingSuccessView.doneButton),
@@ -143,9 +143,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-        await dismissOnboardingInterestQuestionnaire();
+
         await OnboardingSuccessView.tapDone();
-        await dismissPushNotificationExistingUserSheet();
         await timer5.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(PredictModalView.notNowButton),
