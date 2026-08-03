@@ -70,7 +70,7 @@ const makeOrder = (overrides: Partial<Order> = {}): Order => ({
   price: '50000',
   orderType: 'limit',
   status: 'open',
-  timestamp: Date.now(),
+  timestamp: 1_711_756_800_000, // 2024-03-30T00:00:00.000Z — fixed for determinism
   reduceOnly: false,
   isTrigger: false,
   detailedOrderType: 'Limit',
