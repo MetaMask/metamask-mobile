@@ -607,6 +607,33 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.spans[0].data.github_ref).toBe('release/7.58.0');
   });
 
+  it('does not use the feature-flags variant as the CI build variant', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    process.env.E2E_PERFORMANCE_BUILD_VARIANT = 'rc';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    await publishPerformanceScenarioToSentry({
+      metrics: createMetrics(),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      tags: [],
+      status: 'passed',
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.tags.build_variant).toBe('rc');
+    expect(payload.tags.ci_build_variant).toBe('unknown');
+    expect(payload.spans[0].data.ci_build_variant).toBe('unknown');
+  });
+
   it('derives release_version from release/* github ref when env is unset', async () => {
     process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';

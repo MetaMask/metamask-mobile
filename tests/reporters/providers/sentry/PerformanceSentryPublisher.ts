@@ -400,8 +400,7 @@ export async function publishPerformanceScenarioToSentry(
     getEnvValue(ENV_SENTRY_BUILD_VARIANT),
   );
   const ciBuildVariant = normalizeCiBuildVariant(
-    getEnvValue(ENV_SENTRY_CI_BUILD_VARIANT) ||
-      getEnvValue(ENV_SENTRY_BUILD_VARIANT),
+    getEnvValue(ENV_SENTRY_CI_BUILD_VARIANT),
   );
   const releaseVersion = resolveReleaseVersion();
   const githubRef = getEnvValue(ENV_GITHUB_REF_NAME) ?? null;
