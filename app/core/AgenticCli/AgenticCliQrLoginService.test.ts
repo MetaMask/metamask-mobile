@@ -238,7 +238,6 @@ describe('AgenticCliQrLoginService', () => {
       autodismiss: 3000,
       title: 'sdk_connect_v2.show_cli_link_success.title',
       status: 'success',
-      description: 'sdk_connect_v2.show_cli_link_success.description',
     });
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(mockMaybePromptPushPermissionAfterCliLogin).toHaveBeenCalledTimes(1);
