@@ -76,6 +76,8 @@ Notes:
 - Sessions request `appiumVersion: "latest"` in `LT:Options` (override with
   `TESTMU_APPIUM_VERSION`) so TestMu selects its latest supported Appium
   version instead of the platform default.
+- Appium sessions enable TestMu Smart Heal with `smartHeal: true`; this
+  requires the eligible Real Device plan and a successful baseline run.
 - Discovery is **static** (0.2 drops dynamic/matrix discovery): the CLI host
   materialises `tests/hyperexecute/discovered-*.txt` before upload.
 - Tasks still run on **linux** VMs and open Appium sessions to
