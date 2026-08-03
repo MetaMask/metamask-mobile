@@ -61,5 +61,5 @@ export const useRiveParallaxTilt = (
 
   useDeviceOrientation(applyTilt, { enabled });
 
-  return instance;
+  return instance ?? null;
 };
