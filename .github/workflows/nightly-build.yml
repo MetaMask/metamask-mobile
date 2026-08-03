@@ -1,6 +1,9 @@
 name: Nightly Build
 
-# Runs on a schedule (4 AM UTC) like the old nightly-branch-sync.
+# Nightly policy (INFRA-3796): schedule (04:00 UTC) + workflow_dispatch only.
+# Not triggered by push/PR commits. Both iOS streams build from main
+# (source_branch: main). Post-merge-to-main is intentionally not a nightly trigger;
+# see post-release-cut-testflight.yml for the release-cut TestFlight path.
 #
 # iOS uses build-and-upload-to-testflight.yml; Android calls build.yml directly.
 #

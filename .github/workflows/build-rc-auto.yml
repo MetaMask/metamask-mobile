@@ -1,19 +1,25 @@
 ##############################################################################################
 #
 # This Workflow is responsible for triggering release candidate builds (iOS & Android).
-# It runs automatically on every commit pushed to a release branch that has an open PR.
+# It runs on push to a release branch that has an open PR, and via workflow_dispatch.
 #
 # Rolling builds: when a new run starts for the same release branch, any queued or
 # in-progress run of this workflow for that branch is cancelled (one branch + one
 # workflow at a time).
 #
-# Version bump: generate-build-version → commit-build-version, then iOS and Android
-# builds are triggered in parallel via auto-rc-ota-build-core.yml (bump commit passed as source_branch).
+# Version bump: generate-build-version → commit-build-version, then platform builds
+# are triggered via auto-rc-ota-build-core.yml (bump commit passed as source_branch).
+#
+# Platform gates:
+#   Android — runs on every qualifying push/dispatch (open PR, not rc-freeze).
+#   iOS (Cirrus) — opt-in only:
+#     - push: release PR must have the 'ios-rc-build' label, or
+#     - workflow_dispatch: enables iOS without the label (manual one-shot).
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
 #
 # Freezing auto RC builds:
-#   Add the 'rc-freeze' label to the release PR to stop auto RC builds.
+#   Add the 'rc-freeze' label to the release PR to stop auto RC builds (both platforms).
 #   This is intended for the final stage of a release cycle — when QA has given the
 #   thumbs-up, the last cherry-pick has landed, and the branch is being prepared to
 #   merge into stable. Removing the label resumes normal auto RC builds.
@@ -25,6 +31,7 @@ on:
   push:
     branches:
       - 'release/*'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -46,6 +53,7 @@ jobs:
       branch-name: ${{ steps.extract-version.outputs.branch-name }}
       pr-number: ${{ steps.find-pr.outputs.pr-number }}
       rc-frozen: ${{ steps.find-pr.outputs.rc-frozen }}
+      ios-rc-enabled: ${{ steps.find-pr.outputs.ios-rc-enabled }}
     permissions:
       pull-requests: read
     steps:
@@ -89,6 +97,7 @@ jobs:
             echo "No PR found for branch $BRANCH_NAME. Skipping."
             echo "has-pr=false" >> "$GITHUB_OUTPUT"
             echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
+            echo "ios-rc-enabled=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -100,15 +109,27 @@ jobs:
           if [[ "$RC_FROZEN" == "true" ]]; then
             echo "::notice::PR #$PR_NUMBER has the 'rc-freeze' label — auto RC build skipped."
             echo "rc-frozen=true" >> "$GITHUB_OUTPUT"
+            echo "ios-rc-enabled=false" >> "$GITHUB_OUTPUT"
           else
             echo "Found PR #$PR_NUMBER - proceeding with RC build"
             echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
+
+            # iOS Auto RC is opt-in: ios-rc-build label on push, or any workflow_dispatch.
+            HAS_IOS_LABEL=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "ios-rc-build")) | length > 0')
+            if [[ "$EVENT_NAME" == "workflow_dispatch" || "$HAS_IOS_LABEL" == "true" ]]; then
+              echo "iOS RC enabled (event=$EVENT_NAME, ios-rc-build=$HAS_IOS_LABEL)"
+              echo "ios-rc-enabled=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "::notice::PR #$PR_NUMBER missing 'ios-rc-build' label — iOS Auto RC skipped (Android still runs)."
+              echo "ios-rc-enabled=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
           echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "has-pr=true" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
 
   generate_rc_build_version:
     name: Generate RC build version
@@ -134,7 +155,10 @@ jobs:
     needs:
       - validate-and-find-pr
       - update_rc_build_version
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+    if: >-
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.validate-and-find-pr.outputs.ios-rc-enabled == 'true'
     with:
       platform: ios
       source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
@@ -160,7 +184,12 @@ jobs:
       - validate-and-find-pr
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success' && needs.validate-and-find-pr.outputs.pr-number != ''
+    # Android must succeed. iOS must succeed when it ran, or may be skipped when opt-in is absent.
+    if: >-
+      always() &&
+      needs.trigger-android-rc-build.result == 'success' &&
+      (needs.trigger-ios-rc-build.result == 'success' || needs.trigger-ios-rc-build.result == 'skipped') &&
+      needs.validate-and-find-pr.outputs.pr-number != ''
     environment: release-ci
     permissions:
       pull-requests: write
@@ -217,11 +246,15 @@ jobs:
       - validate-and-find-pr
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success'
+    if: >-
+      always() &&
+      needs.trigger-android-rc-build.result == 'success' &&
+      (needs.trigger-ios-rc-build.result == 'success' || needs.trigger-ios-rc-build.result == 'skipped')
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
-      semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version }}
+      # Branch semver is always available; empty iOS build number falls back inside slack-rc-notification.
+      semver: ${{ needs.validate-and-find-pr.outputs.semver }}
       ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
       android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
       pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
