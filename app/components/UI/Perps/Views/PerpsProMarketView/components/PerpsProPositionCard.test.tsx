@@ -139,6 +139,42 @@ describe('PerpsProPositionCard', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
+  it('keeps margin edit scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onEditMargin={onEditMargin}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('$1,450'));
+
+    expect(onEditMargin).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps TP/SL edit scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onEditTpSl={onEditTpSl}
+      />,
+    );
+
+    fireEvent.press(screen.getByText(/\$3,500.*\$2,000/));
+
+    expect(onEditTpSl).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
   it('invokes edit margin when the margin value text is pressed', () => {
     const onEditMargin = jest.fn();
 
