@@ -25,16 +25,18 @@ export function useMoneyAccountSweepstakesParticipation(
   const series = useMoneyAccountSweepstakesSeries();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const statuses = useSelector(selectCampaignParticipantStatuses);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [settledKey, setSettledKey] = useState<string | null>(null);
 
   const campaignIdsKey = series.campaigns.map((c) => c.id).join(',');
+  const fetchKey = `${subscriptionId ?? ''}|${campaignIdsKey}`;
 
   const refetch = useCallback(async (): Promise<void> => {
     if (!enabled || !subscriptionId || series.campaigns.length === 0) {
       return;
     }
 
-    setIsLoading(true);
+    setIsFetching(true);
     try {
       await Promise.all(
         series.campaigns.map(async (campaign) => {
@@ -52,12 +54,18 @@ export function useMoneyAccountSweepstakesParticipation(
           );
         }),
       );
+    } catch {
+      // Keep the last known statuses; callers get the settled flag below rather
+      // than a rejection they would have to handle at every call site.
     } finally {
-      setIsLoading(false);
+      // Mark the attempt settled even when it failed, so consumers are not
+      // left waiting forever on a status that will never arrive.
+      setSettledKey(fetchKey);
+      setIsFetching(false);
     }
     // campaignIdsKey captures series.campaigns identity without unstable array ref
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, subscriptionId, campaignIdsKey, dispatch]);
+  }, [enabled, subscriptionId, campaignIdsKey, fetchKey, dispatch]);
 
   useEffect(() => {
     refetch();
@@ -85,6 +93,18 @@ export function useMoneyAccountSweepstakesParticipation(
     () => Object.values(optedInByCampaignId).some(Boolean),
     [optedInByCampaignId],
   );
+
+  // An opt-in anywhere in the series is enough to know the user participates, so
+  // it settles the answer even if other weeks are still unresolved. Otherwise a
+  // warranted fetch that has not settled yet counts as loading, so callers never
+  // read the initial "not opted in" default as a real answer.
+  const isLoading =
+    !optedInAny &&
+    (isFetching ||
+      (enabled &&
+        Boolean(subscriptionId) &&
+        series.campaigns.length > 0 &&
+        settledKey !== fetchKey));
 
   return {
     optedInAny,
