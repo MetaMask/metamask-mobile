@@ -1,3 +1,11 @@
+/**
+ * MMQA-2104: Screen UI owned by PredictMarketDetails.view.test.tsx for
+ * getMarket mount, loaded market data, geo-block bet, details-opened tracking,
+ * and back→Predict root. Remaining its in this file are KEEP for now —
+ * chart/tab/claim/crypto/game/fee matrices need stepwise CV migration with
+ * per-batch gap checks (CV harness would be heavy for many of these).
+ * Prefer focused unit or child/hook units over forcing brittle CV.
+ */
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -789,12 +797,6 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays market title when market data is loaded', () => {
-      const { mockMarket } = setupPredictMarketDetailsTest();
-
-      expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
-    });
-
     it('tracks market details opened with explore entry point from route params', async () => {
       setupPredictMarketDetailsTest(
         {},
@@ -1064,6 +1066,7 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  // MMQA-2104 KEEP: chart matrices — candidate for a later CV batch.
   describe('Chart Rendering', () => {
     it('renders single outcome chart for single outcome markets', () => {
       const singleOutcomeMarket = createMockMarket({
@@ -1347,6 +1350,7 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  // MMQA-2104 KEEP: tab navigation — candidate for a later CV batch.
   describe('Tab Navigation', () => {
     it('renders tab bar with correct tabs', () => {
       setupPredictMarketDetailsTest();
@@ -1444,6 +1448,7 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  // MMQA-2104: back→Predict root fallback is CV-owned; goBack path stays here.
   describe('Navigation Functionality', () => {
     it('handles back button press correctly', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
@@ -1455,18 +1460,6 @@ describe('PredictMarketDetails', () => {
 
       expect(mockCanGoBack).toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
-    });
-
-    it('navigates to predict root when current navigation cannot go back', () => {
-      const { mockCanGoBack, mockNavigate } = setupPredictMarketDetailsTest();
-      mockCanGoBack.mockReturnValue(false);
-
-      const backButton = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowLeft'),
-      );
-      fireEvent.press(backButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT);
     });
   });
 
@@ -1931,6 +1924,7 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  // MMQA-2104 KEEP: crypto up/down branching — candidate for a later CV batch.
   describe('Crypto Up/Down Branching', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -2156,6 +2150,7 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  // MMQA-2104 KEEP: closed-market claim flow — candidate for a later CV batch.
   describe('Closed Market Functionality', () => {
     it('displays winning outcome when market is closed', () => {
       const closedMarket = createMockMarket({
@@ -2686,37 +2681,6 @@ describe('PredictMarketDetails', () => {
             ),
           ).toBe(true);
         });
-      });
-    });
-
-    it('navigates to unavailable modal when user is not eligible - Yes button', () => {
-      const singleOutcomeMarket = createMockMarket({
-        status: 'open',
-        outcomes: [
-          {
-            id: 'outcome-1',
-            title: 'Yes',
-            tokens: [
-              { id: 'token-1', title: 'Yes', price: 0.65 },
-              { id: 'token-2', title: 'No', price: 0.35 },
-            ],
-            volume: 1000000,
-          },
-        ],
-      });
-
-      const { mockNavigate } = setupPredictMarketDetailsTest(
-        singleOutcomeMarket,
-        {},
-        { eligibility: { isEligible: false } },
-      );
-
-      const yesButton = findActionButtonByPrice(65);
-      expect(yesButton).toBeDefined();
-      fireEvent.press(yesButton as ReactTestInstance);
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.UNAVAILABLE,
       });
     });
 
@@ -3651,6 +3615,7 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  // MMQA-2104 KEEP: fee exemption display — candidate for a later CV batch.
   describe('Fee Exemption Display', () => {
     it('displays fee exemption message when market tag matches waiveList', () => {
       const marketWithWaivedTag = createMockMarket({
@@ -3855,6 +3820,7 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  // MMQA-2104 KEEP: game details content — candidate for a later CV batch.
   describe('Game Details Content', () => {
     it('renders PredictGameDetailsContent when market has game property', () => {
       const gameMarket = createMockMarket({

@@ -588,6 +588,40 @@ describe('PredictFeed', () => {
   });
 
   describe('market feed data', () => {
+    it('shows skeleton loaders while trending markets are loading', async () => {
+      (
+        Engine.context.PredictController.getMarkets as jest.Mock
+      ).mockImplementation(() => new Promise(() => undefined));
+
+      const { findByTestId } = renderPredictFeedView();
+
+      await layoutPredictFeed({ findByTestId });
+
+      expect(
+        await findByTestId(
+          getPredictFeedSelector.skeletonLoading('trending', 1),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the empty state when trending markets resolve to an empty list', async () => {
+      (
+        Engine.context.PredictController.getMarkets as jest.Mock
+      ).mockResolvedValue({ markets: [], nextCursor: null });
+
+      const { findByTestId } = renderPredictFeedView();
+
+      await layoutPredictFeed({ findByTestId });
+
+      expect(
+        await findByTestId(
+          getPredictFeedSelector.emptyState('trending'),
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('shows complete market data for every loaded trending market', async () => {
       const getMarketsSpy = jest.spyOn(
         Engine.context.PredictController,

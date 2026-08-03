@@ -1,12 +1,29 @@
+/**
+ * Unit tests for PredictFeed — MMQA-2104 Approach A (quality-first overlap trim).
+ *
+ * OWNERSHIP: PredictFeed.view.test.tsx owns user-facing integration for search
+ * (open/close/clear/results/no-results/error), offline feed error, balance card,
+ * back→wallet navigation, and market card rendering. Do not re-add those flows here.
+ *
+ * KEEP in this file (unit/mock harness — CV flag wiring is heavy or not yet covered):
+ * - Hot / World Cup feature-flag tab ordering and query params
+ * - Session management lifecycle and portfolio module flag
+ * - Lazy tab `enabled` gate (warm cache, remount reset)
+ * - Route params / entryPoint attribution (incl. deeplink query prefill)
+ * - Debounce wiring (`useDebouncedValue` delay + hook args; not result cards)
+ * - Pager swipe analytics, layoutReady gate, market list memo
+ * - Remote banner slot mounting
+ * - Analytics negatives (tab press does not track)
+ * - goBack when canGoBack (wallet fallback is CV-owned)
+ * - Tab inventory (six base tabs)
+ * - CV also owns trending skeleton loading + empty state (do not re-add here)
+ */
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
-  PredictFeedSelectorsIDs,
   PredictFeedMockSelectorsIDs,
-  getPredictMarketListSelector,
-  getPredictSearchSelector,
   getPredictFeedSelector,
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
@@ -415,28 +432,7 @@ describe('PredictFeed', () => {
     jest.clearAllMocks();
   });
 
-  describe('initial render', () => {
-    it('renders container with top nav, balance, tabs, and market list', () => {
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(
-        getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictFeedMockSelectorsIDs.BALANCE_MOCK),
-      ).toBeOnTheScreen();
-      expect(getByTestId(PredictFeedSelectorsIDs.TABS)).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictFeedMockSelectorsIDs.PAGER_VIEW),
-      ).toBeOnTheScreen();
-    });
-
+  describe('initial render (KEEP — banners)', () => {
     it('hides search overlay on initial render', () => {
       const { queryByPlaceholderText } = render(<PredictFeed />);
 
@@ -460,30 +456,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('search functionality', () => {
-    it('opens search overlay when search button pressed', () => {
-      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-
-      expect(
-        getByPlaceholderText('Search prediction markets'),
-      ).toBeOnTheScreen();
-    });
-
-    it('closes search overlay when cancel button pressed', () => {
-      const { getByTestId, getByText, queryByPlaceholderText } = render(
-        <PredictFeed />,
-      );
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      fireEvent.press(getByText('Cancel'));
-
-      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
-    });
-  });
-
-  describe('tab navigation', () => {
+  describe('tab navigation (KEEP — tab inventory + analytics negatives)', () => {
     it('renders all six category tabs', () => {
       const { getByTestId } = render(<PredictFeed />);
 
@@ -516,7 +489,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('session management', () => {
+  describe('session management (KEEP)', () => {
     it('starts session and enables app state listener on mount', () => {
       render(<PredictFeed />);
 
@@ -561,7 +534,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('navigation', () => {
+  describe('navigation (KEEP — goBack when canGoBack)', () => {
     it('calls goBack when back button pressed and navigation can go back', () => {
       const { getByTestId } = render(<PredictFeed />);
 
@@ -569,138 +542,9 @@ describe('PredictFeed', () => {
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
-
-    it('navigates to wallet home when back button pressed and navigation cannot go back', () => {
-      mockNavigation.canGoBack.mockReturnValue(false);
-      const { getByTestId } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
-
-      expect(mockNavigation.navigate).toHaveBeenCalled();
-    });
   });
 
-  describe('loading states', () => {
-    it('renders skeleton loaders when fetching initial data', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: true,
-        isFetchingMore: false,
-        error: null,
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
-
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(
-        getByTestId(getPredictFeedSelector.skeletonLoading('trending', 1)),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(getPredictFeedSelector.skeletonLoading('trending', 2)),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('error states', () => {
-    it('renders offline component when fetch error occurs', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: false,
-        isFetchingMore: false,
-        error: new Error('Network error'),
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
-
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(
-        getByTestId(PredictFeedMockSelectorsIDs.OFFLINE_MOCK),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('empty states', () => {
-    it('renders empty state message when no markets available', () => {
-      mockUsePredictMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: false,
-        isFetchingMore: false,
-        error: null,
-        hasMore: false,
-        refetch: jest.fn(),
-        fetchMore: jest.fn(),
-      });
-
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(
-        getByTestId(getPredictFeedSelector.emptyState('trending')),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('search overlay interactions', () => {
-    it('displays search results when query is entered', () => {
-      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
-
-      expect(
-        getByTestId(getPredictSearchSelector.resultCard(0)),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(getPredictSearchSelector.resultCard(1)),
-      ).toBeOnTheScreen();
-    });
-
-    it('displays skeleton loaders while search is fetching', () => {
-      mockUsePredictSearchMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: true,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
-
-      expect(
-        getByTestId(getPredictFeedSelector.searchSkeleton(1)),
-      ).toBeOnTheScreen();
-    });
-
-    it('clears search query when clear button is pressed', () => {
-      const { getByTestId, getByPlaceholderText, queryByTestId } = render(
-        <PredictFeed />,
-      );
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'test query');
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.CLEAR_BUTTON));
-
-      // After clearing search, the clear button should no longer be visible
-      // (only shows when searchQuery.length > 0)
-      expect(
-        queryByTestId(PredictSearchSelectorsIDs.CLEAR_BUTTON),
-      ).not.toBeOnTheScreen();
-      // Trending results visible when no search query is empty
-      expect(
-        getByTestId(getPredictSearchSelector.resultCard(0)),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('pager view interactions', () => {
+  describe('pager view interactions (KEEP — pager swipe analytics)', () => {
     it('updates active index and tracks analytics when page changes via swipe', () => {
       const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
@@ -727,7 +571,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('layout states', () => {
+  describe('layout states (KEEP — layoutReady gate)', () => {
     it('hides pager view when layout is not ready', () => {
       mockUseFeedScrollManager.mockReturnValue({
         headerTranslateY: { value: 0 },
@@ -747,7 +591,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('market list rendering', () => {
+  describe('market list rendering (KEEP — memo)', () => {
     it('does not re-render market list items when feed props are unchanged', () => {
       const { rerender } = render(<PredictFeed />);
       const initialRenderCount = mockPredictMarket.mock.calls.length;
@@ -756,99 +600,9 @@ describe('PredictFeed', () => {
 
       expect(mockPredictMarket).toHaveBeenCalledTimes(initialRenderCount);
     });
-
-    it('renders market cards with correct testIDs using 1-based indexing', () => {
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(
-        getByTestId(
-          getPredictMarketListSelector.marketCardByCategory('trending', 1),
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(
-          getPredictMarketListSelector.marketCardByCategory('trending', 2),
-        ),
-      ).toBeOnTheScreen();
-    });
   });
 
-  describe('search empty states', () => {
-    it('displays no results message when search returns empty', () => {
-      mockUsePredictSearchMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      const { getByTestId, getByPlaceholderText, getByText } = render(
-        <PredictFeed />,
-      );
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'nonexistent');
-
-      expect(getByText(/No results found/i)).toBeOnTheScreen();
-    });
-
-    it('does not display no results message before the user enters a query', () => {
-      mockUsePredictSearchMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-
-      const { getByTestId, queryByText } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-
-      expect(queryByText(/No results found/i)).toBeNull();
-    });
-
-    it('does not display search error state before the user enters a query', () => {
-      mockUsePredictSearchMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: false,
-        error: 'Search error',
-        refetch: jest.fn(),
-      });
-
-      const { getByTestId, queryByTestId } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-
-      expect(
-        queryByTestId(PredictFeedMockSelectorsIDs.OFFLINE_MOCK),
-      ).toBeNull();
-    });
-
-    it('displays error state in search when fetch fails', () => {
-      mockUsePredictSearchMarketData.mockReturnValue({
-        marketData: [],
-        isFetching: false,
-        error: 'Search error',
-        refetch: jest.fn(),
-      });
-
-      const { getByTestId, getByPlaceholderText, getAllByTestId } = render(
-        <PredictFeed />,
-      );
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'test');
-
-      const offlineElements = getAllByTestId(
-        PredictFeedMockSelectorsIDs.OFFLINE_MOCK,
-      );
-      expect(offlineElements.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('pagination', () => {
+  describe('pagination (KEEP — footer skeleton)', () => {
     it('renders footer skeleton when fetching more data', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [
@@ -874,7 +628,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('route params', () => {
+  describe('route params (KEEP)', () => {
     it('starts session with entry point from route params', () => {
       mockUseRoute.mockReturnValue({
         params: {
@@ -970,7 +724,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('search debounce behavior', () => {
+  describe('search debounce behavior (KEEP — debounce wiring)', () => {
     it('passes debounced search query to usePredictSearchMarketData', () => {
       mockUseDebouncedValue.mockReturnValue('debounced-query');
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
@@ -1003,31 +757,6 @@ describe('PredictFeed', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays search results after debounce completes', () => {
-      mockUseDebouncedValue.mockReturnValue('bitcoin');
-      mockUsePredictSearchMarketData.mockReturnValue({
-        marketData: [
-          { id: '1', title: 'Bitcoin Market 1' },
-          { id: '2', title: 'Bitcoin Market 2' },
-        ],
-        isFetching: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-      const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
-      const searchInput = getByPlaceholderText('Search prediction markets');
-      fireEvent.changeText(searchInput, 'bitcoin');
-
-      expect(
-        getByTestId(getPredictSearchSelector.resultCard(0)),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(getPredictSearchSelector.resultCard(1)),
-      ).toBeOnTheScreen();
-    });
-
     it('invokes useDebouncedValue with 200ms delay', () => {
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
@@ -1039,7 +768,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('hot tab feature flag', () => {
+  describe('Hot tab feature flag (KEEP — CV flag harness heavy)', () => {
     it('renders Hot tab first when flag is enabled', () => {
       mockHotTabFlag.enabled = true;
       mockHotTabFlag.queryParams = 'tag_id=149&order=volume24hr';
@@ -1189,7 +918,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('World Cup tab feature flag', () => {
+  describe('World Cup tab feature flag (KEEP — CV flag harness heavy)', () => {
     it('does not render World Cup tab when flag is disabled', () => {
       const { queryByTestId } = render(<PredictFeed />);
 
@@ -1284,7 +1013,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('query deeplink parameter', () => {
+  describe('query deeplink parameter (KEEP — route params)', () => {
     it.each([['bitcoin'], ['ethereum'], ['solana']])(
       'opens search overlay when query param "%s" is provided in route params',
       (query) => {
@@ -1319,41 +1048,9 @@ describe('PredictFeed', () => {
         expect(searchInput.props.value).toBe(query);
       },
     );
-
-    it('closes search overlay when cancel is pressed', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          entryPoint: 'deeplink',
-          query: 'bitcoin',
-        },
-      });
-
-      const { getByText, queryByPlaceholderText, getByPlaceholderText } =
-        render(<PredictFeed />);
-
-      expect(
-        getByPlaceholderText('Search prediction markets'),
-      ).toBeOnTheScreen();
-
-      fireEvent.press(getByText('Cancel'));
-      expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
-    });
   });
 
-  describe('header', () => {
-    it('renders header navigation', () => {
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(
-        getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('lazy tab data fetching (enabled gate)', () => {
+  describe('lazy tab data fetching (KEEP — enabled gate)', () => {
     // PagerView mounts every PredictTabContent at once, so usePredictMarketData
     // is called for every tab on every render. Only the active tab (and tabs the
     // user has already visited) should pass `enabled: true` so that just the
