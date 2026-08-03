@@ -266,12 +266,32 @@ jest.mock('../hooks/useMoneyAccountSweepstakesOutcomeToast', () => ({
   useMoneyAccountSweepstakesOutcomeToast: jest.fn(),
 }));
 
+jest.mock('../hooks/useRewardCampaigns', () => ({
+  useRewardCampaigns: jest.fn(),
+}));
+
+jest.mock('../hooks/useMoneyAccountSweepstakesSeries', () => ({
+  useMoneyAccountSweepstakesSeries: jest.fn(),
+}));
+
+jest.mock('../hooks/useMoneyAccountSweepstakesParticipation', () => ({
+  useMoneyAccountSweepstakesParticipation: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
+import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
+import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../core/Engine/controllers/rewards-controller/types';
+import type { MoneyAccountSweepstakesSeries } from '../utils/moneyAccountSweepstakesSeries';
 
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
@@ -298,6 +318,25 @@ const mockUseMoneyAccountSweepstakesOutcomeToast =
   useMoneyAccountSweepstakesOutcomeToast as jest.MockedFunction<
     typeof useMoneyAccountSweepstakesOutcomeToast
   >;
+const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
+  typeof useRewardCampaigns
+>;
+const mockUseMoneyAccountSweepstakesSeries =
+  useMoneyAccountSweepstakesSeries as jest.MockedFunction<
+    typeof useMoneyAccountSweepstakesSeries
+  >;
+const mockUseMoneyAccountSweepstakesParticipation =
+  useMoneyAccountSweepstakesParticipation as jest.MockedFunction<
+    typeof useMoneyAccountSweepstakesParticipation
+  >;
+const emptyMoneyAccountSeries: MoneyAccountSweepstakesSeries = {
+  campaigns: [],
+  first: null,
+  last: null,
+  activeCampaign: null,
+  displayCampaign: null,
+  seriesStatus: null,
+};
 
 describe('RewardsDashboard', () => {
   const mockShowUnlinkedAccountsModal = jest.fn();
@@ -422,6 +461,23 @@ describe('RewardsDashboard', () => {
       defaultHookValues.useRewardDashboardModals,
     );
     mockUseBulkLinkState.mockReturnValue(defaultHookValues.useBulkLinkState);
+    mockUseRewardCampaigns.mockReturnValue({
+      campaigns: [],
+      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+      isLoading: false,
+      hasError: false,
+      hasLoaded: true,
+      fetchCampaigns: jest.fn(),
+    });
+    mockUseMoneyAccountSweepstakesSeries.mockReturnValue(
+      emptyMoneyAccountSeries,
+    );
+    mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
+      optedInAny: false,
+      optedInByCampaignId: {},
+      isLoading: false,
+      refetch: jest.fn(),
+    });
 
     // Setup default modal hook behavior - return false for all modal types by default
     mockHasShownModal.mockReturnValue(false);
@@ -785,6 +841,60 @@ describe('RewardsDashboard', () => {
       return render(<RewardsDashboard />);
     };
 
+    const activeMoneyCampaign: CampaignDto = {
+      id: 'week-2',
+      type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+      name: 'Money Account Sweepstakes',
+      startDate: '2026-07-08T00:00:00.000Z',
+      endDate: '2026-07-15T00:00:00.000Z',
+      termsAndConditions: null,
+      excludedRegions: [],
+      details: {
+        howItWorks: {
+          title: 'How it works',
+          description: 'Enter the weekly draw',
+          steps: [],
+          tour: [
+            {
+              title: 'Step 1',
+              description: 'Description 1',
+              image: null,
+              actions: null,
+            },
+          ],
+        },
+      },
+      featured: false,
+      showUpcomingDate: false,
+    };
+
+    const activeMoneySeries: MoneyAccountSweepstakesSeries = {
+      campaigns: [activeMoneyCampaign],
+      first: activeMoneyCampaign,
+      last: activeMoneyCampaign,
+      activeCampaign: activeMoneyCampaign,
+      displayCampaign: activeMoneyCampaign,
+      seriesStatus: 'active',
+    };
+
+    const previousMoneySeries: MoneyAccountSweepstakesSeries = {
+      campaigns: [activeMoneyCampaign],
+      first: activeMoneyCampaign,
+      last: activeMoneyCampaign,
+      activeCampaign: null,
+      displayCampaign: activeMoneyCampaign,
+      seriesStatus: 'previous',
+    };
+
+    const upcomingMoneySeries: MoneyAccountSweepstakesSeries = {
+      campaigns: [activeMoneyCampaign],
+      first: activeMoneyCampaign,
+      last: activeMoneyCampaign,
+      activeCampaign: null,
+      displayCampaign: activeMoneyCampaign,
+      seriesStatus: 'upcoming',
+    };
+
     it.each([
       ['page', 'campaigns', Routes.REWARDS_CAMPAIGNS_VIEW],
       ['campaign', 'ondo', Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW],
@@ -835,6 +945,154 @@ describe('RewardsDashboard', () => {
       // Unrecognized intents are preserved (not cleared) so they can be retried
       // rather than silently dropped.
       renderWithPendingDeeplink({ page: 'totally-unknown' });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('waits for campaigns to load before handling campaign=money', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        campaigns: [],
+        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+        isLoading: true,
+        hasError: false,
+        hasLoaded: false,
+        fetchCampaigns: jest.fn(),
+      });
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('keeps pending campaign=money when campaigns failed with an empty series', () => {
+      // campaignsHasLoaded is true on error too — do not treat empty series as
+      // a final "stay on dashboard" result or a later retry can never recover.
+      mockUseRewardCampaigns.mockReturnValue({
+        campaigns: [],
+        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+        isLoading: false,
+        hasError: true,
+        hasLoaded: true,
+        fetchCampaigns: jest.fn(),
+      });
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('keeps pending campaign=money while a campaigns retry is in flight with an empty series', () => {
+      // Retry clears the error flag before settling, so an empty series during
+      // loading must also keep the deeplink.
+      mockUseRewardCampaigns.mockReturnValue({
+        campaigns: [],
+        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+        isLoading: true,
+        hasError: false,
+        hasLoaded: true,
+        fetchCampaigns: jest.fn(),
+      });
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('still routes campaign=money when a campaigns refresh failed but series data already exists', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        campaigns: [activeMoneyCampaign],
+        categorizedCampaigns: {
+          active: [activeMoneyCampaign],
+          upcoming: [],
+          previous: [],
+        },
+        isLoading: false,
+        hasError: true,
+        hasLoaded: true,
+        fetchCampaigns: jest.fn(),
+      });
+      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(previousMoneySeries);
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'week-2' },
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('stays on dashboard and clears pending deeplink for upcoming money series', () => {
+      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(upcomingMoneySeries);
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('routes campaign=money to details for previous series', () => {
+      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(previousMoneySeries);
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'week-2' },
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('routes campaign=money to tour when active, not opted in, and tour exists', () => {
+      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
+      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
+        optedInAny: false,
+        optedInByCampaignId: { 'week-2': false },
+        isLoading: false,
+        refetch: jest.fn(),
+      });
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        params: { campaignId: 'week-2' },
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('routes campaign=money to details when already opted in', () => {
+      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
+      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
+        optedInAny: true,
+        optedInByCampaignId: { 'week-2': true },
+        isLoading: false,
+        refetch: jest.fn(),
+      });
+
+      renderWithPendingDeeplink({ campaign: 'money' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'week-2' },
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('waits for participation statuses before handling active campaign=money', () => {
+      mockUseMoneyAccountSweepstakesSeries.mockReturnValue(activeMoneySeries);
+      mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
+        optedInAny: false,
+        optedInByCampaignId: {},
+        isLoading: true,
+        refetch: jest.fn(),
+      });
+
+      renderWithPendingDeeplink({ campaign: 'money' });
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
