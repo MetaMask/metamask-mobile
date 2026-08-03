@@ -254,10 +254,11 @@ jobs:
             BASE_CMD="yarn run-playwright:${{ inputs.platform }}-testmu"
           fi
 
+          # Seedless onboarding is excluded from this provider comparison branch.
           if [ -n "$GREP_TAGS" ]; then
-            $BASE_CMD --grep "$GREP_TAGS" --pass-with-no-tests
+            $BASE_CMD --grep "$GREP_TAGS" --grep-invert "Seedless Onboarding" --pass-with-no-tests
           else
-            $BASE_CMD
+            $BASE_CMD --grep-invert "Seedless Onboarding"
           fi
 
       - name: Stop TestMu AI Tunnel
