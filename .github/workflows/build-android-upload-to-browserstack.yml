@@ -800,10 +800,29 @@ jobs:
   upload-to-testmu:
     name: Upload APKs to TestMu AI
     runs-on: ubuntu-latest
-    needs: [check-builds-needed, build-with-srp, build-without-srp]
+    needs:
+      [
+        check-builds-needed,
+        resolve-fingerprint-reuse,
+        build-with-srp,
+        build-without-srp,
+      ]
     # Gate on lt_username only — secrets.* is illegal in job `if:` for reusable workflows.
     # LT_ACCESS_KEY is still consumed in the upload step via secrets: inherit.
-    if: needs.check-builds-needed.outputs.builds-needed == 'true' && needs.build-with-srp.result == 'success' && needs.build-without-srp.result == 'success' && inputs.lt_username != ''
+    # Fingerprint reuse skips both Gradle jobs, so use the staged reuse APKs when
+    # reuse was committed and require both Gradle jobs only for the fresh path.
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      inputs.lt_username != '' &&
+      (
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' ||
+        (
+          needs.build-with-srp.result == 'success' &&
+          needs.build-without-srp.result == 'success'
+        )
+      )
     continue-on-error: true
     outputs:
       with-srp-testmu-url: ${{ steps.testmu-upload.outputs.with-srp-testmu-url }}
@@ -815,13 +834,21 @@ jobs:
       - name: Download with-SRP APK
         uses: actions/download-artifact@v4
         with:
-          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
+          name: >-
+            ${{ needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+            format('fingerprint-reuse-android-apk-{0}',
+            needs.check-builds-needed.outputs.with-srp-build-name) ||
+            format('android-apk-{0}', needs.check-builds-needed.outputs.with-srp-build-name) }}
           path: artifacts/with-srp
 
       - name: Download without-SRP APK
         uses: actions/download-artifact@v4
         with:
-          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}
+          name: >-
+            ${{ needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+            format('fingerprint-reuse-android-apk-{0}',
+            needs.check-builds-needed.outputs.without-srp-build-name) ||
+            format('android-apk-{0}', needs.check-builds-needed.outputs.without-srp-build-name) }}
           path: artifacts/without-srp
 
       - name: Upload APKs to TestMu AI
@@ -829,9 +856,23 @@ jobs:
         env:
           LT_USERNAME: ${{ inputs.lt_username }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+          FINGERPRINT_REUSED: ${{ needs.resolve-fingerprint-reuse.outputs.found }}
+          REUSED_SOURCE_SHA: ${{ needs.resolve-fingerprint-reuse.outputs.source-sha }}
+          FRESH_WITH_SRP_VERSION: ${{ needs.build-with-srp.outputs.semantic_version }}
+          FRESH_WITHOUT_SRP_VERSION: ${{ needs.build-without-srp.outputs.semantic_version }}
         run: |
           set +e
           echo "Uploading APKs to TestMu AI..."
+
+          if [ "$FINGERPRINT_REUSED" = "true" ]; then
+            WITH_SRP_VERSION="fingerprint-reuse-${REUSED_SOURCE_SHA:0:7}"
+            WITHOUT_SRP_VERSION="$WITH_SRP_VERSION"
+            echo "APK source: fingerprint reuse (sha=${REUSED_SOURCE_SHA})"
+          else
+            WITH_SRP_VERSION="$FRESH_WITH_SRP_VERSION"
+            WITHOUT_SRP_VERSION="$FRESH_WITHOUT_SRP_VERSION"
+            echo "APK source: fresh dual build"
+          fi
 
           WITH_SRP_APP_URL=""
           WITHOUT_SRP_APP_URL=""
@@ -851,7 +892,7 @@ jobs:
               echo "✅ With-SRP APK uploaded to TestMu AI: $WITH_SRP_APP_URL"
               {
                 echo "with-srp-testmu-url=$WITH_SRP_APP_URL"
-                echo "with-srp-version=${{ needs.build-with-srp.outputs.semantic_version }}"
+                echo "with-srp-version=$WITH_SRP_VERSION"
               } >> "$GITHUB_OUTPUT"
             else
               echo "❌ With-SRP TestMu upload failed: $WITH_SRP_RESPONSE"
@@ -870,7 +911,7 @@ jobs:
               echo "✅ Without-SRP APK uploaded to TestMu AI: $WITHOUT_SRP_APP_URL"
               {
                 echo "without-srp-testmu-url=$WITHOUT_SRP_APP_URL"
-                echo "without-srp-version=${{ needs.build-without-srp.outputs.semantic_version }}"
+                echo "without-srp-version=$WITHOUT_SRP_VERSION"
               } >> "$GITHUB_OUTPUT"
             else
               echo "❌ Without-SRP TestMu upload failed: $WITHOUT_SRP_RESPONSE"
