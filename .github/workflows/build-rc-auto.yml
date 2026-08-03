@@ -1,7 +1,7 @@
 ##############################################################################################
 #
 # This Workflow is responsible for triggering release candidate builds (iOS & Android).
-# It runs on push to a release branch that has an open PR, and via workflow_dispatch.
+# It runs on every commit pushed to a release branch that has an open PR.
 #
 # Rolling builds: when a new run starts for the same release branch, any queued or
 # in-progress run of this workflow for that branch is cancelled (one branch + one
@@ -11,10 +11,9 @@
 # are triggered via auto-rc-ota-build-core.yml (bump commit passed as source_branch).
 #
 # Platform gates:
-#   Android — runs on every qualifying push/dispatch (open PR, not rc-freeze).
-#   iOS (Cirrus) — opt-in only:
-#     - push: release PR must have the 'ios-rc-build' label, or
-#     - workflow_dispatch: enables iOS without the label (manual one-shot).
+#   Android — runs when the release PR is open and not rc-freeze.
+#   iOS (Cirrus) — opt-in only: release PR must have the 'ios-rc-build' label.
+#   Manual iOS RC builds use build-and-upload-to-testflight.yml / Runway / bot commands.
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
 #
@@ -31,7 +30,6 @@ on:
   push:
     branches:
       - 'release/*'
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -114,10 +112,10 @@ jobs:
             echo "Found PR #$PR_NUMBER - proceeding with RC build"
             echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
 
-            # iOS Auto RC is opt-in: ios-rc-build label on push, or any workflow_dispatch.
+            # iOS Auto RC is opt-in via the ios-rc-build label on the release PR.
             HAS_IOS_LABEL=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "ios-rc-build")) | length > 0')
-            if [[ "$EVENT_NAME" == "workflow_dispatch" || "$HAS_IOS_LABEL" == "true" ]]; then
-              echo "iOS RC enabled (event=$EVENT_NAME, ios-rc-build=$HAS_IOS_LABEL)"
+            if [[ "$HAS_IOS_LABEL" == "true" ]]; then
+              echo "iOS RC enabled (ios-rc-build label present)"
               echo "ios-rc-enabled=true" >> "$GITHUB_OUTPUT"
             else
               echo "::notice::PR #$PR_NUMBER missing 'ios-rc-build' label — iOS Auto RC skipped (Android still runs)."
@@ -129,7 +127,6 @@ jobs:
           echo "has-pr=true" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EVENT_NAME: ${{ github.event_name }}
 
   generate_rc_build_version:
     name: Generate RC build version

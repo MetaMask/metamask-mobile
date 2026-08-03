@@ -59,7 +59,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 These labels apply to **release branch PRs** (`release/x.y.z` → `stable`), not ordinary feature PRs. They control [Auto RC builds](../workflows/build-rc-auto.yml).
 
-- **ios-rc-build**: Opt-in for **iOS** Auto RC on each push to the release branch. Without this label, Android Auto RC still runs; iOS is skipped. Manual `workflow_dispatch` of Auto RC builds also enables iOS without this label.
+- **ios-rc-build**: Opt-in for **iOS** Auto RC on each push to the release branch. Without this label, Android Auto RC still runs; iOS is skipped. For a one-off iOS RC without enabling rolling builds, use Build and upload to TestFlight / Runway / `@metamaskbot create-testflight-build-*`.
 - **rc-freeze**: Opt-out that skips Auto RC for **both** iOS and Android (final stage of a release — QA signed off, preparing to merge into `stable`). Remove the label to resume Auto RC.
 
 ## Release version label (automated)
