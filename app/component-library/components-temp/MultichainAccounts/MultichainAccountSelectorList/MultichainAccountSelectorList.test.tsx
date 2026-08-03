@@ -74,7 +74,10 @@ const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    addListener: jest.fn(() => jest.fn()),
+  }),
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
