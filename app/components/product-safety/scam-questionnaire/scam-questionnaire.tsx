@@ -88,9 +88,6 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
     QuestionOption | undefined
   >();
 
-  // Once per step, so the funnel reads as unique users per step rather than
-  // raw view count. A ref, not state: it guards a side effect, and
-  // StrictMode's double-invoked effects would both see a stale `setState`.
   const viewedStepsRef = useRef<Set<Step>>(new Set());
   useEffect(() => {
     if (!viewedStepsRef.current.has(step)) {
@@ -105,8 +102,6 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
       return;
     }
     if (step === 0) {
-      // No event: this doesn't acknowledge the Blockaid alert, so the
-      // questionnaire returns on the next confirm attempt. Nothing decided yet.
       onDismiss();
       return;
     }
