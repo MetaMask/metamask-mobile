@@ -112,6 +112,18 @@ describe('getAmountData', () => {
     });
   });
 
+  it('returns empty updates for a zero amount without calling the builder', async () => {
+    // Pay pushes every amount change, including a cleared field. The builder
+    // rejects zero rather than encode a deposit that mints nothing.
+    const result = await getAmountData({
+      amount: '0',
+      transaction: buildTransaction(),
+    });
+
+    expect(result).toStrictEqual({ updates: [] });
+    expect(buildDepositBatchMock).not.toHaveBeenCalled();
+  });
+
   it('returns empty updates when transaction type is not moneyAccountDeposit', async () => {
     const result = await getAmountData({
       amount: '5000000',

@@ -31,6 +31,21 @@ function toMusdBaseUnits(amountHuman: string): bigint {
 }
 
 /**
+ * Converts a human-readable amount to mUSD base units, treating zero as absent.
+ *
+ * The amount arrives from Pay whenever the confirmation's amount changes, which
+ * includes the user clearing the field. There is nothing to re-encode for a zero
+ * amount, and the vault builders reject it rather than encode a call that cannot
+ * succeed, so callers no-op instead.
+ * @param amountHuman - Human-readable amount.
+ * @returns The amount in mUSD base units, or `undefined` if it is zero.
+ */
+function toNonZeroMusdBaseUnits(amountHuman: string): bigint | undefined {
+  const amount = toMusdBaseUnits(amountHuman);
+  return amount === 0n ? undefined : amount;
+}
+
+/**
  * Returns the per-nested-call data updates required when the user changes
  * the deposit amount on a Money Account deposit confirmation.
  *
@@ -50,6 +65,9 @@ export async function updateMoneyAccountDepositTokenAmount(
     ReduxService.store.getState() as RootState,
   );
   if (!vaultConfig) return [];
+
+  const amount = toNonZeroMusdBaseUnits(amountHuman);
+  if (amount === undefined) return [];
 
   const chainIdHex = transactionMeta.chainId as Hex;
   const provider = getProviderByChainId(chainIdHex);
@@ -97,12 +115,15 @@ export async function updateMoneyAccountWithdrawTokenAmount(
   const recipient = recipientOverride ?? selectEvmAddress(state);
   if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
 
+  const amount = toNonZeroMusdBaseUnits(amountHuman);
+  if (amount === undefined) return [];
+
   const chainIdHex = transactionMeta.chainId as Hex;
   const provider = getProviderByChainId(chainIdHex);
   if (!provider) return [];
 
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-    amount: toMusdBaseUnits(amountHuman),
+    amount,
     chainId: chainIdHex,
     tellerAddress: vaultConfig.tellerAddress,
     accountantAddress: vaultConfig.accountantAddress,
@@ -133,11 +154,14 @@ export async function getMoneyAccountDepositTransactionsData(
   );
   if (!vaultConfig) return [];
 
+  const amount = toNonZeroMusdBaseUnits(amountHuman);
+  if (amount === undefined) return [];
+
   const provider = getProviderByChainId(chainId);
   if (!provider) return [];
 
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-    amount: toMusdBaseUnits(amountHuman),
+    amount,
     chainId,
     boringVault: vaultConfig.boringVault,
     tellerAddress: vaultConfig.tellerAddress,
@@ -169,11 +193,14 @@ export async function getMoneyAccountWithdrawTransactionsData(
   const recipient = recipientOverride ?? selectEvmAddress(state);
   if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
 
+  const amount = toNonZeroMusdBaseUnits(amountHuman);
+  if (amount === undefined) return [];
+
   const provider = getProviderByChainId(chainId);
   if (!provider) return [];
 
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-    amount: toMusdBaseUnits(amountHuman),
+    amount,
     chainId,
     tellerAddress: vaultConfig.tellerAddress,
     accountantAddress: vaultConfig.accountantAddress,

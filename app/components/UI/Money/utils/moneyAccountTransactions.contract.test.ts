@@ -9,6 +9,7 @@ import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountDepositPlaceholderBatch,
   buildMoneyAccountWithdrawBatch,
+  buildMoneyAccountWithdrawPlaceholderBatch,
   getMoneyAccountDepositAssetAddress,
   getSharesForWithdrawal,
 } from '@metamask/money-account-utils';
@@ -164,30 +165,29 @@ describe('money-account-utils contract', () => {
       expect(applySlippage(1_001n)).toBe(998n);
     });
 
-    it('skips the vault read for a zero-amount batch', async () => {
+    it('rejects a zero amount rather than encoding a deposit that mints nothing', async () => {
       const { provider, call } = stubProvider(SHARES);
 
-      const { depositTx } = await buildMoneyAccountDepositBatch({
-        amount: 0n,
-        chainId: CHAIN_ID,
-        boringVault: BORING_VAULT,
-        tellerAddress: TELLER,
-        accountantAddress: ACCOUNTANT,
-        lensAddress: LENS,
-        provider,
-      });
+      await expect(
+        buildMoneyAccountDepositBatch({
+          amount: 0n,
+          chainId: CHAIN_ID,
+          boringVault: BORING_VAULT,
+          tellerAddress: TELLER,
+          accountantAddress: ACCOUNTANT,
+          lensAddress: LENS,
+          provider,
+        }),
+      ).rejects.toThrow(
+        'use buildMoneyAccountDepositPlaceholderBatch for placeholder batches',
+      );
 
       expect(call).not.toHaveBeenCalled();
-      const depositArgs = tellerInterface.decodeFunctionData(
-        'deposit',
-        depositTx.params.data,
-      );
-      expect(depositArgs[2].toString()).toBe('0');
     });
   });
 
-  describe('deposit placeholder batch', () => {
-    it('resolves targets and types without calldata or a provider', () => {
+  describe('placeholder batches', () => {
+    it('resolves deposit targets and types without calldata or a provider', () => {
       const { approveTx, depositTx } = buildMoneyAccountDepositPlaceholderBatch(
         {
           chainId: CHAIN_ID,
@@ -202,6 +202,23 @@ describe('money-account-utils contract', () => {
       expect(depositTx).toStrictEqual({
         params: { to: TELLER, value: '0x0' },
         type: TransactionType.moneyAccountDeposit,
+      });
+    });
+
+    it('resolves withdraw targets and types without calldata or a provider', () => {
+      const { withdrawTx, transferTx } =
+        buildMoneyAccountWithdrawPlaceholderBatch({
+          chainId: CHAIN_ID,
+          tellerAddress: TELLER,
+        });
+
+      expect(withdrawTx).toStrictEqual({
+        params: { to: TELLER, value: '0x0' },
+        type: TransactionType.moneyAccountWithdraw,
+      });
+      expect(transferTx).toStrictEqual({
+        params: { to: MUSD_ADDRESS, value: '0x0' },
+        type: TransactionType.tokenMethodTransfer,
       });
     });
   });
@@ -268,31 +285,24 @@ describe('money-account-utils contract', () => {
       expect(to.toLowerCase()).toBe(ACCOUNTANT);
     });
 
-    it('skips the rate read and zeroes the bounds for a placeholder batch', async () => {
+    it('rejects a zero amount rather than encoding a zero-share redemption', async () => {
       const { provider, call } = stubProvider(RATE);
 
-      const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-        amount: 0n,
-        chainId: CHAIN_ID,
-        tellerAddress: TELLER,
-        accountantAddress: ACCOUNTANT,
-        moneyAccountAddress: MONEY_ACCOUNT,
-        recipient: RECIPIENT,
-        provider,
-      });
+      await expect(
+        buildMoneyAccountWithdrawBatch({
+          amount: 0n,
+          chainId: CHAIN_ID,
+          tellerAddress: TELLER,
+          accountantAddress: ACCOUNTANT,
+          moneyAccountAddress: MONEY_ACCOUNT,
+          recipient: RECIPIENT,
+          provider,
+        }),
+      ).rejects.toThrow(
+        'use buildMoneyAccountWithdrawPlaceholderBatch for placeholder batches',
+      );
 
       expect(call).not.toHaveBeenCalled();
-      const withdrawArgs = tellerInterface.decodeFunctionData(
-        'withdraw',
-        withdrawTx.params.data,
-      );
-      expect(withdrawArgs[1].toString()).toBe('0');
-      expect(withdrawArgs[2].toString()).toBe('0');
-      const transferArgs = erc20Interface.decodeFunctionData(
-        'transfer',
-        transferTx.params.data,
-      );
-      expect(transferArgs[1].toString()).toBe('0');
     });
 
     it('converts the amount to shares by ceiling division', async () => {

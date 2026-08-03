@@ -130,6 +130,17 @@ describe('updateMoneyAccountDepositAmount', () => {
     });
   });
 
+  it('commits nothing for a zero amount and does not call the builder', async () => {
+    // Pay pushes every amount change, including a cleared field. The builder
+    // rejects zero rather than encode a deposit that mints nothing.
+    await expect(
+      updateMoneyAccountDepositAmount(currentTransaction, '0'),
+    ).resolves.toBe(false);
+
+    expect(buildDepositBatchMock).not.toHaveBeenCalled();
+    expect(updateTransactionMetadataMock).not.toHaveBeenCalled();
+  });
+
   it('prepares and commits one coherent update without re-simulation', async () => {
     currentTransaction.txParams.gas = '0x5208';
     currentTransaction.simulationData = { tokenBalanceChanges: [] };

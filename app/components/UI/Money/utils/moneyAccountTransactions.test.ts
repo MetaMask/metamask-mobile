@@ -206,6 +206,33 @@ describe('moneyAccountTransactions', () => {
         updateMoneyAccountDepositTokenAmount(MOCK_TRANSACTION_META, '10.5'),
       ).rejects.toThrow('RPC down');
     });
+
+    it.each(['0', '0.00'])(
+      'no-ops without calling the builder for the zero amount %p',
+      async (amountHuman) => {
+        // Pay pushes every amount change, including a cleared field. The builder
+        // rejects zero rather than encode a deposit that mints nothing, so there
+        // must be nothing left to re-encode by the time we call it.
+        expect(
+          await updateMoneyAccountDepositTokenAmount(
+            MOCK_TRANSACTION_META,
+            amountHuman,
+          ),
+        ).toStrictEqual([]);
+        expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+      },
+    );
+
+    it('still encodes a sub-base-unit amount, which rounds up to 1', async () => {
+      await updateMoneyAccountDepositTokenAmount(
+        MOCK_TRANSACTION_META,
+        '0.0000001',
+      );
+
+      expect(mockBuildDepositBatch).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: BigInt(1) }),
+      );
+    });
   });
 
   describe('updateMoneyAccountWithdrawTokenAmount', () => {
@@ -294,6 +321,14 @@ describe('moneyAccountTransactions', () => {
       ).toStrictEqual([]);
       expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     });
+
+    it('no-ops without calling the builder for a zero amount', async () => {
+      // The builder rejects zero rather than encode a zero-share redemption.
+      expect(
+        await updateMoneyAccountWithdrawTokenAmount(MOCK_TRANSACTION_META, '0'),
+      ).toStrictEqual([]);
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
+    });
   });
 
   describe('getMoneyAccountDepositTransactionsData', () => {
@@ -342,6 +377,13 @@ describe('moneyAccountTransactions', () => {
       await expect(
         getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '10.5'),
       ).rejects.toThrow('RPC down');
+    });
+
+    it('returns [] without calling the builder for a zero amount', async () => {
+      expect(
+        await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '0'),
+      ).toStrictEqual([]);
+      expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     });
   });
 
@@ -400,6 +442,22 @@ describe('moneyAccountTransactions', () => {
       expect(
         await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '10.5'),
       ).toStrictEqual([]);
+    });
+
+    it('returns [] when there is no recipient', async () => {
+      mockSelectEvmAddress.mockReturnValue(undefined as never);
+
+      expect(
+        await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).toStrictEqual([]);
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
+    });
+
+    it('returns [] without calling the builder for a zero amount', async () => {
+      expect(
+        await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '0'),
+      ).toStrictEqual([]);
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     });
   });
 });

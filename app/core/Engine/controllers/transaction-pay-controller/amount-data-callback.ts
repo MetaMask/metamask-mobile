@@ -57,6 +57,13 @@ export async function getAmountData(
 
   const rawAmount = BigInt(amount);
 
+  // Pay pushes every amount change, including the field being cleared. There is
+  // nothing to re-encode for a zero amount, and the deposit builder rejects it
+  // rather than encode a deposit that mints nothing.
+  if (rawAmount === 0n) {
+    return { updates: [] };
+  }
+
   try {
     let buildResult;
 
