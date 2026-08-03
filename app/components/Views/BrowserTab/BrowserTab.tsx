@@ -192,6 +192,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     >({});
     // Track if webview is loaded for the first time
     const isWebViewReadyToLoad = useRef(false);
+    // URL-bar / autocomplete / deeplink navigation must update WebView
+    // `source.uri` (native loadRequest) instead of injecting
+    // `window.location.href`. On iOS the latter can trigger Universal Links
+    // and open associated native apps instead of keeping the session in
+    // MetaMask's in-app browser. Explore already opens tabs via `source.uri`;
+    // this mirrors that behavior on both platforms for consistency (MCWP-748).
+    const [webViewUri, setWebViewUri] = useState(() =>
+      prefixUrlWithProtocol(initialUrl),
+    );
+    const webViewUriRef = useRef(webViewUri);
 
     /**
      * GESTURE NAVIGATION
@@ -840,6 +850,34 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * Navigates the WebView via `source.uri` (native loadRequest) rather than
+     * `window.location.href`. On iOS this prevents Universal Link handoff to
+     * associated native apps; applied on both platforms for a single code path
+     * (MCWP-748).
+     *
+     * Remounting (`webViewReloadKey`) is required because mid-session
+     * `source.uri` prop updates do not reliably trigger WKWebView loadRequest
+     * on iOS (RNCWebView's iOS `loadUrl` command is a no-op; Android uses
+     * native `loadUrl`). Remount matches Explore's fresh-tab loadRequest path.
+     */
+    const [webViewReloadKey, setWebViewReloadKey] = useState(0);
+    const navigateWebViewToUrl = useCallback((url: string) => {
+      const sanitizedUrl = sanitizeUrlInput(url);
+      if (!sanitizedUrl) {
+        return;
+      }
+
+      if (webViewUriRef.current === sanitizedUrl) {
+        webviewRef.current?.reload?.();
+        return;
+      }
+
+      webViewUriRef.current = sanitizedUrl;
+      setWebViewUri(sanitizedUrl);
+      setWebViewReloadKey((key) => key + 1);
+    }, []);
+
+    /**
      * Function that allows custom handling of any web view requests.
      * Return `true` to continue loading the request and `false` to stop loading.
      */
@@ -872,11 +910,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
               browserCallBack: (url: string) => {
                 // If the deeplink handler wants to navigate to a different URL in the browser
-                if (url && webviewRef.current) {
-                  webviewRef.current.injectJavaScript(`
-                window.location.href = '${sanitizeUrlInput(url)}';
-                true;  // Required for iOS
-              `);
+                if (url) {
+                  navigateWebViewToUrl(url);
                 }
               },
             })
@@ -930,6 +965,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         isResolvedIpfsUrl,
         setIpfsBannerVisible,
         isTabActive,
+        navigateWebViewToUrl,
       ],
     );
 
@@ -940,14 +976,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * On iOS, the native fallback loads the URL in the same WebView, but providing
      * this explicit handler ensures consistent behavior across both platforms.
      */
-    const handleOpenWindow = useCallback((event: WebViewOpenWindowEvent) => {
-      const { targetUrl } = event.nativeEvent;
-      if (targetUrl && webviewRef.current) {
-        webviewRef.current.injectJavaScript(
-          `window.location.href = '${sanitizeUrlInput(targetUrl)}'; true;`,
-        );
-      }
-    }, []);
+    const handleOpenWindow = useCallback(
+      (event: WebViewOpenWindowEvent) => {
+        const { targetUrl } = event.nativeEvent;
+        if (targetUrl) {
+          navigateWebViewToUrl(targetUrl);
+        }
+      },
+      [navigateWebViewToUrl],
+    );
 
     /**
      * Sets loading bar progress
@@ -1033,6 +1070,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       },
       [isAllowedUrl, handleNotAllowedUrl],
     );
+
+    const onAutocompleteSelectPressIn = useCallback(() => {
+      // Keep focus through pressIn → onPress so blur does not dismiss
+      // autocomplete before the selection handler runs.
+      urlBarRef.current?.suppressNextBlur();
+    }, []);
 
     /**
      * Handle message from website
@@ -1267,7 +1310,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         setConnectionType(ConnectionType.UNKNOWN);
         urlBarRef.current?.setNativeProps({ text });
         submittedUrlRef.current = text;
-        webviewRef.current?.stopLoading();
         // Format url for browser to be navigatable by webview
         const processedUrl = processUrlForBrowser(text, searchEngine);
         if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
@@ -1283,13 +1325,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
           return onSubmitEditingRef.current(handledEnsUrl);
         }
-        // Directly update url in webview
-        webviewRef.current?.injectJavaScript(`
-      window.location.href = '${sanitizeUrlInput(processedUrl)}';
-      true;  // Required for iOS
-    `);
+        // Load via WebView source.uri (same as Explore) instead of
+        // window.location.href to avoid iOS Universal Link handoff (MCWP-748).
+        navigateWebViewToUrl(processedUrl);
+        // Bottom bar stays mounted while focused (hidden visually), so we can
+        // leave edit mode immediately without remounting it mid-navigation.
+        urlBarRef.current?.dismissEditing();
       },
-      [searchEngine, handleEnsUrl, setConnectionType],
+      [searchEngine, handleEnsUrl, setConnectionType, navigateWebViewToUrl],
     );
 
     // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
@@ -1331,24 +1374,32 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [onSubmitEditing]);
 
     /**
-     * Render the bottom navigation bar
+     * Render the bottom navigation bar.
+     * Keep the bar mounted while the URL bar is focused and only hide it
+     * visually — unmounting remounts siblings and can cancel WebView
+     * loadRequest when navigating via source.uri (MCWP-748).
      */
     const renderBottomBar = () =>
-      isTabActive && !isUrlBarFocused ? (
-        <BrowserBottomBar
-          canGoBack={backEnabled}
-          canGoForward={forwardEnabled}
-          goBack={goBack}
-          goForward={goForward}
-          reload={reload}
-          openNewTab={openNewTab}
-          activeUrl={resolvedUrlRef.current}
-          getMaskedUrl={getMaskedUrl}
-          title={titleRef.current}
-          sessionENSNames={sessionENSNamesRef.current}
-          favicon={favicon}
-          icon={iconRef.current}
-        />
+      isTabActive ? (
+        <View
+          pointerEvents={isUrlBarFocused ? 'none' : 'auto'}
+          style={isUrlBarFocused ? styles.hide : undefined}
+        >
+          <BrowserBottomBar
+            canGoBack={backEnabled}
+            canGoForward={forwardEnabled}
+            goBack={goBack}
+            goForward={goForward}
+            reload={reload}
+            openNewTab={openNewTab}
+            activeUrl={resolvedUrlRef.current}
+            getMaskedUrl={getMaskedUrl}
+            title={titleRef.current}
+            sessionENSNames={sessionENSNamesRef.current}
+            favicon={favicon}
+            icon={iconRef.current}
+          />
+        </View>
       ) : null;
 
     /**
@@ -1410,8 +1461,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Recents:
           case UrlAutocompleteCategory.Favorites:
           default:
-            // Hide URL bar for URL-based navigation (user leaves browser)
-            urlBarRef.current?.hide();
             onSubmitEditing(item.url);
             break;
         }
@@ -1614,10 +1663,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const webViewSource = useMemo(
       () => ({
-        uri: prefixUrlWithProtocol(initialUrl),
+        uri: webViewUri,
         ...(isExternalLink ? { headers: { Cookie: '' } } : null),
       }),
-      [initialUrl, isExternalLink],
+      [webViewUri, isExternalLink],
     );
 
     const webViewTestProps = useMemo(
@@ -1691,6 +1740,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                   >
                     <View style={styles.webview}>
                       <WebView
+                        key={`browser-webview-${webViewReloadKey}`}
                         originWhitelist={webViewOriginWhitelist}
                         decelerationRate={0.998}
                         ref={webviewRef}
@@ -1732,6 +1782,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               <UrlAutocomplete
                 ref={autocompleteRef}
                 onSelect={onSelect}
+                onSelectPressIn={onAutocompleteSelectPressIn}
                 onDismiss={onDismissAutocomplete}
               />
             </View>

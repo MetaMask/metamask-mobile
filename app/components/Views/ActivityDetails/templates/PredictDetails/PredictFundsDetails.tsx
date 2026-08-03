@@ -14,7 +14,7 @@ import {
   ActivityDetailsStepTimeline,
   ActivityDetailsTemplateFrame,
   formatActivityTokenAmount,
-  hasActivityPayFiat,
+  useActivityPayFiat,
 } from '../../components';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import { useActivityNetworkName } from '../../hooks/useActivityNetworkName';
@@ -82,7 +82,8 @@ export function PredictFundsDetails({
       ? getPredictFundsSteps(item.status, item.timestamp)
       : undefined;
   const completedCount = item.status === 'success' ? 2 : 1;
-  const showPaySection = isDeposit && hasActivityPayFiat(item);
+  const pay = useActivityPayFiat(item);
+  const showPaySection = isDeposit && Boolean(pay);
   const showDetails = showPaySection || Boolean(steps);
 
   return (
@@ -98,8 +99,8 @@ export function PredictFundsDetails({
       details={
         showDetails ? (
           <>
-            {showPaySection ? (
-              <ActivityDetailsPayFeesAndTotal item={item} />
+            {showPaySection && pay ? (
+              <ActivityDetailsPayFeesAndTotal pay={pay} />
             ) : null}
             {showPaySection && steps ? (
               <SectionDivider marginVertical={3} />
