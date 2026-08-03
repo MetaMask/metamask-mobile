@@ -4,6 +4,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
+import type { MoneyBalanceSliceState } from '../../core/redux/slices/moneyBalance';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
 import Device from '../../util/device';
@@ -201,6 +202,33 @@ const persistCardTransform = createTransform<
   { whitelist: ['card'] },
 );
 
+type PersistedMoneyBalanceState = Omit<
+  MoneyBalanceSliceState,
+  'hasPendingUserOp'
+>;
+
+/**
+ * `hasPendingUserOp` marks a balance change as caused by the user so the
+ * display rolls to it. It is meaningful only for the transaction that raised
+ * it — persisting it would let a later background update animate as though the
+ * user had caused it, and a flag raised for a balance that never moves at
+ * display precision would never be consumed.
+ */
+const persistMoneyBalanceTransform = createTransform<
+  MoneyBalanceSliceState,
+  PersistedMoneyBalanceState
+>(
+  (inboundState) => {
+    const { hasPendingUserOp: _omitSession, ...state } = inboundState;
+    return state;
+  },
+  (outboundState) => ({
+    ...outboundState,
+    hasPendingUserOp: false,
+  }),
+  { whitelist: ['moneyBalance'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
@@ -218,6 +246,7 @@ const persistConfig = {
     persistUserTransform,
     persistOnboardingTransform,
     persistCardTransform,
+    persistMoneyBalanceTransform,
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {

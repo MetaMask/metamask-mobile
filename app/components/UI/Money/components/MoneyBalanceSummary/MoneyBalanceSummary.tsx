@@ -43,6 +43,11 @@ interface MoneyBalanceSummaryProps {
    * balance is not pressable.
    */
   onBalancePress?: () => void;
+  /**
+   * Whether the balance renders as rolling digits. When disabled the balance
+   * is static text, which is also the path privacy mode always takes.
+   */
+  isBalanceAnimationEnabled?: boolean;
 }
 
 const MoneyBalanceSummary = ({
@@ -51,6 +56,7 @@ const MoneyBalanceSummary = ({
   onApyInfoPress,
   privacyMode = false,
   onBalancePress,
+  isBalanceAnimationEnabled = false,
 }: MoneyBalanceSummaryProps) => {
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
@@ -116,13 +122,13 @@ const MoneyBalanceSummary = ({
     switch (displayState.kind) {
       case 'balance':
         // Rolling digits cannot render bullets, so privacy mode keeps the
-        // static SensitiveText path.
-        if (privacyMode) {
+        // static SensitiveText path — as does the feature flag being off.
+        if (privacyMode || !isBalanceAnimationEnabled) {
           return wrapPressable(
             <SensitiveText
               variant={TextVariant.DisplayLg}
               fontWeight={FontWeight.Bold}
-              isHidden
+              isHidden={privacyMode}
               length={SensitiveTextLength.Long}
               testID={MoneyBalanceSummaryTestIds.BALANCE}
             >
@@ -174,7 +180,9 @@ const MoneyBalanceSummary = ({
       testID={MoneyBalanceSummaryTestIds.CONTAINER}
     >
       {renderBalanceSlot()}
-      {displayState.kind !== 'balance' && <MoneyBalanceMetricsWarmer />}
+      {isBalanceAnimationEnabled && displayState.kind !== 'balance' && (
+        <MoneyBalanceMetricsWarmer />
+      )}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

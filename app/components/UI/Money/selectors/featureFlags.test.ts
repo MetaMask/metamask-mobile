@@ -14,6 +14,7 @@ import {
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
+  selectMoneyBalanceAnimationEnabledFlag,
   selectMoneyCardTiltAnimationEnabledFlag,
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
@@ -945,6 +946,63 @@ describe('selectMoneyCardFlipAnimationEnabledFlag', () => {
     const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyBalanceAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyBalanceAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyBalanceAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(false);
+  });
+
+  it('defaults to false when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED;
+
+    const state = createState({ _unique: 'balance-animation-default-off' });
+
+    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(false);
+  });
+
+  it('returns true when env var opts in and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED = 'true';
+
+    const state = createState({ _unique: 'balance-animation-env-on' });
+
+    expect(selectMoneyBalanceAnimationEnabledFlag(state as never)).toBe(true);
   });
 });
 

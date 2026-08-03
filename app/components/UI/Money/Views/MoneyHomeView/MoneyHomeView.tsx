@@ -60,6 +60,7 @@ import {
 } from '../../../../../selectors/cardController';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import {
+  selectMoneyBalanceAnimationEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
 } from '../../selectors/featureFlags';
@@ -234,10 +235,17 @@ const MoneyHomeView = () => {
     hasMoneyAccountRequirements,
   });
 
+  const isBalanceAnimationEnabled = useSelector(
+    selectMoneyBalanceAnimationEnabledFlag,
+  );
   const freshAmount =
     totalFiatFormatted === undefined ? undefined : Number(totalFiatRaw ?? 0);
+  // Withholding the amount keeps the animation bookkeeping idle while the
+  // feature is off, rather than tracking a figure nothing renders.
   const { amount: balanceAmount, animated: isBalanceAnimated } =
-    useMoneyBalanceAnimation(freshAmount);
+    useMoneyBalanceAnimation(
+      isBalanceAnimationEnabled ? freshAmount : undefined,
+    );
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -911,6 +919,7 @@ const MoneyHomeView = () => {
           onApyInfoPress={handleApyInfoPress}
           privacyMode={privacyMode}
           onBalancePress={handleBalancePress}
+          isBalanceAnimationEnabled={isBalanceAnimationEnabled}
         />
         <MoneyActionButtonRow
           add={{

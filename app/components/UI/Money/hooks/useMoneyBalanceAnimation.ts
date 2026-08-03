@@ -96,18 +96,36 @@ export const useMoneyBalanceAnimation = (
       return;
     }
 
-    const next = { amount: nextAmount, animated };
-    renderedRef.current = next;
-    setRendered(next);
+    const commit = () => {
+      const next = { amount: nextAmount, animated };
+      renderedRef.current = next;
+      setRendered(next);
 
-    if (hasPendingUserOp) {
-      dispatch(clearMoneyBalanceUserOp());
+      if (hasPendingUserOp) {
+        dispatch(clearMoneyBalanceUserOp());
+      }
+    };
+
+    // NumberFlow renders static text until it has measured the font, and a
+    // value changing before then lands without animating. When the balance is
+    // already cached there is no loading phase to measure during, so the roll
+    // is held back one frame to let that measurement land.
+    if (!animated) {
+      commit();
+      return undefined;
     }
+    const frame = requestAnimationFrame(commit);
+    return () => cancelAnimationFrame(frame);
   }, [amount, identity, hasPendingUserOp, dispatch]);
 
+  // `rendered` still holds the previous account's figure until the effect
+  // commits. Reporting it during that window would show one account's balance
+  // under another's name.
+  const isStaleIdentity = identityRef.current !== identity;
+
   return {
-    amount: rendered?.amount,
-    animated: rendered?.animated ?? false,
+    amount: isStaleIdentity ? undefined : rendered?.amount,
+    animated: isStaleIdentity ? false : (rendered?.animated ?? false),
   };
 };
 

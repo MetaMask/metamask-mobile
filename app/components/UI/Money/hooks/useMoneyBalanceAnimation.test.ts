@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import useMoneyBalanceAnimation from './useMoneyBalanceAnimation';
 import {
@@ -61,10 +61,15 @@ describe('useMoneyBalanceAnimation', () => {
     expect(result.current.animated).toBe(false);
   });
 
-  it('rolls from the anchor to the first resolved balance', () => {
+  it('rolls from the anchor to the first resolved balance', async () => {
     const { result } = renderHook(() => useMoneyBalanceAnimation(120.5));
 
-    expect(result.current.amount).toBe(120.5);
+    // The roll is held back a frame so NumberFlow can measure its font first.
+    expect(result.current.amount).toBe(100);
+
+    await waitFor(() => {
+      expect(result.current.amount).toBe(120.5);
+    });
     expect(result.current.animated).toBe(true);
   });
 
@@ -89,7 +94,7 @@ describe('useMoneyBalanceAnimation', () => {
     expect(result.current.animated).toBe(false);
   });
 
-  it('rolls a change the user caused and consumes the signal', () => {
+  it('rolls a change the user caused and consumes the signal', async () => {
     const { result, rerender } = renderHook(
       (amount: number) => useMoneyBalanceAnimation(amount),
       { initialProps: 120.5 },
@@ -98,7 +103,9 @@ describe('useMoneyBalanceAnimation', () => {
     arrangeSelectors({ hasPendingUserOp: true });
     rerender(220.5);
 
-    expect(result.current.amount).toBe(220.5);
+    await waitFor(() => {
+      expect(result.current.amount).toBe(220.5);
+    });
     expect(result.current.animated).toBe(true);
     expect(mockDispatch).toHaveBeenCalledWith(clearMoneyBalanceUserOp());
   });
@@ -144,6 +151,24 @@ describe('useMoneyBalanceAnimation', () => {
     rerender(999.99);
 
     expect(result.current.amount).toBe(999.99);
+    expect(result.current.animated).toBe(false);
+  });
+
+  it('reports no amount while the account in view has changed but the new balance has not landed', () => {
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useMoneyBalanceAnimation>,
+      number | undefined
+    >((amount) => useMoneyBalanceAnimation(amount), { initialProps: 120.5 });
+
+    mockUseMoneyAccountInfo.mockReturnValue({
+      primaryMoneyAccount: { address: '0xdef' },
+    });
+    arrangeSelectors({ lastKnownBalance: null });
+    rerender(undefined);
+
+    // Reporting the previous figure here would show one account's balance
+    // under another's name.
+    expect(result.current.amount).toBeUndefined();
     expect(result.current.animated).toBe(false);
   });
 

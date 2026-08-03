@@ -260,6 +260,21 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Gates the rolling-digit animation on the Money account balance.
+ * Defaults to OFF (false) — the balance renders as static text until the
+ * feature is rolled out.
+ */
+export const selectMoneyBalanceAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyBalanceAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_BALANCE_ANIMATION_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 
 /**

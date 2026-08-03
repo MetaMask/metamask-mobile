@@ -41,8 +41,22 @@ describe('MoneyBalanceSummary', () => {
   });
 
   it('renders the provided balance value', () => {
-    const { getByLabelText } = render(
+    const { getByTestId } = render(
       <MoneyBalanceSummary apy={4} displayState={balanceState('$123.45')} />,
+    );
+
+    expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+      '$123.45',
+    );
+  });
+
+  it('renders the balance as rolling digits when the animation is enabled', () => {
+    const { getByLabelText } = render(
+      <MoneyBalanceSummary
+        apy={4}
+        displayState={balanceState('$123.45')}
+        isBalanceAnimationEnabled
+      />,
     );
 
     // The rolling digits carry the figure on their accessibility label; the
@@ -221,10 +235,26 @@ describe('MoneyBalanceSummary', () => {
           apy={4}
           displayState={balanceState('$123.45')}
           privacyMode={false}
+          isBalanceAnimationEnabled
         />,
       );
 
       expect(getByLabelText('$123.45')).toBeOnTheScreen();
+    });
+
+    it('keeps the static balance when privacyMode is on, even with the animation enabled', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          privacyMode
+          isBalanceAnimationEnabled
+        />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+        '•'.repeat(12),
+      );
     });
 
     it('masks the balance when privacyMode is true', () => {
