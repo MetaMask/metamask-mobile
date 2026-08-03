@@ -4924,6 +4924,7 @@ describe('setVipDashboard', () => {
         swapsBps: 11,
         perpsBps: 7,
         referralCarryoverBps: 4242,
+        maintainPointsRequirement: null,
         status: 'current',
       },
     ],

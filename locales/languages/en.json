@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "Type",
+      "placeholder": "Type",
       "all": "All types",
       "tokens": "Tokens",
       "perps": "Perps"
+    },
+    "timeframe_filter": {
+      "title": "Time frame",
+      "7d": "7D",
+      "30d": "30D"
+    },
+    "sort_filter": {
+      "title": "Sort by",
+      "pnl": "P&L",
+      "roi": "P&L %",
+      "win_rate": "Win rate"
     },
     "feed": {
       "title": "Top traders",
@@ -1266,7 +1279,7 @@
       "get_new_quote": "Get new quote",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "includes_mm_fee": "Includes {{fee}}% MetaMask fee",
       "pay_with_no_tokens": "No tokens available to pay with",
       "receive_with_no_tokens": "No tokens available to receive",
       "pay_with_filter_all": "All",
@@ -1281,12 +1294,12 @@
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
       "toast_failed_sell": "Couldn't sell {{symbol}}",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "Confirm",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
+      "edit_quick_amounts_title": "Edit default amounts",
+      "edit_quick_amounts_set_buy": "To buy",
+      "edit_quick_amounts_set_sell": "To sell",
+      "edit_quick_amounts_confirm": "Save",
+      "edit_quick_amounts_buy_above_zero": "Buy amount should be above {{min}}",
+      "edit_quick_amounts_buy_below_max": "Buy amount should be below {{max}}",
       "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
       "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
     }
@@ -1358,7 +1371,8 @@
       "add_margin_button": "Add",
       "protect_losses_title": "Protect against further losses",
       "set_stop_loss_subtitle": "Set stop loss at {{price}} ({{percent}})",
-      "set_button": "Set"
+      "set_button": "Set",
+      "success_title": "Stop loss set"
     },
     "confirm": "Confirm",
     "deposit": {
@@ -1513,6 +1527,7 @@
       "size_usd": "Size USD",
       "size_percentage": "Order size percentage",
       "toggle_size_unit": "Switch size denomination",
+      "available_balance": "{{amount}} available",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
@@ -1527,7 +1542,21 @@
       "ticker_only": "{{ticker}} only",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
+      "positions_empty_long": "No long positions.",
+      "positions_empty_short": "No short positions.",
       "orders_empty": "Your open orders will appear here.",
+      "side_filter": {
+        "all_sides": "All sides",
+        "all_types": "All types",
+        "long": "Long",
+        "short": "Short"
+      },
+      "sort": {
+        "position_value": "Position value",
+        "unrealized_pnl": "Unrealized P&L",
+        "funding_rate": "Funding rate",
+        "settings_accessibility": "Sort positions"
+      },
       "card": {
         "entry_price": "Entry price",
         "margin": "Margin",
@@ -2041,11 +2070,18 @@
       },
       "statistics": "Overview",
       "stats": "Stats",
+      "about": "About",
+      "about_asset": "About {{assetName}}",
+      "read_more": "Read more",
+      "read_more_about": "Read more about {{assetName}}",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
+      "24h_vol": "24h vol",
       "open_interest": "Open interest",
+      "funding": "Funding",
       "funding_rate": "Funding rate",
+      "mark_price": "Mark price",
       "oracle_price": "Oracle price",
       "order_book": "Order book",
       "countdown": "Countdown",
@@ -2547,8 +2583,19 @@
     },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
+      "collapse_chart": "Collapse chart",
+      "expand_chart": "Expand chart",
       "market_list": "Browse markets",
-      "perp_pair": "{{ticker}}-{{collateral}} perp"
+      "perp_pair": "{{ticker}}-{{collateral}} perp",
+      "back": "Back",
+      "wallet": "Perps balance",
+      "add_to_watchlist": "Add to watchlist",
+      "remove_from_watchlist": "Remove from watchlist"
+    },
+    "balance_bottom_sheet": {
+      "close_button": "Close",
+      "history_button": "View activity",
+      "available": "Available"
     }
   },
   "market_insights": {
@@ -2714,6 +2761,16 @@
     },
     "outcome_groups": {
       "game_lines": "Game Lines",
+      "map_1": "Map 1",
+      "map_2": "Map 2",
+      "map_3": "Map 3",
+      "map_4": "Map 4",
+      "map_5": "Map 5",
+      "game_1": "Game 1",
+      "game_2": "Game 2",
+      "game_3": "Game 3",
+      "game_4": "Game 4",
+      "game_5": "Game 5",
       "halves": "Halves",
       "first_half": "1st Half",
       "first_set": "1st Set",
@@ -2778,7 +2835,27 @@
       "tennis_match_totals": "Total Games",
       "tennis_first_set_totals": "1st Set Total Games",
       "tennis_first_set_winner": "1st Set Winner",
-      "tennis_completed_match": "Completed Match"
+      "tennis_completed_match": "Completed Match",
+      "child_moneyline": "Winner",
+      "map_handicap": "Handicap",
+      "round_handicap_game": "Rounds Handicap",
+      "round_over_under_game": "Total Rounds",
+      "first_blood_game": "First Blood",
+      "kill_over_under_game": "Total Kills",
+      "map_participant_win_total": "Maps Won",
+      "cs2_odd_even_total_kills": "Odd/Even Total Kills",
+      "cs2_odd_even_total_rounds": "Odd/Even Total Rounds",
+      "lol_both_teams_baron": "Both Teams Slay Baron Nashor",
+      "lol_both_teams_dragon": "Both Teams Slay a Dragon",
+      "lol_both_teams_inhibitors": "Both Teams Destroy Inhibitors",
+      "lol_odd_even_total_kills": "Odd/Even Total Kills",
+      "lol_penta_kill": "Any Player Penta Kill",
+      "lol_quadra_kill": "Any Player Quadra Kill",
+      "dota2_both_teams_barracks": "Both Teams Destroy Barracks",
+      "dota2_both_teams_roshan": "Both Teams Beat Roshan",
+      "dota2_game_ends_daytime": "Ends in Daytime",
+      "dota2_rampage": "Any Player Rampage",
+      "dota2_ultra_kill": "Any Player Ultra Kill"
     },
     "sell_position": "Sell position",
     "odds": "Odds",
@@ -2824,15 +2901,63 @@
       "live": "Live",
       "popular_today": "Popular today",
       "tabs": {
+        "all": "All",
         "basketball": "Basketball",
         "tennis": "Tennis",
         "soccer": "Soccer",
         "baseball": "Baseball",
-        "football": "Football"
+        "football": "Football",
+        "esports": "Esports",
+        "cricket": "Cricket",
+        "golf": "Golf",
+        "combat": "Combat",
+        "hockey": "Hockey"
       },
       "filters": {
         "all": "All",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games",
+        "tournaments": "Tournaments",
+        "fights": "Fights",
+        "props": "Props",
+        "mls": "MLS",
+        "champions-league": "UCL",
+        "EPL": "EPL",
+        "uel": "Europa League",
+        "la-liga": "La Liga",
+        "serie-a": "Serie A",
+        "bundesliga": "Bundesliga",
+        "ligue-1": "Ligue 1",
+        "lib": "Copa Libertadores",
+        "mlb": "MLB",
+        "kbo": "KBO",
+        "npb": "NPB",
+        "cpbl": "CPBL",
+        "awards": "MLB Awards",
+        "nfl": "NFL",
+        "nfl-team-futures": "NFL Futures",
+        "nfl-free-agency": "NFL Offseason",
+        "cfb": "College",
+        "cfl": "CFL",
+        "nba": "NBA",
+        "nba-free-agency": "NBA Offseason",
+        "wnba": "WNBA",
+        "ncaa": "NCAA",
+        "league-of-legends": "LoL",
+        "counter-strike-2": "CS2",
+        "valorant": "Valorant",
+        "dota-2": "Dota 2",
+        "rainbow-six-siege": "R6 Siege",
+        "atp": "ATP",
+        "wta": "WTA",
+        "itf": "ITF",
+        "international-cricket": "International",
+        "t20-blast": "T20 Blast",
+        "pga-tour": "PGA Tour",
+        "liv-golf": "LIV",
+        "ufc": "UFC",
+        "boxing": "Boxing",
+        "nhl": "NHL"
       }
     },
     "search_placeholder": "Search prediction markets",
@@ -3299,7 +3424,8 @@
       "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
       "token_details": "Token details",
-      "remove_token": "Remove token"
+      "remove_token": "Remove token",
+      "deactivate_asset": "Deactivate asset"
     }
   },
   "nft_details": {
@@ -5510,6 +5636,11 @@
     "enable_device_passcode_ios": "Unlock with device passcode?",
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
+  "balance_breakdown": {
+    "allocation": "Allocation",
+    "hide_balance": "Hide total balance",
+    "show_balance": "Show total balance"
+  },
   "authentication": {
     "auth_prompt_desc": "Please authenticate in order to use MetaMask",
     "labels": {
@@ -7265,13 +7396,6 @@
     "your_bonus_tooltip_lifetime_bonus": "Lifetime bonus claimed: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
-    "empty_state_cta": {
-      "heading": "Lend {{tokenSymbol}} and earn",
-      "body": "Lend your {{tokenSymbol}} with {{protocol}} and earn",
-      "annually": "annually.",
-      "learn_more": "Learn more.",
-      "earn": "Earn"
-    },
     "service_interruption_banner": {
       "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     },
@@ -7317,8 +7441,10 @@
       }
     },
     "withdraw": "Withdraw",
+    "withdraw_from_aave": "Withdraw from Aave",
     "deposit_more": "Deposit more",
     "earning": "Earning",
+    "lending_earnings": "Lending earnings",
     "withdrawal_time": "Withdrawal time",
     "withdrawing_to": "Withdrawing to",
     "network": "Network",
@@ -7491,6 +7617,19 @@
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
     },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "{{apy}}% APY",
+        "start_earning": "Start earning",
+        "current_apy_disclaimer": "Current APY, variable and not guaranteed."
+      },
+      "balance_cta": {
+        "description_prefix": "Add your {{symbol}} to your Money account and earn up to ",
+        "description_suffix": " in one year.",
+        "earn_apy": "Earn {{apy}}% APY",
+        "earnings_tooltip_accessibility_label": "Learn about projected earnings"
+      }
+    },
     "earnings": {
       "title": "Earnings",
       "estimated_monthly": "Monthly",
@@ -7654,7 +7793,8 @@
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
       "deposit_title": "Projected 1-year balance",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
+      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return.",
+      "go_to_money_account": "Go to Money account"
     },
     "activity": {
       "title": "Activity",
@@ -9564,6 +9704,8 @@
       "retry_button": "Retry",
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
+      "maintain_threshold_label": "Maintain threshold",
+      "maintain_this_tier": "{{points}} points to maintain this tier",
       "bps_value": "{{bps}} bps",
       "referee_splash_continue": "Continue",
       "referee_referred_by": "Referred by {{code}}",
@@ -10526,7 +10668,7 @@
       "related_assets": "Related Assets",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
-      "top_traders": "Weekly top traders",
+      "top_traders": "Top traders",
       "defi": "DeFi",
       "nfts": "NFTs",
       "watchlist": "Watchlist",
@@ -10554,6 +10696,7 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
+    "ai_generated": "AI Generated",
     "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",
@@ -10584,5 +10727,19 @@
     "empty_add_tokens_cta": "Add {{count}} token",
     "empty_add_tokens_cta_plural": "Add {{count}} tokens",
     "search_placeholder": "Search for any asset to add"
+  },
+  "asset_spendable_balance": {
+    "spendable": "Spendable",
+    "base_reserved": "Reserved (locked)",
+    "fiat_value": "Value",
+    "total_balance": "Total balance"
+  },
+  "asset_activation": {
+    "activate": "Activate",
+    "activate_description": "Activate {{symbol}} on {{chainName}} to get started.",
+    "inactive": "Inactive",
+    "activate_error": "Something went wrong while adding this trustline. Try again.",
+    "deactivate_error": "Something went wrong while removing this trustline. Try again.",
+    "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
   }
 }

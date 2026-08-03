@@ -808,6 +808,9 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "DeFiPositionsControllerV2": {
+    "allDeFiPositionsV2": {}
+  },
   "SamplePetnamesController": {
     "namesByChainIdAndAddress": {}
   },

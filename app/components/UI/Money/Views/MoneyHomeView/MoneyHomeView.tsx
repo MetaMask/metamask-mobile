@@ -528,6 +528,7 @@ const MoneyHomeView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -561,6 +562,7 @@ const MoneyHomeView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: tokenCount,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({
@@ -590,6 +592,7 @@ const MoneyHomeView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: tokenCount,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({

@@ -1,7 +1,4 @@
-import { useSelector } from 'react-redux';
-import { PerpsMode } from '@metamask/perps-controller';
-import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
-import { selectPerpsMode } from '../../selectors/perpsController';
+import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
 
 /**
  * Whether the Perps Pro-mode market layout should render for the current user.
@@ -12,9 +9,4 @@ import { selectPerpsMode } from '../../selectors/perpsController';
  *
  * @returns Whether the Perps Pro-mode layout is enabled for the current user.
  */
-export const usePerpsProModeEnabled = (): boolean => {
-  const isFeatureEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const mode = useSelector(selectPerpsMode);
-
-  return isFeatureEnabled && mode === PerpsMode.Pro;
-};
+export const usePerpsProModeEnabled = (): boolean => useIsPerpsProModeActive();
