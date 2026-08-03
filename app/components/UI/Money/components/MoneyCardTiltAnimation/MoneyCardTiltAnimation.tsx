@@ -1,8 +1,15 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import Rive, { AutoBind, Fit, RNRiveError, RiveRef } from 'rive-react-native';
+import {
+  Fit,
+  RiveView,
+  useRiveFile,
+  useViewModelInstance,
+  type RiveError,
+  type ViewModelNumberProperty,
+} from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
@@ -24,10 +31,11 @@ const log = createProjectLogger('money-card-tilt');
 // designer renames any of these, update the constants here.
 //
 // The per-variant artboards are rendered directly (not through the `MainTilt`
-// wrapper with its `cardType` enum) so the component needs no imperative
-// setup calls that could race the native view's file load. The artboards
-// shipped here are single-axis (X only), but both `xValue` and `yValue` are
-// wired so a future both-axes asset works without code changes.
+// wrapper with its `cardType` enum), with their view model bound explicitly
+// via `useViewModelInstance` + `dataBind` (the Nitro replacement for the
+// legacy `AutoBind(true)` mode). The artboards shipped here are single-axis
+// (X only), but both `xValue` and `yValue` are wired so a future both-axes
+// asset works without code changes.
 
 /**
  * Artboard holding the virtual-card X tilt. The trailing space is authored
@@ -55,44 +63,58 @@ const MoneyCardTiltAnimation = ({
   const flagEnabled = useSelector(selectMoneyCardTiltAnimationEnabledFlag);
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
-  // Written to via a plain ref rather than `useRiveNumber`: that hook echoes
-  // every value back to JS through setState, re-rendering at the accelerometer
-  // sample rate for values this component never reads.
-  const riveRef = useRef<RiveRef>(null);
-
-  const animate = flagEnabled && !reduceMotion && !hasRiveError;
-
-  const applyTilt = useCallback((x: number, y: number) => {
-    const rive = riveRef.current;
-    // viewTag() is null while the native Rive view is detached; dispatching
-    // then throws "found null reactTag".
-    if (!rive || rive.viewTag() === null) return;
-    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
-    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
-  }, []);
-
-  useDeviceOrientation(applyTilt, { enabled: animate });
-
-  const handleError = useCallback((riveError: RNRiveError) => {
-    log(`Rive error: ${riveError.message}`);
-    setHasRiveError(true);
-  }, []);
 
   const artboardName = isMetalCard
     ? RIVE_ARTBOARD_METAL
     : RIVE_ARTBOARD_DIGITAL;
 
+  const { riveFile } = useRiveFile(CardTiltAnimation);
+  const { instance } = useViewModelInstance(riveFile, {
+    artboardName,
+    async: true,
+  });
+
+  // Written to via cached property handles rather than `useRiveNumber`: that
+  // hook echoes every value back to JS through setState, re-rendering at the
+  // accelerometer sample rate for values this component never reads.
+  const xPropertyRef = useRef<ViewModelNumberProperty | null>(null);
+  const yPropertyRef = useRef<ViewModelNumberProperty | null>(null);
+
+  useEffect(() => {
+    if (!instance) return undefined;
+    xPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_X) ?? null;
+    yPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_Y) ?? null;
+    return () => {
+      xPropertyRef.current = null;
+      yPropertyRef.current = null;
+    };
+  }, [instance]);
+
+  const animate = flagEnabled && !reduceMotion && !hasRiveError;
+
+  const applyTilt = useCallback((x: number, y: number) => {
+    xPropertyRef.current?.set(tiltToParallaxValue(x));
+    yPropertyRef.current?.set(pitchToParallaxValue(y));
+  }, []);
+
+  useDeviceOrientation(applyTilt, { enabled: animate });
+
+  const handleError = useCallback((riveError: RiveError) => {
+    log(`Rive error: ${riveError.message}`);
+    setHasRiveError(true);
+  }, []);
+
   let content: React.ReactNode;
   if (animate) {
-    content = (
-      <Rive
+    content = riveFile && instance && (
+      <RiveView
         // Remount per artboard: swapping `artboardName` in place reloads the
         // artboard but leaves data binding pointing at the previous one.
         key={artboardName}
-        ref={riveRef}
-        source={CardTiltAnimation}
+        file={riveFile}
         artboardName={artboardName}
-        dataBinding={AutoBind(true)}
+        dataBind={instance}
+        autoPlay
         fit={Fit.Contain}
         style={styles.media}
         onError={handleError}
