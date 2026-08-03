@@ -297,8 +297,11 @@ describe('useDeFiPositionsV2', () => {
       return undefined;
     });
 
-    const { rerender } = renderHook(() =>
-      useDeFiPositionsV2({ enabled: true, isVisible: true }),
+    const { rerender } = renderHook(
+      // Dummy prop forces a re-render so the hook re-reads the updated selector.
+      ({ groupId: _groupId }) =>
+        useDeFiPositionsV2({ enabled: true, isVisible: true }),
+      { initialProps: { groupId: selectedGroupId } },
     );
 
     await act(async () => {
@@ -309,7 +312,7 @@ describe('useDeFiPositionsV2', () => {
 
     selectedGroupId = 'group-2';
     await act(async () => {
-      rerender();
+      rerender({ groupId: selectedGroupId });
       await Promise.resolve();
     });
 

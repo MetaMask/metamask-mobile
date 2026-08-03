@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiProtocolPositionDetails, {
   DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
+  type DeFiProtocolPositionDetailsParams,
 } from './DeFiProtocolPositionDetails';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -62,10 +63,13 @@ const mockProtocolPositionGroup = {
   sections: [],
 };
 
-const mockUseParams = jest.fn(() => ({
-  networkIconAvatar: 10,
-  protocolAggregate: mockProtocolAggregate,
-}));
+const mockUseParams = jest.fn(
+  (): DeFiProtocolPositionDetailsParams =>
+    ({
+      networkIconAvatar: 10,
+      protocolAggregate: mockProtocolAggregate,
+    }) as unknown as DeFiProtocolPositionDetailsParams,
+);
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../util/navigation/navUtils'),
@@ -103,7 +107,7 @@ describe('DeFiProtocolPositionDetails', () => {
     mockUseParams.mockReturnValue({
       networkIconAvatar: 10,
       protocolAggregate: mockProtocolAggregate,
-    });
+    } as unknown as DeFiProtocolPositionDetailsParams);
   });
 
   it('renders the protocol name header and aggregated balance', async () => {
@@ -176,7 +180,7 @@ describe('DeFiProtocolPositionDetails', () => {
     mockUseParams.mockReturnValue({
       networkIconAvatar: 10,
       protocolPositionGroup: mockProtocolPositionGroup,
-    });
+    } as unknown as DeFiProtocolPositionDetailsParams);
 
     const { getByTestId, queryByText } = renderWithProvider(
       <DeFiProtocolPositionDetails />,
@@ -192,7 +196,7 @@ describe('DeFiProtocolPositionDetails', () => {
       networkIconAvatar: 10,
       protocolAggregate: mockProtocolAggregate,
       protocolPositionGroup: mockProtocolPositionGroup,
-    });
+    } as unknown as DeFiProtocolPositionDetailsParams);
 
     const { getByTestId, queryByText } = renderWithProvider(
       <DeFiProtocolPositionDetails />,
