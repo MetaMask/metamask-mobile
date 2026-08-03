@@ -45,11 +45,6 @@ on:
         required: false
         type: string
         default: current
-      pr_number:
-        description: 'If set, post the upload summary as a comment on this PR when done'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
@@ -175,44 +170,3 @@ jobs:
         run: |
           rm -f ios/AuthKey.p8
           echo "🧹 Cleaned up API key file"
-
-  comment-on-pr:
-    name: Comment upload summary on PR
-    needs: [upload-ios-testflight]
-    # Only when a PR number was supplied (i.e. triggered via the bot command).
-    if: ${{ inputs.pr_number != '' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: Post TestFlight upload summary to the PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-          ENVIRONMENT: ${{ inputs.environment }}
-          SOURCE_BRANCH: ${{ inputs.source_branch }}
-          BUILD_NAME: ${{ inputs.build_name }}
-          BUILD_COMMIT_SHA: ${{ inputs.build_commit_sha }}
-          BUILD_VERSION: ${{ inputs.build_version }}
-          BUILD_NUMBER: ${{ inputs.build_number }}
-          TESTFLIGHT_GROUP: ${{ inputs.testflight_group }}
-        run: |
-          set -euo pipefail
-          # Values are passed via env (not expression interpolation in the script
-          # body) so branch names etc. cannot break out of the shell.
-          {
-            echo "### 📲 TestFlight build uploaded"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| **Track / environment** | \`${ENVIRONMENT}\` |"
-            echo "| **Source branch** | \`${SOURCE_BRANCH}\` |"
-            echo "| **Build version** | \`${BUILD_VERSION}\` |"
-            echo "| **Build number** | \`${BUILD_NUMBER}\` |"
-            echo "| **Build commit SHA** | \`${BUILD_COMMIT_SHA}\` |"
-            echo "| **Build name** | \`${BUILD_NAME}\` |"
-            echo "| **TestFlight group** | ${TESTFLIGHT_GROUP} |"
-          } > testflight-pr-comment.md
-          gh pr comment "${PR_NUMBER}" --repo "${REPO}" --body-file testflight-pr-comment.md
