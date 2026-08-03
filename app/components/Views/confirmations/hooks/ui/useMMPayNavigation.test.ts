@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import useMMPayNavigation from './useMMPayNavigation';
+import { CustomAmountStage } from '../custom-amount/useCustomAmountStage';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -11,6 +12,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../context/confirmation-context', () => ({
   useConfirmationContext: jest.fn(),
 }));
+
+const AMOUNT_INPUT = CustomAmountStage.AmountInput;
+const QUOTE = CustomAmountStage.ShowTotals;
 
 describe('useMMPayNavigation', () => {
   const mockSetOptions = jest.fn();
@@ -34,28 +38,34 @@ describe('useMMPayNavigation', () => {
     });
   });
 
-  describe('when keyboard is visible (input state)', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  describe('when stage is AmountInput (input state)', () => {
     it('sets mmPayRequestInProgressNavHandler to false', () => {
-      renderHook(() => useMMPayNavigation(true, jest.fn()));
+      renderHook(() => useMMPayNavigation(AMOUNT_INPUT, jest.fn()));
 
       expect(mmPayRef.current).toBe(false);
     });
 
     it('enables gesture', () => {
-      renderHook(() => useMMPayNavigation(true, jest.fn()));
+      renderHook(() => useMMPayNavigation(AMOUNT_INPUT, jest.fn()));
 
       expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: true });
     });
 
     it('does not register BackHandler', () => {
-      renderHook(() => useMMPayNavigation(true, jest.fn()));
+      renderHook(() => useMMPayNavigation(AMOUNT_INPUT, jest.fn()));
 
       expect(BackHandler.addEventListener).not.toHaveBeenCalled();
     });
 
     it('resets ref on cleanup', () => {
       mmPayRef.current = jest.fn();
-      const { unmount } = renderHook(() => useMMPayNavigation(true, jest.fn()));
+      const { unmount } = renderHook(() =>
+        useMMPayNavigation(AMOUNT_INPUT, jest.fn()),
+      );
 
       unmount();
 
@@ -63,25 +73,69 @@ describe('useMMPayNavigation', () => {
     });
   });
 
-  describe('when keyboard is hidden (quote state)', () => {
-    it('sets mmPayRequestInProgressNavHandler to showKeyboard function', () => {
-      const mockSetIsKeyboardVisible = jest.fn();
-      renderHook(() => useMMPayNavigation(false, mockSetIsKeyboardVisible));
+  describe('when stage is a quote state and amount input was never shown', () => {
+    it('sets mmPayRequestInProgressNavHandler to false', () => {
+      renderHook(() => useMMPayNavigation(QUOTE, jest.fn()));
+
+      expect(mmPayRef.current).toBe(false);
+    });
+
+    it('enables gesture', () => {
+      renderHook(() => useMMPayNavigation(QUOTE, jest.fn()));
+
+      expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: true });
+    });
+
+    it('does not register BackHandler', () => {
+      renderHook(() => useMMPayNavigation(QUOTE, jest.fn()));
+
+      expect(BackHandler.addEventListener).not.toHaveBeenCalled();
+    });
+
+    it('resets ref on cleanup', () => {
+      mmPayRef.current = jest.fn();
+      const { unmount } = renderHook(() =>
+        useMMPayNavigation(QUOTE, jest.fn()),
+      );
+
+      unmount();
+
+      expect(mmPayRef.current).toBe(false);
+    });
+  });
+
+  describe('when stage is a quote state and amount input was previously shown', () => {
+    const renderPreviouslyShown = (setStage = jest.fn()) => {
+      // Start in the amount-input stage so the internal "ever shown" ref latches,
+      // then transition to a quote stage.
+      const utils = renderHook(
+        ({ stage }) => useMMPayNavigation(stage, setStage),
+        { initialProps: { stage: AMOUNT_INPUT } },
+      );
+      utils.rerender({ stage: QUOTE });
+      return utils;
+    };
+
+    it('sets mmPayRequestInProgressNavHandler to showAmountInput function', () => {
+      const mockSetStage = jest.fn();
+      renderPreviouslyShown(mockSetStage);
 
       expect(typeof mmPayRef.current).toBe('function');
 
       (mmPayRef.current as () => void)();
-      expect(mockSetIsKeyboardVisible).toHaveBeenCalledWith(true);
+      expect(mockSetStage).toHaveBeenCalledWith(AMOUNT_INPUT);
     });
 
     it('disables gesture', () => {
-      renderHook(() => useMMPayNavigation(false, jest.fn()));
+      renderPreviouslyShown();
 
-      expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: false });
+      expect(mockSetOptions).toHaveBeenLastCalledWith({
+        gestureEnabled: false,
+      });
     });
 
     it('registers BackHandler listener', () => {
-      renderHook(() => useMMPayNavigation(false, jest.fn()));
+      renderPreviouslyShown();
 
       expect(BackHandler.addEventListener).toHaveBeenCalledWith(
         'hardwareBackPress',
@@ -89,20 +143,20 @@ describe('useMMPayNavigation', () => {
       );
     });
 
-    it('BackHandler calls setIsKeyboardVisible(true) when ref is truthy', () => {
-      const mockSetIsKeyboardVisible = jest.fn();
-      renderHook(() => useMMPayNavigation(false, mockSetIsKeyboardVisible));
+    it('BackHandler calls setStage(AmountInput) when ref is truthy', () => {
+      const mockSetStage = jest.fn();
+      renderPreviouslyShown(mockSetStage);
 
       const backHandler = (BackHandler.addEventListener as jest.Mock).mock
         .calls[0][1];
       const result = backHandler();
 
       expect(result).toBe(true);
-      expect(mockSetIsKeyboardVisible).toHaveBeenCalledWith(true);
+      expect(mockSetStage).toHaveBeenCalledWith(AMOUNT_INPUT);
     });
 
     it('BackHandler returns false when ref is falsy', () => {
-      renderHook(() => useMMPayNavigation(false, jest.fn()));
+      renderPreviouslyShown();
 
       mmPayRef.current = false;
 
@@ -114,9 +168,7 @@ describe('useMMPayNavigation', () => {
     });
 
     it('cleans up BackHandler and resets ref on unmount', () => {
-      const { unmount } = renderHook(() =>
-        useMMPayNavigation(false, jest.fn()),
-      );
+      const { unmount } = renderPreviouslyShown();
 
       unmount();
 
@@ -125,101 +177,21 @@ describe('useMMPayNavigation', () => {
     });
   });
 
-  describe('when keyboardEverShown ref is provided', () => {
-    describe('and keyboard was never shown', () => {
-      it('sets mmPayRequestInProgressNavHandler to false', () => {
-        const keyboardEverShown = { current: false };
-        renderHook(() =>
-          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
-        );
-
-        expect(mmPayRef.current).toBe(false);
-      });
-
-      it('enables gesture', () => {
-        const keyboardEverShown = { current: false };
-        renderHook(() =>
-          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
-        );
-
-        expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: true });
-      });
-
-      it('does not register BackHandler', () => {
-        const keyboardEverShown = { current: false };
-        renderHook(() =>
-          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
-        );
-
-        expect(BackHandler.addEventListener).not.toHaveBeenCalled();
-      });
-
-      it('resets ref on cleanup', () => {
-        mmPayRef.current = jest.fn();
-        const keyboardEverShown = { current: false };
-        const { unmount } = renderHook(() =>
-          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
-        );
-
-        unmount();
-
-        expect(mmPayRef.current).toBe(false);
-      });
-    });
-
-    describe('and keyboard was previously shown', () => {
-      it('sets handler to showKeyboard function', () => {
-        const keyboardEverShown = { current: true };
-        const mockSetIsKeyboardVisible = jest.fn();
-        renderHook(() =>
-          useMMPayNavigation(
-            false,
-            mockSetIsKeyboardVisible,
-            keyboardEverShown,
-          ),
-        );
-
-        expect(typeof mmPayRef.current).toBe('function');
-
-        (mmPayRef.current as () => void)();
-        expect(mockSetIsKeyboardVisible).toHaveBeenCalledWith(true);
-      });
-
-      it('disables gesture', () => {
-        const keyboardEverShown = { current: true };
-        renderHook(() =>
-          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
-        );
-
-        expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: false });
-      });
-
-      it('registers BackHandler listener', () => {
-        const keyboardEverShown = { current: true };
-        renderHook(() =>
-          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
-        );
-
-        expect(BackHandler.addEventListener).toHaveBeenCalledWith(
-          'hardwareBackPress',
-          expect.any(Function),
-        );
-      });
-    });
-  });
-
   describe('transitions', () => {
     it('switches from quote state to input state', () => {
-      const mockSetIsKeyboardVisible = jest.fn();
+      const mockSetStage = jest.fn();
       const { rerender } = renderHook(
-        ({ visible }) => useMMPayNavigation(visible, mockSetIsKeyboardVisible),
-        { initialProps: { visible: false } },
+        ({ stage }) => useMMPayNavigation(stage, mockSetStage),
+        { initialProps: { stage: AMOUNT_INPUT } },
       );
 
+      // Show the input first so the quote state has a "previously shown" back
+      // handler, then verify switching back to input tears it down.
+      rerender({ stage: QUOTE });
       expect(typeof mmPayRef.current).toBe('function');
       expect(BackHandler.addEventListener).toHaveBeenCalledTimes(1);
 
-      rerender({ visible: true });
+      rerender({ stage: AMOUNT_INPUT });
 
       expect(mmPayRef.current).toBe(false);
       expect(mockBackHandlerRemove).toHaveBeenCalledTimes(1);
@@ -229,16 +201,16 @@ describe('useMMPayNavigation', () => {
     });
 
     it('switches from input state to quote state', () => {
-      const mockSetIsKeyboardVisible = jest.fn();
+      const mockSetStage = jest.fn();
       const { rerender } = renderHook(
-        ({ visible }) => useMMPayNavigation(visible, mockSetIsKeyboardVisible),
-        { initialProps: { visible: true } },
+        ({ stage }) => useMMPayNavigation(stage, mockSetStage),
+        { initialProps: { stage: AMOUNT_INPUT } },
       );
 
       expect(mmPayRef.current).toBe(false);
       expect(BackHandler.addEventListener).not.toHaveBeenCalled();
 
-      rerender({ visible: false });
+      rerender({ stage: QUOTE });
 
       expect(typeof mmPayRef.current).toBe('function');
       expect(BackHandler.addEventListener).toHaveBeenCalledTimes(1);

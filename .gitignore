@@ -141,9 +141,6 @@ scripts/reports/
 # PR description files (temporary, not to be committed)
 PR_DESC.md
 
-# Performance test results
-tests/smoke/performance/reports/*-performance-results.json
-
 # appwright
 appwright/report
 playwright-report/*
@@ -245,3 +242,8 @@ build-env.json
 .tsccheck.log
 predict_tsc.log
 predict_tsc_summary.txt
+
+# mm CLI daemon
+.mm-server
+.mm-daemon.log
+test-artifacts/

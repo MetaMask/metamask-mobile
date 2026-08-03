@@ -4,6 +4,7 @@ import { BalanceProjection } from './BalanceProjection';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
@@ -166,6 +167,7 @@ describe('BalanceProjection', () => {
     expect(mockTrackTooltipClicked).toHaveBeenCalledWith({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_PROJECTION,
     });
   });
 

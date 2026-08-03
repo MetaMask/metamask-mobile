@@ -3,25 +3,85 @@ import {
   boolean,
   defaulted,
   literal,
+  enums,
   number,
   object,
   optional,
+  refine,
   string,
   type,
   union,
 } from '@metamask/superstruct';
+import compareVersions from 'compare-versions';
 import { HexSchema } from './common';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
+  PREDICT_MARKET_LIST_ORDERS,
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
 } from '../constants/flags';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
 } from '../constants/feedBanner';
+
+const PredictFeedCarouselModeSchema = union([
+  literal('live'),
+  literal('custom'),
+]);
+const PredictFeedCarouselCompositionSchema = union([
+  literal('query-results'),
+  literal('live-now'),
+]);
+
+const SemanticVersionSchema = refine(
+  string(),
+  'semantic version',
+  compareVersions.validate,
+);
+const MinimumVersionSchema = union([literal(''), SemanticVersionSchema]);
+
+export const PredictFeedCarouselSchema = defaulted(
+  type({
+    enabled: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.enabled,
+    ),
+    minimumVersion: defaulted(
+      MinimumVersionSchema,
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.minimumVersion,
+    ),
+    mode: defaulted(
+      PredictFeedCarouselModeSchema,
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.mode,
+    ),
+    title: optional(string()),
+    deeplink: optional(string()),
+    contentSource: defaulted(
+      type({
+        composition: defaulted(
+          PredictFeedCarouselCompositionSchema,
+          () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource.composition,
+        ),
+        queryParams: defaulted(
+          string(),
+          () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource.queryParams,
+        ),
+        excludedMarketIds: defaulted(
+          array(string()),
+          () =>
+            DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource.excludedMarketIds,
+        ),
+      }),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.contentSource,
+    ),
+  }),
+  () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+);
 
 const PredictFeedBannerPositionSchema = union([
   literal(PredictFeedBannerPosition.AfterBalance),
@@ -158,4 +218,43 @@ export const PredictWimbledonTabSchema = defaulted(
     ),
   }),
   () => DEFAULT_WIMBLEDON_TAB_FLAG,
+);
+
+export const PredictSportsFeedChipSchema = type({
+  id: string(),
+  kind: enums(['games', 'props', 'tag']),
+  titleKey: optional(string()),
+  label: optional(string()),
+  tagSlug: optional(string()),
+  queryParams: optional(string()),
+  order: optional(enums(PREDICT_MARKET_LIST_ORDERS)),
+  startTimeMinMinutesAgo: optional(union([number(), literal(null)])),
+  filterByVolume: optional(number()),
+});
+
+export const PredictSportsFeedTabSchema = type({
+  id: string(),
+  titleKey: optional(string()),
+  label: optional(string()),
+  tagSlug: optional(string()),
+  defaultFilterId: optional(string()),
+  chips: defaulted(array(PredictSportsFeedChipSchema), () => []),
+});
+
+export const PredictSportsFeedSchema = defaulted(
+  type({
+    enabled: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.enabled,
+    ),
+    minimumVersion: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.minimumVersion,
+    ),
+    tabs: defaulted(
+      array(PredictSportsFeedTabSchema),
+      () => DEFAULT_PREDICT_SPORTS_FEED_FLAG.tabs,
+    ),
+  }),
+  () => DEFAULT_PREDICT_SPORTS_FEED_FLAG,
 );

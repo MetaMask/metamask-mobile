@@ -9,9 +9,9 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
-import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
   useTransactionPayTotals,

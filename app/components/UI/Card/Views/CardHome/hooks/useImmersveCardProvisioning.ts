@@ -69,7 +69,9 @@ export function useImmersveCardProvisioning(
     }
 
     const interval = setInterval(() => {
-      Engine.context.CardController.fetchCardHomeData().catch(() => undefined);
+      Engine.context.CardController.fetchCardHomeData({ force: true }).catch(
+        () => undefined,
+      );
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);

@@ -57,6 +57,20 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// Escapes a filesystem path for safe embedding in a RegExp so the mm CLI
+// daemon-artifact blockList entries below only match paths anchored at the
+// worktree root, not the same substring appearing anywhere in node_modules.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// mm CLI (visual testing) daemon artifacts, anchored to this worktree root.
+// Anchoring prevents an unrelated dependency whose path merely *contains*
+// `.mm-server` or `test-artifacts/` from being silently dropped from the bundle.
+const mmDaemonArtifactBlockList = [
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-daemon.log'))}$`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-server'))}`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, 'test-artifacts'))}/`),
+];
+
 // True when the module being resolved was requested from a file inside
 // @metamask/perps-controller. Normalizes separators first so this works on
 // Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
@@ -85,7 +99,7 @@ module.exports = function (baseConfig) {
 
       /**
        * E2E Metro redirects under tests/module-mocking.
-       * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+       * Enables both: @metamask/seedless-onboarding-controller + OAuthLoginHandlers mocks.
        * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
        * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
        * even though hasTestOverrides is false (preventing real OAuth calls to production).
@@ -115,6 +129,17 @@ module.exports = function (baseConfig) {
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
           resolver: {
+            // Exclude mm CLI daemon artifacts from the file watcher so that
+            // log writes, state updates and test-artifact captures don't
+            // trigger unnecessary Fast Refresh cycles during visual testing.
+            blockList: [
+              ...(Array.isArray(defaultConfig.resolver.blockList)
+                ? defaultConfig.resolver.blockList
+                : defaultConfig.resolver.blockList
+                  ? [defaultConfig.resolver.blockList]
+                  : []),
+              ...mmDaemonArtifactBlockList,
+            ],
             unstable_enablePackageExports: true,
             assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
             sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
@@ -230,21 +255,29 @@ module.exports = function (baseConfig) {
                 }
               }
               if (e2eAllowsSeedlessOAuthMetroMocks) {
-                if (
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller',
-                  ) ||
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller/index',
-                  ) ||
-                  moduleName === './seedless-onboarding-controller' ||
-                  moduleName === '../seedless-onboarding-controller'
-                ) {
+                // Wallet owns SeedlessOnboardingController construction, so E2E
+                // replaces the package class. Importers under
+                // tests/module-mocking/seedless still resolve the real package
+                // to avoid a circular mock.
+                if (moduleName === '@metamask/seedless-onboarding-controller') {
+                  const originModulePath = context.originModulePath || '';
+                  if (
+                    originModulePath.includes(
+                      `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
+                    )
+                  ) {
+                    return {
+                      type: 'sourceFile',
+                      filePath: require.resolve(
+                        '@metamask/seedless-onboarding-controller',
+                      ),
+                    };
+                  }
                   return {
                     type: 'sourceFile',
                     filePath: path.resolve(
                       __dirname,
-                      'tests/module-mocking/seedless/index.ts',
+                      'tests/module-mocking/seedless/package.ts',
                     ),
                   };
                 }

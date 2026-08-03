@@ -16,7 +16,7 @@ import {
   cleanupAllAndroidPortForwarding,
   setupAndroidPortForwarding,
 } from './FixtureUtils';
-import Utilities, { sleep } from '../Utilities';
+import Utilities from '../Utilities';
 import {
   dismissAndroidSystemOverlaysPlaywright,
   dismissDevScreens,
@@ -55,6 +55,7 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../smoke-appium/notifications/utils/mocks';
+import { softReloadAppForFixtures } from '../services/appium/softReloadApp';
 import {
   runAnalyticsExpectations,
   shouldRunAnalyticsExpectations,
@@ -878,42 +879,14 @@ export async function withFixtures(
           ...(launchArgs || {}),
         };
 
-        if (deviceCommands) {
-          await deviceCommands.clearAppData();
-        }
-
-        // Cold Metro bundles can take 60–160s locally; pre-warm runs in launchApp but
-        // device-side load + E2E bootstrap still need headroom after deep link.
-        const appStateRequest = fixtureServer.waitForNextStateRequest(
-          resolveE2EFixtureBootstrapTimeoutMs(),
-        );
-        try {
-          await PlaywrightUtilities.launchApp(currentDeviceDetails, {
-            launchArgs: testArgs,
-          });
-          if (shouldHandleMetroDevLauncherLocally()) {
-            didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
-            await Promise.all([
-              appStateRequest,
-              (async () => {
-                for (;;) {
-                  await dismissDevelopmentServerPickerPlaywright();
-                  const bootstrapped = await Promise.race([
-                    appStateRequest.then(() => true),
-                    sleep(1500).then(() => false),
-                  ]);
-                  if (bootstrapped) {
-                    return;
-                  }
-                }
-              })(),
-            ]);
-          } else {
-            await appStateRequest;
-          }
-        } catch (error) {
-          appStateRequest.catch(() => undefined);
-          throw error;
+        const softReloadResult = await softReloadAppForFixtures({
+          currentDeviceDetails,
+          deviceCommands,
+          launchArgs: testArgs,
+          fixtureServer,
+        });
+        if (softReloadResult.attemptedMetroDevLauncherDismissal) {
+          didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
         }
       } else {
         throw new Error(`Unsupported test runner: ${framework}`);

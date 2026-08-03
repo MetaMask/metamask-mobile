@@ -1,5 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { BackHandler, Platform } from 'react-native';
+import { BackHandler, Platform, Settings } from 'react-native';
 
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
 // libraries (notably `@metamask/design-system-react-native`'s `BottomSheet`)
@@ -78,6 +78,14 @@ require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-com
 //   "// ReadableStream is injected by Metro as a global"
 import 'expo';
 
+// Compression Streams for Hyperliquid `fastAssetCtxs`.
+// Official @nktkas/hyperliquid RN docs require DecompressionStream on Hermes.
+// We only add this package: Web Streams come from Metro (`expo/virtual/streams`
+// is prepended before any module), TextDecoder from Expo winter above. Kept
+// next to `expo` for readability.
+// @see https://nktkas.gitbook.io/hyperliquid (React Native tab)
+import 'compression-streams-polyfill';
+
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (hasTestOverrides) {
   // eslint-disable-next-line no-console
@@ -108,9 +116,14 @@ if (hasTestOverrides) {
 //          See FixtureHelper.ts for the port mapping implementation.
 if (isTestEnvironment) {
   const raw = LaunchArguments.value();
+
+  // Priority: LaunchArgs (Detox) → NSUserDefaults (mm CLI daemon) → hardcoded fallback
+  const nsDefaults =
+    Platform.OS === 'ios' ? Settings.get('fixtureServerPort') : undefined;
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
-    : FALLBACK_FIXTURE_SERVER_PORT;
+    : (nsDefaults ?? FALLBACK_FIXTURE_SERVER_PORT);
+
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;

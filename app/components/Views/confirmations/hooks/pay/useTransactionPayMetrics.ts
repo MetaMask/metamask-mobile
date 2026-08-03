@@ -9,12 +9,17 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { hasTransactionType } from '../../utils/transaction';
 import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -43,7 +48,12 @@ export function useTransactionPayMetrics() {
   const highestBalanceChainId = useHighestBalanceCaipChainId();
   const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
+  const quoteErrorsRef = useRef<Json[]>([]);
+  const wasQuoteLoadingRef = useRef(false);
   const quotes = useTransactionPayQuotes();
+  const rawQuotes = useTransactionPayQuotesRaw();
+  const isQuoteLoading = useIsTransactionPayQuoteLoading();
+  const quoteError = useTransactionPayQuoteError();
   const { availableTokens: tokens, hasTokens } =
     useTransactionPayAvailableTokens();
 
@@ -73,6 +83,12 @@ export function useTransactionPayMetrics() {
   }, [isQuoteRequested]);
 
   const hasQuotes = (quotes?.length ?? 0) > 0;
+
+  // Includes no-op (TransactionPayStrategy.None) quotes, which the filtered
+  // `quotes` list drops. A completed same-token / no-conversion route stores
+  // only a no-op quote, so it must count as a successful cycle here — not a
+  // quote error. Mirrors useNoPayTokenQuotesAlert, which uses raw quotes too.
+  const hasRawQuotes = (rawQuotes?.length ?? 0) > 0;
 
   if (hasQuotes && !hasLoadedQuoteRef.current) {
     hasLoadedQuoteRef.current = true;
@@ -116,6 +132,36 @@ export function useTransactionPayMetrics() {
     (t) => !t.skipIfBalance,
   );
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
+
+  // Detect a failed quote-loading cycle: isLoading transitioned true -> false
+  // AND ended with no quotes. One entry appended per failed cycle, oldest-first.
+  // Ignore cycles where the amount is zero (nothing to quote for).
+  if (
+    wasQuoteLoadingRef.current &&
+    !isQuoteLoading &&
+    !hasRawQuotes &&
+    sendingValue > 0
+  ) {
+    const inputType = storedMetrics?.properties?.mm_pay_amount_input_type as
+      | string
+      | undefined;
+    quoteErrorsRef.current = [
+      ...quoteErrorsRef.current,
+      {
+        pay_token: {
+          symbol: payToken?.symbol ?? null,
+          chainId: payToken?.chainId ?? null,
+          address: payToken?.address ?? null,
+        },
+        amount: sendingValue,
+        amount_input_type: inputType ?? null,
+        error_message: quoteError?.message ?? 'unknown',
+        error_reason: quoteError?.reason ?? null,
+        error_detail: quoteError?.detail?.join(' | ') ?? null,
+      },
+    ];
+  }
+  wasQuoteLoadingRef.current = isQuoteLoading;
 
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
@@ -210,8 +256,6 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_chain_presented =
       automaticPayToken.current?.chainId ?? null;
 
-    properties.mm_pay_payment_token_list_size = availableTokens.length;
-
     properties.mm_pay_quote_requested =
       (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
     properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
@@ -230,10 +274,15 @@ export function useTransactionPayMetrics() {
   }
 
   properties.mm_pay_payment_method_available = availablePaymentMethods;
+  properties.mm_pay_payment_token_list_size = availableTokens.length;
 
   if (presentedPaymentMethodRef.current) {
     properties.mm_pay_payment_method_presented =
       presentedPaymentMethodRef.current;
+  }
+
+  if (quoteErrorsRef.current.length > 0) {
+    properties.mm_pay_quote_errors = quoteErrorsRef.current;
   }
 
   if (

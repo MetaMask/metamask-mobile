@@ -1,6 +1,7 @@
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
@@ -11,7 +12,6 @@ import type { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import TransactionTypes from '../../../../TransactionTypes';
 import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 
 /**
  * Eagerly refresh native and token balances across all configured chains
@@ -129,7 +129,8 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
     config.accountOverride = selectedAccount.address as Hex;
-    if (!transaction.metamaskPay?.isPostQuote) {
+
+    if (!isMoneyAccountWithdraw(transaction)) {
       config.isQuoteRequired = true;
     }
   });

@@ -22,6 +22,7 @@ export { usePerpsSearch } from './usePerpsSearch';
 export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
+export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';
@@ -98,6 +99,7 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
 export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
+export { usePerpsMarketAboutTracking } from './usePerpsMarketAboutTracking';
 
 // Performance tracking hooks
 // Removed: usePerpsScreenTracking - migrated to usePerpsMeasurement
