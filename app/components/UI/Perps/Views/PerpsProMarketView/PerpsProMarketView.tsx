@@ -101,6 +101,8 @@ const PerpsProMarketView = () => {
         return;
       }
 
+      // POSITION_TAB is the panel-level source for both the Positions and
+      // Orders tabs — there is no ORDERS_TAB value in PERPS_EVENT_VALUE.SOURCE.
       navigation.setParams({
         market: nextMarket,
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
