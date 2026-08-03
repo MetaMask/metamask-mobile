@@ -199,8 +199,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
 
   const hasCloseIconButton = autoDismiss;
-  const resolvedDescription =
-    description === null ? getDescription(status, safeData) : description;
+  const resolvedDescription = description ?? getDescription(status, safeData);
   const hasDescription = resolvedDescription.length > 0;
   const shouldTopAlign =
     (titleLineCount !== null && titleLineCount > 1 && hasDescription) ||
