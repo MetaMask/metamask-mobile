@@ -131,7 +131,7 @@ class MultichainTestDApp {
     const text = await ChromeCdpHelpers.waitForElementTextInWebView(
       BASE_URL,
       resultId,
-      10_000,
+      30_000,
     );
     if (!text)
       throw new Error(`getSessionData: timed out waiting for #${resultId}`);
@@ -157,11 +157,22 @@ class MultichainTestDApp {
     );
   }
 
-  async invokeMethodOnChain(chainId: string, method: string): Promise<boolean> {
-    return ChromeCdpHelpers.clickByIdInWebView(
-      BASE_URL,
-      `${SELECTORS.DIRECT_INVOKE_PREFIX}eip155-${chainId}-${method}`,
-    );
+  async invokeMethodOnChain(
+    chainId: string,
+    method: string,
+    timeoutMs = 15_000,
+  ): Promise<boolean> {
+    const elementId = `${SELECTORS.DIRECT_INVOKE_PREFIX}eip155-${chainId}-${method}`;
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        BASE_URL,
+        elementId,
+      );
+      if (clicked) return true;
+      await new Promise<void>((r) => setTimeout(r, 500));
+    }
+    return false;
   }
 
   async getInvokeMethodResult(

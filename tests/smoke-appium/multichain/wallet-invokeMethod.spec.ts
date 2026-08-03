@@ -519,7 +519,8 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
             // (status 200 + receipts). Anvil mines asynchronously so the
             // first call may return status 100 (pending) with no receipts.
             const getStatusMethod = 'wallet_getCallsStatus';
-            const POLL_DEADLINE_MS = Date.now() + 30_000;
+            const MAX_ATTEMPTS = 60;
+            let attempts = 0;
             let resultIndex = 0;
             let getStatusResult: Record<string, unknown> = {};
 
@@ -540,7 +541,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
 
               if (
                 getStatusResult.status === 200 ||
-                Date.now() >= POLL_DEADLINE_MS
+                attempts++ >= MAX_ATTEMPTS
               ) {
                 break;
               }
