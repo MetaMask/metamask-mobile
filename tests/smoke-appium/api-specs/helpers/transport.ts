@@ -24,6 +24,7 @@ interface QueueTask {
 
 const taskQueue: QueueTask[] = [];
 let isProcessing = false;
+let queueGeneration = 0;
 
 const POLL_INTERVAL_MS = 500;
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -108,11 +109,27 @@ async function executeInCurrentContext(script: string): Promise<unknown> {
   return body.value;
 }
 
+/**
+ * Drop queued work and abandon the current processor chain.
+ * Required for Playwright CI retries (`retries: 1`): the worker reuses this
+ * module, so leftover tasks from a failed run would otherwise run before the
+ * retry and corrupt OpenRPC fire → Cancel → poll ordering.
+ */
+export function clearTransportQueue(): void {
+  queueGeneration += 1;
+  const pending = taskQueue.splice(0, taskQueue.length);
+  isProcessing = false;
+  for (const item of pending) {
+    item.reject(new Error('Transport queue cleared'));
+  }
+}
+
 export const processQueue = async (): Promise<void> => {
   if (isProcessing || taskQueue.length === 0) {
     return;
   }
 
+  const generation = queueGeneration;
   isProcessing = true;
   const { task, resolve, reject } = taskQueue.shift() as QueueTask;
   try {
@@ -120,8 +137,11 @@ export const processQueue = async (): Promise<void> => {
   } catch (error) {
     reject(error);
   } finally {
-    isProcessing = false;
-    await processQueue();
+    // Skip continuing if clearTransportQueue ran mid-flight (generation bumped).
+    if (generation === queueGeneration) {
+      isProcessing = false;
+      await processQueue();
+    }
   }
 };
 

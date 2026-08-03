@@ -16,7 +16,10 @@ import {
   waitForTestDappToLoad,
 } from '../../flows/browser.flow.js';
 import Browser from '../../page-objects/Browser/BrowserView.js';
-import { createAppiumDriverTransport } from './helpers/transport.js';
+import {
+  clearTransportQueue,
+  createAppiumDriverTransport,
+} from './helpers/transport.js';
 import { startOpenRpcMockServer } from './helpers/mock-server.js';
 import ConfirmationsRejectRule from './helpers/ConfirmationsRejectionRule.js';
 import { CUSTOM_RPC_PROVIDER_MOCKS } from '../../api-mocking/mock-responses/custom-rpc-provider-mocks.js';
@@ -38,6 +41,9 @@ appiumTest.describe('JSON-RPC OpenRPC coverage', () => {
         currentDeviceDetails.platform !== 'ios',
         'API specs run on iOS Appium only',
       );
+
+      // Worker module state survives Playwright retries — start clean.
+      clearTransportQueue();
 
       const openrpcDocument = await prepareOpenRpcDocument(API_SPECS_CHAIN_ID);
       const mockServer = startOpenRpcMockServer(openrpcDocument);
@@ -107,6 +113,7 @@ appiumTest.describe('JSON-RPC OpenRPC coverage', () => {
           },
         );
       } finally {
+        clearTransportQueue();
         mockServer.stop();
       }
     },
