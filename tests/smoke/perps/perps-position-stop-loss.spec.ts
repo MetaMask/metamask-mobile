@@ -2,7 +2,10 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { navigateToPerpsOrderEntry } from '../../flows/perps.flow';
+import {
+  navigateToPerpsOrderEntry,
+  waitForOrderScreenVisible,
+} from '../../flows/perps.flow';
 import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
@@ -72,6 +75,8 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
         await device.disableSynchronization();
 
         await navigateToPerpsOrderEntry('ETH', 'long');
+        // Long → depositWithOrder is async; wait for PerpsOrderView before TP/SL scroll.
+        await waitForOrderScreenVisible();
 
         await PerpsOrderView.tapTakeProfitButton();
         // Default ETH mock mark ~2500; SL below entry for a long

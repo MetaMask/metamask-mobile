@@ -2,7 +2,10 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { navigateToPerpsOrderEntry } from '../../flows/perps.flow';
+import {
+  navigateToPerpsOrderEntry,
+  waitForOrderScreenVisible,
+} from '../../flows/perps.flow';
 import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
@@ -67,6 +70,7 @@ describe(SmokePerps('Perps Position'), () => {
         await device.disableSynchronization();
 
         await navigateToPerpsOrderEntry('ETH', 'long');
+        await waitForOrderScreenVisible();
 
         // Custom TP trigger above mock ETH mark (~2500) for a long
         await PerpsOrderView.tapTakeProfitButton();
