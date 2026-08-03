@@ -45,6 +45,10 @@ import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
+import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
+import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
+import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
 import { navigateToRewardsRoute } from '../utils';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
@@ -78,6 +82,18 @@ const RewardsDashboard: React.FC = () => {
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
+
+  const isMoneyCampaignDeeplink = pendingDeeplink?.campaign === 'money';
+  const {
+    hasLoaded: campaignsHasLoaded,
+    hasError: campaignsHasError,
+    isLoading: isCampaignsLoading,
+  } = useRewardCampaigns();
+  const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
+  const {
+    optedInAny: moneyAccountOptedInAny,
+    isLoading: isMoneyAccountParticipationLoading,
+  } = useMoneyAccountSweepstakesParticipation(isMoneyCampaignDeeplink);
 
   useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
@@ -127,6 +143,44 @@ const RewardsDashboard: React.FC = () => {
         navigation,
         Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
       );
+    } else if (pendingDeeplink.campaign === 'money') {
+      // Only an active series can route to the tour, so that is the one case
+      // where the decision has to wait on opt-in status.
+      const waitingForParticipation =
+        moneyAccountSeries.seriesStatus === 'active' &&
+        isMoneyAccountParticipationLoading;
+      // Failed and in-flight fetches also flip campaignsHasLoaded, so an empty
+      // series is only trustworthy once a successful fetch has settled.
+      const waitingForCampaigns =
+        !campaignsHasLoaded ||
+        (moneyAccountSeries.campaigns.length === 0 &&
+          (campaignsHasError || isCampaignsLoading));
+
+      if (waitingForCampaigns || waitingForParticipation) {
+        handled = false;
+      } else {
+        const entry = resolveMoneyAccountSweepstakesEntryRoute({
+          series: moneyAccountSeries,
+          optedInAny: moneyAccountOptedInAny,
+        });
+
+        if (entry.kind === 'tour') {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+            {
+              campaignId: entry.campaignId,
+            },
+          );
+        } else if (entry.kind === 'details') {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+            { campaignId: entry.campaignId },
+          );
+        }
+        // entry.kind === 'dashboard': stay on dashboard (upcoming / empty)
+      }
     } else if (pendingDeeplink.page === 'musd') {
       navigateToRewardsRoute(navigation, Routes.REWARDS_MUSD_CALCULATOR_VIEW);
     } else if (pendingDeeplink.page === 'benefits') {
@@ -141,7 +195,17 @@ const RewardsDashboard: React.FC = () => {
     if (handled) {
       dispatch(setPendingDeeplink(null));
     }
-  }, [navigation, dispatch, pendingDeeplink]);
+  }, [
+    navigation,
+    dispatch,
+    pendingDeeplink,
+    campaignsHasLoaded,
+    campaignsHasError,
+    isCampaignsLoading,
+    moneyAccountSeries,
+    moneyAccountOptedInAny,
+    isMoneyAccountParticipationLoading,
+  ]);
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,

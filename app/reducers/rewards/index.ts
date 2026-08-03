@@ -320,7 +320,7 @@ export interface RewardsState {
  */
 export interface PendingDeeplink {
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch';
+  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch' | 'money';
 }
 
 export const initialState: RewardsState = {
