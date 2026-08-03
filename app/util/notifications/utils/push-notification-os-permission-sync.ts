@@ -10,19 +10,11 @@ import { isPushPermissionGranted } from '../services/NotificationService';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
 
-/**
- * The `source` reported on the "Push Notifications Disabled" event when the OS
- * notification permission is revoked from the device settings (outside the app).
- */
-export const PUSH_DISABLED_SOURCE_SYSTEM_SETTINGS = 'system_settings' as const;
-
 const trackPushNotificationsDisabled = (): void => {
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.PUSH_NOTIFICATIONS_DISABLED,
-    )
-      .addProperties({ source: PUSH_DISABLED_SOURCE_SYSTEM_SETTINGS })
-      .build(),
+    ).build(),
   );
   // Keep the user profile trait consistent: without OS permission, push can no
   // longer be delivered, so the user is effectively opted out of push.

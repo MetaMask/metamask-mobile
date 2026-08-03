@@ -6,10 +6,7 @@ import { isNotificationsFeatureEnabled } from '../constants';
 import { isPushPermissionGranted } from '../services/NotificationService';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
-import {
-  PUSH_DISABLED_SOURCE_SYSTEM_SETTINGS,
-  detectPushNotificationOsPermissionRevocation,
-} from './push-notification-os-permission-sync';
+import { detectPushNotificationOsPermissionRevocation } from './push-notification-os-permission-sync';
 
 jest.mock('../../analytics/analytics', () => ({
   __esModule: true,
@@ -87,7 +84,7 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
     expect(mockTrackEvent.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         name: MetaMetricsEvents.PUSH_NOTIFICATIONS_DISABLED.category,
-        properties: { source: PUSH_DISABLED_SOURCE_SYSTEM_SETTINGS },
+        properties: {},
       }),
     );
     expect(mockIdentify).toHaveBeenCalledWith({
