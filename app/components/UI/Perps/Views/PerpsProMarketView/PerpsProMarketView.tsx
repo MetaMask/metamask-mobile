@@ -32,6 +32,10 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
+import {
+  PerpsOrderProvider,
+  usePerpsOrderContext,
+} from '../../contexts/PerpsOrderContext';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import type { PerpsStackParamList } from '../../types/navigation';
@@ -47,6 +51,48 @@ import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { PRICE_SECTION_HEIGHT } from './components/PerpsProMarketSummary';
 import { createStyles } from './PerpsProMarketView.styles';
+
+interface PerpsProOrderBookColumnProps {
+  symbol: string;
+  marketPrice?: number;
+  onCollapse: () => void;
+}
+
+/**
+ * Order-book column bridged to the shared order-form state (TAT-3643).
+ *
+ * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
+ * bid/ask row tap can flip the form to a Limit order and prefill the tapped
+ * price — the two setters live in `PerpsOrderContext`, which the sibling order
+ * book cannot otherwise reach. Wiring both at once has no existing analog
+ * (`onUseMidPricePress` only sets price and assumes the form is already Limit).
+ */
+const PerpsProOrderBookColumn = ({
+  symbol,
+  marketPrice,
+  onCollapse,
+}: PerpsProOrderBookColumnProps) => {
+  const { setLimitPrice, setOrderType } = usePerpsOrderContext();
+
+  const handleSelectPrice = useCallback(
+    (price: string) => {
+      // Force Limit first (no-op when already Limit) so the prefilled price is
+      // always shown in the limit-price input, regardless of the prior type.
+      setOrderType('limit');
+      setLimitPrice(price);
+    },
+    [setOrderType, setLimitPrice],
+  );
+
+  return (
+    <PerpsProOrderBookPanel
+      symbol={symbol}
+      marketPrice={marketPrice}
+      onCollapse={onCollapse}
+      onSelectPrice={handleSelectPrice}
+    />
+  );
+};
 
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
@@ -251,28 +297,38 @@ const PerpsProMarketView = () => {
             nextFundingTime={market.nextFundingTime}
             fundingIntervalHours={market.fundingIntervalHours}
           />
-          <PerpsProMarketLayout
-            isOrderBookCollapsed={isOrderBookCollapsed}
-            orderForm={
-              // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
-              // to support deep-link trade-detail entries that may only carry
-              // partial data. PerpsProMarketView is only reachable via full-market
-              // navigation; the !market?.symbol guard above validates the minimum
-              // required field at runtime.
-              <PerpsProOrderFormPanel
-                market={market as PerpsMarketData}
-                isOrderBookCollapsed={isOrderBookCollapsed}
-                onExpandOrderBook={handleExpandOrderBook}
-              />
-            }
-            orderBook={
-              <PerpsProOrderBookPanel
-                symbol={market.symbol}
-                marketPrice={marketPrice}
-                onCollapse={handleCollapseOrderBook}
-              />
-            }
-          />
+          {/* Provider wraps BOTH columns (not just the form) so an order-book
+              row tap can drive the form's Limit price / order type via shared
+              context (TAT-3643). Keyed by symbol so form state resets when the
+              market changes. */}
+          <PerpsOrderProvider
+            key={market.symbol}
+            initialAsset={market.symbol}
+            initialType="market"
+          >
+            <PerpsProMarketLayout
+              isOrderBookCollapsed={isOrderBookCollapsed}
+              orderForm={
+                // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
+                // to support deep-link trade-detail entries that may only carry
+                // partial data. PerpsProMarketView is only reachable via full-market
+                // navigation; the !market?.symbol guard above validates the minimum
+                // required field at runtime.
+                <PerpsProOrderFormPanel
+                  market={market as PerpsMarketData}
+                  isOrderBookCollapsed={isOrderBookCollapsed}
+                  onExpandOrderBook={handleExpandOrderBook}
+                />
+              }
+              orderBook={
+                <PerpsProOrderBookColumn
+                  symbol={market.symbol}
+                  marketPrice={marketPrice}
+                  onCollapse={handleCollapseOrderBook}
+                />
+              }
+            />
+          </PerpsOrderProvider>
           <SectionDivider marginVertical={0} />
           <PerpsProPositionsPanel symbol={symbol} />
         </Animated.View>
