@@ -549,11 +549,12 @@ const PerpsProOrderBookPanel = ({
     <Box
       testID={testID}
       flexDirection={BoxFlexDirection.Column}
-      twClassName="flex-1 py-2"
+      collapsable={false}
+      twClassName="w-full py-2"
     >
       {/* Header: flush with the ladder rows below (no inset — Figma's column
           is px-0; the screen/divider edges come from PerpsProMarketLayout's
-          outer px-4), settings sit flush on the right */}
+          outer px-2), settings sit flush on the right */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -636,7 +637,7 @@ const PerpsProOrderBookPanel = ({
           flexDirection={BoxFlexDirection.Column}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 gap-3 px-2"
+          twClassName="gap-3 px-2 py-8"
           testID={hasConnectionError ? `${testID}-connection-error` : undefined}
         >
           <Text

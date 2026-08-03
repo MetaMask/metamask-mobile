@@ -1513,6 +1513,7 @@
       "size_usd": "Kích thước theo USD",
       "size_percentage": "Tỷ lệ kích thước lệnh",
       "toggle_size_unit": "Chuyển đổi đơn vị kích thước",
+      "available_balance": "{{amount}} khả dụng",
       "available_balance_unavailable": "-- khả dụng",
       "est_liquidation": "Giá thanh lý ước tính",
       "tpsl": "Chốt lời/Cắt lỗ",

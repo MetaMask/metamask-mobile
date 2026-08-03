@@ -256,3 +256,54 @@ export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnaly
     validVariants: Object.values(HomepageActionButtonsGridVariant),
     eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
   };
+
+// ─── Homepage balance breakdown ──────────────────────────────────────────────
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY =
+  'homeTMCU1209AbtestHomepageBalanceBreakdown';
+
+export enum HomepageBalanceBreakdownVariant {
+  Control = 'control',
+  Icons = 'icons',
+  Allocation = 'allocation',
+}
+
+export type HomepageBalanceBreakdownLayout = 'icons' | 'allocation';
+
+interface HomepageBalanceBreakdownVariantConfig {
+  layout: HomepageBalanceBreakdownLayout | null;
+}
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS: Record<
+  HomepageBalanceBreakdownVariant,
+  HomepageBalanceBreakdownVariantConfig
+> = {
+  [HomepageBalanceBreakdownVariant.Control]: {
+    layout: null,
+  },
+  [HomepageBalanceBreakdownVariant.Icons]: {
+    layout: 'icons',
+  },
+  [HomepageBalanceBreakdownVariant.Allocation]: {
+    layout: 'allocation',
+  },
+};
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage balance breakdown',
+  variationNames: {
+    control: 'Current homepage without balance breakdown',
+    icons: 'Primitive breakdown with icons',
+    allocation: 'Primitive allocation breakdown',
+  },
+} as const;
+
+export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+    validVariants: Object.values(HomepageBalanceBreakdownVariant),
+    eventNames: [
+      EVENT_NAME.HOME_VIEWED,
+      EVENT_NAME.BALANCE_BREAKDOWN_SLICE_TAPPED,
+    ],
+  };
