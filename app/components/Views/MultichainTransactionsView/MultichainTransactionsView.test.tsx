@@ -160,8 +160,6 @@ describe('MultichainTransactionsView', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
 
-    // Plain property, so clearAllMocks doesn't touch it — reset it explicitly
-    // or a later test can assert against a previous test's button.
     const { default: MockButton } = jest.requireMock(
       '../../../component-library/components/Buttons/Button',
     ) as { default: { lastProps: ButtonProps } };

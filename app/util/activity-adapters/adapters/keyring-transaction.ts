@@ -245,8 +245,6 @@ export function mapKeyringTransaction({
 
     // Bitcoin transaction.from can be empty, resulting in no token avatar or send amount displayed.
     // Workaround: use the same aggregated to-asset fallback strategy as tx details modal.
-    // `chain` is required by the keyring API but arrives from a snap, so guard rather than
-    // throw and take down the whole list for one malformed transaction.
     if (!fromToken && chainId?.startsWith('bip122:')) {
       const aggregatedToAsset = aggregateMovementAmount(transaction.to);
       if (aggregatedToAsset) {

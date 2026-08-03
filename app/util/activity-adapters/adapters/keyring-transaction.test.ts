@@ -169,8 +169,6 @@ describe('mapKeyringTransaction', () => {
   });
 
   it('maps a send transaction missing its chain instead of throwing', () => {
-    // `chain` is required by the keyring API, but the data comes from a snap. One malformed
-    // transaction must degrade to a single row, not take down the whole list.
     const item = mapKeyringTransaction({
       transaction: {
         id: 'no-chain-id',
