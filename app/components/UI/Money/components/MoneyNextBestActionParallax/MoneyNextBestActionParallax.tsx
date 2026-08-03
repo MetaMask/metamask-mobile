@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -13,18 +13,12 @@ import {
   Fit,
   RiveView,
   useRiveFile,
-  useViewModelInstance,
   type RiveError,
-  type ViewModelNumberProperty,
 } from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
-import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import {
-  pitchToParallaxValue,
-  tiltToParallaxValue,
-} from '../../utils/parallax';
+import { useRiveParallaxTilt } from '../../hooks/useRiveParallaxTilt';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
 import styles from './MoneyNextBestActionParallax.styles';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
@@ -34,9 +28,6 @@ const log = createProjectLogger('money-parallax');
 // Artboard names inside next_best_action_module_v1.riv, one per onboarding step.
 export const PARALLAX_ARTBOARD_FUND = 'Parallax Block 1';
 export const PARALLAX_ARTBOARD_CARD = 'Parallax Block 2';
-
-const RIVE_PROPERTY_X = 'xValue';
-const RIVE_PROPERTY_Y = 'yValue';
 
 // The Rive artboard is transparent — the card's gradient background (sampled
 // from the design) is rendered behind it.
@@ -67,35 +58,11 @@ const MoneyNextBestActionParallax = ({
   const hasRiveError = erroredArtboard === artboardName;
 
   const { riveFile } = useRiveFile(NextBestActionParallaxAnimation);
-  const { instance } = useViewModelInstance(riveFile, {
-    artboardName,
-    async: true,
-  });
-
-  // Written to via cached property handles rather than `useRiveNumber`: that
-  // hook echoes every value back to JS through setState, re-rendering at the
-  // accelerometer sample rate for values this component never reads.
-  const xPropertyRef = useRef<ViewModelNumberProperty | null>(null);
-  const yPropertyRef = useRef<ViewModelNumberProperty | null>(null);
-
-  useEffect(() => {
-    if (!instance) return undefined;
-    xPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_X) ?? null;
-    yPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_Y) ?? null;
-    return () => {
-      xPropertyRef.current = null;
-      yPropertyRef.current = null;
-    };
-  }, [instance]);
-
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
-
-  const applyTilt = useCallback((x: number, y: number) => {
-    xPropertyRef.current?.set(tiltToParallaxValue(x));
-    yPropertyRef.current?.set(pitchToParallaxValue(y));
-  }, []);
-
-  useDeviceOrientation(applyTilt, { enabled: animate });
+  const instance = useRiveParallaxTilt(riveFile, {
+    artboardName,
+    enabled: animate,
+  });
 
   const handleError = useCallback(
     (riveError: RiveError) => {

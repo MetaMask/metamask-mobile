@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -6,18 +6,12 @@ import {
   Fit,
   RiveView,
   useRiveFile,
-  useViewModelInstance,
   type RiveError,
-  type ViewModelNumberProperty,
 } from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
-import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import {
-  pitchToParallaxValue,
-  tiltToParallaxValue,
-} from '../../utils/parallax';
+import { useRiveParallaxTilt } from '../../hooks/useRiveParallaxTilt';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.3.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
@@ -31,11 +25,10 @@ const log = createProjectLogger('money-card-tilt');
 // designer renames any of these, update the constants here.
 //
 // The per-variant artboards are rendered directly (not through the `MainTilt`
-// wrapper with its `cardType` enum), with their view model bound explicitly
-// via `useViewModelInstance` + `dataBind` (the Nitro replacement for the
-// legacy `AutoBind(true)` mode). The artboards shipped here are single-axis
-// (X only), but both `xValue` and `yValue` are wired so a future both-axes
-// asset works without code changes.
+// wrapper with its `cardType` enum), with their view model bound and tilted
+// via `useRiveParallaxTilt` + `dataBind`. The artboards shipped here are
+// single-axis (X only), but both `xValue` and `yValue` are wired so a future
+// both-axes asset works without code changes.
 
 /**
  * Artboard holding the virtual-card X tilt. The trailing space is authored
@@ -45,10 +38,6 @@ const RIVE_ARTBOARD_DIGITAL = 'Card Tilt X - Digital ';
 
 /** Artboard holding the metal-card X tilt. */
 const RIVE_ARTBOARD_METAL = 'Card Tilt X - Metal';
-
-/** ViewModel numbers (0-100, rest 50) driving the tilt per axis. */
-const RIVE_PROPERTY_X = 'xValue';
-const RIVE_PROPERTY_Y = 'yValue';
 
 interface MoneyCardTiltAnimationProps {
   /** Which card variant to show. */
@@ -69,35 +58,11 @@ const MoneyCardTiltAnimation = ({
     : RIVE_ARTBOARD_DIGITAL;
 
   const { riveFile } = useRiveFile(CardTiltAnimation);
-  const { instance } = useViewModelInstance(riveFile, {
-    artboardName,
-    async: true,
-  });
-
-  // Written to via cached property handles rather than `useRiveNumber`: that
-  // hook echoes every value back to JS through setState, re-rendering at the
-  // accelerometer sample rate for values this component never reads.
-  const xPropertyRef = useRef<ViewModelNumberProperty | null>(null);
-  const yPropertyRef = useRef<ViewModelNumberProperty | null>(null);
-
-  useEffect(() => {
-    if (!instance) return undefined;
-    xPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_X) ?? null;
-    yPropertyRef.current = instance.numberProperty(RIVE_PROPERTY_Y) ?? null;
-    return () => {
-      xPropertyRef.current = null;
-      yPropertyRef.current = null;
-    };
-  }, [instance]);
-
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
-
-  const applyTilt = useCallback((x: number, y: number) => {
-    xPropertyRef.current?.set(tiltToParallaxValue(x));
-    yPropertyRef.current?.set(pitchToParallaxValue(y));
-  }, []);
-
-  useDeviceOrientation(applyTilt, { enabled: animate });
+  const instance = useRiveParallaxTilt(riveFile, {
+    artboardName,
+    enabled: animate,
+  });
 
   const handleError = useCallback((riveError: RiveError) => {
     log(`Rive error: ${riveError.message}`);
