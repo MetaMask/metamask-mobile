@@ -107,10 +107,7 @@ describe('PerformanceSentryPublisher', () => {
     restoreEnv('E2E_PERFORMANCE_SENTRY_ENABLED', originalSentryEnabled);
     restoreEnv('E2E_PERFORMANCE_BUILD_VARIANT', originalBuildVariant);
     restoreEnv('E2E_PERFORMANCE_CI_BUILD_VARIANT', originalCiBuildVariant);
-    restoreEnv(
-      'E2E_PERFORMANCE_GITHUB_REF_NAME',
-      originalPerformanceGithubRef,
-    );
+    restoreEnv('E2E_PERFORMANCE_GITHUB_REF_NAME', originalPerformanceGithubRef);
     restoreEnv('E2E_PERFORMANCE_RELEASE_VERSION', originalReleaseVersion);
     restoreEnv('GITHUB_REF_NAME', originalGithubRefName);
     restoreEnv('GITHUB_SERVER_URL', originalGithubServerUrl);
