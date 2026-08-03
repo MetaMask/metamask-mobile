@@ -369,6 +369,30 @@ describe('PerpsProMarketView', () => {
     expect(mockSetParams).not.toHaveBeenCalled();
   });
 
+  it('scrolls to the top when the active market symbol changes', () => {
+    const scrollToSpy = jest.spyOn(
+      jest.requireActual('react-native').ScrollView.prototype,
+      'scrollTo',
+    );
+
+    const { rerender } = renderView();
+    scrollToSpy.mockClear();
+
+    mockRouteParams = {
+      market: {
+        symbol: 'ETH',
+        price: '$3,000.00',
+        name: 'Ethereum',
+        maxLeverage: '25x',
+      },
+    };
+    rerender(<PerpsProMarketView />);
+
+    expect(scrollToSpy).toHaveBeenCalledWith({ y: 0, animated: true });
+
+    scrollToSpy.mockRestore();
+  });
+
   it.each([
     ['params', undefined],
     ['market', {}],

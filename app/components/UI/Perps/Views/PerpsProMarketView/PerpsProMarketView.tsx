@@ -18,8 +18,15 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
+import type { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
@@ -84,6 +91,7 @@ const PerpsProMarketView = () => {
     return fullMarket || routeMarket;
   }, [hasFormattedMaxLeverage, markets, routeMarket]);
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Swapping the route param rather than pushing keeps a single Pro screen on
   // the stack, so tapping through positions/orders doesn't build up history.
@@ -101,6 +109,13 @@ const PerpsProMarketView = () => {
     },
     [navigation, routeMarket?.symbol],
   );
+
+  // Bring the chart back into view when the active market changes (e.g. the
+  // user tapped a positions/orders row while scrolled down). Matches Lite's
+  // related-markets behaviour in PerpsMarketDetailsView.
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  }, [market?.symbol]);
 
   const handleCollapseOrderBook = useCallback(() => {
     setIsOrderBookCollapsed(true);
@@ -241,6 +256,7 @@ const PerpsProMarketView = () => {
         priceSectionHeight={titleSectionHeightSv}
       />
       <Animated.ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
