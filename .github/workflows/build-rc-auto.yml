@@ -93,9 +93,11 @@ jobs:
 
           if [[ -z "$PR_NUMBER" ]]; then
             echo "No PR found for branch $BRANCH_NAME. Skipping."
-            echo "has-pr=false" >> "$GITHUB_OUTPUT"
-            echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
-            echo "ios-rc-enabled=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "has-pr=false"
+              echo "rc-frozen=false"
+              echo "ios-rc-enabled=false"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -106,25 +108,32 @@ jobs:
 
           if [[ "$RC_FROZEN" == "true" ]]; then
             echo "::notice::PR #$PR_NUMBER has the 'rc-freeze' label — auto RC build skipped."
-            echo "rc-frozen=true" >> "$GITHUB_OUTPUT"
-            echo "ios-rc-enabled=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "rc-frozen=true"
+              echo "ios-rc-enabled=false"
+            } >> "$GITHUB_OUTPUT"
           else
             echo "Found PR #$PR_NUMBER - proceeding with RC build"
-            echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
 
             # iOS Auto RC is opt-in via the ios-rc-build label on the release PR.
             HAS_IOS_LABEL=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "ios-rc-build")) | length > 0')
             if [[ "$HAS_IOS_LABEL" == "true" ]]; then
               echo "iOS RC enabled (ios-rc-build label present)"
-              echo "ios-rc-enabled=true" >> "$GITHUB_OUTPUT"
+              IOS_RC_ENABLED=true
             else
               echo "::notice::PR #$PR_NUMBER missing 'ios-rc-build' label — iOS Auto RC skipped (Android still runs)."
-              echo "ios-rc-enabled=false" >> "$GITHUB_OUTPUT"
+              IOS_RC_ENABLED=false
             fi
+            {
+              echo "rc-frozen=false"
+              echo "ios-rc-enabled=$IOS_RC_ENABLED"
+            } >> "$GITHUB_OUTPUT"
           fi
 
-          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "has-pr=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "pr-number=$PR_NUMBER"
+            echo "has-pr=true"
+          } >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
