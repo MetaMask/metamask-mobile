@@ -42,6 +42,14 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('default state', () => {
+    it('does not subscribe when disabled', () => {
+      renderHookWithProvider(() => usePerpsLiveAccount({ enabled: false }), {
+        state: {},
+      });
+
+      expect(mockSubscribe).not.toHaveBeenCalled();
+    });
+
     it('returns null account when PerpsController is undefined', () => {
       // Mock the subscription to not call the callback (simulating no data)
       mockSubscribe.mockImplementation(() => jest.fn());
