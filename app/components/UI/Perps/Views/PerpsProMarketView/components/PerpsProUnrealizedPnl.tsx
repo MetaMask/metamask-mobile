@@ -17,21 +17,22 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { formatPercentage, formatPnl } from '../../../utils/formatUtils';
 
 interface PerpsProUnrealizedPnlProps {
   unrealizedPnl: string;
   returnOnEquity: string;
+  onCloseAll?: () => void;
 }
 
 /**
  * Aggregate Unrealized P&L summary for the Pro positions list.
- *
- * The Close all button is intentionally display-only until its flow is scoped.
  */
 const PerpsProUnrealizedPnl = ({
   unrealizedPnl,
   returnOnEquity,
+  onCloseAll,
 }: PerpsProUnrealizedPnlProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const pnl = parseFloat(unrealizedPnl) || 0;
@@ -72,6 +73,8 @@ const PerpsProUnrealizedPnl = ({
           size={ButtonSize.Sm}
           isDanger
           twClassName="self-center border-muted bg-transparent"
+          onPress={onCloseAll}
+          testID={PerpsProMarketViewSelectorsIDs.POSITIONS_CLOSE_ALL}
         >
           {strings('perps.home.close_all')}
         </Button>
