@@ -237,6 +237,7 @@ describe('AgenticCliQrLoginService', () => {
       id: '11111111-2222-3333-4444-555555555555-cli-link-success',
       autodismiss: 3000,
       title: 'sdk_connect_v2.show_cli_link_success.title',
+      description: '',
       status: 'success',
     });
     expect(store.dispatch).toHaveBeenCalledTimes(1);
