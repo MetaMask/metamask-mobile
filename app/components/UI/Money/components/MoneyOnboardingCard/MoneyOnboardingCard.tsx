@@ -368,9 +368,12 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
+  const isWaitingForCardState =
+    !isCardStateResolved && effectiveCurrentStep > 0;
+
   if (
     isBalanceLoading ||
-    !isCardStateResolved ||
+    isWaitingForCardState ||
     !isOnboardingCardVisible ||
     !isVisibleAfterAutoSkip
   ) {

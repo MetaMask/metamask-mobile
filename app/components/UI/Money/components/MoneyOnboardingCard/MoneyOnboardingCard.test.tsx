@@ -181,8 +181,28 @@ describe('MoneyOnboardingCard', () => {
       expect(toJSON()).toBeNull();
     });
 
-    it('returns null when card state is unresolved', () => {
-      setupDefaultMocks({ currentStep: 0 });
+    it('renders step 1 while card state is unresolved', () => {
+      setupDefaultMocks({ currentStep: 0, tokenTotal: new BigNumber(0) });
+      mockIsCardStateResolved.mockReturnValue(false);
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
+        strings('money.onboarding.step_1.title_no_apy'),
+      );
+    });
+
+    it('returns null while card state is unresolved and the account is funded', () => {
+      setupDefaultMocks({ currentStep: 0, tokenTotal: new BigNumber(1) });
+      mockIsCardStateResolved.mockReturnValue(false);
+
+      const { toJSON } = render(<MoneyOnboardingCard />);
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null while card state is unresolved at step 2', () => {
+      setupDefaultMocks({ currentStep: 1 });
       mockIsCardStateResolved.mockReturnValue(false);
 
       const { toJSON } = render(<MoneyOnboardingCard />);
