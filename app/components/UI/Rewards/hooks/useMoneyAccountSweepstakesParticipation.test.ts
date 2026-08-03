@@ -215,6 +215,67 @@ describe('useMoneyAccountSweepstakesParticipation', () => {
     expect(result.current.optedInAny).toBe(false);
   });
 
+  it('reports loading until the first status fetch settles', async () => {
+    const resolvers: ((value: unknown) => void)[] = [];
+    mockCall.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvers.push(resolve);
+        }) as never,
+    );
+
+    const { result } = renderHook(() =>
+      useMoneyAccountSweepstakesParticipation(),
+    );
+
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      resolvers.forEach((resolve) =>
+        resolve({ optedIn: false, participantCount: 0 }),
+      );
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+  });
+
+  it('stops reporting loading when the fetch fails', async () => {
+    mockCall.mockRejectedValue(new Error('network down') as never);
+
+    const { result } = renderHook(() =>
+      useMoneyAccountSweepstakesParticipation(),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.optedInAny).toBe(false);
+  });
+
+  it('is not loading when a stored opt-in already proves participation', async () => {
+    setupHooks({
+      statuses: {
+        [`${SUBSCRIPTION_ID}:week-2`]: { optedIn: true },
+      },
+    });
+    mockCall.mockImplementation(() => new Promise(() => undefined) as never);
+
+    const { result } = renderHook(() =>
+      useMoneyAccountSweepstakesParticipation(),
+    );
+
+    expect(result.current.optedInAny).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('is not loading when no fetch is warranted', async () => {
+    setupHooks({ campaigns: [] });
+
+    const { result } = renderHook(() =>
+      useMoneyAccountSweepstakesParticipation(),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('refetches when a campaign opt-in event fires', async () => {
     await renderParticipation();
     mockCall.mockClear();
