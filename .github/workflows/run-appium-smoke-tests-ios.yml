@@ -106,6 +106,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
 
+  # Thin seedless keep list.
   appium-seedless-onboarding-ios-smoke:
     if: >-
       ${{
@@ -115,7 +116,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3, 4]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -123,7 +124,7 @@ jobs:
       platform: ios
       test_suite_tag: SmokeSeedlessOnboarding
       split_number: ${{ matrix.split }}
-      total_splits: 4
+      total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}

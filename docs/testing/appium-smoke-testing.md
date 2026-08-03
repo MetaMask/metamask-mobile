@@ -193,6 +193,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smok
 - **Build:** `build` workflow produces `main-e2e-MetaMask.app` and `main-e2e-release.apk`.
 - **Tests:** `appium-smoke-tests-ios` / `appium-smoke-tests-android` in PR CI (see [E2E decision tree](../../.github/guidelines/E2E_DECISION_TREE.md)).
 - **Reusable job:** `.github/workflows/run-appium-e2e-workflow.yml` — downloads artifacts, runs `prepare-ios-appium-runner.mjs`, executes Playwright with `--grep` per smoke tag.
+- **Seedless:** `SmokeSeedlessOnboarding` uses **3** shards per platform (thin keep list in `tests/smoke-appium/seedless/`; may drop to 2 after runtime is confirmed). Smart E2E selects this tag from `tests/tags.js` — prefer CV/unit for Account Already Exists, attribution props, and Import SRP UI.
 
 ## Adding a new Appium smoke spec
 
