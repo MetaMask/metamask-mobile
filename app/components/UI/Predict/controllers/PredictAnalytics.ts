@@ -343,6 +343,33 @@ export class PredictAnalytics {
         .addSensitiveProperties(sensitiveProperties)
         .build(),
     );
+
+    if (
+      status === PredictTradeStatus.SUCCEEDED &&
+      amountUsd !== undefined &&
+      (analyticsProperties.transactionType ===
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY ||
+        analyticsProperties.transactionType ===
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL)
+    ) {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TRADE_COMPLETED,
+        )
+          .addProperties({
+            ...regularProperties,
+            [PredictEventProperties.TRADE_TYPE]:
+              PredictEventValues.TRADE_TYPE.PREDICT,
+            [PredictEventProperties.IMPLEMENTATION_TYPE]:
+              PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+          })
+          .addSensitiveProperties({
+            ...sensitiveProperties,
+            [PredictEventProperties.USD_TRADE_VALUE]: amountUsd,
+          })
+          .build(),
+      );
+    }
   }
 
   public trackBetslipDismissed({
