@@ -164,7 +164,7 @@ class TestSnaps {
   }
 
   async tapJsxIncrementButton(): Promise<void> {
-    const button = Matchers.getElementByText('Increment');
+    const button = Matchers.getElementByText(/^Increment$/i);
     await Gestures.waitAndTap(
       button,
       this.snapUiTapOptions({ elemDescription: 'JSX Increment' }),
