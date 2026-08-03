@@ -817,6 +817,7 @@ class TestSnaps {
         'network toast dismissed before confirming Solana snap signature',
       timeout: 15_000,
     });
+    await this.blurActiveWebViewInput();
     // Multichain Solana signing can use SnapDialog/BottomSheetFooter ("Approve") instead of
     // redesigned `confirm-button` — same as Solana Wallet Standard E2E.
     await SolanaTestDApp.confirmSignMessage();
