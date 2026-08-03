@@ -5,9 +5,14 @@ import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceDisplayState } from '../../types';
 
-const balanceState = (value = '$0.00'): MoneyBalanceDisplayState => ({
+const balanceState = (
+  value = '$0.00',
+  animated = false,
+): MoneyBalanceDisplayState => ({
   kind: 'balance',
   value,
+  amount: Number(value.replace(/[$,]/gu, '')),
+  animated,
 });
 const unavailableState = (
   lastKnownValue?: string,
@@ -36,13 +41,13 @@ describe('MoneyBalanceSummary', () => {
   });
 
   it('renders the provided balance value', () => {
-    const { getByTestId } = render(
+    const { getByLabelText } = render(
       <MoneyBalanceSummary apy={4} displayState={balanceState('$123.45')} />,
     );
 
-    expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
-      '$123.45',
-    );
+    // The rolling digits carry the figure on their accessibility label; the
+    // rendered text also contains NumberFlow's offscreen glyph measurement.
+    expect(getByLabelText('$123.45')).toBeOnTheScreen();
   });
 
   it('does not render the info button when no handler is provided', () => {
@@ -211,7 +216,7 @@ describe('MoneyBalanceSummary', () => {
 
   describe('privacy mode', () => {
     it('shows the real balance when privacyMode is false', () => {
-      const { getByTestId } = render(
+      const { getByLabelText } = render(
         <MoneyBalanceSummary
           apy={4}
           displayState={balanceState('$123.45')}
@@ -219,9 +224,7 @@ describe('MoneyBalanceSummary', () => {
         />,
       );
 
-      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
-        '$123.45',
-      );
+      expect(getByLabelText('$123.45')).toBeOnTheScreen();
     });
 
     it('masks the balance when privacyMode is true', () => {

@@ -18,6 +18,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextShimmer from '../TextShimmer';
+import MoneyAnimatedBalance from '../MoneyAnimatedBalance';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
@@ -113,16 +114,27 @@ const MoneyBalanceSummary = ({
   const renderBalanceSlot = () => {
     switch (displayState.kind) {
       case 'balance':
+        // Rolling digits cannot render bullets, so privacy mode keeps the
+        // static SensitiveText path.
+        if (privacyMode) {
+          return wrapPressable(
+            <SensitiveText
+              variant={TextVariant.DisplayLg}
+              fontWeight={FontWeight.Bold}
+              isHidden
+              length={SensitiveTextLength.Long}
+              testID={MoneyBalanceSummaryTestIds.BALANCE}
+            >
+              {displayState.value}
+            </SensitiveText>,
+          );
+        }
         return wrapPressable(
-          <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Long}
+          <MoneyAnimatedBalance
+            amount={displayState.amount}
+            animated={displayState.animated}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
-          >
-            {displayState.value}
-          </SensitiveText>,
+          />,
         );
       case 'noAccount':
         return (

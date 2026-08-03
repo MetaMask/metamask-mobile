@@ -455,6 +455,11 @@ describe('MoneyHomeView', () => {
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
+    mockUseMoneyDepositTokens.mockReturnValue({
+      tokens: mockDepositTokens as ReturnType<typeof Array.from>,
+      isNoFeeToken: jest.fn(() => false),
+    });
+
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockRefetchInterest.mockResolvedValue(undefined);
     mockUseMoneyAccountInterest.mockReturnValue({
@@ -1337,7 +1342,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMoneyDepositTokens.mockReturnValueOnce({
+    mockUseMoneyDepositTokens.mockReturnValue({
       tokens: Array.from({ length: 6 }, (_, i) => ({
         ...mockDepositTokens[0],
         address:
@@ -2299,7 +2304,7 @@ describe('MoneyHomeView', () => {
 
   describe('navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMoneyDepositTokens.mockReturnValueOnce({
+      mockUseMoneyDepositTokens.mockReturnValue({
         tokens: Array.from({ length: 6 }, (_, i) => ({
           ...mockDepositTokens[0],
           address:

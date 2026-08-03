@@ -3,6 +3,9 @@ import reducer, {
   setLastKnownMoneyBalance,
   clearLastKnownMoneyBalance,
   selectLastKnownMoneyBalance,
+  markMoneyBalanceUserOp,
+  clearMoneyBalanceUserOp,
+  selectHasPendingMoneyBalanceUserOp,
   isPersistedMoneyBalanceUsable,
   PersistedMoneyBalance,
   MoneyBalanceSliceState,
@@ -28,8 +31,47 @@ describe('moneyBalance slice', () => {
     expect(state.lastKnownBalance).toEqual(balance);
   });
 
+  it('setLastKnownMoneyBalance keeps the numeric amount alongside the formatted value', () => {
+    const state = reducer(
+      initialState,
+      setLastKnownMoneyBalance({ ...balance, amount: 2384.34 }),
+    );
+
+    expect(state.lastKnownBalance?.amount).toBe(2384.34);
+  });
+
+  describe('user op signal', () => {
+    it('starts clear', () => {
+      expect(initialState.hasPendingUserOp).toBe(false);
+    });
+
+    it('markMoneyBalanceUserOp raises the signal', () => {
+      const state = reducer(initialState, markMoneyBalanceUserOp());
+
+      expect(state.hasPendingUserOp).toBe(true);
+    });
+
+    it('clearMoneyBalanceUserOp lowers the signal', () => {
+      const marked = reducer(initialState, markMoneyBalanceUserOp());
+      const state = reducer(marked, clearMoneyBalanceUserOp());
+
+      expect(state.hasPendingUserOp).toBe(false);
+    });
+
+    it('selectHasPendingMoneyBalanceUserOp reads the signal', () => {
+      const state = {
+        moneyBalance: { lastKnownBalance: null, hasPendingUserOp: true },
+      } as RootState;
+
+      expect(selectHasPendingMoneyBalanceUserOp(state)).toBe(true);
+    });
+  });
+
   it('clearLastKnownMoneyBalance resets the balance to null', () => {
-    const populated: MoneyBalanceSliceState = { lastKnownBalance: balance };
+    const populated: MoneyBalanceSliceState = {
+      lastKnownBalance: balance,
+      hasPendingUserOp: false,
+    };
 
     const state = reducer(populated, clearLastKnownMoneyBalance());
 

@@ -36162,6 +36162,7 @@ __metadata:
     mockttp: "npm:^3.15.2"
     multihashes: "npm:0.4.14"
     nock: "npm:^14.0.11"
+    number-flow-react-native: "npm:0.4.2"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
     openai: "npm:^6.25.0"
@@ -37848,6 +37849,17 @@ __metadata:
   version: 1.1.1
   resolution: "nullthrows@npm:1.1.1"
   checksum: 10/c7cf377a095535dc301d81cf7959d3784d090a609a2a4faa40b6121a0c1d7f70d3a3aa534a34ab852e8553b66848ec503c28f2c19efd617ed564dc07dfbb6d33
+  languageName: node
+  linkType: hard
+
+"number-flow-react-native@npm:0.4.2":
+  version: 0.4.2
+  resolution: "number-flow-react-native@npm:0.4.2"
+  peerDependencies:
+    react: ">=18"
+    react-native: ">=0.73"
+    react-native-reanimated: ">=3.0.0"
+  checksum: 10/4dd70f1337a90c52e5dfe8cd06c0dd863455bb0006e9e0192c9e4cdaf85daaf805a6ff37f9b1a523d83fec4f0dc46af34d8f74729fd3660683458dcb7996b017
   languageName: node
   linkType: hard
 

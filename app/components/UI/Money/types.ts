@@ -15,4 +15,4 @@
 export type MoneyBalanceDisplayState =
   | { kind: 'noAccount' }
   | { kind: 'unavailable'; lastKnownValue?: string }
-  | { kind: 'balance'; value: string };
+  | { kind: 'balance'; value: string; amount: number; animated: boolean };

@@ -46,6 +46,7 @@ import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyBalanceAnimation from '../../hooks/useMoneyBalanceAnimation';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
@@ -233,12 +234,22 @@ const MoneyHomeView = () => {
     hasMoneyAccountRequirements,
   });
 
+  const freshAmount =
+    totalFiatFormatted === undefined ? undefined : Number(totalFiatRaw ?? 0);
+  const { amount: balanceAmount, animated: isBalanceAnimated } =
+    useMoneyBalanceAnimation(freshAmount);
+
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
-    displayState = { kind: 'balance', value: totalFiatFormatted };
+    displayState = {
+      kind: 'balance',
+      value: totalFiatFormatted,
+      amount: balanceAmount ?? Number(totalFiatRaw ?? 0),
+      animated: isBalanceAnimated,
+    };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a

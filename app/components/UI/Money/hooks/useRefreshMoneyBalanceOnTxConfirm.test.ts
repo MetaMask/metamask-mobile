@@ -12,10 +12,12 @@ import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
+import { store } from '../../../../store';
+import { markMoneyBalanceUserOp } from '../../../../core/redux/slices/moneyBalance';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../store', () => ({
-  store: { getState: jest.fn(() => ({})) },
+  store: { getState: jest.fn(() => ({})), dispatch: jest.fn() },
 }));
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
@@ -138,6 +140,27 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledWith(
       MOCK_ADDRESS,
     );
+  });
+
+  it('marks the balance change as user-caused so the display rolls to it', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler(makeTx(TransactionType.moneyAccountDeposit));
+    await waitFor(() => {
+      expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+    });
+
+    expect(store.dispatch).toHaveBeenCalledWith(markMoneyBalanceUserOp());
+  });
+
+  it('does not mark a transaction that leaves the Money balance alone', () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler(makeTx(TransactionType.perpsDeposit));
+
+    expect(store.dispatch).not.toHaveBeenCalledWith(markMoneyBalanceUserOp());
   });
 
   it('invalidates the balance query on confirmed withdraw tx', async () => {

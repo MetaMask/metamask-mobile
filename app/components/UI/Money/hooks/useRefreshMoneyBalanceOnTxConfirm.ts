@@ -8,6 +8,7 @@ import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { markMoneyBalanceUserOp } from '../../../../core/redux/slices/moneyBalance';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
   isMoneyAccountTx,
@@ -93,6 +94,10 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
         isMoneyAccountTx(transactionMeta) ||
         isPerpsPredictMoneyActivity(transactionMeta);
       if (!affectsMoneyBalance) return;
+
+      // Marks the balance change as user-caused so the display rolls to it
+      // instead of swapping silently the way a background poll does.
+      store.dispatch(markMoneyBalanceUserOp());
 
       refreshMoneyBalanceQueries(address).catch((error) => {
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);

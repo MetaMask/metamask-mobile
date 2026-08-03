@@ -8,6 +8,12 @@ export interface PersistedMoneyBalance {
   address: string;
   /** Formatted fiat balance, e.g. "$2,384.34". */
   value: string;
+  /**
+   * Numeric balance behind `value`. Absent for entries persisted before this
+   * field existed, in which case the balance animation has no anchor to roll
+   * from on the next launch.
+   */
+  amount?: number;
   /** Currency code the value was formatted in, e.g. "USD". */
   currency: string;
   /** Epoch milliseconds when the balance was last successfully fetched. */
@@ -16,10 +22,17 @@ export interface PersistedMoneyBalance {
 
 export interface MoneyBalanceSliceState {
   lastKnownBalance: PersistedMoneyBalance | null;
+  /**
+   * Set when a money-affecting transaction confirms, and consumed by the balance
+   * display once the resulting figure lands. Distinguishes a change the user
+   * caused from one that arrived on a background poll.
+   */
+  hasPendingUserOp: boolean;
 }
 
 export const initialState: MoneyBalanceSliceState = {
   lastKnownBalance: null,
+  hasPendingUserOp: false,
 };
 
 const name = 'moneyBalance';
@@ -37,6 +50,12 @@ const slice = createSlice({
     clearLastKnownMoneyBalance: (state) => {
       state.lastKnownBalance = null;
     },
+    markMoneyBalanceUserOp: (state) => {
+      state.hasPendingUserOp = true;
+    },
+    clearMoneyBalanceUserOp: (state) => {
+      state.hasPendingUserOp = false;
+    },
   },
 });
 
@@ -49,6 +68,11 @@ const selectMoneyBalanceState = (state: RootState) => state[name];
 export const selectLastKnownMoneyBalance = createSelector(
   selectMoneyBalanceState,
   (moneyBalance) => moneyBalance.lastKnownBalance,
+);
+
+export const selectHasPendingMoneyBalanceUserOp = createSelector(
+  selectMoneyBalanceState,
+  (moneyBalance) => moneyBalance.hasPendingUserOp,
 );
 
 /**
@@ -66,4 +90,9 @@ export const isPersistedMoneyBalanceUsable = (
   areAddressesEqual(persisted?.address ?? '', address ?? '') &&
   persisted?.currency === currency;
 
-export const { setLastKnownMoneyBalance, clearLastKnownMoneyBalance } = actions;
+export const {
+  setLastKnownMoneyBalance,
+  clearLastKnownMoneyBalance,
+  markMoneyBalanceUserOp,
+  clearMoneyBalanceUserOp,
+} = actions;
