@@ -34,6 +34,10 @@ export const DEFAULT_CARD_PROVIDER_ID = 'baanx';
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 export type CardUnauthenticatedReason = 'onboarding_token_revoked';
 
+export interface FetchCardHomeDataOptions {
+  force?: boolean;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardControllerState = {
   /** ISO 3166-1 alpha-2 country code selected by the user. */
