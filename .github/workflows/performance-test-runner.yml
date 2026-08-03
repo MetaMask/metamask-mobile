@@ -229,10 +229,11 @@ jobs:
           # --pass-with-no-tests prevents Playwright from exiting with an error
           # when the grep pattern matches zero tests in this project (e.g. onboarding
           # project gets @PerformanceSwaps which only exists in login specs).
+          # Seedless onboarding is excluded from this provider comparison branch.
           if [ -n "$GREP_TAGS" ]; then
-            $BASE_CMD --grep "$GREP_TAGS" --pass-with-no-tests
+            $BASE_CMD --grep "$GREP_TAGS" --grep-invert "Seedless Onboarding" --pass-with-no-tests
           else
-            $BASE_CMD
+            $BASE_CMD --grep-invert "Seedless Onboarding"
           fi
 
           echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
