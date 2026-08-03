@@ -1513,6 +1513,7 @@
       "size_usd": "규모(USD)",
       "size_percentage": "주문 규모 비율",
       "toggle_size_unit": "규모 표시 단위 전환",
+      "available_balance": "{{amount}} 사용 가능",
       "available_balance_unavailable": "-- 사용 가능",
       "est_liquidation": "예상 강제 청산가",
       "tpsl": "익절/손절",
