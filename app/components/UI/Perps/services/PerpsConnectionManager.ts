@@ -594,6 +594,14 @@ class PerpsConnectionManagerClass {
       // late, on resume, which is the bug. Teardown while backgrounded is the
       // OS's job (it suspends the process and the socket with it), and
       // `resumeFromForeground` re-validates on the way back.
+      //
+      // Known consequence: iOS also reports `inactive` for transient states
+      // where JS keeps running (control centre, app switcher, an incoming
+      // call). A grace period armed in one of those windows is inert too, so
+      // the socket outlives it. That is a resource nicety rather than a
+      // correctness issue — `resumeFromForeground` still re-validates — and it
+      // is deliberate: distinguishing it would need an elapsed-time threshold,
+      // which is exactly what left a 20-25s blind band in an earlier revision.
       const armedWhileBackgrounded = AppState.currentState !== 'active';
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
