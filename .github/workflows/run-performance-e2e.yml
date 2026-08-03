@@ -317,7 +317,7 @@ jobs:
     secrets: inherit
 
   # =============================================================================
-  # PHASE 1: ONBOARDING TESTS (Run First)
+  # ONBOARDING TESTS
   # =============================================================================
 
   run-android-onboarding-tests:
@@ -374,7 +374,7 @@ jobs:
     secrets: inherit
 
   # =============================================================================
-  # PHASE 2: IMPORTED WALLET TESTS (Run After Onboarding Complete)
+  # IMPORTED WALLET TESTS (Run in Parallel with Onboarding)
   # =============================================================================
 
   run-android-imported-wallet-tests:
@@ -385,8 +385,6 @@ jobs:
         prepare,
         trigger-android-dual-versions,
         resolve-main-browserstack-urls,
-        run-android-onboarding-tests,
-        run-ios-onboarding-tests,
       ]
     if: >-
       always() && !cancelled() &&
@@ -419,11 +417,7 @@ jobs:
     name: Performance Test iOS (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
-      [
-        prepare,
-        run-android-onboarding-tests,
-        run-ios-onboarding-tests,
-      ]
+      - prepare
     if: always() && !cancelled() && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_imported_wallet != ''
     with:
       platform: ios
