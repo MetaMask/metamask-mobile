@@ -66,64 +66,6 @@ const multichainMocks = async (mockServer: Mockttp) => {
   await mockGenesisBlocks(mockServer);
 };
 
-async function exerciseMultichainProvider(
-  chain: MultichainChain,
-): Promise<void> {
-  await loginAndOpenTestSnaps();
-
-  await TestSnaps.installSnap('connectMultichainProviderButton');
-
-  await TestSnaps.tapButton('sendCreateSessionButton');
-  await Assertions.expectElementToBeVisible(ConnectBottomSheet.connectButton);
-  await ConnectBottomSheet.tapConnectButton();
-
-  await TestSnaps.selectInDropdown('multichainNetworkDropdown', chain.name);
-
-  if (chain.chainId) {
-    await TestSnaps.tapButton('sendMultichainChainIdButton');
-    await TestSnaps.checkResultSpanIncludes(
-      'multichainProviderResultSpan',
-      chain.chainId,
-    );
-  }
-
-  await TestSnaps.tapButton('sendMultichainGetGenesisHashButton');
-  await TestSnaps.checkResultSpanIncludes(
-    'multichainProviderResultSpan',
-    chain.genesisHash,
-  );
-
-  await TestSnaps.tapButton('sendMultichainAccountsButton');
-  await TestSnaps.checkResultSpanIncludes(
-    'multichainProviderResultSpan',
-    chain.account,
-  );
-
-  await TestSnaps.fillMessage('signMessageMultichainMessageInput', 'foo');
-  await TestSnaps.tapButton('signMessageMultichainButton');
-  if (chain.name === 'Solana') {
-    await TestSnaps.approveSolanaConfirmation();
-  } else {
-    await Assertions.expectElementToBeVisible(RequestTypes.PersonalSignRequest);
-    await TestSnaps.approveNativeConfirmation();
-  }
-  await TestSnaps.checkResultSpan(
-    'signMessageMultichainResultSpan',
-    chain.signMessageSignature,
-  );
-
-  if (chain.signTypedDataSignature) {
-    await TestSnaps.fillMessage('signTypedDataMultichainMessageInput', 'bar');
-    await TestSnaps.tapButton('signTypedDataMultichainButton');
-    await Assertions.expectElementToBeVisible(RequestTypes.TypedSignRequest);
-    await TestSnaps.approveNativeConfirmation();
-    await TestSnaps.checkResultSpan(
-      'signTypedDataMultichainResultSpan',
-      chain.signTypedDataSignature,
-    );
-  }
-}
-
 appiumTest.describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
   // Long running test due to multiple steps within the test for each chain
   appiumTest.describe.configure({ timeout: 300_000 });
@@ -140,7 +82,74 @@ appiumTest.describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
             restartDevice: true,
           },
           async () => {
-            await exerciseMultichainProvider(chain);
+            await loginAndOpenTestSnaps();
+
+            await TestSnaps.installSnap('connectMultichainProviderButton');
+
+            await TestSnaps.tapButton('sendCreateSessionButton');
+            await Assertions.expectElementToBeVisible(
+              ConnectBottomSheet.connectButton,
+            );
+            await ConnectBottomSheet.tapConnectButton();
+
+            await TestSnaps.selectInDropdown(
+              'multichainNetworkDropdown',
+              chain.name,
+            );
+
+            if (chain.chainId) {
+              await TestSnaps.tapButton('sendMultichainChainIdButton');
+              await TestSnaps.checkResultSpanIncludes(
+                'multichainProviderResultSpan',
+                chain.chainId,
+              );
+            }
+
+            await TestSnaps.tapButton('sendMultichainGetGenesisHashButton');
+            await TestSnaps.checkResultSpanIncludes(
+              'multichainProviderResultSpan',
+              chain.genesisHash,
+            );
+
+            await TestSnaps.tapButton('sendMultichainAccountsButton');
+            await TestSnaps.checkResultSpanIncludes(
+              'multichainProviderResultSpan',
+              chain.account,
+            );
+
+            await TestSnaps.fillMessage(
+              'signMessageMultichainMessageInput',
+              'foo',
+            );
+            await TestSnaps.tapButton('signMessageMultichainButton');
+            if (chain.name === 'Solana') {
+              await TestSnaps.approveSolanaConfirmation();
+            } else {
+              await Assertions.expectElementToBeVisible(
+                RequestTypes.PersonalSignRequest,
+              );
+              await TestSnaps.approveNativeConfirmation();
+            }
+            await TestSnaps.checkResultSpan(
+              'signMessageMultichainResultSpan',
+              chain.signMessageSignature,
+            );
+
+            if (chain.signTypedDataSignature) {
+              await TestSnaps.fillMessage(
+                'signTypedDataMultichainMessageInput',
+                'bar',
+              );
+              await TestSnaps.tapButton('signTypedDataMultichainButton');
+              await Assertions.expectElementToBeVisible(
+                RequestTypes.TypedSignRequest,
+              );
+              await TestSnaps.approveNativeConfirmation();
+              await TestSnaps.checkResultSpan(
+                'signTypedDataMultichainResultSpan',
+                chain.signTypedDataSignature,
+              );
+            }
           },
         );
       },
