@@ -77,6 +77,8 @@ const newOverrides = [
       'tests/framework/playwrightLogger.ts',
       'tests/framework/PlaywrightUtilities.ts',
       'tests/framework/fixtures/FixtureHelper.ts',
+      'tests/framework/fixtures/playwright/sessionReuse.ts',
+      'tests/framework/fixtures/playwright/sessionReuse.test.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',

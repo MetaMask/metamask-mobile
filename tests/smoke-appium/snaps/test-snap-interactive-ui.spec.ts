@@ -41,13 +41,15 @@ appiumTest.describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
         async () => {
           await TestSnaps.tapButton('createDialogButton');
 
+          // Capture when pickers mount — SnapUIDateTimePicker seeds
+          // internalValue with new Date() and submits that on OK if unchanged.
+          const dateTimePickerDate = DateTime.now();
+
           await TestSnaps.fillInput('example-input', 'foo bar');
           await TestSnaps.selectInNativeDropdown('snapUIDropdown', 'Option 2');
           await TestSnaps.selectRadioButton('Option 1');
           await TestSnaps.tapCheckbox();
           await TestSnaps.selectInNativeDropdown('snapUISelector', 'Option 3');
-          // Capture just before picker OK (form fill can cross a minute).
-          const dateTimePickerDate = DateTime.now();
           await TestSnaps.selectDateInDateTimePicker();
           await TestSnaps.selectDateInDatePicker();
           await TestSnaps.selectTimeInTimePicker();
