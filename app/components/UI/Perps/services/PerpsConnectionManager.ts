@@ -1,4 +1,3 @@
-import { AppState } from 'react-native';
 import {
   addEventListener as netInfoAddEventListener,
   type NetInfoState,
@@ -570,9 +569,6 @@ class PerpsConnectionManagerClass {
       // iOS: Start background timer, schedule with setTimeout, then stop immediately
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
-        DevLogger.log(
-          `[PR-TAT-3645] BUG_MARKER: grace-period disconnection firing while AppState=${AppState.currentState}`,
-        );
         this.performActualDisconnection().catch((error) => {
           Logger.error(
             ensureError(
