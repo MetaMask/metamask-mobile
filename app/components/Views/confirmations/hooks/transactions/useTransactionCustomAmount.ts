@@ -302,12 +302,13 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
-      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
-      // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
-      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
-      // amount through as token.amountRaw.
+      // Do NOT set isMaxAmount=true for perps, predict, or money-account
+      // withdraw. TPC's calculatePostQuoteSourceAmounts substitutes
+      // `token.balanceRaw` when isMaxAmount is true: wrong for perps/predict
+      // (wallet USDC vs typed HyperLiquid/Polymarket balance) and wrong for
+      // money account (on-chain mUSD only vs mUSD + vmUSD fiat total).
+      // Keeping isMaxAmount false routes the typed amount through as
+      // token.amountRaw.
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&

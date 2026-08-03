@@ -16,6 +16,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { getTotalPayFeesUsd } from '../../utils/transaction-pay';
 import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
@@ -62,12 +63,7 @@ export function useInsufficientPerpsBalanceAlert({
       totals?.fees &&
       new BigNumber(amountHuman).isGreaterThan(0)
     ) {
-      const totalFees = new BigNumber(totals.fees.provider?.usd ?? 0)
-        .plus(totals.fees.sourceNetwork?.estimate?.usd ?? 0)
-        .plus(totals.fees.targetNetwork?.usd ?? 0)
-        .plus(totals.fees.metaMask?.usd ?? 0);
-
-      if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
+      if (getTotalPayFeesUsd(totals.fees).isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
     }

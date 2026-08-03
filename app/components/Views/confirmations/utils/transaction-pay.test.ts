@@ -946,6 +946,26 @@ describe('Transaction Pay Utils', () => {
       expect(config.refundTo).toBe(MONEY_ADDRESS);
     });
 
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ] as const)(
+      'sets refundTo but leaves atomic unset for %s',
+      (transactionType) => {
+        applyMoneyAccountOverride(
+          TRANSACTION_ID,
+          MONEY_ADDRESS,
+          buildTransactionMeta(transactionType),
+        );
+
+        const config = runConfigCallback();
+
+        expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+        expect(config.atomic).toBeUndefined();
+        expect(config.refundTo).toBe(MONEY_ADDRESS);
+      },
+    );
+
     it('sets only paymentOverride for moneyAccountWithdraw (no atomic or refundTo)', () => {
       applyMoneyAccountOverride(
         TRANSACTION_ID,
@@ -987,14 +1007,14 @@ describe('Transaction Pay Utils', () => {
       expect(config.refundTo).toBeUndefined();
     });
 
-    it('sets only paymentOverride when transactionMeta is undefined', () => {
+    it('sets paymentOverride and refundTo when transactionMeta is undefined', () => {
       applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, undefined);
 
       const config = runConfigCallback();
 
       expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
       expect(config.atomic).toBeUndefined();
-      expect(config.refundTo).toBeUndefined();
+      expect(config.refundTo).toBe(MONEY_ADDRESS);
     });
 
     it('clears selectedPaymentMethodId via updateFiatPayment', () => {

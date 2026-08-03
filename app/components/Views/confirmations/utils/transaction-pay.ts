@@ -9,6 +9,7 @@ import {
   PaymentOverride,
   TransactionFiatPayment,
   TransactionPayRequiredToken,
+  TransactionPayTotals,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
@@ -26,6 +27,7 @@ import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
+import { isTransactionPayWithdraw } from './transaction';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -314,15 +316,17 @@ export function resolvePreferredPayToken({
  * Sets the Money Account payment override on a transaction and clears any
  * previously selected fiat payment method.
  *
- * `paymentOverride` is set unconditionally; the additional non-atomic fields
- * are set only for the flows that need them.
+ * `paymentOverride` is set unconditionally; the additional flow-specific
+ * fields are set only for the flows that need them.
  *
  * Perps/Predict withdraw → MA sets `atomic: false` so the post-Relay transfer
  * to the Money Account runs in `submitPostNonAtomic`. The quote recipient is
  * derived by the pay controller via the `getPaymentOverrideData` callback.
- * Money Account deposits set `refundTo: MA` so failed Relay bridges refund to
- * the MA rather than the funding EOA, and flip `atomic: false` later via
- * `setMoneyAccountDepositMaxAtomic` when the user toggles max amount.
+ * Deposit-direction flows funded by the Money Account (Money Account, Perps,
+ * and Predict deposits) set `refundTo: MA` so failed Relay bridges refund to
+ * the MA rather than the funding EOA. Money Account deposits additionally
+ * flip `atomic: false` later via `setMoneyAccountDepositMaxAtomic` when the
+ * user toggles max amount.
  *
  * Money Account withdraw (`moneyAccountWithdraw`) keeps the default atomic
  * path with no recipient override: `processTransactions` overwrites the quote
@@ -337,9 +341,7 @@ export function applyMoneyAccountOverride(
     TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
   ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
   Engine.context.TransactionPayController.setTransactionConfig(
     transactionId,
@@ -348,7 +350,7 @@ export function applyMoneyAccountOverride(
       if (isPerpsOrPredictWithdraw) {
         config.atomic = false;
       }
-      if (isMoneyAccountDeposit && moneyAccountAddress) {
+      if (!isWithdraw && moneyAccountAddress) {
         config.refundTo = moneyAccountAddress as Hex;
       }
     },
@@ -368,6 +370,15 @@ export function applyMoneyAccountOverride(
  * post-Relay vault-deposit path; regular deposits stay atomic (EXPECTED_OUTPUT
  * with the vault deposit embedded in the Relay bundle).
  */
+export function getTotalPayFeesUsd(
+  fees: TransactionPayTotals['fees'],
+): BigNumber {
+  return new BigNumber(fees.provider?.usd ?? 0)
+    .plus(fees.sourceNetwork?.estimate?.usd ?? 0)
+    .plus(fees.targetNetwork?.usd ?? 0)
+    .plus(fees.metaMask?.usd ?? 0);
+}
+
 export function setMoneyAccountDepositMaxAtomic(
   transactionId: string,
   isMax: boolean,
