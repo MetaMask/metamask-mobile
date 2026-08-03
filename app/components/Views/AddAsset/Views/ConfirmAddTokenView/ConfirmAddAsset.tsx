@@ -16,7 +16,7 @@ import BottomSheetFooter, {
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
   Box,
   HeaderStandard,
@@ -26,6 +26,26 @@ import {
 import { ImportAsset } from '../../utils/utils';
 import AddAssetTokenRow from '../../components/AddAssetTokenRow/AddAssetTokenRow';
 import Logger from '../../../../../util/Logger';
+
+interface ConfirmAddAssetRowProps {
+  asset: ImportAsset;
+  networkName: string;
+}
+
+const getTokenSearchRowKey = (token: ImportAsset) =>
+  `${token.chainId}-${token.address.toLowerCase()}`;
+
+const ConfirmAddAssetRow = React.memo(
+  ({ asset, networkName }: ConfirmAddAssetRowProps) => {
+    const tw = useTailwind();
+
+    return (
+      <ListItem gap={20} style={tw.style('p-0')}>
+        <AddAssetTokenRow asset={asset} networkName={networkName} />
+      </ListItem>
+    );
+  },
+);
 
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
@@ -61,6 +81,18 @@ const ConfirmAddAsset = () => {
     }
   }, [addTokenList, goToTokensFullView, isImporting]);
 
+  const keyExtractor = useCallback(
+    (item: ImportAsset) => getTokenSearchRowKey(item),
+    [],
+  );
+
+  const renderItem = useCallback<ListRenderItem<ImportAsset>>(
+    ({ item }) => (
+      <ConfirmAddAssetRow asset={item} networkName={networkName} />
+    ),
+    [networkName],
+  );
+
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
@@ -84,12 +116,8 @@ const ConfirmAddAsset = () => {
           data={selectedAsset}
           style={tw.style('flex-1 bg-default')}
           contentContainerStyle={tw.style('pt-6 px-6 pb-4')}
-          renderItem={({ item: asset, index }) => (
-            <ListItem key={index} gap={20} style={tw.style('p-0')}>
-              <AddAssetTokenRow asset={asset} networkName={networkName} />
-            </ListItem>
-          )}
-          keyExtractor={(_, index) => `token-search-row-${index}`}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
         />
       </Box>
 
