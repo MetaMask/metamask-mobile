@@ -73,9 +73,9 @@ Notes:
 - Do **not** set `playwrightRD: true` or `defaultReports: false` for this PoC —
   those target Playwright Real Device (CDP). We use Playwright only as the test
   runner and connect to Appium via `TestMuAIProvider`.
-- Sessions request `appiumVersion: "3.0.2"` in `LT:Options` (override with
-  `TESTMU_APPIUM_VERSION`) so TestMu uses UiAutomator2 v5 instead of the
-  platform default Appium 2.x / UiAutomator2 v2.32.3.
+- Sessions request `appiumVersion: "latest"` in `LT:Options` (override with
+  `TESTMU_APPIUM_VERSION`) so TestMu selects its latest supported Appium
+  version instead of the platform default.
 - Discovery is **static** (0.2 drops dynamic/matrix discovery): the CLI host
   materialises `tests/hyperexecute/discovered-*.txt` before upload.
 - Tasks still run on **linux** VMs and open Appium sessions to
