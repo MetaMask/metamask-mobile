@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useMoneyAccountSweepstakesOptIn } from './useMoneyAccountSweepstakesOptIn';
+import {
+  useMoneyAccountSweepstakesOptIn,
+  useResumePendingMasSeriesOptIn,
+} from './useMoneyAccountSweepstakesOptIn';
 import { useMoneyAccountSweepstakesSeries } from './useMoneyAccountSweepstakesSeries';
 import { useMoneyAccountSweepstakesBinding } from './useMoneyAccountSweepstakesBinding';
 import {
@@ -12,6 +15,14 @@ const mockDispatch = jest.fn();
 const mockEnsureBound = jest.fn(
   async (): Promise<'bound' | 'conflict' | 'unavailable'> => 'bound',
 );
+const mockUseFocusEffect = jest.fn((effect: () => void | (() => void)) => {
+  effect();
+});
+
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: (effect: () => void | (() => void)) =>
+    mockUseFocusEffect(effect),
+}));
 
 jest.mock('./useMoneyAccountSweepstakesSeries', () => ({
   useMoneyAccountSweepstakesSeries: jest.fn(),
@@ -35,8 +46,10 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
+let mockSubscriptionId: string | null = 'sub-1';
+
 jest.mock('../../../../selectors/rewards', () => ({
-  selectRewardsSubscriptionId: () => 'sub-1',
+  selectRewardsSubscriptionId: () => mockSubscriptionId,
 }));
 
 let mockStatuses: Record<
@@ -44,14 +57,27 @@ let mockStatuses: Record<
   { optedIn: boolean; participantCount: number }
 > = {};
 
+let mockPending = {
+  needsRetry: false,
+  subscriptionId: null as string | null,
+};
+
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectCampaignParticipantStatuses: () => mockStatuses,
+  selectPendingMasSeriesOptIn: () => mockPending,
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
   setCampaignParticipantStatus: (payload: unknown) => ({
     type: 'setCampaignParticipantStatus',
     payload,
+  }),
+  setPendingMasSeriesOptIn: (payload: unknown) => ({
+    type: 'setPendingMasSeriesOptIn',
+    payload,
+  }),
+  clearPendingMasSeriesOptIn: () => ({
+    type: 'clearPendingMasSeriesOptIn',
   }),
 }));
 
@@ -102,6 +128,8 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     jest.setSystemTime(FIXED_NOW);
     jest.clearAllMocks();
     mockStatuses = {};
+    mockPending = { needsRetry: false, subscriptionId: null };
+    mockSubscriptionId = 'sub-1';
     setupSeries();
     mockEnsureBound.mockResolvedValue('bound');
     mockUseBinding.mockReturnValue({
@@ -142,7 +170,9 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
       ['week-active', 'week-upcoming'],
       'sub-1',
     );
-    expect(mockDispatch).toHaveBeenCalledTimes(2);
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'clearPendingMasSeriesOptIn',
+    });
   });
 
   it('blocks opt-in and does not call optInToCampaigns on binding conflict', async () => {
@@ -190,7 +220,7 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     );
   });
 
-  it('returns success without opt-in calls when every eligible week is already joined', async () => {
+  it('returns success and clears pending when every eligible week is already joined', async () => {
     mockStatuses['sub-1:week-active'] = {
       optedIn: true,
       participantCount: 1,
@@ -207,9 +237,29 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     expect(optInResult).toEqual({ success: true });
     expect(mockEnsureBound).toHaveBeenCalledTimes(1);
     expect(mockCall).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'clearPendingMasSeriesOptIn',
+    });
   });
 
-  it('returns success false when a batch result is not opted in', async () => {
+  it('returns success and sets pending when active succeeds but upcoming fails', async () => {
+    mockCall.mockResolvedValue({
+      'week-active': { optedIn: true, participantCount: 1 },
+      'week-upcoming': { optedIn: false, participantCount: 0 },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
+
+    const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
+
+    expect(optInResult).toEqual({ success: true });
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'setPendingMasSeriesOptIn',
+      payload: { needsRetry: true, subscriptionId: 'sub-1' },
+    });
+  });
+
+  it('returns success false and sets pending when active fails after the batch', async () => {
     mockCall.mockResolvedValue({
       'week-active': { optedIn: false, participantCount: 0 },
       'week-upcoming': { optedIn: true, participantCount: 1 },
@@ -220,9 +270,13 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({ success: false });
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'setPendingMasSeriesOptIn',
+      payload: { needsRetry: true, subscriptionId: 'sub-1' },
+    });
   });
 
-  it('returns success false when the batch call throws', async () => {
+  it('returns success false when the batch call throws and active is not yet opted in', async () => {
     mockCall.mockRejectedValueOnce(new Error('network'));
 
     const { result } = renderHook(() => useMoneyAccountSweepstakesOptIn());
@@ -230,5 +284,65 @@ describe('useMoneyAccountSweepstakesOptIn', () => {
     const optInResult = await runEnsureOptedIn(result.current.ensureOptedIn);
 
     expect(optInResult).toEqual({ success: false });
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'setPendingMasSeriesOptIn',
+      payload: { needsRetry: true, subscriptionId: 'sub-1' },
+    });
+  });
+});
+
+describe('useResumePendingMasSeriesOptIn', () => {
+  beforeEach(() => {
+    jest.useRealTimers();
+    jest.clearAllMocks();
+    mockStatuses = {};
+    mockPending = { needsRetry: false, subscriptionId: null };
+    mockSubscriptionId = 'sub-1';
+    setupSeries();
+    mockEnsureBound.mockResolvedValue('bound');
+    mockUseBinding.mockReturnValue({
+      ensureBound: mockEnsureBound,
+      bindingConflict: false,
+    });
+    mockCall.mockResolvedValue({
+      'week-active': { optedIn: true, participantCount: 1 },
+      'week-upcoming': { optedIn: true, participantCount: 1 },
+    });
+  });
+
+  it('does not resume when needsRetry is false', () => {
+    renderHook(() => useResumePendingMasSeriesOptIn());
+    expect(mockEnsureBound).not.toHaveBeenCalled();
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('resumes when needsRetry matches the current subscription', async () => {
+    mockPending = { needsRetry: true, subscriptionId: 'sub-1' };
+
+    await act(async () => {
+      renderHook(() => useResumePendingMasSeriesOptIn());
+    });
+
+    // Resume invokes ensureOptedIn (binding asserted first).
+    expect(mockEnsureBound).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not resume when subscriptionId does not match', () => {
+    mockPending = { needsRetry: true, subscriptionId: 'other-sub' };
+
+    renderHook(() => useResumePendingMasSeriesOptIn());
+
+    expect(mockEnsureBound).not.toHaveBeenCalled();
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('does not resume when there is no subscription', () => {
+    mockPending = { needsRetry: true, subscriptionId: 'sub-1' };
+    mockSubscriptionId = null;
+
+    renderHook(() => useResumePendingMasSeriesOptIn());
+
+    expect(mockEnsureBound).not.toHaveBeenCalled();
+    expect(mockCall).not.toHaveBeenCalled();
   });
 });

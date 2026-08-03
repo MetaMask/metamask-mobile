@@ -21262,6 +21262,114 @@ describe('RewardsController', () => {
         expect.anything(),
       );
     });
+
+    it('retries a failing campaign then succeeds without aborting the batch', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce(mockStatus)
+        .mockRejectedValueOnce(new Error('network'))
+        .mockRejectedValueOnce(new Error('network'))
+        .mockResolvedValueOnce(mockStatus);
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: mockStatus,
+      });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(4);
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        4,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      jest.useRealTimers();
+    });
+
+    it('continues the batch and does not throw when one campaign fails all retries', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce(mockStatus)
+        .mockRejectedValue(new Error('network'));
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: { optedIn: false, participantCount: 0 },
+      });
+      // A once + B three attempts
+      expect(batchMessenger.call).toHaveBeenCalledTimes(4);
+
+      const campaignOptedInCalls = batchMessenger.publish.mock.calls.filter(
+        ([event]) => event === 'RewardsController:campaignOptedIn',
+      );
+      expect(campaignOptedInCalls).toHaveLength(1);
+      expect(campaignOptedInCalls[0][1]).toEqual({
+        campaignId: campaignA,
+        subscriptionId: mockSubscriptionId,
+      });
+      jest.useRealTimers();
+    });
+
+    it('retries when a campaign returns optedIn false then succeeds', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce({ optedIn: false, participantCount: 0 })
+        .mockResolvedValueOnce(mockStatus);
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({ [campaignA]: mockStatus });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
+    });
   });
 
   describe('registerMoneyAccountBinding', () => {

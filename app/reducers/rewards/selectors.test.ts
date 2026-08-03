@@ -47,6 +47,7 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
+  selectPendingMasSeriesOptIn,
   selectBenefits,
   selectVipDashboard,
   selectVipDashboardError,
@@ -4529,6 +4530,32 @@ describe('Rewards selectors', () => {
         subscribedCampaignReminders: subscribed,
       });
       expect(selectSubscribedCampaignReminders(state)).toEqual(subscribed);
+    });
+  });
+
+  describe('selectPendingMasSeriesOptIn', () => {
+    it('returns the initial cleared flag when pending is unset', () => {
+      const state = createMockRootState({
+        pendingMasSeriesOptIn: {
+          needsRetry: false,
+          subscriptionId: null,
+        },
+      });
+      expect(selectPendingMasSeriesOptIn(state)).toEqual({
+        needsRetry: false,
+        subscriptionId: null,
+      });
+    });
+
+    it('returns the pending retry flag when set', () => {
+      const pending = {
+        needsRetry: true,
+        subscriptionId: 'sub-mas-1',
+      };
+      const state = createMockRootState({
+        pendingMasSeriesOptIn: pending,
+      });
+      expect(selectPendingMasSeriesOptIn(state)).toEqual(pending);
     });
   });
 });

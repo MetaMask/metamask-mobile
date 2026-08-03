@@ -83,6 +83,17 @@ export interface BulkLinkState {
   initialSubscriptionId: string | null;
 }
 
+/**
+ * Deferred Money Account Sweepstakes series opt-in resume.
+ * When some active/upcoming weeks fail after immediate retries, needsRetry is
+ * set so RewardsDashboard can re-run ensureOptedIn on focus. Targets are
+ * always re-derived from series + participant status (no campaign ID list).
+ */
+export interface PendingMasSeriesOptInState {
+  needsRetry: boolean;
+  subscriptionId: string | null;
+}
+
 export type FirstPredictionOnUsOrderStatus =
   | 'confirmed'
   | 'executed'
@@ -173,6 +184,9 @@ export interface RewardsState {
 
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
+
+  // Pending Money Account Sweepstakes series opt-in (resume on dashboard focus)
+  pendingMasSeriesOptIn: PendingMasSeriesOptInState;
 
   // Benefits state
   benefits: SubscriptionBenefitDto[];
@@ -365,6 +379,11 @@ export const initialState: RewardsState = {
     failedAccounts: 0,
     wasInterrupted: false,
     initialSubscriptionId: null,
+  },
+
+  pendingMasSeriesOptIn: {
+    needsRetry: false,
+    subscriptionId: null,
   },
 
   // Benefits initial state
@@ -745,6 +764,20 @@ const rewardsSlice = createSlice({
         action.payload.campaignId,
       );
       state.campaignParticipantStatuses[key] = action.payload.status;
+    },
+
+    setPendingMasSeriesOptIn: (
+      state,
+      action: PayloadAction<PendingMasSeriesOptInState>,
+    ) => {
+      state.pendingMasSeriesOptIn = {
+        needsRetry: action.payload.needsRetry,
+        subscriptionId: action.payload.subscriptionId,
+      };
+    },
+
+    clearPendingMasSeriesOptIn: (state) => {
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
 
     // Version guard reducers
@@ -1380,6 +1413,7 @@ const rewardsSlice = createSlice({
       state.bulkLink.isRunning = false;
       state.bulkLink.wasInterrupted = false;
       state.bulkLink.initialSubscriptionId = null;
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
     bulkLinkReset: (state) => {
       state.bulkLink = initialState.bulkLink;
@@ -1584,6 +1618,11 @@ const rewardsSlice = createSlice({
                   ? (previousBulkLink?.initialSubscriptionId ?? null)
                   : null,
               },
+
+              pendingMasSeriesOptIn: {
+                ...initialState.pendingMasSeriesOptIn,
+                ...(action.payload.rewards.pendingMasSeriesOptIn ?? {}),
+              },
             } as RewardsState;
           }
           return state as unknown as RewardsState;
@@ -1635,6 +1674,8 @@ export const {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  setPendingMasSeriesOptIn,
+  clearPendingMasSeriesOptIn,
   // Version guard actions
   setVersionGuardMinimumMobileVersion,
   setVersionGuardLoading,

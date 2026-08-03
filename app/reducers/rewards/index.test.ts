@@ -39,6 +39,8 @@ import rewardsReducer, {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  setPendingMasSeriesOptIn,
+  clearPendingMasSeriesOptIn,
   setOndoCampaignLeaderboard,
   setOndoCampaignLeaderboardLoading,
   setOndoCampaignLeaderboardError,
@@ -4458,6 +4460,24 @@ describe('bulkLinkSubscriptionChanged', () => {
     expect(state.referralCode).toBe('SUB_CHANGED_TEST');
     expect(state.balanceTotal).toBe(5000);
   });
+
+  it('clears pendingMasSeriesOptIn when subscription changes', () => {
+    const stateWithPending = {
+      ...initialState,
+      pendingMasSeriesOptIn: {
+        needsRetry: true,
+        subscriptionId: 'mas-sub',
+      },
+    };
+    const action = bulkLinkSubscriptionChanged();
+
+    const state = rewardsReducer(stateWithPending, action);
+
+    expect(state.pendingMasSeriesOptIn).toEqual({
+      needsRetry: false,
+      subscriptionId: null,
+    });
+  });
 });
 
 describe('bulkLinkResumed', () => {
@@ -7265,6 +7285,139 @@ describe('ondoCampaignDeposits', () => {
         predictAccountAddress: null,
         transactionHash: null,
       });
+    });
+  });
+});
+
+describe('setPendingMasSeriesOptIn', () => {
+  it('starts with a cleared pendingMasSeriesOptIn in initial state', () => {
+    expect(initialState.pendingMasSeriesOptIn).toEqual({
+      needsRetry: false,
+      subscriptionId: null,
+    });
+  });
+
+  it('sets needsRetry and subscriptionId', () => {
+    const action = setPendingMasSeriesOptIn({
+      needsRetry: true,
+      subscriptionId: 'sub-mas-1',
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.pendingMasSeriesOptIn).toEqual({
+      needsRetry: true,
+      subscriptionId: 'sub-mas-1',
+    });
+  });
+
+  it('overwrites a previous pending flag', () => {
+    const stateWithPending = {
+      ...initialState,
+      pendingMasSeriesOptIn: {
+        needsRetry: true,
+        subscriptionId: 'old-sub',
+      },
+    };
+    const action = setPendingMasSeriesOptIn({
+      needsRetry: true,
+      subscriptionId: 'new-sub',
+    });
+
+    const state = rewardsReducer(stateWithPending, action);
+
+    expect(state.pendingMasSeriesOptIn).toEqual({
+      needsRetry: true,
+      subscriptionId: 'new-sub',
+    });
+  });
+
+  it('does not affect other state properties', () => {
+    const stateWithData = {
+      ...initialState,
+      referralCode: 'KEEP_ME',
+      balanceTotal: 42,
+    };
+    const action = setPendingMasSeriesOptIn({
+      needsRetry: true,
+      subscriptionId: 'sub-1',
+    });
+
+    const state = rewardsReducer(stateWithData, action);
+
+    expect(state.pendingMasSeriesOptIn.needsRetry).toBe(true);
+    expect(state.referralCode).toBe('KEEP_ME');
+    expect(state.balanceTotal).toBe(42);
+  });
+});
+
+describe('clearPendingMasSeriesOptIn', () => {
+  it('resets pendingMasSeriesOptIn to the initial empty flag', () => {
+    const stateWithPending = {
+      ...initialState,
+      pendingMasSeriesOptIn: {
+        needsRetry: true,
+        subscriptionId: 'sub-mas-1',
+      },
+    };
+    const action = clearPendingMasSeriesOptIn();
+
+    const state = rewardsReducer(stateWithPending, action);
+
+    expect(state.pendingMasSeriesOptIn).toEqual({
+      needsRetry: false,
+      subscriptionId: null,
+    });
+  });
+
+  it('is a no-op when pending is already clear', () => {
+    const action = clearPendingMasSeriesOptIn();
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.pendingMasSeriesOptIn).toEqual({
+      needsRetry: false,
+      subscriptionId: null,
+    });
+  });
+});
+
+describe('persist/REHYDRATE — pendingMasSeriesOptIn', () => {
+  it('restores pendingMasSeriesOptIn from persisted state', () => {
+    const persistedRewardsState: RewardsState = {
+      ...initialState,
+      pendingMasSeriesOptIn: {
+        needsRetry: true,
+        subscriptionId: 'persisted-sub',
+      },
+    };
+    const rehydrateAction = {
+      type: 'persist/REHYDRATE',
+      payload: {
+        rewards: persistedRewardsState,
+      },
+    };
+
+    const state = rewardsReducer(initialState, rehydrateAction);
+
+    expect(state.pendingMasSeriesOptIn).toEqual({
+      needsRetry: true,
+      subscriptionId: 'persisted-sub',
+    });
+  });
+
+  it('defaults to the initial pending flag when absent from persisted state', () => {
+    const persisted = { ...initialState } as Partial<RewardsState>;
+    delete persisted.pendingMasSeriesOptIn;
+
+    const state = rewardsReducer(initialState, {
+      type: 'persist/REHYDRATE',
+      payload: { rewards: persisted },
+    });
+
+    expect(state.pendingMasSeriesOptIn).toEqual({
+      needsRetry: false,
+      subscriptionId: null,
     });
   });
 });

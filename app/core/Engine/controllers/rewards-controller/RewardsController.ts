@@ -84,6 +84,7 @@ import {
   getSubscriptionToken,
 } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
+import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 import { captureException } from '@sentry/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
@@ -3963,9 +3964,10 @@ export class RewardsController extends BaseController<
 
   /**
    * Opt a subscription into multiple campaigns in one batch.
-   * POSTs each opt-in sequentially, then invalidates once per campaign and
-   * publishes a single `campaignOptedIn` so UI listeners do not refetch after
-   * every intermediate opt-in (important for series campaigns).
+   * POSTs each opt-in sequentially (up to 3 attempts per campaign on throw or
+   * non-opted-in response), continues after exhausted failures, then invalidates
+   * once per campaign and publishes a single `campaignOptedIn` so UI listeners
+   * do not refetch after every intermediate opt-in (important for series campaigns).
    * Participant-status cache entries are re-seeded from the POST responses so
    * post-event status fetches hit cache instead of the network.
    * @param campaignIds - Campaign IDs to opt into, in call order.
@@ -3989,6 +3991,13 @@ export class RewardsController extends BaseController<
       return {};
     }
 
+    const maxAttempts = 3;
+    const retryBaseDelayMs = 250;
+    const failedStatus: CampaignParticipantStatusDto = {
+      optedIn: false,
+      participantCount: 0,
+    };
+
     const results: Record<string, CampaignParticipantStatusDto> = {};
     const newlyOptedInIds: string[] = [];
 
@@ -4000,17 +4009,47 @@ export class RewardsController extends BaseController<
       const wasAlreadyOptedIn =
         this.state.campaignParticipantStatus[key]?.optedIn === true;
 
-      const result = await this.#withAuthRetry(async () => {
-        Logger.log(
-          'RewardsController: Opting into campaign (batch)',
-          campaignId,
-        );
-        return (await this.messenger.call(
-          'RewardsDataService:optInToCampaign',
-          subscriptionId,
-          campaignId,
-        )) as CampaignParticipantStatusDto;
-      }, subscriptionId);
+      let result: CampaignParticipantStatusDto = failedStatus;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const attemptResult = await this.#withAuthRetry(async () => {
+            Logger.log(
+              'RewardsController: Opting into campaign (batch)',
+              campaignId,
+              `attempt ${attempt + 1}/${maxAttempts}`,
+            );
+            return (await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+            )) as CampaignParticipantStatusDto;
+          }, subscriptionId);
+
+          if (attemptResult?.optedIn) {
+            result = attemptResult;
+            break;
+          }
+
+          result = attemptResult ?? failedStatus;
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Opt-in to campaign failed (batch)',
+            campaignId,
+            error,
+          );
+          result = failedStatus;
+        }
+
+        if (attempt < maxAttempts - 1) {
+          const delay = calculateExponentialRetryDelay(
+            attempt,
+            retryBaseDelayMs,
+            2000,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
 
       results[campaignId] = result;
       if (result.optedIn && !wasAlreadyOptedIn) {

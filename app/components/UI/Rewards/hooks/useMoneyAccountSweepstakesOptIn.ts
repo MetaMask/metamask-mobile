@@ -1,12 +1,21 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignParticipantStatuses } from '../../../../reducers/rewards/selectors';
-import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
+import {
+  selectCampaignParticipantStatuses,
+  selectPendingMasSeriesOptIn,
+} from '../../../../reducers/rewards/selectors';
+import {
+  clearPendingMasSeriesOptIn,
+  setCampaignParticipantStatus,
+  setPendingMasSeriesOptIn,
+} from '../../../../reducers/rewards';
 import { useMoneyAccountSweepstakesSeries } from './useMoneyAccountSweepstakesSeries';
 import { useMoneyAccountSweepstakesBinding } from './useMoneyAccountSweepstakesBinding';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface MoneyAccountSweepstakesOptInResult {
   success: boolean;
@@ -18,11 +27,17 @@ export interface UseMoneyAccountSweepstakesOptInResult {
   isOptingIn: boolean;
 }
 
+function isEligibleSeriesCampaign(campaign: CampaignDto): boolean {
+  const status = getCampaignStatus(campaign);
+  return status === 'active' || status === 'upcoming';
+}
+
 /**
  * Opt the user into every non-ended Money Account Sweepstakes campaign they
  * have not yet opted into (active first, then upcoming) via a single batched
- * controller call that defers cache invalidation and campaignOptedIn until
- * all POSTs complete.
+ * controller call. Partial failures do not abort the batch; success means the
+ * active week is opted in. Remaining gaps set a Redux pending flag for
+ * dashboard-focus resume.
  *
  * Binding is asserted first: a 409 conflict blocks opt-in. Missing Money
  * Account address is non-fatal (binding is re-asserted later).
@@ -47,6 +62,40 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
     return map;
   }, [series.campaigns, subscriptionId, statuses]);
 
+  const updatePendingFlag = useCallback(
+    (resolvedOptedIn: Record<string, boolean>) => {
+      if (!subscriptionId) {
+        return;
+      }
+      const hasPendingEligible = series.campaigns.some(
+        (campaign) =>
+          isEligibleSeriesCampaign(campaign) && !resolvedOptedIn[campaign.id],
+      );
+      if (hasPendingEligible) {
+        dispatch(
+          setPendingMasSeriesOptIn({
+            needsRetry: true,
+            subscriptionId,
+          }),
+        );
+      } else {
+        dispatch(clearPendingMasSeriesOptIn());
+      }
+    },
+    [dispatch, series.campaigns, subscriptionId],
+  );
+
+  const isActiveOptedIn = useCallback(
+    (resolvedOptedIn: Record<string, boolean>): boolean => {
+      const activeId = series.activeCampaign?.id;
+      if (!activeId) {
+        return true;
+      }
+      return resolvedOptedIn[activeId] === true;
+    },
+    [series.activeCampaign],
+  );
+
   const ensureOptedIn =
     useCallback(async (): Promise<MoneyAccountSweepstakesOptInResult> => {
       if (!subscriptionId) {
@@ -59,10 +108,7 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
       }
 
       const targets = series.campaigns
-        .filter((campaign) => {
-          const status = getCampaignStatus(campaign);
-          return status === 'active' || status === 'upcoming';
-        })
+        .filter(isEligibleSeriesCampaign)
         .filter((campaign) => !optedInByCampaignId[campaign.id])
         .sort((a, b) => {
           const aActive = getCampaignStatus(a) === 'active' ? 0 : 1;
@@ -76,7 +122,8 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
         });
 
       if (targets.length === 0) {
-        return { success: true };
+        updatePendingFlag(optedInByCampaignId);
+        return { success: isActiveOptedIn(optedInByCampaignId) };
       }
 
       setIsOptingIn(true);
@@ -87,7 +134,9 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
           subscriptionId,
         );
 
-        let allOptedIn = true;
+        const resolvedOptedIn: Record<string, boolean> = {
+          ...optedInByCampaignId,
+        };
         for (const campaign of targets) {
           const status = results[campaign.id];
           if (status) {
@@ -98,14 +147,17 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
                 status,
               }),
             );
-          }
-          if (!status?.optedIn) {
-            allOptedIn = false;
+            resolvedOptedIn[campaign.id] = status.optedIn === true;
+          } else {
+            resolvedOptedIn[campaign.id] = false;
           }
         }
-        return { success: allOptedIn };
+
+        updatePendingFlag(resolvedOptedIn);
+        return { success: isActiveOptedIn(resolvedOptedIn) };
       } catch {
-        return { success: false };
+        updatePendingFlag(optedInByCampaignId);
+        return { success: isActiveOptedIn(optedInByCampaignId) };
       } finally {
         setIsOptingIn(false);
       }
@@ -115,12 +167,43 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
       subscriptionId,
       dispatch,
       ensureBound,
+      updatePendingFlag,
+      isActiveOptedIn,
     ]);
 
   return {
     ensureOptedIn,
     isOptingIn,
   };
+}
+
+/**
+ * Quietly resume incomplete Money Account Sweepstakes series opt-in when the
+ * Rewards dashboard gains focus. One attempt per focus entry; targets are
+ * re-derived inside ensureOptedIn from participation status.
+ */
+export function useResumePendingMasSeriesOptIn(): void {
+  const pending = useSelector(selectPendingMasSeriesOptIn);
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const { ensureOptedIn } = useMoneyAccountSweepstakesOptIn();
+  const ensureOptedInRef = useRef(ensureOptedIn);
+  ensureOptedInRef.current = ensureOptedIn;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !pending.needsRetry ||
+        !subscriptionId ||
+        pending.subscriptionId !== subscriptionId
+      ) {
+        return;
+      }
+
+      ensureOptedInRef.current().catch(() => {
+        // Quiet resume — failures remain pending for a later focus.
+      });
+    }, [pending.needsRetry, pending.subscriptionId, subscriptionId]),
+  );
 }
 
 export default useMoneyAccountSweepstakesOptIn;

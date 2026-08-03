@@ -38,6 +38,7 @@ import {
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
+import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
@@ -178,6 +179,9 @@ const RewardsDashboard: React.FC = () => {
 
   // Use the bulk link state hook for resuming interrupted opt-in processes
   const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
+
+  // Quietly finish incomplete Money Account Sweepstakes series opt-ins
+  useResumePendingMasSeriesOptIn();
 
   const totalOptedInAccountsSelectedGroup = useMemo(
     () => optInBySelectedAccountGroup?.optedInAccounts?.length,
