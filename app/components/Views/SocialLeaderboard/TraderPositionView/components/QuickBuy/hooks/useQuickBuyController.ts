@@ -1,6 +1,7 @@
 import {
   isNonEvmChainId,
   formatChainIdToCaip,
+  sumAmounts,
 } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 import {
@@ -786,12 +787,17 @@ export function useQuickBuyController(
   const networkFeeFiat = useMemo(() => {
     if (!activeQuote) return null;
     if (isGaslessQuote(activeQuote.quote)) {
-      const v = activeQuote.includedTxFees?.valueInCurrency;
+      const v = sumAmounts(activeQuote.quote.feeData.txFee)?.valueInCurrency;
       return v != null && isNumberValue(v) ? parseFloat(v) : null;
     }
-    const total = activeQuote.totalNetworkFee?.valueInCurrency;
+    const total = sumAmounts(
+      activeQuote.quote.feeData?.network,
+      activeQuote.quote.feeData?.relayer,
+    )?.valueInCurrency;
     if (total != null && isNumberValue(total)) return parseFloat(total);
-    const effective = activeQuote.gasFee?.total?.valueInCurrency;
+    const effective = sumAmounts(
+      activeQuote.quote.feeData?.network,
+    )?.valueInCurrency;
     if (effective != null && isNumberValue(effective))
       return parseFloat(effective);
     return null;
@@ -803,14 +809,14 @@ export function useQuickBuyController(
   }, [slippage]);
 
   const formattedMinimumReceived = useMemo(() => {
-    const amount = activeQuote?.minToTokenAmount?.amount;
+    const amount = activeQuote?.quote?.dest?.minAmountNormalized;
     const symbol = destToken?.symbol;
     if (!amount || !symbol) return '-';
     const formatted = formatMinimumReceived(amount);
     return `${formatted} ${symbol}`;
   }, [activeQuote, destToken]);
 
-  const minReceivedTokenAmount = activeQuote?.minToTokenAmount?.amount;
+  const minReceivedTokenAmount = activeQuote?.quote?.dest?.minAmountNormalized;
   const formattedMinimumReceivedFiat = useDisplayCurrencyValue(
     minReceivedTokenAmount,
     destToken,
@@ -1370,7 +1376,7 @@ export function useQuickBuyController(
     // display currency, so convert it here.
     const amountUsdValue = toAmountUsd(fiatAmountNumber);
     const amountUsd = amountUsdValue > 0 ? amountUsdValue : undefined;
-    const amountTokenRaw = activeQuote.toTokenAmount?.amount;
+    const amountTokenRaw = activeQuote.quote?.dest?.normalizedAmount;
     const amountToken =
       amountTokenRaw != null && isNumberValue(amountTokenRaw)
         ? Number(amountTokenRaw)
@@ -1627,10 +1633,7 @@ export function useQuickBuyController(
         sourceTokenAmount,
         sourceToken.decimals,
       ).toFixed(0);
-      const sent = calcTokenValue(
-        activeQuote.sentAmount?.amount,
-        sourceToken.decimals,
-      ).toFixed(0);
+      const sent = activeQuote.quote.src.amount;
       return sent === requested;
     } catch {
       return false;

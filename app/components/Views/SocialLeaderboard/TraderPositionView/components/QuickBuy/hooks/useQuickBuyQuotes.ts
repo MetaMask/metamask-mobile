@@ -67,9 +67,7 @@ export interface QuickBuyQuotesAnalyticsContext {
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
 }
 
-export type EnrichedQuickBuyQuote = ReturnType<
-  typeof selectBridgeQuotesBase
->['sortedQuotes'][number];
+export type EnrichedQuickBuyQuote = QuoteResponse;
 
 export const QUICK_BUY_QUOTE_DEBOUNCE_MS = 300;
 

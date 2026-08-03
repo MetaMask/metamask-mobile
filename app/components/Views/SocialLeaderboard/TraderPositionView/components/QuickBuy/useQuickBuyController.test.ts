@@ -351,6 +351,7 @@ const createActiveQuote = (
   overrides: Record<string, unknown> = {},
 ): EnrichedQuickBuyQuote =>
   merge(
+    {},
     {
       ...overrides,
       quote: {
@@ -363,7 +364,6 @@ const createActiveQuote = (
         feeData: {
           network: [{ normalizedAmount: '0.0001' }],
         },
-        ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
       },
     },
     overrides,
@@ -1276,7 +1276,7 @@ describe('useQuickBuyController', () => {
           feeData: {
             network: [
               {
-                amount: '0',
+                normalizedAmount: '0',
                 asset: {
                   symbol: 'BTC',
                 },
@@ -1741,8 +1741,8 @@ describe('useQuickBuyController', () => {
       quoteState.activeQuote = {
         ...createActiveQuote(),
         quote: {
-          srcTokenAmount: '10000000000000000',
-          priceData: { priceImpact: '0.30' },
+          src: { amount: '10000000000000000' },
+          priceData: { priceImpact: { amount: '0.30' } },
         },
       } as never;
       rerender(props);
