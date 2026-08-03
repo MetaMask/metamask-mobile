@@ -185,7 +185,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/money-account-utils": "npm:@metamask-previews/money-account-utils@1.0.0-preview-7aa2077d5",
     "@metamask/network-controller": "34.0.0",
     "@metamask/seedless-onboarding-controller": "10.1.1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
@@ -322,7 +321,7 @@
     "@metamask/money-account-balance-service": "^2.4.0",
     "@metamask/money-account-controller": "^0.2.0",
     "@metamask/money-account-upgrade-controller": "^3.0.0",
-    "@metamask/money-account-utils": "^1.0.0",
+    "@metamask/money-account-utils": "^1.1.0",
     "@metamask/multichain-account-service": "^13.0.0",
     "@metamask/multichain-api-client": "^0.11.0",
     "@metamask/multichain-api-middleware": "^4.0.1",
