@@ -16,6 +16,7 @@ import {
   type PerpsMarketData,
   type Position,
 } from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import React, { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
@@ -55,11 +56,19 @@ import {
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
 
+/** Which Pro panel tab a market-switch row tap came from. */
+export type ProPositionsPanelSourceSection =
+  | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
+  | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS;
+
 interface PerpsProPositionsPanelProps {
   /** Active market symbol, which may carry a `dex:` prefix for HIP-3 markets. */
   symbol: string;
   /** Switches the screen to the market of a tapped position/order row. */
-  onSelectMarket?: (market: PerpsMarketData | Partial<PerpsMarketData>) => void;
+  onSelectMarket?: (
+    market: PerpsMarketData | Partial<PerpsMarketData>,
+    sourceSection: ProPositionsPanelSourceSection,
+  ) => void;
 }
 
 /**
@@ -115,23 +124,32 @@ const PerpsProPositionsPanel = ({
   // Rows carry only a symbol, so resolve the full market here where the list is
   // already loaded; the caller falls back to enriching a symbol-only market.
   const selectMarketBySymbol = useCallback(
-    (nextSymbol: string) => {
+    (nextSymbol: string, sourceSection: ProPositionsPanelSourceSection) => {
       onSelectMarket?.(
         markets.find((market) => market.symbol === nextSymbol) ?? {
           symbol: nextSymbol,
         },
+        sourceSection,
       );
     },
     [markets, onSelectMarket],
   );
 
   const handleSelectPositionMarket = useCallback(
-    (position: Position) => selectMarketBySymbol(position.symbol),
+    (position: Position) =>
+      selectMarketBySymbol(
+        position.symbol,
+        PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+      ),
     [selectMarketBySymbol],
   );
 
   const handleSelectOrderMarket = useCallback(
-    (order: Order) => selectMarketBySymbol(order.symbol),
+    (order: Order) =>
+      selectMarketBySymbol(
+        order.symbol,
+        PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+      ),
     [selectMarketBySymbol],
   );
 

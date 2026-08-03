@@ -4,6 +4,7 @@ import { Box, ButtonBase } from '@metamask/design-system-react-native';
 import {
   CandlePeriod,
   PerpsMode,
+  type Order,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -15,6 +16,7 @@ import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
+  getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
@@ -293,6 +295,8 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
 
 const mockUsePerpsLivePositions = jest.requireMock('../../hooks/stream')
   .usePerpsLivePositions as jest.Mock;
+const mockUsePerpsLiveOrders = jest.requireMock('../../hooks/stream')
+  .usePerpsLiveOrders as jest.Mock;
 
 const ethPosition: Position = {
   symbol: 'ETH',
@@ -308,6 +312,23 @@ const ethPosition: Position = {
   cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
   takeProfitCount: 0,
   stopLossCount: 0,
+};
+
+const ethOrder: Order = {
+  orderId: 'eth-order-1',
+  symbol: 'ETH',
+  side: 'buy',
+  size: '1',
+  originalSize: '1',
+  filledSize: '0',
+  remainingSize: '1',
+  price: '3000',
+  orderType: 'limit',
+  status: 'open',
+  timestamp: 1_711_756_800_000,
+  reduceOnly: false,
+  isTrigger: false,
+  detailedOrderType: 'Limit',
 };
 
 const renderView = () =>
@@ -337,6 +358,10 @@ describe('PerpsProMarketView', () => {
       positions: [],
       isInitialLoading: false,
     });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    });
   });
 
   afterEach(() => {
@@ -356,7 +381,27 @@ describe('PerpsProMarketView', () => {
     expect(mockSetParams).toHaveBeenCalledWith({
       market: { symbol: 'ETH' },
       source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
-      source_section: undefined,
+      source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+    });
+  });
+
+  it('attributes order-row market switches with the orders source section', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [ethOrder],
+      isInitialLoading: false,
+    });
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS),
+    );
+    fireEvent.press(getByTestId(getPerpsProOrderRowSelector('ETH', 0)));
+
+    expect(mockSetParams).toHaveBeenCalledWith({
+      market: { symbol: 'ETH' },
+      source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
+      source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     });
   });
 

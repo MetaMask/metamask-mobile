@@ -96,17 +96,22 @@ const PerpsProMarketView = () => {
   // Swapping the route param rather than pushing keeps a single Pro screen on
   // the stack, so tapping through positions/orders doesn't build up history.
   const handleSelectMarket = useCallback(
-    (nextMarket: PerpsMarketData | Partial<PerpsMarketData>) => {
+    (
+      nextMarket: PerpsMarketData | Partial<PerpsMarketData>,
+      sourceSection:
+        | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
+        | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    ) => {
       if (!nextMarket.symbol || nextMarket.symbol === routeMarket?.symbol) {
         return;
       }
 
-      // POSITION_TAB is the panel-level source for both the Positions and
-      // Orders tabs — there is no ORDERS_TAB value in PERPS_EVENT_VALUE.SOURCE.
+      // POSITION_TAB is the panel-level source; source_section distinguishes
+      // which tab the row came from (same pattern as Perps home).
       navigation.setParams({
         market: nextMarket,
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
-        source_section: undefined,
+        source_section: sourceSection,
       });
     },
     [navigation, routeMarket?.symbol],

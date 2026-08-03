@@ -4,6 +4,7 @@ import type {
   PerpsMarketData,
   Position,
 } from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -79,7 +80,10 @@ const makeOrder = (overrides: Partial<Order> = {}): Order => ({
 
 const renderPanel = (
   symbol = 'SOL',
-  onSelectMarket?: (market: Partial<PerpsMarketData>) => void,
+  onSelectMarket?: (
+    market: Partial<PerpsMarketData>,
+    sourceSection: 'positions' | 'orders',
+  ) => void,
 ) =>
   renderWithProvider(
     <PerpsProPositionsPanel symbol={symbol} onSelectMarket={onSelectMarket} />,
@@ -389,7 +393,10 @@ describe('PerpsProPositionsPanel', () => {
 
     fireEvent.press(screen.getByTestId(getPerpsProPositionRowSelector('ETH')));
 
-    expect(onSelectMarket).toHaveBeenCalledWith(ethMarket);
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      ethMarket,
+      PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+    );
   });
 
   it('falls back to a symbol-only market when the row asset is not in the market list', () => {
@@ -403,7 +410,10 @@ describe('PerpsProPositionsPanel', () => {
 
     fireEvent.press(screen.getByTestId(getPerpsProPositionRowSelector('ETH')));
 
-    expect(onSelectMarket).toHaveBeenCalledWith({ symbol: 'ETH' });
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      { symbol: 'ETH' },
+      PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+    );
   });
 
   it('switches to the market of a tapped order row', () => {
@@ -422,7 +432,10 @@ describe('PerpsProPositionsPanel', () => {
     );
     fireEvent.press(screen.getByTestId(getPerpsProOrderRowSelector('ETH', 0)));
 
-    expect(onSelectMarket).toHaveBeenCalledWith({ symbol: 'ETH' });
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      { symbol: 'ETH' },
+      PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    );
   });
 
   it('leaves rows non-interactive when no market switch handler is provided', () => {
