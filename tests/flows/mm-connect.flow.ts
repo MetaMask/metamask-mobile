@@ -204,6 +204,9 @@ export async function returnToDappAndWaitFor(
   timeoutMs = 30_000,
 ): Promise<void> {
   await switchToMobileBrowser();
+  // Give Chrome a beat to foreground before Appium/CDP probes (avoids hung
+  // getContexts / missing DevTools right after MetaMask deeplink handoff).
+  await new Promise((r) => setTimeout(r, 1_000));
   await ChromeCdpHelpers.waitForTestId(dappUrl, testId, timeoutMs);
 }
 
@@ -295,7 +298,8 @@ export async function rejectLegacyPersonalSign(
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
     await unlockIfLockScreenVisible();
-    await SignModal.tapCancelButton();
+    // Confirmation sheet animates in after the RPC arrives.
+    await SignModal.tapCancelButton({ timeout: 20_000 });
   });
 
   await switchToMobileBrowser();

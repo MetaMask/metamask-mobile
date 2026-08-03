@@ -2,7 +2,11 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import { APP_PACKAGE_IDS } from './Constants.ts';
-import { getDriver, executeMobileDeepLink } from './PlaywrightUtilities';
+import {
+  getDriver,
+  executeMobileDeepLink,
+  withTimeout,
+} from './PlaywrightUtilities';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('ChromeCdpHelpers');
@@ -11,6 +15,8 @@ const logger = createPlaywrightLogger('ChromeCdpHelpers');
 const CDP_FORWARD_PORT = 9222;
 const CDP_READY_TIMEOUT_MS = 20_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
+/** Appium `mobile: getContexts` can hang for minutes on google_apis Chrome — bound it. */
+const GET_CONTEXTS_PROBE_TIMEOUT_MS = 8_000;
 /** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
 const DEEPLINK_CAPTURE_TIMEOUT_MS = 30_000;
 /** Wait this long after a stringify guess before accepting it over a late real URL. */
@@ -636,15 +642,29 @@ export default class ChromeCdpHelpers {
     // The returned debugger URLs are intentionally ignored (stale forwards).
     await this.probeChromeWebviewViaAppium();
 
-    this.ensureAdbForward();
     const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
-    await this.waitForCdpEndpoint(endpoint);
+    this.ensureAdbForward();
+    try {
+      await this.waitForCdpEndpoint(endpoint);
+    } catch (firstError) {
+      // Chrome may not have bound DevTools yet (cold start / FRE). Re-forward once.
+      logger.debug(
+        'CDP endpoint not ready after first adb forward; retrying:',
+        firstError instanceof Error ? firstError.message : String(firstError),
+      );
+      this.ensureAdbForward();
+      await this.waitForCdpEndpoint(endpoint);
+    }
     return endpoint;
   }
 
   private static async probeChromeWebviewViaAppium(): Promise<void> {
     try {
-      await getDriver().execute('mobile: getContexts');
+      await withTimeout(
+        getDriver().execute('mobile: getContexts'),
+        GET_CONTEXTS_PROBE_TIMEOUT_MS,
+        'mobile: getContexts CDP probe',
+      );
     } catch (error) {
       logger.debug(
         'Appium getContexts probe failed (continuing with adb CDP forward):',
@@ -656,6 +676,7 @@ export default class ChromeCdpHelpers {
   private static async waitForCdpEndpoint(endpoint: string): Promise<void> {
     const deadline = Date.now() + CDP_READY_TIMEOUT_MS;
     let lastError = '';
+    let lastForwardAt = 0;
     while (Date.now() < deadline) {
       try {
         const response = await fetch(`${endpoint}/json/version`);
@@ -665,6 +686,11 @@ export default class ChromeCdpHelpers {
         lastError = `HTTP ${response.status}`;
       } catch (error) {
         lastError = error instanceof Error ? error.message : String(error);
+        // Refresh the forward periodically — stale forwards fail with fetch errors.
+        if (Date.now() - lastForwardAt > 5_000) {
+          this.ensureAdbForward();
+          lastForwardAt = Date.now();
+        }
       }
       await new Promise((r) => setTimeout(r, POLL_MS));
     }
