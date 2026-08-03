@@ -4,14 +4,12 @@ import {
   PredictFeedBannerSchema,
   PredictFeedCarouselSchema,
   PredictSportsFeedSchema,
-  PredictWorldCupSchema,
 } from './flags';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import {
   PredictFeedBannerPosition,
@@ -100,7 +98,7 @@ describe('PredictFeedBannerSchema', () => {
     id: 'predict-incident-1',
     title: 'Service update',
     description: 'Predict markets are temporarily unavailable.',
-    position: PredictFeedBannerPosition.AfterWorldCupBanner,
+    position: PredictFeedBannerPosition.AfterFeaturedCarousel,
     severity: PredictFeedBannerSeverity.Warning,
     dismissible: true,
   };
@@ -304,101 +302,6 @@ describe('PredictFeeCollectionSchema', () => {
         StructError,
       );
     });
-  });
-});
-
-describe('PredictWorldCupSchema', () => {
-  it('returns safe disabled defaults when input is undefined', () => {
-    const result = create(undefined, PredictWorldCupSchema);
-
-    expect(result).toStrictEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
-  });
-
-  it('fills missing IDs and stages with defaults', () => {
-    const result = create(
-      {
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showMainFeedBanner: true,
-        showMainFeedTab: true,
-        showWorldCupScreen: true,
-      },
-      PredictWorldCupSchema,
-    );
-
-    expect(result).toStrictEqual({
-      ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-      enabled: true,
-      minimumVersion: '1.0.0',
-      showMainFeedBanner: true,
-      showMainFeedTab: true,
-      showWorldCupScreen: true,
-    });
-  });
-
-  it('preserves configured IDs, banner, and stages', () => {
-    const input = {
-      enabled: true,
-      minimumVersion: '1.0.0',
-      showMainFeedBanner: true,
-      showMainFeedTab: true,
-      showWorldCupScreen: true,
-      showHubV2: true,
-      showHubBanner: true,
-      tagSlug: 'fifa-world-cup',
-      gamesTagId: '100639',
-      winnerEventId: '987654',
-      bannerImage: {
-        url: 'https://example.com/banner.png',
-        width: 400,
-        height: 200,
-      },
-      stages: [
-        {
-          key: 'group_stage',
-          labelKey: 'predict.world_cup.stages.group_stage',
-          eventIds: ['1', '2'],
-        },
-      ],
-    };
-
-    const result = create(input, PredictWorldCupSchema);
-
-    expect(result).toStrictEqual(input);
-  });
-
-  it('tolerates unknown/legacy keys in the remote payload without disabling the flag', () => {
-    // Remote feature flags are managed independently of client releases, so a
-    // legacy key such as `seriesId` (removed from the client) must not cause a
-    // parse failure that would fall back to the disabled default.
-    const result = create(
-      {
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showWorldCupScreen: true,
-        tagSlug: 'fifa-world-cup',
-        seriesId: '11433',
-        someFutureField: 'ignored',
-      },
-      PredictWorldCupSchema,
-    );
-
-    expect(result.enabled).toBe(true);
-    expect(result.showWorldCupScreen).toBe(true);
-    expect(result.tagSlug).toBe('fifa-world-cup');
-    // Declared defaults are still applied for omitted fields.
-    expect(result.gamesTagId).toBe(DEFAULT_PREDICT_WORLD_CUP_FLAG.gamesTagId);
-  });
-
-  it('throws for invalid stage event IDs', () => {
-    expect(() =>
-      create(
-        {
-          stages: [{ key: 'group_stage', eventIds: [123] }],
-        },
-        PredictWorldCupSchema,
-      ),
-    ).toThrow(StructError);
   });
 });
 

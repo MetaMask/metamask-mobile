@@ -8,7 +8,6 @@ Architecture for the performance test reporting system.
 tests/reporters/
 ├── PerformanceReporter.ts              # Main Playwright reporter (entry point)
 ├── PerformanceTracker.ts               # Timer management + metrics attachment
-├── DetoxPerformanceTestReporter.ts     # Detox reporter (independent, untouched)
 ├── types.ts                            # Shared TypeScript types
 ├── providers/
 │   ├── SessionDataEnricher.ts          # Interface for provider-agnostic enrichment

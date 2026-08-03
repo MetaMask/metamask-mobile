@@ -52,6 +52,31 @@ async function analyticsTrackPushClickEvent(
 type UnsubscribeFunc = () => void;
 
 /**
+ * A notification tap, and what the payload carried with it. `opened` is true
+ * even when there is no deeplink — on-chain activity notifications commonly
+ * have no CTA link.
+ */
+export interface PushTapResult {
+  opened: boolean;
+  deeplink: string | null;
+  notificationType?: string;
+  notificationSubtype?: string;
+}
+
+function toPushTapResult(
+  remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
+): PushTapResult {
+  const data = toFcmDataStringRecord(remoteMessage?.data);
+  const payload = toPushAnalyticsPayload(data);
+  return {
+    opened: Boolean(remoteMessage),
+    deeplink: data?.deeplink ?? null,
+    notificationType: payload?.notification_type,
+    notificationSubtype: payload?.notification_subtype,
+  };
+}
+
+/**
  * Utility to check if devices have enabled push notifications
  * @returns boolean
  */
@@ -190,26 +215,29 @@ class FCMService {
     this.#hasRegisteredForeground = null;
   };
 
-  onClickPushNotificationWhenAppClosed = async () => {
+  /**
+   * @returns `opened` — whether a notification tap launched the app, which is
+   * true even when the payload carries no deeplink (common for on-chain
+   * activity notifications) — and the deeplink when one is present.
+   */
+  onClickPushNotificationWhenAppClosed = async (): Promise<PushTapResult> => {
     try {
       const remoteMessage = await getInitialNotification();
       await analyticsTrackPushClickEvent(remoteMessage);
-      return toFcmDataStringRecord(remoteMessage?.data)?.deeplink ?? null;
+      return toPushTapResult(remoteMessage);
     } catch {
-      return null;
+      return { opened: false, deeplink: null };
     }
   };
 
   onClickPushNotificationWhenAppSuspended = (
-    deeplinkCallback: (deeplink?: string) => void,
+    tapCallback: (tap: PushTapResult) => void,
   ) => {
     try {
       messaging().onNotificationOpenedApp(async (remoteMessage) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
-          deeplinkCallback(
-            toFcmDataStringRecord(remoteMessage?.data)?.deeplink,
-          );
+          tapCallback(toPushTapResult(remoteMessage));
         } catch {
           // Do nothing
         }
