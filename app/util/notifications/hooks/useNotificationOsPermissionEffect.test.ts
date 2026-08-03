@@ -25,6 +25,12 @@ describe('useNotificationOsPermissionEffect', () => {
       });
   });
 
+  afterEach(() => {
+    // clearAllMocks does not restore spies; restore so the AppState spy does not
+    // leak into other suites sharing this Jest worker.
+    jest.restoreAllMocks();
+  });
+
   it('runs the detection once on mount', () => {
     renderHook(() => useNotificationOsPermissionEffect());
 

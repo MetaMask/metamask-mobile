@@ -26,9 +26,7 @@ jest.mock('../../../util/notifications', () => ({
 jest.mock(
   '../../../util/notifications/utils/push-notification-os-permission-baseline',
   () => ({
-    armPushNotificationOsPermissionBaseline: jest
-      .fn()
-      .mockResolvedValue(undefined),
+    armPushNotificationOsPermissionBaseline: jest.fn(),
   }),
 );
 
@@ -56,6 +54,11 @@ jest.mock('../../../core/Engine', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // clearAllMocks wipes implementations set in the jest.mock factory above, so
+  // restore the resolved-Promise return each test (the helpers await it).
+  jest
+    .mocked(armPushNotificationOsPermissionBaseline)
+    .mockResolvedValue(undefined);
 });
 
 describe('helpers - enableNotificationServices()', () => {
