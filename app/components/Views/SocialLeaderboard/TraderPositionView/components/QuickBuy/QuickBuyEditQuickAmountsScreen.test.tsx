@@ -90,6 +90,19 @@ describe('QuickBuyEditQuickAmountsScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders buy and sell amounts in a 2x2 grid', () => {
+    render(<QuickBuyEditQuickAmountsScreen />);
+
+    for (const index of [0, 1, 2, 3]) {
+      expect(
+        screen.getByTestId(`quick-buy-edit-buy-field-${index}`),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(`quick-buy-edit-sell-field-${index}`),
+      ).toBeOnTheScreen();
+    }
+  });
+
   it('switches focus without collapsing the keypad', () => {
     render(<QuickBuyEditQuickAmountsScreen />);
 

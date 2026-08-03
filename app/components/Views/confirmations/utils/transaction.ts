@@ -1,11 +1,14 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Interface } from '@ethersproject/abi';
 import {
+  hasTransactionType,
   TransactionMeta,
   TransactionParams,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+
+export { hasTransactionType } from '@metamask/transaction-controller';
 import {
   abiERC721,
   abiERC20,
@@ -143,23 +146,6 @@ export function getTransactionType(
     if (nestedType) return nestedType;
   }
   return type;
-}
-
-export function hasTransactionType(
-  transactionMeta: TransactionMeta | undefined,
-  types: readonly TransactionType[],
-) {
-  const { nestedTransactions, type } = transactionMeta ?? {};
-
-  if (types.includes(type as TransactionType)) {
-    return true;
-  }
-
-  return (
-    nestedTransactions?.some((tx) =>
-      types.includes(tx.type as TransactionType),
-    ) ?? false
-  );
 }
 
 /**

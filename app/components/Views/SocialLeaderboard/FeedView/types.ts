@@ -12,7 +12,7 @@ export type FeedAudience = 'all' | 'following';
  * leaderboard and feed: everything, spot tokens, or perps. Applied client-side
  * over the loaded feed pages.
  */
-export type { SocialTypeFilter as FeedTypeFilter } from '../components/TypeFilter/types';
+export type { SocialTypeFilter as FeedTypeFilter } from '../components/Filters/types';
 
 /** Trade action verb, shown after the trader username. */
 export type FeedAction = 'bought' | 'sold' | 'opened' | 'closed';

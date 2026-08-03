@@ -28,6 +28,11 @@ on:
         required: false
         type: string
         default: current
+      pr_number:
+        description: 'If set, post the TestFlight upload summary as a comment on this PR'
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
     inputs:
       source_branch:
@@ -66,6 +71,11 @@ on:
           - current
           - namespace
         default: current
+      pr_number:
+        description: 'If set, post the TestFlight upload summary as a comment on this PR'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -100,4 +110,5 @@ jobs:
       build_number: ${{ needs.build.outputs.ios_version_code }}
       distribute_external: ${{ inputs.distribute_external }}
       runner_provider: ${{ inputs.runner_provider }}
+      pr_number: ${{ inputs.pr_number }}
     secrets: inherit
