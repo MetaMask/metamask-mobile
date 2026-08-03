@@ -478,7 +478,9 @@ export const selectTransactionMetadataByHash = createSelector(
   (_: RootState, hash: string | undefined) => hash,
   (transactions, hash) =>
     hash
-      ? transactions.find((tx) => tx.hash?.toLowerCase() === hash?.toLowerCase())
+      ? transactions.find(
+          (tx) => tx.hash?.toLowerCase() === hash?.toLowerCase(),
+        )
       : undefined,
 );
 
