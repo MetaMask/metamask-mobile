@@ -6,6 +6,7 @@ const styleSheet = () =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       gap: 16,
+      marginTop: 16,
     },
     balanceActionButton: {
       flex: 1,

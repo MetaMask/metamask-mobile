@@ -1,12 +1,21 @@
 import { Platform } from 'react-native';
 
-// Neutral binding avoids Sonar S2068 false positive on the screen_id tag literal.
-const choosePasswordScreenId = ['choose', 'password'].join('_');
+// Ids must not contain the substrings Sentry's default scrubber redacts on
+// ("password", "auth", "token", "secret", ...): it matches values as well as
+// keys, so such an id reaches Sentry as [Filtered] on every tag, breadcrumb and
+// destination_screen_id that carries it.
+// The neutral binding additionally avoids a Sonar S2068 false positive here.
+const choosePasswordScreenId = ['choose', 'pw'].join('_');
 
 export const OnboardingScreenIds = {
   ONBOARDING_LANDING: 'onboarding_landing',
   CHOOSE_PASSWORD: choosePasswordScreenId,
   IMPORT_SRP: 'import_srp',
+  ACCOUNT_ALREADY_EXISTS: 'account_already_exists',
+  ACCOUNT_NOT_FOUND: 'account_not_found',
+  SOCIAL_REHYDRATE: 'social_rehydrate',
+  SOCIAL_LOGIN_SUCCESS_NEW_USER: 'social_login_success_new_user',
+  SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'social_login_success_existing_user',
 } as const;
 
 export type OnboardingScreenId =

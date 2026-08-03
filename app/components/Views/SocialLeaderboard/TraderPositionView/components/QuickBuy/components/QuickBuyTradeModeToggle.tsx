@@ -6,7 +6,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { brandColor } from '@metamask/design-tokens';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
@@ -15,7 +14,6 @@ import {
 } from 'react-native';
 import Animated, {
   interpolate,
-  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -48,14 +46,17 @@ interface QuickBuyTradeModeToggleProps {
   buyOnly?: boolean;
 }
 
+/**
+ * Neutral Buy/Sell segmented control (white selected / dark unselected).
+ * Color for trade direction lives on the confirm CTA, not this toggle.
+ */
 const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   testID = 'quick-buy-trade-mode-toggle',
   buyOnly = false,
 }) => {
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
-  const buyColor = colors.success.default;
-  const sellColor = brandColor.orange400;
+  const selectedColor = colors.icon.default;
 
   const slideProgress = useSharedValue(tradeMode === 'sell' ? 1 : 0);
   const buyWidthSV = useSharedValue(0);
@@ -103,14 +104,10 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
     return {
       left: buyXSV.value,
       width,
-      backgroundColor: interpolateColor(
-        progress,
-        [0, 1],
-        [buyColor, sellColor],
-      ),
+      backgroundColor: selectedColor,
       transform: [{ translateX: progress * buyWidthSV.value }],
     };
-  }, [buyColor, sellColor]);
+  }, [selectedColor]);
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
@@ -123,7 +120,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
       >
         <Box
           twClassName="rounded-lg px-4 py-1"
-          style={{ backgroundColor: buyColor }}
+          style={{ backgroundColor: selectedColor }}
         >
           <Text
             variant={TextVariant.BodyMd}

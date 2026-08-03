@@ -82,6 +82,7 @@ export interface PredictFeedRouteParams {
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
+  providerId?: string;
   series?: PredictSeries;
   seriesId?: string;
   seriesRecurrence?: string;
