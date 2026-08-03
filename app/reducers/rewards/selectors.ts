@@ -180,6 +180,9 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
+export const selectPendingMasSeriesOptIn = (state: RootState) =>
+  state.rewards.pendingMasSeriesOptIn;
+
 // Benefits selectors
 export const selectBenefits = (
   state: RootState,
