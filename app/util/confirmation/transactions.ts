@@ -10,7 +10,6 @@ import {
 import {
   BoxBackgroundColor,
   IconColor,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { addHexPrefix, safeBNToHex } from '../number';
 import { safeToChecksumAddress } from '../address';
@@ -20,6 +19,7 @@ import {
   ButtonIconVariant,
   type ToastOptions,
 } from '../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../component-library/components/Icons/Icon';
 
 export function buildTransactionParams({
   gasDataEIP1559,

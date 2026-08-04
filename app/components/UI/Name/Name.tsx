@@ -5,9 +5,6 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import Icon, {
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../component-library/hooks';
 import images from '../../../images/image-icons';
 import { renderShortAddress } from '../../../util/address';
@@ -20,6 +17,8 @@ import styleSheet from './Name.styles';
 import { NameProperties, NameType } from './Name.types';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip';
 import {
+  Icon,
+  IconSize,
   Text,
   TextVariant,
   TextColor,

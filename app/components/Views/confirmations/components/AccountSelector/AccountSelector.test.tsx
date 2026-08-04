@@ -87,7 +87,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     BottomSheet: MockBottomSheet,
     Text: MockText,
     Skeleton: MockSkeleton,
-    Icon: ({ name }: { name: string }) => <RNView testID={`icon-${name}`} />,
     TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
     TextColor: { TextAlternative: 'TextAlternative' },
   };

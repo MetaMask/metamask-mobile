@@ -2,11 +2,11 @@ import BN from 'bnjs4';
 import {
   BoxBackgroundColor,
   IconColor,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { TransactionEnvelopeType } from '@metamask/transaction-controller';
 import { ToastVariants } from '../../component-library/components/Toast';
+import { IconName } from '../../component-library/components/Icons/Icon';
 import { strings } from '../../../locales/i18n';
 import {
   buildTransactionParams,
