@@ -222,10 +222,8 @@ describe('SwapDetails', () => {
       );
 
       expect(mockCapturedCtas).toHaveLength(0);
-      expect(mockUseActivityDetailsLendAgain).toHaveBeenCalledWith({
-        token: undefined,
-        fallbackCaipChainId: 'eip155:42161',
-      });
+      // The Earn token map isn't even subscribed to for a withdrawal.
+      expect(mockUseActivityDetailsLendAgain).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -234,6 +232,8 @@ describe('SwapDetails', () => {
       ['wrap', 'activity_details.wrap_again'],
       ['unwrap', 'activity_details.unwrap_again'],
     ] as const)('keeps the "%s" CTA unchanged', (type, labelKey) => {
+      arrangeLendAgain(true);
+
       render(
         <SwapDetails
           item={
@@ -245,6 +245,9 @@ describe('SwapDetails', () => {
         />,
       );
 
+      // Even with a lendable token in the map, non-lending types keep the swap
+      // CTA and never subscribe to the Earn token map.
+      expect(mockUseActivityDetailsLendAgain).not.toHaveBeenCalled();
       expect(mockCapturedCtas).toHaveLength(1);
       expect(mockCapturedCtas[0].label).toBe(strings(labelKey));
 

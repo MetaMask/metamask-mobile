@@ -1,8 +1,10 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import {
   type ActivityListItem,
+  type TokenAmount,
   enrichTokenFromApi,
 } from '../../../../util/activity-adapters';
 import { useTokensData } from '../../../hooks/useTokensData/useTokensData';
@@ -20,6 +22,35 @@ import {
 } from '../hooks/useActivityDetailsDoItAgain';
 import { useActivityDetailsLendAgain } from '../hooks/useActivityDetailsLendAgain';
 import { getSwapAgainLabel } from './swapAgainLabel';
+
+/**
+ * Isolated so the Earn token map — an expensive derived selector — is only
+ * subscribed to on lending-deposit details, not on every swap-family screen.
+ * Renders nothing when the deposited token is no longer lendable.
+ */
+function LendAgainButton({
+  token,
+  fallbackCaipChainId,
+}: {
+  token?: TokenAmount;
+  fallbackCaipChainId: CaipChainId;
+}) {
+  const { canLendAgain, onLendAgain } = useActivityDetailsLendAgain({
+    token,
+    fallbackCaipChainId,
+  });
+
+  if (!canLendAgain) {
+    return null;
+  }
+
+  return (
+    <ActivityDetailsDoItAgainButton
+      label={strings('activity_details.lend_again')}
+      onPress={onLendAgain}
+    />
+  );
+}
 
 type SwapDetailsItem = Extract<
   ActivityListItem,
@@ -62,10 +93,6 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       ? undefined
       : getSwapAgainLabel(item.type);
   const isLendingDeposit = item.type === 'lendingDeposit';
-  const { canLendAgain, onLendAgain } = useActivityDetailsLendAgain({
-    token: isLendingDeposit ? sourceToken : undefined,
-    fallbackCaipChainId: item.chainId,
-  });
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
     sourceToken,
     item.chainId,
@@ -87,10 +114,10 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
             chainId={item.chainId}
             hash={item.hash}
           />
-          {isLendingDeposit && canLendAgain ? (
-            <ActivityDetailsDoItAgainButton
-              label={strings('activity_details.lend_again')}
-              onPress={onLendAgain}
+          {isLendingDeposit ? (
+            <LendAgainButton
+              token={sourceToken}
+              fallbackCaipChainId={item.chainId}
             />
           ) : null}
           {swapAgainLabel && canDoItAgain ? (
