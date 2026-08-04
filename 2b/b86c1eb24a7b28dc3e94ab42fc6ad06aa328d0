@@ -1,0 +1,62 @@
+tests/llm-workflow/__tests__/android-platform-adapter.test.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-440
+tests/llm-workflow/android/animations.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-68
+tests/llm-workflow/daemon.ts
+  s_2a97e73c684403::t_f125c996cee4b6 25
+tests/llm-workflow/README.md
+  s_2a97e73c684403::t_f125c996cee4b6 3-7,9-14,18-20,22,25-41,43,48,50,52-54,65,67-68,72,74,76-79,83,89-90,92-94,96,99,115,117-120,122-124,130-134,139,146,148,150-157,161-163,165,180
+tests/llm-workflow/__tests__/metamask-provider.test.ts
+  s_2a97e73c684403::t_f6e95af48d12cf 7-8,10-14,17-27,31-33,37-48,56-57,60-65,67-84,86-101,105,107-110,112-135,138-139,142-144,147-150,152-155,159-161,163-167,170-173,175-181,184-185,187-194,196-199,202-207,210,213-215,220,224-225,227-229,232-233,235,237-238,240-241,244-245,247-248,252-253,255-256,259-261,264-266,268,270,272-276,279-287,289,291-292,294-310
+tests/llm-workflow/android/platform-adapter.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-349
+tests/llm-workflow/__tests__/android-prerequisites.test.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-238
+tests/llm-workflow/android/metro-watch-attach.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-149
+tests/llm-workflow/__tests__/android-metro-watch-attach.test.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-205
+tests/llm-workflow/__tests__/ios-platform-adapter.test.ts
+  s_2a97e73c684403::t_696c4b811cf476 5-6,16-21,31-32
+  s_2a97e73c684403::t_9d149eda5deb21 193,211
+  s_2a97e73c684403::t_54f1c165436ae8 56,69-71
+  s_2a97e73c684403::t_f125c996cee4b6 1-4,7-15,22-30,33-55,57-68,72-192,194-210,212-248
+tests/llm-workflow/android/snapshot-backend.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-90
+tests/llm-workflow/launcher-types.ts
+  s_2a97e73c684403::t_a58040210c4bdc 73-85,90-98,104,106-116
+tests/llm-workflow/capabilities/state-snapshot.ts
+  s_2a97e73c684403::t_f125c996cee4b6 24
+tests/llm-workflow/ios/platform-adapter.ts
+  s_2a97e73c684403::t_b3422e552283a0 1-338
+tests/llm-workflow/android/prerequisites.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-199
+tests/llm-workflow/android/adb.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-55
+tests/llm-workflow/platform-adapter.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-30
+tests/llm-workflow/metamask-provider.ts
+  s_2a97e73c684403::t_71f3a3e85bd1e9 1,26-27,29,31,33-37,40-42,45-47,49-50,65-69,71-77,101-104,109-110,112,114,116-117,124,126,139,144,146-153,155,165,176,192,196,208,213,236,239,245,248,253,257,261,268,310,334-339,342-349,353-359,361-364,366-367,369-372,379,388-392,400-403,410,412,415,420,423-424,426,430-431,433,437-438,440,444-469,477-478,480-491,493,495-497,499-506
+tests/llm-workflow/__tests__/android-animations.test.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-133
+tests/llm-workflow/index.ts
+  s_2a97e73c684403::t_f125c996cee4b6 3-12
+tests/llm-workflow/__tests__/android-snapshot-backend.test.ts
+  s_2a97e73c684403::t_f125c996cee4b6 1-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "2bb86c1eb24a7b28dc3e94ab42fc6ad06aa328d0",
+  "prompts": {},
+  "sessions": {
+    "s_2a97e73c684403": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0324ebe4bffeQ9U8zJ2UN0dMpz",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
