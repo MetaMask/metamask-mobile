@@ -3,7 +3,7 @@ import React from 'react';
 import { stakingClaimConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
-import { getNavbar } from '../../../../components/UI/navbar/navbar';
+import useNavbar from '../../../../hooks/ui/useNavbar';
 import StakingClaim from './staking-claim';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
@@ -52,8 +52,9 @@ jest.mock('../../../../components/UI/animated-pulse', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-jest.mock('../../../../components/UI/navbar/navbar', () => ({
-  getNavbar: jest.fn(),
+jest.mock('../../../../hooks/ui/useNavbar', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 const noop = () => undefined;
@@ -75,7 +76,7 @@ jest.mock('../../../../../../../util/trace', () => ({
 }));
 
 describe('StakingClaim', () => {
-  const mockGetNavbar = jest.mocked(getNavbar);
+  const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockEndTrace = jest.mocked(endTrace);
 
@@ -113,16 +114,7 @@ describe('StakingClaim', () => {
     expect(getByText('Ethereum Mainnet')).toBeDefined();
     expect(getByText('Network fee')).toBeDefined();
 
-    expect(mockGetNavbar).toHaveBeenCalled();
-    expect(mockGetNavbar).toHaveBeenCalledWith({
-      title: 'Claim',
-      onReject: mockOnReject,
-      addBackButton: false,
-      theme: expect.any(Object),
-      mmPayRequestInProgressNavHandler: expect.objectContaining({
-        current: false,
-      }),
-    });
+    expect(mockUseNavbar).toHaveBeenCalledWith('Claim', false);
   });
 
   it('ends the EarnClaimConfirmationScreen trace on mount', () => {

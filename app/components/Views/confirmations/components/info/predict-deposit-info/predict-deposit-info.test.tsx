@@ -38,6 +38,7 @@ describe('PredictDepositInfo', () => {
 
     expect(mockUseNavbar).toHaveBeenCalledWith(
       strings('confirm.title.predict_deposit'),
+      true,
     );
   });
 
@@ -50,6 +51,7 @@ describe('PredictDepositInfo', () => {
 
     expect(mockUseNavbar).toHaveBeenCalledWith(
       strings('predict.send_to_predictions'),
+      true,
     );
   });
 

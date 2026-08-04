@@ -316,6 +316,7 @@ describe('Confirm', () => {
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       gestureEnabled: false,
+      headerShown: false,
     });
 
     expect(BackHandler.addEventListener).toHaveBeenCalledWith(
@@ -577,7 +578,7 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-default')).toBeDefined();
   });
 
-  it('sets navigation options with header shown for full screen confirmations', () => {
+  it('sets navigation options with header hidden for full screen confirmations', () => {
     jest.mocked(useFullScreenConfirmation).mockReturnValue({
       isFullScreenConfirmation: true,
     });
@@ -587,7 +588,7 @@ describe('Confirm', () => {
     });
 
     expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: true,
+      headerShown: false,
       gestureEnabled: true,
     });
   });

@@ -37,11 +37,17 @@ const MAX_BUTTON = {
 };
 
 export interface DepositKeyboardProps {
+  /**
+   * @deprecated Prefer disabling Done via `isDoneDisabled` and showing
+   * HelpText under the amount instead of swapping the Done label.
+   */
   alertMessage?: string;
   doneLabel?: string;
   hasInput?: boolean;
   hasMax?: boolean;
   hidePercentageButtons?: boolean;
+  /** When true, Done stays labeled but cannot be pressed. */
+  isDoneDisabled?: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -55,6 +61,7 @@ export const DepositKeyboard = memo(
     hasInput,
     hasMax,
     hidePercentageButtons,
+    isDoneDisabled,
     onChange,
     onDonePress,
     onPercentagePress,
@@ -124,8 +131,12 @@ export const DepositKeyboard = memo(
           {!alertMessage && hasInput && (
             <Button
               testID="deposit-keyboard-done-button"
-              style={styles.button}
+              style={[
+                styles.button,
+                isDoneDisabled ? styles.disabledButton : undefined,
+              ]}
               onPress={onDonePress}
+              isDisabled={isDoneDisabled}
               variant={ButtonVariant.Primary}
             >
               {doneLabel ?? strings('confirm.edit_amount_done')}

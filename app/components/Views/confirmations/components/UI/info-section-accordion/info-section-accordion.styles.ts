@@ -10,6 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
       padding: 8,
+      marginHorizontal: 16,
       marginBottom: 8,
     },
     header: {

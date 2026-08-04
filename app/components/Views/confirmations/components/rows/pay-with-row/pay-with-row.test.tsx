@@ -35,18 +35,6 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
-
-jest.mock('../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
-jest.mock('../../../hooks/pay/useTransactionPayData');
-jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
-jest.mock('../../../../../../util/address');
-jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(),
-}));
-
 jest.mock('../../../hooks/pay/useTransactionPayToken', () => ({
   useTransactionPayToken: jest.fn(),
 }));
@@ -68,7 +56,9 @@ jest.mock(
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens', () => ({
   useTransactionPayAvailableTokens: jest.fn(),
 }));
-jest.mock('../../../../../../util/address');
+jest.mock('../../../../../../util/address', () => ({
+  isHardwareAccount: jest.fn(),
+}));
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
@@ -457,7 +447,7 @@ describe('PayWithRow', () => {
         state: STATE_MOCK,
       });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/test/);
     });
 
     it('renders money account row for perps deposit', () => {
@@ -507,7 +497,7 @@ describe('PayWithRow', () => {
         state: STATE_MOCK,
       });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/test/);
     });
   });
 });

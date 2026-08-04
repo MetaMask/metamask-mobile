@@ -77,11 +77,11 @@
     },
     "signed_or_submitted_perps_deposit": {
       "title": "Deposit in progress",
-      "message": "Wait for the last deposit to finish before making another."
+      "message": "Wait for it to complete before starting another."
     },
     "signed_or_submitted_pay_token": {
       "title": "Pending transaction",
-      "message": "You have a pending transaction on this network. Wait for it to complete or select a token on another network."
+      "message": "Pending transaction on this network. Wait for it to complete, or use a different network."
     },
     "pending_transaction": {
       "title": "Pending transaction",
@@ -103,7 +103,7 @@
       "title": "Insufficient funds"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Enter a lower amount or use a different payment method."
     },
     "insufficient_pay_token_native": {
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
@@ -114,7 +114,7 @@
       "title": "Insufficient funds for post quote"
     },
     "no_pay_token_quotes": {
-      "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
+      "message": "This payment route is unavailable. Try a different amount or payment method.",
       "title": "No quotes"
     },
     "account_no_funds": {
@@ -125,7 +125,7 @@
       "title": "Amount out of range"
     },
     "deposit_limit": {
-      "title": "Max deposit: {{amount}}"
+      "title": "Maximum {{amount}}"
     },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
