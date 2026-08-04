@@ -59,6 +59,10 @@ describe('useAutoUpdateDestToken', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('when source chain changes and dest was not manually set', () => {
     it('updates dest token to default for new source chain', () => {
       const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
