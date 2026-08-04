@@ -419,7 +419,10 @@ jobs:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.ensure-fingerprint.outputs.fingerprint }}
-      main_branch_only: ${{ inputs.reuse_main_builds }}
+      # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
+      # unset; passing a blank value into this boolean workflow_call input makes
+      # the reusable Android build job fail to start (no child jobs, tests skip).
+      main_branch_only: ${{ inputs.reuse_main_builds == true }}
     secrets: inherit
 
   trigger-ios-dual-versions:
