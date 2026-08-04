@@ -126,6 +126,11 @@ export const AssetDetailsActivityListItem = ({
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {
+      const selectedTx =
+        item.raw?.type === 'localTransaction'
+          ? item.raw.data.primaryTransaction
+          : undefined;
+
       if (isTransactionsRedesignEnabled) {
         const detailsRoute = getActivityDetailsRoute(item);
         if (detailsRoute) {
@@ -134,10 +139,6 @@ export const AssetDetailsActivityListItem = ({
         }
       }
 
-      const selectedTx =
-        item.raw?.type === 'localTransaction'
-          ? item.raw.data.primaryTransaction
-          : undefined;
       if (!selectedTx) return;
 
       const { from, to } = getActivityFromTo(item);

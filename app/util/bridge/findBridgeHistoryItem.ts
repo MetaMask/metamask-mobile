@@ -37,7 +37,15 @@ export const findBridgeHistoryItem = ({
     return undefined;
   }
 
-  return Object.values(bridgeHistory).find((item) =>
+  const itemBySrcTxHash = Object.values(bridgeHistory).find((item) =>
     equalsIgnoreCase(item.status?.srcChain?.txHash, transactionHash),
+  );
+
+  if (itemBySrcTxHash) {
+    return itemBySrcTxHash;
+  }
+
+  return Object.values(bridgeHistory).find((item) =>
+    equalsIgnoreCase(item.status?.destChain?.txHash, transactionHash),
   );
 };

@@ -6,6 +6,7 @@ import {
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isBridgeTxHistoryItemBridge } from '../../UI/Bridge/utils/transaction-history';
 
 export const getMultichainTransactionDetailEventProperties = ({
@@ -37,8 +38,8 @@ export const getMultichainTransactionDetailEventProperties = ({
     transaction_type: isBridgeTxHistoryItemBridge(bridgeHistoryItem)
       ? 'bridge'
       : 'swap',
-    chain_id_source: String(quote.srcAsset.chainId),
-    chain_id_destination: String(quote.destAsset.chainId),
+    chain_id_source: formatChainIdToCaip(quote.srcChainId),
+    chain_id_destination: formatChainIdToCaip(quote.destChainId),
     monetized_primitive: MonetizedPrimitive.Swaps,
   };
 };

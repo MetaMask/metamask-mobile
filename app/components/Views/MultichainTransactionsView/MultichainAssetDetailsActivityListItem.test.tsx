@@ -235,7 +235,7 @@ describe('MultichainAssetDetailsActivityListItem', () => {
       );
     });
 
-    it('keeps a cross-chain bridge on its dedicated bridge-status screen', () => {
+    it('routes a cross-chain bridge to the redesigned ActivityDetails screen', () => {
       mockUseSelector.mockImplementation(
         (selector) => selector === selectIsTransactionsRedesignEnabled,
       );
@@ -257,7 +257,33 @@ describe('MultichainAssetDetailsActivityListItem', () => {
 
       fireEvent.press(getByTestId('activity-list-item-row'));
 
-      expect(navigation.navigate).not.toHaveBeenCalled();
+      expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
+      expect(navigation.navigate).toHaveBeenCalledWith(
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({ txIdentifier: 'tx-1' }),
+      );
+    });
+
+    it('falls back to the bridge-status screen for a cross-chain bridge when the redesign is off', () => {
+      // mockUseSelector default in beforeEach returns false for every selector.
+      const navigation = createNavigation();
+      const transaction = createTransaction({ type: TransactionType.Swap });
+
+      const { getByTestId } = render(
+        <MultichainAssetDetailsActivityListItem
+          transaction={transaction}
+          bridgeHistoryItem={createBridgeHistoryItem(
+            SolScope.Mainnet,
+            'eip155:1',
+          )}
+          index={0}
+          chainId={SolScope.Mainnet}
+          navigation={navigation}
+        />,
+      );
+
+      fireEvent.press(getByTestId('activity-list-item-row'));
+
       expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
         expect.objectContaining({ multiChainTx: transaction }),
       );

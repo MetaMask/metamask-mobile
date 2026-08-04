@@ -70,24 +70,24 @@ describe('MultichainAssetDetailsActivityListItem utils', () => {
     });
   });
 
-  it('reports the quote chains and swaps primitive when a bridge history entry exists', () => {
+  it('reports the quote chains as CAIP ids and the swaps primitive when a bridge history entry exists', () => {
+    // Real quotes carry chain ids as bridge-API numbers, not CAIP strings.
+    const SOLANA_NUMERIC_CHAIN_ID = 1151111081099710;
     const transaction = createTransaction({ type: TransactionType.Swap });
 
-    expect(
-      getMultichainTransactionDetailEventProperties({
-        transaction,
-        chainId: SolScope.Mainnet,
-        location: TransactionDetailLocation.AssetDetails,
-        bridgeHistoryItem: {
-          quote: {
-            srcChainId: SolScope.Mainnet,
-            destChainId: 'eip155:1',
-            srcAsset: { chainId: SolScope.Mainnet },
-            destAsset: { chainId: 'eip155:1' },
-          },
-        } as never,
-      }),
-    ).toStrictEqual({
+    const properties = getMultichainTransactionDetailEventProperties({
+      transaction,
+      chainId: SolScope.Mainnet,
+      location: TransactionDetailLocation.AssetDetails,
+      bridgeHistoryItem: {
+        quote: {
+          srcChainId: SOLANA_NUMERIC_CHAIN_ID,
+          destChainId: 1,
+        },
+      } as never,
+    });
+
+    expect(properties).toStrictEqual({
       transaction_type: 'bridge',
       transaction_status: TransactionStatus.Confirmed,
       location: TransactionDetailLocation.AssetDetails,
@@ -98,22 +98,27 @@ describe('MultichainAssetDetailsActivityListItem utils', () => {
   });
 
   it('classifies a same-chain bridge history entry as a swap', () => {
+    const SOLANA_NUMERIC_CHAIN_ID = 1151111081099710;
     const transaction = createTransaction({ type: TransactionType.Swap });
 
-    expect(
-      getMultichainTransactionDetailEventProperties({
-        transaction,
-        chainId: SolScope.Mainnet,
-        bridgeHistoryItem: {
-          quote: {
-            srcChainId: SolScope.Mainnet,
-            destChainId: SolScope.Mainnet,
-            srcAsset: { chainId: SolScope.Mainnet },
-            destAsset: { chainId: SolScope.Mainnet },
-          },
-        } as never,
+    const properties = getMultichainTransactionDetailEventProperties({
+      transaction,
+      chainId: SolScope.Mainnet,
+      bridgeHistoryItem: {
+        quote: {
+          srcChainId: SOLANA_NUMERIC_CHAIN_ID,
+          destChainId: SOLANA_NUMERIC_CHAIN_ID,
+        },
+      } as never,
+    });
+
+    expect(properties).toEqual(
+      expect.objectContaining({
+        transaction_type: 'swap',
+        chain_id_source: SolScope.Mainnet,
+        chain_id_destination: SolScope.Mainnet,
       }),
-    ).toEqual(expect.objectContaining({ transaction_type: 'swap' }));
+    );
   });
 
   it('maps a keyring swap that carries cross-chain bridge history to a bridge item', () => {

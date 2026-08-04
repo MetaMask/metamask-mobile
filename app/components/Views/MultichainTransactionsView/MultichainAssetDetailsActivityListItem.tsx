@@ -68,6 +68,14 @@ export const MultichainAssetDetailsActivityListItem = ({
         .build(),
     );
 
+    if (isTransactionsRedesignEnabled) {
+      const detailsRoute = getActivityDetailsRoute(activityItem);
+      if (detailsRoute) {
+        navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+        return;
+      }
+    }
+
     if (bridgeHistoryItem && isBridgeTxHistoryItemBridge(bridgeHistoryItem)) {
       handleUnifiedSwapsTxHistoryItemClick({
         navigation,
@@ -75,14 +83,6 @@ export const MultichainAssetDetailsActivityListItem = ({
         bridgeTxHistoryItem: bridgeHistoryItem,
       });
       return;
-    }
-
-    if (isTransactionsRedesignEnabled) {
-      const detailsRoute = getActivityDetailsRoute(activityItem);
-      if (detailsRoute) {
-        navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-        return;
-      }
     }
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

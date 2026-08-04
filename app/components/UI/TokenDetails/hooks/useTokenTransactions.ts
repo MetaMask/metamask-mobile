@@ -78,6 +78,7 @@ export interface UseTokenTransactionsResult {
   conversionRate: number;
   currentCurrency: string;
   isNonEvmAsset: boolean;
+  bridgeArrivalTxs: Transaction[];
   onRefresh: () => Promise<void>;
 }
 
@@ -311,6 +312,70 @@ export const useTokenTransactions = (
     nonEvmTransactionsData,
     ///: END:ONLY_INCLUDE_IF
   ]);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  /**
+   * EVM bridge transactions arriving at this non-EVM asset.
+   *
+   * A bridge's only local tx is on the source chain, and this page's list is
+   * keyring txs from its own chain — so the receiving leg would never show.
+   * `isBridgeArrivalForCurrentToken` does the same job for EVM pages; it can't
+   * be reused here because it compares hex chain ids.
+   */
+  const bridgeArrivalTxs = useMemo(() => {
+    if (!isNonEvmAsset || !asset.chainId) {
+      return [] as Transaction[];
+    }
+
+    const nativeAssetId =
+      AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+        asset.chainId as SupportedCaipChainId
+      ]?.nativeCurrency;
+    const assetAddress = asset.address?.toLowerCase();
+    const isNativeAsset = asset.isNative || asset.isETH;
+
+    return evmTransactions.filter((tx: Transaction) => {
+      if (tx.type !== TransactionType.bridge || tx.status === TX_UNAPPROVED) {
+        return false;
+      }
+
+      const quote = findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: tx.actionId,
+        transactionHash: tx.hash,
+      })?.quote;
+
+      if (quote?.destChainId === undefined || quote.destChainId === null) {
+        return false;
+      }
+
+      if (formatChainIdToCaip(quote.destChainId) !== asset.chainId) {
+        return false;
+      }
+
+      const destAssetId = quote.destAsset?.assetId?.toLowerCase();
+
+      if (isNativeAsset) {
+        return Boolean(
+          nativeAssetId && destAssetId === nativeAssetId.toLowerCase(),
+        );
+      }
+
+      return Boolean(
+        assetAddress && destAssetId && destAssetId.includes(assetAddress),
+      );
+    });
+  }, [
+    asset.address,
+    asset.chainId,
+    asset.isETH,
+    asset.isNative,
+    bridgeHistory,
+    evmTransactions,
+    isNonEvmAsset,
+  ]);
+  ///: END:ONLY_INCLUDE_IF
 
   // Wrapper for shared mUSD claim detection utility
   const checkIsMusdClaimForCurrentView = useCallback(
@@ -711,6 +776,7 @@ export const useTokenTransactions = (
     conversionRate: conversionRate ?? 0,
     currentCurrency,
     isNonEvmAsset,
+    bridgeArrivalTxs,
     onRefresh,
   };
 };

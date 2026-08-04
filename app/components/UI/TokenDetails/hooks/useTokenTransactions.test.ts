@@ -842,6 +842,159 @@ describe('useTokenTransactions', () => {
     });
   });
 
+  describe('bridge arrivals on a non-EVM destination page', () => {
+    const SOLANA_NUMERIC_CHAIN_ID = 1151111081099710;
+
+    const setupSolanaPageMocks = (
+      bridgeHistory: Record<string, unknown>,
+      evmTxs: unknown[],
+    ) => {
+      jest.mocked(isNonEvmChainId).mockReturnValue(true);
+      jest
+        .mocked(formatChainIdToCaip)
+        .mockImplementation((chainId: unknown) =>
+          chainId === SOLANA_NUMERIC_CHAIN_ID || chainId === SOLANA_CHAIN_ID
+            ? (SOLANA_CHAIN_ID as never)
+            : (`eip155:${chainId}` as never),
+        );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectTransactions) return evmTxs;
+        if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
+        if (selector === selectIsActivityRedesignEnabled) return true;
+        if (selector === selectTokens) return [];
+        if (selector === selectSelectedInternalAccount) {
+          return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => ({ address: SOLANA_ADDRESS });
+        }
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup) {
+          return { transactions: [] };
+        }
+        if (selector === selectConversionRate) return 1;
+        if (selector === selectCurrentCurrency) return 'usd';
+        return SOLANA_ADDRESS;
+      });
+    };
+
+    const evmBridgeTx = {
+      id: 'bridge-arrival-1',
+      chainId: '0x2105',
+      hash: '0xbase-source',
+      status: TX_CONFIRMED,
+      time: 5,
+      type: TransactionType.bridge,
+      txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT },
+    };
+
+    const historyTo = (destAssetId: string) => ({
+      'bridge-arrival-1': {
+        quote: {
+          srcChainId: 8453,
+          destChainId: SOLANA_NUMERIC_CHAIN_ID,
+          srcAsset: { chainId: 8453, assetId: 'eip155:8453/erc20:0xusdc' },
+          destAsset: {
+            chainId: SOLANA_NUMERIC_CHAIN_ID,
+            assetId: destAssetId,
+          },
+        },
+      },
+    });
+
+    const solanaAsset = (overrides: Partial<TokenI>) =>
+      createAsset({ chainId: SOLANA_CHAIN_ID, isETH: false, ...overrides });
+
+    it('returns an EVM bridge whose destination is this native non-EVM asset', async () => {
+      setupSolanaPageMocks(historyTo(SOL_ASSET_ID), [evmBridgeTx]);
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({ symbol: 'SOL', isNative: true, address: SOL_ASSET_ID }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.bridgeArrivalTxs.map((tx) => tx.id)).toEqual([
+        'bridge-arrival-1',
+      ]);
+    });
+
+    it('returns an EVM bridge whose destination is this non-EVM token', async () => {
+      setupSolanaPageMocks(historyTo(USDC_ASSET_ID), [evmBridgeTx]);
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({
+            symbol: 'USDC',
+            isNative: false,
+            address: USDC_ADDRESS,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.bridgeArrivalTxs.map((tx) => tx.id)).toEqual([
+        'bridge-arrival-1',
+      ]);
+    });
+
+    it('excludes a bridge whose destination asset is a different non-EVM token', async () => {
+      setupSolanaPageMocks(historyTo(USDC_ASSET_ID), [evmBridgeTx]);
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({ symbol: 'SOL', isNative: true, address: SOL_ASSET_ID }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.bridgeArrivalTxs).toEqual([]);
+    });
+
+    it('excludes a non-bridge EVM transaction', async () => {
+      setupSolanaPageMocks(historyTo(SOL_ASSET_ID), [
+        { ...evmBridgeTx, type: TransactionType.swap },
+      ]);
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({ symbol: 'SOL', isNative: true, address: SOL_ASSET_ID }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.bridgeArrivalTxs).toEqual([]);
+    });
+
+    it('returns nothing for an EVM asset page', async () => {
+      setupMocks([evmBridgeTx], { bridgeHistory: historyTo(SOL_ASSET_ID) });
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          createAsset({ symbol: 'ETH', isETH: true, isNative: true }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.bridgeArrivalTxs).toEqual([]);
+    });
+  });
+
   describe('non-EVM asset filtering', () => {
     const setupNonEvmMocks = (transactions: unknown[]) => {
       jest.mocked(isNonEvmChainId).mockReturnValue(true);

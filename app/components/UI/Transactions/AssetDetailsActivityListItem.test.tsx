@@ -16,6 +16,7 @@ import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
 import { resolveActivityListItemTitle } from '../ActivityListItemRow/ActivityListItemRow';
+import { handleUnifiedSwapsTxHistoryItemClick } from '../Bridge/utils/transaction-history';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -31,6 +32,10 @@ jest.mock('../../../util/theme', () => ({
       text: { alternative: 'text-alternative' },
     },
   }),
+}));
+
+jest.mock('../Bridge/utils/transaction-history', () => ({
+  handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
 }));
 
 jest.mock('../ActivityListItemRow/ActivityListItemRow', () => ({
@@ -190,6 +195,57 @@ describe('AssetDetailsActivityListItem', () => {
     expect(
       queryByTestId('activity-list-account-import-time-row'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('routes a bridge to the redesigned ActivityDetails screen, not the legacy sheet', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
+      if (selector === selectSelectedInternalAccount)
+        return { metadata: { importTime: 2000 } };
+      if (selector === selectSelectedAccountGroupEvmInternalAccount)
+        return { address: '0x123' };
+      if (selector === selectEvmNetworkConfigurationsByChainId)
+        return { '0x1': { nativeCurrency: 'ETH' } };
+      if (selector === selectAllTokens) return {};
+      if (selector === selectIsTransactionsRedesignEnabled) return true;
+      return undefined;
+    });
+    const navigation = createNavigation();
+    const transaction = createTransaction({
+      id: 'bridge-1',
+      type: TransactionType.bridge,
+    });
+    bridgeHistory = {
+      'bridge-1': {
+        quote: {
+          srcChainId: 8453,
+          destChainId: 1151111081099710,
+          srcAsset: { chainId: 8453, symbol: 'USDC' },
+          destAsset: { chainId: 1151111081099710, symbol: 'SOL' },
+        },
+      },
+    };
+
+    const { getByTestId } = render(
+      <AssetDetailsActivityListItem
+        transaction={transaction}
+        index={0}
+        assetSymbol="USDC"
+        chainId="0x2105"
+        navigation={navigation}
+        onSpeedUpAction={jest.fn()}
+        onCancelAction={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(getByTestId('activity-list-item-row'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.objectContaining({ txIdentifier: 'bridge-1' }),
+    );
+    // Neither the legacy details sheet nor the legacy bridge-status screen.
+    expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
   });
 
   it('routes to the ActivityDetails screen when the redesign is enabled', () => {
