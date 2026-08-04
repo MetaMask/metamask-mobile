@@ -19,8 +19,8 @@ export const formatNetworkFee = (
 
   if (
     !fee?.valueInCurrency ||
-    isNaN(Number(fee.valueInCurrency)) ||
-    isNaN(Number(fee.normalizedAmount))
+    Number.isNaN(Number(fee.valueInCurrency)) ||
+    Number.isNaN(Number(fee.normalizedAmount))
   )
     return '-';
 

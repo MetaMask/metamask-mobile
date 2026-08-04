@@ -11,7 +11,6 @@ import { useLatestBalance } from '../useLatestBalance';
 import { useSelector } from 'react-redux';
 import {
   selectDestToken,
-  selectIsBridge,
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -26,7 +25,6 @@ export const useTrackAllQuotesSortedEvent = (
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
-  const isBridge = useSelector(selectIsBridge);
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,

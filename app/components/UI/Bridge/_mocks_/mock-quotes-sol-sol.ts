@@ -97,4 +97,4 @@ const mockQuotes: QuoteResponseV1[] = [
 
 mockQuotes.forEach((quote) => validateQuoteResponseV1(quote));
 
-export default mockQuotes.map(toQuoteResponseV2);
+export default mockQuotes.map((quote) => toQuoteResponseV2(quote));

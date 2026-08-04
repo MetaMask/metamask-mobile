@@ -1,7 +1,6 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isBitcoinChainId,
   isNonEvmChainId,
   sumAmounts,
 } from '@metamask/bridge-controller';

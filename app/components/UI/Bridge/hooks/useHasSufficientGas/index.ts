@@ -1,7 +1,6 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  isBitcoinChainId,
   isNonEvmChainId,
   QuoteResponse,
   sumAmounts,
@@ -9,7 +8,6 @@ import {
 import { useLatestBalance } from '../useLatestBalance';
 import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { BigNumber } from 'bignumber.js';
 import { isNumberValue } from '../../../../../util/number';
