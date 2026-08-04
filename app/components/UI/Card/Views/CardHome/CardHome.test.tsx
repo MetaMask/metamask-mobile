@@ -1548,6 +1548,9 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).not.toBeOnTheScreen();
       expect(screen.getByText('Unlink Money account')).toBeOnTheScreen();
       expect(
         screen.getByText('Change your Card funding source'),
@@ -1571,6 +1574,9 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('hides the unlink row when there is no active primary Money Account', () => {
@@ -2837,14 +2843,16 @@ describe('CardHome Component', () => {
   });
 
   describe('Data refresh on focus', () => {
-    it('calls refetch when the screen gains focus', () => {
-      mockRefetchAllData.mockClear();
+    it('calls fetchCardHomeData when the screen gains focus', () => {
+      const fetchSpy = Engine.context.CardController
+        .fetchCardHomeData as jest.Mock;
+      fetchSpy.mockClear();
 
       jest.mocked(useFocusEffect).mockImplementation((cb) => cb());
 
       render();
 
-      expect(mockRefetchAllData).toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledWith();
 
       jest.mocked(useFocusEffect).mockImplementation(jest.fn());
     });

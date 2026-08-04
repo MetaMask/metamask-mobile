@@ -20,6 +20,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import type { CurrentDeviceDetails } from '../../../framework/fixtures/playwright/index.js';
 import type {
   LocalNodeOptionsInput,
+  TestSuiteFunction,
   WithFixturesOptions,
 } from '../../../framework/types.js';
 import WebView from '../../../framework/WebView.js';
@@ -81,7 +82,7 @@ interface SnapFixtureOptions {
 export async function withSnapsFixtures(
   currentDeviceDetails: CurrentDeviceDetails,
   options: SnapFixtureOptions,
-  testFn: () => Promise<void>,
+  testFn: TestSuiteFunction,
 ): Promise<void> {
   const {
     fixture = new FixtureBuilder().build(),
