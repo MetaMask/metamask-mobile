@@ -161,6 +161,14 @@ const config = {
     '.github/scripts/e2e-smart-selection.mjs',
     '.github/scripts/e2e-split-tags-shards.mjs',
 
+    // E2E platform-gating logic. Its outputs (`native_build_needed`,
+    // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, ...) only decide *whether*
+    // build/test jobs run - none of them is a build parameter, so no change here can
+    // alter what gets compiled.
+    '.github/scripts/compute-e2e-platform-flags.cjs',
+    '.github/scripts/compute-e2e-platform-flags.test.ts',
+    '.github/scripts/run-compute-e2e-platform-flags.cjs',
+
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.
 
@@ -247,8 +255,12 @@ const config = {
     '.github/workflows/upload-to-testflight.yml',
     '.github/workflows/runway-ota-resolve-context.yml',
 
-    // Note: `.github/workflows/get-requirements.yml` is intentionally NOT ignored, since
-    // it gates whether native build jobs run at all.
+    // Gating only: every `workflow_call` output it exposes (`native_build_needed`,
+    // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, `run_performance`, ...) is a
+    // boolean or a spec-file list that decides *whether* downstream jobs run. It emits no
+    // build parameter (no `build_type`, no `metamask_environment`), so it cannot change
+    // what gets compiled - only whether a compile is attempted.
+    '.github/workflows/get-requirements.yml',
   ],
 
   /**
