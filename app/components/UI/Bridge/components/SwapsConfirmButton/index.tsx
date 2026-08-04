@@ -1,9 +1,5 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import {
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
-} from '@metamask/design-system-react-native';
+import { Button, ButtonBaseSize } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { useSelector } from 'react-redux';
@@ -44,6 +40,12 @@ import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
+import { useABTest } from '../../../../../hooks';
+import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+} from './abTestConfig';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -59,6 +61,11 @@ export const SwapsConfirmButton = ({
   location,
   transactionActiveAbTests,
 }: Props) => {
+  const { variant } = useABTest(
+    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  );
   const navigation = useNavigation<AppNavigationProp>();
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
@@ -296,7 +303,7 @@ export const SwapsConfirmButton = ({
 
   return (
     <Button
-      variant={ButtonVariant.Primary}
+      variant={variant.buttonVariant}
       size={ButtonBaseSize.Lg}
       isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
