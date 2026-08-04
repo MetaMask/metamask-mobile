@@ -102,45 +102,13 @@ jest.mock('../../hooks', () => ({
 }));
 
 // Mock only Slider — gesture/reanimated pan is unusable in Jest.
-// Keep real MMDS for BottomSheet, Button, HelpText, KeyValueRow, etc.
+// Keep real MMDS (BottomSheet, Button, HelpText, KeyValueRow, etc.) so
+// testIDs pass through without stubbing those components.
 jest.mock('@metamask/design-system-react-native', () => {
-  const ReactModule = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
-
   return {
     ...actual,
-    Slider: ({
-      onValueChange,
-      onDragEnd,
-      testID,
-      value,
-      marks,
-    }: {
-      onValueChange?: (value: number) => void;
-      onDragEnd?: (value: number) => void;
-      testID?: string;
-      value?: number;
-      marks?: { label?: string; value?: number }[];
-    }) =>
-      ReactModule.createElement(
-        View,
-        {
-          testID: testID ?? 'perps-leverage-slider',
-          onValueChange,
-          onDragEnd,
-          value,
-        },
-        marks?.map((mark, index) =>
-          mark.label
-            ? ReactModule.createElement(
-                Text,
-                { key: `mark-${index}` },
-                mark.label,
-              )
-            : null,
-        ),
-      ),
+    Slider: 'Slider',
   };
 });
 
@@ -502,13 +470,20 @@ describe('PerpsLeverageBottomSheet', () => {
   });
 
   describe('Slider Component', () => {
-    it('renders MMDS slider', () => {
+    it('renders MMDS slider with min and max marks', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} />);
 
-      expect(
-        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('1x')).toBeOnTheScreen();
+      const slider = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.SLIDER,
+      );
+
+      expect(slider).toBeOnTheScreen();
+      expect(slider.props.marks).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ label: '1x', value: 1 }),
+          expect.objectContaining({ label: '20x', value: 20 }),
+        ]),
+      );
     });
 
     it('updates leverage when slider drag ends', () => {
@@ -555,10 +530,17 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(UNSAFE_getAllByType(SkeletonComponent).length).toBeGreaterThan(0);
     });
 
-    it('shows labeled max mark for high max leverage', () => {
+    it('passes labeled max mark for high max leverage', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} maxLeverage={50} />);
 
-      expect(screen.getByText('50x')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER).props
+          .marks,
+      ).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ label: '50x', value: 50 }),
+        ]),
+      );
     });
   });
 
