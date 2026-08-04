@@ -10,11 +10,13 @@ import {
   connectLedgerDmkHardware,
   disconnectLedgerDmkSession,
   getLedgerDmkSessionState,
+  isLedgerDmkBridge,
 } from './LedgerDmk';
 import Engine from '../../core/Engine';
 import type { RestrictedController } from '@metamask/keyring-controller';
 import {
   LedgerKeyring as LegacyLedgerKeyring,
+  LedgerDmkBridge,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
@@ -47,17 +49,29 @@ const mockRestrictedAddNewLedgerKeyring = jest.fn();
 
 const mockSessionState = of({ connected: true });
 
-const mockBridge = {
-  getAppNameAndVersion: jest.fn(),
-  updateSessionId: jest.fn(),
-  connect: jest.fn(),
-  destroy: jest.fn(),
-  onSessionStateChange: mockSessionState,
-  startDiscovering: jest.fn(),
+const mockBridge = Object.create(
+  LedgerDmkBridge.prototype,
+) as LedgerDmkBridge & {
+  getAppNameAndVersion: jest.Mock;
+  updateSessionId: jest.Mock;
+  connect: jest.Mock;
+  destroy: jest.Mock;
+  startDiscovering: jest.Mock;
 };
 
+mockBridge.getAppNameAndVersion = jest.fn();
+mockBridge.updateSessionId = jest.fn();
+mockBridge.connect = jest.fn();
+mockBridge.destroy = jest.fn();
+mockBridge.startDiscovering = jest.fn();
+Object.defineProperty(mockBridge, 'onSessionStateChange', {
+  configurable: true,
+  enumerable: true,
+  get: () => mockSessionState,
+});
+
 const legacyLedgerKeyring = new LegacyLedgerKeyring({
-  bridge: mockBridge as unknown as LedgerMobileBridge,
+  bridge: mockBridge,
 });
 
 const ledgerKeyring = new LedgerKeyring({
@@ -114,6 +128,7 @@ describe('LedgerDmk', () => {
       appName: 'appName',
     });
     mockBridge.updateSessionId.mockResolvedValue(true);
+    legacyLedgerKeyring.bridge = mockBridge;
 
     jest.spyOn(ledgerKeyring, 'setDeviceId').mockImplementation();
 
@@ -139,6 +154,20 @@ describe('LedgerDmk', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('isLedgerDmkBridge', () => {
+    it('returns true for LedgerDmkBridge instances', () => {
+      expect(isLedgerDmkBridge(mockBridge)).toBe(true);
+    });
+
+    it('returns false for non-DMK bridges', () => {
+      expect(
+        isLedgerDmkBridge(Object.create(LedgerMobileBridge.prototype)),
+      ).toBe(false);
+      expect(isLedgerDmkBridge({})).toBe(false);
+      expect(isLedgerDmkBridge(null)).toBe(false);
+    });
   });
 
   describe('connectLedgerDmkHardware', () => {
@@ -252,26 +281,21 @@ describe('LedgerDmk', () => {
       ).rejects.toThrow('Expected LedgerKeyring');
     });
 
-    it('throws when the bridge lacks updateSessionId', async () => {
-      const updateSessionId = mockBridge.updateSessionId;
-      delete (mockBridge as { updateSessionId?: unknown }).updateSessionId;
+    it('throws when the bridge is not a LedgerDmkBridge', async () => {
+      legacyLedgerKeyring.bridge = Object.create(
+        LedgerMobileBridge.prototype,
+      ) as typeof legacyLedgerKeyring.bridge;
 
-      try {
-        const error = await connectLedgerDmkHardware(
-          mockSessionId,
-          'bar',
-        ).catch((caughtError) => caughtError);
+      const error = await connectLedgerDmkHardware(mockSessionId, 'bar').catch(
+        (caughtError) => caughtError,
+      );
 
-        expect(error).toBeInstanceOf(HardwareWalletError);
-        expect(error).toMatchObject({
-          code: ErrorCode.Unknown,
-          message:
-            'Ledger bridge does not support DMK session binding (missing updateSessionId)',
-        });
-        expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
-      } finally {
-        mockBridge.updateSessionId = updateSessionId;
-      }
+      expect(error).toBeInstanceOf(HardwareWalletError);
+      expect(error).toMatchObject({
+        code: ErrorCode.Unknown,
+        message: 'Expected LedgerDmkBridge',
+      });
+      expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
     });
 
     it('throws when updateSessionId fails to bind the session', async () => {
@@ -299,6 +323,20 @@ describe('LedgerDmk', () => {
 
       expect(mockBridge.connect).toHaveBeenCalledWith({ device });
       expect(sessionId).toBe('bridge-session-id');
+    });
+
+    it('throws when the bridge is not a LedgerDmkBridge', async () => {
+      legacyLedgerKeyring.bridge = {} as typeof legacyLedgerKeyring.bridge;
+
+      const error = await connectLedgerDmkDevice({
+        id: 'device-1',
+      } as DiscoveredDevice).catch((caughtError) => caughtError);
+
+      expect(error).toBeInstanceOf(HardwareWalletError);
+      expect(error).toMatchObject({
+        code: ErrorCode.Unknown,
+        message: 'Expected LedgerDmkBridge',
+      });
     });
   });
 

@@ -1,33 +1,27 @@
 import { type Observable } from 'rxjs';
 import { type DiscoveredDevice } from '@ledgerhq/device-management-kit';
+import { LedgerDmkBridge } from '@metamask/eth-ledger-bridge-keyring';
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { createHardwareWalletError } from '../HardwareWallet/errors';
 import { withLedgerKeyring } from './Ledger';
 
 /**
- * The subset of bridge methods used by {@link connectLedgerDmkHardware}.
- * Requires `updateSessionId` — without it the DMK session cannot be bound to
- * the keyring bridge, and app-metadata / signing calls would run unbound.
+ * Type guard for the DMK keyring bridge. These helpers are DMK-only, so a
+ * legacy mobile bridge (or any other bridge) is rejected.
  */
-interface LedgerDmkSessionBridge {
-  updateSessionId: (sessionId: string) => Promise<boolean>;
-  getAppNameAndVersion: () => Promise<{ appName: string; version: string }>;
-}
+export const isLedgerDmkBridge = (bridge: unknown): bridge is LedgerDmkBridge =>
+  bridge instanceof LedgerDmkBridge;
 
-/**
- * The subset of DMK-bridge methods used by the adapter's session lifecycle.
- *
- * `LedgerDmkBridge` owns the single `DeviceManagementKit` instance that
- * signing uses, so the adapter routes discovery/connect/monitoring/disconnect
- * through these methods. Sessions created via `connect` live on the bridge's
- * own DMK and are therefore valid for bridge commands (app checks, signing).
- */
-interface LedgerDmkBridgeConnection {
-  startDiscovering: (args: unknown) => Observable<DiscoveredDevice>;
-  connect: (args: { device: DiscoveredDevice }) => Promise<string>;
-  readonly onSessionStateChange: Observable<{ connected: boolean }>;
-  destroy: () => Promise<void>;
-}
+const assertLedgerDmkBridge = (bridge: unknown): LedgerDmkBridge => {
+  if (!isLedgerDmkBridge(bridge)) {
+    throw createHardwareWalletError(
+      ErrorCode.Unknown,
+      HardwareWalletType.Ledger,
+      'Expected LedgerDmkBridge',
+    );
+  }
+  return bridge;
+};
 
 const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
   if (!abortSignal?.aborted) {
@@ -47,10 +41,9 @@ const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
  * happens at the call site, outside the mutex — mirroring
  * {@link connectLedgerDmkHardware}.
  */
-const getLedgerDmkBridge = (): Promise<LedgerDmkBridgeConnection> =>
-  withLedgerKeyring(
-    async ({ keyring }) =>
-      keyring.bridge as unknown as LedgerDmkBridgeConnection,
+const getLedgerDmkBridge = (): Promise<LedgerDmkBridge> =>
+  withLedgerKeyring(async ({ keyring }) =>
+    assertLedgerDmkBridge(keyring.bridge),
   );
 
 /**
@@ -74,15 +67,8 @@ export const connectLedgerDmkHardware = async (
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setDeviceId(deviceId);
-    const ledgerBridge = keyring.bridge as Partial<LedgerDmkSessionBridge>;
-    if (typeof ledgerBridge.updateSessionId !== 'function') {
-      throw createHardwareWalletError(
-        ErrorCode.Unknown,
-        HardwareWalletType.Ledger,
-        'Ledger bridge does not support DMK session binding (missing updateSessionId)',
-      );
-    }
-    const sessionBound = await ledgerBridge.updateSessionId(sessionId);
+    const dmkBridge = assertLedgerDmkBridge(keyring.bridge);
+    const sessionBound = await dmkBridge.updateSessionId(sessionId);
     if (!sessionBound) {
       throw createHardwareWalletError(
         ErrorCode.DeviceInvalidSession,
@@ -90,7 +76,7 @@ export const connectLedgerDmkHardware = async (
         'Failed to bind DMK session to Ledger bridge',
       );
     }
-    return ledgerBridge as LedgerDmkSessionBridge;
+    return dmkBridge;
   });
 
   // Keep the BLE exchange outside the KeyringController mutex.
@@ -105,7 +91,7 @@ export const connectLedgerDmkHardware = async (
  * is created on the bridge's own DMK instance and stored internally by the
  * bridge, so it is valid for subsequent bridge commands (app checks, signing).
  *
- * @param device - A discovered device (from `getDmk().listenToAvailableDevices`).
+ * @param device - A discovered device from the bridge's DMK discovery stream.
  * @returns The DMK session ID.
  */
 export const connectLedgerDmkDevice = async (
