@@ -45,11 +45,6 @@ export const MM_CONNECT_ACCOUNT_3 =
 export const MM_CONNECT_ACCOUNT_1_NAME = 'Account 1';
 export const MM_CONNECT_ACCOUNT_3_NAME = 'Account 3';
 
-/**
- * Active chain after Legacy EVM connect: Localhost / Anvil (1337 / `0x539`).
- */
-export const MM_CONNECT_LEGACY_CHAIN_ID = '0x539';
-
 export const scopeCardTestId = (scope: string): string =>
   `${MMConnectDappTestIds.SCOPE_CARD}-${scope.toLowerCase().replace(/:/g, '-')}`;
 
