@@ -3426,8 +3426,8 @@
     "perps_filter": {
       "title": "Perps",
       "trades": "Trades",
-      "order": "Order",
-      "fundings": "Fundings",
+      "order": "Orders",
+      "fundings": "Funding payments",
       "deposits": "Deposits"
     },
     "empty_state": {

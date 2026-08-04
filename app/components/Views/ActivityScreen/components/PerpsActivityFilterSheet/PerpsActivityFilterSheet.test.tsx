@@ -80,11 +80,11 @@ describe('PerpsActivityFilterSheet', () => {
     render(<PerpsActivityFilterSheet />);
 
     const props = lastProps();
-    expect(props.getLabel(PerpsActivityFilter.Order)).toBe(
-      strings(PERPS_ACTIVITY_FILTER_LABEL_KEY[PerpsActivityFilter.Order]),
+    expect(props.getLabel(PerpsActivityFilter.Orders)).toBe(
+      strings(PERPS_ACTIVITY_FILTER_LABEL_KEY[PerpsActivityFilter.Orders]),
     );
-    expect(props.getOptionTestID(PerpsActivityFilter.Order)).toBe(
-      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${PerpsActivityFilter.Order}`,
+    expect(props.getOptionTestID(PerpsActivityFilter.Orders)).toBe(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${PerpsActivityFilter.Orders}`,
     );
   });
 
@@ -113,5 +113,20 @@ describe('PerpsActivityFilterSheet', () => {
         /^activity_view\.perps_filter\./,
       );
     }
+  });
+
+  // Pins the resolved copy, which the map/label assertions above cannot: they
+  // compare `getLabel` against the same `strings()` call and so pass for any
+  // text. Buckets read as plural, and funding matches the perp market page's
+  // "Funding payments" rather than the ambiguous "Fundings" (TMCU-1073).
+  it.each([
+    [PerpsActivityFilter.Trades, 'Trades'],
+    [PerpsActivityFilter.Orders, 'Orders'],
+    [PerpsActivityFilter.Fundings, 'Funding payments'],
+    [PerpsActivityFilter.Deposits, 'Deposits'],
+  ])('labels %s as "%s"', (filter, expected) => {
+    render(<PerpsActivityFilterSheet />);
+
+    expect(lastProps().getLabel(filter)).toBe(expected);
   });
 });
