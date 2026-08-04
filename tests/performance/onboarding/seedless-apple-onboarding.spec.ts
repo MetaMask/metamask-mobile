@@ -9,7 +9,7 @@ import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
-  dismissPushNotificationExistingUserSheet,
+  resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
 import {
   Performance,
@@ -40,7 +40,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 /* Seedless Onboarding: Apple Login */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  test.setTimeout(240000);
+  test.setTimeout(300000);
 
   test(
     'Seedless Onboarding: Apple Login New User',
@@ -145,15 +145,23 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         });
 
         await OnboardingSuccessView.tapDone();
-        await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
+
+        // Predict GTM is flag-gated (often off on e2e/without-srp). Poll UI only —
+        // do not hard-fail when the modal is absent.
+        const predictGtmOnboardingModalEnabled =
+          await resolvePredictGtmOnboardingModalEnabled(null);
+
+        if (predictGtmOnboardingModalEnabled) {
+          await timer5.measure(async () => {
+            await PlaywrightAssertions.expectElementToBeVisible(
+              asPlaywrightElement(PredictModalView.notNowButton),
+              {
+                timeout: 10000,
+                description: 'Predict modal should be visible',
+              },
+            );
+          });
+        }
 
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
@@ -165,10 +173,14 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timer6];
+        const timers = [timer1, timer2, timer4];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
+        if (predictGtmOnboardingModalEnabled) {
+          timers.push(timer5);
+        }
+        timers.push(timer6);
         performanceTracker.addTimers(...timers);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();

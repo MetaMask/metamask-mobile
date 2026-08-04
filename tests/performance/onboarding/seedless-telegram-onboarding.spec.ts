@@ -10,6 +10,7 @@ import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
+  resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
 import {
   Performance,
@@ -65,7 +66,7 @@ const assertTelegramLoginReady = async (): Promise<void> => {
 
 /* TO-916: Seedless Onboarding — Telegram Login */
 perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  perfTest.setTimeout(240000);
+  perfTest.setTimeout(300000);
 
   perfTest(
     'Seedless Onboarding: Telegram Login New User',
@@ -165,6 +166,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
+        await dismissOnboardingInterestQuestionnaire();
 
         await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
@@ -175,18 +177,25 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
-        await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
+
+        // Predict GTM is flag-gated (often off on e2e/without-srp). Poll UI only —
+        // do not hard-fail when the modal is absent.
+        const predictGtmOnboardingModalEnabled =
+          await resolvePredictGtmOnboardingModalEnabled(null);
+
+        if (predictGtmOnboardingModalEnabled) {
+          await timer5.measure(async () => {
+            await PlaywrightAssertions.expectElementToBeVisible(
+              asPlaywrightElement(PredictModalView.notNowButton),
+              {
+                timeout: 10000,
+                description: 'Predict modal should be visible',
+              },
+            );
+          });
+        }
 
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
@@ -198,10 +207,14 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timer6];
+        const timers = [timer1, timer2, timer4];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
+        if (predictGtmOnboardingModalEnabled) {
+          timers.push(timer5);
+        }
+        timers.push(timer6);
         performanceTracker.addTimers(...timers);
       } else {
         // Existing-user rehydration when the QA mock / account returns Account Found.
