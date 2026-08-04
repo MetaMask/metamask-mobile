@@ -170,6 +170,7 @@ export const usePerpsProOrderForm = ({
 
   const {
     orderForm,
+    updateOrderForm,
     setAmount,
     setLeverage,
     setDirection,
@@ -571,6 +572,16 @@ export const usePerpsProOrderForm = ({
       Engine.context.PerpsController?.clearPendingTradeConfiguration(
         orderForm.asset,
       );
+      updateOrderForm({
+        amount: '',
+        direction: 'long',
+        type: 'market',
+        balancePercent: 0,
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+      setReduceOnly(false);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -605,6 +616,7 @@ export const usePerpsProOrderForm = ({
     chartLibrary,
     vipTier,
     executeOrder,
+    updateOrderForm,
     updatePositionTPSL,
     showToast,
     PerpsToastOptions.formValidation.orderForm,

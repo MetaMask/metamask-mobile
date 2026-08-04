@@ -87,6 +87,10 @@ const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
 // the order-book → order-form wiring (TAT-3643) can be asserted directly.
 const mockSetLimitPrice = jest.fn();
 const mockSetOrderType = jest.fn();
+const mockPerpsOrderProvider = jest.fn(
+  ({ children }: { children: React.ReactNode; fallbackAmount?: string }) =>
+    children,
+);
 
 const mockHandleBackPress = jest.fn();
 const mockHandleMarketListPress = jest.fn();
@@ -286,7 +290,10 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
 }));
 
 jest.mock('../../contexts/PerpsOrderContext', () => ({
-  PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
+  PerpsOrderProvider: (props: {
+    children: React.ReactNode;
+    fallbackAmount?: string;
+  }) => mockPerpsOrderProvider(props),
   usePerpsOrderContext: () => ({
     setLimitPrice: mockSetLimitPrice,
     setOrderType: mockSetOrderType,
@@ -404,6 +411,16 @@ describe('PerpsProMarketView', () => {
       orders: [],
       isInitialLoading: false,
     });
+  });
+
+  it('configures an empty fallback amount for the Pro order form', () => {
+    renderView();
+
+    expect(mockPerpsOrderProvider.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        fallbackAmount: '',
+      }),
+    );
   });
 
   afterEach(() => {
