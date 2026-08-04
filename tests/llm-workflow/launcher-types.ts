@@ -70,20 +70,49 @@ export type IOSLaunchErrorCode = Extract<
   | 'MM_INVALID_CONFIG'
 >;
 
-export class IOSLaunchError extends Error {
-  readonly code: IOSLaunchErrorCode;
+export type MobileLaunchErrorCode = IOSLaunchErrorCode | AndroidLaunchErrorCode;
+
+export type AndroidLaunchErrorCode =
+  | 'MM_ANDROID_DEPENDENCY_MISSING'
+  | 'MM_ANDROID_RUNNER_NOT_READY'
+  | 'MM_ANDROID_BACKEND_INTEGRITY'
+  | 'MM_LAUNCH_FAILED'
+  | 'MM_SESSION_ALREADY_RUNNING';
+
+export class MobileLaunchError<
+  TCode extends MobileLaunchErrorCode = MobileLaunchErrorCode,
+> extends Error {
+  readonly code: TCode;
 
   /** Optional remediation hint shown alongside the error message. */
   readonly remediation?: string;
 
+  constructor(args: { code: TCode; message: string; remediation?: string }) {
+    super(args.message);
+    this.name = 'MobileLaunchError';
+    this.code = args.code;
+    this.remediation = args.remediation;
+  }
+}
+
+export class IOSLaunchError extends MobileLaunchError<IOSLaunchErrorCode> {
   constructor(args: {
     code: IOSLaunchErrorCode;
     message: string;
     remediation?: string;
   }) {
-    super(args.message);
+    super(args);
     this.name = 'IOSLaunchError';
-    this.code = args.code;
-    this.remediation = args.remediation;
+  }
+}
+
+export class AndroidLaunchError extends MobileLaunchError<AndroidLaunchErrorCode> {
+  constructor(args: {
+    code: AndroidLaunchErrorCode;
+    message: string;
+    remediation?: string;
+  }) {
+    super(args);
+    this.name = 'AndroidLaunchError';
   }
 }
