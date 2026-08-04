@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { Order } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProOrderCard from './PerpsProOrderCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -211,6 +212,44 @@ describe('PerpsProOrderCard', () => {
       expect(screen.getByText(reduceOnlyLabel)).toBeOnTheScreen();
     },
   );
+
+  it('invokes the market switch handler when the card is pressed', () => {
+    const onPress = jest.fn();
+
+    render(<PerpsProOrderCard order={baseOrder} onPress={onPress} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_ROW),
+    );
+
+    expect(onPress).toHaveBeenCalledWith(baseOrder);
+  });
+
+  it('exposes the market switch as a labelled action for screen readers', () => {
+    render(<PerpsProOrderCard order={baseOrder} onPress={jest.fn()} />);
+
+    expect(screen.getByLabelText('Switch to the SOL market')).toBeOnTheScreen();
+  });
+
+  it('keeps cancel scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onCancel = jest.fn();
+
+    render(
+      <PerpsProOrderCard
+        order={baseOrder}
+        onPress={onPress}
+        onCancel={onCancel}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+    );
+
+    expect(onCancel).toHaveBeenCalledWith(baseOrder);
+    expect(onPress).not.toHaveBeenCalled();
+  });
 
   describe('Privacy Mode', () => {
     it('hides monetary values but keeps size and labels visible', () => {

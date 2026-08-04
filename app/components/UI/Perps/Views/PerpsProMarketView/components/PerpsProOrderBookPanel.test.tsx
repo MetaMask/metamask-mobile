@@ -196,6 +196,37 @@ describe('PerpsProOrderBookPanel', () => {
     expect(queryByTestId(`${testID}-reconnect`)).not.toBeOnTheScreen();
   });
 
+  it('makes ladder rows interactive and reports the tapped price via onSelectPrice', () => {
+    const onSelectPrice = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onSelectPrice={onSelectPrice}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+    expect(onSelectPrice).toHaveBeenCalledWith('50000');
+
+    fireEvent.press(getByTestId(`${testID}-ask-row-0`));
+    // Asks render farthest-to-closest, so ask-row-0 is the deepest ask (50200).
+    expect(onSelectPrice).toHaveBeenLastCalledWith('50200');
+  });
+
+  it('renders static, non-interactive rows when onSelectPrice is omitted', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-bid-row-0`)).not.toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
+  });
+
   it('invokes onCollapse when the collapse button is pressed', () => {
     const onCollapse = jest.fn();
     const { getByTestId } = renderWithProvider(
