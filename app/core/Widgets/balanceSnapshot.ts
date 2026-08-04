@@ -5,13 +5,25 @@ import { selectBalanceBySelectedAccountGroup } from '../../selectors/assets/bala
 import { selectSelectedAccountGroup } from '../../selectors/multichainAccounts/accountTreeController';
 import type { RootState } from '../../reducers';
 
+let balanceSelector: ReturnType<typeof selectBalanceBySelectedAccountGroup>;
+
 /**
  * `selectBalanceBySelectedAccountGroup` is a selector *factory* — each call
  * builds a fresh `createSelector` instance. It must be instantiated once and
  * reused, otherwise every read re-runs the (expensive) all-wallets balance
  * aggregation from scratch and re-triggers Reselect's dev-only warnings.
+ *
+ * Built on first use rather than at module scope: this module sits inside an
+ * import cycle with the balance selectors, so at evaluation time the factory
+ * binding may not be initialized yet (Hermes throws
+ * `Property 'selectBalanceBySelectedAccountGroup' doesn't exist`).
  */
-const selectBalance = selectBalanceBySelectedAccountGroup();
+function getBalanceSelector() {
+  if (!balanceSelector) {
+    balanceSelector = selectBalanceBySelectedAccountGroup();
+  }
+  return balanceSelector;
+}
 
 /**
  * The selected account group's total balance, formatted in the user's
@@ -24,7 +36,7 @@ const selectBalance = selectBalanceBySelectedAccountGroup();
  * Activity suppresses itself entirely, so each caller decides.
  */
 export function formatSelectedAccountGroupBalance(state: RootState): string {
-  const balance = selectBalance(state);
+  const balance = getBalanceSelector()(state);
 
   return createFormatters({ locale: getLocaleLanguageCode() }).formatCurrency(
     balance?.totalBalanceInUserCurrency ?? 0,
