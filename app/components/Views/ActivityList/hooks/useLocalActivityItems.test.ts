@@ -500,4 +500,34 @@ describe('useLocalActivityItems', () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({ hash: '0xsend' });
   });
+
+  it('keeps an in-flight perps deposit and maps it to perpsAddFunds', () => {
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'perps-deposit-id',
+        hash: '0xperpsdeposit',
+        chainId: '0x2105',
+        status: TransactionStatus.submitted,
+        type: TransactionType.perpsDeposit,
+        txParams: {
+          from,
+          nonce: '0x1',
+          to: usdc,
+          // transfer(address,uint256) of 0.1 USDC to the bridge
+          data: `0xa9059cbb${recipient
+            .slice(2)
+            .padStart(64, '0')}${(100000).toString(16).padStart(64, '0')}`,
+        },
+      }),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'perpsAddFunds',
+      hash: '0xperpsdeposit',
+      raw: { type: 'localTransaction' },
+    });
+  });
 });
