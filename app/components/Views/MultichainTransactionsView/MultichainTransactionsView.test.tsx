@@ -16,9 +16,15 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { configureUseAnalyticsExternalLinkMock } from '../../../util/test/analyticsMock';
-import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import {
+  selectIsActivityRedesignEnabled,
+  selectIsTransactionsRedesignEnabled,
+} from '../../../selectors/featureFlagController/activityRedesign';
 import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
+import Routes from '../../../constants/navigation/Routes';
 jest.useFakeTimers();
 
 jest.mock('../../../util/analytics/externalLinkTracking', () => ({
@@ -48,6 +54,14 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
 }));
 jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
   selectIsActivityRedesignEnabled: jest.fn(() => false),
+  selectIsTransactionsRedesignEnabled: jest.fn(() => false),
+}));
+jest.mock('../../UI/Bridge/utils/transaction-history', () => ({
+  handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
+  isBridgeTxHistoryItemBridge: jest.fn(
+    (item: { quote: { srcChainId: unknown; destChainId: unknown } }) =>
+      item.quote.srcChainId !== item.quote.destChainId,
+  ),
 }));
 jest.mock('../../hooks/useMultichainTransactionDisplay', () => ({
   useMultichainTransactionDisplay: jest.fn(() => ({
@@ -107,7 +121,7 @@ describe('MultichainTransactionsView', () => {
   const mockTransactions = [
     {
       id: 'tx-123',
-      chainId: 'solana:mainnet',
+      chain: SolScope.Mainnet,
       from: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
       to: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
       value: '1500000000',
@@ -117,7 +131,7 @@ describe('MultichainTransactionsView', () => {
     },
     {
       id: 'tx-456',
-      chainId: 'solana:mainnet',
+      chain: SolScope.Mainnet,
       from: [{ address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' }],
       to: [{ address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' }],
       value: '2000000000',
@@ -158,6 +172,11 @@ describe('MultichainTransactionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
+
+    const { default: MockButton } = jest.requireMock(
+      '../../../component-library/components/Buttons/Button',
+    ) as { default: { lastProps: ButtonProps } };
+    MockButton.lastProps = {} as ButtonProps;
 
     configureUseAnalyticsExternalLinkMock();
     mockUseTheme.mockReturnValue({
@@ -263,6 +282,345 @@ describe('MultichainTransactionsView', () => {
       jest.mocked(ActivityListItemRow).mock.calls[0][0],
     ).not.toHaveProperty('title');
     expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
+  });
+
+  it('keeps swaps carrying bridge history on the redesigned row instead of the legacy bridge row', async () => {
+    const bridgeHistoryItem = {
+      status: { srcChain: { txHash: 'tx-123' } },
+      quote: {
+        srcChainId: SolScope.Mainnet,
+        destChainId: SolScope.Mainnet,
+        srcAsset: { chainId: SolScope.Mainnet, symbol: 'SOL' },
+        destAsset: { chainId: SolScope.Mainnet, symbol: 'USDC' },
+      },
+    };
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        return { transactions: mockTransactions };
+      }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      if (selector === selectBridgeHistoryForAccount) {
+        return { 'bridge-1': bridgeHistoryItem };
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+      />,
+    );
+
+    expect(ActivityListItemRow).toHaveBeenCalledWith(
+      expect.objectContaining({ bridgeHistoryItem }),
+      undefined,
+    );
+  });
+
+  it('classifies the receiving leg of a cross-chain bridge as a bridge row', async () => {
+    // The fill tx's signature only exists on status.destChain — matched there,
+    // the row must map as `bridge`, not fall back to the snap's own type.
+    const bridgeHistoryItem = {
+      status: {
+        status: 'COMPLETE',
+        srcChain: { txHash: '0xbase-source-hash' },
+        destChain: { txHash: 'tx-123' },
+      },
+      quote: {
+        srcChainId: 8453,
+        destChainId: 1151111081099710,
+        srcTokenAmount: '93470',
+        destTokenAmount: '18260000',
+        srcAsset: {
+          chainId: 8453,
+          assetId:
+            'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        destAsset: {
+          chainId: 1151111081099710,
+          assetId: `${SolScope.Mainnet}/slip44:501`,
+          decimals: 9,
+          symbol: 'SOL',
+        },
+      },
+    };
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        return { transactions: mockTransactions };
+      }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      if (selector === selectBridgeHistoryForAccount) {
+        return { 'bridge-1': bridgeHistoryItem };
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+      />,
+    );
+
+    expect(ActivityListItemRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bridgeHistoryItem,
+        item: expect.objectContaining({ type: 'bridge' }),
+      }),
+      undefined,
+    );
+  });
+
+  it('falls back to the page chainId when a transaction has no chain', async () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        return { transactions: [{ ...mockTransactions[0], chain: undefined }] };
+      }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+      />,
+    );
+
+    expect(ActivityListItemRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        item: expect.objectContaining({ chainId: SolScope.Mainnet }),
+      }),
+      undefined,
+    );
+  });
+
+  it('shows an EVM bridge arriving at this non-EVM asset', async () => {
+    // A Base USDC -> Solana SOL bridge's only local tx is the EVM source tx, so
+    // the keyring-only list can never contain it; it arrives via the prop.
+    const bridgeArrival = {
+      id: 'bridge-arrival-1',
+      chainId: '0x2105',
+      hash: '0xbase-source-hash',
+      status: 'confirmed',
+      time: 1742500000000,
+      type: 'bridge',
+      txParams: { from: '0xabc', to: '0xrouter', value: '0x0' },
+    };
+    const bridgeHistoryItem = {
+      status: {
+        status: 'COMPLETE',
+        srcChain: { txHash: '0xbase-source-hash' },
+        destChain: { txHash: 'solana-fill-sig' },
+      },
+      quote: {
+        srcChainId: 8453,
+        destChainId: 1151111081099710,
+        srcTokenAmount: '93440',
+        destTokenAmount: '971500',
+        srcAsset: {
+          chainId: 8453,
+          assetId:
+            'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        destAsset: {
+          chainId: 1151111081099710,
+          assetId: `${SolScope.Mainnet}/slip44:501`,
+          decimals: 9,
+          symbol: 'SOL',
+        },
+      },
+    };
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        return { transactions: mockTransactions };
+      }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      if (selector === selectBridgeHistoryForAccount) {
+        return { 'bridge-arrival-1': bridgeHistoryItem };
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+        bridgeArrivalTransactions={[bridgeArrival] as never}
+      />,
+    );
+
+    expect(ActivityListItemRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        item: expect.objectContaining({
+          type: 'bridge',
+          raw: expect.objectContaining({ type: 'localTransaction' }),
+        }),
+      }),
+      undefined,
+    );
+  });
+
+  it('shows one row when the arrival and its indexed destination fill both exist', async () => {
+    // Once the snap indexes the fill, the same bridge is reachable from the
+    // arrival prop AND as a keyring tx matched by destChain.txHash.
+    const FILL_SIGNATURE = 'tx-123';
+    const bridgeArrival = {
+      id: 'bridge-arrival-1',
+      chainId: '0x2105',
+      hash: '0xbase-source-hash',
+      status: 'confirmed',
+      time: 1742500000000,
+      type: 'bridge',
+      txParams: { from: '0xabc', to: '0xrouter', value: '0x0' },
+    };
+    const bridgeHistoryItem = {
+      status: {
+        status: 'COMPLETE',
+        srcChain: { txHash: '0xbase-source-hash' },
+        destChain: { txHash: FILL_SIGNATURE },
+      },
+      quote: {
+        srcChainId: 8453,
+        destChainId: 1151111081099710,
+        srcTokenAmount: '93440',
+        destTokenAmount: '971500',
+        srcAsset: {
+          chainId: 8453,
+          assetId:
+            'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        destAsset: {
+          chainId: 1151111081099710,
+          assetId: `${SolScope.Mainnet}/slip44:501`,
+          decimals: 9,
+          symbol: 'SOL',
+        },
+      },
+    };
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        // mockTransactions[0].id === FILL_SIGNATURE, i.e. the indexed fill.
+        return { transactions: mockTransactions };
+      }
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      if (selector === selectBridgeHistoryForAccount) {
+        return { 'bridge-arrival-1': bridgeHistoryItem };
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+        bridgeArrivalTransactions={[bridgeArrival] as never}
+      />,
+    );
+
+    const bridgeRows = jest
+      .mocked(ActivityListItemRow)
+      .mock.calls.filter(([props]) => props.item?.type === 'bridge');
+
+    expect(bridgeRows).toHaveLength(1);
+    // The surviving row is the arrival (the EVM source tx), not the fill.
+    expect(bridgeRows[0][0].item.raw?.type).toBe('localTransaction');
+  });
+
+  it('falls back to the bridge-status screen when a bridge arrival is tapped with details redesign off', async () => {
+    const bridgeArrival = {
+      id: 'bridge-arrival-1',
+      chainId: '0x2105',
+      hash: '0xbase-source-hash',
+      status: 'confirmed',
+      time: 1742500000000,
+      type: 'bridge',
+      txParams: { from: '0xabc', to: '0xrouter', value: '0x0' },
+    };
+
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccountFormattedAddress) {
+        return mockSelectedAddress;
+      }
+      if (selector === selectNonEvmTransactions) {
+        return { transactions: [] };
+      }
+      // List redesign on, details redesign off.
+      if (selector === selectIsActivityRedesignEnabled) {
+        return true;
+      }
+      if (selector === selectIsTransactionsRedesignEnabled) {
+        return false;
+      }
+      if (selector === selectBridgeHistoryForAccount) {
+        return {};
+      }
+      return null;
+    });
+
+    customRender(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        location={TransactionDetailLocation.AssetDetails}
+        bridgeArrivalTransactions={[bridgeArrival] as never}
+      />,
+    );
+
+    const rowProps = jest.mocked(ActivityListItemRow).mock.calls[0][0];
+    rowProps.onPress?.(rowProps.item);
+
+    // Must not be inert.
+    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        evmTxMeta: expect.objectContaining({ id: 'bridge-arrival-1' }),
+      }),
+    );
+    expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.anything(),
+    );
   });
 
   it('does not render view more link for bitcoin activity', async () => {
