@@ -213,10 +213,6 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
   selectDeFiPositionsSectionEnabled: jest.fn(() => true),
 }));
 
-jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
-  selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
-}));
-
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
   selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
@@ -375,9 +371,6 @@ describe('Homepage', () => {
     jest
       .requireMock('../../../selectors/deFiPositionsSectionEnabled')
       .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
-    jest
-      .requireMock('../../../selectors/deFiPositionsV2SectionEnabled')
-      .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
     jest
       .requireMock('../../../selectors/featureFlagController/socialLeaderboard')
       .selectSocialLeaderboardEnabled.mockReturnValue(false);
@@ -572,9 +565,6 @@ describe('Homepage', () => {
       jest
         .requireMock('../../../selectors/deFiPositionsSectionEnabled')
         .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
-      jest
-        .requireMock('../../../selectors/deFiPositionsV2SectionEnabled')
-        .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
     });
 
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
