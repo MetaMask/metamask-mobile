@@ -90,9 +90,17 @@ export const useSectionPerformance = ({
   // re-runs of the effect below (e.g. an `enabled` false→true toggle) can never
   // open a second span at an arbitrary post-mount moment.
   const fetchSpanOpened = useRef(false);
-  // Loading state on the very first render, logged with the span start so a
-  // warm mount (already loaded) is distinguishable from a cold one on device.
-  const isLoadingAtFirstRender = useRef(isLoading);
+  // Mirrors `isLoading` on every render so the span can be tagged with the
+  // value that is live *when it opens*. Flag-gated sections open the span on
+  // the commit where `enabled` flips true, which can be long after the first
+  // render — reading a first-render snapshot there would file a warm sample
+  // under the cold population.
+  const isLoadingLatest = useRef(isLoading);
+  isLoadingLatest.current = isLoading;
+  // Whether `enabled` was already true on the first render, i.e. whether the
+  // effect below runs at mount or only once a remote flag resolves. Labels the
+  // span's `phase` honestly instead of always claiming `mount`.
+  const enabledAtFirstRender = useRef(enabled);
   // Guards the skip log so one post-mount reload logs once, not once per render.
   const skipLogged = useRef(false);
 
@@ -127,25 +135,27 @@ export const useSectionPerformance = ({
 
     // Data Fetch Latency — start on mount so every mount produces a sample,
     // including warm mounts that are already loaded (near-zero duration).
-    // `first_render_loading` tags warm vs cold so the two populations stay
+    // `loading_at_span_open` tags warm vs cold so the two populations stay
     // separable in Sentry: without it the near-zero warm samples would be
     // indistinguishable from real fetches in any percentile.
     if (tracksDataFetch.current && !fetchSpanOpened.current) {
       fetchSpanOpened.current = true;
       fetchTraceId.current = uuidv4();
+      const loadingAtSpanOpen = isLoadingLatest.current ?? false;
+      const spanOpenPhase = enabledAtFirstRender.current ? 'mount' : 'enabled';
       trace({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
         tags: {
           section_id: sectionId,
-          first_render_loading: isLoadingAtFirstRender.current ?? false,
+          loading_at_span_open: loadingAtSpanOpen,
         },
       });
       fetchStarted.current = true;
       DevLogger.log(
-        `${DATA_FETCH_LOG_PREFIX} start section=${sectionId} phase=mount first_render_loading=${String(
-          isLoadingAtFirstRender.current,
+        `${DATA_FETCH_LOG_PREFIX} start section=${sectionId} phase=${spanOpenPhase} loading_at_span_open=${String(
+          loadingAtSpanOpen,
         )}`,
       );
     }

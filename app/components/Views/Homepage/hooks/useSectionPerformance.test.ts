@@ -200,7 +200,7 @@ describe('useSectionPerformance', () => {
           op: TraceOperation.HomepageSectionPerformance,
           tags: {
             section_id: HomeSectionNames.TOKENS,
-            first_render_loading: true,
+            loading_at_span_open: true,
           },
         }),
       );
@@ -226,7 +226,7 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('starts the data fetch span at mount when the section is already loaded', () => {
+    it('opens and closes the data fetch span at mount when the section is already loaded', () => {
       renderHook(() =>
         useSectionPerformance({ ...defaultConfig, isLoading: false }),
       );
@@ -237,7 +237,7 @@ describe('useSectionPerformance', () => {
           op: TraceOperation.HomepageSectionPerformance,
           tags: {
             section_id: HomeSectionNames.TOKENS,
-            first_render_loading: false,
+            loading_at_span_open: false,
           },
         }),
       );
@@ -258,6 +258,7 @@ describe('useSectionPerformance', () => {
           useSectionPerformance({ ...defaultConfig, isLoading }),
         { initialProps: { isLoading: false } },
       );
+
       jest.clearAllMocks();
 
       rerender({ isLoading: true });
@@ -325,6 +326,7 @@ describe('useSectionPerformance', () => {
           useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
         { initialProps: { enabled: true, isLoading: true } },
       );
+
       rerender({ enabled: true, isLoading: false });
       jest.clearAllMocks();
 
@@ -344,6 +346,7 @@ describe('useSectionPerformance', () => {
           useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
         { initialProps: { enabled: true, isLoading: true } },
       );
+
       jest.clearAllMocks();
 
       rerender({ enabled: false, isLoading: true });
@@ -354,6 +357,30 @@ describe('useSectionPerformance', () => {
           call[0].name === TraceName.HomepageSectionDataFetch,
       );
       expect(fetchTraceCalls).toHaveLength(0);
+    });
+
+    it('tags the span with the loading state at open when a flag enables the section after loading finished', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: false, isLoading: true } },
+      );
+
+      rerender({ enabled: false, isLoading: false });
+      rerender({ enabled: true, isLoading: false });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(1);
+      expect(fetchTraceCalls[0][0].tags).toEqual({
+        section_id: HomeSectionNames.TOKENS,
+        loading_at_span_open: false,
+      });
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch start section=tokens phase=enabled loading_at_span_open=false',
+      );
     });
 
     it('ends the fetch trace with failure on unmount if still loading', () => {
@@ -379,13 +406,13 @@ describe('useSectionPerformance', () => {
   // span boundary on a live device (artifacts/recipe.json). Pin the grammar
   // here so a field rename cannot pass CI while silently voiding that proof.
   describe('Data Fetch dev log grammar', () => {
-    it('logs the mount span open with the section and first-render loading state', () => {
+    it('logs the mount span open with the section and the loading state at open', () => {
       renderHook(() =>
         useSectionPerformance({ ...defaultConfig, isLoading: false }),
       );
 
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
-        '[homepage.section.performance] data_fetch start section=tokens phase=mount first_render_loading=false',
+        '[homepage.section.performance] data_fetch start section=tokens phase=mount loading_at_span_open=false',
       );
     });
 
