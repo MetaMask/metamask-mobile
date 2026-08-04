@@ -261,6 +261,57 @@ module.exports = {
         ],
       },
     },
+    // MMQA-2174: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
+    {
+      files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/page-objects/**/*.test.ts',
+        'tests/page-objects/**/*.test.js',
+        'tests/flows/**/*.test.ts',
+        'tests/flows/**/*.test.js',
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'warn',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
+        ],
+      },
+    },
+    {
+      files: ['tests/smoke-appium/**/*.{js,ts}', 'tests/smoke/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/smoke-appium/**/*.test.ts',
+        'tests/smoke/**/*.test.ts',
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
+        ],
+      },
+    },
     {
       files: ['*.js', '*.jsx'],
       parser: '@babel/eslint-parser',
