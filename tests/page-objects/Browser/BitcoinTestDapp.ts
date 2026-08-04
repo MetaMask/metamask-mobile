@@ -109,7 +109,9 @@ class BitcoinTestDapp {
     throw new Error(`Timed out: expected "${expected}", got "${actual}"`);
   }
 
-  private async waitForReconnect(timeoutMs = 10_000): Promise<void> {
+  private async waitForReconnect(
+    timeoutMs = CONNECT_TIMEOUT_MS,
+  ): Promise<void> {
     const deadline = Date.now() + timeoutMs;
     let lastConnectAttemptAt = 0;
     let actual: string | null = null;
@@ -187,7 +189,11 @@ class BitcoinTestDapp {
     await this.evaluate('(() => { location.reload(); return true; })()');
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
     await this.waitForDappLoaded();
-    await this.waitForReconnect();
+    try {
+      await this.waitForReconnect();
+    } catch {
+      await this.connect();
+    }
   }
 }
 

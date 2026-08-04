@@ -5,6 +5,7 @@ import Matchers from '../../framework/Matchers';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities, sleep } from '../../framework';
@@ -472,28 +473,44 @@ class TestDApp {
     });
   }
 
-  /**
-   * Clicks the Test Dapp `#connectButton` in the WebView (eth_requestAccounts).
-   * Retries until the button is present — needed on slow Appium Android loads.
-   */
   async tapDappConnectButton(timeoutMs = 15_000): Promise<void> {
     const deadline = Date.now() + timeoutMs;
+    let lastClickAt = 0;
+
     while (Date.now() < deadline) {
-      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-        testDappPageUrl(),
-        TestDappSelectorsWebIDs.CONNECT_BUTTON,
-      );
-      if (clicked) return;
+      if (Date.now() - lastClickAt >= 1_000) {
+        lastClickAt = Date.now();
+        await ChromeCdpHelpers.evaluateInWebView(
+          testDappPageUrl(),
+          `(() => {
+            const el = document.getElementById(${JSON.stringify(
+              TestDappSelectorsWebIDs.CONNECT_BUTTON,
+            )});
+            if (!el) return false;
+            el.click();
+            return true;
+          })()`,
+        );
+      }
+
+      try {
+        const connectSheetButton = await PlaywrightMatchers.getElementById(
+          ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
+        );
+        await connectSheetButton.unwrap().waitForDisplayed({ timeout: 500 });
+        return;
+      } catch {
+        // Connect sheet not up yet.
+      }
+
       await sleep(300);
     }
+
     throw new Error(
-      `Timed out waiting for #${TestDappSelectorsWebIDs.CONNECT_BUTTON} in TestDApp WebView`,
+      `Timed out waiting for connect sheet after #${TestDappSelectorsWebIDs.CONNECT_BUTTON} click`,
     );
   }
 
-  /**
-   * Invokes `wallet_requestPermissions` in the Test Dapp WebView via CDP.
-   */
   async requestPermissions({
     accounts,
   }: { accounts?: string[] } = {}): Promise<void> {
