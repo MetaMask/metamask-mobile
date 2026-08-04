@@ -100,6 +100,43 @@ describeForPlatforms('Wallet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('navigates to Explore search when the header search button is pressed', async () => {
+    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
+      extraRoutes: [
+        { name: Routes.QR_TAB_SWITCHER },
+        { name: Routes.EXPLORE_SEARCH },
+      ],
+      overrides: {
+        settings: {
+          basicFunctionalityEnabled: true,
+        },
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: {
+              isEvmSelected: true,
+            },
+            RewardsController: {
+              activeAccount: null,
+            },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>,
+    });
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON));
+
+    expect(
+      await findByTestId(`route-${Routes.EXPLORE_SEARCH}`),
+    ).toBeOnTheScreen();
+  });
+
   const defaultWalletOverrides = {
     overrides: {
       settings: {
