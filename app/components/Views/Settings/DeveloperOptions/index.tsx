@@ -16,6 +16,7 @@ import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+import WidgetsDeveloperOptionsSection from './WidgetsDeveloperOptionsSection';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
@@ -100,6 +101,7 @@ const DeveloperOptions = () => {
           <SocialLeaderboardDeveloperOptionsSection />
         )}
         <HapticsDeveloperOptionsSection />
+        <WidgetsDeveloperOptionsSection />
       </ScrollView>
     </SafeAreaView>
   );

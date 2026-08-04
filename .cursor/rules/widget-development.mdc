@@ -13,7 +13,8 @@ alwaysApply: false
 - `app/core/Widgets/` — all JS/TS foundation code (theme bridge, wrappers, `WidgetUpdaterService`)
 - `ios/ExpoWidgetsTarget/` — the native WidgetKit extension target (Swift)
 - `app/core/Widgets/widgets/BalanceWidget.ios.tsx` + `BalanceWidget.ts` (non-iOS fallback) — the reference widget; copy its shape for new widgets
-- `app/core/Widgets/liveActivities/PerpsPnlLiveActivity.ios.tsx` + `.ts` — the reference Live Activity; its lifecycle driver is `app/components/UI/Perps/services/PerpsLiveActivityService.ts`
+- `app/core/Widgets/liveActivities/PerpsPnlLiveActivity.ios.tsx` + `.tsx` — the reference Live Activity; its lifecycle driver is `app/components/UI/Perps/services/PerpsLiveActivityService.ts` (stream-driven)
+- `app/core/Widgets/liveActivities/BalanceLiveActivity.ios.tsx` + `.tsx` — the Redux-driven Live Activity; its lifecycle driver is `app/core/Widgets/BalanceLiveActivityService.ts`, started by hand from Developer Options
 
 ## The one non-negotiable rule: no closures inside `'widget'`-directive functions
 
@@ -90,7 +91,7 @@ Every rule above (no closures, platform split, theming) applies unchanged. Only 
 1. **No native work whatsoever** — no `.swift` file, no `index.swift` entry, no Xcode target membership, no `app.config.js` entry. `WidgetLiveActivity()` (expo-widgets' generic renderer) is already bundled and `NSSupportsLiveActivities` is already set; `createLiveActivity` writes the stringified layout to the App Group at *import time* and the extension looks it up by `name`. A new Live Activity is a pure-JS change.
 2. `app/core/Widgets/liveActivities/MyActivity.ios.tsx` — props + a `'widget'` layout that returns a **`LiveActivityLayout` object**, not JSX: `{ banner, compactLeading, compactTrailing, minimal, expandedLeading, expandedTrailing, expandedBottom }`. Second param is `LiveActivityEnvironment` (import it from `../createMetaMaskLiveActivity.ios`; `expo-widgets` doesn't re-export it from its package root).
 3. `app/core/Widgets/liveActivities/MyActivity.tsx` — no-op fallback, `createMetaMaskLiveActivity` from `../createMetaMaskLiveActivity` (`.tsx`, matching the `.ios.tsx` extension — see Platform split).
-4. A **feature-owned** lifecycle service calling `.start()` / `.update()` / `.end('immediate')` — NOT `WidgetUpdaterService`, which only exists to fan a debounced Redux snapshot out to widgets. Throttle updates (ActivityKit budgets them) and skip writes when serialized props are unchanged.
+4. A **dedicated** lifecycle service calling `.start()` / `.update()` / `.end('immediate')` — never `WidgetUpdaterService`, which only pushes standing snapshots to always-installed widgets. Own it from the feature when the data isn't in Redux (`PerpsLiveActivityService`), or from a Redux subscription when it is (`BalanceLiveActivityService`). Either way: throttle updates (ActivityKit budgets them) and skip writes when serialized props are unchanged.
 5. Call `endLiveActivitiesFromPreviousLaunch()` once from that service's start.
 6. Prefer suppressing the activity entirely over masking values when privacy mode is on — the Lock Screen is readable without unlocking.
 7. Tests: assert registration from the activity's own file, all real logic from the service. Reading `MM_WIDGETS_ENABLED` at call time requires adding the service *and* its test to `babel.config.tests.js`'s inline-env `exclude` list.

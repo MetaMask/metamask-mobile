@@ -1,13 +1,11 @@
 import { Platform } from 'react-native';
-import { createFormatters } from '@metamask/client-utils';
 
 import ReduxService from '../redux/ReduxService';
 import Logger from '../../util/Logger';
-import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
-import { selectBalanceBySelectedAccountGroup } from '../../selectors/assets/balances';
 import { selectPrivacyMode } from '../../selectors/preferencesController';
 import { strings } from '../../../locales/i18n';
 
+import { formatSelectedAccountGroupBalance } from './balanceSnapshot';
 import { darkWidgetTheme, lightWidgetTheme } from './WidgetTheme';
 import {
   BalanceWidget,
@@ -26,14 +24,6 @@ const UPDATE_DEBOUNCE_MS = 2000;
  * in-app when privacy mode is on.
  */
 const HIDDEN_BALANCE_DISPLAY = '•'.repeat(9);
-
-/**
- * `selectBalanceBySelectedAccountGroup` is a selector *factory* — each call
- * builds a fresh `createSelector` instance. It must be instantiated once and
- * reused, otherwise every read re-runs the (expensive) all-wallets balance
- * aggregation from scratch and re-triggers Reselect's dev-only warnings.
- */
-const selectBalance = selectBalanceBySelectedAccountGroup();
 
 /**
  * Subscribes to the Redux store and pushes throttled snapshot updates to
@@ -148,15 +138,10 @@ class WidgetUpdaterServiceImplementation {
 
   private computeBalanceWidgetProps(): BalanceWidgetProps & WithWidgetTheme {
     const state = ReduxService.store.getState();
-    const balance = selectBalance(state);
-    const isPrivacyModeEnabled = selectPrivacyMode(state);
 
-    const balanceDisplay = isPrivacyModeEnabled
+    const balanceDisplay = selectPrivacyMode(state)
       ? HIDDEN_BALANCE_DISPLAY
-      : createFormatters({ locale: getLocaleLanguageCode() }).formatCurrency(
-          balance?.totalBalanceInUserCurrency ?? 0,
-          balance?.userCurrency ?? 'usd',
-        );
+      : formatSelectedAccountGroupBalance(state);
 
     return {
       balanceDisplay,

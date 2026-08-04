@@ -66,13 +66,17 @@ app/core/Widgets/
 ├── getInstalledWidgets.ts            No-op fallback (returns [])
 ├── trackWidgetAdoption.ts            Reports install-based widget adoption to analytics
 ├── reconcileLiveActivities.ts        Launch-time cleanup of activities orphaned by a previous process
+├── balanceSnapshot.ts                Shared balance formatting for the widget and the Live Activity
+├── BalanceLiveActivityService.ts     Redux-driven start/update/end for BalanceLiveActivity
 ├── index.ts                          Barrel (WidgetUpdaterService, WidgetTheme helpers, types)
 ├── widgets/
 │   ├── BalanceWidget.ios.tsx         Reference widget: layout + registration
 │   └── BalanceWidget.tsx             No-op fallback with the same exported shape
 └── liveActivities/
     ├── PerpsPnlLiveActivity.ios.tsx  Reference Live Activity: layout + registration
-    └── PerpsPnlLiveActivity.tsx      No-op fallback with the same exported shape
+    ├── PerpsPnlLiveActivity.tsx      No-op fallback with the same exported shape
+    ├── BalanceLiveActivity.ios.tsx   Redux-driven Live Activity: layout + registration
+    └── BalanceLiveActivity.tsx       No-op fallback with the same exported shape
 
 app/components/UI/Perps/services/
 └── PerpsLiveActivityService.ts       Feature-owned start/update/end lifecycle for the above
@@ -575,10 +579,14 @@ Three things differ, and they're the whole delta:
    `createMetaMaskLiveActivity.ios.ts` re-exports a derived version; import it
    from there.
 
-3. **The lifecycle is feature-owned.** `WidgetUpdaterService` exists to fan a
-   debounced Redux snapshot out to widgets. A Live Activity is a state machine
-   (start on open, update while open, end on close) and its data often isn't
-   in Redux at all, so the owning feature drives it.
+3. **The lifecycle belongs to whoever owns the data.** `WidgetUpdaterService`
+   exists to fan a debounced Redux snapshot out to widgets, and a widget is
+   either installed or not. A Live Activity is a state machine (start, update
+   while running, end), so it always needs a service of its own — either
+   feature-owned when the data isn't in Redux (`PerpsLiveActivityService`, which
+   reads perps streams directly), or Redux-driven when it is
+   (`BalanceLiveActivityService`, which subscribes to the store exactly like
+   `WidgetUpdaterService` does).
 
 ### The reference Live Activity: `PerpsPnlLiveActivity`
 
@@ -605,6 +613,26 @@ Two behaviors there are worth copying:
 - **Privacy mode suppresses the activity outright** rather than masking the
   numbers, because a Lock Screen is readable without unlocking the device.
   That's a deliberate difference from `BalanceWidget`, which masks instead.
+
+### The Redux-driven one: `BalanceLiveActivity`
+
+`app/core/Widgets/liveActivities/BalanceLiveActivity.ios.tsx` shows the selected
+account's total balance — the same number `BalanceWidget` puts on the home
+screen. It's the counterpart worth reading when your activity's data already
+lives in Redux.
+
+`app/core/Widgets/BalanceLiveActivityService.ts` drives it from a store
+subscription with the same 2s debounce and identical-props check
+`WidgetUpdaterService` uses, and both read the balance through
+`app/core/Widgets/balanceSnapshot.ts` so the widget and the activity can't
+drift apart on rounding, currency or locale.
+
+It is a separate service rather than another method pair on
+`WidgetUpdaterService` because its _lifetime_ is different: a widget is
+installed or not, whereas a Live Activity has to be explicitly started and
+ended. There is no product-agreed trigger for that yet, so for now
+`app/components/Views/Settings/DeveloperOptions/WidgetsDeveloperOptionsSection.tsx`
+starts and stops it by hand from Settings > Developer Options.
 
 ### Adding a Live Activity
 
