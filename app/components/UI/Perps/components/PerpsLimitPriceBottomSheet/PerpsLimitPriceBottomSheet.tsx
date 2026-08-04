@@ -31,7 +31,10 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
+import {
+  LIMIT_PRICE_CONFIG,
+  MAX_PERPS_INPUT_DIGITS,
+} from '../../constants/perpsConfig';
 import { isPriceOutsideDeviationBand } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -140,10 +143,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
-      // Enforce 9-digit limit (ignore non-digits like '.' or ',')
+      // Enforce digit limit (ignore non-digits like '.' or ',')
       const digitCount = (value.match(/\d/g) || []).length;
-      if (digitCount > 9) {
-        return; // Ignore input that would exceed 9 digits
+      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+        return; // Ignore input that would exceed the max digit limit
       }
       setLimitPrice(value || '');
       setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.KEYBOARD);

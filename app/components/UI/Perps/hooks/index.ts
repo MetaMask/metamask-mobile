@@ -99,6 +99,7 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
 export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
+export { usePerpsMarketAboutTracking } from './usePerpsMarketAboutTracking';
 
 // Performance tracking hooks
 // Removed: usePerpsScreenTracking - migrated to usePerpsMeasurement

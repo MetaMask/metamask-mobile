@@ -1,6 +1,37 @@
 import React, { useCallback } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Slider } from '@metamask/design-system-react-native';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
+
+/**
+ * Mirrors `@metamask/design-system-react-native`'s Slider geometry constants
+ * (`Slider.constants.mjs`) — not part of that package's public API, so
+ * duplicated here to size the `compact` variant's scale-down wrapper below.
+ * Keep in sync if that package's Slider geometry changes.
+ */
+const SLIDER_VERTICAL_PADDING = 8;
+const THUMB_SIZE = 32;
+const THUMB_TOP_OFFSET = -13;
+const THUMB_BOTTOM_OFFSET = THUMB_TOP_OFFSET + THUMB_SIZE;
+/** Natural (unscaled) height of the track+thumb area, no range labels. */
+const SLIDER_TRACK_AREA_HEIGHT =
+  SLIDER_VERTICAL_PADDING * 2 + THUMB_BOTTOM_OFFSET;
+/**
+ * Visual scale applied to the `compact` variant so it matches Figma's small
+ * slider (16px thumb, 4px track, 2px dots — exactly half of the design
+ * system's hardcoded 32px/8px/4px). See the `variant` doc below for why this
+ * can't just be a prop on the design system `Slider`.
+ */
+const COMPACT_SCALE = 0.5;
+
+const styles = StyleSheet.create({
+  compactScaler: {
+    height: SLIDER_TRACK_AREA_HEIGHT * COMPACT_SCALE,
+    width: '200%',
+    transform: [{ scale: COMPACT_SCALE }],
+    transformOrigin: 'left top',
+  },
+});
 
 interface PerpsSliderProps {
   value: number;
@@ -19,10 +50,22 @@ interface PerpsSliderProps {
   showPercentageMarkers?: boolean;
   disabled?: boolean;
   /**
-   * `'compact'` tightens the vertical spacing and removes the horizontal
-   * track inset for dense layouts (e.g. footer sliders). The design system
-   * `Slider` does not expose a smaller track/thumb size, so `compact` only
-   * adjusts the spacing it can control via `trackInset`/`twClassName`.
+   * `'compact'` visually shrinks the whole slider (thumb/track/dots) to
+   * match Figma's small variant and removes the horizontal track inset, for
+   * dense layouts (e.g. footer sliders). The design system `Slider` has no
+   * size prop and only exposes one root `style`/`twClassName` covering its
+   * whole subtree, so this wraps it in a single `View` that declares
+   * `width: '200%'` (double, so the `Slider` — which stretches to fill its
+   * parent — still spans the full row after shrinking) and `height` equal
+   * to the target *post-scale* size (half the `Slider`'s natural height, so
+   * it overflows the declared box by exactly 2x). `transform: scale(0.5)`
+   * with `transformOrigin: 'left top'` then shrinks that whole overflowing
+   * render back down, anchored at the top-left corner — the declared box
+   * and the shrunk content end up pixel-identical, so no separate clipping
+   * container is needed. The drag/tap gesture math still runs against the
+   * pre-scale (double-size) layout box, so the hit-region stays exactly as
+   * large as the `'default'` variant's even though it now looks half the
+   * size.
    */
   variant?: 'default' | 'compact';
   testID?: string;
@@ -57,7 +100,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
 
   const isCompact = variant === 'compact';
 
-  return (
+  const slider = (
     <Slider
       value={value}
       onValueChange={onValueChange}
@@ -71,11 +114,16 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       onMark={handleMark}
       isDisabled={disabled}
       trackInset={isCompact ? 0 : undefined}
-      twClassName={isCompact ? '-my-1.5' : undefined}
       testID={testID}
       accessibilityLabel={accessibilityLabel}
     />
   );
+
+  if (!isCompact) {
+    return slider;
+  }
+
+  return <View style={styles.compactScaler}>{slider}</View>;
 };
 
 export default PerpsSlider;

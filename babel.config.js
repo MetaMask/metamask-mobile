@@ -119,7 +119,14 @@ module.exports = {
     [
       'transform-inline-environment-variables',
       {
-        exclude: ['JEST_WORKER_ID', 'EXPO_OS', 'EXPO_SERVER', 'EXPO_BASE_URL'],
+        exclude: [
+          'JEST_WORKER_ID',
+          'EXPO_OS',
+          'EXPO_SERVER',
+          'EXPO_BASE_URL',
+          // Must remain runtime-readable for emergency Appium session-reuse rollback.
+          'APPIUM_SESSION_REUSE',
+        ],
       },
     ],
     dynamicImportToRequire,

@@ -9,7 +9,7 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
 import type { OrderPreview } from '../types';
@@ -55,6 +55,7 @@ import {
   fetchRelatedTagsFromPolymarketApi,
   getBalance,
   getL2Headers,
+  getMarketDetailsFromGammaApi,
   getOrderBook,
   getRawBalance,
   parsePolymarketActivity,
@@ -239,6 +240,9 @@ const mockGetDeployProxyWalletTransaction = jest.mocked(
   getDeployProxyWalletTransaction,
 );
 const mockGetL2Headers = jest.mocked(getL2Headers);
+const mockGetMarketDetailsFromGammaApi = jest.mocked(
+  getMarketDetailsFromGammaApi,
+);
 const mockGetOrderBook = jest.mocked(getOrderBook);
 const mockGetRawBalance = jest.mocked(getRawBalance);
 const mockGetSafeTransferAmount = jest.mocked(getSafeTransferAmount);
@@ -382,7 +386,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictPortfolioEnabled: false,
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
-  predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
 };
 
@@ -545,6 +549,85 @@ describe('PolymarketProvider', () => {
         [childFeedEvent],
         expect.any(Object),
       );
+    });
+
+    it('keeps directly opened child events with ungroupable active markets', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['elc'],
+        extendedSportsMarketsLeagues: ['elc'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: 'parent-event',
+        slug: 'elc-hul-mid-2026-05-23-more-markets',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'hul', league: 'elc' },
+          { abbreviation: 'mid', league: 'elc' },
+        ],
+        markets: [
+          { active: true, sportsMarketType: 'spreads' },
+          { active: true, sportsMarketType: 'total_corners' },
+        ],
+      };
+      const parsedMarket = { id: 'child-market', outcomes: [] };
+
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        childEvent as never,
+      );
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: childEvent.id,
+      });
+
+      expect(result).toEqual(parsedMarket);
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [childEvent],
+        expect.any(Object),
+      );
+    });
+
+    it('resolves directly opened child events when every active market is groupable', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['elc'],
+        extendedSportsMarketsLeagues: ['elc'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: 'parent-event',
+        slug: 'elc-hul-mid-2026-05-23-more-markets',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'hul', league: 'elc' },
+          { abbreviation: 'mid', league: 'elc' },
+        ],
+        markets: [
+          { active: true, sportsMarketType: 'spreads' },
+          { active: false, sportsMarketType: 'total_corners' },
+        ],
+      };
+      const parsedMarket = { id: 'child-market', outcomes: [] };
+
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        childEvent as never,
+      );
+      mockFetchChildEventsFromGammaApi.mockRejectedValueOnce(
+        new Error('Parent fetch failed'),
+      );
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: childEvent.id,
+      });
+
+      expect(result).toEqual(parsedMarket);
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: childEvent.parentEventId,
+      });
     });
 
     it('lists markets from keyset events with normalized shape', async () => {

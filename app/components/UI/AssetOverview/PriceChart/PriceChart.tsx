@@ -126,7 +126,12 @@ const PriceChart = ({
     return (width / 750) * size;
   };
 
-  const priceList = prices.map((_: TokenPrice) => _[1]);
+  // Memoize so scrub/gesture re-renders (positionX) do not re-map the series
+  // or invalidate the downstream stablecoin y-axis useMemo via a new array identity.
+  const priceList = useMemo(
+    () => prices.map((p: TokenPrice) => p[1]),
+    [prices],
+  );
 
   const endDotRadius = END_DOT_DIAMETER / 2;
   const endDotInsetRight = endDotRadius + 8;

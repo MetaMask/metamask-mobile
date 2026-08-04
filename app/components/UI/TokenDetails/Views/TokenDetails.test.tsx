@@ -21,6 +21,16 @@ import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/Tra
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
+const mockUseMoneyAssetOverviewCtas = jest.fn();
+
+jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
+  useMoneyAssetOverviewCtas: () => mockUseMoneyAssetOverviewCtas(),
+}));
+
+jest.mock('../../Money/components/MoneyAssetOverviewBalanceCta', () => ({
+  MoneyAssetOverviewBalanceCta: () => null,
+  MoneyAssetOverviewBalanceCtaSkeleton: () => null,
+}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) =>
@@ -415,6 +425,18 @@ jest.mock('../../../../util/haptics', () => ({
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMoneyAssetOverviewCtas.mockReturnValue({
+      apyPercent: undefined,
+      footerLabel: undefined,
+      isBalanceCtaLoading: false,
+      isBalanceCtaVisible: false,
+      isFooterCtaEligible: false,
+      isFooterCtaLoading: false,
+      isFooterCtaVisible: false,
+      onBalancePress: jest.fn(),
+      onFooterPress: jest.fn(),
+      projectedEarningsFormatted: undefined,
+    });
     mockBeforeRemoveListener = undefined;
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
@@ -568,6 +590,28 @@ describe('TokenDetails', () => {
       expect(getLastQuickBuyProps()).toEqual(
         expect.objectContaining({ isVisible: false }),
       );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON));
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+
+    it('opens AssetDetailsQuickBuy when an eligible token has unresolved APY', () => {
+      mockUseMoneyAssetOverviewCtas.mockReturnValue({
+        apyPercent: undefined,
+        footerLabel: undefined,
+        isBalanceCtaLoading: false,
+        isBalanceCtaVisible: false,
+        isFooterCtaEligible: true,
+        isFooterCtaLoading: false,
+        isFooterCtaVisible: false,
+        onBalancePress: jest.fn(),
+        onFooterPress: jest.fn(),
+        projectedEarningsFormatted: undefined,
+      });
+      const { getByTestId } = render(<TokenDetails />);
 
       fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON));
 
