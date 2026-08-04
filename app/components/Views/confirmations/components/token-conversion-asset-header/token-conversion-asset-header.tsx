@@ -7,8 +7,14 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -22,12 +28,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../hooks/pay/useTransactionPayData';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { useNetworkName } from '../../hooks/useNetworkName';
 
@@ -223,8 +223,8 @@ export const TokenConversionAssetHeader = ({
         >
           <AvatarToken
             name={inputToken.symbol}
-            imageSource={{ uri: inputToken.image }}
-            size={AvatarSize.Lg}
+            src={{ uri: inputToken.image }}
+            size={AvatarTokenSize.Lg}
             testID={TokenConversionAssetHeaderTestIds.INPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>
@@ -284,8 +284,8 @@ export const TokenConversionAssetHeader = ({
         >
           <AvatarToken
             name={outputToken.symbol}
-            imageSource={{ uri: outputToken.image }}
-            size={AvatarSize.Lg}
+            src={{ uri: outputToken.image }}
+            size={AvatarTokenSize.Lg}
             testID={TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>

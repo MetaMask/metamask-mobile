@@ -60,18 +60,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: (props: { accountAddress?: string }) => (
-      <View testID={`avatar-${props.accountAddress}`} />
-    ),
-    AvatarVariant: { Account: 'Account' },
-    AvatarSize: { Sm: 'Sm' },
-  };
-});
-
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');
   return {

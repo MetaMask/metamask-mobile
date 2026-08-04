@@ -1,18 +1,23 @@
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+} from '@metamask/design-system-react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import Name from '../../../../../UI/Name/Name';
 import { NameType } from '../../../../../UI/Name/Name.types';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { parseStandardTokenTransactionData } from '../../../utils/transaction';
@@ -43,6 +48,7 @@ const SEND_TYPES: TransactionType[] = [
 export function TransactionDetailsToRow() {
   const { transactionMeta } = useTransactionDetails();
   const isMoneyContext = useIsMoneyAccountContext();
+  const accountAvatarType = useSelector(selectAvatarAccountType);
   const recipient = useRecipient();
   const chainId = transactionMeta?.chainId as Hex;
 
@@ -65,7 +71,11 @@ export function TransactionDetailsToRow() {
         />
       </View>
     ) : (
-      <AvatarAccount accountAddress={recipient ?? '0x0'} size={AvatarSize.Sm} />
+      <AvatarAccount
+        address={recipient ?? '0x0'}
+        variant={getAvatarAccountVariant(accountAvatarType)}
+        size={AvatarAccountSize.Sm}
+      />
     );
 
     return (

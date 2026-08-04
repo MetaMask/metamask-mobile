@@ -4,7 +4,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarTokenSize } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
@@ -89,7 +89,7 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
               )}
             </View>
             <View style={styles.iconContainer}>
-              <AvatarTokenWithNetworkBadge size={AvatarSize.Lg} />
+              <AvatarTokenWithNetworkBadge size={AvatarTokenSize.Lg} />
             </View>
           </View>
         </View>

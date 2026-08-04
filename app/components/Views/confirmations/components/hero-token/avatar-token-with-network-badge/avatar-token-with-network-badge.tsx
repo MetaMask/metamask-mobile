@@ -1,10 +1,12 @@
 import React from 'react';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
@@ -25,17 +27,17 @@ const AvatarTokenOrNetworkAssetLogo = ({
   asset,
   chainId,
   displayName,
-  size = AvatarSize.Xl,
+  size = AvatarTokenSize.Xl,
 }: {
   asset: TokenI;
   chainId: Hex;
   displayName: string;
-  size?: AvatarSize;
+  size?: AvatarTokenSize;
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { image, isNative } = asset;
   const isUnknownToken = displayName === strings('token.unknown');
-  const isBiggest = size === AvatarSize.Xl;
+  const isBiggest = size === AvatarTokenSize.Xl;
   return isNative ? (
     <NetworkAssetLogo
       big
@@ -47,7 +49,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
     />
   ) : (
     <AvatarToken
-      imageSource={image ? { uri: image } : NetworkBadgeSource(chainId as Hex)}
+      src={image ? { uri: image } : NetworkBadgeSource(chainId as Hex)}
       name={isUnknownToken ? undefined : displayName}
       size={size}
       style={styles.avatarToken}
@@ -58,7 +60,7 @@ const AvatarTokenOrNetworkAssetLogo = ({
 
 export const AvatarTokenWithNetworkBadge = ({
   size,
-}: { size?: AvatarSize } = {}) => {
+}: { size?: AvatarTokenSize } = {}) => {
   const { styles } = useStyles(styleSheet, {});
   const { chainId } =
     useTransactionMetadataRequest() ?? ({} as TransactionMeta);

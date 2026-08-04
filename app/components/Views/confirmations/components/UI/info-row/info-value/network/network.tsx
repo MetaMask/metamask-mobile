@@ -1,10 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+  type ImageOrSvgSrc,
+} from '@metamask/design-system-react-native';
 
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../../../component-library/components/Avatars/Avatar';
 import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
@@ -24,11 +25,10 @@ const Network = ({ chainId }: NetworkProps) => {
 
   return (
     <View style={styles.container}>
-      <Avatar
-        variant={AvatarVariant.Network}
+      <AvatarNetwork
         name={networkName}
-        imageSource={networkImage}
-        size={AvatarSize.Xs}
+        src={networkImage as ImageOrSvgSrc}
+        size={AvatarNetworkSize.Xs}
       />
       <Text style={styles.value}>{networkName}</Text>
     </View>

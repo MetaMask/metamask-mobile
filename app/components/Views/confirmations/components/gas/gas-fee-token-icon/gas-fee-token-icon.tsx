@@ -6,8 +6,11 @@ import styleSheet from './gas-fee-token-icon.styles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { View } from 'react-native';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+  type ImageOrSvgSrc,
+} from '@metamask/design-system-react-native';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
@@ -114,9 +117,21 @@ function TokenIconWithNetworkBadge({
         style={styles.badgeWrapper}
       >
         <AvatarToken
-          imageSource={imageUri ? { uri: imageUri } : networkImage}
+          testID="gas-fee-token-avatar"
+          src={
+            imageUri
+              ? { uri: imageUri }
+              : (networkImage as ImageOrSvgSrc | undefined)
+          }
           name={token?.symbol ?? nativeCurrency}
-          size={size === GasFeeTokenIconSize.Md ? AvatarSize.Md : AvatarSize.Xs}
+          size={
+            size === GasFeeTokenIconSize.Md
+              ? AvatarTokenSize.Md
+              : AvatarTokenSize.Xs
+          }
+          imageOrSvgProps={{
+            imageProps: { testID: 'gas-fee-token-avatar-image' },
+          }}
         />
       </BadgeWrapper>
     </View>
