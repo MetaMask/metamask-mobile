@@ -107,9 +107,17 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
 let mockNetworkConnectionBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
-    networkConnectionBannerState: {
-      visible: mockNetworkConnectionBannerVisible,
-    },
+    status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
+    network: mockNetworkConnectionBannerVisible
+      ? {
+          networkClientId: 'test-client',
+          name: 'Test Network',
+          rpcUrl: 'https://test.rpc',
+          chainId: '0x1',
+          isInfuraEndpoint: false,
+          switchableInfuraNetworkClientId: null,
+        }
+      : null,
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
