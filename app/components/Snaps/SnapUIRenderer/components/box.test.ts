@@ -44,7 +44,7 @@ describe('box UIComponentFactory', () => {
               children: 'Test content',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
                 style: {
                   fontWeight: '400',
                   textAlign: 'left',
@@ -58,7 +58,7 @@ describe('box UIComponentFactory', () => {
               fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
         },
       ],

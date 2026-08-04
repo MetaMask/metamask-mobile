@@ -40,7 +40,7 @@ describe('SnapUIRenderer utils', () => {
                   "fontWeight": "400",
                   "textAlign": "left",
                 },
-                "variant": "sBodyMD",
+                "variant": "body-md",
               },
             },
           ],
@@ -52,7 +52,7 @@ describe('SnapUIRenderer utils', () => {
               "fontWeight": "400",
               "textAlign": "left",
             },
-            "variant": "sBodyMD",
+            "variant": "body-md",
           },
         }
       `);

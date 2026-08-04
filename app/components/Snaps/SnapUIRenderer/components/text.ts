@@ -1,28 +1,25 @@
 import { JSXElement, TextElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
+import { TextColor, TextVariant } from '@metamask/design-system-react-native';
+import { typography } from '@metamask/design-tokens';
 import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text/Text.types';
-import { typography } from '@metamask/design-tokens';
 
 function getTextColor(color: TextElement['props']['color']) {
   switch (color) {
     case 'default':
-      return TextColor.Default;
+      return TextColor.TextDefault;
     case 'alternative':
-      return TextColor.Alternative;
+      return TextColor.TextAlternative;
     case 'muted':
-      return TextColor.Muted;
+      return TextColor.TextMuted;
     case 'error':
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     case 'success':
-      return TextColor.Success;
+      return TextColor.SuccessDefault;
     case 'warning':
-      return TextColor.Warning;
+      return TextColor.WarningDefault;
     default:
       return null;
   }
@@ -65,11 +62,11 @@ function getTextVariant(
 ) {
   switch (size) {
     case 'md':
-      return TextVariant.BodyMD;
+      return TextVariant.BodyMd;
     case 'sm':
-      return TextVariant.BodySM;
+      return TextVariant.BodySm;
     default:
-      return inheritedVariant ?? TextVariant.BodyMD;
+      return inheritedVariant ?? TextVariant.BodyMd;
   }
 }
 

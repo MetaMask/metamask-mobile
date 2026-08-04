@@ -1,10 +1,7 @@
-import { text } from './text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text/Text.types';
 import { TextElement } from '@metamask/snaps-sdk/jsx';
+import { TextColor, TextVariant } from '@metamask/design-system-react-native';
 import { mockTheme } from '../../../../util/theme';
+import { text } from './text';
 
 describe('text component', () => {
   const defaultParams = {
@@ -35,7 +32,7 @@ describe('text component', () => {
           children: 'Hello World',
           props: {
             color: undefined,
-            variant: 'sBodyMD',
+            variant: TextVariant.BodyMd,
             style: {
               fontWeight: '400',
               textAlign: 'left',
@@ -44,7 +41,7 @@ describe('text component', () => {
         },
       ],
       props: {
-        variant: TextVariant.BodyMD,
+        variant: TextVariant.BodyMd,
         color: undefined,
         style: {
           fontWeight: '400',
@@ -55,18 +52,21 @@ describe('text component', () => {
   });
 
   it('should handle different text colors', () => {
-    const colors: TextElement['props']['color'][] = [
-      'default',
-      'alternative',
-      'muted',
-      'error',
-      'success',
-      'warning',
-    ];
+    const colorMap: Record<
+      NonNullable<TextElement['props']['color']>,
+      string
+    > = {
+      default: TextColor.TextDefault,
+      alternative: TextColor.TextAlternative,
+      muted: TextColor.TextMuted,
+      error: TextColor.ErrorDefault,
+      success: TextColor.SuccessDefault,
+      warning: TextColor.WarningDefault,
+    };
 
-    colors.forEach((color) => {
-      if (!color) return;
-
+    (
+      Object.keys(colorMap) as NonNullable<TextElement['props']['color']>[]
+    ).forEach((color) => {
       const el: TextElement = {
         type: 'Text',
         props: { color, children: ['Test'] },
@@ -74,10 +74,7 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      const capitalizedColor = color.charAt(0).toUpperCase() + color.slice(1);
-      expect(result.props?.color).toBe(
-        TextColor[capitalizedColor as keyof typeof TextColor],
-      );
+      expect(result.props?.color).toBe(colorMap[color]);
     });
   });
 
@@ -137,6 +134,6 @@ describe('text component', () => {
     };
 
     const result = text({ element: el, ...defaultParams });
-    expect(result.props?.variant).toBe(TextVariant.BodySM);
+    expect(result.props?.variant).toBe(TextVariant.BodySm);
   });
 });
