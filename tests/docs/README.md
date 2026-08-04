@@ -66,7 +66,7 @@ await withFixtures(
 - ✅ **ALWAYS** import from `tests/framework/index.ts` (not individual files)
 - ✅ **ALWAYS** use modern TypeScript framework methods
 - ❌ **NEVER** use legacy methods marked with `@deprecated`
-- ❌ **NEVER** use `TestHelpers.delay()` - use proper waiting instead
+- ❌ **NEVER** use fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 
 **Page Object Model (REQUIRED):**
 
@@ -256,8 +256,8 @@ export default new WalletView();
 **❌ PROHIBITED Patterns:**
 
 ```typescript
-// DON'T: Use TestHelpers.delay()
-await TestHelpers.delay(5000);
+// DON'T: Use fixed delays when waiting for UI
+await sleep(5000);
 
 // DON'T: Use deprecated methods
 await Assertions.checkIfVisible(element);
@@ -317,7 +317,7 @@ await Utilities.executeWithRetry(
 
 - [ ] Uses `withFixtures` pattern for test setup
 - [ ] Imports from `tests/framework/index.ts` (not individual files)
-- [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
+- [ ] No fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 - [ ] No deprecated methods (check `@deprecated` tags)
 - [ ] All assertions have descriptive `description` parameters
 - [ ] All gestures have descriptive `description` parameters
