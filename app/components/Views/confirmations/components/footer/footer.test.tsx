@@ -713,11 +713,21 @@ describe('Footer', () => {
       });
 
       // Answer all three questions with non-red-flag options → clean pass.
-      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      });
       await act(async () => {
         fireEvent.press(getByTestId('scam-questionnaire-continue'));
       });
@@ -751,11 +761,21 @@ describe('Footer', () => {
         );
       });
 
-      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      });
       await act(async () => {
         fireEvent.press(getByTestId('scam-questionnaire-continue'));
       });
