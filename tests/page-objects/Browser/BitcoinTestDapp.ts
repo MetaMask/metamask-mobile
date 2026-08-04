@@ -36,6 +36,9 @@ interface ReloadDiagnostics {
   walletCount: number;
   walletNames: string[];
   connectSheetVisible: boolean;
+  /** Changes only when the document is replaced, so it proves a reload happened. */
+  timeOrigin: number | null;
+  navigationType: string | null;
 }
 
 class BitcoinTestDapp {
@@ -60,6 +63,8 @@ class BitcoinTestDapp {
       persisted: Record<string, unknown> | null;
       walletCount: number;
       walletNames: string[];
+      timeOrigin: number | null;
+      navigationType: string | null;
     }>(`(() => {
       let persisted = null;
       try {
@@ -82,10 +87,21 @@ class BitcoinTestDapp {
       } catch {
         // ignore
       }
+      let timeOrigin = null;
+      let navigationType = null;
+      try {
+        timeOrigin = Math.round(performance.timeOrigin);
+        const entry = performance.getEntriesByType('navigation')[0];
+        navigationType = entry ? String(entry.type) : null;
+      } catch {
+        // ignore
+      }
       return {
         persisted,
         walletCount: found.length,
         walletNames: found.map((w) => (w && w.name != null ? String(w.name) : 'unknown')),
+        timeOrigin,
+        navigationType,
       };
     })()`);
 
@@ -95,6 +111,8 @@ class BitcoinTestDapp {
       walletCount: pageState?.walletCount ?? 0,
       walletNames: pageState?.walletNames ?? [],
       connectSheetVisible,
+      timeOrigin: pageState?.timeOrigin ?? null,
+      navigationType: pageState?.navigationType ?? null,
     };
   }
 
