@@ -592,6 +592,7 @@
     "@google/generative-ai": "^0.24.1",
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/git-safe-dependencies": "^0.2.1",
+    "@metamask/advanced-chart-core": "npm:@metamask-previews/advanced-chart-core@0.0.0-preview-238cb7063",
     "@metamask/auto-changelog": "^5.3.0",
     "@metamask/browser-passworder": "^5.0.0",
     "@metamask/browser-playground": "0.8.1",
