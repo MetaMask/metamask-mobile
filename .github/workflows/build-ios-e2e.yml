@@ -245,7 +245,11 @@ jobs:
       # upload, artifact past its 7-day retention, or outside the search window): once a
       # native build with this fingerprint has completed on this branch (or on main), the
       # compiled .app is restored here instead of recompiling from scratch.
-      - name: Restore iOS app matching fingerprint from branch cache
+      #
+      # The key carries build_type and metamask_environment because those are what
+      # distinguish one compiled .app from another (they're the same fields the GitHub
+      # artifact is named after), on top of the fingerprint itself.
+      - name: Restore iOS app matching fingerprint from branch cache (Cirrus)
         id: ios-app-cache-restore
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && inputs.reuse-main-builds-only != true }}
         # This action automatically updates the cache at the end of the workflow
@@ -253,9 +257,9 @@ jobs:
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+          key: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
 
-      - name: Restore iOS app matching fingerprint from main cache
+      - name: Restore iOS app matching fingerprint from main cache (Cirrus)
         id: ios-app-cache-restore-main
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && (inputs.reuse-main-builds-only == true || (steps.ios-app-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         # This will only restore the cache, not update it
@@ -263,7 +267,7 @@ jobs:
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+          key: ios-app-main-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
 
       - name: Compute native-build gate
         id: gate
@@ -319,8 +323,8 @@ jobs:
           APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
           BRANCH_CACHE_HIT: ${{ steps.ios-app-cache-restore.outputs.cache-hit }}
           MAIN_CACHE_HIT: ${{ steps.ios-app-cache-restore-main.outputs.cache-hit }}
-          BRANCH_CACHE_KEY: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
-          MAIN_CACHE_KEY: ios-app-main-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+          BRANCH_CACHE_KEY: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+          MAIN_CACHE_KEY: ios-app-main-${{ inputs.build_type }}-${{ inputs.metamask_environment }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
           NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
           REPOSITORY: ${{ github.repository }}
         run: |
