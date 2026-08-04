@@ -147,6 +147,16 @@ IOS_SIMULATOR_UDID="$IOS_SIMULATOR_UDID" \
 yarn appium-smoke:ios
 ```
 
+### API specs (OpenRPC) — excluded from smoke tags
+
+`tests/smoke-appium/api-specs/` is **iOS-only**, colocated under smoke-appium but **not** part of Appium smoke tag suites (`testIgnore` unless `APPIUM_RUN_API_SPECS=1`). Use the dedicated script / workflow:
+
+```bash
+IOS_APP_PATH=build/ci-main-e2e/MetaMask.app yarn test:api-specs
+```
+
+CI entrypoint: `.github/workflows/run-e2e-api-specs.yml` (`api-specs-ios`, currently `if: false`).
+
 **Single spec or tag:**
 
 ```bash
@@ -177,6 +187,24 @@ Ensure the emulator is running before starting tests.
 | `yarn appium-smoke:android` | Full Android Appium smoke suite |
 
 Both use `tests/playwright.smoke-appium.config.ts`. Pass standard Playwright flags: `--grep`, file paths, `--debug`, etc.
+
+## Session reuse and soft reload
+
+Local emulator/simulator Appium smoke **reuses one WebDriver session per Playwright worker** by default, and resets the app between tests via soft reload (`clearAppData` → `NATIVE_APP` context → relaunch → wait for `/state.json`).
+
+| Concern                               | Behavior                                                                                     |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Session create                        | Once per worker (happy path). Logs `Reusing WebDriver session sessionId=...` on later tests. |
+| Between tests (`restartDevice: true`) | Soft reload — does **not** create a new Appium session.                                      |
+| Unhealthy session                     | Test-scoped `driver` fixture recreates once (`sessionRecreated=true` annotation).            |
+| BrowserStack                          | Session reuse stays **off** (legacy per-test sessions).                                      |
+| Rollback                              | `APPIUM_SESSION_REUSE=false` restores per-test session delete.                               |
+
+Helpers:
+
+- `isAppiumSessionReuseEnabled` — `tests/framework/fixtures/playwright/sessionReuse.ts`
+- `softReloadAppForFixtures` — `tests/framework/services/appium/softReloadApp.ts`
+- Worker fixtures — `deviceProvider` + `sharedSession` in `tests/framework/fixtures/playwright/`
 
 ## Reports and artifacts
 
