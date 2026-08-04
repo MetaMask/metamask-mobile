@@ -1,8 +1,11 @@
 import { JSXElement, TextElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
-import { TextColor, TextVariant } from '@metamask/design-system-react-native';
-import { typography } from '@metamask/design-tokens';
+import {
+  FontWeight,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 
@@ -26,17 +29,17 @@ function getTextColor(color: TextElement['props']['color']) {
 }
 
 function getFontWeight(
-  color: TextElement['props']['fontWeight'],
+  fontWeight: TextElement['props']['fontWeight'],
   inheritedWeight?: string,
 ) {
-  switch (color ?? inheritedWeight) {
-    case 'bold':
-      return typography.sBodyMDBold.fontWeight;
-    case 'medium':
-      return typography.sBodyMDMedium.fontWeight;
-    case 'regular':
+  switch (fontWeight ?? inheritedWeight) {
+    case FontWeight.Bold:
+      return FontWeight.Bold;
+    case FontWeight.Medium:
+      return FontWeight.Medium;
+    case FontWeight.Regular:
     default:
-      return typography.sBodyMD.fontWeight;
+      return FontWeight.Regular;
   }
 }
 
@@ -100,8 +103,8 @@ export const text: UIComponentFactory<TextElement> = ({
     props: {
       variant: textVariant,
       color: textColor,
+      fontWeight: textFontWeight,
       style: {
-        fontWeight: textFontWeight,
         textAlign: textAlignment,
       },
     },

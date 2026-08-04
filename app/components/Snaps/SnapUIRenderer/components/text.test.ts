@@ -1,5 +1,9 @@
 import { TextElement } from '@metamask/snaps-sdk/jsx';
-import { TextColor, TextVariant } from '@metamask/design-system-react-native';
+import {
+  FontWeight,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { mockTheme } from '../../../../util/theme';
 import { text } from './text';
 
@@ -33,8 +37,8 @@ describe('text component', () => {
           props: {
             color: undefined,
             variant: TextVariant.BodyMd,
+            fontWeight: FontWeight.Regular,
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
           },
@@ -43,8 +47,8 @@ describe('text component', () => {
       props: {
         variant: TextVariant.BodyMd,
         color: undefined,
+        fontWeight: FontWeight.Regular,
         style: {
-          fontWeight: '400',
           textAlign: 'left',
         },
       },
@@ -82,9 +86,9 @@ describe('text component', () => {
     const weights = ['bold', 'medium', 'regular'] as const;
 
     const expectedWeights = {
-      bold: '600',
-      medium: '500',
-      regular: '400',
+      bold: FontWeight.Bold,
+      medium: FontWeight.Medium,
+      regular: FontWeight.Regular,
     };
 
     weights.forEach((weight) => {
@@ -95,10 +99,7 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((result.props as any)?.style?.fontWeight).toBe(
-        expectedWeights[weight],
-      );
+      expect(result.props?.fontWeight).toBe(expectedWeights[weight]);
     });
   });
 

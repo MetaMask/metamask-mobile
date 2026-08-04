@@ -38,8 +38,8 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -48,8 +48,8 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
             variant: 'body-md',
@@ -67,8 +67,8 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -77,8 +77,8 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
             variant: 'body-md',
@@ -116,8 +116,8 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -126,8 +126,8 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
             variant: 'body-md',
@@ -145,8 +145,8 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -155,8 +155,8 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
             variant: 'body-md',
@@ -194,8 +194,8 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -204,8 +204,8 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
             variant: 'body-md',
@@ -223,8 +223,8 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -233,8 +233,8 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
             variant: 'body-md',

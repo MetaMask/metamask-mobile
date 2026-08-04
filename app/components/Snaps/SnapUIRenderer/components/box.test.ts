@@ -45,8 +45,8 @@ describe('box UIComponentFactory', () => {
               props: {
                 color: undefined,
                 variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -54,8 +54,8 @@ describe('box UIComponentFactory', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
             variant: 'body-md',

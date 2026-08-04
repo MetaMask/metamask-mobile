@@ -36,8 +36,8 @@ describe('SnapUIRenderer utils', () => {
               "key": "{"type":"Text","name":null,"children":"Test Content"}_2",
               "props": {
                 "color": undefined,
+                "fontWeight": "regular",
                 "style": {
-                  "fontWeight": "400",
                   "textAlign": "left",
                 },
                 "variant": "body-md",
@@ -48,8 +48,8 @@ describe('SnapUIRenderer utils', () => {
           "key": "{"type":"Text","name":null,"children":"Test Content"}_1",
           "props": {
             "color": undefined,
+            "fontWeight": "regular",
             "style": {
-              "fontWeight": "400",
               "textAlign": "left",
             },
             "variant": "body-md",
