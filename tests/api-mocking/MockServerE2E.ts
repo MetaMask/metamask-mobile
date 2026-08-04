@@ -527,10 +527,20 @@ const logNativeProxyClientError = (error: ClientError): void => {
  * for Chrome, so server-side tlsPassthrough is the Phase 0 fix: Chrome and
  * MetaMask get real upstream certs for these hosts while other traffic stays
  * intercepted.
+ *
+ * Google wildcards cover Chrome update/NTP/autofill noise that otherwise floods
+ * `E2E_NATIVE_PROXY_TLS_CLIENT_ERROR … cause=cert-rejected` and can leave Chrome
+ * unhealthy when returning from MetaMask deeplinks.
  */
 const NATIVE_PROXY_TLS_PASSTHROUGH_HOSTS = [
   { hostname: 'mm-sdk-relay.api.cx.metamask.io' },
   { hostname: 'mm-sdk-analytics.api.cx.metamask.io' },
+  { hostname: '*.googleapis.com' },
+  { hostname: '*.google.com' },
+  { hostname: 'www.google.com' },
+  { hostname: '*.gstatic.com' },
+  { hostname: 'www.gstatic.com' },
+  { hostname: '*.gvt1.com' },
 ] as const;
 
 const getMockttpProxyOptions = () => {

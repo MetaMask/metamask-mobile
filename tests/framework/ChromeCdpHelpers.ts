@@ -4,7 +4,11 @@ import { WebSocket as WsClient } from 'ws';
 import type { Context } from '@wdio/protocols';
 import type { AndroidDetailedContext } from 'webdriverio/build/types';
 import { APP_PACKAGE_IDS } from './Constants.ts';
-import { getDriver, executeMobileDeepLink } from './PlaywrightUtilities';
+import {
+  getDriver,
+  executeMobileDeepLink,
+  withTimeout,
+} from './PlaywrightUtilities';
 import { PlatformDetector } from './PlatformLocator';
 import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
@@ -14,6 +18,8 @@ const logger = createPlaywrightLogger('ChromeCdpHelpers');
 /** Host port for `adb forward` to Chrome's `@chrome_devtools_remote` socket. */
 const CDP_FORWARD_PORT = 9222;
 const CDP_READY_TIMEOUT_MS = 20_000;
+/** Cap Appium context probing — `mobile: getContexts` can hang for minutes. */
+const APPIUM_CONTEXT_CDP_TIMEOUT_MS = 8_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
 /** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
 const DEEPLINK_CAPTURE_TIMEOUT_MS = 30_000;
@@ -585,57 +591,82 @@ export default class ChromeCdpHelpers {
   }
 
   private static async resolveCdpHttpEndpoint(): Promise<string> {
+    // Prefer adb → chrome_devtools_remote. After MetaMask deeplink returns,
+    // `mobile: getContexts` can hang for minutes on emulator Chrome while the
+    // abstract DevTools socket stays usable via adb forward.
+    this.ensureAdbForward();
+    const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
+    try {
+      await this.waitForCdpEndpoint(endpoint);
+      return endpoint;
+    } catch (adbError) {
+      logger.debug(
+        'ADB Chrome CDP forward not ready; falling back to Appium contexts:',
+        adbError instanceof Error ? adbError.message : String(adbError),
+      );
+    }
+
     const fromContexts = await this.tryEndpointFromAppiumContexts();
     if (fromContexts) {
       return fromContexts;
     }
 
-    this.ensureAdbForward();
-    const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
-    await this.waitForCdpEndpoint(endpoint);
-    return endpoint;
+    throw new Error(
+      `Chrome CDP endpoint ${endpoint} not ready via adb forward or Appium contexts`,
+    );
   }
 
   private static async tryEndpointFromAppiumContexts(): Promise<
     string | undefined
   > {
     try {
-      // Raw mobile:getContexts includes Chrome `info.webSocketDebuggerUrl`
-      // (WDIO getContexts may omit the nested info object).
-      const rawContexts = (await getDriver().execute(
-        'mobile: getContexts',
-      )) as RawAppiumContext[];
-      for (const ctx of rawContexts) {
-        const name = ctx.webviewName ?? ctx.webview ?? '';
-        const wsUrl = ctx.info?.webSocketDebuggerUrl;
-        if (!wsUrl || !/chrome/i.test(name)) continue;
-        const http = this.httpEndpointFromWebSocketUrl(wsUrl);
-        if (http) {
-          await this.waitForCdpEndpoint(http);
-          logger.debug(`Using Appium-forwarded Chrome CDP at ${http}`);
-          return http;
-        }
-      }
-
-      const contexts = (await getDriver().getContexts({
-        returnDetailedContexts: true,
-      })) as (Context | AndroidContextWithInfo)[];
-      for (const ctx of contexts) {
-        if (typeof ctx === 'string') continue;
-        const detailed = ctx as AndroidContextWithInfo;
-        const wsUrl = detailed.info?.webSocketDebuggerUrl;
-        if (!wsUrl || !/chrome/i.test(detailed.id)) continue;
-        const http = this.httpEndpointFromWebSocketUrl(wsUrl);
-        if (http) {
-          await this.waitForCdpEndpoint(http);
-          return http;
-        }
-      }
+      return await withTimeout(
+        this.resolveEndpointFromAppiumContexts(),
+        APPIUM_CONTEXT_CDP_TIMEOUT_MS,
+        'Appium Chrome CDP context probe',
+      );
     } catch (error) {
       logger.debug(
         'Could not resolve CDP endpoint from Appium contexts:',
         error instanceof Error ? error.message : String(error),
       );
+      return undefined;
+    }
+  }
+
+  private static async resolveEndpointFromAppiumContexts(): Promise<
+    string | undefined
+  > {
+    // Raw mobile:getContexts includes Chrome `info.webSocketDebuggerUrl`
+    // (WDIO getContexts may omit the nested info object).
+    const rawContexts = (await getDriver().execute(
+      'mobile: getContexts',
+    )) as RawAppiumContext[];
+    for (const ctx of rawContexts) {
+      const name = ctx.webviewName ?? ctx.webview ?? '';
+      const wsUrl = ctx.info?.webSocketDebuggerUrl;
+      if (!wsUrl || !/chrome/i.test(name)) continue;
+      const http = this.httpEndpointFromWebSocketUrl(wsUrl);
+      if (http) {
+        await this.waitForCdpEndpoint(http);
+        logger.debug(`Using Appium-forwarded Chrome CDP at ${http}`);
+        return http;
+      }
+    }
+
+    const contexts = (await getDriver().getContexts({
+      returnDetailedContexts: true,
+    })) as (Context | AndroidContextWithInfo)[];
+    for (const ctx of contexts) {
+      if (typeof ctx === 'string') continue;
+      const detailed = ctx as AndroidContextWithInfo;
+      const wsUrl = detailed.info?.webSocketDebuggerUrl;
+      if (!wsUrl || !/chrome/i.test(detailed.id)) continue;
+      const http = this.httpEndpointFromWebSocketUrl(wsUrl);
+      if (http) {
+        await this.waitForCdpEndpoint(http);
+        return http;
+      }
     }
     return undefined;
   }
