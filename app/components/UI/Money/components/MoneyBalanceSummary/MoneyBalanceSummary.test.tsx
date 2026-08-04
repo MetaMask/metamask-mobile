@@ -5,14 +5,11 @@ import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceDisplayState } from '../../types';
 
-const balanceState = (
-  value = '$0.00',
-  animated = false,
-): MoneyBalanceDisplayState => ({
+const balanceState = (value = '$0.00'): MoneyBalanceDisplayState => ({
   kind: 'balance',
   value,
   amount: Number(value.replace(/[$,]/gu, '')),
-  animated,
+  animated: false,
 });
 const unavailableState = (
   lastKnownValue?: string,
@@ -48,18 +45,6 @@ describe('MoneyBalanceSummary', () => {
     expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
       '$123.45',
     );
-  });
-
-  it('renders the balance as rolling digits when the animation is enabled', () => {
-    const { getByLabelText } = render(
-      <MoneyBalanceSummary
-        apy={4}
-        displayState={balanceState('$123.45')}
-        isBalanceAnimationEnabled
-      />,
-    );
-
-    expect(getByLabelText('$123.45')).toBeOnTheScreen();
   });
 
   it('does not render the info button when no handler is provided', () => {
@@ -228,30 +213,16 @@ describe('MoneyBalanceSummary', () => {
 
   describe('privacy mode', () => {
     it('shows the real balance when privacyMode is false', () => {
-      const { getByLabelText } = render(
-        <MoneyBalanceSummary
-          apy={4}
-          displayState={balanceState('$123.45')}
-          privacyMode={false}
-          isBalanceAnimationEnabled
-        />,
-      );
-
-      expect(getByLabelText('$123.45')).toBeOnTheScreen();
-    });
-
-    it('keeps the static balance when privacyMode is on, even with the animation enabled', () => {
       const { getByTestId } = render(
         <MoneyBalanceSummary
           apy={4}
           displayState={balanceState('$123.45')}
-          privacyMode
-          isBalanceAnimationEnabled
+          privacyMode={false}
         />,
       );
 
       expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
-        '•'.repeat(12),
+        '$123.45',
       );
     });
 

@@ -54,6 +54,15 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 - **Returns:** `{ renderWithFlow, renderScreenWithFlow, harness, tradingService, mocks, teardown }`
 - **Use when:** the rendered button press is the integration surface, e.g. `PerpsOrderView` place-order or `PerpsFlipPositionConfirmSheet` reverse-position. Prefer CV tests for pure UI variants that do not need real controller code.
 
+### Money — [`harnesses/money.ts`](harnesses/money.ts)
+
+- **Shape:** B — hook-flow harness over the Money balance seam
+- **Real:** `moneyBalance` slice reducer + selectors over a real Redux store, `selectPrimaryMoneyAccount` over real MoneyAccountController / KeyringController state, `moneyTransactionGuards`, `invalidateMoneyAccountBalanceCaches`, the UI `QueryClient` built by the real `createUIQueryClient` (real cache, real `invalidateQueries` → `<Service>:invalidateQueries` forwarding → real refetch), a real `Messenger` on `Engine.controllerMessenger`
+- **Mocked:** `MoneyAccountBalanceService:fetchBalanceWithFallback` (the balance API/RPC fetch), `MoneyAccountBalanceService:invalidateQueries` and `MoneyAccountApiDataService:invalidateQueries` (service-local caches), `Logger` (Sentry transport), plus the app-shell glue `app/core/ReactQueryService` (singleton swapped for the harness QueryClient) and the `app/core/Engine` / `app/store` shells from `testSetup.js`
+- **Factory:** `buildMoneyIntegrationHarness({ hasMoneyAccount?, totalBalance? })`
+- **Returns:** `{ store, getState, queryClient, messenger, renderMoneyHook, confirmTransaction, primeBalanceQuery, readBalance, setTotalBalance, setHasMoneyAccount, mocks }`
+- **Use when:** a Money flow must prove it reaches real Redux state and the real balance query cache, e.g. `useRefreshMoneyBalanceOnTxConfirm` reacting to `TransactionController:transactionConfirmed`
+
 When a harness is added or its public boundary changes, update this inventory. Follow the central [`harness-extension.md`](https://github.com/MetaMask/skills/blob/main/domains/testing/skills/integration-test/references/harness-extension.md) workflow rather than documenting authoring rules here.
 
 ---

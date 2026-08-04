@@ -1,22 +1,20 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
-import useMoneyBalanceAnimation from './useMoneyBalanceAnimation';
+import { act, waitFor } from '@testing-library/react-native';
 import {
-  clearMoneyBalanceUserOp,
-  selectHasPendingMoneyBalanceUserOp,
-  selectLastKnownMoneyBalance,
+  renderHookWithProvider,
+  type ProviderValues,
+} from '../../../../util/test/renderWithProvider';
+import {
+  markMoneyBalanceUserOp,
   type PersistedMoneyBalance,
 } from '../../../../core/redux/slices/moneyBalance';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import useMoneyBalanceAnimation from './useMoneyBalanceAnimation';
 
-const mockDispatch = jest.fn();
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-  useDispatch: () => mockDispatch,
-}));
+const MONEY_ADDRESS = '0x0000000000000000000000000000000000000abc';
+const OTHER_ADDRESS = '0x0000000000000000000000000000000000000def';
 
-const mockAddress = '0xabc';
+// The account in view is the one input that cannot be moved through the store:
+// it is derived from Engine background state, which only changes when Engine
+// itself emits. Everything else this hook reads is real Redux.
 const mockUseMoneyAccountInfo = jest.fn();
 jest.mock('./useMoneyAccountInfo', () => ({
   __esModule: true,
@@ -24,43 +22,43 @@ jest.mock('./useMoneyAccountInfo', () => ({
 }));
 
 const ANCHOR: PersistedMoneyBalance = {
-  address: mockAddress,
+  address: MONEY_ADDRESS,
   value: '$100.00',
   amount: 100,
-  currency: 'USD',
+  currency: 'usd',
   updatedAt: 1,
 };
 
-const arrangeSelectors = ({
+const arrangeState = ({
   lastKnownBalance = ANCHOR as PersistedMoneyBalance | null,
   hasPendingUserOp = false,
-  currency = 'USD',
-} = {}) => {
-  (useSelector as jest.Mock).mockImplementation((selector) => {
-    if (selector === selectLastKnownMoneyBalance) return lastKnownBalance;
-    if (selector === selectHasPendingMoneyBalanceUserOp)
-      return hasPendingUserOp;
-    if (selector === selectCurrentCurrency) return currency;
-    return undefined;
-  });
-};
+  currency = 'usd',
+} = {}): ProviderValues['state'] =>
+  ({
+    engine: {
+      backgroundState: {
+        CurrencyRateController: {
+          currentCurrency: currency,
+          currencyRates: {},
+        },
+        RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+      },
+    },
+    moneyBalance: { lastKnownBalance, hasPendingUserOp },
+  }) as ProviderValues['state'];
 
-const arrangeAccount = (address: string) =>
-  mockUseMoneyAccountInfo.mockReturnValue({
-    primaryMoneyAccount: { address },
-  });
-
-const renderBalance = (amount?: number) =>
-  renderHook<ReturnType<typeof useMoneyBalanceAnimation>, number | undefined>(
-    (next) => useMoneyBalanceAnimation(next),
-    { initialProps: amount },
-  );
+const renderBalance = (state: ProviderValues['state'] = arrangeState()) =>
+  renderHookWithProvider<
+    ReturnType<typeof useMoneyBalanceAnimation>,
+    number | undefined
+  >((amount) => useMoneyBalanceAnimation(amount), { state });
 
 describe('useMoneyBalanceAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    arrangeAccount(mockAddress);
-    arrangeSelectors();
+    mockUseMoneyAccountInfo.mockReturnValue({
+      primaryMoneyAccount: { address: MONEY_ADDRESS },
+    });
   });
 
   it('seeds from the persisted anchor before a balance arrives', () => {
@@ -71,25 +69,30 @@ describe('useMoneyBalanceAnimation', () => {
   });
 
   it('rolls from the anchor to the first resolved balance', async () => {
-    const { result } = renderBalance(120.5);
+    const { result, rerender } = renderBalance();
 
-    expect(result.current.amount).toBe(100);
+    rerender(120.5);
 
     await waitFor(() => expect(result.current.amount).toBe(120.5));
     expect(result.current.animated).toBe(true);
   });
 
   it('does not roll a first ever load with no anchor', () => {
-    arrangeSelectors({ lastKnownBalance: null });
+    const { result, rerender } = renderBalance(
+      arrangeState({ lastKnownBalance: null }),
+    );
 
-    const { result } = renderBalance(120.5);
+    rerender(120.5);
 
     expect(result.current.amount).toBe(120.5);
     expect(result.current.animated).toBe(false);
   });
 
   it('leaves a background poll silent', () => {
-    const { result, rerender } = renderBalance(120.5);
+    const { result, rerender } = renderBalance(
+      arrangeState({ lastKnownBalance: null }),
+    );
+    rerender(120.5);
 
     rerender(130.75);
 
@@ -97,45 +100,49 @@ describe('useMoneyBalanceAnimation', () => {
     expect(result.current.animated).toBe(false);
   });
 
-  it('rolls a change the user caused and consumes the signal', async () => {
-    const { result, rerender } = renderBalance(120.5);
+  it('rolls a change the user caused and consumes the signal in the store', async () => {
+    const { result, rerender, store } = renderBalance(
+      arrangeState({ lastKnownBalance: null }),
+    );
+    rerender(120.5);
 
-    arrangeSelectors({ hasPendingUserOp: true });
+    act(() => {
+      store.dispatch(markMoneyBalanceUserOp());
+    });
     rerender(220.5);
 
     await waitFor(() => expect(result.current.amount).toBe(220.5));
     expect(result.current.animated).toBe(true);
-    expect(mockDispatch).toHaveBeenCalledWith(clearMoneyBalanceUserOp());
+    expect(store.getState().moneyBalance.hasPendingUserOp).toBe(false);
   });
 
-  it('keeps the user-op signal until the balance actually moves', () => {
-    arrangeSelectors({ hasPendingUserOp: true });
-    const { rerender } = renderBalance(120.5);
+  it('keeps the user-op signal while the balance has not visibly moved', () => {
+    const { rerender, store } = renderBalance(
+      arrangeState({ hasPendingUserOp: true }),
+    );
 
-    mockDispatch.mockClear();
-    rerender(120.5);
+    rerender(100);
 
-    expect(mockDispatch).not.toHaveBeenCalledWith(clearMoneyBalanceUserOp());
+    expect(store.getState().moneyBalance.hasPendingUserOp).toBe(true);
   });
 
   it('keeps the signal through drift that does not move the rendered figure', () => {
-    arrangeSelectors({ lastKnownBalance: null });
-    const { rerender } = renderBalance(120.5);
+    const { rerender, store } = renderBalance(
+      arrangeState({ hasPendingUserOp: true }),
+    );
+    rerender(100);
 
-    arrangeSelectors({ lastKnownBalance: null, hasPendingUserOp: true });
-    rerender(120.5);
-    mockDispatch.mockClear();
+    rerender(100.004);
 
-    rerender(120.504);
-
-    expect(mockDispatch).not.toHaveBeenCalledWith(clearMoneyBalanceUserOp());
+    expect(store.getState().moneyBalance.hasPendingUserOp).toBe(true);
   });
 
   it('ignores drift below the rendered precision', () => {
-    arrangeSelectors({ lastKnownBalance: null });
-    const { result, rerender } = renderBalance(120.5);
+    const { result, rerender } = renderBalance(
+      arrangeState({ lastKnownBalance: null }),
+    );
+    rerender(120.5);
 
-    arrangeSelectors({ lastKnownBalance: null, hasPendingUserOp: true });
     rerender(120.500004);
 
     expect(result.current.amount).toBe(120.5);
@@ -143,21 +150,25 @@ describe('useMoneyBalanceAnimation', () => {
   });
 
   it('replaces the figure outright when the account changes', () => {
-    const { result, rerender } = renderBalance(120.5);
+    const { result, rerender } = renderBalance();
+    rerender(120.5);
 
-    arrangeAccount('0xdef');
-    arrangeSelectors({ lastKnownBalance: null, hasPendingUserOp: true });
+    mockUseMoneyAccountInfo.mockReturnValue({
+      primaryMoneyAccount: { address: OTHER_ADDRESS },
+    });
     rerender(999.99);
 
     expect(result.current.amount).toBe(999.99);
     expect(result.current.animated).toBe(false);
   });
 
-  it('reports no amount while the account in view has changed but the new balance has not landed', () => {
-    const { result, rerender } = renderBalance(120.5);
+  it('reports no amount while the account in view has changed but its balance has not landed', () => {
+    const { result, rerender } = renderBalance();
+    rerender(120.5);
 
-    arrangeAccount('0xdef');
-    arrangeSelectors({ lastKnownBalance: null });
+    mockUseMoneyAccountInfo.mockReturnValue({
+      primaryMoneyAccount: { address: OTHER_ADDRESS },
+    });
     rerender(undefined);
 
     expect(result.current.amount).toBeUndefined();
@@ -165,17 +176,27 @@ describe('useMoneyBalanceAnimation', () => {
   });
 
   it('ignores an anchor persisted for a different account', () => {
-    arrangeSelectors({ lastKnownBalance: { ...ANCHOR, address: '0xdef' } });
+    const { result } = renderBalance(
+      arrangeState({ lastKnownBalance: { ...ANCHOR, address: OTHER_ADDRESS } }),
+    );
 
-    const { result } = renderBalance();
+    expect(result.current.amount).toBeUndefined();
+  });
+
+  it('ignores an anchor persisted in a different currency', () => {
+    const { result } = renderBalance(
+      arrangeState({ lastKnownBalance: { ...ANCHOR, currency: 'eur' } }),
+    );
 
     expect(result.current.amount).toBeUndefined();
   });
 
   it('has no anchor when the persisted entry predates the numeric field', () => {
-    arrangeSelectors({ lastKnownBalance: { ...ANCHOR, amount: undefined } });
+    const { result, rerender } = renderBalance(
+      arrangeState({ lastKnownBalance: { ...ANCHOR, amount: undefined } }),
+    );
 
-    const { result } = renderBalance(120.5);
+    rerender(120.5);
 
     expect(result.current.amount).toBe(120.5);
     expect(result.current.animated).toBe(false);

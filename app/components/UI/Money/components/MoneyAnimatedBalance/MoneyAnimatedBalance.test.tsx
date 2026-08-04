@@ -4,6 +4,10 @@ import MoneyAnimatedBalance, {
   MoneyBalanceMetricsWarmer,
 } from './MoneyAnimatedBalance';
 
+// NumberFlow measures glyphs natively and keys that measurement cache by font
+// configuration, neither of which a rendered tree exposes. The warmer only pays
+// off when it lands on the same cache entry as the balance, so that contract is
+// asserted here rather than in MoneyHomeView.view.test.tsx.
 const mockNumberFlow = jest.fn();
 jest.mock('number-flow-react-native', () => ({
   NumberFlow: (props: Record<string, unknown>) => {
@@ -43,15 +47,7 @@ describe('MoneyAnimatedBalance', () => {
     );
   });
 
-  it('resolves design system typography into a concrete text style', () => {
-    render(<MoneyAnimatedBalance amount={1234.56} animated />);
-
-    const { style } = mockNumberFlow.mock.calls[0][0];
-    expect(style.fontSize).toEqual(expect.any(Number));
-    expect(style.fontFamily).toEqual(expect.any(String));
-  });
-
-  it('warms metrics with the same font configuration as the balance', () => {
+  it('warms metrics into the same cache entry the balance measures into', () => {
     render(<MoneyBalanceMetricsWarmer />);
     const warmer = mockNumberFlow.mock.calls[0][0];
 
