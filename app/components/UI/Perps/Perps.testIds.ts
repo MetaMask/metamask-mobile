@@ -568,6 +568,9 @@ export const PerpsMarketHeaderSelectorsIDs = {
   BACK_BUTTON: 'perps-market-header-back-button',
   ASSET_ICON: 'perps-market-header-asset-icon',
   ASSET_NAME: 'perps-market-header-asset-name',
+  /** Compact header price shown while scrolling (distinct from summary row). */
+  COMPACT_PRICE: 'perps-market-header-compact-price',
+  COMPACT_PRICE_CHANGE: 'perps-market-header-compact-price-change',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
   MORE_BUTTON: 'perps-market-header-more-button',

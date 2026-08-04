@@ -1,1 +1,1 @@
-import './PerpsMarketHeader.test';
+import '../../../components/PerpsMarketHeader/PerpsMarketHeader.test';

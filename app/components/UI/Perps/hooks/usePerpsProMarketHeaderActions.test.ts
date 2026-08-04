@@ -19,7 +19,9 @@ jest.mock('./usePerpsNavigation', () => ({
     navigateToWallet: mockNavigateToWallet,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
-    canGoBack: mockCanGoBack,
+    get canGoBack() {
+      return mockCanGoBack;
+    },
   })),
 }));
 

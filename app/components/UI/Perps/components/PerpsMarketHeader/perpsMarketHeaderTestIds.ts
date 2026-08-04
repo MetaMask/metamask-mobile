@@ -25,7 +25,7 @@ export const createLiteMarketHeaderTestIDs = (): PerpsMarketHeaderTestIDs => ({
   assetName: PerpsMarketHeaderSelectorsIDs.ASSET_NAME,
   subtitle: PerpsMarketHeaderSelectorsIDs.SUBTITLE,
   marketListButton: PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON,
-  headerPrice: PerpsMarketHeaderSelectorsIDs.PRICE,
-  headerPriceChange: PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+  headerPrice: PerpsMarketHeaderSelectorsIDs.COMPACT_PRICE,
+  headerPriceChange: PerpsMarketHeaderSelectorsIDs.COMPACT_PRICE_CHANGE,
   favoriteButton: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
 });
