@@ -527,6 +527,23 @@ describe('usePerpsProOrderForm', () => {
       expect(params.price).toBe('80000');
       expect(params.orderType).toBe('limit');
     });
+
+    it('finalizes a trailing decimal separator from the limit price before submit', async () => {
+      // Arrange: Place Order can fire before blur commits a state update.
+      mockOrderForm.type = 'limit';
+      mockOrderForm.limitPrice = '12.';
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      const params = mockExecuteOrder.mock.calls[0][0];
+      expect(params.price).toBe('12');
+      expect(params.orderType).toBe('limit');
+    });
   });
 
   describe('additional notices', () => {
@@ -751,6 +768,34 @@ describe('usePerpsProOrderForm', () => {
       // Act
       act(() => {
         result.current.onLimitPriceChange('1.2.3');
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    });
+
+    it('finalizes a trailing decimal separator from the limit price on blur', () => {
+      // Arrange
+      mockOrderForm.limitPrice = '12.';
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceBlur();
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalledWith('12');
+    });
+
+    it('does not update the limit price on blur when already finalized', () => {
+      // Arrange
+      mockOrderForm.limitPrice = '12.5';
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceBlur();
       });
 
       // Assert

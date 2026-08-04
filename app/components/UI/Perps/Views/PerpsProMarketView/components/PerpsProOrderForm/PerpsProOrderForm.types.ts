@@ -57,6 +57,7 @@ export interface PerpsProOrderFormProps {
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
+  onLimitPriceBlur?: () => void;
   onUseMidPricePress?: () => void;
   sizeInput: PerpsProSizeInputModel;
   balancePercentage: number;

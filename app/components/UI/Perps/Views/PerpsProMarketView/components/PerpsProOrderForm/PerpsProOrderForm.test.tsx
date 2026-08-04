@@ -42,6 +42,7 @@ const createProps = (
     onOrderTypeButtonPress: jest.fn(),
     limitPrice: '',
     onLimitPriceChange: jest.fn(),
+    onLimitPriceBlur: jest.fn(),
     sizeInput: createSizeInput(sizeInput),
     balancePercentage: 0,
     onBalancePercentageChange: jest.fn(),
@@ -81,6 +82,15 @@ describe('PerpsProOrderForm', () => {
       fireEvent.changeText(screen.getByTestId(ids.LIMIT_PRICE_INPUT), '.123');
 
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('wires limit price blur to onLimitPriceBlur', () => {
+      const onLimitPriceBlur = jest.fn();
+      renderForm({ orderType: 'limit', onLimitPriceBlur });
+
+      fireEvent(screen.getByTestId(ids.LIMIT_PRICE_INPUT), 'blur');
+
+      expect(onLimitPriceBlur).toHaveBeenCalledTimes(1);
     });
 
     it('renders limit price input for limit orders', () => {
