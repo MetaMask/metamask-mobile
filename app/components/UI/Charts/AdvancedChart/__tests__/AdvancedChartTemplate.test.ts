@@ -122,9 +122,7 @@ describe('createAdvancedChartTemplate', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 
     expect(html).toContain('requestSeq += 1;');
-    expect(html).toContain(
-      "const requestId = 'obr-' + gen + '-' + requestSeq;",
-    );
+    expect(html).toContain('const requestId = `obr-${gen}-${requestSeq}`;');
     expect(html).not.toContain('Math.random');
   });
 
