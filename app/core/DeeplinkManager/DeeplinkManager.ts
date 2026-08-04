@@ -3,16 +3,24 @@
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
+import type { Notification as NotifeeNotification } from '@notifee/react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
-import FCMService from '../../util/notifications/services/FCMService';
+import FCMService, {
+  toPushTapResult,
+} from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 import {
-  getBrazeInitialDeeplink,
-  subscribeToBrazePushDeeplinks,
+  getBrazeInitialPush,
+  subscribeToBrazePushOpens,
 } from '../Braze/BrazeDeeplinks';
+import {
+  AppOpenedPushProvider,
+  AppStateEventProcessor,
+} from '../AppStateEventListener';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
+import NotificationsService from '../../util/notifications/services/NotificationService';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -146,38 +154,79 @@ export class DeeplinkManager {
       }
     };
 
-    FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
-      if (deeplink) {
-        handleDeeplink({
-          uri: deeplink,
-          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
-        });
-      }
-    });
+    // Every push tap is reported to AppStateEventProcessor regardless of the
+    // payload, so App Opened can attribute the open to push even when there is
+    // no deeplink to carry the origin. handleDeeplink still only runs when
+    // there is somewhere to navigate.
+    const PROVIDER_ORIGIN = {
+      [AppOpenedPushProvider.Braze]: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+      [AppOpenedPushProvider.Wallet]:
+        AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+    };
 
-    FCMService.onClickPushNotificationWhenAppSuspended((deeplink) => {
-      if (deeplink) {
-        handleDeeplink({
-          uri: deeplink,
-          source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
-        });
-      }
-    });
-
-    getBrazeInitialDeeplink().then((deeplink) => {
-      if (deeplink) {
-        handleDeeplink({
-          uri: deeplink,
-          source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
-        });
-      }
-    });
-
-    subscribeToBrazePushDeeplinks((deeplink) => {
-      handleDeeplink({
-        uri: deeplink,
-        source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+    const onPushTap = (
+      provider: AppOpenedPushProvider,
+      tap: {
+        deeplink: string | null;
+        notificationType?: string;
+        notificationSubtype?: string;
+      },
+    ) => {
+      AppStateEventProcessor.markOpenedFromPush({
+        provider,
+        notificationType: tap.notificationType,
+        notificationSubtype: tap.notificationSubtype,
       });
+      if (tap.deeplink) {
+        handleDeeplink({
+          uri: tap.deeplink,
+          source: PROVIDER_ORIGIN[provider],
+        });
+      }
+    };
+
+    FCMService.onClickPushNotificationWhenAppClosed().then((tap) => {
+      if (tap.opened) {
+        onPushTap(AppOpenedPushProvider.Wallet, tap);
+      }
+    });
+
+    FCMService.onClickPushNotificationWhenAppSuspended((tap) => {
+      if (tap.opened) {
+        onPushTap(AppOpenedPushProvider.Wallet, tap);
+      }
+    });
+
+    const handleNotifeeNotification = (
+      notification: NotifeeNotification | undefined,
+    ) => {
+      if (!notification) {
+        return;
+      }
+
+      const tap = toPushTapResult(notification.data, true);
+      if (!tap.deeplink && !tap.notificationType && !tap.notificationSubtype) {
+        return;
+      }
+
+      onPushTap(AppOpenedPushProvider.Wallet, tap);
+    };
+
+    NotificationsService.onForegroundEvent(async (event) => {
+      await NotificationsService.handleNotificationEvent({
+        ...event,
+        callback: handleNotifeeNotification,
+      });
+    });
+
+    getBrazeInitialPush().then(({ opened, deeplink }) => {
+      if (opened) {
+        onPushTap(AppOpenedPushProvider.Braze, { deeplink });
+      }
+    });
+
+    subscribeToBrazePushOpens((deeplink) => {
+      onPushTap(AppOpenedPushProvider.Braze, { deeplink });
     });
 
     Linking.getInitialURL().then((url) => {

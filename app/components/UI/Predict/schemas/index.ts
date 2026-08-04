@@ -9,6 +9,4 @@ export {
   PredictSportsFeedTabSchema,
   PredictSportsFeedChipSchema,
   PredictWimbledonTabSchema,
-  PredictWorldCupSchema,
-  PredictWorldCupStageSchema,
 } from './flags';

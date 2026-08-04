@@ -16,6 +16,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { getTotalPayFeesUsd } from '../../utils/transaction-pay';
 
 export function useInsufficientPredictBalanceAlert({
   pendingAmount,
@@ -44,23 +45,16 @@ export function useInsufficientPredictBalanceAlert({
       return true;
     }
 
-    // Skip during input — totals may be stale.
+    // Predict withdraws are EXACT_INPUT: fees are deducted from the receive
+    // amount, never added on top of the entered amount. Only guard against
+    // fees consuming the entire withdrawal.
     if (
       !isPendingInput &&
       hasQuotes &&
       totals?.fees &&
       new BigNumber(amountHuman).isGreaterThan(0)
     ) {
-      const totalFees = new BigNumber(totals.fees.provider?.usd ?? 0)
-        .plus(totals.fees.sourceNetwork?.estimate?.usd ?? 0)
-        .plus(totals.fees.targetNetwork?.usd ?? 0)
-        .plus(totals.fees.metaMask?.usd ?? 0);
-
-      if (
-        new BigNumber(amountHuman)
-          .plus(totalFees)
-          .isGreaterThan(predictBalanceHuman ?? '0')
-      ) {
+      if (getTotalPayFeesUsd(totals.fees).isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
     }

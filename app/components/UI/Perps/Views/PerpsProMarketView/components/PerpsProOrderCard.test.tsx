@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { Order } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProOrderCard from './PerpsProOrderCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -51,7 +52,7 @@ describe('PerpsProOrderCard', () => {
 
     expect(screen.getByText('SOL')).toBeOnTheScreen();
     expect(screen.getByText('Long')).toBeOnTheScreen();
-    expect(screen.getByText('Stop')).toBeOnTheScreen();
+    expect(screen.getByText('Stop market')).toBeOnTheScreen();
     expect(screen.getByText('13 SOL')).toBeOnTheScreen();
     // Trigger orders resolve display price from triggerPrice via
     // resolveOrderDisplayPriceAndLabel ($101), not the leftover order price.
@@ -111,7 +112,7 @@ describe('PerpsProOrderCard', () => {
         orderType: 'limit' as const,
         reduceOnly: false,
       },
-      typeLabel: 'Open limit',
+      typeLabel: 'Limit',
       directionLabel: 'Long',
       reduceOnlyLabel: 'No',
     },
@@ -125,7 +126,7 @@ describe('PerpsProOrderCard', () => {
         reduceOnly: true,
         isTrigger: false,
       },
-      typeLabel: 'Close limit',
+      typeLabel: 'Limit',
       directionLabel: 'Long',
       reduceOnlyLabel: 'Yes',
     },
@@ -139,7 +140,7 @@ describe('PerpsProOrderCard', () => {
         reduceOnly: true,
         isTrigger: false,
       },
-      typeLabel: 'Close limit',
+      typeLabel: 'Limit',
       directionLabel: 'Short',
       reduceOnlyLabel: 'Yes',
     },
@@ -167,7 +168,7 @@ describe('PerpsProOrderCard', () => {
         isTrigger: true,
         triggerPrice: '220',
       },
-      typeLabel: 'Take profit',
+      typeLabel: 'Take profit limit',
       directionLabel: 'Long',
       reduceOnlyLabel: 'Yes',
     },
@@ -182,7 +183,7 @@ describe('PerpsProOrderCard', () => {
         isTrigger: true,
         triggerPrice: '101',
       },
-      typeLabel: 'Stop',
+      typeLabel: 'Stop limit',
       directionLabel: 'Long',
       reduceOnlyLabel: 'Yes',
     },
@@ -197,7 +198,7 @@ describe('PerpsProOrderCard', () => {
         isTrigger: true,
         triggerPrice: '101',
       },
-      typeLabel: 'Stop',
+      typeLabel: 'Stop market',
       directionLabel: 'Short',
       reduceOnlyLabel: 'Yes',
     },
@@ -211,6 +212,61 @@ describe('PerpsProOrderCard', () => {
       expect(screen.getByText(reduceOnlyLabel)).toBeOnTheScreen();
     },
   );
+
+  it('exposes the order type pill via testID', () => {
+    render(
+      <PerpsProOrderCard
+        order={{
+          ...baseOrder,
+          detailedOrderType: 'Stop Market',
+          orderType: 'market',
+          isTrigger: true,
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_TYPE),
+    ).toHaveTextContent('Stop market');
+  });
+
+  it('invokes the market switch handler when the card is pressed', () => {
+    const onPress = jest.fn();
+
+    render(<PerpsProOrderCard order={baseOrder} onPress={onPress} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_ROW),
+    );
+
+    expect(onPress).toHaveBeenCalledWith(baseOrder);
+  });
+
+  it('exposes the market switch as a labelled action for screen readers', () => {
+    render(<PerpsProOrderCard order={baseOrder} onPress={jest.fn()} />);
+
+    expect(screen.getByLabelText('Switch to the SOL market')).toBeOnTheScreen();
+  });
+
+  it('keeps cancel scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onCancel = jest.fn();
+
+    render(
+      <PerpsProOrderCard
+        order={baseOrder}
+        onPress={onPress}
+        onCancel={onCancel}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+    );
+
+    expect(onCancel).toHaveBeenCalledWith(baseOrder);
+    expect(onPress).not.toHaveBeenCalled();
+  });
 
   describe('Privacy Mode', () => {
     it('hides monetary values but keeps size and labels visible', () => {
@@ -227,7 +283,7 @@ describe('PerpsProOrderCard', () => {
       );
 
       expect(screen.getByText('13 SOL')).toBeOnTheScreen();
-      expect(screen.getByText('Open limit')).toBeOnTheScreen();
+      expect(screen.getByText('Limit')).toBeOnTheScreen();
       expect(screen.getByText('SOL')).toBeOnTheScreen();
       expect(screen.queryByText('$160.71')).toBeNull();
       expect(screen.queryByText('$220 / $130')).toBeNull();
