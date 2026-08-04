@@ -11,7 +11,6 @@ import React from 'react';
 import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
 import { useRoute } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   renderPredictFeedView,
   renderPredictFeedViewWithRoutes,
@@ -125,19 +124,6 @@ const PredictRootRouteParamsProbe = () => {
         {predictFeedTab}
       </Text>
     </>
-  );
-};
-
-const PredictRootNavigator = () => {
-  const Stack = createNativeStackNavigator();
-
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={Routes.PREDICT.MARKET_DETAILS}
-        component={PredictRootRouteParamsProbe}
-      />
-    </Stack.Navigator>
   );
 };
 
@@ -740,7 +726,10 @@ describe('PredictFeed', () => {
       } = renderPredictFeedViewWithRoutes({
         overrides: predictUpDownFlagOverrides,
         extraRoutes: [
-          { name: Routes.PREDICT.ROOT, Component: PredictRootNavigator },
+          {
+            name: Routes.PREDICT.ROOT,
+            Component: PredictRootRouteParamsProbe,
+          },
         ],
       });
 
