@@ -8,7 +8,6 @@ import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
 } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
-import TestHelpers from '../../helpers';
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
@@ -440,9 +439,9 @@ class NetworkManager {
         );
       },
     });
-    // Wait for bottom sheet animation to complete
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(1000); // Allow for bottom sheet slide-up animation
+    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
+      elemDescription: 'Network Manager Bottom Sheet after open',
+    });
   }
 
   /**

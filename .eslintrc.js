@@ -261,7 +261,7 @@ module.exports = {
         ],
       },
     },
-    // MMQA-2174: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
+    // MMQA-2174 / MMQA-2173: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
     {
       files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
       excludedFiles: [
@@ -271,8 +271,10 @@ module.exports = {
         'tests/flows/**/*.test.js',
       ],
       rules: {
+        // UnifiedGestures Identifier stays out of this error list so legacy PO
+        // usages remain warn-only via no-restricted-imports (MMQA-2174).
         'no-restricted-syntax': [
-          'warn',
+          'error',
           {
             selector: 'WithStatement',
             message: 'With statements are not allowed',
@@ -282,8 +284,15 @@ module.exports = {
             message: 'Sequence expressions are not allowed',
           },
           {
-            selector: "Identifier[name='UnifiedGestures']",
-            message: 'Use Gestures instead of UnifiedGestures.',
+            selector:
+              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
+            message:
+              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
+          },
+          {
+            selector: "ImportDefaultSpecifier[local.name='TestHelpers']",
+            message:
+              'tests/helpers.js (TestHelpers) was removed (MMQA-2173). Use Gestures/Assertions from tests/framework, or DetoxAppLaunch for Detox launch.',
           },
         ],
       },
@@ -308,6 +317,17 @@ module.exports = {
           {
             selector: "Identifier[name='UnifiedGestures']",
             message: 'Use Gestures instead of UnifiedGestures.',
+          },
+          {
+            selector:
+              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
+            message:
+              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
+          },
+          {
+            selector: "ImportDefaultSpecifier[local.name='TestHelpers']",
+            message:
+              'tests/helpers.js (TestHelpers) was removed (MMQA-2173). Use Gestures/Assertions from tests/framework, or DetoxAppLaunch for Detox launch.',
           },
         ],
       },

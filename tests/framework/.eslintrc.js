@@ -7,7 +7,7 @@ module.exports = {
         // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
         'no-console': 'off',
         'no-restricted-syntax': [
-          'warn',
+          'error',
           {
             selector:
               "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
@@ -46,7 +46,7 @@ module.exports = {
           },
         ],
         'no-restricted-syntax': [
-          'warn',
+          'error',
           {
             selector:
               "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
@@ -121,6 +121,14 @@ module.exports = {
             ],
           },
         ],
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: "ImportDefaultSpecifier[local.name='TestHelpers']",
+            message:
+              'tests/helpers.js (TestHelpers) was removed (MMQA-2173). Use Gestures/Assertions from tests/framework, or DetoxAppLaunch for Detox launch.',
+          },
+        ],
       },
     },
     // MMQA-2174: ban UnifiedGestures in smoke specs (error)
@@ -149,6 +157,20 @@ module.exports = {
                   'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
               },
             ],
+          },
+        ],
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: "ImportDefaultSpecifier[local.name='TestHelpers']",
+            message:
+              'tests/helpers.js (TestHelpers) was removed (MMQA-2173). Use Gestures/Assertions from tests/framework, or DetoxAppLaunch for Detox launch.',
+          },
+          {
+            selector:
+              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
+            message:
+              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
           },
         ],
       },
