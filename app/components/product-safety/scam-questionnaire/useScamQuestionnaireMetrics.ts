@@ -52,10 +52,6 @@ export function useScamQuestionnaireMetrics() {
     };
 
     return {
-      // `step: 'warning'` covers the warning screen, so reaching it and never
-      // resolving is still visible as a funnel step. Answers live on
-      // `Completed` only — here they'd lag a step, since a step's answer isn't
-      // committed until the user leaves it.
       trackViewed: (step: Step) =>
         fire(PRODUCT_SAFETY_EVENTS.SCAM_QUESTIONNAIRE_VIEWED, {
           step: stepLabelFromIndex(step),
