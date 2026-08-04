@@ -106,6 +106,12 @@ export class BrowserStackConfigBuilder {
           debug: true,
           local: isLocal,
           interactiveDebugging: true,
+          // W3C requires BrowserStack-specific caps inside bstack:options.
+          // Top-level browserstack.networkLogs* are rejected by the hub.
+          networkLogs: true,
+          networkLogsOptions: {
+            captureContent: true,
+          },
           appiumVersion: '3.1.0',
           idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
           deviceName: device.name,
@@ -129,13 +135,6 @@ export class BrowserStackConfigBuilder {
           ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
             ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
             : {}),
-        },
-        // Keep these as explicit BrowserStack capabilities. App Automate
-        // requires browserstack.networkLogs to be enabled in the input
-        // capabilities before it provisions the mitmproxy certificate.
-        'browserstack.networkLogs': true,
-        'browserstack.networkLogsOptions': {
-          captureContent: true,
         },
         ...(device.otherApps && device.otherApps.length > 0
           ? { 'appium:otherApps': device.otherApps as string[] }
