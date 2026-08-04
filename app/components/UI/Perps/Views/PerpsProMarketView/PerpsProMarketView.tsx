@@ -39,7 +39,7 @@ import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
+import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -52,12 +52,14 @@ import {
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
-import PerpsProMarketHeader from './components/PerpsProMarketHeader';
+import PerpsMarketHeader, {
+  createProMarketHeaderTestIDs,
+} from '../../components/PerpsMarketHeader';
+import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
-import { PRICE_SECTION_HEIGHT } from './components/PerpsProMarketSummary';
 import { createStyles } from './PerpsProMarketView.styles';
 
 interface PerpsProOrderBookColumnProps {
@@ -262,7 +264,7 @@ const PerpsProMarketView = () => {
     handleMarketListPress,
     handleFavoritePress,
     handlePerpsModeChange,
-  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
+  } = usePerpsMarketHeaderActions({ symbol: market?.symbol });
 
   if (!market?.symbol) {
     return (
@@ -297,8 +299,9 @@ const PerpsProMarketView = () => {
       edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsProMarketHeader
+      <PerpsMarketHeader
         market={{ ...market, symbol: market.symbol }}
+        testIDs={createProMarketHeaderTestIDs()}
         mode={perpsMode}
         onBackPress={handleBackPress}
         onIdentityPress={handleMarketListPress}
