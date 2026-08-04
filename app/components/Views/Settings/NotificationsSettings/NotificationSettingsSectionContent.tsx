@@ -28,6 +28,8 @@ type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
 interface SectionContentProps {
   styles: NotificationSettingsStyles;
+  /** When true, greys out and disables all interactive content in the section. */
+  disabled?: boolean;
 }
 
 const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
@@ -40,7 +42,10 @@ const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
     priceAlerts: 'price_alerts',
   };
 
-const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
+const WalletActivitySectionContent = ({
+  styles,
+  disabled = false,
+}: SectionContentProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { preferences, updatePreferencesSection } =
     useNotificationStoragePreferences();
@@ -85,7 +90,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
   ]);
 
   return (
-    <>
+    <View style={disabled ? styles.disabledContent : undefined}>
       <View style={styles.line} />
       <View style={styles.setting}>
         <View style={styles.walletActivityHeader}>
@@ -99,7 +104,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
           {hasNotificationAccounts ? (
             <TouchableOpacity
               onPress={handleToggleAllAccounts}
-              disabled={isUpdatingAllAccounts}
+              disabled={disabled || isUpdatingAllAccounts}
               accessibilityRole="button"
               style={styles.selectAllButton}
               testID={
@@ -108,7 +113,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
             >
               <Text
                 color={
-                  isUpdatingAllAccounts
+                  disabled || isUpdatingAllAccounts
                     ? TextColor.TextMuted
                     : TextColor.PrimaryDefault
                 }
@@ -131,25 +136,33 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
       <AccountsList
         accountProps={accountProps}
         notificationAccountListProps={notificationAccountListProps}
+        disabled={disabled}
       />
-    </>
+    </View>
   );
 };
 
-const SocialAISectionContent = ({ styles }: SectionContentProps) => (
+const SocialAISectionContent = ({
+  styles,
+  disabled = false,
+}: SectionContentProps) => (
   <>
     <View style={styles.line} />
     <SocialAINotificationPreferencesContent
       showPushToggle={false}
       withHorizontalPadding={false}
+      disabled={disabled}
     />
   </>
 );
 
-const MarketingSectionContent = ({ styles }: SectionContentProps) => (
+const MarketingSectionContent = ({
+  styles,
+  disabled = false,
+}: SectionContentProps) => (
   <View style={styles.marketingDisclaimer}>
     <Text
-      color={TextColor.TextAlternative}
+      color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
       variant={TextVariant.BodySm}
       style={styles.marketingDisclaimerText}
     >
@@ -259,6 +272,12 @@ export const NotificationSettingsSectionContent = ({
     onPersist: persistInApp,
   });
 
+  // Same rule as Trading Signals: dependent UI (accounts, thresholds, …) is
+  // greyed out when neither channel can deliver notifications. `disabled` also
+  // covers the gate sheet while the master toggle is still off.
+  const isSectionContentDisabled =
+    Boolean(disabled) || (!push.value && !inApp.value);
+
   if (!sectionPrefs) return null;
 
   return (
@@ -281,7 +300,7 @@ export const NotificationSettingsSectionContent = ({
 
       <View style={styles.switchElement}>
         <Text
-          color={TextColor.TextDefault}
+          color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
         >
@@ -306,7 +325,7 @@ export const NotificationSettingsSectionContent = ({
 
       <View style={styles.switchElement}>
         <Text
-          color={TextColor.TextDefault}
+          color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
         >
@@ -329,7 +348,9 @@ export const NotificationSettingsSectionContent = ({
         />
       </View>
 
-      {SectionContent ? <SectionContent styles={styles} /> : null}
+      {SectionContent ? (
+        <SectionContent styles={styles} disabled={isSectionContentDisabled} />
+      ) : null}
     </>
   );
 };

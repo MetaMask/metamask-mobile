@@ -1,6 +1,8 @@
 import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../locales/i18n';
 import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
@@ -124,6 +126,44 @@ describe('NotificationSettingsSectionContent', () => {
 
     expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('disabled', true);
     expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('disabled', true);
+  });
+
+  it('mutes Push and In-app labels when disabled is true', () => {
+    renderContent({ disabled: true });
+
+    const labels = screen
+      .UNSAFE_getAllByType(Text)
+      .filter(
+        (node) =>
+          node.props.children ===
+            strings('app_settings.notifications_opts.push_recommended') ||
+          node.props.children ===
+            strings('app_settings.notifications_opts.in_app'),
+      );
+
+    expect(labels).toHaveLength(2);
+    labels.forEach((label) => {
+      expect(label.props.color).toBe(TextColor.TextMuted);
+    });
+  });
+
+  it('keeps Push and In-app labels at default color when not disabled', () => {
+    renderContent();
+
+    const labels = screen
+      .UNSAFE_getAllByType(Text)
+      .filter(
+        (node) =>
+          node.props.children ===
+            strings('app_settings.notifications_opts.push_recommended') ||
+          node.props.children ===
+            strings('app_settings.notifications_opts.in_app'),
+      );
+
+    expect(labels).toHaveLength(2);
+    labels.forEach((label) => {
+      expect(label.props.color).toBe(TextColor.TextDefault);
+    });
   });
 
   it('persists and tracks the push channel when the push toggle changes', async () => {

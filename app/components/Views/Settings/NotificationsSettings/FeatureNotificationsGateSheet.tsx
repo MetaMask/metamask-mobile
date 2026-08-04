@@ -10,6 +10,7 @@ import {
   BottomSheetRef,
   Box,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsStatus';
@@ -99,12 +100,16 @@ export const FeatureNotificationsGateSheet = () => {
           testID:
             NotificationSettingsViewSelectorsIDs.FEATURE_GATE_CLOSE_BUTTON,
         }}
-      >
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('notifications.feature_gate.title')}
-        </Text>
-      </BottomSheetHeader>
+      />
       <Box twClassName="px-4 pb-4">
+        <Box twClassName="mb-4">
+          <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
+            {strings('notifications.feature_gate.title')}
+          </Text>
+          <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
+            {strings('notifications.feature_gate.description')}
+          </Text>
+        </Box>
         {renderMaster && (
           <MainNotificationToggle
             showDescription={false}

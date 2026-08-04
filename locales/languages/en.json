@@ -5957,7 +5957,8 @@
     "default_message_title": "MetaMask",
     "default_message_description": "Tap to view",
     "feature_gate": {
-      "title": "Enable notifications"
+      "title": "Turn on notifications",
+      "description": "Choose how you want to be notified."
     },
     "received_payment_title": "Instant payment received",
     "pending_message": "Waiting for confirmation",
