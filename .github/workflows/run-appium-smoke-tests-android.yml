@@ -89,15 +89,15 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-perps-android-smoke
+      test-suite-name: appium-perps-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: SmokePerps
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
@@ -162,7 +162,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2, 3, 4, 5, 6]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -170,7 +170,7 @@ jobs:
       platform: android
       test_suite_tag: SmokeSnaps
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 6
       # Session reuse + soft reload: denser shards; drop toward 25 after one green main.
       test-timeout-minutes: 30
       build_type: ${{ inputs.build_type }}
