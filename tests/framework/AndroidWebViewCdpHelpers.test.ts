@@ -1,3 +1,5 @@
+/* eslint-disable import-x/no-nodejs-modules */
+import { execFileSync } from 'child_process';
 import AndroidWebViewCdpHelpers, {
   isAndroidWebViewCdpScrollEnabled,
   pickMetaMaskWebViewDebuggerUrl,
@@ -5,6 +7,12 @@ import AndroidWebViewCdpHelpers, {
   type RawAppiumWebViewContext,
 } from './AndroidWebViewCdpHelpers';
 import { getDriver } from './PlaywrightUtilities';
+
+jest.mock('child_process', () => ({
+  execFileSync: jest.fn(),
+}));
+
+const execFileSyncMock = execFileSync as unknown as jest.Mock;
 
 jest.mock('./PlaywrightUtilities', () => ({
   getDriver: jest.fn(),
@@ -19,8 +27,10 @@ jest.mock('ws', () => {
       ((...args: unknown[]) => void)[]
     >();
     private opened = false;
+    readonly mockUrl: string;
 
-    constructor(public readonly mockUrl: string) {
+    constructor(mockUrl: string) {
+      this.mockUrl = mockUrl;
       queueMicrotask(() => {
         this.opened = true;
         this.emit('open');
@@ -215,10 +225,10 @@ describe('pickMetaMaskWebViewDebuggerUrl', () => {
 describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
   const pageUrl = 'https://metamask.github.io/snaps/test-snaps/3.5.2/';
   const originalFetch = global.fetch;
-  let execFileSyncSpy: jest.SpyInstance | undefined;
 
   beforeEach(() => {
     clearCdpScrollEnv();
+    execFileSyncMock.mockReset();
     (getDriver as jest.Mock).mockReturnValue({
       execute: jest.fn().mockResolvedValue([
         {
@@ -253,8 +263,6 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    execFileSyncSpy?.mockRestore();
-    execFileSyncSpy = undefined;
     clearCdpScrollEnv();
     jest.clearAllMocks();
   });
@@ -301,15 +309,9 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
       ]),
     });
     // Avoid hanging on adb forward fallback in unit tests.
-    execFileSyncSpy = jest
-      .spyOn(
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('child_process'),
-        'execFileSync',
-      )
-      .mockImplementation(() => {
-        throw new Error('adb unavailable in unit test');
-      });
+    execFileSyncMock.mockImplementation(() => {
+      throw new Error('adb unavailable in unit test');
+    });
 
     const result = await AndroidWebViewCdpHelpers.scrollElementByIdIntoView(
       'connectbip32',
