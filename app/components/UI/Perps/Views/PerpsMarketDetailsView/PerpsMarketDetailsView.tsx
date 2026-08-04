@@ -1482,6 +1482,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         ),
       },
       {
+        key: 'about',
+        // Outer guard avoids mounting the component when there is no
+        // description; the component also returns null defensively for
+        // direct/standalone use. Placed below stats per TAT-2308 follow-up.
+        visible: hasAboutDescription,
+        onLayout: handleAboutLayout,
+        content: (
+          <PerpsMarketAboutSection
+            description={market?.description}
+            assetName={market?.name}
+          />
+        ),
+      },
+      {
         key: 'related-markets',
         // Mirrors PerpsRelatedMarkets' own render gate (no peers -> null) so
         // PerpsHomeSectionList does not render an orphan divider.
