@@ -127,6 +127,9 @@ export const useSectionPerformance = ({
 
     // Data Fetch Latency — start on mount so every mount produces a sample,
     // including warm mounts that are already loaded (near-zero duration).
+    // `first_render_loading` tags warm vs cold so the two populations stay
+    // separable in Sentry: without it the near-zero warm samples would be
+    // indistinguishable from real fetches in any percentile.
     if (tracksDataFetch.current && !fetchSpanOpened.current) {
       fetchSpanOpened.current = true;
       fetchTraceId.current = uuidv4();
@@ -134,7 +137,10 @@ export const useSectionPerformance = ({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
-        tags: { section_id: sectionId },
+        tags: {
+          section_id: sectionId,
+          first_render_loading: isLoadingAtFirstRender.current ?? false,
+        },
       });
       fetchStarted.current = true;
       DevLogger.log(
