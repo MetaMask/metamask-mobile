@@ -18,6 +18,13 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
           name: 'USD Coin',
           symbol: 'USDC',
         },
+        {
+          address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
+          enabled: true,
+          name: 'Money account',
+          symbol: 'VEDA',
+        },
       ],
     },
     'eip155:59144': {
@@ -148,15 +155,15 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
   },
   immersve: {
+    enabled: false,
     network: 'base-sepolia',
     cardProgramId: '',
+    clientApplicationId: '',
+    partnerAccountId: '',
     fundingChannelId: '',
-    kycType: 'immersve-conducted',
-    kycHiddenSteps: ['region', 'contact-channels', 'expected-spend'],
-    spendableCurrency: 'USD',
-    spendableAmount: '0',
-    countries: ['GB'],
+    spenderAddress: '',
   },
+  immersveCountries: ['GB'],
 };
 
 export interface GateVersionedFeatureFlag {
@@ -168,17 +175,19 @@ export interface CardFeatureFlag {
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
   immersve?: ImmersveProgramConfig;
+  immersveCountries?: string[];
 }
 
 export interface ImmersveProgramConfig {
+  enabled?: boolean;
   network?: string;
   cardProgramId?: string;
+  clientApplicationId?: string;
+  partnerAccountId?: string;
   fundingChannelId?: string;
-  kycType?: string;
-  kycHiddenSteps?: string[];
-  spendableCurrency?: string;
-  spendableAmount?: string;
-  countries?: string[];
+  spenderAddress?: string;
+  apiBaseUrl?: string;
+  appUrl?: string;
 }
 
 export interface SupportedChain {
@@ -268,11 +277,6 @@ export const selectCardFiatCreditFeatureEnabled = createSelector(
 );
 
 export const selectImmersveOnboardingEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
+  selectCardFeatureFlag,
+  (cardFeatureFlag) => Boolean(cardFeatureFlag.immersve?.enabled),
 );

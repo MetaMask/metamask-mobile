@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import {
   useNavigation,
   type NavigationProp,
@@ -11,33 +11,30 @@ import {
 } from '@metamask/perps-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectIsFirstTimePerpsUser } from '../../../../../UI/Perps/selectors/perpsController';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../../../../UI/Perps/utils/perpsModeSwitch';
 import type {
   PerpsNavigationParamList,
   PerpsStackParamList,
 } from '../../../../../UI/Perps/types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { mergeActiveAbTestAssignmentLists } from '../../../../../../util/analytics/activeABTestAssignments';
 
 interface UsePerpsNavigationHandlersArgs {
-  trendingTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  extraTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const usePerpsNavigationHandlers = ({
-  trendingTransactionActiveAbTests,
-  extraTransactionActiveAbTests,
+  transactionActiveAbTests,
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
-  const marketDetailsTransactionActiveAbTests = useMemo(
-    () =>
-      mergeActiveAbTestAssignmentLists(
-        trendingTransactionActiveAbTests,
-        extraTransactionActiveAbTests,
-      ),
-    [trendingTransactionActiveAbTests, extraTransactionActiveAbTests],
-  );
+  const marketDetailsTransactionActiveAbTests = transactionActiveAbTests?.length
+    ? transactionActiveAbTests
+    : undefined;
 
   const navigateToTutorialOrScreen = useCallback(
     <S extends keyof PerpsStackParamList>(
@@ -61,15 +58,39 @@ export const usePerpsNavigationHandlers = ({
   );
 
   const handleViewAllPerps = useCallback(() => {
-    navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
+    const homeParams = {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       ...(marketDetailsTransactionActiveAbTests?.length
         ? {
             transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
           }
         : {}),
-    });
-  }, [marketDetailsTransactionActiveAbTests, navigateToTutorialOrScreen]);
+    };
+
+    // Resolve the Pro-aware target up front (Home vs. default Pro market)
+    // so first-time users are redirected consistently with returning users
+    // once they complete the tutorial (TAT-3612).
+    const target = getPerpsHomeNavigationTarget(homeParams);
+
+    if (isFirstTimePerpsUser) {
+      navigation.navigate(Routes.PERPS.TUTORIAL, {
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        redirectScreen: target.screen,
+        redirectParams: target.params,
+      });
+      return;
+    }
+
+    navigation.navigate(
+      Routes.PERPS.ROOT,
+      toPerpsNavigatorScreenParams(target),
+    );
+  }, [
+    isFirstTimePerpsUser,
+    navigation,
+    marketDetailsTransactionActiveAbTests,
+    getPerpsHomeNavigationTarget,
+  ]);
 
   const handleViewMorePerps = useCallback(() => {
     navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {

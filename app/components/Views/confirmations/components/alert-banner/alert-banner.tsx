@@ -4,10 +4,12 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import styleSheet from './alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { AlertKeys } from '../../constants/alerts';
-import { hasTransactionType } from '../../utils/transaction';
 export interface AlertBannerProps {
   blockingOnly?: boolean;
   excludeKeys?: AlertKeys[];

@@ -36,6 +36,7 @@ export interface ActivityListItemRowProps
 export interface ActivityListItemRowContent {
   title: string;
   subtitle?: string;
+  subtitleAccount?: { prefix: string; address: string; name: string };
   primaryToken?: TokenAmount;
   secondaryToken?: TokenAmount;
   primaryAmount?: string;

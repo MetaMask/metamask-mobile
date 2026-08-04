@@ -15,6 +15,7 @@ import type {
   QrSyncErrorCode,
   QrSyncPhase,
   QrSyncServiceEvent,
+  QrSyncTestSyncReadyPayload,
   QrSyncWireMessage,
 } from './types';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
@@ -34,6 +35,7 @@ import {
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
+import { hasTestOverrides } from '../../util/test/utils';
 import {
   addQrSyncPhaseBreadcrumb,
   QrSyncOperations,
@@ -204,6 +206,77 @@ export class QrSyncController extends BaseController<
   }
 
   /**
+   * E2E-only: apply an SRP sync-ready payload without MWP pairing.
+   *
+   * Sets `awaiting_password` + pending secrets so `useQrSyncImportNavigation`
+   * can continue the new-user or existing-user import path.
+   *
+   * @throws If `HAS_TEST_OVERRIDES` is not enabled, or onboarding requires a
+   * primary mnemonic and the payload omits it.
+   */
+  public applyTestSyncReadyPayload(payload: QrSyncTestSyncReadyPayload): void {
+    if (!hasTestOverrides) {
+      throw new Error(
+        'QrSyncController.applyTestSyncReadyPayload is only available when HAS_TEST_OVERRIDES=true',
+      );
+    }
+
+    const mnemonic = payload.mnemonic?.trim();
+    if (!mnemonic) {
+      throw new Error(
+        'QrSyncController.applyTestSyncReadyPayload requires a non-empty mnemonic',
+      );
+    }
+
+    const isPrimary = payload.isPrimary ?? true;
+    const pendingSecretImports = [
+      {
+        index: 0,
+        type: QrSyncSecretTypes.MNEMONIC,
+        value: mnemonic,
+        isPrimary,
+      },
+    ];
+
+    if (!this.getIsOnboardingCompleted()) {
+      const secretImportValidation =
+        validateQrSyncSecretImportsForOnboarding(pendingSecretImports);
+      if (!secretImportValidation.valid && secretImportValidation.error) {
+        throw new Error(secretImportValidation.error.message);
+      }
+    }
+
+    this.update((state) => {
+      state.syncFlow = this.getIsOnboardingCompleted()
+        ? QrSyncSyncFlows.EXISTING_USER
+        : QrSyncSyncFlows.NEW_USER;
+      state.pendingSecretImports = pendingSecretImports;
+      state.provisioningMetadata = {
+        version: QrSyncMessageVersion.V1,
+        entries: [
+          {
+            index: 0,
+            type: QrSyncSecretTypes.MNEMONIC,
+            isPrimary,
+            name: payload.walletName ?? 'Extension Wallet',
+            groups: [
+              {
+                groupIndex: 0,
+                name: payload.accountName ?? 'Account 1',
+              },
+            ],
+          },
+        ],
+      };
+      state.provisioningStatus = QrSyncProvisioningStatuses.AWAITING_PASSWORD;
+      state.phase = QrSyncPhases.REVIEWING_IMPORT;
+      state.otp = null;
+      state.error = null;
+      state.connectionStatus = 'disconnected';
+    });
+  }
+
+  /**
    * Terminates an in-progress session and notifies the extension.
    * No-op when the session is already idle, completed, or failed.
    */
@@ -227,9 +300,12 @@ export class QrSyncController extends BaseController<
     }
 
     const { pendingSecretImports } = this.state;
+    const isExistingUser =
+      this.state.syncFlow === QrSyncSyncFlows.EXISTING_USER;
     const remainingSecrets =
       pendingSecretImports?.filter(
         (secret) =>
+          isExistingUser ||
           !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
       ) ?? [];
 

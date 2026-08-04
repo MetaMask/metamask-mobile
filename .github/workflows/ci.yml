@@ -1032,7 +1032,7 @@ jobs:
           fi
 
   component-view-tests:
-    name: Component view tests
+    name: Component view tests (${{ matrix.shard }})
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
@@ -1041,7 +1041,7 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1067,7 +1067,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/2 \
+            --shard=${{ matrix.shard }}/3 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
@@ -1233,7 +1233,7 @@ jobs:
           )
         )
       }}
-    needs: [get_requirements, smart-e2e-selection]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
@@ -1242,12 +1242,14 @@ jobs:
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
     permissions:
       contents: write
       id-token: write
       actions: write
       pull-requests: write
+      statuses: write
 
   build-android-apks:
     name: 'Build Android APKs'
@@ -1344,7 +1346,7 @@ jobs:
     needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -1401,7 +1403,7 @@ jobs:
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
-      changed_files: ${{ needs.get_requirements.outputs.changed_files }}
+      changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
       selected_tags: >-
         ${{
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
@@ -1444,7 +1446,8 @@ jobs:
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
     # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests, or change page-objects/selectors/locators/framework
+    # PRs: skipped by default; add run-appium-ios-tests, or change
+    # page-objects/selectors/locators/framework/smoke-appium
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
@@ -1485,17 +1488,21 @@ jobs:
     if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
     permissions:
       contents: read
+      checks: write
       id-token: write
     needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-workflow.yml
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
       platform: ios
-      test_suite_tag: 'FixtureValidation'
+      test_suite_tag: FixtureValidation
       split_number: 1
       total_splits: 1
+      test-timeout-minutes: 25
       build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
+      metamask_environment: 'e2e'
+      # Appium iOS is pinned to Cirrus (current), same as appium-smoke-tests-ios.
+      runner_provider: current
     secrets: inherit
 
   report-fixture-validation:
@@ -1517,14 +1524,14 @@ jobs:
         continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
-          name: test-e2e-main-validate-e2e-fixtures-junit-results
+          name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
       - name: Download fixture validation results (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: test-e2e-main-validate-e2e-fixtures-junit-results
+          name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
 
       - name: Report results

@@ -43,7 +43,6 @@ import stylesheet from './AccountSelector.styles';
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
-  /** Used when `BottomSheet` is mocked in unit tests (production sheet has no wrapper testID). */
   BOTTOM_SHEET: 'account-selector-bottom-sheet',
 };
 

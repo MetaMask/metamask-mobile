@@ -91,7 +91,8 @@ jest.mock(
   },
 );
 
-jest.mock('../../../utils/transaction', () => ({
+jest.mock('@metamask/transaction-controller', () => ({
+  ...jest.requireActual('@metamask/transaction-controller'),
   hasTransactionType: (meta: { type?: string } | undefined, types: string[]) =>
     meta?.type ? types.includes(meta.type) : false,
 }));

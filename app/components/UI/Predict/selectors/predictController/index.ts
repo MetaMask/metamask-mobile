@@ -1,7 +1,12 @@
-import { createSelector } from 'reselect';
+import { createSelector, weakMapMemoize } from 'reselect';
 import { RootState } from '../../../../../reducers';
 import { PredictPositionStatus } from '../../types';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+
+const weakMapMemoizeOptions = {
+  memoize: weakMapMemoize,
+  argsMemoize: weakMapMemoize,
+} as const;
 
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
@@ -35,61 +40,63 @@ const selectPredictClaimablePositions = createSelector(
   (predictControllerState) => predictControllerState?.claimablePositions || {},
 );
 
-const selectPredictClaimablePositionsByAddress = ({
-  address,
-}: {
-  address: string;
-}) =>
-  createSelector(
+const selectPredictClaimablePositionsByAddress = createSelector(
+  [
     selectPredictClaimablePositions,
-    (claimablePositions) => claimablePositions[address] || [],
-  );
+    (_state: RootState, address: string) => address,
+  ],
+  (claimablePositions, address) => claimablePositions[address] || [],
+  weakMapMemoizeOptions,
+);
 
-const selectPredictWonPositions = ({ address }: { address: string }) =>
-  createSelector(
-    selectPredictClaimablePositionsByAddress({ address }),
-    (claimablePositions) =>
-      claimablePositions.filter(
-        (position) => position.status === PredictPositionStatus.WON,
-      ),
-  );
+const selectPredictWonPositions = createSelector(
+  [selectPredictClaimablePositionsByAddress],
+  (claimablePositions) =>
+    claimablePositions.filter(
+      (position) => position.status === PredictPositionStatus.WON,
+    ),
+  weakMapMemoizeOptions,
+);
 
-const selectPredictWinFiat = ({ address }: { address: string }) =>
-  createSelector(selectPredictWonPositions({ address }), (winningPositions) =>
+const selectPredictWinFiat = createSelector(
+  [selectPredictWonPositions],
+  (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.currentValue, 0),
-  );
+  weakMapMemoizeOptions,
+);
 
-const selectPredictWinPnl = ({ address }: { address: string }) =>
-  createSelector(selectPredictWonPositions({ address }), (winningPositions) =>
+const selectPredictWinPnl = createSelector(
+  [selectPredictWonPositions],
+  (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
-  );
+  weakMapMemoizeOptions,
+);
 
 const selectPredictBalances = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.balances || {},
 );
 
-const selectPredictBalanceByAddress = ({ address }: { address: string }) =>
-  createSelector(
-    selectPredictBalances,
-    (balances) => balances[address]?.balance || 0,
-  );
+const selectPredictBalanceByAddress = createSelector(
+  [selectPredictBalances, (_state: RootState, address: string) => address],
+  (balances, address) => balances[address]?.balance || 0,
+  weakMapMemoizeOptions,
+);
 
-const selectPredictPendingDepositByAddress = ({
-  address,
-}: {
-  address: string;
-}) =>
-  createSelector(
+const selectPredictPendingDepositByAddress = createSelector(
+  [
     selectPredictPendingDeposits,
-    (pendingDeposits) => pendingDeposits[address] || undefined,
-  );
+    (_state: RootState, address: string) => address,
+  ],
+  (pendingDeposits, address) => pendingDeposits[address] || undefined,
+  weakMapMemoizeOptions,
+);
 
-const selectPredictPendingClaimByAddress = ({ address }: { address: string }) =>
-  createSelector(
-    selectPredictPendingClaims,
-    (pendingClaims) => pendingClaims[address] || undefined,
-  );
+const selectPredictPendingClaimByAddress = createSelector(
+  [selectPredictPendingClaims, (_state: RootState, address: string) => address],
+  (pendingClaims, address) => pendingClaims[address] || undefined,
+  weakMapMemoizeOptions,
+);
 
 const selectPredictSelectedPaymentToken = createSelector(
   selectPredictControllerState,
@@ -101,17 +108,16 @@ const selectPredictAccountMeta = createSelector(
   (predictControllerState) => predictControllerState?.accountMeta || {},
 );
 
-const selectPredictAccountMetaByAddress = ({
-  providerId,
-  address,
-}: {
-  providerId: string;
-  address: string;
-}) =>
-  createSelector(
+const selectPredictAccountMetaByAddress = createSelector(
+  [
     selectPredictAccountMeta,
-    (accountMeta) => accountMeta[providerId]?.[address] || {},
-  );
+    (_state: RootState, providerId: string) => providerId,
+    (_state: RootState, _providerId: string, address: string) => address,
+  ],
+  (accountMeta, providerId, address) =>
+    accountMeta[providerId]?.[address] || {},
+  weakMapMemoizeOptions,
+);
 
 export {
   selectPredictControllerState,

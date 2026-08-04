@@ -1,8 +1,13 @@
-import React, { createContext, useCallback } from 'react';
+import React, { createContext, useCallback, useState } from 'react';
 import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
+import { useQuickBuyQuickAmountPreferences } from './hooks/useQuickBuyQuickAmountPreferences';
+import type {
+  QuickBuyAmountTuple,
+  QuickBuySellPercentTuple,
+} from './utils/quickBuyQuickAmounts';
 import type {
   QuickBuyAnalyticsContext,
   QuickBuyFeatures,
@@ -17,6 +22,13 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
+  buyQuickAmounts: QuickBuyAmountTuple;
+  sellQuickPercentages: QuickBuySellPercentTuple;
+  isQuickAmountPreferencesLoaded: boolean;
+  saveQuickAmountPreferences: (next: {
+    buyAmounts: QuickBuyAmountTuple;
+    sellPercentages: QuickBuySellPercentTuple;
+  }) => Promise<void>;
   /**
    * Called by the Buy button. When the high-price-impact modal feature is
    * enabled and the active quote exceeds the error threshold, this navigates
@@ -24,6 +36,9 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
    * Otherwise it delegates directly to `handleConfirm`.
    */
   handleBuy: () => Promise<void>;
+  /** Whether the numeric keypad is currently shown. */
+  isKeypadOpen: boolean;
+  setIsKeypadOpen: (open: boolean) => void;
 }
 
 export const QuickBuyContext = createContext<QuickBuyContextValue | null>(null);
@@ -48,8 +63,26 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   children,
 }) => {
   const controller = useQuickBuyController(target, onClose, analyticsContext);
-  const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
-    controller;
+  // Open the keypad by default so the sheet matches the taller Figma layout
+  // (footer + keypad visible together).
+  const [isKeypadOpen, setIsKeypadOpen] = useState(true);
+  const {
+    currentCurrency,
+    usdToCurrentCurrencyRate,
+    isPriceImpactError,
+    isPresetAddFundsMode,
+    handleConfirm,
+  } = controller;
+
+  const {
+    buyAmounts: buyQuickAmounts,
+    sellPercentages: sellQuickPercentages,
+    savePreferences: saveQuickAmountPreferences,
+    isLoaded: isQuickAmountPreferencesLoaded,
+  } = useQuickBuyQuickAmountPreferences({
+    currentCurrency,
+    usdToCurrentCurrencyRate,
+  });
 
   const handleBuy = useCallback(async () => {
     if (!isPresetAddFundsMode && isPriceImpactError) {
@@ -85,7 +118,13 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     activeScreen,
     setActiveScreen,
+    buyQuickAmounts,
+    sellQuickPercentages,
+    isQuickAmountPreferencesLoaded,
+    saveQuickAmountPreferences,
     handleBuy,
+    isKeypadOpen,
+    setIsKeypadOpen,
   };
 
   return (

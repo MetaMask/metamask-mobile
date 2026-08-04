@@ -24,16 +24,11 @@ export const cardControllerInit: MessengerClientInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
-  const getCardFeatureFlag = () => {
-    const featureState = controllerMessenger.call(
-      'RemoteFeatureFlagController:getState',
+  const getCardFeatureFlag = (): CardFeatureFlag =>
+    resolveCardFeatureFlag(
+      controllerMessenger.call('RemoteFeatureFlagController:getState')
+        .remoteFeatureFlags?.cardFeature as CardFeatureFlag | undefined,
     );
-    return resolveCardFeatureFlag(
-      featureState.remoteFeatureFlags?.cardFeature as
-        | CardFeatureFlag
-        | undefined,
-    );
-  };
 
   const baanxConfig = resolveBaanxConfig();
   const baanxProvider = new BaanxProvider({
@@ -43,7 +38,10 @@ export const cardControllerInit: MessengerClientInitFunction<
 
   const immersveConfig = resolveImmersveConfig();
   const immersveProvider = new ImmersveProvider({
-    service: new ImmersveService({ baseUrl: immersveConfig.baseUrl }),
+    service: new ImmersveService({
+      getBaseUrl: () =>
+        getCardFeatureFlag()?.immersve?.apiBaseUrl || immersveConfig.baseUrl,
+    }),
     config: immersveConfig,
     getCardFeatureFlag,
   });

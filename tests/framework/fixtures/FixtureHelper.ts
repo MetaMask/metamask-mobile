@@ -15,14 +15,14 @@ import {
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
-import Utilities, { sleep } from '../Utilities';
+import Utilities from '../Utilities';
 import {
   dismissAndroidSystemOverlaysPlaywright,
   dismissDevScreens,
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
-import TestHelpers from '../../helpers';
+import { launchApp as launchDetoxApp } from '../detox/DetoxAppLaunch';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
@@ -46,13 +46,13 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  resolveE2EFixtureBootstrapTimeoutMs,
   shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../smoke-appium/notifications/utils/mocks';
+import { softReloadAppForFixtures } from '../services/appium/softReloadApp';
 import {
   runAnalyticsExpectations,
   shouldRunAnalyticsExpectations,
@@ -70,7 +70,6 @@ import {
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
 import { FrameworkDetector } from '../FrameworkDetector';
-import PlaywrightUtilities from '../PlaywrightUtilities';
 import { DeviceCommandHandler } from '../services/device-commands';
 
 const logger = createLogger({
@@ -543,9 +542,6 @@ export async function withFixtures(
   // This ensures we start with a clean slate on Android
   await cleanupAllAndroidPortForwarding();
 
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
-
   // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
   // Resources must be started in this specific order to ensure ports are allocated
   // before they're referenced by subsequent resources, especially in testSpecificMock.
@@ -648,7 +644,7 @@ export async function withFixtures(
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
-        await TestHelpers.launchApp({
+        await launchDetoxApp({
           delete: true,
           launchArgs: {
             fixtureServerPort: isAndroid
@@ -690,42 +686,14 @@ export async function withFixtures(
           ...(launchArgs || {}),
         };
 
-        if (deviceCommands) {
-          await deviceCommands.clearAppData();
-        }
-
-        // Cold Metro bundles can take 60–160s locally; pre-warm runs in launchApp but
-        // device-side load + E2E bootstrap still need headroom after deep link.
-        const appStateRequest = fixtureServer.waitForNextStateRequest(
-          resolveE2EFixtureBootstrapTimeoutMs(),
-        );
-        try {
-          await PlaywrightUtilities.launchApp(currentDeviceDetails, {
-            launchArgs: testArgs,
-          });
-          if (shouldHandleMetroDevLauncherLocally()) {
-            didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
-            await Promise.all([
-              appStateRequest,
-              (async () => {
-                for (;;) {
-                  await dismissDevelopmentServerPickerPlaywright();
-                  const bootstrapped = await Promise.race([
-                    appStateRequest.then(() => true),
-                    sleep(1500).then(() => false),
-                  ]);
-                  if (bootstrapped) {
-                    return;
-                  }
-                }
-              })(),
-            ]);
-          } else {
-            await appStateRequest;
-          }
-        } catch (error) {
-          appStateRequest.catch(() => undefined);
-          throw error;
+        const softReloadResult = await softReloadAppForFixtures({
+          currentDeviceDetails,
+          deviceCommands,
+          launchArgs: testArgs,
+          fixtureServer,
+        });
+        if (softReloadResult.attemptedMetroDevLauncherDismissal) {
+          didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
         }
       } else {
         throw new Error(`Unsupported test runner: ${framework}`);

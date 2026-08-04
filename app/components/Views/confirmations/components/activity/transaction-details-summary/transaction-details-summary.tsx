@@ -14,8 +14,8 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
@@ -107,7 +107,10 @@ export function TransactionDetailsSummary() {
       {heading ? (
         <Text color={TextColor.TextAlternative}>{heading}</Text>
       ) : null}
-      <ProgressList showConnectors={false}>
+      <ProgressList
+        showConnectors={false}
+        variant={isMoneyContext ? 'dot' : 'status-icon'}
+      >
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}

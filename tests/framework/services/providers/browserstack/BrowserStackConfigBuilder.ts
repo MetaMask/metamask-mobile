@@ -3,6 +3,7 @@ import path from 'path';
 import type { BrowserStackConfig } from '../../../types';
 import type { ProjectConfig } from '../../common/types';
 import {
+  DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT,
   DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS,
   DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
   DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
@@ -79,7 +80,8 @@ export class BrowserStackConfigBuilder {
       : DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS;
 
     logger.info(
-      `BrowserStack WebDriver connectionRetryTimeout: ${connectionRetryTimeout}ms`,
+      `BrowserStack WebDriver connectionRetryTimeout: ${connectionRetryTimeout}ms, ` +
+        `connectionRetryCount: ${DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT}`,
     );
     logger.info(
       `BrowserStack idleTimeout: ${DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS}s, newCommandTimeout: ${DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS}s`,
@@ -98,7 +100,7 @@ export class BrowserStackConfigBuilder {
       hostname: 'hub.browserstack.com',
       // Default webdriver is 120s; BS session POST often exceeds that on busy grids.
       connectionRetryTimeout,
-      connectionRetryCount: 3,
+      connectionRetryCount: DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT,
       capabilities: {
         'bstack:options': {
           debug: true,

@@ -23,14 +23,14 @@ import type {
   AppNavigationProp,
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -47,7 +47,7 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
-import TraderPositionQuickBuy from './components/QuickBuy';
+import TraderPositionBuyCta from './components/TraderPositionBuyCta';
 import {
   narrowQuickBuyOriginalEntryPoint,
   resolveQuickBuyOriginalEntryPointFromPositionSource,
@@ -107,6 +107,7 @@ const TraderPositionView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
@@ -126,7 +127,6 @@ const TraderPositionView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const ctaClickedRef = useRef(false);
 
@@ -223,20 +223,14 @@ const TraderPositionView = () => {
     await ClipboardManager.setString(displayPosition.tokenAddress);
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.CheckBold,
-      iconColor: colors.accent03.dark,
-      backgroundColor: colors.accent03.normal,
+      iconName: ComponentLibraryIconName.Confirmation,
+      iconColor: colors.success.default,
       labelOptions: [
         { label: strings('detected_tokens.address_copied_to_clipboard') },
       ],
       hasNoTimeout: false,
     });
-  }, [
-    colors.accent03.dark,
-    colors.accent03.normal,
-    displayPosition?.tokenAddress,
-    toastRef,
-  ]);
+  }, [colors.success.default, displayPosition?.tokenAddress, toastRef]);
 
   // Quick Buy `source` is always the trade screen; upstream journey attribution
   // is carried separately on `original_entry_point`.
@@ -322,19 +316,13 @@ const TraderPositionView = () => {
     [followTradingTokenContext, track],
   );
 
-  const handleBuyPress = useCallback(() => {
-    if (!displayPosition) return;
-    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
-    // Success/error notification haptics fire later in useQuickBuyBottomSheet.
-    playImpact(ImpactMoment.PrimaryCTA);
-    setIsQuickBuyVisible(true);
+  // Fires the CTA-clicked event and marks the CTA as clicked (so the
+  // "dismissed" cleanup is suppressed) for both A/B variants. The variant-
+  // specific navigation (QuickBuy vs swaps) lives in TraderPositionBuyCta.
+  const handleBuyCtaClicked = useCallback(() => {
     ctaClickedRef.current = true;
     trackFollowTradingCtaClicked(SocialLeaderboardEventValues.CTA_TYPE.BUY);
-  }, [displayPosition, trackFollowTradingCtaClicked]);
-
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
+  }, [trackFollowTradingCtaClicked]);
 
   const handleChartIndexChange = useCallback((_index: number) => {
     // Legacy (perp) chart scrub: price readout not wired for the SVG chart.
@@ -617,46 +605,56 @@ const TraderPositionView = () => {
   );
 
   return (
+    // The top edge is deliberately off: a native SafeAreaView top padding is
+    // recalculated as the view is attached, which lands after this screen's
+    // `slide_from_right` push and visibly drops the header into place. The top
+    // inset is applied in JS below instead, off the already resolved provider.
     <SafeAreaView
+      edges={['bottom', 'left', 'right']}
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
-      {isInitialLoading ? (
-        <TraderPositionHeader
-          traderName={traderName}
-          traderImageUrl={traderImageUrl}
-          traderAddress={traderAddress}
-          onBack={handleBack}
-          onTraderPress={handleTraderPress}
-          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-        />
-      ) : hasFailed ? (
-        <TraderPositionHeader
-          traderName={traderName}
-          traderImageUrl={traderImageUrl}
-          traderAddress={traderAddress}
-          onBack={handleBack}
-          onTraderPress={handleTraderPress}
-          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-        />
-      ) : (
-        <TraderPositionAnimatedHeader
-          scrollY={scrollYShared}
-          titleSectionHeight={titleSectionHeightSv}
-          traderName={traderName}
-          traderImageUrl={traderImageUrl}
-          traderAddress={traderAddress}
-          symbol={symbol}
-          pricePercentChange={displayPercentChange}
-          activeTimePeriodLabel={activeTimePeriod}
-          perpDirection={perpDirection}
-          perpLeverage={displayPosition?.perpLeverage}
-          onBack={handleBack}
-          onTraderPress={handleTraderPress}
-        />
-      )}
+      {/* The inset sits on this wrapper rather than on the headers themselves so
+          all three branches share one value — swapping between the loading,
+          failed and loaded headers must not move the back button. */}
+      <Box style={{ paddingTop: insets.top }}>
+        {isInitialLoading ? (
+          <TraderPositionHeader
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+          />
+        ) : hasFailed ? (
+          <TraderPositionHeader
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+          />
+        ) : (
+          <TraderPositionAnimatedHeader
+            scrollY={scrollYShared}
+            titleSectionHeight={titleSectionHeightSv}
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            symbol={symbol}
+            pricePercentChange={displayPercentChange}
+            activeTimePeriodLabel={activeTimePeriod}
+            perpDirection={perpDirection}
+            perpLeverage={displayPosition?.perpLeverage}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+          />
+        )}
+      </Box>
 
       {isInitialLoading ? (
         <TraderPositionSkeleton />
@@ -810,35 +808,19 @@ const TraderPositionView = () => {
               testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
             />
           ) : (
-            <>
-              <Box twClassName="px-4 py-3">
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  isFullWidth
-                  onPress={handleBuyPress}
-                  testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-                >
-                  {strings('social_leaderboard.trader_position.buy')}
-                </Button>
-              </Box>
-
-              <TraderPositionQuickBuy
-                isVisible={isQuickBuyVisible}
-                position={displayPosition ?? null}
-                onClose={handleQuickBuyClose}
-                traderAddress={traderAddress}
-                marketCap={
-                  typeof marketCap === 'number' ? marketCap : undefined
-                }
-                tokenPriceFiat={
-                  typeof currentPrice === 'number' ? currentPrice : undefined
-                }
-                source={quickBuySource}
-                originalEntryPoint={quickBuyOriginalEntryPoint}
-                isTraderPositionClosed={isClosed}
-              />
-            </>
+            <TraderPositionBuyCta
+              position={displayPosition ?? null}
+              traderAddress={traderAddress}
+              marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+              tokenPriceFiat={
+                typeof currentPrice === 'number' ? currentPrice : undefined
+              }
+              source={quickBuySource}
+              originalEntryPoint={quickBuyOriginalEntryPoint}
+              isTraderPositionClosed={isClosed}
+              onBuyCtaClicked={handleBuyCtaClicked}
+              buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+            />
           )}
         </>
       )}
