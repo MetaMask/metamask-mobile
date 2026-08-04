@@ -82,9 +82,14 @@ export const useSectionPerformance = ({
   const fetchTraceId = useRef(uuidv4());
   const fetchStarted = useRef(false);
   const fetchEnded = useRef(false);
-  // Whether this section opted into Data Fetch tracing. Read at mount so the
-  // span boundary can never depend on a later render's `isLoading` value.
+  // Whether this section opted into Data Fetch tracing. Frozen at the first
+  // render and used by BOTH the open and close paths, so one span never has two
+  // different opt-in guards.
   const tracksDataFetch = useRef(isLoading !== undefined);
+  // Sticky for the whole hook instance: the span may open at most once, so
+  // re-runs of the effect below (e.g. an `enabled` false→true toggle) can never
+  // open a second span at an arbitrary post-mount moment.
+  const fetchSpanOpened = useRef(false);
   // Loading state on the very first render, logged with the span start so a
   // warm mount (already loaded) is distinguishable from a cold one on device.
   const isLoadingAtFirstRender = useRef(isLoading);
@@ -122,9 +127,9 @@ export const useSectionPerformance = ({
 
     // Data Fetch Latency — start on mount so every mount produces a sample,
     // including warm mounts that are already loaded (near-zero duration).
-    if (tracksDataFetch.current) {
+    if (tracksDataFetch.current && !fetchSpanOpened.current) {
+      fetchSpanOpened.current = true;
       fetchTraceId.current = uuidv4();
-      fetchEnded.current = false;
       trace({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
@@ -179,11 +184,11 @@ export const useSectionPerformance = ({
   // 2. Data Fetch Latency — end the mount-scoped span once loading is done
   // ──────────────────────────────────────────────
   useEffect(() => {
-    if (!enabled || isLoading === undefined) return;
+    if (!enabled || !tracksDataFetch.current) return;
 
     // End: first render of this mount that is no longer loading. The span is
-    // opened by the mount effect above, so a later refresh cycle can neither
-    // open a new span nor reopen this one.
+    // opened once by the mount effect above, so neither a later refresh cycle
+    // nor an `enabled` toggle can open a new span or reopen this one.
     if (!isLoading && fetchStarted.current && !fetchEnded.current) {
       endTrace({
         name: TraceName.HomepageSectionDataFetch,

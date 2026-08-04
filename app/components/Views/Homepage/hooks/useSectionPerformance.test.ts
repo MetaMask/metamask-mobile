@@ -305,6 +305,43 @@ describe('useSectionPerformance', () => {
       expect(fetchTraceCalls).toHaveLength(0);
     });
 
+    it('does not reopen the data fetch span when enabled toggles back on after the span closed', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: true, isLoading: true } },
+      );
+      rerender({ enabled: true, isLoading: false });
+      jest.clearAllMocks();
+
+      rerender({ enabled: false, isLoading: false });
+      rerender({ enabled: true, isLoading: true });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(0);
+    });
+
+    it('does not reopen the data fetch span when enabled toggles back on while still loading', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: true, isLoading: true } },
+      );
+      jest.clearAllMocks();
+
+      rerender({ enabled: false, isLoading: true });
+      rerender({ enabled: true, isLoading: true });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(0);
+    });
+
     it('ends the fetch trace with failure on unmount if still loading', () => {
       const { unmount } = renderHook(() =>
         useSectionPerformance({ ...defaultConfig, isLoading: true }),
