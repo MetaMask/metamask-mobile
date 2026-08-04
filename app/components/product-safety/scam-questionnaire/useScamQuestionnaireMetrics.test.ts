@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { renderHook } from '@testing-library/react-hooks';
-import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import {
   TransactionStatus,
   TransactionType,
@@ -10,23 +10,18 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
-import useBalanceChanges from '../../UI/SimulationDetails/useBalanceChanges';
-import {
-  type BalanceChange,
-  type FiatAmount,
-} from '../../UI/SimulationDetails/types';
 import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { Q1_OPTIONS } from './scam-questionnaire.constants';
 import { useScamQuestionnaireMetrics } from './useScamQuestionnaireMetrics';
 
+jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../hooks/useAnalytics/useAnalytics');
-jest.mock('../../UI/SimulationDetails/useBalanceChanges');
 jest.mock(
   '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
 
 const useAnalyticsMock = jest.mocked(useAnalytics);
-const useBalanceChangesMock = jest.mocked(useBalanceChanges);
+const useSelectorMock = jest.mocked(useSelector);
 const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
@@ -43,19 +38,7 @@ const TRANSACTION_META = {
   type: TransactionType.simpleSend,
 } as unknown as TransactionMeta;
 
-function buildBalanceChange(
-  amount: number,
-  usdAmount: FiatAmount,
-): BalanceChange {
-  return {
-    asset: { chainId: '0x1', type: 'NATIVE' } as BalanceChange['asset'],
-    amount: new BigNumber(amount),
-    fiatAmount: usdAmount,
-    usdAmount,
-  };
-}
-
-function setup(balanceChanges: BalanceChange[] = []) {
+function setup(simulationSendingValue?: number) {
   const trackEvent = jest.fn();
 
   useAnalyticsMock.mockReturnValue(
@@ -64,10 +47,15 @@ function setup(balanceChanges: BalanceChange[] = []) {
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     }),
   );
-  useBalanceChangesMock.mockReturnValue({
-    pending: false,
-    value: balanceChanges,
-  });
+  useSelectorMock.mockReturnValue(
+    simulationSendingValue !== undefined
+      ? {
+          properties: {
+            simulation_sending_assets_total_value: simulationSendingValue,
+          },
+        }
+      : undefined,
+  );
   useTransactionMetadataRequestMock.mockReturnValue(TRANSACTION_META);
 
   const { result } = renderHook(() => useScamQuestionnaireMetrics());
@@ -99,7 +87,7 @@ describe('useScamQuestionnaireMetrics', () => {
 
   describe('trackContactSupport', () => {
     it('reports the answers, red flag count and outgoing USD total', () => {
-      const { metrics, trackEvent } = setup([buildBalanceChange(-1, 99)]);
+      const { metrics, trackEvent } = setup(99);
 
       metrics.trackContactSupport(ANSWERS);
 
@@ -119,10 +107,7 @@ describe('useScamQuestionnaireMetrics', () => {
 
   describe('trackCompleted', () => {
     it('reports the status, answers and outgoing USD total', () => {
-      const { metrics, trackEvent } = setup([
-        buildBalanceChange(-1, 10),
-        buildBalanceChange(-2, 15.25),
-      ]);
+      const { metrics, trackEvent } = setup(25.25);
 
       metrics.trackCompleted({
         status: 'payment_stopped',
@@ -142,21 +127,8 @@ describe('useScamQuestionnaireMetrics', () => {
       });
     });
 
-    it('excludes incoming assets from the total', () => {
-      const { metrics, trackEvent } = setup([
-        buildBalanceChange(-1, 30),
-        buildBalanceChange(5, 500),
-      ]);
-
-      metrics.trackCompleted({ status: 'proceeded', answers: ANSWERS });
-
-      expect(
-        firedEvent(trackEvent).properties.simulation_sending_assets_total_value,
-      ).toBe(30);
-    });
-
-    it('omits the total when fiat rates are unavailable', () => {
-      const { metrics, trackEvent } = setup([buildBalanceChange(-1, null)]);
+    it('omits the total when value is $0', () => {
+      const { metrics, trackEvent } = setup(0);
 
       metrics.trackCompleted({ status: 'clean', answers: ANSWERS });
 
@@ -165,7 +137,7 @@ describe('useScamQuestionnaireMetrics', () => {
       );
     });
 
-    it('omits the total when simulation produced no balance changes', () => {
+    it('omits the total when no simulation value is available', () => {
       const { metrics, trackEvent } = setup();
 
       metrics.trackCompleted({ status: 'clean', answers: ANSWERS });

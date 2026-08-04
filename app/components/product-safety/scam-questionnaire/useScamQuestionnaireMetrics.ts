@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { PRODUCT_SAFETY_EVENTS } from '../../../core/Analytics/events/product-safety';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
-import useBalanceChanges from '../../UI/SimulationDetails/useBalanceChanges';
-import { calculateTotalFiat } from '../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
-import { FIAT_UNAVAILABLE } from '../../UI/SimulationDetails/types';
+import { selectConfirmationMetricsById } from '../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import type { RootState } from '../../../reducers';
 import {
   Answers,
   QUESTIONNAIRE_VERSION,
@@ -18,26 +18,18 @@ import {
 
 export type CompletionStatus = 'clean' | 'payment_stopped' | 'proceeded';
 
-// Mirrors the arithmetic behind `simulation_sending_assets_total_value` on
-// transaction events so the two stay comparable. `undefined` rather than `0`
-// when rates are unavailable, so the property is omitted instead of reporting
-// the send as free.
+// Reads the value that useSimulationMetrics has already computed and stored
+// in the confirmationMetrics slice — no need to re-run useBalanceChanges here.
+// We omit the property when the value is 0, matching extension behavior
+// (plain-number falsy check), since $0 at risk is equivalent to no data.
 function useValueAtRisk(): number | undefined {
   const transactionMeta = useTransactionMetadataRequest();
-  const { value: balanceChanges } = useBalanceChanges({
-    chainId: transactionMeta?.chainId ?? '0x1',
-    simulationData: transactionMeta?.simulationData,
-    networkClientId: transactionMeta?.networkClientId ?? '',
-  });
-
-  return useMemo(() => {
-    const sendingAssets = balanceChanges.filter((c) => c.amount.isNegative());
-    const usdAmounts = sendingAssets.map((c) => c.usdAmount);
-    const hasRates = usdAmounts.some((a) => a !== FIAT_UNAVAILABLE);
-    if (!hasRates) return undefined;
-    const total = calculateTotalFiat(usdAmounts);
-    return Math.abs(total.toNumber());
-  }, [balanceChanges]);
+  const confirmationMetrics = useSelector((state: RootState) =>
+    selectConfirmationMetricsById(state, transactionMeta?.id ?? ''),
+  );
+  const value =
+    confirmationMetrics?.properties?.simulation_sending_assets_total_value;
+  return typeof value === 'number' && value !== 0 ? value : undefined;
 }
 
 export function useScamQuestionnaireMetrics() {
@@ -60,6 +52,10 @@ export function useScamQuestionnaireMetrics() {
     };
 
     return {
+      // `step: 'warning'` covers the warning screen, so reaching it and never
+      // resolving is still visible as a funnel step. Answers live on
+      // `Completed` only — here they'd lag a step, since a step's answer isn't
+      // committed until the user leaves it.
       trackViewed: (step: Step) =>
         fire(PRODUCT_SAFETY_EVENTS.SCAM_QUESTIONNAIRE_VIEWED, {
           step: stepLabelFromIndex(step),
