@@ -16,12 +16,22 @@ type SwapFamilyType = Extract<
 >['type'];
 
 /**
+ * Swap-family types whose CTA re-opens the swap view. Lending deposits and
+ * withdrawals share the `SwapDetails` template but are deliberately excluded:
+ * the swap view cannot repeat either action, so they get their own CTA (or
+ * none) instead of a "Swap again" label.
+ */
+type SwapAgainType = Exclude<
+  SwapFamilyType,
+  'lendingDeposit' | 'lendingWithdrawal'
+>;
+
+/**
  * Transaction-type-specific verb for the "do it again" CTA on swap-family
  * details (the action opens the unified swap/bridge view seeded with the
- * original tokens). Lending in/out falls back to "Swap again" since the action
- * routes through the swap view. Never returns the generic "Do it again".
+ * original tokens). Never returns the generic "Do it again".
  */
-export function getSwapAgainLabel(type: SwapFamilyType): string {
+export function getSwapAgainLabel(type: SwapAgainType): string {
   switch (type) {
     case 'convert':
       return strings('activity_details.convert_again');
@@ -30,8 +40,6 @@ export function getSwapAgainLabel(type: SwapFamilyType): string {
     case 'unwrap':
       return strings('activity_details.unwrap_again');
     case 'swap':
-    case 'lendingDeposit':
-    case 'lendingWithdrawal':
     default:
       return strings('activity_details.swap_again');
   }

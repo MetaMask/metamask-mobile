@@ -33,6 +33,13 @@ jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [],
 }));
 
+// The "lend again" CTA reads the derived Earn token map, which these
+// dispatch-focused tests don't populate. `SwapDetails.test.tsx` covers the CTA.
+jest.mock('../../../UI/Earn/hooks/useEarnTokens', () => ({
+  __esModule: true,
+  default: () => ({ earnTokensByChainIdAndAddress: {} }),
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {

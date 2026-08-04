@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
 import {
   type ActivityListItem,
   enrichTokenFromApi,
@@ -17,6 +18,7 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
+import { useActivityDetailsLendAgain } from '../hooks/useActivityDetailsLendAgain';
 import { getSwapAgainLabel } from './swapAgainLabel';
 
 type SwapDetailsItem = Extract<
@@ -51,6 +53,19 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
     destinationToken,
     fallbackCaipChainId: item.chainId,
   });
+  // Lending in/out share this template but not its CTA: the swap view can't
+  // repeat either action (a deposit carries no destination token, and a
+  // withdrawal's source is a non-swappable aToken). A deposit instead re-opens
+  // the earn flow with the underlying token; a withdrawal gets no CTA.
+  const swapAgainLabel =
+    item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal'
+      ? undefined
+      : getSwapAgainLabel(item.type);
+  const isLendingDeposit = item.type === 'lendingDeposit';
+  const { canLendAgain, onLendAgain } = useActivityDetailsLendAgain({
+    token: isLendingDeposit ? sourceToken : undefined,
+    fallbackCaipChainId: item.chainId,
+  });
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
     sourceToken,
     item.chainId,
@@ -72,9 +87,15 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
             chainId={item.chainId}
             hash={item.hash}
           />
-          {canDoItAgain ? (
+          {isLendingDeposit && canLendAgain ? (
             <ActivityDetailsDoItAgainButton
-              label={getSwapAgainLabel(item.type)}
+              label={strings('activity_details.lend_again')}
+              onPress={onLendAgain}
+            />
+          ) : null}
+          {swapAgainLabel && canDoItAgain ? (
+            <ActivityDetailsDoItAgainButton
+              label={swapAgainLabel}
               onPress={handleDoItAgain}
             />
           ) : null}
