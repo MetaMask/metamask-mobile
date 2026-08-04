@@ -25,6 +25,7 @@ which condenses this whole document into agent-usable instructions.
 - [Theming](#theming)
 - [Data flow: `WidgetUpdaterService`](#data-flow-widgetupdaterservice)
 - [Feature flag: `MM_WIDGETS_ENABLED`](#feature-flag-mm_widgets_enabled)
+- [Adoption analytics](#adoption-analytics)
 - [The reference widget: `BalanceWidget`](#the-reference-widget-balancewidget)
 - [Adding a new widget](#adding-a-new-widget)
 - [Adding a Live Activity](#adding-a-live-activity)
@@ -62,10 +63,17 @@ app/core/Widgets/
 ├── createMetaMaskLiveActivity.ios.ts     Typed wrapper around expo-widgets' createLiveActivity
 ├── createMetaMaskLiveActivity.ts         No-op fallback
 ├── WidgetUpdaterService.ts           Subscribes to Redux, computes + pushes props to every widget
+├── getInstalledWidgets.ios.ts         Bridges RCTWidgetInfo -> installed widget {kind, family}[]
+├── getInstalledWidgets.ts            No-op fallback (returns [])
+├── trackWidgetAdoption.ts            Reports install-based widget adoption to analytics
 ├── index.ts                          Barrel (WidgetUpdaterService, WidgetTheme helpers, types)
 └── widgets/
     ├── BalanceWidget.ios.tsx         Reference widget: layout + registration
     └── BalanceWidget.ts              No-op fallback with the same exported shape
+
+ios/MetaMask/NativeModules/RCTWidgetInfo/   Swift + RCT_EXTERN_MODULE bridge for WidgetCenter.getCurrentConfigurations
+├── RCTWidgetInfo.swift               getInstalledWidgets() -> [{ kind, family }] (used for adoption analytics)
+└── RCTWidgetInfo.m                   RCT_EXTERN_MODULE shim exposing the Swift class to the bridge
 
 ios/ExpoWidgetsTarget/                The WidgetKit app extension (a *second*, separate iOS target)
 ├── Info.plist                        NSExtensionPointIdentifier = com.apple.widgetkit-extension
@@ -385,6 +393,46 @@ gallery; it would just never receive data.
   `babel.config.tests.js`) specifically so its own test can still toggle the
   flag to `'false'` at runtime to cover the disabled no-op path.
 
+## Adoption analytics
+
+Once per app launch, `WidgetUpdaterService.initialize()` fire-and-forgets a
+call to `app/core/Widgets/trackWidgetAdoption.ts`, which reports how many
+widgets the user actually has placed — a `WIDGETS_ADOPTION` MetaMetrics
+event plus `has_widgets_installed` / `widgets_installed_count` user traits
+(`UserProfileProperty`). The event gives an adoption time series segmented
+by widget `kind`/`family`; the traits let any _other_ existing event be
+segmented by widget usage. Like the rest of `initialize()`, this only runs
+on iOS with `MM_WIDGETS_ENABLED === 'true'`, and never throws.
+
+**Why installs, not taps.** `expo-widgets`' JS API is only
+`updateSnapshot`/`updateTimeline`/`getTimeline`/`reload` plus
+`addUserInteractionListener` (for _interactive_ buttons) — nothing observes
+a plain tap, and nothing reports whether the user placed the widget at all.
+A passive, glanceable widget like `BalanceWidget` is looked at, not tapped,
+so tap-based measurement would badly undercount real adoption. iOS exposes
+exactly one API for "is a widget actually on a home screen / lock screen /
+StandBy right now" — `WidgetCenter.shared.getCurrentConfigurations` — which
+is why this needs a small native bridge:
+`ios/MetaMask/NativeModules/RCTWidgetInfo/` (Swift + an ObjC
+`RCT_EXTERN_MODULE` shim, registered for both the `MetaMask` and
+`MetaMask-Flask` targets in `project.pbxproj`), exposed to JS as
+`app/core/Widgets/getInstalledWidgets.ios.ts` / `.ts`, following the same
+[platform-split](#platform-split-iosts--base-ts) convention as everything
+else here.
+
+**Automatic for every future widget — no analytics work needed.** The
+signal is keyed on WidgetKit's `kind`, which already equals each widget's
+exported `..._NAME` constant (e.g. `BALANCE_WIDGET_NAME` — see the
+`StaticConfiguration(kind:)` call in each `ios/ExpoWidgetsTarget/*.swift`
+file). Adding a new widget kind (see
+[Adding a new widget](#adding-a-new-widget)) is measured automatically the
+moment its Swift file exists and the user places it — there is no step to
+add here.
+
+Tap/interaction-based analytics (via `expo-widgets`' `widgetURL` modifier or
+`addUserInteractionListener`) is deliberately out of scope for now; it can
+be layered on later, per widget, without reworking this foundation.
+
 ## The reference widget: `BalanceWidget`
 
 `app/core/Widgets/widgets/BalanceWidget.ios.tsx` is the worked example this
@@ -449,6 +497,9 @@ used elsewhere in the app), and reads the label from
     home screen → "+" → search for the widget's `displayName`, add it, and
     check both light/dark mode and that it updates after changing the
     underlying data in-app.
+
+No analytics work is needed — [adoption tracking](#adoption-analytics) is
+automatic for every widget kind, keyed on `name`/`MY_WIDGET_NAME`.
 
 ## Adding a Live Activity
 

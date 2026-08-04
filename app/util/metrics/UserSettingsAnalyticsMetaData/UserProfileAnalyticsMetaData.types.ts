@@ -30,6 +30,9 @@ export enum UserProfileProperty {
   CREATED_POLYMARKET_ACCOUNT_VIA_MM = 'created_polymarket_account_via_mm',
   ACCOUNT_TYPE = 'account_type',
   INSTALL_DATE_MOBILE = 'InstallDateMobile',
+  // Widgets (app/core/Widgets/trackWidgetAdoption.ts)
+  HAS_WIDGETS_INSTALLED = 'has_widgets_installed',
+  WIDGETS_INSTALLED_COUNT = 'widgets_installed_count',
 }
 
 export interface UserProfileMetaData {

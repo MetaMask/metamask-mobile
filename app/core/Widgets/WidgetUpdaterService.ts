@@ -14,6 +14,7 @@ import {
   type BalanceWidgetProps,
 } from './widgets/BalanceWidget';
 import type { WithWidgetTheme } from './types';
+import { trackWidgetAdoption } from './trackWidgetAdoption';
 
 /** Coalesces rapid Redux updates (e.g. balance streaming in token-by-token) into a single native write. */
 const UPDATE_DEBOUNCE_MS = 2000;
@@ -74,7 +75,9 @@ class WidgetUpdaterServiceImplementation {
    * (see createMetaMaskWidget.ts), a no-op unless `MM_WIDGETS_ENABLED` is
    * `'true'` (build-time flag, `builds.yml`'s `_public_envs`, defaults to
    * `'false'` while this feature is still in development — see
-   * docs/widgets/README.md), and safe to call more than once.
+   * docs/widgets/README.md), and safe to call more than once. Also
+   * fire-and-forgets a one-time widget-adoption analytics report (see
+   * trackWidgetAdoption.ts) once per launch.
    */
   initialize(): void {
     if (
@@ -90,6 +93,7 @@ class WidgetUpdaterServiceImplementation {
     );
     this.initialized = true;
     this.pushUpdates();
+    trackWidgetAdoption().catch(() => undefined);
     Logger.log('WidgetUpdaterService: Initialized');
   }
 
