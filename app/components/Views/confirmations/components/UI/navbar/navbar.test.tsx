@@ -49,6 +49,14 @@ describe('ConfirmationHeader', () => {
       expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
 
+    it('sets an accessibility label on the back button', () => {
+      const { getByLabelText } = render(
+        <ConfirmationHeader onReject={mockOnReject} title="Test Title" />,
+      );
+
+      expect(getByLabelText('Back')).toBeOnTheScreen();
+    });
+
     it('hides the back button when addBackButton is false', () => {
       const { queryByTestId } = render(
         <ConfirmationHeader

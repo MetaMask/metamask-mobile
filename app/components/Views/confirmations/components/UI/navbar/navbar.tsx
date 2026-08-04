@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 
@@ -59,7 +60,12 @@ export function ConfirmationHeader({
       title={title}
       onBack={addBackButton ? handleBackPress : undefined}
       backButtonProps={
-        addBackButton ? { testID: `${title}-navbar-back-button` } : undefined
+        addBackButton
+          ? {
+              testID: `${title}-navbar-back-button`,
+              accessibilityLabel: strings('navigation.back'),
+            }
+          : undefined
       }
       startAccessory={customLeft}
       endAccessory={customRight}
