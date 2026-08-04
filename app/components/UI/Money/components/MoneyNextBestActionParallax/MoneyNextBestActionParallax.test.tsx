@@ -1,49 +1,63 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
+import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyNextBestActionParallax from './MoneyNextBestActionParallax';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import { PARALLAX_REST_VALUE } from '../../utils/parallax';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
 import fallbackImage from '../../../../../images/money-onboarding-stepper-step-1.png';
 
+// The component writes tilt values through cached `instance.numberProperty()`
+// handles (not `useRiveNumber`), so the local mock provides a view-model
+// instance exposing `numberProperty` whose `.set()` records into
+// `mockSetNumber(path, value)`. The RiveView wrapper additionally captures
+// props (artboardName/onError) and counts mounts for the remount-per-artboard
+// contract.
 const mockSetNumber = jest.fn();
-const mockViewTag = jest.fn((): number | null => 1);
-const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
-const mockRiveProps: { current?: { artboardName?: string } } = {};
+const mockNumberProperty = jest.fn((path: string) => ({
+  set: (value: number) => mockSetNumber(path, value),
+}));
+let mockInstanceReady = true;
+const mockRiveViewProps: {
+  current?: {
+    testID?: string;
+    artboardName?: string;
+    onError?: (error: RiveError) => void;
+  };
+} = {};
 const mockMountCount = { current: 0 };
 
-jest.mock('rive-react-native', () => {
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('@rive-app/react-native');
   const ReactActual = jest.requireActual('react');
-  const { View: RNView } = jest.requireActual('react-native');
+  const MockRiveView = (props: {
+    testID?: string;
+    artboardName?: string;
+    onError?: (error: RiveError) => void;
+  }) => {
+    ReactActual.useEffect(() => {
+      mockMountCount.current += 1;
+    }, []);
+    // Captured in a per-render effect (not during render) to keep the
+    // react-compiler happy about external writes.
+    ReactActual.useEffect(() => {
+      mockRiveViewProps.current = props;
+    });
+    return ReactActual.createElement(actual.RiveView, props);
+  };
   return {
     __esModule: true,
-    AutoBind: jest.fn(() => ({})),
-    Fit: { Contain: 'contain' },
-    default: ReactActual.forwardRef(
-      (
-        props: {
-          testID?: string;
-          artboardName?: string;
-          onError?: (error: { message: string }) => void;
-        },
-        ref: React.Ref<{
-          setNumber: (path: string, value: number) => void;
-          viewTag: () => number | null;
-        }>,
-      ) => {
-        mockOnErrorRef.current = props.onError;
-        mockRiveProps.current = { artboardName: props.artboardName };
-        ReactActual.useImperativeHandle(ref, () => ({
-          setNumber: mockSetNumber,
-          viewTag: mockViewTag,
-        }));
-        ReactActual.useEffect(() => {
-          mockMountCount.current += 1;
-        }, []);
-        return ReactActual.createElement(RNView, { testID: props.testID });
-      },
-    ),
+    ...actual,
+    useViewModelInstance: () => ({
+      instance: mockInstanceReady
+        ? { numberProperty: mockNumberProperty }
+        : null,
+      isLoading: !mockInstanceReady,
+      error: null,
+    }),
+    RiveView: MockRiveView,
   };
 });
 
@@ -71,10 +85,13 @@ const latestApplyTilt = (): ((x: number, y: number) => void) =>
 describe('MoneyNextBestActionParallax', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnErrorRef.current = undefined;
-    mockRiveProps.current = undefined;
+    __resetRiveMocks();
+    mockRiveViewProps.current = undefined;
     mockMountCount.current = 0;
-    mockViewTag.mockReturnValue(1);
+    mockInstanceReady = true;
+    mockNumberProperty.mockImplementation((path: string) => ({
+      set: (value: number) => mockSetNumber(path, value),
+    }));
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
   });
@@ -116,7 +133,7 @@ describe('MoneyNextBestActionParallax', () => {
       />,
     );
 
-    expect(mockRiveProps.current?.artboardName).toBe('Parallax Block 2');
+    expect(mockRiveViewProps.current?.artboardName).toBe('Parallax Block 2');
   });
 
   it('does not render the gradient background behind the fallback image', () => {
@@ -242,8 +259,8 @@ describe('MoneyNextBestActionParallax', () => {
     expect(yValue).toBeLessThan(PARALLAX_REST_VALUE);
   });
 
-  it('does not dispatch tilt values while the native Rive view is detached', () => {
-    mockViewTag.mockReturnValue(null);
+  it('does not dispatch tilt values before the view-model instance is ready', () => {
+    mockInstanceReady = false;
     render(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"
@@ -256,8 +273,10 @@ describe('MoneyNextBestActionParallax', () => {
     expect(mockSetNumber).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch tilt values when no Rive view is rendered', () => {
-    mockUseReduceMotion.mockReturnValue(true);
+  it('does not dispatch tilt values when the artboard has no parallax properties', () => {
+    mockNumberProperty.mockReturnValue(
+      undefined as unknown as ReturnType<typeof mockNumberProperty>,
+    );
     render(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"
@@ -316,7 +335,12 @@ describe('MoneyNextBestActionParallax', () => {
       />,
     );
 
-    act(() => mockOnErrorRef.current?.({ message: 'boom' }));
+    act(() =>
+      mockRiveViewProps.current?.onError?.({
+        message: 'boom',
+        type: RiveErrorType.Unknown,
+      }),
+    );
 
     expect(
       getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
@@ -331,7 +355,12 @@ describe('MoneyNextBestActionParallax', () => {
         fallbackImage={fallbackImage}
       />,
     );
-    act(() => mockOnErrorRef.current?.({ message: 'boom' }));
+    act(() =>
+      mockRiveViewProps.current?.onError?.({
+        message: 'boom',
+        type: RiveErrorType.Unknown,
+      }),
+    );
     expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
 
     rerender(

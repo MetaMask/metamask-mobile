@@ -1,52 +1,64 @@
 import React from 'react';
 import { render, act, screen, waitFor } from '@testing-library/react-native';
+import { RiveErrorType } from '@rive-app/react-native';
 import FoxLoader, { _resetAnimationStateForTesting } from './FoxLoader';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 import { hideAsync } from 'expo-splash-screen';
 import Logger from '../../../util/Logger';
 
-// Override the global rive-react-native mock so tests can manually trigger
-// onPlay, onStateChanged, and onError instead of having onPlay auto-fire.
-const mockFireState = jest.fn();
-let mockRiveCallbacks: {
-  onPlay?: () => void;
-  onStateChanged?: (machine: string, state: string) => void;
-  onError?: (error: { message: string; type: string }) => void;
-} = {};
+// Override the global Rive mock so tests control when the view becomes ready
+// (the global mock makes riveViewRef available immediately) and can fire onError.
+const mockTriggerInput = jest.fn();
+let mockRiveViewReady = false;
+let mockOnErrorCallback:
+  | ((error: { message: string; type: RiveErrorType }) => void)
+  | undefined;
 
-jest.mock('rive-react-native', () => {
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('../../../__mocks__/rive-app-react-native');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const MockReact = require('react');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require('react-native');
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockRive = MockReact.forwardRef((props: any, ref: any) => {
-    // Capture latest callbacks on every render so tests can trigger them
-    mockRiveCallbacks = {
-      onPlay: props.onPlay,
-      onStateChanged: props.onStateChanged,
-      onError: props.onError,
-    };
-    MockReact.useImperativeHandle(
-      ref,
-      () => ({ fireState: mockFireState }),
-      [],
-    );
-    return MockReact.createElement(View, { testID: 'mock-rive-animation' });
-  });
-  MockRive.displayName = 'Rive';
+  // Stable across renders; triggerInput delegates lazily (the hoisted factory
+  // runs before the mockTriggerInput const initializer).
+  const mockRiveMethods = {
+    triggerInput: (...args: unknown[]) => mockTriggerInput(...args),
+  };
+  const mockRiveRefContainer: { current: unknown } = { current: null };
+  const mockSetHybridRef = { f: jest.fn() };
+
+  const MockRiveView = (props: {
+    onError?: typeof mockOnErrorCallback;
+    testID?: string;
+  }) => {
+    // Capture the latest onError on every render so tests can trigger it
+    mockOnErrorCallback = props.onError;
+    return MockReact.createElement(View, {
+      testID: props.testID ?? 'mock-rive-animation',
+    });
+  };
 
   return {
-    __esModule: true,
-    default: MockRive,
-    Fit: { Contain: 'contain' },
-    Alignment: { Center: 'center' },
-    RiveRenderer: { defaultRenderer: jest.fn() },
-    RiveRendererIOS: { Rive: 'Rive' },
-    RiveRendererAndroid: { Canvas: 'Canvas' },
+    ...actual,
+    RiveView: MockRiveView,
+    useRive: () => {
+      mockRiveRefContainer.current = mockRiveViewReady ? mockRiveMethods : null;
+      return {
+        riveRef: mockRiveRefContainer,
+        riveViewRef: mockRiveRefContainer.current,
+        setHybridRef: mockSetHybridRef,
+      };
+    },
   };
 });
+
+// Stable handlers so component effects depending on riveHandlers don't re-run
+const mockRiveHandlers = { onPlay: jest.fn(), onError: jest.fn() };
+jest.mock('../../../hooks/performance/useRivePerformance', () => ({
+  useRivePerformance: () => ({ riveHandlers: mockRiveHandlers }),
+}));
 
 // Getter pattern so individual tests can flip hasTestOverrides without re-mocking the module
 let mockHasTestOverrides = false;
@@ -77,19 +89,32 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+const renderFoxLoader = ({
+  appServicesReady = false,
+  onAnimationComplete = jest.fn(),
+}: {
+  appServicesReady?: boolean;
+  onAnimationComplete?: jest.Mock;
+} = {}) =>
+  render(
+    <FoxLoader
+      appServicesReady={appServicesReady}
+      onAnimationComplete={onAnimationComplete}
+    />,
+  );
+
 describe('FoxLoader', () => {
   beforeEach(() => {
     // Reset module-level animation flags so each test starts with a clean state
     _resetAnimationStateForTesting();
     jest.clearAllMocks();
-    mockRiveCallbacks = {};
+    mockRiveViewReady = false;
+    mockOnErrorCallback = undefined;
     mockHasTestOverrides = false;
   });
 
   it('renders the container, static fox, and Rive wrapper', () => {
-    render(
-      <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
-    );
+    renderFoxLoader();
 
     expect(
       screen.getByTestId(FoxLoaderSelectorsIDs.CONTAINER),
@@ -110,12 +135,7 @@ describe('FoxLoader', () => {
     mockHasTestOverrides = true;
     const onAnimationComplete = jest.fn();
 
-    render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
+    renderFoxLoader({ onAnimationComplete });
 
     expect(screen.queryByTestId(FoxLoaderSelectorsIDs.CONTAINER)).toBeNull();
     expect(
@@ -128,176 +148,92 @@ describe('FoxLoader', () => {
     expect(hideAsync).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onAnimationComplete when Rive reaches ExitState', () => {
+  it('fires the Start trigger once the Rive view becomes ready', () => {
     const onAnimationComplete = jest.fn();
-    render(
-      <FoxLoader appServicesReady onAnimationComplete={onAnimationComplete} />,
-    );
+    const { rerender } = renderFoxLoader({ onAnimationComplete });
 
-    // Rive starts playing
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    // Fox enters idle state — appServicesReady=true means stopAnimation fires immediately,
-    // setting exitTriggered=true
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.(
-        'Splash_animation',
-        'Blink and look around (Shorter)',
-      );
-    });
-    // Exit animation completes
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.('Splash_animation', 'ExitState');
-    });
+    // View not ready yet — nothing fired
+    expect(mockTriggerInput).not.toHaveBeenCalled();
 
-    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not call onAnimationComplete on ExitState when stop was never triggered', () => {
-    const onAnimationComplete = jest.fn();
-    // appServicesReady=false means stopAnimation never fires when fox goes idle,
-    // so exitTriggered stays false and ExitState should be ignored
-    render(
+    // View becomes ready (the nitro equivalent of the legacy onPlay signal)
+    mockRiveViewReady = true;
+    rerender(
       <FoxLoader
         appServicesReady={false}
         onAnimationComplete={onAnimationComplete}
       />,
     );
 
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.('Splash_animation', 'ExitState');
-    });
-
-    expect(onAnimationComplete).not.toHaveBeenCalled();
-  });
-
-  it('calls onAnimationComplete immediately on Rive load failure before animation starts', () => {
-    const onAnimationComplete = jest.fn();
-    render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
-
-    // onError fires before onPlay — Rive failed to load the asset
-    act(() => {
-      mockRiveCallbacks.onError?.({
-        message: 'File not found',
-        type: 'FileNotFound',
-      });
-    });
-
-    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
-  });
-
-  it('ignores Rive runtime errors after the animation has already started', () => {
-    const onAnimationComplete = jest.fn();
-    render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
-
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    // onError fires mid-playback — treated as non-fatal
-    act(() => {
-      mockRiveCallbacks.onError?.({
-        message: 'Runtime error',
-        type: 'MalformedFile',
-      });
-    });
-
-    expect(onAnimationComplete).not.toHaveBeenCalled();
+    // triggerInput takes only the trigger name; the state machine is the
+    // stateMachineName view prop
+    expect(mockTriggerInput).toHaveBeenCalledWith('Start');
+    expect(mockTriggerInput).toHaveBeenCalledTimes(1);
   });
 
   it('fires the Start trigger only once even when the component remounts', () => {
-    const onAnimationComplete = jest.fn();
-    const { unmount } = render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
+    mockRiveViewReady = true;
+    const { unmount } = renderFoxLoader();
 
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    expect(mockFireState).toHaveBeenCalledWith('Splash_animation', 'Start');
-    expect(mockFireState).toHaveBeenCalledTimes(1);
+    expect(mockTriggerInput).toHaveBeenCalledWith('Start');
+    expect(mockTriggerInput).toHaveBeenCalledTimes(1);
 
     unmount();
-    mockFireState.mockClear();
+    mockTriggerInput.mockClear();
 
     // Remount — animationStarted is still true at module level, so Start must not fire again
-    render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
+    renderFoxLoader();
 
-    expect(mockFireState).not.toHaveBeenCalledWith('Splash_animation', 'Start');
+    expect(mockTriggerInput).not.toHaveBeenCalledWith('Start');
   });
 
-  it('calls onAnimationComplete immediately on remount if animation already completed this session', () => {
+  it('fires Stop and completes after the exit animation delay when app services are ready', () => {
+    jest.useFakeTimers();
+    mockRiveViewReady = true;
     const onAnimationComplete = jest.fn();
+    renderFoxLoader({ appServicesReady: true, onAnimationComplete });
 
-    // First mount: run the animation to completion
-    const { unmount } = render(
+    // Start fires on play, Stop fires immediately because services are ready
+    expect(mockTriggerInput).toHaveBeenCalledWith('Start');
+    expect(mockTriggerInput).toHaveBeenCalledWith('Stop');
+    expect(mockTriggerInput).toHaveBeenCalledTimes(2);
+    // Completion is timed — the nitro runtime has no onStateChanged/ExitState
+    expect(onAnimationComplete).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(800);
+    });
+
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('fires the Stop trigger only once across rerenders', () => {
+    jest.useFakeTimers();
+    mockRiveViewReady = true;
+    const onAnimationComplete = jest.fn();
+    const { rerender } = renderFoxLoader({
+      appServicesReady: true,
+      onAnimationComplete,
+    });
+
+    expect(mockTriggerInput).toHaveBeenCalledWith('Stop');
+    mockTriggerInput.mockClear();
+
+    rerender(
       <FoxLoader appServicesReady onAnimationComplete={onAnimationComplete} />,
     );
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.(
-        'Splash_animation',
-        'Blink and look around (Shorter)',
-      );
-    });
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.('Splash_animation', 'ExitState');
-    });
-    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
 
-    unmount();
-    onAnimationComplete.mockClear();
-
-    // Remount — animationComplete=true at module level, so callback fires on mount immediately
-    render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
-    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    expect(mockTriggerInput).not.toHaveBeenCalledWith('Stop');
+    jest.useRealTimers();
   });
 
-  it('forces onAnimationComplete via timeout if animation never completes', () => {
+  it('forces onAnimationComplete via the global timeout if the exit never runs', () => {
     jest.useFakeTimers();
+    mockRiveViewReady = true;
     const onAnimationComplete = jest.fn();
-    render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
+    // appServicesReady=false — Stop is never fired, animation would spin forever
+    renderFoxLoader({ onAnimationComplete });
 
-    // Animation starts but state machine gets stuck — ExitState never fires
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
     expect(onAnimationComplete).not.toHaveBeenCalled();
 
     act(() => {
@@ -305,13 +241,75 @@ describe('FoxLoader', () => {
     });
 
     expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    expect(hideAsync).toHaveBeenCalled();
+    expect(Logger.log).toHaveBeenCalledWith(
+      'FoxLoader: forcing app reveal after timeout',
+    );
+    jest.useRealTimers();
+  });
+
+  it('calls onAnimationComplete immediately on Rive failure before playback starts', () => {
+    const onAnimationComplete = jest.fn();
+    // View never becomes ready — Rive failed to load the asset
+    renderFoxLoader({ onAnimationComplete });
+
+    act(() => {
+      mockOnErrorCallback?.({
+        message: 'File not found',
+        type: RiveErrorType.FileNotFound,
+      });
+    });
+
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    expect(hideAsync).toHaveBeenCalled();
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'FoxLoader: Rive failed before playback (FileNotFound)',
+    );
+  });
+
+  it('ignores Rive runtime errors after the animation has already started', () => {
+    mockRiveViewReady = true;
+    const onAnimationComplete = jest.fn();
+    renderFoxLoader({ onAnimationComplete });
+
+    // onError fires mid-playback — treated as non-fatal
+    act(() => {
+      mockOnErrorCallback?.({
+        message: 'Runtime error',
+        type: RiveErrorType.MalformedFile,
+      });
+    });
+
+    expect(onAnimationComplete).not.toHaveBeenCalled();
+  });
+
+  it('calls onAnimationComplete immediately on remount if animation already completed this session', () => {
+    jest.useFakeTimers();
+    mockRiveViewReady = true;
+    const onAnimationComplete = jest.fn();
+
+    // First mount: run the animation to completion
+    const { unmount } = renderFoxLoader({
+      appServicesReady: true,
+      onAnimationComplete,
+    });
+    act(() => {
+      jest.advanceTimersByTime(800);
+    });
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+
+    unmount();
+    onAnimationComplete.mockClear();
+
+    // Remount — animationComplete=true at module level, so callback fires on mount immediately
+    renderFoxLoader({ onAnimationComplete });
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
     jest.useRealTimers();
   });
 
   it('calls hideAsync when the static fox image finishes loading', () => {
-    render(
-      <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
-    );
+    renderFoxLoader();
 
     act(() => {
       screen.getByTestId(FoxLoaderSelectorsIDs.STATIC_FOX).props.onLoad();
@@ -322,9 +320,7 @@ describe('FoxLoader', () => {
 
   it('logs an error when hideAsync rejects during static fox onLoad', async () => {
     jest.mocked(hideAsync).mockRejectedValueOnce(new Error('hide failed'));
-    render(
-      <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
-    );
+    renderFoxLoader();
 
     await act(async () => {
       screen.getByTestId(FoxLoaderSelectorsIDs.STATIC_FOX).props.onLoad();
@@ -336,17 +332,12 @@ describe('FoxLoader', () => {
     );
   });
 
-  it('logs an error when fireState throws during animation start', () => {
-    mockFireState.mockImplementationOnce(() => {
-      throw new Error('fireState failed');
+  it('logs an error when triggerInput throws during animation start', () => {
+    mockTriggerInput.mockImplementationOnce(() => {
+      throw new Error('triggerInput failed');
     });
-    render(
-      <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
-    );
-
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
+    mockRiveViewReady = true;
+    renderFoxLoader();
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
@@ -354,25 +345,16 @@ describe('FoxLoader', () => {
     );
   });
 
-  it('logs an error when fireState throws during animation stop', () => {
-    mockFireState
+  it('logs an error when triggerInput throws during animation stop', () => {
+    mockTriggerInput
       .mockImplementationOnce(() => {
         // Start call succeeds
       })
       .mockImplementationOnce(() => {
         throw new Error('stop failed');
       });
-    render(<FoxLoader appServicesReady onAnimationComplete={jest.fn()} />);
-
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.(
-        'Splash_animation',
-        'Blink and look around (Shorter)',
-      );
-    });
+    mockRiveViewReady = true;
+    renderFoxLoader({ appServicesReady: true });
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
@@ -380,81 +362,10 @@ describe('FoxLoader', () => {
     );
   });
 
-  it('fires the Stop trigger only once when stopAnimation is called again after exitTriggered is set', () => {
-    const onAnimationComplete = jest.fn();
-    const { rerender } = render(
-      <FoxLoader
-        appServicesReady={false}
-        onAnimationComplete={onAnimationComplete}
-      />,
-    );
-
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    // Fox goes idle while services not yet ready
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.(
-        'Splash_animation',
-        'Blink and look around (Shorter)',
-      );
-    });
-    // Services become ready → exitTriggered=false → Stop fires
-    rerender(
-      <FoxLoader appServicesReady onAnimationComplete={onAnimationComplete} />,
-    );
-    expect(mockFireState).toHaveBeenCalledWith('Splash_animation', 'Stop');
-    mockFireState.mockClear();
-
-    // isIdle flips false then true again — effect re-runs but exitTriggered=true → no second Stop
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.('Splash_animation', 'SomeOtherState');
-    });
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.(
-        'Splash_animation',
-        'Blink and look around (Shorter)',
-      );
-    });
-
-    expect(mockFireState).not.toHaveBeenCalledWith('Splash_animation', 'Stop');
-  });
-
-  it('ignores onStateChanged events once animation has already completed', () => {
-    const onAnimationComplete = jest.fn();
-    render(
-      <FoxLoader appServicesReady onAnimationComplete={onAnimationComplete} />,
-    );
-
-    act(() => {
-      mockRiveCallbacks.onPlay?.();
-    });
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.(
-        'Splash_animation',
-        'Blink and look around (Shorter)',
-      );
-    });
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.('Splash_animation', 'ExitState');
-    });
-    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
-    onAnimationComplete.mockClear();
-
-    // Subsequent state changes after completion must be silently ignored
-    act(() => {
-      mockRiveCallbacks.onStateChanged?.('Splash_animation', 'ExitState');
-    });
-
-    expect(onAnimationComplete).not.toHaveBeenCalled();
-  });
-
   it('logs an error when hideAsync rejects in the timeout fallback', async () => {
     jest.useFakeTimers();
     jest.mocked(hideAsync).mockRejectedValueOnce(new Error('hide failed'));
-    render(
-      <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
-    );
+    renderFoxLoader();
 
     await act(async () => {
       jest.advanceTimersByTime(3_000);
@@ -469,14 +380,12 @@ describe('FoxLoader', () => {
 
   it('logs an error when hideAsync rejects during the onError bail-out', async () => {
     jest.mocked(hideAsync).mockRejectedValueOnce(new Error('hide failed'));
-    render(
-      <FoxLoader appServicesReady={false} onAnimationComplete={jest.fn()} />,
-    );
+    renderFoxLoader();
 
     await act(async () => {
-      mockRiveCallbacks.onError?.({
+      mockOnErrorCallback?.({
         message: 'File not found',
-        type: 'FileNotFound',
+        type: RiveErrorType.FileNotFound,
       });
     });
 

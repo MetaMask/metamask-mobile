@@ -1,49 +1,63 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
+import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyCardTiltAnimation from './MoneyCardTiltAnimation';
 import { MoneyCardTiltAnimationTestIds } from './MoneyCardTiltAnimation.testIds';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
+// The component writes tilt values through cached `instance.numberProperty()`
+// handles (not `useRiveNumber`), so the local mock provides a view-model
+// instance exposing `numberProperty` whose `.set()` records into
+// `mockSetNumber(path, value)`. The RiveView wrapper additionally captures
+// props (artboardName/onError) and counts mounts for the remount-per-variant
+// contract.
 const mockSetNumber = jest.fn();
-const mockViewTag = jest.fn((): number | null => 1);
-const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
-const mockRiveProps: { current?: { artboardName?: string } } = {};
+const mockNumberProperty = jest.fn((path: string) => ({
+  set: (value: number) => mockSetNumber(path, value),
+}));
+let mockInstanceReady = true;
+const mockRiveViewProps: {
+  current?: {
+    testID?: string;
+    artboardName?: string;
+    onError?: (error: RiveError) => void;
+  };
+} = {};
 const mockMountCount = { current: 0 };
 
-jest.mock('rive-react-native', () => {
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('@rive-app/react-native');
   const ReactActual = jest.requireActual('react');
-  const { View: RNView } = jest.requireActual('react-native');
+  const MockRiveView = (props: {
+    testID?: string;
+    artboardName?: string;
+    onError?: (error: RiveError) => void;
+  }) => {
+    ReactActual.useEffect(() => {
+      mockMountCount.current += 1;
+    }, []);
+    // Captured in a per-render effect (not during render) to keep the
+    // react-compiler happy about external writes.
+    ReactActual.useEffect(() => {
+      mockRiveViewProps.current = props;
+    });
+    return ReactActual.createElement(actual.RiveView, props);
+  };
   return {
     __esModule: true,
-    AutoBind: jest.fn(() => ({})),
-    Fit: { Contain: 'contain' },
-    default: ReactActual.forwardRef(
-      (
-        props: {
-          testID?: string;
-          artboardName?: string;
-          onError?: (error: { message: string }) => void;
-        },
-        ref: React.Ref<{
-          setNumber: (path: string, value: number) => void;
-          viewTag: () => number | null;
-        }>,
-      ) => {
-        mockOnErrorRef.current = props.onError;
-        mockRiveProps.current = { artboardName: props.artboardName };
-        ReactActual.useImperativeHandle(ref, () => ({
-          setNumber: mockSetNumber,
-          viewTag: mockViewTag,
-        }));
-        ReactActual.useEffect(() => {
-          mockMountCount.current += 1;
-        }, []);
-        return ReactActual.createElement(RNView, { testID: props.testID });
-      },
-    ),
+    ...actual,
+    useViewModelInstance: () => ({
+      instance: mockInstanceReady
+        ? { numberProperty: mockNumberProperty }
+        : null,
+      isLoading: !mockInstanceReady,
+      error: null,
+    }),
+    RiveView: MockRiveView,
   };
 });
 
@@ -63,13 +77,21 @@ jest.mock('../../hooks/useDeviceOrientation', () => ({
 const mockUseReduceMotion = useReduceMotion as jest.Mock;
 const mockUseDeviceOrientation = useDeviceOrientation as jest.Mock;
 
+const latestApplyTilt = (): ((x: number, y: number) => void) =>
+  mockUseDeviceOrientation.mock.calls[
+    mockUseDeviceOrientation.mock.calls.length - 1
+  ][0];
+
 describe('MoneyCardTiltAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnErrorRef.current = undefined;
-    mockRiveProps.current = undefined;
+    __resetRiveMocks();
+    mockRiveViewProps.current = undefined;
     mockMountCount.current = 0;
-    mockViewTag.mockReturnValue(1);
+    mockInstanceReady = true;
+    mockNumberProperty.mockImplementation((path: string) => ({
+      set: (value: number) => mockSetNumber(path, value),
+    }));
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
   });
@@ -88,13 +110,15 @@ describe('MoneyCardTiltAnimation', () => {
   it('renders the digital X-tilt artboard for a virtual card', () => {
     render(<MoneyCardTiltAnimation isMetalCard={false} />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Digital ');
+    expect(mockRiveViewProps.current?.artboardName).toBe(
+      'Card Tilt X - Digital ',
+    );
   });
 
   it('renders the metal X-tilt artboard for a metal card', () => {
     render(<MoneyCardTiltAnimation isMetalCard />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Metal');
+    expect(mockRiveViewProps.current?.artboardName).toBe('Card Tilt X - Metal');
   });
 
   it('renders the static image when the feature flag is disabled', () => {
@@ -128,7 +152,12 @@ describe('MoneyCardTiltAnimation', () => {
       <MoneyCardTiltAnimation isMetalCard={false} />,
     );
 
-    act(() => mockOnErrorRef.current?.({ message: 'boom' }));
+    act(() =>
+      mockRiveViewProps.current?.onError?.({
+        message: 'boom',
+        type: RiveErrorType.Unknown,
+      }),
+    );
 
     expect(
       getByTestId(MoneyCardTiltAnimationTestIds.STATIC_IMAGE),
@@ -185,27 +214,17 @@ describe('MoneyCardTiltAnimation', () => {
   it('drives the bound Rive number properties from mapped tilt values', () => {
     render(<MoneyCardTiltAnimation isMetalCard={false} />);
 
-    const applyTilt = mockUseDeviceOrientation.mock.calls[0][0] as (
-      x: number,
-      y: number,
-    ) => void;
-
-    act(() => applyTilt(0.5, 0.5));
+    act(() => latestApplyTilt()(0.5, 0.5));
 
     expect(mockSetNumber).toHaveBeenCalledWith('xValue', 75);
     expect(mockSetNumber).toHaveBeenCalledWith('yValue', 25);
   });
 
-  it('does not dispatch tilt values while the native Rive view is detached', () => {
-    mockViewTag.mockReturnValue(null);
+  it('does not dispatch tilt values before the view-model instance is ready', () => {
+    mockInstanceReady = false;
     render(<MoneyCardTiltAnimation isMetalCard={false} />);
 
-    const applyTilt = mockUseDeviceOrientation.mock.calls[0][0] as (
-      x: number,
-      y: number,
-    ) => void;
-
-    act(() => applyTilt(0.5, -0.5));
+    act(() => latestApplyTilt()(0.5, -0.5));
 
     expect(mockSetNumber).not.toHaveBeenCalled();
   });

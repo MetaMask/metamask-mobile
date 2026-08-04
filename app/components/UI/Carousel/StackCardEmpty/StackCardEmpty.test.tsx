@@ -4,7 +4,14 @@ import ReactTestRenderer from 'react-test-renderer';
 import { Animated } from 'react-native';
 import { ANIMATION_TIMINGS } from '../animations/animationTimings';
 import { StackCardEmpty } from './StackCardEmpty';
-import { __mockRiveFireState } from '../../../../__mocks__/rive-react-native';
+import {
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
+
+const riveMockModule =
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  require('../../../../__mocks__/rive-app-react-native') as typeof import('../../../../__mocks__/rive-app-react-native');
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -63,7 +70,8 @@ describe('StackCardEmpty', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    __mockRiveFireState.mockReset();
+    __resetRiveMocks();
+    __mockRiveTriggerInput.mockReset();
     jest.useFakeTimers();
   });
 
@@ -270,12 +278,52 @@ describe('StackCardEmpty', () => {
         jest.advanceTimersByTime(50);
       });
 
-      expect(__mockRiveFireState).toHaveBeenCalledWith('Confetti', 'Start');
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
     });
 
-    it('logs a warning when Rive confetti fireState throws', () => {
+    it('retries confetti when the Rive view becomes ready after the card is visible', () => {
+      // View not ready yet — confetti must be skipped, not fired blind.
+      const useRiveSpy = jest.spyOn(riveMockModule, 'useRive').mockReturnValue({
+        riveRef: { current: null },
+        riveViewRef: undefined,
+        setHybridRef: { f: jest.fn() },
+      } as unknown as ReturnType<typeof riveMockModule.useRive>);
+
+      const { rerender } = render(<StackCardEmpty {...defaultProps} />);
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
+
+      // View becomes ready after the card is already fully visible — the
+      // riveViewRef flip must re-run the confetti effect and fire the trigger.
+      const readyView = {
+        triggerInput: __mockRiveTriggerInput,
+      } as unknown as NonNullable<
+        ReturnType<typeof riveMockModule.useRive>['riveViewRef']
+      >;
+      useRiveSpy.mockReturnValue({
+        riveRef: { current: readyView },
+        riveViewRef: readyView,
+        setHybridRef: { f: jest.fn() },
+      } as unknown as ReturnType<typeof riveMockModule.useRive>);
+
+      rerender(<StackCardEmpty {...defaultProps} />);
+
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
+      expect(__mockRiveTriggerInput).toHaveBeenCalledTimes(1);
+
+      useRiveSpy.mockRestore();
+    });
+
+    it('logs a warning when Rive confetti triggerInput throws', () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      __mockRiveFireState.mockImplementation(() => {
+      __mockRiveTriggerInput.mockImplementation(() => {
         throw new Error('confetti failed');
       });
 

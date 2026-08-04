@@ -13855,6 +13855,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rive-app/react-native@npm:0.4.19":
+  version: 0.4.19
+  resolution: "@rive-app/react-native@npm:0.4.19"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: ">=0.35.10 <0.36"
+  checksum: 10/00ac3953c0f2c45b8230aebfa7e012d3aa958e772a1a158d05fd11078ffb8f3ccb0213a6694fb98a2667e5ce59d977cbed837b6e0b083072b4f36f9a789cd933
+  languageName: node
+  linkType: hard
+
 "@rollup/plugin-inject@npm:^5.0.5":
   version: 5.0.5
   resolution: "@rollup/plugin-inject@npm:5.0.5"
@@ -36244,6 +36255,7 @@ __metadata:
     "@react-navigation/native-stack": "npm:^6.0.0"
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
+    "@rive-app/react-native": "npm:0.4.19"
     "@segment/analytics-react-native": "patch:@segment/analytics-react-native@npm%3A2.23.0#~/.yarn/patches/@segment-analytics-react-native-npm-2.23.0-a3dc0190a1.patch"
     "@segment/sovran-react-native": "npm:^1.1.3"
     "@sentry/browser": "npm:~8.54.0"
@@ -36467,7 +36479,7 @@ __metadata:
     react-native-mmkv: "npm:^3.2.0"
     react-native-modal: "npm:^14.0.0-rc.1"
     react-native-nitro-fetch: "patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch"
-    react-native-nitro-modules: "npm:0.35.5"
+    react-native-nitro-modules: "npm:0.35.10"
     react-native-nitro-text-decoder: "npm:^0.2.0"
     react-native-nitro-websockets: "npm:^1.0.3"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
@@ -36518,7 +36530,6 @@ __metadata:
     redux-thunk: "npm:^2.4.2"
     regenerator-runtime: "npm:0.13.9"
     reselect: "npm:^5.1.1"
-    rive-react-native: "npm:^9.8.0"
     rxjs: "npm:^7.8.1"
     semver: "npm:^7.7.3"
     serve-handler: "npm:^6.1.5"
@@ -40953,13 +40964,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:0.35.5":
-  version: 0.35.5
-  resolution: "react-native-nitro-modules@npm:0.35.5"
+"react-native-nitro-modules@npm:0.35.10":
+  version: 0.35.10
+  resolution: "react-native-nitro-modules@npm:0.35.10"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/4fec58f90b9a69b33d935c5e733e162b67eb91662421a50e76a854c61140c7c1c5fc9e4fab498bf538420e1e9a43bb867aa411653b442541fdf52f0a5b14d22d
+  checksum: 10/b0600cea67c37ca10e47d3f80ad9fef5c24451a5b5e7a2f92ca81e0e51279323371f8bd42a3ce82e6bf1c5fffe53409644ee5c49fe6ccab09e41977ce8e28884
   languageName: node
   linkType: hard
 
@@ -42695,16 +42706,6 @@ __metadata:
     "@xrplf/isomorphic": "npm:^1.0.0"
     ripple-address-codec: "npm:^5.0.0"
   checksum: 10/401ade8b179b8693f9689457346a5f0b5b7d789bb88613f27917c2a1ef907edc23bb1902ba5e8158dcd303e462f160e39897047fb778227af2dc6fab8897f503
-  languageName: node
-  linkType: hard
-
-"rive-react-native@npm:^9.8.0":
-  version: 9.8.5
-  resolution: "rive-react-native@npm:9.8.5"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 10/67b47eb920405ed5e1bff4b28e819c86801bf51330feefdfea475992817fd92313837ea890528f097c510cc72ab85a6ba0490f9fa99f6bb18850ce5ba740d147
   languageName: node
   linkType: hard
 

@@ -1,6 +1,6 @@
 # Animations
 
-The two out-of-the-box animation libraries available in MetaMask mobile are [Lottie](https://github.com/lottie-react-native/lottie-react-native) and [Rive](https://github.com/rive-app/rive-react-native).
+The two out-of-the-box animation libraries available in MetaMask mobile are [Lottie](https://github.com/lottie-react-native/lottie-react-native) and [Rive](https://github.com/rive-app/rive-nitro-react-native).
 
 This guide provides a high-level overview of the animation libraries, including how to use them in the mobile app and how to troubleshoot common issues.
 
@@ -61,73 +61,37 @@ Read more about troubleshooting [here](https://airbnb.io/lottie/#/react-native?i
 
 Rive is a design and animation application for building interactive, real-time motion graphics for apps, websites, and games. It allows designers to create animated characters, UI components, and other dynamic content that can respond to user input and data. Key features include a state machine for managing complex interactions without code, open-source runtimes for broad compatibility, and a runtime-focused editor with a familiar interface similar to Figma and Illustrator.
 
+The app uses the Nitro-based runtime, [`@rive-app/react-native`](https://github.com/rive-app/rive-nitro-react-native) (the legacy `rive-react-native` package was replaced in the Rive Nitro migration).
+
 ### Usage
 
-Read more on React native documenation for Rive [here](https://rive.app/docs/runtimes/react-native/react-native). Instructions on loading Rive files both locally and remotely [here](https://rive.app/docs/runtimes/react-native/loading-rive-to-expo).
+Read more on the React Native documentation for Rive [here](https://rive.app/docs/runtimes/react-native/react-native).
 
-```javascript
-import Rive from 'rive-react-native';
-
-function App() {
-  return (
-    <Rive
-      url="https://public.rive.app/community/runtime-files/2195-4346-avatar-pack-use-case.riv"
-      artboardName="Avatar 1"
-      stateMachineName="avatar"
-      style={{ width: 400, height: 400 }}
-    />
-  );
-}
-```
-
-#### In-app example (bundled `.riv`, state machine)
-
-A real usage from the app — `app/components/UI/OnboardingAnimation/OnboardingAnimation.tsx` — loading a bundled `.riv` asset with a typed ref, `Fit`/`Alignment`, and a state machine:
+Declarative — load a bundled `.riv` with `useRiveFile` and render a `RiveView`:
 
 ```tsx
-import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
+import { RiveView, useRiveFile } from '@rive-app/react-native';
 
-const logoRef = useRef<RiveRef>(null);
-
-<Rive
-  ref={logoRef}
-  source={MetaMaskWordmarkAnimation} // a bundled .riv asset
-  fit={Fit.Contain}
-  alignment={Alignment.Center}
-  stateMachineName="WordmarkBuildUp"
-  onPlay={() => setIsPlaying(true)}
-/>;
-```
-
-Imperative:
-
-```javascript
-import React, { useEffect, useRef } from 'react';
-import Rive from 'rive-react-native';
-
-export default function AnimationWithImperativeApi() {
-  const animationRef = useRef < Rive > null;
-
-  useEffect(() => {
-    animationRef.current?.play();
-  }, []);
+function App() {
+  const { riveFile } = useRiveFile(MyAnimation); // a bundled .riv asset
 
   return (
-    <Rive
-      ref={animationRef}
-      url="https://public.rive.app/community/runtime-files/2195-4346-avatar-pack-use-case.riv"
-      artboardName="Avatar 1"
-      stateMachineName="avatar"
-      style={{ width: 400, height: 400 }}
-    />
+    riveFile && <RiveView file={riveFile} stateMachineName="avatar" autoPlay />
   );
 }
 ```
+
+Imperative inputs: pass `useRive()`'s `setHybridRef` to `<RiveView hybridRef={...}>`, wait for `riveViewRef` to become non-null (the Nitro equivalent of the legacy `onPlay` signal), then fire inputs with `riveRef.current?.triggerInput('Start')` / `setBooleanInputValue(...)`. See `app/components/UI/FoxLoader/FoxLoader.tsx`.
+
+Data binding: for `.riv` files authored with view models, bind an instance with `useViewModelInstance(riveFile, { artboardName, async: true })`, pass it to `<RiveView dataBind={instance}>`, and use the property hooks (`useRiveString`, `useRiveNumber`, `useRiveBoolean`, `useRiveTrigger`). See `app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx`.
+
+### Testing
+
+Jest maps `@rive-app/react-native` to `app/__mocks__/rive-app-react-native.tsx` (see `moduleNameMapper` in `jest.config.js`). The mock renders plain `View`s and exposes helpers (`__mockRiveTriggerInput`, `__getLastRiveViewMethods`, `__getRivePropertySetter`, `__fireRiveTrigger`, `__resetRiveMocks`) for asserting trigger/property interactions.
 
 ### Troubleshooting
 
-Explore more on React native documenation for Rive [here](https://rive.app/docs/runtimes/react-native/react-native).
+App crashes or `onError` fires when accessing an animation, state machine, or input?
 
-App crashes when accessing an animation, state machine, or input?
-
-- Ensure that the animation, state machine, or input name exists in the Rive file.
+- Ensure that the artboard, state machine, view-model property, or input name exists in the Rive file (`strings file.riv | grep <name>` is a quick sanity check).
+- Note the Nitro runtime has no `onStateChanged` or `animationName` prop — drive behavior through state machine inputs, view-model triggers, or timers.

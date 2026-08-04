@@ -4,9 +4,9 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import DiscoveryErrorScreenLayout from './DiscoveryErrorScreenLayout';
 import type { DiscoveryErrorScreenLayoutProps } from './DiscoveryErrorScreen.types';
 import {
-  __mockRiveFireState,
-  __resetAllMocks,
-} from '../../../../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../../../__mocks__/rive-app-react-native';
 import Logger from '../../../../../../util/Logger';
 import {
   LEDGER_ARTBOARD_NAME,
@@ -42,7 +42,8 @@ const RIVE_PROPS: DiscoveryErrorScreenLayoutProps = {
 
 describe('DiscoveryErrorScreenLayout', () => {
   beforeEach(() => {
-    __resetAllMocks();
+    jest.clearAllMocks();
+    __resetRiveMocks();
   });
 
   it('renders title and subtitle', () => {
@@ -130,10 +131,9 @@ describe('DiscoveryErrorScreenLayout', () => {
   });
 
   describe('rive state triggering', () => {
-    it('fires state trigger on play', () => {
+    it('fires state trigger when the Rive view is ready', () => {
       renderLayout(RIVE_PROPS);
-      expect(__mockRiveFireState).toHaveBeenCalledWith(
-        LEDGER_STATE_MACHINE_NAME,
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
         LEDGER_RIVE_STATE_TRIGGER.Error,
       );
     });
@@ -155,11 +155,11 @@ describe('DiscoveryErrorScreenLayout', () => {
       },
     ])('does not fire state when $label is missing', ({ overrideProps }) => {
       renderLayout({ ...BASE_PROPS, ...overrideProps });
-      expect(__mockRiveFireState).not.toHaveBeenCalled();
+      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
     });
 
-    it('logs error when fireState throws', () => {
-      __mockRiveFireState.mockImplementation(() => {
+    it('logs error when triggerInput throws', () => {
+      __mockRiveTriggerInput.mockImplementationOnce(() => {
         throw new Error('Rive error');
       });
 

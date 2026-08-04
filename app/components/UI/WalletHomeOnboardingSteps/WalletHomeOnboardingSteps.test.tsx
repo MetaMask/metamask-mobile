@@ -5,15 +5,13 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
 import {
-  __clearLastMockedMethods,
-  __getLastMockedMethods,
-  __mockRiveFireState,
-} from '../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../__mocks__/rive-app-react-native';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_COMPLETE_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
-  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
   WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
 } from './walletHomeOnboardingChecklistRive';
@@ -63,8 +61,7 @@ async function flushWalletHomeStepTransition() {
 describe('WalletHomeOnboardingSteps', () => {
   beforeEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: false });
-    __clearLastMockedMethods();
-    __mockRiveFireState.mockClear();
+    __resetRiveMocks();
     mockUseIsFocused.mockReturnValue(true);
     animateProgressRatioSpy.mockClear();
     animateProgressRatioSpy.mockImplementation(
@@ -409,8 +406,9 @@ describe('WalletHomeOnboardingSteps', () => {
       jest.advanceTimersByTime(60);
     });
 
-    expect(__mockRiveFireState).toHaveBeenCalledWith(
-      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+    // Nitro binds the state machine via the `stateMachineName` prop, so
+    // triggerInput only receives the trigger name.
+    expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
       WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
     );
 
@@ -612,12 +610,10 @@ describe('WalletHomeOnboardingSteps', () => {
 
   it('fires checklist Rive outro before advancing from fund step', async () => {
     const { getByTestId, store } = renderSteps();
-    const fundStepRiveMethods = __getLastMockedMethods();
 
     fireEvent.press(getByTestId(primaryTestId));
 
-    expect(fundStepRiveMethods?.fireState).toHaveBeenCalledWith(
-      WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+    expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
       WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
     );
     expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
