@@ -924,7 +924,7 @@ const ImportFromSecretRecoveryPhrase = () => {
                     accessibilityLabel:
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
                     onSubmitEditing: Keyboard.dismiss,
-                    autoComplete: 'new-password',
+                    autoComplete: 'password-new',
                     returnKeyType: 'done',
                     autoCapitalize: 'none',
                     keyboardAppearance: themeAppearance,
