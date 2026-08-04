@@ -240,6 +240,31 @@ jobs:
           echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
         shell: bash
 
+      # Fingerprint-keyed iOS app cache — parity with Android's Cirrus APK cache. This
+      # catches the cases GitHub artifact discovery misses (donor run cancelled before
+      # upload, artifact past its 7-day retention, or outside the search window): once a
+      # native build with this fingerprint has completed on this branch (or on main), the
+      # compiled .app is restored here instead of recompiling from scratch.
+      - name: Restore iOS app matching fingerprint from branch cache
+        id: ios-app-cache-restore
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && inputs.reuse-main-builds-only != true }}
+        # This action automatically updates the cache at the end of the workflow
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+
+      - name: Restore iOS app matching fingerprint from main cache
+        id: ios-app-cache-restore-main
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && (inputs.reuse-main-builds-only == true || (steps.ios-app-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
+        # This will only restore the cache, not update it
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          key: ios-app-main-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+
       - name: Compute native-build gate
         id: gate
         run: |
@@ -251,8 +276,11 @@ jobs:
                && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
               echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
               echo "Test-only PR: reusing main branch iOS artifacts from GitHub Actions (no repack)."
+            elif [[ "${{ steps.ios-app-cache-restore-main.outputs.cache-hit }}" == "true" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Test-only PR: reusing main branch iOS app from Cirrus cache (no repack)."
             else
-              echo "::warning::Test-only PR could not reuse main iOS builds yet. Falling back to fresh native build."
+              echo "::warning::Test-only PR could not reuse main iOS builds yet (GitHub artifacts or main app cache). Falling back to fresh native build."
               echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
             fi
           elif [[ "${{ inputs.runner_provider }}" == "bitrise" && "${{ vars.BITRISE_FORCE_NATIVE_BUILD }}" == "true" ]]; then
@@ -263,6 +291,10 @@ jobs:
              && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
             echo "Reuse path active (cross-run artifact download succeeded); heavy native setup will be skipped."
+          elif [[ "${{ steps.ios-app-cache-restore.outputs.cache-hit }}" == "true" \
+             || "${{ steps.ios-app-cache-restore-main.outputs.cache-hit }}" == "true" ]]; then
+            echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+            echo "iOS app cache hit (Cirrus); heavy native setup will be skipped."
           else
             if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" && "${{ steps.validate-reusable-metadata.outputs.valid }}" != "true" ]]; then
               echo "::warning::Reusable run was found but metadata validation failed; falling back to fresh native build."
@@ -283,7 +315,12 @@ jobs:
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
           REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          METADATA_VALID: ${{ steps.validate-reusable-metadata.outputs.valid }}
           APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
+          BRANCH_CACHE_HIT: ${{ steps.ios-app-cache-restore.outputs.cache-hit }}
+          MAIN_CACHE_HIT: ${{ steps.ios-app-cache-restore-main.outputs.cache-hit }}
+          BRANCH_CACHE_KEY: ios-app-${{ github.ref_name }}-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
+          MAIN_CACHE_KEY: ios-app-main-${{ inputs.build_type }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ inputs.source-fingerprint }}
           NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
           REPOSITORY: ${{ github.repository }}
         run: |
@@ -308,8 +345,23 @@ jobs:
           fi
 
           decision="Fresh native build"
-          if [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+          if [[ "${REUSABLE_FOUND:-}" == "true" && "${METADATA_VALID:-}" == "true" && "${APP_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
             decision="GitHub artifact reuse"
+          elif [[ "${BRANCH_CACHE_HIT:-}" == "true" || "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            decision="Cirrus iOS app cache"
+          elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            # Remaining gate branch that skips the native build: the test-only
+            # (`reuse-main-builds-only`) path, which reuses main's artifacts on a
+            # successful download without requiring metadata validation.
+            decision="GitHub artifact reuse (test-only PR)"
+          fi
+
+          branch_cache="$(yes_no "$BRANCH_CACHE_HIT")"
+          main_cache="$(yes_no "$MAIN_CACHE_HIT")"
+          if [[ "${BRANCH_CACHE_HIT:-}" == "true" ]]; then
+            branch_cache="yes (\`$BRANCH_CACHE_KEY\`)"
+          elif [[ "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            main_cache="yes (\`$MAIN_CACHE_KEY\`)"
           fi
 
           {
@@ -321,6 +373,8 @@ jobs:
             echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
             echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
             echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| Branch app cache hit | $branch_cache |"
+            echo "| Main app cache hit | $main_cache |"
             echo "| GitHub artifact candidate | $github_candidate |"
           } >> "$GITHUB_STEP_SUMMARY"
 
