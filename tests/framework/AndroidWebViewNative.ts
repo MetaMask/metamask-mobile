@@ -190,7 +190,17 @@ export async function scrollAndroidWebIdIntoView(
     options.scrollLabels,
   );
   if (viaUiScrollable) {
-    return viaUiScrollable;
+    // Text-label fallback may match a nearby unique anchor (not the target
+    // resource-id). Re-resolve by id now that the section should be materialized.
+    // If id is still missing, fall through to gesture scroll instead of
+    // returning the anchor (which would tap/fill the wrong control).
+    const byId = await tryFindNativeWebIdElement(
+      webId,
+      IN_PLACE_FIND_TIMEOUT_MS,
+    );
+    if (byId) {
+      return byId;
+    }
   }
 
   return scrollNativeWebIdIntoViewViaScrollGesture(webId);

@@ -294,6 +294,137 @@ describe('PredictMarketSportCard', () => {
     );
   });
 
+  it('renders explicit split Dota 2 draw markets with distinct button outcomes', () => {
+    const homeOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'dota-home-moneyline',
+      sportsMarketType: 'moneyline',
+      groupItemTitle: 'Nigma',
+      negRisk: true,
+      tokens: [{ id: 'token-nigma-yes', title: 'Yes', price: 0.44 }],
+    };
+    const drawOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'dota-draw-moneyline',
+      sportsMarketType: 'moneyline',
+      groupItemTitle: 'Draw',
+      negRisk: true,
+      tokens: [{ id: 'token-draw-yes', title: 'Yes', price: 0.22 }],
+    };
+    const awayOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'dota-away-moneyline',
+      sportsMarketType: 'moneyline',
+      groupItemTitle: '1win',
+      negRisk: true,
+      tokens: [{ id: 'token-1win-yes', title: 'Yes', price: 0.34 }],
+    };
+    const market: PredictMarketType = {
+      ...mockMarket,
+      title: 'Nigma vs 1win',
+      outcomes: [awayOutcome, drawOutcome, homeOutcome],
+      game: {
+        ...(mockMarket.game as PredictMarketGame),
+        league: 'dota2',
+        homeTeam: {
+          id: 'nigma',
+          name: 'Nigma',
+          logo: 'https://example.com/nigma.png',
+          abbreviation: 'NIGMA',
+          color: TEST_HEX_COLORS.CUSTOM_ORANGE,
+        },
+        awayTeam: {
+          id: '1win',
+          name: '1win',
+          logo: 'https://example.com/1win.png',
+          abbreviation: '1WIN',
+          color: TEST_HEX_COLORS.PURE_RED,
+        },
+      },
+    };
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <PredictMarketSportCard market={market} testID="sport-market-card" />,
+      { state: initialState },
+    );
+
+    expect(getByText('NIGMA 44¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 22¢')).toBeOnTheScreen();
+    expect(getByText('1WIN 34¢')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('sport-market-card-home-button'));
+    fireEvent.press(getByTestId('sport-market-card-draw-button'));
+    fireEvent.press(getByTestId('sport-market-card-away-button'));
+
+    expect(mockOpenBuySheet).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        outcome: homeOutcome,
+        outcomeToken: expect.objectContaining({ id: 'token-nigma-yes' }),
+      }),
+    );
+    expect(mockOpenBuySheet).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        outcome: drawOutcome,
+        outcomeToken: expect.objectContaining({ id: 'token-draw-yes' }),
+      }),
+    );
+    expect(mockOpenBuySheet).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        outcome: awayOutcome,
+        outcomeToken: expect.objectContaining({ id: 'token-1win-yes' }),
+      }),
+    );
+  });
+
+  it('renders two-way Dota 2 moneyline markets without a draw button', () => {
+    const market: PredictMarketType = {
+      ...mockMarket,
+      title: 'Nigma vs 1win',
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          id: 'dota-moneyline',
+          sportsMarketType: 'moneyline',
+          tokens: [
+            { id: 'token-nigma', title: 'Nigma', price: 0.55 },
+            { id: 'token-1win', title: '1win', price: 0.45 },
+          ],
+        },
+      ],
+      game: {
+        ...(mockMarket.game as PredictMarketGame),
+        league: 'dota2',
+        homeTeam: {
+          id: 'nigma',
+          name: 'Nigma',
+          logo: 'https://example.com/nigma.png',
+          abbreviation: 'NIGMA',
+          color: TEST_HEX_COLORS.CUSTOM_ORANGE,
+        },
+        awayTeam: {
+          id: '1win',
+          name: '1win',
+          logo: 'https://example.com/1win.png',
+          abbreviation: '1WIN',
+          color: TEST_HEX_COLORS.PURE_RED,
+        },
+      },
+    };
+
+    const { getByText, queryByTestId, queryByText } = renderWithProvider(
+      <PredictMarketSportCard market={market} testID="sport-market-card" />,
+      { state: initialState },
+    );
+
+    expect(getByText('NIGMA 55¢')).toBeOnTheScreen();
+    expect(getByText('1WIN 45¢')).toBeOnTheScreen();
+    expect(queryByText('DRAW')).not.toBeOnTheScreen();
+    expect(queryByTestId('sport-market-card-draw-button')).toBeNull();
+  });
+
   it('keeps outcome button labels on one line and shrinks to fit to prevent truncation', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSportCard market={mockMarket} />,

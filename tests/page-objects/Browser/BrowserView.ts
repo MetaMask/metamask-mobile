@@ -331,10 +331,22 @@ class Browser {
    * unmounted while the URL editor is focused.
    */
   async dismissUrlEditorIfOpen(): Promise<void> {
-    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000)) {
+    if (!(await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000))) {
+      return;
+    }
+
+    try {
       await Gestures.waitAndTap(this.cancelUrlInputButton, {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
+    } catch (error) {
+      // Submitting the URL bar calls `dismissEditing()` in-app, so Cancel can
+      // unmount between the visibility check above and the tap. The editor
+      // being closed is the desired outcome either way — only rethrow if it
+      // is still open.
+      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 3_000)) {
+        throw error;
+      }
     }
   }
 
@@ -390,6 +402,40 @@ class Browser {
     await Gestures.waitAndTap(this.closeAllTabsButton, {
       elemDescription: 'Close all tabs button',
     });
+  }
+
+  /**
+   * Opens the tabs overview (if needed) and selects the tab whose a11y label
+   * matches `{host}, Switch tab` (TabThumbnail). Pass a URL or origin such as
+   * `https://metamask.github.io`.
+   */
+  async selectTabByPartialUrl(url: string): Promise<void> {
+    await this.dismissUrlEditorIfOpen();
+
+    const tabsOverview = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
+    );
+    const alreadyOnOverview = await Utilities.isElementVisible(
+      tabsOverview,
+      2_000,
+    );
+    if (!alreadyOnOverview) {
+      await this.tapOpenAllTabsButton();
+    }
+
+    await Assertions.expectElementToBeVisible(tabsOverview, {
+      timeout: 10_000,
+      description: 'Tabs overview should be visible before selecting a tab',
+    });
+
+    const host = url.replace(/^https?:\/\//, '');
+    await Gestures.waitAndTap(
+      Matchers.getElementByLabel(`${host}, Switch tab`),
+      {
+        elemDescription: `Browser tab matching "${url}"`,
+        timeout: 10_000,
+      },
+    );
   }
 
   /**
