@@ -521,6 +521,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_ROW: 'perps-pro-market-order-row',
+  ORDER_TYPE: 'perps-pro-market-order-type',
 };
 
 // Helper for dynamic Pro position row test IDs

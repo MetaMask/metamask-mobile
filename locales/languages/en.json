@@ -1524,7 +1524,7 @@
     "pro_order_form": {
       "isolated": "Isolated",
       "choose_order_type": "Choose order type",
-      "size_usd": "Size USD",
+      "size_usd": "Size (USD)",
       "size_percentage": "Order size percentage",
       "toggle_size_unit": "Switch size denomination",
       "available_balance": "{{amount}} available",
@@ -1548,7 +1548,6 @@
       "orders_empty": "Your open orders will appear here.",
       "side_filter": {
         "all_sides": "All sides",
-        "all_types": "All types",
         "long": "Long",
         "short": "Short"
       },
@@ -1578,10 +1577,6 @@
         "reduce_only": "Reduce only",
         "tp_sl": "TP / SL",
         "trigger_condition": "Trigger condition",
-        "take_profit": "Take profit",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
         "cancel": "Cancel"
       }
     },
