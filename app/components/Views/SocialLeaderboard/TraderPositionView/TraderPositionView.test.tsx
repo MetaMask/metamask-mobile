@@ -351,6 +351,31 @@ describe('TraderPositionView', () => {
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
+  it('links the spot token box and compact header token to the token page', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    // Compact header token is a link (presence proves it is wired; the compact
+    // layer is pointerEvents 'none' until scrolled, so the press→navigate path
+    // is exercised directly in the component tests).
+    expect(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
+      ),
+    ).toBeOnTheScreen();
+
+    // The resting token box navigates to the token (Asset) page.
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW_LINK),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        symbol: 'PEPE',
+        source: 'social_leaderboard',
+      }),
+    );
+  });
+
   it('does not render the floating sticky day header at rest', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -598,6 +623,22 @@ describe('TraderPositionView', () => {
           source: 'social_leaderboard',
         },
       });
+    });
+
+    it('renders the compact header token as a tappable link wired to the Trade navigation', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      // The link renders only when perpMarketSymbol + onTokenNavigate are both
+      // wired (perp case) and the market is supported — its presence proves the
+      // header token reuses handlePerpTrade, the same handler the Trade CTA
+      // navigation is asserted with above. The compact layer is pointerEvents
+      // 'none' until scrolled, so the press→navigate path is exercised directly
+      // in TraderPositionCompactTokenStats/TraderPositionHeaderTokenLink tests.
+      expect(
+        screen.getByTestId(
+          TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK,
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('fires Follow Trading Token Screen Viewed with perps_market on mount', () => {
@@ -1264,6 +1305,7 @@ describe('TraderPositionView', () => {
       ['1713657600000', 1.56],
     ];
 
+    const originalFetch = global.fetch;
     global.fetch = jest.fn().mockImplementation((input: string) => {
       const url = new URL(input);
       const timePeriod = url.searchParams.get('timePeriod');
@@ -1286,19 +1328,23 @@ describe('TraderPositionView', () => {
       });
     }) as jest.Mock;
 
-    renderWithProvider(<TraderPositionView />, { state: mockState });
+    try {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
 
-    fireEvent.press(screen.getByText('All'));
+      fireEvent.press(screen.getByText('All'));
 
-    await waitFor(() => {
-      const lastCall =
-        mockTraderPriceChart.mock.calls[
-          mockTraderPriceChart.mock.calls.length - 1
-        ]?.[0];
+      await waitFor(() => {
+        const lastCall =
+          mockTraderPriceChart.mock.calls[
+            mockTraderPriceChart.mock.calls.length - 1
+          ]?.[0];
 
-      expect(lastCall).toMatchObject({
-        prices: weeklyPrices,
+        expect(lastCall).toMatchObject({
+          prices: weeklyPrices,
+        });
       });
-    });
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });

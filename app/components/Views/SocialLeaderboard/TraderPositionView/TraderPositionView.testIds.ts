@@ -6,6 +6,7 @@ export const TraderPositionViewSelectorsIDs = {
   HEADER_COMPACT_TRADER_LINK: 'trader-position-view-header-compact-trader-link',
   HEADER_COMPACT_TOKEN_SYMBOL:
     'trader-position-view-header-compact-token-symbol',
+  HEADER_COMPACT_TOKEN_LINK: 'trader-position-view-header-compact-token-link',
   HEADER_COMPACT_TOKEN_CHANGE:
     'trader-position-view-header-compact-token-change',
   HEADER_COMPACT_PERP_BADGES: 'trader-position-view-header-compact-perp-badges',
@@ -14,6 +15,7 @@ export const TraderPositionViewSelectorsIDs = {
   TRADE_BUTTON: 'trader-position-view-trade-button',
   COPY_TOKEN_ADDRESS_BUTTON: 'trader-position-view-copy-token-address-button',
   TOKEN_INFO_ROW: 'trader-position-view-token-info-row',
+  TOKEN_INFO_ROW_LINK: 'trader-position-view-token-info-row-link',
   PINNED_CHART_OVERLAY: 'trader-position-view-pinned-chart-overlay',
   STICKY_DAY_HEADER: 'trader-position-view-sticky-day-header',
   SKELETON: 'trader-position-skeleton',

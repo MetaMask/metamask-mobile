@@ -8,11 +8,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { Pressable } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import PerpBadges from '../../components/PerpBadges';
 import { formatPercent } from '../../utils/formatters';
 import type { PerpDirection } from '../../utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
+import TraderPositionHeaderTokenLink from './TraderPositionHeaderTokenLink';
 
 export interface TraderPositionCompactTokenStatsProps {
   symbol: string;
@@ -23,6 +26,16 @@ export interface TraderPositionCompactTokenStatsProps {
   traderAddress?: string;
   perpDirection?: PerpDirection | null;
   perpLeverage?: number | null;
+  /**
+   * Raw perp market symbol used to resolve the tradable market. Provided only
+   * for perp positions; when set together with {@link onTokenNavigate} the
+   * symbol becomes a tappable link to the Perps market page.
+   */
+  perpMarketSymbol?: string;
+  /** Navigates to the resolved perp market. Perp positions only. */
+  onTokenNavigate?: (targetSymbol: string) => void;
+  /** Opens the spot token page. Spot positions only. */
+  onTokenPress?: () => void;
   onTraderPress: () => void;
 }
 
@@ -37,9 +50,27 @@ const TraderPositionCompactTokenStats: React.FC<
   traderAddress,
   perpDirection,
   perpLeverage,
+  perpMarketSymbol,
+  onTokenNavigate,
+  onTokenPress,
   onTraderPress,
 }) => {
   const hasChange = pricePercentChange != null;
+  const isPerpTokenTappable =
+    perpMarketSymbol != null && onTokenNavigate != null;
+
+  const symbolText = (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Bold}
+      color={TextColor.TextDefault}
+      numberOfLines={1}
+      twClassName="shrink"
+      testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+    >
+      {symbol}
+    </Text>
+  );
 
   return (
     <Box
@@ -77,16 +108,32 @@ const TraderPositionCompactTokenStats: React.FC<
         twClassName="max-w-full px-1"
         testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-          twClassName="shrink"
-          testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
-        >
-          {symbol}
-        </Text>
+        {isPerpTokenTappable ? (
+          <TraderPositionHeaderTokenLink
+            symbol={perpMarketSymbol}
+            display={symbol}
+            onTrade={onTokenNavigate}
+            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+            linkTestID={
+              TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK
+            }
+          />
+        ) : onTokenPress ? (
+          <Pressable
+            onPress={onTokenPress}
+            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_LINK}
+            accessibilityRole="button"
+            accessibilityLabel={strings(
+              'social_leaderboard.trader_position.view_token',
+              { symbol },
+            )}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : undefined)}
+          >
+            {symbolText}
+          </Pressable>
+        ) : (
+          symbolText
+        )}
         {hasChange ? (
           <>
             <Text

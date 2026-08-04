@@ -88,6 +88,8 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { parseAssetIdForNavigation } from '../../../UI/TokenDetails/utils/parseAssetIdForNavigation';
 import type { Trade } from '@metamask/social-controllers';
 import {
   getTradeFocusSpanMs,
@@ -379,6 +381,25 @@ const TraderPositionView = () => {
     [navigation, trackFollowTradingCtaClicked],
   );
 
+  // Spot equivalent of handlePerpTrade: open the token's Asset (token details)
+  // page. Reuses `chartAssetId` (the CAIP-19 id already derived for the chart)
+  // and the same param shape the wallet token list uses, so tapping a spot
+  // token (info box or compact header) lands on its token page.
+  const handleSpotTokenPress = useCallback(() => {
+    if (!chartAssetId) return;
+    const { chainId, address, isNative } =
+      parseAssetIdForNavigation(chartAssetId);
+    if (!chainId) return;
+    playImpact(ImpactMoment.PrimaryCTA);
+    navigation.navigate('Asset', {
+      chainId,
+      address,
+      symbol,
+      isNative,
+      source: TokenDetailsSource.SocialLeaderboard,
+    });
+  }, [chartAssetId, symbol, navigation]);
+
   // Tapping a trade row slides the chart to center that trade. The nonce changes
   // on every tap so re-tapping the same trade re-centers it.
   const focusNonceRef = useRef(0);
@@ -637,6 +658,11 @@ const TraderPositionView = () => {
           activeTimePeriodLabel={activeTimePeriod}
           perpDirection={perpDirection}
           perpLeverage={displayPosition?.perpLeverage}
+          perpMarketSymbol={isPerp ? displayPosition?.tokenSymbol : undefined}
+          onTokenNavigate={isPerp ? handlePerpTrade : undefined}
+          onTokenPress={
+            !isPerp && chartAssetId ? handleSpotTokenPress : undefined
+          }
           onBack={handleBack}
           onTraderPress={handleTraderPress}
         />
@@ -684,6 +710,18 @@ const TraderPositionView = () => {
                       onCopyTokenAddress={handleCopyTokenAddress}
                       copyTokenAddressTestID={
                         TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+                      }
+                      perpMarketSymbol={
+                        isPerp ? displayPosition?.tokenSymbol : undefined
+                      }
+                      onTokenNavigate={isPerp ? handlePerpTrade : undefined}
+                      onTokenPress={
+                        !isPerp && chartAssetId
+                          ? handleSpotTokenPress
+                          : undefined
+                      }
+                      tokenNavigateTestID={
+                        TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW_LINK
                       }
                     />
                   </View>

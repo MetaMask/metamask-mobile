@@ -29,6 +29,10 @@ export interface TraderPositionAnimatedHeaderProps {
   activeTimePeriodLabel: string;
   perpDirection?: PerpDirection | null;
   perpLeverage?: number | null;
+  perpMarketSymbol?: string;
+  onTokenNavigate?: (targetSymbol: string) => void;
+  /** Opens the spot token page from the compact header. Spot positions only. */
+  onTokenPress?: () => void;
   onBack: () => void;
   onTraderPress: () => void;
 }
@@ -64,6 +68,9 @@ const TraderPositionAnimatedHeader: React.FC<
   activeTimePeriodLabel,
   perpDirection,
   perpLeverage,
+  perpMarketSymbol,
+  onTokenNavigate,
+  onTokenPress,
   onBack,
   onTraderPress,
 }) => {
@@ -140,6 +147,9 @@ const TraderPositionAnimatedHeader: React.FC<
             activeTimePeriodLabel={activeTimePeriodLabel}
             perpDirection={perpDirection}
             perpLeverage={perpLeverage}
+            perpMarketSymbol={perpMarketSymbol}
+            onTokenNavigate={onTokenNavigate}
+            onTokenPress={onTokenPress}
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
