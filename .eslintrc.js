@@ -298,6 +298,14 @@ module.exports = {
         'no-restricted-syntax': [
           'error',
           {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
             selector: "Identifier[name='UnifiedGestures']",
             message: 'Use Gestures instead of UnifiedGestures.',
           },
