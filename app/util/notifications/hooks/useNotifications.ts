@@ -109,8 +109,9 @@ export function useEnableNotifications(
     nudgeEnablePush: true,
   },
 ) {
+  const { nudgeEnablePush = true, throwOnError = false } = props;
   const { togglePushNotification, loading: pushLoading } =
-    usePushNotificationsToggle(props);
+    usePushNotificationsToggle({ nudgeEnablePush });
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -129,11 +130,11 @@ export function useEnableNotifications(
       await enableNotificationsHelper({
         hasMarketingConsent,
         productAnnouncementEnabled,
-        registerPushNotifications: Boolean(props.nudgeEnablePush),
+        registerPushNotifications: nudgeEnablePush,
       });
     } catch (enableError) {
       setError(enableError);
-      if (props.throwOnError) {
+      if (throwOnError) {
         throw enableError;
       }
     }
@@ -142,8 +143,8 @@ export function useEnableNotifications(
     });
     await updateNotificationSubscriptionExpiration();
   }, [
-    props.nudgeEnablePush,
-    props.throwOnError,
+    nudgeEnablePush,
+    throwOnError,
     hasMarketingConsent,
     productAnnouncementEnabled,
     togglePushNotification,
