@@ -18,10 +18,13 @@ interface PerpsProCompactInputProps {
   onChangeText: (value: string) => void;
   testID: string;
   variant?: 'stacked' | 'inline';
+  startAccessory?: React.ReactNode;
   endAccessory?: React.ReactNode;
   footer?: React.ReactNode;
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 const PerpsProCompactInput = ({
@@ -30,10 +33,13 @@ const PerpsProCompactInput = ({
   onChangeText,
   testID,
   variant = 'stacked',
+  startAccessory,
   endAccessory,
   footer,
   placeholder = '0',
   placeholderColor = 'muted',
+  onFocus,
+  onBlur,
 }: PerpsProCompactInputProps) => {
   const tw = useTailwind();
   const inputRef = useRef<TextInput>(null);
@@ -49,6 +55,8 @@ const PerpsProCompactInput = ({
       keyboardType="decimal-pad"
       returnKeyType="done"
       onSubmitEditing={Keyboard.dismiss}
+      onFocus={onFocus}
+      onBlur={onBlur}
       inputAccessoryViewID={inputAccessoryViewID}
       placeholder={placeholder}
       placeholderTextColor={tw.color(`text-${placeholderColor}`)}
@@ -66,6 +74,7 @@ const PerpsProCompactInput = ({
         twClassName="h-12 flex-row items-center border-t border-muted px-3"
         testID={`${testID}-container`}
       >
+        {startAccessory}
         {input}
         {endAccessory}
       </Box>
@@ -84,7 +93,10 @@ const PerpsProCompactInput = ({
         </Pressable>
         {endAccessory}
       </Box>
-      {input}
+      <Box twClassName="flex-row items-center">
+        {startAccessory}
+        {input}
+      </Box>
       {footer ? (
         <Box twClassName="mt-3" testID={`${testID}-footer`}>
           {footer}

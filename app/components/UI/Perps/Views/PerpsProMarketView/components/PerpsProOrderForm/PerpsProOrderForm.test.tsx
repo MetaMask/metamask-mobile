@@ -29,8 +29,15 @@ const createProps = (
   onLimitPriceChange: jest.fn(),
   size: '',
   onSizeChange: jest.fn(),
+  sizeUnit: 'usd',
+  sizeUnitLabel: 'USD',
+  showUsdPrefix: true,
+  canToggleSizeUnit: true,
+  onSizeUnitPress: jest.fn(),
   balancePercentage: 0,
   onBalancePercentageChange: jest.fn(),
+  onBalancePercentageDragEnd: jest.fn(),
+  onBalancePercentageDragCancel: jest.fn(),
   availableBalance: '-- available',
   reduceOnly: false,
   onReduceOnlyChange: jest.fn(),
@@ -72,10 +79,36 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
     });
 
+    it('renders the dollar prefix for limit prices', () => {
+      renderForm({ orderType: 'limit' });
+
+      expect(screen.getByTestId(ids.LIMIT_PRICE_PREFIX)).toHaveTextContent('$');
+    });
+
     it('omits limit price input for market orders', () => {
       renderForm({ orderType: 'market' });
 
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+    });
+
+    it('renders the size label with the active unit', () => {
+      renderForm({ sizeUnitLabel: 'USD' });
+
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (USD)',
+      );
+    });
+
+    it('renders the dollar prefix for USD size', () => {
+      renderForm({ showUsdPrefix: true });
+
+      expect(screen.getByTestId(ids.SIZE_PREFIX)).toHaveTextContent('$');
+    });
+
+    it('omits the dollar prefix for coin size', () => {
+      renderForm({ showUsdPrefix: false, sizeUnitLabel: 'BTC' });
+
+      expect(screen.queryByTestId(ids.SIZE_PREFIX)).not.toBeOnTheScreen();
     });
 
     it('shows available balance with add funds action below the size input', () => {
@@ -142,7 +175,7 @@ describe('PerpsProOrderForm', () => {
 
       expect(screen.getByTestId(`${ids.ORDER_TYPE_BUTTON}-chevron`)).toHaveProp(
         'name',
-        IconName.ArrowRight,
+        IconName.ArrowDown,
       );
     });
 
@@ -159,8 +192,33 @@ describe('PerpsProOrderForm', () => {
       );
       expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
         'accessibilityLabel',
-        'Order size percentage',
+        'Order size percentage (USD)',
       );
+    });
+
+    it('passes drag completion to the size slider', () => {
+      const onBalancePercentageDragEnd = jest.fn();
+      renderForm({ onBalancePercentageDragEnd });
+
+      expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
+        'onDragEnd',
+        onBalancePercentageDragEnd,
+      );
+    });
+
+    it('enables the size unit toggle when conversion is available', () => {
+      renderForm({
+        canToggleSizeUnit: true,
+        onSizeUnitPress: jest.fn(),
+      });
+
+      expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeEnabled();
+    });
+
+    it('disables the size unit toggle when conversion is unavailable', () => {
+      renderForm({ canToggleSizeUnit: false });
+
+      expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
     });
 
     it('calls onDirectionChange when Short is pressed', () => {
@@ -261,7 +319,7 @@ describe('PerpsProOrderForm', () => {
       ['slippage', ids.SUMMARY_SLIPPAGE_BUTTON],
       ['fees', ids.SUMMARY_FEES_BUTTON],
     ])('disables deferred %s action without a callback', (_name, testID) => {
-      renderForm({ orderType: 'limit' });
+      renderForm({ orderType: 'limit', onSizeUnitPress: undefined });
 
       expect(screen.getByTestId(testID)).toBeDisabled();
     });
@@ -354,6 +412,17 @@ describe('PerpsProOrderForm', () => {
       renderForm();
 
       expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
+    });
+
+    it('left-aligns margin mode and leverage with 16-point spacing', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).toHaveStyle({
+        gap: 16,
+      });
+      expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).not.toHaveStyle({
+        justifyContent: 'space-between',
+      });
     });
 
     it('uses 4-point spacing between summary rows', () => {

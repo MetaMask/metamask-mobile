@@ -14,6 +14,8 @@ import {
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 
+const host = (name: string) => name as unknown as React.ComponentType<unknown>;
+
 // Provider is a passthrough; the orchestration hook is mocked below so the
 // container test focuses purely on prop/sheet wiring.
 jest.mock('../../../contexts/PerpsOrderContext', () => ({
@@ -31,9 +33,20 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onLimitPriceChange: jest.fn(),
   onUseMidPricePress: jest.fn(),
   size: '100',
+  sizeInputValue: '100',
+  sizeDisplay: '100',
+  sizeUnit: 'usd' as const,
+  sizeUnitLabel: 'USD',
+  showUsdPrefix: true,
+  canToggleSizeUnit: true,
+  onSizeFocus: jest.fn(),
+  onSizeBlur: jest.fn(),
+  onSizeUnitPress: jest.fn(),
   onSizeChange: jest.fn(),
   balancePercentage: 20,
   onBalancePercentageChange: jest.fn(),
+  onBalancePercentageDragEnd: jest.fn(),
+  onBalancePercentageDragCancel: jest.fn(),
   availableBalance: '$500 available',
   onAddFundsPress: jest.fn(),
   reduceOnly: false,
@@ -239,6 +252,29 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the size unit returned by the hook', () => {
+    mockHookResult.sizeUnitLabel = 'BTC';
+    mockHookResult.showUsdPrefix = false;
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_UNIT_LABEL),
+    ).toHaveTextContent('Size (BTC)');
+    expect(
+      screen.queryByTestId(PerpsProOrderFormSelectorsIDs.SIZE_PREFIX),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('wires size slider drag completion to the hook', () => {
+    renderPanel();
+    const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
+
+    slider.props.onDragEnd(20);
+
+    expect(mockHookResult.onBalancePercentageDragEnd).toHaveBeenCalledTimes(1);
   });
 
   it('wires the TP/SL row to the hook', () => {

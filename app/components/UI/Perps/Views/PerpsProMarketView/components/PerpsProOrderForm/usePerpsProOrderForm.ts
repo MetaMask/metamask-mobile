@@ -61,12 +61,17 @@ import { deriveOrderSizing } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
 import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
 import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
+import { normalizeNumericTextInput } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
 } from './PerpsProOrderForm.types';
+import {
+  usePerpsProSizeInput,
+  type PerpsProSizeUnit,
+} from './usePerpsProSizeInput';
 
 export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
@@ -84,9 +89,22 @@ export interface UsePerpsProOrderFormResult {
   onLimitPriceChange: (value: string) => void;
   onUseMidPricePress: () => void;
   size: string;
+  sizeDisplay: string;
+  sizeInputValue: string;
+  sizeUnit: PerpsProSizeUnit;
+  sizeUnitLabel: string;
   onSizeChange: (value: string) => void;
+  onSizeFocus: () => void;
+  onSizeBlur: () => void;
+  onSizeUnitPress: () => void;
+  canToggleSizeUnit: boolean;
+  showUsdPrefix: boolean;
+  isSizeFocused: boolean;
   balancePercentage: number;
   onBalancePercentageChange: (value: number) => void;
+  onBalancePercentageDragEnd: () => void;
+  onBalancePercentageDragCancel: () => void;
+  effectiveUsdAmount: string;
   availableBalance: string;
   onAddFundsPress: () => void;
   reduceOnly: boolean;
@@ -170,7 +188,6 @@ export const usePerpsProOrderForm = ({
     setStopLossPrice,
     setLimitPrice,
     setOrderType,
-    handlePercentageAmount,
     maxPossibleAmount,
     balanceForValidation: spendableBalance,
   } = usePerpsOrderContext();
@@ -227,9 +244,28 @@ export const usePerpsProOrderForm = ({
     };
   }, [currentPrice]);
 
+  const effectiveInputPrice = useMemo(() => {
+    const parsedLimitPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? Number.parseFloat(orderForm.limitPrice)
+        : Number.NaN;
+    return parsedLimitPrice > 0 ? parsedLimitPrice : assetData.price;
+  }, [assetData.price, orderForm.limitPrice, orderForm.type]);
+
+  const sizeInput = usePerpsProSizeInput({
+    usdAmount: orderForm.amount,
+    setAmount,
+    assetSymbol: symbol,
+    effectivePrice: effectiveInputPrice,
+    szDecimals,
+    maxPossibleAmount,
+    maxDigits: MAX_PERPS_INPUT_DIGITS,
+  });
+  const { effectiveUsdAmount } = sizeInput;
+
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
-    amount: orderForm.amount,
+    amount: effectiveUsdAmount,
     symbol: orderForm.asset,
     isClosing: reduceOnly,
     limitPrice: orderForm.limitPrice,
@@ -245,11 +281,11 @@ export const usePerpsProOrderForm = ({
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
 
   const isMarketOrder = orderForm.type === 'market';
-  const hasValidAmount = Number.parseFloat(orderForm.amount) > 0;
+  const hasValidAmount = Number.parseFloat(effectiveUsdAmount) > 0;
 
   const orderUsdAmount = useMemo(
-    () => Number.parseFloat(orderForm.amount) || 0,
-    [orderForm.amount],
+    () => Number.parseFloat(effectiveUsdAmount) || 0,
+    [effectiveUsdAmount],
   );
   const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
@@ -277,7 +313,7 @@ export const usePerpsProOrderForm = ({
   const { effectivePrice, positionSize, marginRequired } = useMemo(
     () =>
       deriveOrderSizing({
-        amount: orderForm.amount,
+        amount: effectiveUsdAmount,
         orderType: orderForm.type,
         limitPrice: orderForm.limitPrice,
         marketPrice: assetData.price,
@@ -287,7 +323,7 @@ export const usePerpsProOrderForm = ({
         isLoadingMarketData,
       }),
     [
-      orderForm.amount,
+      effectiveUsdAmount,
       orderForm.type,
       orderForm.limitPrice,
       orderForm.leverage,
@@ -311,9 +347,13 @@ export const usePerpsProOrderForm = ({
 
   const existingPositionLeverageForValidation =
     currentMarketPosition?.leverage?.value;
+  const effectiveOrderForm = useMemo(
+    () => ({ ...orderForm, amount: effectiveUsdAmount }),
+    [effectiveUsdAmount, orderForm],
+  );
 
   const orderValidation = usePerpsOrderValidation({
-    orderForm,
+    orderForm: effectiveOrderForm,
     positionSize,
     assetPrice: assetData.price,
     spendableBalance,
@@ -323,7 +363,7 @@ export const usePerpsProOrderForm = ({
     marginRequired: reduceOnly ? '0' : marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: false,
-    originalUsdAmount: orderForm.amount,
+    originalUsdAmount: effectiveUsdAmount,
   });
 
   const filteredErrors = useMemo(() => {
@@ -464,7 +504,7 @@ export const usePerpsProOrderForm = ({
         orderType: orderForm.type,
         effectivePrice,
         leverage: orderForm.leverage,
-        usdAmount: orderForm.amount,
+        usdAmount: effectiveUsdAmount,
         maxSlippageBps,
         limitPrice: orderForm.limitPrice,
         takeProfitPrice: orderForm.takeProfitPrice,
@@ -545,7 +585,7 @@ export const usePerpsProOrderForm = ({
     orderForm.limitPrice,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
-    orderForm.amount,
+    effectiveUsdAmount,
     exceedsMaxSlippage,
     estimatedSlippageBps,
     maxSlippageBps,
@@ -588,7 +628,7 @@ export const usePerpsProOrderForm = ({
       limitPrice: orderForm.limitPrice,
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
-      amount: orderForm.amount,
+      amount: effectiveUsdAmount,
       szDecimals,
       onConfirm: async (
         _position?: Position,
@@ -608,7 +648,7 @@ export const usePerpsProOrderForm = ({
     orderForm.leverage,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
-    orderForm.amount,
+    effectiveUsdAmount,
     assetData.price,
     showToast,
     navigation,
@@ -621,7 +661,7 @@ export const usePerpsProOrderForm = ({
     (leverage: number, inputMethod?: 'slider' | 'preset') => {
       setLeverage(leverage);
 
-      const currentAmount = Number.parseFloat(orderForm.amount || '0');
+      const currentAmount = Number.parseFloat(effectiveUsdAmount || '0');
       const newMaxAmount = spendableBalance * leverage;
       if (currentAmount > newMaxAmount) {
         setAmount(Math.floor(newMaxAmount).toString());
@@ -655,7 +695,7 @@ export const usePerpsProOrderForm = ({
     [
       setLeverage,
       setAmount,
-      orderForm.amount,
+      effectiveUsdAmount,
       orderForm.asset,
       orderForm.direction,
       orderForm.leverage,
@@ -701,17 +741,6 @@ export const usePerpsProOrderForm = ({
     [setOrderType],
   );
 
-  const onSizeChange = useCallback(
-    (value: string) => {
-      const digitCount = (value.match(/\d/g) || []).length;
-      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
-        return;
-      }
-      setAmount(value || '0');
-    },
-    [setAmount],
-  );
-
   const onUseMidPricePress = useCallback(() => {
     if (assetData.price > 0) {
       setLimitPrice(
@@ -722,24 +751,6 @@ export const usePerpsProOrderForm = ({
       );
     }
   }, [assetData.price, setLimitPrice]);
-
-  const onBalancePercentageChange = useCallback(
-    (pct: number) => {
-      handlePercentageAmount(pct / 100);
-    },
-    [handlePercentageAmount],
-  );
-
-  const balancePercentage =
-    maxPossibleAmount > 0
-      ? Math.min(
-          100,
-          Math.round(
-            (Number.parseFloat(orderForm.amount || '0') / maxPossibleAmount) *
-              100,
-          ),
-        )
-      : 0;
 
   const availableBalance = useMemo(() => {
     if (!isInitialized) {
@@ -882,13 +893,17 @@ export const usePerpsProOrderForm = ({
 
   const onLimitPriceChange = useCallback(
     (value: string) => {
-      const digitCount = (value.match(/\d/g) || []).length;
-      if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+      const result = normalizeNumericTextInput(
+        value,
+        orderForm.limitPrice ?? '',
+        { maxDigits: MAX_PERPS_INPUT_DIGITS },
+      );
+      if (!result.ok) {
         return;
       }
-      setLimitPrice(value);
+      setLimitPrice(result.value);
     },
-    [setLimitPrice],
+    [orderForm.limitPrice, setLimitPrice],
   );
 
   const onPlaceOrderPress = useCallback(() => {
@@ -905,10 +920,8 @@ export const usePerpsProOrderForm = ({
     limitPrice: orderForm.limitPrice ?? '',
     onLimitPriceChange,
     onUseMidPricePress,
-    size: orderForm.amount,
-    onSizeChange,
-    balancePercentage,
-    onBalancePercentageChange,
+    size: sizeInput.sizeInputValue,
+    ...sizeInput,
     availableBalance,
     onAddFundsPress: handleAddFunds,
     reduceOnly,
