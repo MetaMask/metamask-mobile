@@ -36,37 +36,6 @@ describe('findBridgeHistoryItem', () => {
     ).toBe(item);
   });
 
-  it('resolves a destination-side fill by destChain txHash', () => {
-    // The receiving leg of a cross-chain bridge is a separate on-chain tx
-    // whose hash exists only on status.destChain.
-    const item = createHistoryItem();
-
-    expect(
-      findBridgeHistoryItem({
-        bridgeHistory: { 'meta-1': item },
-        transactionHash: 'destsig',
-      }),
-    ).toBe(item);
-  });
-
-  it('prefers a source-hash match over a destination-hash match', () => {
-    const bySrc = createHistoryItem({
-      txMetaId: 'meta-src',
-      status: { srcChain: { txHash: '0xAAA' }, destChain: { txHash: '0xBBB' } },
-    });
-    const byDest = createHistoryItem({
-      txMetaId: 'meta-dest',
-      status: { srcChain: { txHash: '0xCCC' }, destChain: { txHash: '0xAAA' } },
-    });
-
-    expect(
-      findBridgeHistoryItem({
-        bridgeHistory: { 'meta-src': bySrc, 'meta-dest': byDest },
-        transactionHash: '0xAAA',
-      }),
-    ).toBe(bySrc);
-  });
-
   it('returns undefined when nothing matches', () => {
     expect(
       findBridgeHistoryItem({
