@@ -29,33 +29,6 @@ on:
           - current
           - namespace
         default: current
-  workflow_call:
-    inputs:
-      source_branch:
-        description: 'Branch, tag, or SHA to build'
-        required: true
-        type: string
-      runner_provider:
-        description: Runner provider forwarded from the caller
-        required: false
-        type: string
-        default: current
-    outputs:
-      built_commit_sha:
-        description: 'Resolved commit SHA after build succeeded'
-        value: ${{ jobs.build.outputs.built_commit_sha }}
-      semantic_version:
-        description: 'package.json version at the built commit'
-        value: ${{ jobs.build.outputs.semantic_version }}
-      android_version_code:
-        description: 'android/app/build.gradle versionCode at the built commit'
-        value: ${{ jobs.build.outputs.android_version_code }}
-      apk_artifact_name:
-        description: 'GitHub Actions artifact name for the branch-named APK'
-        value: ${{ jobs.publish-apk.outputs.apk_artifact_name }}
-      apk_file_name:
-        description: 'APK filename inside the branch-named artifact'
-        value: ${{ jobs.publish-apk.outputs.apk_file_name }}
 
 permissions:
   contents: read
