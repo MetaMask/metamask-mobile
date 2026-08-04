@@ -23,7 +23,6 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
 import {
-  dismissInterestQuestionnaireIfPresent,
   measureCreatePasswordToOnboardingSuccess,
   measurePredictGtmModalIfShown,
 } from './helpers/seedlessOnboardingTimers';
@@ -137,7 +136,6 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-        await dismissInterestQuestionnaireIfPresent();
         await measureCreatePasswordToOnboardingSuccess(timer4);
 
         await OnboardingSuccessView.tapDone();

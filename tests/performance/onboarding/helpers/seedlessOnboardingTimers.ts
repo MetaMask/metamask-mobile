@@ -18,12 +18,27 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
     });
   });
 
+const expectSuccessDoneVisible = async (): Promise<void> => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(OnboardingSuccessView.doneButton),
+    {
+      description: 'Onboarding success done button should be visible',
+    },
+  );
+};
+
 /**
- * Untimed: after Create Password, skip the interest questionnaire if it appears.
- * Returns immediately when Onboarding Success Done is already visible (no 3s burn).
+ * After Create Password tap: measure Create Password → Onboarding Success Done.
+ * Success-first (no survey): timer records the full create → success latency.
+ * Questionnaire-first: skip is untimed after the race; timer is re-measured for
+ * post-skip → success only (survey time is not kept in the recorded duration).
  */
-export async function dismissInterestQuestionnaireIfPresent(): Promise<void> {
-  try {
+export async function measureCreatePasswordToOnboardingSuccess(
+  timer: TimerHelper,
+): Promise<void> {
+  let questionnaireFirst = false;
+
+  await timer.measure(async () => {
     const next = await waitForFirstSuccessful([
       PlaywrightAssertions.expectElementToBeVisible(
         asPlaywrightElement(OnboardingInterestQuestionnaireView.skipButton),
@@ -31,38 +46,21 @@ export async function dismissInterestQuestionnaireIfPresent(): Promise<void> {
           description: 'Interest questionnaire Skip should be visible',
         },
       ).then(() => 'questionnaire' as const),
-      PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(OnboardingSuccessView.doneButton),
-        {
-          description: 'Onboarding success done button should be visible',
-        },
-      ).then(() => 'success' as const),
+      expectSuccessDoneVisible().then(() => 'success' as const),
     ]);
 
     if (next === 'questionnaire') {
-      await OnboardingInterestQuestionnaireView.tapSkipButton();
+      questionnaireFirst = true;
     }
-  } catch {
-    // Neither screen within assertion timeouts — timer4 will surface the failure.
-  }
-}
-
-/**
- * Measures Create Password → Onboarding Success Done only.
- * Call {@link dismissInterestQuestionnaireIfPresent} first (untimed) so the
- * optional survey is not included in this timer.
- */
-export async function measureCreatePasswordToOnboardingSuccess(
-  timer: TimerHelper,
-): Promise<void> {
-  await timer.measure(async () => {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(OnboardingSuccessView.doneButton),
-      {
-        description: 'Onboarding success done button should be visible',
-      },
-    );
   });
+
+  if (questionnaireFirst) {
+    await OnboardingInterestQuestionnaireView.tapSkipButton();
+    // Overwrites the race-to-questionnaire duration with post-skip → success only.
+    await timer.measure(async () => {
+      await expectSuccessDoneVisible();
+    });
+  }
 }
 
 /**
