@@ -59,11 +59,16 @@ in the **last 7 days**, then send a Slack DM to **Javier Vera**
 4. Merge your AI insights into the Slack message:
    - Start from `/tmp/weekly-app-profiling/slack.md`
    - Replace the placeholder AI insights section with your final analysis
-   - Keep the metrics table and data-driven leads
+   - Keep the per-scenario metric cards and data-driven leads
+   - **Do NOT convert metrics into a markdown/ASCII table**
+   - **Do NOT wrap the message (or any section) in a ``` code fence**
+   - Slack wraps wide tables badly; keep the compact card format from `slack.md`
+   - Prefer Slack mrkdwn (`*bold*`, links like `<url|label>`) over GitHub-flavored tables
 
 5. Send the final message as a Slack DM to user id `UEYQL2PEV` using the Slack
    `slack_send_message` tool. Do not post to a public channel unless explicitly
-   asked.
+   asked. If the message is long, split into 2 messages (metrics first, then
+   leads + AI insights) instead of forcing a table.
 
 6. In your final agent reply, include:
    - the Slack message link
