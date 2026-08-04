@@ -67,15 +67,34 @@ find_latest_run_with_artifact() {
   local artifact_name="$1"
   local branch="$2"
   local run_id
+  local matches
+  local api_stderr
+  api_stderr="$(mktemp)"
 
   # `--paginate --jq` runs the filter once per page, so a naive sort_by/first would only
   # reduce within a page rather than across all of them. Emit one "created_at|run_id"
-  # line per matching artifact across every page instead, then reduce afterwards -
-  # ISO 8601 timestamps sort correctly as plain strings.
-  run_id="$(gh api "repos/${GITHUB_REPO}/actions/artifacts?name=${artifact_name}&per_page=100" \
+  # line per matching artifact across every page instead, then reduce afterwards.
+  if ! matches="$(gh api "repos/${GITHUB_REPO}/actions/artifacts?name=${artifact_name}&per_page=100" \
     --paginate \
     --jq ".artifacts[] | select(.expired == false and .workflow_run.head_branch == \"${branch}\") | \"\(.created_at)|\(.workflow_run.id)\"" \
-    2>/dev/null | sort -r | head -1 | cut -d'|' -f2 || true)"
+    2>"$api_stderr")"; then
+    # Distinguish a failed API call (auth, rate limit, network) from "no such artifact",
+    # which would otherwise send the reader chasing the wrong problem entirely.
+    echo -e "${RED}❌ Failed to query GitHub Actions artifacts for \"${artifact_name}\"${NC}" >&2
+    cat "$api_stderr" >&2
+    rm -f "$api_stderr"
+    return 1
+  fi
+  rm -f "$api_stderr"
+
+  # ISO 8601 timestamps are fixed-width, so a plain reverse string sort puts the newest
+  # artifact first. LC_ALL=C keeps that true regardless of the caller's locale.
+  #
+  # `awk NR==1` rather than `head -1`: head exits after the first line, which can leave
+  # sort writing into a closed pipe (exit 141) and, under the callers' `set -o pipefail`,
+  # abort the whole script once the artifact list outgrows the pipe buffer. awk drains
+  # the stream instead.
+  run_id="$(printf '%s\n' "$matches" | LC_ALL=C sort -r | awk -F'|' 'NR == 1 { print $2 }')"
 
   if [[ -n "$run_id" && "$run_id" != "null" ]]; then
     echo "$run_id"
@@ -83,6 +102,8 @@ find_latest_run_with_artifact() {
   fi
 
   echo -e "${RED}❌ No live artifact named \"${artifact_name}\" found on branch \"${branch}\"${NC}" >&2
+  echo -e "${YELLOW}The Expo Dev Build workflow only builds when native code changes; its artifacts may have expired.${NC}" >&2
+  echo -e "${YELLOW}Re-run it (Actions > Expo Dev Build > Run workflow, with 'force_build' checked) or pass --run <id>.${NC}" >&2
   echo -e "${YELLOW}Browse recent runs: https://github.com/${GITHUB_REPO}/actions/workflows/${EXPO_DEV_WORKFLOW_FILE}${NC}" >&2
   return 1
 }
@@ -103,7 +124,7 @@ resolve_expo_dev_run() {
     resolved_run_id="$run_id_override"
     echo -e "${GREEN}✓ Using explicit run id: ${resolved_run_id}${NC}" >&2
   else
-    echo -e "${BLUE}Looking up latest successful run on '${branch}' for ${EXPO_DEV_WORKFLOW_FILE}...${NC}" >&2
+    echo -e "${BLUE}Looking up latest '${artifact_name}' artifact on '${branch}'...${NC}" >&2
     resolved_run_id="$(find_latest_run_with_artifact "$artifact_name" "$branch")" || return 1
     echo -e "${GREEN}✓ Latest run with artifact: ${resolved_run_id}${NC}" >&2
   fi

@@ -62,7 +62,7 @@ jobs:
   resolve-dev-build:
     name: Resolve dev build gate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     outputs:
       needs-build: ${{ steps.gate.outputs.needs-build }}
       gate-key: ${{ steps.gate-key.outputs.gate-key }}
@@ -204,11 +204,14 @@ jobs:
           REUSABLE_RUN_ID: ${{ steps.gate.outputs.reusable-run-id }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          decision="Fresh build"
+          # NEEDS_BUILD is empty when an earlier step failed (this step runs on always()),
+          # which must not be reported as a reuse decision.
+          case "$NEEDS_BUILD" in
+            true) decision="Fresh build" ;;
+            false) decision="Reused (fingerprint unchanged)" ;;
+            *) decision="Undetermined (gate did not complete)" ;;
+          esac
           reused_run="n/a"
-          if [[ "$NEEDS_BUILD" != "true" ]]; then
-            decision="Reused (fingerprint unchanged)"
-          fi
           if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
             reused_run="[https://github.com/${REPOSITORY}/actions/runs/${REUSABLE_RUN_ID}](https://github.com/${REPOSITORY}/actions/runs/${REUSABLE_RUN_ID})"
           fi
