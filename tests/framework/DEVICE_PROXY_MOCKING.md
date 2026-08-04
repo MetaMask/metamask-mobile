@@ -128,7 +128,7 @@ The command handler writes both the explicit global proxy fields and the legacy 
 ```bash
 adb -s "$DEVICE_UDID" shell settings put global global_http_proxy_host "10.0.2.2"
 adb -s "$DEVICE_UDID" shell settings put global global_http_proxy_port "$MOCK_SERVER_PORT"
-adb -s "$DEVICE_UDID" shell settings put global global_http_proxy_exclusion_list "localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local"
+adb -s "$DEVICE_UDID" shell settings put global global_http_proxy_exclusion_list "localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local,mm-sdk-relay.api.cx.metamask.io,mm-sdk-analytics.api.cx.metamask.io"
 adb -s "$DEVICE_UDID" shell settings delete global global_proxy_pac_url
 adb -s "$DEVICE_UDID" shell settings put global http_proxy "10.0.2.2:$MOCK_SERVER_PORT"
 ```
@@ -244,7 +244,7 @@ adb -s "$DEVICE_UDID" shell settings get global global_http_proxy_exclusion_list
 Expected value:
 
 ```text
-localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local
+localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local,mm-sdk-relay.api.cx.metamask.io,mm-sdk-analytics.api.cx.metamask.io
 ```
 
 Also check that proxy cleanup ran after the previous test:

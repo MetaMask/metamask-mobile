@@ -278,7 +278,7 @@ describe('DeviceCommandHandler', () => {
         'put',
         'global',
         'global_http_proxy_exclusion_list',
-        'localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local',
+        'localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local,mm-sdk-relay.api.cx.metamask.io,mm-sdk-analytics.api.cx.metamask.io',
       ],
       expect.objectContaining({ timeout: 20_000 }),
       expect.any(Function),

@@ -34,6 +34,11 @@ const DEFAULT_ANDROID_PROXY_EXCLUSION_LIST = [
   '10.0.3.2',
   'bs-local.com',
   '*.local',
+  // Chrome (MMConnect browser dapps) uses the system proxy but does not trust
+  // the E2E APK-bundled MITM CA. Exclude MM SDK hosts so Connect can complete
+  // TLS directly; MetaMask itself still trusts the bundled CA for these hosts.
+  'mm-sdk-relay.api.cx.metamask.io',
+  'mm-sdk-analytics.api.cx.metamask.io',
 ];
 
 /**
