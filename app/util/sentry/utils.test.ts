@@ -6,6 +6,7 @@ import {
   getClient,
   getGlobalScope,
   init as sentryInit,
+  reactNavigationIntegration,
   setTag as sentrySetTag,
 } from '@sentry/react-native';
 import {
@@ -1289,6 +1290,13 @@ describe('navIntegration', () => {
   it('is exported and exposes registerNavigationContainer', () => {
     expect(navIntegration).toBeDefined();
     expect(typeof navIntegration.registerNavigationContainer).toBe('function');
+  });
+
+  it('is created with enableTimeToInitialDisplay: true so TTID spans are emitted', () => {
+    const mockedFactory = jest.mocked(reactNavigationIntegration);
+    expect(mockedFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ enableTimeToInitialDisplay: true }),
+    );
   });
 });
 

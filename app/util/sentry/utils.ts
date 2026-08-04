@@ -622,8 +622,13 @@ export function isSentryEnabled(): boolean {
  * Shared reactNavigationIntegration instance.
  * Created at module load so it can be registered with the NavigationContainer
  * (via registerNavigationContainer) independently of when Sentry.init is called.
+ *
+ * enableTimeToInitialDisplay must be explicitly set to true — the SDK default
+ * is false, so TTID spans would never be emitted without this option.
  */
-export const navIntegration = Sentry.reactNavigationIntegration();
+export const navIntegration = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: true,
+});
 
 // Setup sentry remote error reporting
 export async function setupSentry(
