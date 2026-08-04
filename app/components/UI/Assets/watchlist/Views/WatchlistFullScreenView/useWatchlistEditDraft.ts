@@ -86,6 +86,7 @@ export const useWatchlistEditDraft = ({
           createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
             .addProperties({
               source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+              asset_id: assetId,
               asset_type: getWatchlistAssetType(assetId),
             })
             .build(),

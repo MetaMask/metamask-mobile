@@ -67,6 +67,7 @@ describe('useWatchlistEditDraft', () => {
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
       source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+      asset_id: 'eip155:1/erc20:0xbtc',
       asset_type: 'erc20',
     });
   });
