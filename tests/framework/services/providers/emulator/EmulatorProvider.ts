@@ -26,6 +26,9 @@ import {
  * Service provider for local emulator/simulator testing
  */
 export class EmulatorProvider extends BaseServiceProvider {
+  /** Active WDIO browser for cleanupSession when no drv arg is passed. */
+  private browser?: Browser;
+
   constructor(project: ProjectConfig) {
     super(project, 'EmulatorProvider');
   }
@@ -299,20 +302,50 @@ export class EmulatorProvider extends BaseServiceProvider {
     const configBuilder = new EmulatorConfigBuilder(this.project);
     const config = configBuilder.build();
 
+    const sessionCreationStart = Date.now();
     const browser = await remote(config);
+    this.sessionCreationDurationMs = Date.now() - sessionCreationStart;
+    this.browser = browser;
     this.sessionId = browser.sessionId;
 
     this.logger.info(
-      `Driver created for emulator with session: ${this.sessionId}`,
+      `Driver created for emulator with session: ${this.sessionId} ` +
+        `(session creation took ${this.sessionCreationDurationMs}ms)`,
     );
     return browser;
   }
 
   /**
-   * Cleanup - stop the Appium server
+   * Delete the WebDriver session. Does not stop the Appium server.
    */
-  async cleanup(): Promise<void> {
-    this.logger.debug('Cleaning up emulator provider');
+  async cleanupSession(drv?: Browser): Promise<void> {
+    const session = drv ?? this.browser;
+    if (!session) {
+      this.sessionId = undefined;
+      this.browser = undefined;
+      return;
+    }
+
+    this.logger.debug(
+      `Deleting WebDriver session ${session.sessionId ?? this.sessionId ?? 'unknown'}`,
+    );
+    try {
+      await session.deleteSession();
+      this.logger.info('WebDriver session deleted');
+    } catch (error) {
+      this.logger.error('Failed to delete WebDriver session:', error);
+      throw error;
+    } finally {
+      this.browser = undefined;
+      this.sessionId = undefined;
+    }
+  }
+
+  /**
+   * Stop the Appium server. Does not delete the WebDriver session.
+   */
+  async cleanupProvider(): Promise<void> {
+    this.logger.debug('Cleaning up emulator provider (Appium server)');
     try {
       await stopAppiumServer();
       this.logger.info('Appium server stopped successfully');
@@ -320,5 +353,13 @@ export class EmulatorProvider extends BaseServiceProvider {
       this.logger.error('Failed to stop Appium server:', error);
       throw error;
     }
+  }
+
+  /**
+   * Legacy cleanup — stops Appium only (historical EmulatorProvider behavior).
+   * Callers that also need session teardown should call cleanupSession first.
+   */
+  async cleanup(): Promise<void> {
+    await this.cleanupProvider();
   }
 }

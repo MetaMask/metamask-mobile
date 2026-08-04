@@ -44,7 +44,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3, 4]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -52,7 +52,7 @@ jobs:
       platform: ios
       test_suite_tag: SmokeAccounts
       split_number: ${{ matrix.split }}
-      total_splits: 4
+      total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
@@ -72,11 +72,12 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-perps-ios-smoke
+      test-suite-name: appium-perps-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: SmokePerps
       split_number: ${{ matrix.split }}
       total_splits: 2
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -91,7 +92,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -99,7 +100,7 @@ jobs:
       platform: ios
       test_suite_tag: SmokePredictions
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
@@ -115,7 +116,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3, 4]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -123,7 +124,7 @@ jobs:
       platform: ios
       test_suite_tag: SmokeSeedlessOnboarding
       split_number: ${{ matrix.split }}
-      total_splits: 4
+      total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
@@ -140,7 +141,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2, 3, 4, 5, 6]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -148,8 +149,9 @@ jobs:
       platform: ios
       test_suite_tag: SmokeSnaps
       split_number: ${{ matrix.split }}
-      total_splits: 3
-      test-timeout-minutes: 25
+      total_splits: 6
+      # Session reuse + denser shards; headroom vs former 25m single-shard load.
+      test-timeout-minutes: 30
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -187,7 +189,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3, 4]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -195,7 +197,8 @@ jobs:
       platform: ios
       test_suite_tag: SmokeWalletPlatform
       split_number: ${{ matrix.split }}
-      total_splits: 4
+      total_splits: 2
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
@@ -234,7 +237,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -242,7 +245,7 @@ jobs:
       platform: ios
       test_suite_tag: SmokeStake
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 1
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
@@ -306,7 +309,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -314,8 +317,32 @@ jobs:
       platform: ios
       test_suite_tag: SmokeConfirmations
       split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 60
+      total_splits: 2
+      test-timeout-minutes: 35
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
+  appium-multichain-api-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeMultiChainAPI'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-multichain-api-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: SmokeMultiChainAPI
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}

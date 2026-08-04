@@ -8,14 +8,14 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsProMarketHeaderActions } from './usePerpsProMarketHeaderActions';
 
 const mockNavigateBack = jest.fn();
-const mockNavigateToHome = jest.fn();
+const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
 let mockCanGoBack = true;
 
 jest.mock('./usePerpsNavigation', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateBack: mockNavigateBack,
-    navigateToHome: mockNavigateToHome,
+    navigateToWallet: mockNavigateToWallet,
     navigateToMarketList: mockNavigateToMarketList,
     canGoBack: mockCanGoBack,
   })),
@@ -72,10 +72,10 @@ describe('usePerpsProMarketHeaderActions', () => {
     });
 
     expect(mockNavigateBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
   });
 
-  it('falls back to Perps home when the stack cannot go back', () => {
+  it('falls back to leaving Perps when the stack cannot go back', () => {
     mockCanGoBack = false;
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
@@ -85,9 +85,7 @@ describe('usePerpsProMarketHeaderActions', () => {
       result.current.handleBackPress();
     });
 
-    expect(mockNavigateToHome).toHaveBeenCalledWith(
-      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    );
+    expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
     expect(mockNavigateBack).not.toHaveBeenCalled();
   });
 
@@ -124,20 +122,6 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateToMarketList).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalled();
-  });
-
-  it('navigates to Perps home from the wallet action', () => {
-    const { result } = renderHook(() =>
-      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
-    );
-
-    act(() => {
-      result.current.handleWalletPress();
-    });
-
-    expect(mockNavigateToHome).toHaveBeenCalledWith(
-      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    );
   });
 
   it('adds the market to the watchlist when it is not favorited', () => {

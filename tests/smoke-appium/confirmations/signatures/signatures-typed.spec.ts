@@ -34,9 +34,7 @@ const SIGNATURE_LIST = [
       }),
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(
-        () => RowComponents.NetworkAndOrigin,
-      );
+      await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
     },
   },
   {
@@ -47,7 +45,7 @@ const SIGNATURE_LIST = [
       }),
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(() => RowComponents.OriginInfo);
+      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
     },
   },
   {
@@ -58,7 +56,7 @@ const SIGNATURE_LIST = [
       }),
     requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(() => RowComponents.OriginInfo);
+      await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
     },
   },
 ];
@@ -129,20 +127,18 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
             // cancel request
             await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType);
+            await Assertions.expectElementToBeVisible(requestType());
             await FooterActions.tapCancelButton();
-            await Assertions.expectElementToNotBeVisible(requestType);
+            await Assertions.expectElementToNotBeVisible(requestType());
 
             await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType);
+            await Assertions.expectElementToBeVisible(requestType());
 
             // check different sections are visible
             await Assertions.expectElementToBeVisible(
-              () => RowComponents.AccountNetwork,
+              RowComponents.AccountNetwork,
             );
-            await Assertions.expectElementToBeVisible(
-              () => RowComponents.Message,
-            );
+            await Assertions.expectElementToBeVisible(RowComponents.Message);
 
             // any signature specific additional assertions
             if (additionAssertions) {
@@ -151,7 +147,7 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
             // confirm request
             await FooterActions.tapConfirmButton();
-            await Assertions.expectElementToNotBeVisible(requestType);
+            await Assertions.expectElementToNotBeVisible(requestType());
           },
         );
       },

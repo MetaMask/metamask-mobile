@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import type { ReactTestRendererJSON } from 'react-test-renderer';
 import { Slider } from '@metamask/design-system-react-native';
 import PerpsSlider from './PerpsSlider';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
@@ -149,22 +150,45 @@ describe('PerpsSlider', () => {
   });
 
   describe('variant', () => {
-    it('defaults to the default variant (no track inset override, no dense spacing)', () => {
+    it('defaults to the default variant (no track inset override)', () => {
       render(<PerpsSlider {...defaultProps} />);
 
       expect(getSliderProps()).toMatchObject({
         trackInset: undefined,
-        twClassName: undefined,
       });
     });
 
-    it('removes the track inset and applies dense vertical spacing for the compact variant', () => {
+    it('removes the track inset for the compact variant', () => {
       render(<PerpsSlider {...defaultProps} variant="compact" />);
 
       expect(getSliderProps()).toMatchObject({
         trackInset: 0,
-        twClassName: '-my-1.5',
       });
+    });
+
+    it('wraps the compact variant in a single double-width, scaled-down container so the track still spans the full row', () => {
+      const { toJSON } = render(
+        <PerpsSlider {...defaultProps} variant="compact" />,
+      );
+
+      const wrapper = toJSON() as ReactTestRendererJSON;
+      // A single View declares the post-scale height/width; the Slider child
+      // renders at its natural (pre-scale) size and overflows it by exactly
+      // 2x, which `transform: scale(0.5)` (anchored top-left) shrinks back
+      // down to precisely fit — no separate clipping container needed.
+      expect(wrapper.props.style).toMatchObject({
+        height: 17.5,
+        width: '200%',
+        transform: [{ scale: 0.5 }],
+        transformOrigin: 'left top',
+      });
+    });
+
+    it('does not wrap the default variant in a scaling container', () => {
+      const { toJSON } = render(<PerpsSlider {...defaultProps} />);
+
+      // The mocked Slider renders null, so an unwrapped render produces no tree.
+      expect(toJSON()).toBeNull();
     });
   });
 

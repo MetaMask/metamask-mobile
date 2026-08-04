@@ -6,8 +6,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
-import { Keyboard, Platform } from 'react-native';
+import React, { useRef } from 'react';
+import { Keyboard, Platform, Pressable, type TextInput } from 'react-native';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -36,11 +36,14 @@ const PerpsProCompactInput = ({
   placeholderColor = 'muted',
 }: PerpsProCompactInputProps) => {
   const tw = useTailwind();
+  const inputRef = useRef<TextInput>(null);
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+  const focusInput = () => inputRef.current?.focus();
 
   const input = (
     <Input
+      ref={inputRef}
       value={value}
       onChangeText={onChangeText}
       keyboardType="decimal-pad"
@@ -72,13 +75,21 @@ const PerpsProCompactInput = ({
   return (
     <Box twClassName="rounded-xl bg-muted p-3" testID={`${testID}-container`}>
       <Box twClassName="flex-row items-center justify-between">
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {label}
-        </Text>
+        {/* Tapping the label focuses the input and opens the keyboard, same
+            as tapping the (visually small) input row itself. */}
+        <Pressable onPress={focusInput}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {label}
+          </Text>
+        </Pressable>
         {endAccessory}
       </Box>
       {input}
-      {footer}
+      {footer ? (
+        <Box twClassName="mt-3" testID={`${testID}-footer`}>
+          {footer}
+        </Box>
+      ) : null}
     </Box>
   );
 };

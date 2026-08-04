@@ -8,14 +8,16 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
   });
 
-  it('renders the toolbar rate-tag skeleton', () => {
+  it('renders the trade-mode toggle skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(screen.getByTestId('quick-buy-skeleton-rate-tag')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('quick-buy-skeleton-trade-mode'),
+    ).toBeOnTheScreen();
   });
 
-  it('renders the slider skeleton', () => {
+  it('renders the keypad placeholder', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    expect(screen.getByTestId('quick-buy-skeleton-slider')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-skeleton-keypad')).toBeOnTheScreen();
   });
 
   it('renders the pay-with pill skeleton', () => {
@@ -37,31 +39,17 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the quick-amount pills skeleton for both variants', () => {
-    render(<QuickBuyBottomSheetSkeleton useKeyboard />);
-    expect(
-      screen.getByTestId('quick-buy-skeleton-quick-amounts'),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not render the keypad placeholder on the treatment (keypad closed by default)', () => {
-    render(<QuickBuyBottomSheetSkeleton useKeyboard />);
-    expect(
-      screen.queryByTestId('quick-buy-skeleton-keypad'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('hides the slider placeholder on the treatment', () => {
-    render(<QuickBuyBottomSheetSkeleton useKeyboard />);
-    expect(
-      screen.queryByTestId('quick-buy-skeleton-slider'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders the quick-amount pills skeleton on the control variant', () => {
+  it('renders the quick-amount pills skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(
       screen.getByTestId('quick-buy-skeleton-quick-amounts'),
     ).toBeOnTheScreen();
+  });
+
+  it('does not render the removed slider placeholder', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(
+      screen.queryByTestId('quick-buy-skeleton-slider'),
+    ).not.toBeOnTheScreen();
   });
 });

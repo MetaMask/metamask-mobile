@@ -297,11 +297,18 @@ const getBannerContent = (
   };
 };
 
-export const NetworkConnectionBanner = () => {
+type NetworkConnectionBannerData = ReturnType<
+  typeof useNetworkConnectionBanner
+>;
+
+export const NetworkConnectionBannerContent = ({
+  network,
+  status,
+  switchToInfura,
+  updateRpc,
+}: NetworkConnectionBannerData) => {
   const theme = useAppTheme();
   const tw = useTailwind();
-  const { status, network, updateRpc, switchToInfura } =
-    useNetworkConnectionBanner();
 
   if ((status !== 'degraded' && status !== 'unavailable') || !network) {
     return null;
@@ -326,6 +333,11 @@ export const NetworkConnectionBanner = () => {
       description={secondaryMessage}
     />
   );
+};
+
+export const NetworkConnectionBanner = () => {
+  const bannerData = useNetworkConnectionBanner();
+  return <NetworkConnectionBannerContent {...bannerData} />;
 };
 
 export default NetworkConnectionBanner;

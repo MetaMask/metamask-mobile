@@ -61,7 +61,7 @@ if (
   } else if (readInt(process.env.E2E_SMOKE_INFRA_COUNT) > 0) {
     runAppiumIos = true;
     console.log(
-      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework)',
+      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework/smoke-appium)',
     );
   }
 }
@@ -95,8 +95,8 @@ const outputLines = [
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
   `run_appium_ios=${runAppiumIos}`,
-  `changed_files<<GH_EOF`,
-  flags.changedFiles,
+  `changed_spec_files<<GH_EOF`,
+  flags.changedSpecFiles,
   'GH_EOF',
 ];
 
