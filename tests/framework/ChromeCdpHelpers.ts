@@ -2,11 +2,7 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import { APP_PACKAGE_IDS } from './Constants.ts';
-import {
-  getDriver,
-  executeMobileDeepLink,
-  withTimeout,
-} from './PlaywrightUtilities';
+import { executeMobileDeepLink } from './PlaywrightUtilities';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('ChromeCdpHelpers');
@@ -15,8 +11,6 @@ const logger = createPlaywrightLogger('ChromeCdpHelpers');
 const CDP_FORWARD_PORT = 9222;
 const CDP_READY_TIMEOUT_MS = 20_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
-/** Appium `mobile: getContexts` can hang for minutes on google_apis Chrome — bound it. */
-const GET_CONTEXTS_PROBE_TIMEOUT_MS = 8_000;
 /** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
 const DEEPLINK_CAPTURE_TIMEOUT_MS = 30_000;
 /** Wait this long after a stringify guess before accepting it over a late real URL. */
@@ -159,9 +153,9 @@ class CdpSession {
 /**
  * Drive Android Chrome dapp pages via CDP, bypassing Appium Chromedriver.
  *
- * Emulator Chrome 113 + Appium `switchContext('WEBVIEW_chrome')` hangs during
- * Chromedriver session creation even when `getContexts` already exposes a
- * working `webSocketDebuggerUrl`. CDP uses that debugger channel directly.
+ * Emulator Chrome + Appium `switchContext('WEBVIEW_chrome')` hangs during
+ * Chromedriver session creation. CDP talks to `@chrome_devtools_remote`
+ * over `adb forward` instead — never via `mobile: getContexts`.
  */
 export default class ChromeCdpHelpers {
   /**
@@ -636,12 +630,13 @@ export default class ChromeCdpHelpers {
 
   /**
    * Resolve a stable host CDP HTTP endpoint for Chrome.
+   *
+   * Intentionally skips Appium `mobile: getContexts`. On google_apis Chrome that
+   * call can hang for minutes; a client-side timeout does not cancel the Appium
+   * command, so the hung probe blocks every later findElement/CDP setup on the
+   * same session (CI account-switch timeouts + missing sign sheets).
    */
   private static async resolveCdpHttpEndpoint(): Promise<string> {
-    // Touch getContexts so Appium has probed Chrome / confirmed pages exist.
-    // The returned debugger URLs are intentionally ignored (stale forwards).
-    await this.probeChromeWebviewViaAppium();
-
     const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
     this.ensureAdbForward();
     try {
@@ -656,21 +651,6 @@ export default class ChromeCdpHelpers {
       await this.waitForCdpEndpoint(endpoint);
     }
     return endpoint;
-  }
-
-  private static async probeChromeWebviewViaAppium(): Promise<void> {
-    try {
-      await withTimeout(
-        getDriver().execute('mobile: getContexts'),
-        GET_CONTEXTS_PROBE_TIMEOUT_MS,
-        'mobile: getContexts CDP probe',
-      );
-    } catch (error) {
-      logger.debug(
-        'Appium getContexts probe failed (continuing with adb CDP forward):',
-        error instanceof Error ? error.message : String(error),
-      );
-    }
   }
 
   private static async waitForCdpEndpoint(endpoint: string): Promise<void> {

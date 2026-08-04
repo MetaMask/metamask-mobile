@@ -274,7 +274,8 @@ export async function switchWalletAccount(
  *
  * MetaMask stays foregrounded while the RPC is sent (avoids transport
  * timeout). Cancel taps the sign sheet directly — no deeplink chooser in
- * this path.
+ * this path. Do not activateApp/unlock after the click: that collapses the
+ * status bar / restarts the activity and dismisses the confirmation sheet.
  */
 export async function rejectLegacyPersonalSign(
   dappUrl: string,
@@ -297,9 +298,8 @@ export async function rejectLegacyPersonalSign(
   );
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
-    await unlockIfLockScreenVisible();
     // Confirmation sheet animates in after the RPC arrives.
-    await SignModal.tapCancelButton({ timeout: 20_000 });
+    await SignModal.tapCancelButton({ timeout: 30_000 });
   });
 
   await switchToMobileBrowser();
