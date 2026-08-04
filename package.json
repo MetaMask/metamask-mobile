@@ -185,6 +185,7 @@
   },
   "resolutions": {
     "@metamask/network-controller": "34.0.0",
+    "@metamask/seedless-onboarding-controller": "10.1.1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",
