@@ -109,7 +109,7 @@ export class BrowserStackConfigBuilder {
           networkLogsOptions: {
             captureContent: true,
           },
-          networkLogs: true,
+          networkLogs: false,
           appiumVersion: '3.1.0',
           idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
           deviceName: device.name,
