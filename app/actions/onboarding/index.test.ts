@@ -19,6 +19,8 @@ import {
   SET_WALLET_HOME_ONBOARDING_STEPS_STEP,
   suppressWalletHomeOnboardingSteps,
   SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
+  markPushNotificationOsPromptRequested,
+  MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
 } from '.';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -158,6 +160,14 @@ describe('Onboarding actions', () => {
       expect(suppressWalletHomeOnboardingSteps('flow_completed')).toEqual({
         type: SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
         reason: 'flow_completed',
+      });
+    });
+  });
+
+  describe('markPushNotificationOsPromptRequested', () => {
+    it('creates the OS push prompt requested action', () => {
+      expect(markPushNotificationOsPromptRequested()).toEqual({
+        type: MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
       });
     });
   });

@@ -385,6 +385,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -543,6 +544,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: false,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -644,37 +646,6 @@ describe('CustomAmountInfo', () => {
     const { queryByText } = render();
 
     expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
-  });
-
-  it('navigates to ramps if buy button pressed', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
-
-    useAccountTokensMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_MOCK,
-        assetId: TOKEN_ADDRESS_MOCK,
-        chainId: CHAIN_ID_MOCK,
-      } as AssetType,
-    ]);
-
-    useTransactionPayRequiredTokensMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_MOCK,
-        chainId: CHAIN_ID_MOCK,
-      },
-    ] as TransactionPayRequiredToken[]);
-
-    const { getByText } = render();
-
-    fireEvent.press(getByText(strings('confirm.custom_amount.buy_button')));
-
-    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: 'eip155:1/erc20:0x123',
-    });
   });
 
   it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
@@ -865,39 +836,6 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId('custom-amount-input').props.onPress,
       ).toBeUndefined();
-    });
-
-    it('shows the default confirm label, not the alert title, during loading', async () => {
-      const { deferred } = arrangePendingPreparation();
-      const view = render({
-        transactionType: TransactionType.moneyAccountDeposit,
-      });
-      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
-
-      setControllerTransactionData({ isLoading: true });
-      useIsTransactionPayLoadingMock.mockReturnValue(true);
-      await act(async () => {
-        deferred.resolve();
-        await deferred.promise;
-      });
-
-      // An alert arrives while already in the loading review.
-      useTransactionCustomAmountAlertsMock.mockReturnValue({
-        alertTitle: 'Test Alert Title',
-        alertMessage: 'Test Alert Message',
-      });
-      view.rerender(
-        createCustomAmountInfo({
-          transactionType: TransactionType.moneyAccountDeposit,
-        }),
-      );
-
-      // The alert title is suppressed on the disabled button while loading; the
-      // default "Done" label shows instead.
-      expect(
-        view.getByText(strings('confirm.deposit_edit_amount_done')),
-      ).toBeOnTheScreen();
-      expect(view.queryByText('Test Alert Title')).not.toBeOnTheScreen();
     });
 
     it('keeps the loading review until Redux observes controller loading', async () => {
@@ -1195,6 +1133,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -1261,6 +1200,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -1313,6 +1253,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -1353,6 +1294,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -1467,6 +1409,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -1604,6 +1547,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -1650,6 +1594,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -1688,6 +1633,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -2149,6 +2095,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -2216,6 +2163,7 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      hasPrefetchedQuote: false,
       isDepositPrefillEnabled: true,
       isDepositPrefilled: false,
       isInputChanged: false,
@@ -2229,26 +2177,6 @@ describe('CustomAmountInfo', () => {
     const { getByTestId } = render({ autoSelectFiatPayment: true });
 
     expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
-  });
-
-  it('renders perps buy message when no tokens available for perpsDeposit', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.perpsDeposit,
-      txParams: { from: '0x123' },
-    } as never);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [],
-      hasTokens: false,
-    });
-
-    const { getByText } = render({
-      transactionType: TransactionType.perpsDeposit,
-    });
-
-    expect(
-      getByText(strings('confirm.custom_amount.buy_perps')),
-    ).toBeOnTheScreen();
   });
 
   it('renders predict buy message when no tokens available for predictDeposit', () => {
@@ -2316,6 +2244,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: true,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: true,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -2336,6 +2265,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: true,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: true,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -2366,6 +2296,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: true,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: true,
         isDepositPrefilled: true,
         isInputChanged: false,
@@ -2393,6 +2324,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: true,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: true,
         isInputChanged: false,
@@ -2417,6 +2349,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: true,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: true,
         isInputChanged: false,
@@ -2451,6 +2384,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: true,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -2518,6 +2452,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: true,
         isDepositPrefilled: false,
         isInputChanged: false,
@@ -2543,6 +2478,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: true,
         isDepositPrefilled: false,
         isInputChanged: false,

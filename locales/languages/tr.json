@@ -1513,6 +1513,7 @@
       "size_usd": "USD cinsinden Büyüklüğü",
       "size_percentage": "Emir büyüklüğü yüzdesi",
       "toggle_size_unit": "Büyüklük birimini değiştir",
+      "available_balance": "{{amount}} kullanılabilir",
       "available_balance_unavailable": "-- kullanılabilir",
       "est_liquidation": "Tahmini Likidasyon",
       "tpsl": "KA / ZD",

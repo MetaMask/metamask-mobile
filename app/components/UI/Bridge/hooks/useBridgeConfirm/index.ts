@@ -65,6 +65,12 @@ export const useBridgeConfirm = ({
               quoteResponse: activeQuote,
               location,
               transactionActiveAbTests,
+              postTradeModalParams: {
+                sourceAmount: sourceAmount ?? activeQuote.sentAmount?.amount,
+                destAmount: activeQuote.toTokenAmount?.amount,
+                sourceToken,
+                destToken,
+              },
             },
           },
         });
