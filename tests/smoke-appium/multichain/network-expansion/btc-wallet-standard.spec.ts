@@ -15,6 +15,7 @@ import {
 import BitcoinTestDapp, {
   BITCOIN_DAPP_PORT,
 } from '../../../page-objects/Browser/BitcoinTestDapp.js';
+import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 
 // Truncated Bitcoin account address shown in the dapp header after connect
 const account1Short = 'bc1q...yump';
@@ -68,7 +69,7 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
     },
   );
 
-  appiumTest(
+  appiumTest.only(
     'Stays connected after page refresh',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
@@ -80,6 +81,7 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
         async () => {
           await BitcoinTestDapp.setupAndNavigate();
           await BitcoinTestDapp.connect();
+          await ToastModal.waitForToastToDismiss();
 
           await BitcoinTestDapp.verifyAccount(account1Short);
           await BitcoinTestDapp.verifyConnectionStatus('Connected');

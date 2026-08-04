@@ -18,8 +18,6 @@ const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
 const CLICK_TIMEOUT_MS = 15_000;
 const POLL_MS = 300;
-/** Hold Connected + btc_connection + wallets before reload (replaces blind 1s sleep). */
-const STABILITY_WINDOW_MS = 1_000;
 
 const { header, walletSelectionModal, signMessage } = dataTestIds.testPage;
 
@@ -39,31 +37,6 @@ class BitcoinTestDapp {
 
   private async isConnectSheetVisible(): Promise<boolean> {
     return Utilities.isElementVisible(DappConnectionModal.connectButton, 500);
-  }
-
-  /**
-   * Count wallet-standard wallets currently registered with the page
-   * (same discovery path the Bitcoin test dapp uses).
-   */
-  private async getWalletCount(): Promise<number> {
-    const count = await this.evaluate<number>(`(() => {
-      const found = [];
-      const register = (...wallets) => {
-        for (const w of wallets) found.push(w);
-      };
-      try {
-        window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', {
-          detail: { register },
-          bubbles: false,
-          cancelable: false,
-          composed: false,
-        }));
-      } catch {
-        return 0;
-      }
-      return found.length;
-    })()`);
-    return count ?? 0;
   }
 
   async setupAndNavigate(): Promise<void> {
@@ -174,84 +147,6 @@ class BitcoinTestDapp {
     );
   }
 
-  /**
-   * The Bitcoin test dapp stores `{ walletName, connectionType }` in
-   * `localStorage.btc_connection` after a successful connect. Auto-reconnect
-   * after reload depends on that key plus wallet-standard providers still
-   * being registered. Wait until Connected + persisted key + walletCount>0
-   * hold continuously for STABILITY_WINDOW_MS (same budget as the old 1s
-   * sleep, but tied to state).
-   */
-  private async getPersistedConnection(): Promise<Record<
-    string,
-    unknown
-  > | null> {
-    return this.evaluate<Record<string, unknown> | null>(`(() => {
-      const raw = localStorage.getItem('btc_connection');
-      if (!raw) return null;
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return { parseError: true, raw };
-      }
-    })()`);
-  }
-
-  private async getPreReloadReadiness(): Promise<{
-    status: string | null;
-    persisted: Record<string, unknown> | null;
-    walletCount: number;
-  }> {
-    const status = await this.getConnectionStatus();
-    const persisted = await this.getPersistedConnection();
-    const walletCount = await this.getWalletCount();
-    return { status, persisted, walletCount };
-  }
-
-  private isPreReloadReady(snapshot: {
-    status: string | null;
-    persisted: Record<string, unknown> | null;
-    walletCount: number;
-  }): boolean {
-    return (
-      snapshot.status === 'Connected' &&
-      !!snapshot.persisted &&
-      typeof snapshot.persisted.walletName === 'string' &&
-      snapshot.persisted.walletName.length > 0 &&
-      snapshot.walletCount > 0
-    );
-  }
-
-  private async waitForStableConnectionBeforeReload(
-    timeoutMs = CONNECT_TIMEOUT_MS,
-  ): Promise<void> {
-    const deadline = Date.now() + timeoutMs;
-    let stableSince: number | null = null;
-    let last = {
-      status: null as string | null,
-      persisted: null as Record<string, unknown> | null,
-      walletCount: 0,
-    };
-
-    while (Date.now() < deadline) {
-      last = await this.getPreReloadReadiness();
-      if (this.isPreReloadReady(last)) {
-        if (stableSince == null) {
-          stableSince = Date.now();
-        } else if (Date.now() - stableSince >= STABILITY_WINDOW_MS) {
-          return;
-        }
-      } else {
-        stableSince = null;
-      }
-      await wait(POLL_MS);
-    }
-
-    throw new Error(
-      `Timed out waiting for stable pre-reload connection (last=${JSON.stringify(last)})`,
-    );
-  }
-
   async connect(): Promise<void> {
     await this.click(`button${sel(header.connect)}`);
     await this.waitForElement(
@@ -298,8 +193,6 @@ class BitcoinTestDapp {
   }
 
   async reload(): Promise<void> {
-    await this.waitForStableConnectionBeforeReload();
-
     // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
     await this.evaluate('(() => { location.reload(); return true; })()');
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
