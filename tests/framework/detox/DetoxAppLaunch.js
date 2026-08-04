@@ -1,6 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /**
- * Detox-only app launch helpers (extracted from deprecated tests/helpers.js).
+ * Detox-only app launch helpers.
  * Appium uses PlaywrightUtilities.launchApp instead.
  */
 import { resolveConfig } from 'detox/internals';

@@ -345,12 +345,12 @@ const MyComponent = () => {
 
 ### Proper Waiting and Assertions
 
-- NEVER use `TestHelpers.delay()` - it creates flaky tests and slows down test execution
+- NEVER use fixed delays (`setTimeout`, bare `sleep`) when waiting for UI — they create flaky tests and slow execution
 - ALWAYS use proper waiting with Assertions from the framework:
 
   ```javascript
   // DON'T:
-  TestHelpers.delay(1000);
+  await sleep(1000);
 
   // DO:
   Assertions.expectElementToBeVisible(element, {
@@ -500,7 +500,7 @@ async tapOpenAllTabsButton(): Promise<void> {
 
 Before submitting E2E tests, ensure:
 
-- [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
+- [ ] No fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 - [ ] All assertions have descriptive `description` parameters
 - [ ] All gestures have descriptive `description` parameters
 - [ ] Appropriate timeouts for operations (not magic numbers)

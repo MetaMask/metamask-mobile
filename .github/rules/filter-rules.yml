@@ -66,7 +66,6 @@ e2e_test_files: &e2e_test_files
   - 'tests/init.detox.js'
   - 'tests/environment.detox.js'
   - 'tests/jest.e2e.detox.config.js'
-  - 'tests/helpers.js'
   - 'tests/tags.js'
   - 'tests/tags.performance.js'
   - 'tests/teams-config.js'

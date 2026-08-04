@@ -283,17 +283,6 @@ module.exports = {
             selector: 'SequenceExpression',
             message: 'Sequence expressions are not allowed',
           },
-          {
-            selector:
-              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message:
-              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
-          },
-          {
-            selector: "ImportDefaultSpecifier[local.name='TestHelpers']",
-            message:
-              'tests/helpers.js (TestHelpers) was removed (MMQA-2173). Use Gestures/Assertions from tests/framework, or DetoxAppLaunch for Detox launch.',
-          },
         ],
       },
     },
@@ -317,17 +306,6 @@ module.exports = {
           {
             selector: "Identifier[name='UnifiedGestures']",
             message: 'Use Gestures instead of UnifiedGestures.',
-          },
-          {
-            selector:
-              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message:
-              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
-          },
-          {
-            selector: "ImportDefaultSpecifier[local.name='TestHelpers']",
-            message:
-              'tests/helpers.js (TestHelpers) was removed (MMQA-2173). Use Gestures/Assertions from tests/framework, or DetoxAppLaunch for Detox launch.',
           },
         ],
       },
