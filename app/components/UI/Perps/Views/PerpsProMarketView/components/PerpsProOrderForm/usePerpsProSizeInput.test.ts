@@ -467,11 +467,10 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeSlider.value).toBe(0);
   });
 
-  it('ignores slider completion without a preview', () => {
+  it('ignores slider cancellation without a preview', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
 
     act(() => {
-      result.current.sizeSlider.onDragEnd();
       result.current.sizeSlider.onDragCancel();
     });
 
@@ -519,7 +518,7 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.effectiveUsdAmount).toBe('250');
 
     act(() => {
-      result.current.sizeSlider.onDragEnd();
+      result.current.sizeSlider.onDragEnd(250);
     });
 
     expect(mockSetAmount).toHaveBeenLastCalledWith('250');
@@ -549,11 +548,26 @@ describe('usePerpsProSizeInput', () => {
     });
 
     act(() => {
-      result.current.sizeSlider.onDragEnd();
+      result.current.sizeSlider.onDragEnd(250);
     });
 
     expect(result.current.sizeInput.value).toBe('250');
     expect(mockSetAmount).toHaveBeenCalledWith('250');
+  });
+
+  it('commits the terminal drag value instead of an earlier preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+    });
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(300);
+    });
+
+    expect(result.current.sizeInput.value).toBe('300');
+    expect(result.current.effectiveUsdAmount).toBe('300');
+    expect(mockSetAmount).toHaveBeenCalledWith('300');
   });
 
   it('commits the slider preview on drag cancel', () => {
@@ -569,5 +583,87 @@ describe('usePerpsProSizeInput', () => {
 
     expect(result.current.sizeInput.value).toBe('750');
     expect(mockSetAmount).toHaveBeenCalledWith('750');
+  });
+
+  it('clears an interrupted slider preview when keyboard editing starts', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+    });
+    expect(result.current.effectiveUsdAmount).toBe('250');
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+      result.current.sizeInput.onChange('10');
+    });
+
+    expect(result.current.sizeInput.value).toBe('10');
+    expect(result.current.effectiveUsdAmount).toBe('10');
+    expect(result.current.sizeSlider.value).toBe(10);
+  });
+
+  it('preserves an interrupted preview when a keyboard edit is rejected', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+    });
+
+    act(() => {
+      result.current.sizeInput.onChange('1.2.3');
+    });
+
+    expect(result.current.sizeInput.value).toBe('250');
+    expect(result.current.effectiveUsdAmount).toBe('250');
+  });
+
+  it('clears an interrupted slider preview when denomination changes', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '100', effectivePrice: 100 }),
+      ),
+    );
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+    });
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+
+    expect(result.current.sizeInput.value).toBe('1');
+    expect(result.current.effectiveUsdAmount).toBe('100');
+    expect(result.current.sizeSlider.value).toBe(100);
+  });
+
+  it('clears an interrupted slider preview for an external canonical clamp', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ usdAmount: '100' }) },
+    );
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+    });
+
+    rerender(createParams({ usdAmount: '50', maxPossibleAmount: 50 }));
+
+    expect(result.current.sizeInput.value).toBe('50');
+    expect(result.current.effectiveUsdAmount).toBe('50');
+    expect(result.current.sizeSlider.value).toBe(50);
+  });
+
+  it('flushes a pending slider preview exactly once', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+    act(() => {
+      result.current.sizeSlider.onValueChange(250);
+    });
+
+    let didCommit = false;
+    act(() => {
+      didCommit = result.current.commitPendingSliderPreview();
+    });
+
+    expect(didCommit).toBe(true);
+    expect(mockSetAmount).toHaveBeenCalledWith('250');
+    expect(result.current.commitPendingSliderPreview()).toBe(false);
   });
 });

@@ -241,7 +241,12 @@ export const usePerpsProOrderForm = ({
     return parsedLimitPrice > 0 ? parsedLimitPrice : assetData.price;
   }, [assetData.price, orderForm.limitPrice, orderForm.type]);
 
-  const { sizeInput, sizeSlider, effectiveUsdAmount } = usePerpsProSizeInput({
+  const {
+    sizeInput,
+    sizeSlider,
+    effectiveUsdAmount,
+    commitPendingSliderPreview,
+  } = usePerpsProSizeInput({
     usdAmount: orderForm.amount,
     setAmount,
     assetSymbol: symbol,
@@ -908,8 +913,15 @@ export const usePerpsProOrderForm = ({
   }, [orderForm.limitPrice, setLimitPrice]);
 
   const onPlaceOrderPress = useCallback(() => {
+    // Gesture cancellation can bypass both onDragEnd and RN onTouchCancel.
+    // Flush a pending preview and wait for canonical order state to re-render
+    // before submitting, matching Lite's interrupted-drag guard.
+    if (commitPendingSliderPreview()) {
+      return;
+    }
+
     handlePlaceOrder();
-  }, [handlePlaceOrder]);
+  }, [commitPendingSliderPreview, handlePlaceOrder]);
 
   return {
     direction: orderForm.direction,
