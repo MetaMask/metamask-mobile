@@ -20,8 +20,6 @@
 		2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
-		56A5997D03C04D5B9D8DF444 /* RCTWidgetInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */; };
-		83718C99605A41A78EE1F06C /* RCTWidgetInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */; };
 		2EF282612B0FF86900D7B4B1 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		2EF282622B0FF86900D7B4B1 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		2EF282632B0FF86900D7B4B1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
@@ -43,10 +41,12 @@
 		3466654F43654D36B5D478CA /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = 2679C48F8CD642C68116DD24 /* config.json */; };
 		3F123FD0EA9146FEBC864879 /* MMSans-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */; };
 		49D8E62C506F4A63889EEC7F /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
+		56A5997D03C04D5B9D8DF444 /* RCTWidgetInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */; };
 		650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		654378B0243E2ADC00571B9C /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		661D2B88CAF406DF865E1ED2 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0594416ED1AA84D55622CB53 /* ExpoModulesProvider.swift */; };
 		7F9252D45D3F430CF92B729C /* index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5E0D2340CD187CFC9BFB83 /* index.swift */; };
+		83718C99605A41A78EE1F06C /* RCTWidgetInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */; };
 		8C3986ED969040AEBC7A3856 /* MMPoly-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */; };
 		8DE564ACA9934796B5E7B1EB /* MMSans-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */; };
 		9623A6C304A515242C57E953 /* BalanceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E953C90330BEDECC616071B /* BalanceWidget.swift */; };
@@ -65,15 +65,15 @@
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
-		DF31425B6C5C484AADF4CE9C /* RCTWidgetInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */; };
-		E8F830487AF540E3B8CF0575 /* RCTWidgetInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */; };
 		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
+		DF31425B6C5C484AADF4CE9C /* RCTWidgetInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */; };
 		E4B580722E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
 		E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
 		E83DB5522BBDF2AA00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5542BBDF2AF00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
+		E8F830487AF540E3B8CF0575 /* RCTWidgetInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */; };
 		ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */; };
 		F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
 		F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
@@ -161,6 +161,7 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* MetaMaskTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetaMaskTests.m; sourceTree = "<group>"; };
 		0594416ED1AA84D55622CB53 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ExpoWidgetsTarget/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTWidgetInfo.m; path = MetaMask/NativeModules/RCTWidgetInfo/RCTWidgetInfo.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* MetaMask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetaMask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MetaMask/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MetaMask/Info.plist; sourceTree = "<group>"; };
@@ -181,6 +182,7 @@
 		2EF283292B17EBD600D7B4B1 /* RnTar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RnTar.swift; sourceTree = "<group>"; };
 		2EF283312B17EC1A00D7B4B1 /* RNTar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNTar.m; sourceTree = "<group>"; };
 		2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Light-Swift-Untar.swift"; sourceTree = "<group>"; };
+		3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RCTWidgetInfo.swift; path = MetaMask/NativeModules/RCTWidgetInfo/RCTWidgetInfo.swift; sourceTree = "<group>"; };
 		38FBEB4CD80B006202FB7C2D /* libPods-ExpoWidgetsTarget.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ExpoWidgetsTarget.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
@@ -222,8 +224,6 @@
 		C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTMinimizer.h; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.h; sourceTree = "<group>"; };
 		CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTMinimizer.m; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.m; sourceTree = "<group>"; };
-		3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RCTWidgetInfo.swift; path = MetaMask/NativeModules/RCTWidgetInfo/RCTWidgetInfo.swift; sourceTree = "<group>"; };
-		0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTWidgetInfo.m; path = MetaMask/NativeModules/RCTWidgetInfo/RCTWidgetInfo.m; sourceTree = "<group>"; };
 		CF98DA9A28D9FE7800096782 /* RCTScreenshotDetect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTScreenshotDetect.h; sourceTree = "<group>"; };
 		CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RCTScreenshotDetect.m; sourceTree = "<group>"; };
 		CFB6EFC38FA80146A66F4B17 /* ExpoWidgetsTarget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ExpoWidgetsTarget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -518,15 +518,6 @@
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
-		CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */ = {
-			isa = PBXGroup;
-			children = (
-				CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */,
-				CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */,
-			);
-			name = RCTMinimizer;
-			sourceTree = "<group>";
-		};
 		B1304A416257473FBF353AAA /* RCTWidgetInfo */ = {
 			isa = PBXGroup;
 			children = (
@@ -534,6 +525,15 @@
 				0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */,
 			);
 			name = RCTWidgetInfo;
+			sourceTree = "<group>";
+		};
+		CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */ = {
+			isa = PBXGroup;
+			children = (
+				CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */,
+				CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */,
+			);
+			name = RCTMinimizer;
 			sourceTree = "<group>";
 		};
 		CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */ = {
