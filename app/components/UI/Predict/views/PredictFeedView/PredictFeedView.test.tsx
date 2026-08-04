@@ -1,13 +1,5 @@
 /**
- * Focused unit coverage for PredictFeedView.
- *
- * MMQA-2104: header/tabs/filters, market cards, empty, live hides bars, skeleton,
- * offline+retry, search open+track, feed viewed on focus, tab/filter change track,
- * and unknown-feed no shell live in PredictFeedView.view.test.tsx.
- *
- * KEEP here only hook wiring (route params, filterByVolume, live-first gates,
- * transactionActiveAbTests forwarding), pagination/loading edge cases, analytics
- * negatives and dynamic-filter settlement timing, and goBack on not-found via mocked nav.
+ * Unit tests for PredictFeedView.
  */
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -247,7 +239,7 @@ describe('PredictFeedView', () => {
     mockUsePredictSearch.mockReturnValue(searchResult());
   });
 
-  describe('hook wiring (KEEP — route params & prop forwarding)', () => {
+  describe('hook wiring', () => {
     it('forwards the route feedId and active filter params to the data hooks', () => {
       mockRouteParams = {
         feedId: 'sports',
@@ -353,7 +345,7 @@ describe('PredictFeedView', () => {
     });
   });
 
-  describe('market list states (KEEP — pagination/loading edges)', () => {
+  describe('market list states', () => {
     it('does not render the empty state while empty results are still loading', () => {
       mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({ markets: [], isLoading: true }),
@@ -405,7 +397,7 @@ describe('PredictFeedView', () => {
     });
   });
 
-  describe('analytics (KEEP — negatives & settlement)', () => {
+  describe('analytics', () => {
     it('does not track feed viewed when the feed is not found', () => {
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({ status: 'not-found', feedId: undefined }),
@@ -647,7 +639,7 @@ describe('PredictFeedView', () => {
     });
   });
 
-  describe('fallbacks (KEEP — goBack via mocked nav)', () => {
+  describe('fallbacks', () => {
     it('navigates back when the feed is not found', () => {
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({

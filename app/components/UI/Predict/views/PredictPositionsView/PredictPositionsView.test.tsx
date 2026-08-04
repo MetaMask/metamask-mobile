@@ -1,10 +1,5 @@
 /**
- * Focused unit coverage for PredictPositionsView.
- *
- * MMQA-2104: screen UI / tab / empty / claim CTA / root back→market list live in
- * PredictPositionsView.view.test.tsx. KEEP here only analytics timing matrices and
- * claim-pending History wiring that need mocked portfolio + child props — CV would
- * need brittle rerenders and History child mocks for the same contracts.
+ * Unit tests for PredictPositionsView.
  *
  * Run with: yarn jest PredictPositionsView.test --runInBand --silent --coverage=false
  */
@@ -248,7 +243,7 @@ describe('PredictPositionsView', () => {
     ).PredictController = predictController;
   });
 
-  describe('analytics timing (KEEP — CV cannot own portfolio-load timing cheaply)', () => {
+  describe('analytics timing', () => {
     it('tracks Positions screen viewed without duplicating the default tab', () => {
       mockUsePredictPortfolio.mockReturnValue(
         createPortfolio({
@@ -382,7 +377,7 @@ describe('PredictPositionsView', () => {
     });
   });
 
-  describe('claim-pending History wiring (KEEP — needs History child prop probes)', () => {
+  describe('claim-pending History wiring', () => {
     it('passes only actionable claimable positions and privacy mode to History', () => {
       mockPrivacyMode = true;
       const wonPosition = createClaimablePosition({ id: 'won-position' });
@@ -460,7 +455,7 @@ describe('PredictPositionsView', () => {
     });
   });
 
-  describe('stack goBack (KEEP — CV stack always mounts Positions as root)', () => {
+  describe('stack goBack', () => {
     it('navigates back when the back button is pressed and the stack can go back', () => {
       renderScreen();
 

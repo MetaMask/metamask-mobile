@@ -223,8 +223,6 @@ describe('PredictMarketDetails', () => {
       });
     });
 
-    // The market query stays disabled without an id, and react-query v4 reports a
-    // disabled query as loading, so the screen never reaches its unavailable branch.
     it('keeps showing the loading skeleton when the route carries no resolvable market', async () => {
       givenMarket(null);
 

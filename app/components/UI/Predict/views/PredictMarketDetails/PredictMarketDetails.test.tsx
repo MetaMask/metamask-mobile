@@ -1,10 +1,5 @@
 /**
- * MMQA-2104: Screen UI owned by PredictMarketDetails.view.test.tsx for
- * getMarket mount, loaded market data, geo-block bet, details-opened tracking,
- * and back→Predict root. Remaining its in this file are KEEP for now —
- * chart/tab/claim/crypto/game/fee matrices need stepwise CV migration with
- * per-batch gap checks (CV harness would be heavy for many of these).
- * Prefer focused unit or child/hook units over forcing brittle CV.
+ * Unit tests for PredictMarketDetails.
  */
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
@@ -792,8 +787,6 @@ describe('PredictMarketDetails', () => {
   });
 
   describe('Component Rendering', () => {
-    // The unavailable branch needs isLoading false on a disabled market query,
-    // which react-query v4 never reports, so only this mocked layer can reach it.
     it('renders the market unavailable state when no marketId or series id can be resolved', () => {
       setupPredictMarketDetailsTest(
         {},
@@ -877,8 +870,6 @@ describe('PredictMarketDetails', () => {
     });
   });
 
-  // MMQA-2104: chart presence is CV-owned; the data-shaping matrices stay here
-  // until useChartData gets its own hook test.
   describe('Chart Rendering', () => {
     it('limits chart data to first 3 open outcomes when more are available', () => {
       const { usePredictPriceHistory } = jest.requireMock(
@@ -991,7 +982,6 @@ describe('PredictMarketDetails', () => {
     });
   });
 
-  // MMQA-2104: back→Predict root fallback is CV-owned; goBack path stays here.
   describe('Navigation Functionality', () => {
     it('handles back button press correctly', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
@@ -1045,8 +1035,6 @@ describe('PredictMarketDetails', () => {
   });
 
   describe('Event Handlers', () => {
-    // The sheet payload is not observable from the rendered sheet, so the
-    // openBuySheet contract stays here while CV owns the sheet appearing.
     it('calls openBuySheet with the pressed outcome token', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
@@ -1351,7 +1339,6 @@ describe('PredictMarketDetails', () => {
     });
   });
 
-  // MMQA-2104: closed-market UI is CV-owned; resolution edge cases stay here.
   describe('Closed Market Functionality', () => {
     it('handles market without winning token', () => {
       const closedMarket = createMockMarket({
@@ -1842,8 +1829,6 @@ describe('PredictMarketDetails', () => {
     });
   });
 
-  // MMQA-2104: expanding resolved outcomes is CV-owned; the dropdown content
-  // matrix stays here until PredictResolvedOutcomesDropdown owns its own tests.
   describe('Multiple Open Outcomes Partially Resolved', () => {
     it('displays resolved outcomes count badge', () => {
       const marketWithPartialResolution = createMockMarket({
@@ -2476,8 +2461,6 @@ describe('PredictMarketDetails', () => {
     });
   });
 
-  // MMQA-2104: the waived/not-waived pair is CV-owned; the tag-matching matrix
-  // stays here.
   describe('Fee Exemption Display', () => {
     it('hides fee exemption message when market has no tags', () => {
       const marketWithoutTags = createMockMarket({
@@ -2634,7 +2617,6 @@ describe('PredictMarketDetails', () => {
     });
   });
 
-  // MMQA-2104: the game branch is CV-owned; the positions wiring stays here.
   describe('Game Details Content', () => {
     it('threads childMarketIds to usePredictPositions for both active and claimable queries', () => {
       const marketWithChildren = createMockMarket({

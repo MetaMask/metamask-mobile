@@ -1,22 +1,5 @@
 /**
- * Unit tests for PredictFeed — MMQA-2104 Approach A (quality-first overlap trim).
- *
- * OWNERSHIP: PredictFeed.view.test.tsx owns user-facing integration for search
- * (open/close/clear/results/no-results/error), offline feed error, balance card,
- * back→wallet navigation, and market card rendering. Do not re-add those flows here.
- *
- * KEEP in this file (unit/mock harness — CV flag wiring is heavy or not yet covered):
- * - Hot / Wimbledon feature-flag tab ordering and query params
- * - Session management lifecycle and portfolio module flag
- * - Lazy tab `enabled` gate (warm cache, remount reset)
- * - Route params / entryPoint attribution (incl. deeplink query prefill)
- * - Debounce wiring (`useDebouncedValue` delay + hook args; not result cards)
- * - Pager swipe analytics, layoutReady gate, market list memo
- * - Remote banner slot mounting
- * - Analytics negatives (tab press does not track)
- * - goBack when canGoBack (wallet fallback is CV-owned)
- * - Tab inventory (six base tabs)
- * - CV also owns trending skeleton loading + empty state (do not re-add here)
+ * Unit tests for PredictFeed.
  */
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
@@ -417,7 +400,7 @@ describe('PredictFeed', () => {
     jest.clearAllMocks();
   });
 
-  describe('initial render (KEEP — banners)', () => {
+  describe('initial render', () => {
     it('hides search overlay on initial render', () => {
       const { queryByPlaceholderText } = render(<PredictFeed />);
 
@@ -440,7 +423,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('tab navigation (KEEP — tab inventory + analytics negatives)', () => {
+  describe('tab navigation', () => {
     it('renders all six category tabs', () => {
       const { getByTestId } = render(<PredictFeed />);
 
@@ -473,7 +456,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('session management (KEEP)', () => {
+  describe('session management', () => {
     it('starts session and enables app state listener on mount', () => {
       render(<PredictFeed />);
 
@@ -518,7 +501,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('navigation (KEEP — goBack when canGoBack)', () => {
+  describe('navigation', () => {
     it('calls goBack when back button pressed and navigation can go back', () => {
       const { getByTestId } = render(<PredictFeed />);
 
@@ -528,7 +511,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('pager view interactions (KEEP — pager swipe analytics)', () => {
+  describe('pager view interactions', () => {
     it('updates active index and tracks analytics when page changes via swipe', () => {
       const mockOnTabSwitch = jest.fn();
       mockUseFeedScrollManager.mockReturnValue({
@@ -555,7 +538,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('layout states (KEEP — layoutReady gate)', () => {
+  describe('layout states', () => {
     it('hides pager view when layout is not ready', () => {
       mockUseFeedScrollManager.mockReturnValue({
         headerTranslateY: { value: 0 },
@@ -575,7 +558,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('market list rendering (KEEP — memo)', () => {
+  describe('market list rendering', () => {
     it('does not re-render market list items when feed props are unchanged', () => {
       const { rerender } = render(<PredictFeed />);
       const initialRenderCount = mockPredictMarket.mock.calls.length;
@@ -586,7 +569,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('pagination (KEEP — footer skeleton)', () => {
+  describe('pagination', () => {
     it('renders footer skeleton when fetching more data', () => {
       mockUsePredictMarketData.mockReturnValue({
         marketData: [
@@ -612,7 +595,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('route params (KEEP)', () => {
+  describe('route params', () => {
     it('starts session with entry point from route params', () => {
       mockUseRoute.mockReturnValue({
         params: {
@@ -708,7 +691,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('search debounce behavior (KEEP — debounce wiring)', () => {
+  describe('search debounce behavior', () => {
     it('passes debounced search query to usePredictSearchMarketData', () => {
       mockUseDebouncedValue.mockReturnValue('debounced-query');
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
@@ -752,7 +735,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('Hot tab feature flag (KEEP — CV flag harness heavy)', () => {
+  describe('Hot tab feature flag', () => {
     it('renders Hot tab first when flag is enabled', () => {
       mockHotTabFlag.enabled = true;
       mockHotTabFlag.queryParams = 'tag_id=149&order=volume24hr';
@@ -902,7 +885,7 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('query deeplink parameter (KEEP — route params)', () => {
+  describe('query deeplink parameter', () => {
     it.each([['bitcoin'], ['ethereum'], ['solana']])(
       'opens search overlay when query param "%s" is provided in route params',
       (query) => {
@@ -939,7 +922,7 @@ describe('PredictFeed', () => {
     );
   });
 
-  describe('lazy tab data fetching (KEEP — enabled gate)', () => {
+  describe('lazy tab data fetching', () => {
     // PagerView mounts every PredictTabContent at once, so usePredictMarketData
     // is called for every tab on every render. Only the active tab (and tabs the
     // user has already visited) should pass `enabled: true` so that just the
