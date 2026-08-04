@@ -13,6 +13,7 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EncapsulatedElementType, FrameworkDetector } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import WalletView from './WalletView';
 import TokensFullView from './HomeSections';
 
@@ -437,10 +438,18 @@ class NetworkManager {
             timeout: 15_000,
           },
         );
+        // Android only: on iOS XCUITest finds the BottomSheet testID but reports
+        // displayed=false.
+        if (PlatformDetector.isAndroid()) {
+          await Assertions.expectElementToBeVisible(
+            this.networkManagerBottomSheet,
+            {
+              elemDescription: 'Network Manager Bottom Sheet after open',
+              timeout: 10_000,
+            },
+          );
+        }
       },
-    });
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet after open',
     });
   }
 
