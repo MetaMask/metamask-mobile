@@ -8,7 +8,6 @@ import {
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../utils/transaction-pay';
 
 export function useDefaultPaySelectedSection() {
@@ -16,7 +15,6 @@ export function useDefaultPaySelectedSection() {
   const transactionMeta = useTransactionMetadataRequest();
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
-  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const appliedRef = useRef<string | undefined>(undefined);
 
   const isMoneyAccount =
@@ -34,6 +32,10 @@ export function useDefaultPaySelectedSection() {
 
     appliedRef.current = transactionId;
 
-    applyMoneyAccountOverride(transactionId, moneyAccount?.address, isWithdraw);
-  }, [isMoneyAccount, isWithdraw, transactionId, moneyAccount?.address]);
+    applyMoneyAccountOverride(
+      transactionId,
+      moneyAccount?.address,
+      transactionMeta,
+    );
+  }, [isMoneyAccount, transactionId, transactionMeta, moneyAccount?.address]);
 }

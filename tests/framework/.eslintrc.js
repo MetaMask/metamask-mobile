@@ -89,5 +89,69 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['**/page-objects/**/*.{js,ts}', '**/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        '**/page-objects/**/*.test.ts',
+        '**/page-objects/**/*.test.js',
+        '**/flows/**/*.test.ts',
+        '**/flows/**/*.test.js',
+      ],
+      rules: {
+        'no-restricted-imports': [
+          'warn',
+          {
+            patterns: [
+              {
+                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+              {
+                group: [
+                  '**/framework',
+                  '**/framework/index',
+                  '**/framework/index.ts',
+                  '**/framework/index.js',
+                ],
+                importNames: ['UnifiedGestures'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    // MMQA-2174: ban UnifiedGestures in smoke specs (error)
+    {
+      files: ['**/smoke-appium/**/*.{js,ts}', '**/smoke/**/*.{js,ts}'],
+      excludedFiles: ['**/smoke-appium/**/*.test.ts', '**/smoke/**/*.test.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+              {
+                group: [
+                  '**/framework',
+                  '**/framework/index',
+                  '**/framework/index.ts',
+                  '**/framework/index.js',
+                ],
+                importNames: ['UnifiedGestures'],
+                message:
+                  'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+              },
+            ],
+          },
+        ],
+      },
+    },
   ],
 };
