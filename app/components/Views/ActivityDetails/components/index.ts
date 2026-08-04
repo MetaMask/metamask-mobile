@@ -34,7 +34,7 @@ export {
 } from './ActivityDetailsFees';
 export {
   ActivityDetailsPayFeesAndTotal,
-  hasActivityPayFiat,
+  useActivityPayFiat,
 } from './ActivityDetailsPayFees';
 export {
   ActivityDetailsFooter,
