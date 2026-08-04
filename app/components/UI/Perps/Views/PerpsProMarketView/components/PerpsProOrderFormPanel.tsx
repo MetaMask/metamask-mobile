@@ -10,7 +10,6 @@ import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
 import PerpsOrderTypeBottomSheetView from '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
-import { PerpsOrderProvider } from '../../../contexts/PerpsOrderContext';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
@@ -21,7 +20,14 @@ export interface PerpsProOrderFormPanelProps {
   onExpandOrderBook?: () => void;
 }
 
-const PerpsProOrderFormContent = ({
+/**
+ * Inline Pro order form.
+ *
+ * Must render within a `PerpsOrderProvider`. The provider is owned by
+ * `PerpsProMarketView` so it wraps both this panel and the order book column,
+ * letting an order-book row tap prefill the limit price here (TAT-3643).
+ */
+const PerpsProOrderFormPanel = ({
   market,
   isOrderBookCollapsed,
   onExpandOrderBook,
@@ -240,23 +246,5 @@ const PerpsProOrderFormContent = ({
     </Box>
   );
 };
-
-const PerpsProOrderFormPanel = ({
-  market,
-  isOrderBookCollapsed,
-  onExpandOrderBook,
-}: PerpsProOrderFormPanelProps) => (
-  <PerpsOrderProvider
-    key={market.symbol}
-    initialAsset={market.symbol}
-    initialType="market"
-  >
-    <PerpsProOrderFormContent
-      market={market}
-      isOrderBookCollapsed={isOrderBookCollapsed}
-      onExpandOrderBook={onExpandOrderBook}
-    />
-  </PerpsOrderProvider>
-);
 
 export default PerpsProOrderFormPanel;

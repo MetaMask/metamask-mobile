@@ -588,6 +588,40 @@ describe('PredictFeed', () => {
   });
 
   describe('market feed data', () => {
+    it('shows skeleton loaders while trending markets are loading', async () => {
+      (
+        Engine.context.PredictController.getMarkets as jest.Mock
+      ).mockImplementation(() => new Promise(() => undefined));
+
+      const { findByTestId } = renderPredictFeedView();
+
+      await layoutPredictFeed({ findByTestId });
+
+      expect(
+        await findByTestId(
+          getPredictFeedSelector.skeletonLoading('trending', 1),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the empty state when trending markets resolve to an empty list', async () => {
+      (
+        Engine.context.PredictController.getMarkets as jest.Mock
+      ).mockResolvedValue({ markets: [], nextCursor: null });
+
+      const { findByTestId } = renderPredictFeedView();
+
+      await layoutPredictFeed({ findByTestId });
+
+      expect(
+        await findByTestId(
+          getPredictFeedSelector.emptyState('trending'),
+          {},
+          { timeout: 10000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('shows complete market data for every loaded trending market', async () => {
       const getMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
@@ -725,12 +759,8 @@ describe('PredictFeed', () => {
         findByTestId,
       } = renderPredictFeedViewWithRoutes({
         overrides: predictUpDownFlagOverrides,
-        extraRoutes: [
-          {
-            name: Routes.PREDICT.ROOT,
-            Component: PredictRootRouteParamsProbe,
-          },
-        ],
+        // Default probe is enough — we only assert navigation occurred.
+        extraRoutes: [{ name: Routes.PREDICT.ROOT }],
       });
 
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
@@ -739,12 +769,13 @@ describe('PredictFeed', () => {
         'btc',
       );
 
-      const searchResult = await findByTestId(
-        getPredictSearchSelector.resultCard(0),
-        {},
-        { timeout: 3000 },
-      );
-      expect(searchResult).toBeOnTheScreen();
+      expect(
+        await findByTestId(
+          getPredictSearchSelector.resultCard(0),
+          {},
+          { timeout: 3000 },
+        ),
+      ).toBeOnTheScreen();
       expect(
         await findByTestId(
           PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
@@ -752,7 +783,9 @@ describe('PredictFeed', () => {
       ).toBeOnTheScreen();
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
 
-      fireEvent.press(searchResult);
+      // Re-query immediately before press: the live card clock re-renders every
+      // second, so a held element reference can go stale under CI load.
+      fireEvent.press(getByTestId(getPredictSearchSelector.resultCard(0)));
 
       expect(
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),

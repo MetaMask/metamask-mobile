@@ -742,7 +742,7 @@ function createBufferedStartTrace(
     request: {
       ...request,
       parentContext: undefined, // Remove original parentContext to avoid invalid references
-      startTime: request.startTime ?? Date.now(),
+      startTime: request.startTime ?? getPerformanceTimestamp(),
     },
     parentTraceName,
   } as BufferedTrace;
@@ -756,7 +756,7 @@ function createBufferedEndTrace(request: EndTraceRequest): BufferedTrace {
     type: 'end',
     request: {
       ...request,
-      timestamp: request.timestamp ?? Date.now(),
+      timestamp: request.timestamp ?? getPerformanceTimestamp(),
     },
   } as BufferedTrace;
 }
@@ -1016,7 +1016,7 @@ function startTrace(request: TraceRequest): TraceContext {
   const callback = (span: Span | undefined) => {
     const end = (timestamp?: number) => {
       if (span?.end !== undefined) {
-        span?.end(timestamp);
+        span?.end(timestamp ?? getPerformanceTimestamp());
       }
     };
 

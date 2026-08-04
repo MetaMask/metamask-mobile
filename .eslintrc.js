@@ -84,8 +84,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
   'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.test.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/YouReceiveCard/YouReceiveCard.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
@@ -258,6 +256,55 @@ module.exports = {
           //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
           //   message: 'Use a hash name instead.',
           // },
+        ],
+      },
+    },
+    // MMQA-2174 / MMQA-2173: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
+    {
+      files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/page-objects/**/*.test.ts',
+        'tests/page-objects/**/*.test.js',
+        'tests/flows/**/*.test.ts',
+        'tests/flows/**/*.test.js',
+      ],
+      rules: {
+        // UnifiedGestures Identifier stays out of this error list so legacy PO
+        // usages remain warn-only via no-restricted-imports (MMQA-2174).
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+        ],
+      },
+    },
+    {
+      files: ['tests/smoke-appium/**/*.{js,ts}', 'tests/smoke/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/smoke-appium/**/*.test.ts',
+        'tests/smoke/**/*.test.ts',
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
         ],
       },
     },
