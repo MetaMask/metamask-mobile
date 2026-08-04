@@ -13,6 +13,7 @@ alwaysApply: false
 - `app/core/Widgets/` — all JS/TS foundation code (theme bridge, wrappers, `WidgetUpdaterService`)
 - `ios/ExpoWidgetsTarget/` — the native WidgetKit extension target (Swift)
 - `app/core/Widgets/widgets/BalanceWidget.ios.tsx` + `BalanceWidget.ts` (non-iOS fallback) — the reference widget; copy its shape for new widgets
+- `app/core/Widgets/liveActivities/PerpsPnlLiveActivity.ios.tsx` + `.ts` — the reference Live Activity; its lifecycle driver is `app/components/UI/Perps/services/PerpsLiveActivityService.ts`
 
 ## The one non-negotiable rule: no closures inside `'widget'`-directive functions
 
@@ -46,8 +47,9 @@ Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()
 `expo-widgets`/`@expo/ui`'s JS entry points call a *throwing* `requireNativeModule`/`requireNativeView` at import time — merely importing them on Android crashes the app.
 
 - ✅ `MyThing.ios.ts(x)` — real implementation, imports `expo-widgets`/`@expo/ui/swift-ui`
-- ✅ `MyThing.ts` (plain, extensionless) — no-op fallback, same exported names/types (duplicate small prop interfaces rather than value-importing from the `.ios` file)
-- ✅ Import both via the **extensionless** path (`from './MyThing'`) — Metro resolves `.ios.tsx` on iOS and falls back to the plain `.ts` everywhere else; `tsc` resolves the plain `.ts` directly with default settings
+- ✅ `MyThing.ts(x)` (plain, no platform suffix) — no-op fallback, same exported names/types (duplicate small prop interfaces rather than value-importing from the `.ios` file)
+- ✅ **The two files must share the same extension** — a `.ios.tsx` implementation needs a `.tsx` fallback, even when that fallback contains no JSX. Metro loops `sourceExts` (`['ts', 'tsx', …]`) on the outside and platform on the inside, so with a `.ts` fallback it resolves `MyThing.ts` on iOS *before* it ever tries `MyThing.ios.tsx` — the no-op silently shadows the real implementation. Jest resolves platform-first and does **not** reproduce this, so tests stay green while the app crashes at import time.
+- ✅ Import both via the **extensionless** path (`from './MyThing'`) — Metro resolves the `.ios` variant on iOS and the plain one everywhere else; `tsc` resolves the plain one directly with default settings
 - ❌ Never `import ... from './MyThing.ios'` (explicit `.ios` suffix) for a *value* — this bypasses Metro's platform exclusion and bundles it into Android too. `import type` is fine (fully erased by Babel), but prefer importing the type from the extensionless fallback module anyway.
 - ❌ Never import `expo-widgets` or `@expo/ui/swift-ui` from a file lacking an `.ios.` extension
 
@@ -72,7 +74,7 @@ Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()
 ## Adding a new widget — checklist
 
 1. `app/core/Widgets/widgets/MyWidget.ios.tsx` — props interface + `'widget'` layout + `createMetaMaskWidget(name, layout)`
-2. `app/core/Widgets/widgets/MyWidget.ts` — no-op fallback, `createMetaMaskWidget` from `../createMetaMaskWidget`
+2. `app/core/Widgets/widgets/MyWidget.tsx` — no-op fallback, `createMetaMaskWidget` from `../createMetaMaskWidget` (`.tsx`, matching the `.ios.tsx` extension — see Platform split)
 3. `WidgetUpdaterService.ts` — `computeMyWidgetProps()` + `pushMyWidgetUpdate()`, called from `pushUpdates()`
 4. `ios/ExpoWidgetsTarget/MyWidget.swift` — copy `BalanceWidget.swift`, matching `name` exactly to the JS registration name
 5. `ios/ExpoWidgetsTarget/index.swift` — add `MyWidget()` to the `WidgetBundle` (4-widget-per-bundle WidgetKit limit)
@@ -81,6 +83,20 @@ Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()
 8. Tests + a simulator check (light/dark mode, data updates)
 9. No analytics step needed — [adoption tracking](../../docs/widgets/README.md#adoption-analytics) is automatic, keyed on `name`/`MY_WIDGET_NAME`
 
+## Adding a Live Activity — checklist
+
+Every rule above (no closures, platform split, theming) applies unchanged. Only these differ:
+
+1. **No native work whatsoever** — no `.swift` file, no `index.swift` entry, no Xcode target membership, no `app.config.js` entry. `WidgetLiveActivity()` (expo-widgets' generic renderer) is already bundled and `NSSupportsLiveActivities` is already set; `createLiveActivity` writes the stringified layout to the App Group at *import time* and the extension looks it up by `name`. A new Live Activity is a pure-JS change.
+2. `app/core/Widgets/liveActivities/MyActivity.ios.tsx` — props + a `'widget'` layout that returns a **`LiveActivityLayout` object**, not JSX: `{ banner, compactLeading, compactTrailing, minimal, expandedLeading, expandedTrailing, expandedBottom }`. Second param is `LiveActivityEnvironment` (import it from `../createMetaMaskLiveActivity.ios`; `expo-widgets` doesn't re-export it from its package root).
+3. `app/core/Widgets/liveActivities/MyActivity.tsx` — no-op fallback, `createMetaMaskLiveActivity` from `../createMetaMaskLiveActivity` (`.tsx`, matching the `.ios.tsx` extension — see Platform split).
+4. A **feature-owned** lifecycle service calling `.start()` / `.update()` / `.end('immediate')` — NOT `WidgetUpdaterService`, which only exists to fan a debounced Redux snapshot out to widgets. Throttle updates (ActivityKit budgets them) and skip writes when serialized props are unchanged.
+5. Call `endLiveActivitiesFromPreviousLaunch()` once from that service's start.
+6. Prefer suppressing the activity entirely over masking values when privacy mode is on — the Lock Screen is readable without unlocking.
+7. Tests: assert registration from the activity's own file, all real logic from the service. Reading `MM_WIDGETS_ENABLED` at call time requires adding the service *and* its test to `babel.config.tests.js`'s inline-env `exclude` list.
+
+- **NEVER** adopt `getInstances()[0]`. `expo-widgets` renders all Live Activities through one shared `ActivityAttributes` type, so `getInstances()` on any factory returns every instance app-wide, and `update()` rewrites the kind's `name` — adopting blindly repurposes another feature's activity. See `app/core/Widgets/reconcileLiveActivities.ts`.
+
 Note: `ExpoWidgetsTarget` is only embedded in the `MetaMask` scheme — `MetaMask-Flask` ships without widgets (see `docs/widgets/README.md#limitations`). Device/IPA (archive/export) builds also need Apple Developer portal provisioning work not yet done — see `docs/widgets/README.md#provisioning-for-device-and-ipa-builds`; simulator builds and E2E are unaffected.
 
 ## Enforcement
@@ -88,4 +104,4 @@ Note: `ExpoWidgetsTarget` is only embedded in the `MetaMask` scheme — `MetaMas
 - **REJECT** any reference inside a `'widget'`-directive function to something other than its own params/`@expo/ui/swift-ui`
 - **REJECT** `import ... from 'expo-widgets'` / `'@expo/ui/swift-ui'` in a file without an `.ios.` extension
 - **REJECT** explicit `.ios`-suffixed *value* imports of platform-split files
-- **REQUIRE** a plain `.ts(x)` no-op fallback counterpart for every new `.ios.ts(x)` file under `app/core/Widgets/`
+- **REQUIRE** a plain no-op fallback counterpart for every new `.ios.ts(x)` file under `app/core/Widgets/`, **using the same extension** as the `.ios` file

@@ -19,9 +19,10 @@ internal import ExpoWidgets
 // widgets into groups of 4 and chains them via nested `body` calls. We only
 // ship one widget today, so there is a single bundle. `WidgetLiveActivity()`
 // (expo-widgets' built-in Live Activity renderer) must always be present in
-// the last bundle — without it, `createLiveActivity(...)` calls from the app
-// (e.g. a future Perps P/L Live Activity) would have no native counterpart to
-// render into, even though no Live Activity is registered yet.
+// the last bundle — it renders EVERY Live Activity the app registers, looked
+// up by name from the shared App Group container. That is why adding one
+// (e.g. app/core/Widgets/liveActivities/PerpsPnlLiveActivity.ios.tsx) requires
+// no change to this file, unlike adding a widget kind.
 @main
 struct ExportWidgets0: WidgetBundle {
   var body: some Widget {

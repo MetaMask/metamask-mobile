@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PerpsLiveActivityService } from '../services/PerpsLiveActivityService';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 import { selectPerpsEnabledFlag } from '../index';
 import Engine from '../../../../core/Engine';
@@ -34,6 +35,20 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Track AppState so Perps CUF spans can tag lifecycle_context.
   useEffect(() => initPerpsLifecycleTracking(), []);
+
+  // Mirror the largest open position's live P/L into an iOS Live Activity.
+  // Attached here because this is where the app-wide Perps connection already
+  // lives, so the position stream is available for the whole app lifetime
+  // rather than only while a Perps screen is mounted. No-op on Android and
+  // unless MM_WIDGETS_ENABLED is 'true' — see PerpsLiveActivityService.
+  useEffect(() => {
+    if (!isPerpsEnabled) {
+      return undefined;
+    }
+
+    PerpsLiveActivityService.start();
+    return () => PerpsLiveActivityService.stop();
+  }, [isPerpsEnabled]);
 
   useEffect(() => {
     const controller = Engine.context.PerpsController;

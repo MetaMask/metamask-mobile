@@ -27,7 +27,7 @@ whole document as agent-usable instructions.
 - [Adoption analytics](#adoption-analytics)
 - [The reference widget: `BalanceWidget`](#the-reference-widget-balancewidget)
 - [Adding a new widget](#adding-a-new-widget)
-- [Adding a Live Activity](#adding-a-live-activity)
+- [Live Activities](#live-activities)
 - [Testing widgets](#testing-widgets)
 - [Possibilities](#possibilities)
 - [Limitations](#limitations)
@@ -65,10 +65,17 @@ app/core/Widgets/
 ├── getInstalledWidgets.ios.ts         Bridges RCTWidgetInfo -> installed widget {kind, family}[]
 ├── getInstalledWidgets.ts            No-op fallback (returns [])
 ├── trackWidgetAdoption.ts            Reports install-based widget adoption to analytics
+├── reconcileLiveActivities.ts        Launch-time cleanup of activities orphaned by a previous process
 ├── index.ts                          Barrel (WidgetUpdaterService, WidgetTheme helpers, types)
-└── widgets/
-    ├── BalanceWidget.ios.tsx         Reference widget: layout + registration
-    └── BalanceWidget.ts              No-op fallback with the same exported shape
+├── widgets/
+│   ├── BalanceWidget.ios.tsx         Reference widget: layout + registration
+│   └── BalanceWidget.tsx             No-op fallback with the same exported shape
+└── liveActivities/
+    ├── PerpsPnlLiveActivity.ios.tsx  Reference Live Activity: layout + registration
+    └── PerpsPnlLiveActivity.tsx      No-op fallback with the same exported shape
+
+app/components/UI/Perps/services/
+└── PerpsLiveActivityService.ts       Feature-owned start/update/end lifecycle for the above
 
 ios/MetaMask/NativeModules/RCTWidgetInfo/   Swift + RCT_EXTERN_MODULE bridge for WidgetCenter.getCurrentConfigurations
 ├── RCTWidgetInfo.swift               getInstalledWidgets() -> [{ kind, family }] (used for adoption analytics)
@@ -213,7 +220,7 @@ neither native module is registered on Android.
 
 Every module in `app/core/Widgets/` that touches `expo-widgets` or
 `@expo/ui` therefore ships as a pair: a real `.ios.ts(x)` implementation, and
-a plain, extensionless `.ts` fallback (same exported names/types, does
+a plain, platform-suffix-free fallback (same exported names/types, does
 nothing) that Metro/`tsc` resolve on every other platform:
 
 | File                                | Runs on         | Behavior                                  |
@@ -223,18 +230,44 @@ nothing) that Metro/`tsc` resolve on every other platform:
 | `createMetaMaskLiveActivity.ios.ts` | iOS             | Real `expo-widgets` wrapper               |
 | `createMetaMaskLiveActivity.ts`     | Everywhere else | No-op fallback                            |
 | `widgets/BalanceWidget.ios.tsx`     | iOS             | Real widget (SwiftUI-in-JS layout)        |
-| `widgets/BalanceWidget.ts`          | Everywhere else | No-op fallback, same exported names/types |
+| `widgets/BalanceWidget.tsx`         | Everywhere else | No-op fallback, same exported names/types |
 
 Metro's bundler resolves an **extensionless** import (`import { BalanceWidget } from './widgets/BalanceWidget'`)
-to `BalanceWidget.ios.tsx` on iOS and falls back to the plain `BalanceWidget.ts`
+to `BalanceWidget.ios.tsx` on iOS and falls back to the plain `BalanceWidget.tsx`
 everywhere else, excluding the other file from that platform's bundle
 entirely. `WidgetUpdaterService.ts` relies on this — it imports every widget
 module extensionlessly so it works, unmodified, on both platforms (no-op on
 Android). `tsc` uses its own default (non-platform-aware) module resolution
-for the same extensionless import, which also lands on the plain `.ts`
-fallback — that's fine, since each platform file is still fully type-checked
-on its own when `tsc` walks it directly, and the fallback is written to
-mirror the `.ios` file's exported shape exactly.
+for the same extensionless import, which also lands on the plain fallback —
+that's fine, since each platform file is still fully type-checked on its own
+when `tsc` walks it directly, and the fallback is written to mirror the `.ios`
+file's exported shape exactly.
+
+### Both files in a pair must share the same extension
+
+`BalanceWidget.tsx` contains no JSX, yet it is deliberately not named
+`BalanceWidget.ts`. Metro builds its resolution candidates by looping over
+`sourceExts` (`['ts', 'tsx', 'mjs', 'js', …]`) on the **outside** and platform
+on the **inside** — for each extension it tries `.ios.<ext>`, then
+`.native.<ext>`, then `.<ext>`, and returns the first hit. So a `.ts` fallback
+paired with an `.ios.tsx` implementation resolves like this on iOS:
+
+```
+./BalanceWidget → BalanceWidget.ios.ts   ✗
+                → BalanceWidget.native.ts ✗
+                → BalanceWidget.ts        ✓  ← no-op fallback wins, on iOS
+                  (BalanceWidget.ios.tsx never reached)
+```
+
+The failure mode is nasty: the no-op fallback passes its `() => undefined`
+layout to the **real** `createMetaMaskWidget.ios.ts` (whose own pair does share
+an extension, so it resolves correctly), and `expo-widgets`' native
+`createWidget` throws `The 2nd argument cannot be cast to type String` at
+import time, taking the app down at startup.
+
+Jest does **not** reproduce this — its resolver tries all platform variants
+before any bare extension — so unit tests keep passing while the app is broken.
+Extension parity is the only thing keeping the two resolvers in agreement.
 
 **Rule of thumb:** never write `import ... from 'expo-widgets'` or
 `from '@expo/ui/swift-ui'` in a file that doesn't have an `.ios.` extension,
@@ -460,11 +493,13 @@ used elsewhere in the app), and reads the label from
      via `environment.colorScheme` (see [Theming](#theming)).
    - Export `export const MY_WIDGET_NAME = 'MyWidget';` and
      `export const MyWidget = createMetaMaskWidget<MyWidgetProps>(MY_WIDGET_NAME, MyWidgetLayout);`.
-3. **Non-iOS fallback — `app/core/Widgets/widgets/MyWidget.ts`:**
+3. **Non-iOS fallback — `app/core/Widgets/widgets/MyWidget.tsx`:**
    Duplicate the `MyWidgetProps` interface (don't type-import it from the
    `.ios.tsx` file's _value_ export — see [Platform split](#platform-split-iosts--base-ts)),
    and call `createMetaMaskWidget<MyWidgetProps>(MY_WIDGET_NAME, () => undefined)`
-   from `../createMetaMaskWidget`.
+   from `../createMetaMaskWidget`. Name it `.tsx`, not `.ts`, even though it has
+   no JSX — see
+   [Both files in a pair must share the same extension](#both-files-in-a-pair-must-share-the-same-extension).
 4. **Data — `WidgetUpdaterService.ts`:** add `computeMyWidgetProps()` and
    `pushMyWidgetUpdate()` methods (mirroring the Balance ones), and call the
    push method from `pushUpdates()`.
@@ -500,28 +535,121 @@ used elsewhere in the app), and reads the label from
 No analytics work is needed — [adoption tracking](#adoption-analytics) is
 automatic for every widget kind, keyed on `name`/`MY_WIDGET_NAME`.
 
-## Adding a Live Activity
+## Live Activities
 
-The foundation includes `createMetaMaskLiveActivity` (iOS) / a plain `.ts`
-no-op fallback, mirroring `createMetaMaskWidget`. `WidgetLiveActivity()`
-— `expo-widgets`' built-in generic Live Activity renderer — is already
-included in `ios/ExpoWidgetsTarget/index.swift`'s bundle, so **no further
-native/Xcode changes are needed for the first Live Activity** you register.
+A Live Activity is the Lock Screen / Dynamic Island counterpart of a home
+screen widget. Everything in [How widget code actually runs](#how-widget-code-actually-runs),
+[Platform split](#platform-split-iosts--base-ts) and [Theming](#theming)
+applies unchanged — the `'widget'` directive, the no-closures rule, the
+`.ios.tsx` + plain `.tsx` pair, and passing both theme variants.
 
-To add one (e.g. a Perps P/L Live Activity, a natural follow-up to this PR):
+Three things differ, and they're the whole delta:
 
-1. Define `MyActivityProps` (JSON-serializable content, e.g. `{ symbol, pnl, entryPrice, currentPrice }`).
-2. Write a `.ios.ts(x)` file with a `'widget'`-directive component and
-   `export const MyActivity = createMetaMaskLiveActivity<MyActivityProps>('MyActivity', MyActivityLayout);`,
-   plus a plain `.ts` no-op counterpart (same pattern as widgets).
-3. Wherever the feature's state machine knows an activity should start (e.g.
-   a Perps position opening), call
-   `MyActivity.start(initialProps)` and keep the returned `LiveActivity`
-   instance around; call `.update(newProps)` on subsequent changes and
-   `.end()` when it should go away. This is feature-owned, not part of
-   `WidgetUpdaterService` (Live Activities are usually driven by an event/state
-   machine, not a Redux-subscription debounce).
-4. Follow the same theming rules — pass both `theme.light`/`theme.dark`.
+1. **No native work at all.** Unlike a widget, a Live Activity needs no
+   `.swift` file, no `index.swift` bundle entry, no Xcode target membership,
+   and no `app.config.js` entry. `expo-widgets`' generic
+   `WidgetLiveActivity()` renderer is already in
+   `ios/ExpoWidgetsTarget/index.swift`'s bundle, `NSSupportsLiveActivities` is
+   already `true` in `ios/MetaMask/Info.plist`, and
+   `createLiveActivity(name, layout)` writes the stringified layout into the
+   shared App Group container at **import time**
+   (`__expo_widgets_live_activity_<name>_layout`). The extension reads it back
+   by name at render time. Adding a Live Activity is therefore a pure-JS
+   change — it ships over Metro/OTA like any other JS.
+2. **The layout returns an object, not a JSX tree.** A widget layout returns
+   one view; a Live Activity layout returns a `LiveActivityLayout` whose keys
+   are the presentation regions iOS asks for:
+
+   | Key                                                                          | Where it appears                              |
+   | ---------------------------------------------------------------------------- | --------------------------------------------- |
+   | `banner`                                                                     | Lock Screen and Notification Center           |
+   | `bannerSmall`                                                                | CarPlay / watchOS (falls back to `banner`)    |
+   | `compactLeading`                                                             | Collapsed Dynamic Island, left of the camera  |
+   | `compactTrailing`                                                            | Collapsed Dynamic Island, right of the camera |
+   | `minimal`                                                                    | Dynamic Island when another app shares it     |
+   | `expandedLeading` / `expandedTrailing` / `expandedCenter` / `expandedBottom` | Long-pressed Dynamic Island                   |
+
+   The second argument is a `LiveActivityEnvironment` rather than a
+   `WidgetEnvironment` — same `colorScheme` field, no `widgetFamily`. It isn't
+   re-exported from `expo-widgets`' package root, so
+   `createMetaMaskLiveActivity.ios.ts` re-exports a derived version; import it
+   from there.
+
+3. **The lifecycle is feature-owned.** `WidgetUpdaterService` exists to fan a
+   debounced Redux snapshot out to widgets. A Live Activity is a state machine
+   (start on open, update while open, end on close) and its data often isn't
+   in Redux at all, so the owning feature drives it.
+
+### The reference Live Activity: `PerpsPnlLiveActivity`
+
+`app/core/Widgets/liveActivities/PerpsPnlLiveActivity.ios.tsx` shows an open
+Perps position's live unrealized P/L. Read it alongside `BalanceWidget.ios.tsx`
+— together they cover both shapes.
+
+`app/components/UI/Perps/services/PerpsLiveActivityService.ts` is the data
+side, and is the more instructive half. It subscribes imperatively to
+`PerpsStreamManager`'s `positions` and `prices` channels (individual perps
+positions never enter Redux), picks the largest open position by notional
+value, reuses `enrichPositionsWithLivePnL` to recompute P/L from the live mark
+price, formats everything with the Perps formatters, and starts / updates /
+ends the activity accordingly. It is attached to `PerpsAlwaysOnProvider`,
+which already owns the app-wide Perps connection.
+
+Two behaviors there are worth copying:
+
+- **Throttle, then dedupe.** Both stream subscriptions use a 2s throttle, and
+  the service skips the ActivityKit write entirely when the newly computed
+  props are `JSON.stringify`-identical to the last push — the same pattern
+  `WidgetUpdaterService` uses. ActivityKit budgets update frequency, and a
+  price feed ticks far faster than a Lock Screen card is worth redrawing.
+- **Privacy mode suppresses the activity outright** rather than masking the
+  numbers, because a Lock Screen is readable without unlocking the device.
+  That's a deliberate difference from `BalanceWidget`, which masks instead.
+
+### Adding a Live Activity
+
+1. **Design the props.** Flat and JSON-serializable, everything pre-formatted
+   and pre-translated. Pass semantic flags (e.g. `isProfit: boolean`) rather
+   than resolved colors, so the layout can still pick the right light/dark
+   variant on an OS appearance change.
+2. **`app/core/Widgets/liveActivities/MyActivity.ios.tsx`** — props interface,
+   a `'widget'`-directive layout returning a `LiveActivityLayout`, and
+   `export const MyActivity = createMetaMaskLiveActivity<MyActivityProps>(MY_ACTIVITY_NAME, MyActivityLayout);`.
+3. **`app/core/Widgets/liveActivities/MyActivity.tsx`** — no-op fallback
+   duplicating the props interface, calling `createMetaMaskLiveActivity` from
+   `../createMetaMaskLiveActivity`. `.tsx`, matching the `.ios.tsx` extension —
+   see
+   [Both files in a pair must share the same extension](#both-files-in-a-pair-must-share-the-same-extension).
+4. **A feature-owned lifecycle service** that calls `.start(props)`,
+   `.update(props)` and `.end('immediate')`. Call
+   `endLiveActivitiesFromPreviousLaunch()` once when it starts (see
+   [Orphaned activities](#orphaned-activities-and-the-shared-attributes-type)),
+   and gate the whole thing on `Platform.OS === 'ios'` and
+   `process.env.MM_WIDGETS_ENABLED === 'true'`.
+5. **Tests.** Same split as widgets: assert registration from the activity's
+   own file (name + that the layout is now a `string`), and test all real
+   logic from the service. If the service reads `MM_WIDGETS_ENABLED`, add both
+   it and its test to `babel.config.tests.js`'s inline-env `exclude` list so
+   the disabled path is reachable.
+6. **Verify in a simulator.** No rebuild needed if `ExpoWidgetsTarget` is
+   already installed — reloading JS is enough, since registration happens at
+   import time.
+
+### Orphaned activities and the shared attributes type
+
+`expo-widgets` renders every Live Activity through a single shared
+`ActivityAttributes` type, discriminating kinds only by a `name` string inside
+the content state. Two consequences:
+
+- `getInstances()` on **any** factory returns **every** live instance,
+  regardless of which factory started it, and `LiveActivity.update()` rewrites
+  that `name` from the factory the handle came from. Never "adopt"
+  `getInstances()[0]` — you may silently repurpose another feature's activity.
+- iOS keeps a Live Activity alive after its host app is terminated, but the JS
+  handle needed to end it does not survive. `app/core/Widgets/reconcileLiveActivities.ts`
+  therefore ends everything, once per process, at launch — before any feature
+  has started an activity of its own. It's guarded so a second caller can't
+  end the first caller's freshly started activity.
 
 ## Testing widgets
 
@@ -629,6 +757,13 @@ auto-discovered root `__mocks__/` convention):
 - **No push-based remote updates** are wired up yet (Live Activities support
   APNs push updates via `getPushToken()`/`addPushTokenListener()` on
   `expo-widgets`' API, but no server-side integration exists in this repo).
+- **Live Activity updates are budgeted by ActivityKit**, and a Live Activity
+  can only be _started_ while the app is foregrounded. A feature whose data
+  changes many times a second must throttle before calling `.update()` — see
+  `PerpsLiveActivityService`.
+- **Live Activity kinds are not distinguishable at runtime.** `getInstances()`
+  is app-wide because `expo-widgets` uses one shared `ActivityAttributes`
+  type — see [Orphaned activities](#orphaned-activities-and-the-shared-attributes-type).
 - **`MetaMask-Flask` ships without widgets.** `ExpoWidgetsTarget` is only
   embedded in and depended on by the `MetaMask` scheme/target — the
   `MetaMask-Flask` scheme has no dependency on it and no

@@ -65,6 +65,8 @@ const newOverrides = [
       // toggle the flag to exercise both the enabled and disabled paths.
       'app/core/Widgets/WidgetUpdaterService.ts',
       'app/core/Widgets/WidgetUpdaterService.test.ts',
+      'app/components/UI/Perps/services/PerpsLiveActivityService.ts',
+      'app/components/UI/Perps/services/PerpsLiveActivityService.test.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
       'app/core/devApiEnv.ts',
