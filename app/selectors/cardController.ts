@@ -87,13 +87,6 @@ export const selectCardSelectedCountry = createSelector(
     cardState?.selectedCountry ?? null,
 );
 
-/** Temporary: Immersve cardProgramId chosen on SignUp for internal testing. */
-export const selectCardSelectedCardProgramId = createSelector(
-  selectCardControllerState,
-  (cardState: CardControllerState | undefined) =>
-    cardState?.selectedCardProgramId ?? null,
-);
-
 export const selectCardActiveProviderId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
@@ -182,6 +175,17 @@ export const selectCardHomeDataStatus = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeDataStatus =>
     cardState?.cardHomeDataStatus ?? 'idle',
+);
+
+export const selectIsCardStateResolved = createSelector(
+  selectCardHomeDataStatus,
+  selectCardVerificationStatus,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  (status, verificationStatus, isAuthenticated, isCardholder) =>
+    (status === 'success' &&
+      (!isAuthenticated || verificationStatus !== null)) ||
+    (!isAuthenticated && !isCardholder),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(

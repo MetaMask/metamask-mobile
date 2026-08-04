@@ -14,6 +14,7 @@ import {
   type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
+  type FetchCardHomeDataOptions,
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
 import {
@@ -85,16 +86,10 @@ import {
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
+const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
-  // Temporary: internal-testing override for Immersve cardProgramId.
-  selectedCardProgramId: {
     persist: true,
     includeInDebugSnapshot: true,
     includeInStateLogs: true,
@@ -152,7 +147,6 @@ const metadata: StateMetadata<CardControllerState> = {
 
 export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
-  selectedCardProgramId: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
   lastUnauthenticatedReason: null,
@@ -184,6 +178,7 @@ export class CardController extends BaseController<
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
+  #lastFetchedAt = 0;
 
   constructor({
     messenger,
@@ -204,6 +199,11 @@ export class CardController extends BaseController<
       },
     });
     this.providers = providers;
+    try {
+      this.previousEvmAddress = this.#getSelectedEvmAddress();
+    } catch {
+      this.previousEvmAddress = null;
+    }
     this.#subscribeToEvents();
   }
 
@@ -250,8 +250,11 @@ export class CardController extends BaseController<
     );
   }
 
-  #fetchCardHomeDataWithLogging(method: string): void {
-    this.fetchCardHomeData().catch((error) =>
+  #fetchCardHomeDataWithLogging(
+    method: string,
+    options: FetchCardHomeDataOptions = {},
+  ): void {
+    this.fetchCardHomeData(options).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card' },
         context: {
@@ -262,17 +265,20 @@ export class CardController extends BaseController<
     );
   }
 
+  #invalidateAndClear(): void {
+    this.invalidateFetch();
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataStatus = 'idle';
+    });
+  }
+
   #handleAccountSwitch(): void {
     const currentAddress = this.#getSelectedEvmAddress();
 
     if (currentAddress !== this.previousEvmAddress) {
       this.previousEvmAddress = currentAddress;
-      this.invalidateFetch();
-      this.update((s) => {
-        s.cardHomeData = null;
-        s.cardHomeDataStatus = 'idle';
-      });
-      this.#fetchCardHomeDataWithLogging('#handleAccountSwitch');
+      this.#invalidateAndClear();
     }
   }
 
@@ -280,12 +286,7 @@ export class CardController extends BaseController<
     const currentAddress = this.#getSelectedEvmAddress();
     if (!currentAddress) return;
 
-    this.invalidateFetch();
-    this.update((s) => {
-      s.cardHomeData = null;
-      s.cardHomeDataStatus = 'idle';
-    });
-    this.#fetchCardHomeDataWithLogging('#handleCardFeatureFlagChange');
+    this.#invalidateAndClear();
   }
 
   #triggerCardholderCheck(): void {
@@ -366,26 +367,11 @@ export class CardController extends BaseController<
       if (providerId) {
         s.activeProviderId = providerId;
       }
-      if (providerChanged) {
-        s.cardHomeData = null;
-        s.cardHomeDataStatus = 'idle';
-      }
     });
 
     if (providerChanged) {
-      this.invalidateFetch();
+      this.#invalidateAndClear();
     }
-  }
-
-  /**
-   * Temporary: persist the Immersve cardProgramId chosen on SignUp for
-   * internal multi-program testing. Overlayed onto the feature flag in
-   * card-controller/index.ts. Easy to remove.
-   */
-  setSelectedCardProgramId(id: string | null): void {
-    this.update((s) => {
-      s.selectedCardProgramId = id;
-    });
   }
 
   #resolveProviderForCountry(country: string): string {
@@ -526,7 +512,17 @@ export class CardController extends BaseController<
    * request (same ??= pattern as refreshPromise). A generation counter
    * ensures stale responses (from a previous account or session) are dropped.
    */
-  async fetchCardHomeData(): Promise<void> {
+  async fetchCardHomeData(
+    options: FetchCardHomeDataOptions = {},
+  ): Promise<void> {
+    const { force = false } = options;
+    if (
+      !force &&
+      this.#lastFetchedAt > 0 &&
+      Date.now() - this.#lastFetchedAt < CARD_HOME_DATA_FRESH_MS
+    ) {
+      return;
+    }
     this.fetchCardHomeDataPromise ??= this.#doFetchCardHomeData(
       this.fetchGeneration,
     ).finally(() => {
@@ -537,7 +533,13 @@ export class CardController extends BaseController<
 
   async #doFetchCardHomeData(generation: number): Promise<void> {
     const address = this.#getSelectedEvmAddress();
-    if (!address) return;
+    if (!address) {
+      this.update((s) => {
+        s.cardHomeDataStatus = 'error';
+      });
+      this.#lastFetchedAt = Date.now();
+      return;
+    }
 
     this.update((s) => {
       s.cardHomeDataStatus = 'loading';
@@ -550,6 +552,7 @@ export class CardController extends BaseController<
             data as unknown as Record<string, Json>;
           s.cardHomeDataStatus = 'success';
         });
+        this.#lastFetchedAt = Date.now();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
@@ -563,6 +566,7 @@ export class CardController extends BaseController<
         this.update((s) => {
           s.cardHomeDataStatus = 'error';
         });
+        this.#lastFetchedAt = Date.now();
       }
     }
   }
@@ -575,6 +579,7 @@ export class CardController extends BaseController<
   private invalidateFetch(): void {
     this.fetchGeneration++;
     this.fetchCardHomeDataPromise = null;
+    this.#lastFetchedAt = 0;
   }
 
   #getSelectedEvmAddress(): string | null {
@@ -792,12 +797,6 @@ export class CardController extends BaseController<
     location?: string;
   }> {
     const tokens = await this.getValidTokens();
-
-    // Always fetch card home data regardless of auth state: authenticated users
-    // get full card data, unauthenticated users get on-chain asset state.
-    this.#fetchCardHomeDataWithLogging(
-      'validateAndRefreshSession/fetchCardHomeData',
-    );
 
     if (!tokens) return { isAuthenticated: false };
     return { isAuthenticated: true, location: tokens.location };
@@ -1501,7 +1500,7 @@ export class CardController extends BaseController<
     });
 
     try {
-      await this.fetchCardHomeData();
+      await this.fetchCardHomeData({ force: true });
     } catch (error) {
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
@@ -1518,7 +1517,7 @@ export class CardController extends BaseController<
     const existing = fromState();
     if (existing) return existing;
 
-    await this.fetchCardHomeData();
+    await this.fetchCardHomeData({ force: true });
     return fromState();
   }
 
