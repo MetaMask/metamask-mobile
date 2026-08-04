@@ -1,5 +1,8 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
+import AndroidWebViewCdpHelpers, {
+  isAndroidWebViewCdpScrollEnabled,
+} from './AndroidWebViewCdpHelpers';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
 import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { getDriver } from './PlaywrightUtilities';
@@ -16,6 +19,11 @@ const IN_PLACE_FIND_TIMEOUT_MS = 5_000;
 export interface AndroidWebViewScrollOptions {
   /** Optional visible text labels used when resource-id nodes are virtualized off-screen. */
   scrollLabels?: Record<string, string>;
+  /**
+   * Page URL for CDP scroll target selection (Android Appium).
+   * When set and CDP is enabled, scroll tries DOM scrollIntoView before UiScrollable.
+   */
+  pageUrl?: string;
 }
 
 export type AndroidWebViewTapOptions = AndroidWebViewScrollOptions & {
@@ -183,6 +191,27 @@ export async function scrollAndroidWebIdIntoView(
   );
   if (alreadyVisible) {
     return alreadyVisible;
+  }
+
+  // Prefer CDP DOM scroll when pageUrl is known — avoids slow UiScrollable sweeps.
+  // Never uses Chromedriver; failures fall through to native scroll.
+  if (options.pageUrl && isAndroidWebViewCdpScrollEnabled()) {
+    const cdpScrolled =
+      await AndroidWebViewCdpHelpers.scrollElementByIdIntoView(webId, {
+        pageUrl: options.pageUrl,
+      });
+    if (cdpScrolled) {
+      const afterCdp = await tryFindNativeWebIdElement(
+        webId,
+        IN_PLACE_FIND_TIMEOUT_MS,
+      );
+      if (afterCdp) {
+        return afterCdp;
+      }
+      logger.debug(
+        `CDP scrolled #${webId} but resource-id still missing; falling back to UiScrollable`,
+      );
+    }
   }
 
   const viaUiScrollable = await scrollNativeWebIdIntoViewViaUiScrollable(
