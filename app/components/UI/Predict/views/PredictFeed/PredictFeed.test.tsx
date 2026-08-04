@@ -6,7 +6,7 @@
  * back→wallet navigation, and market card rendering. Do not re-add those flows here.
  *
  * KEEP in this file (unit/mock harness — CV flag wiring is heavy or not yet covered):
- * - Hot / World Cup feature-flag tab ordering and query params
+ * - Hot / Wimbledon feature-flag tab ordering and query params
  * - Session management lifecycle and portfolio module flag
  * - Lazy tab `enabled` gate (warm cache, remount reset)
  * - Route params / entryPoint attribution (incl. deeplink query prefill)
@@ -27,11 +27,7 @@ import {
   getPredictFeedSelector,
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
-import {
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
-  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
-} from '../../constants/flags';
-import { buildPredictWorldCupAllQuery } from '../../utils/worldCup';
+import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 jest.mock('react-native-reanimated', () => {
@@ -129,8 +125,6 @@ const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
   enabled: false,
   queryParams: undefined,
 };
-let mockIsWorldCupMainFeedTabEnabled = false;
-let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
 let mockWimbledonTabFlag = {
   enabled: false,
   queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
@@ -155,9 +149,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictPortfolioEnabledFlag: 'selectPredictPortfolioEnabledFlag',
   selectPredictUpDownEnabledFlag: 'selectPredictUpDownEnabledFlag',
   selectPredictWimbledonTabFlag: 'selectPredictWimbledonTabFlag',
-  selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
-  selectPredictWorldCupMainFeedTabEnabledFlag:
-    'selectPredictWorldCupMainFeedTabEnabledFlag',
 }));
 
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
@@ -363,8 +354,6 @@ describe('PredictFeed', () => {
     mockGetInstance.mockReturnValue(mockSessionManager);
     mockHotTabFlag.enabled = false;
     mockHotTabFlag.queryParams = undefined;
-    mockIsWorldCupMainFeedTabEnabled = false;
-    mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
     mockWimbledonTabFlag = {
       enabled: false,
       queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
@@ -385,10 +374,6 @@ describe('PredictFeed', () => {
           return mockIsUpDownEnabled;
         case 'selectPredictWimbledonTabFlag':
           return mockWimbledonTabFlag;
-        case 'selectPredictWorldCupConfig':
-          return mockWorldCupConfig;
-        case 'selectPredictWorldCupMainFeedTabEnabledFlag':
-          return mockIsWorldCupMainFeedTabEnabled;
         default:
           return undefined;
       }
@@ -439,7 +424,7 @@ describe('PredictFeed', () => {
       expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
     });
 
-    it('mounts remote banner slots around the existing feed banners', () => {
+    it('mounts remote banner slots in the feed header', () => {
       render(<PredictFeed />);
 
       const positions = mockPredictFeedBanner.mock.calls.map(
@@ -450,7 +435,6 @@ describe('PredictFeed', () => {
         expect.arrayContaining([
           PredictFeedBannerPosition.AfterBalance,
           PredictFeedBannerPosition.AfterFeaturedCarousel,
-          PredictFeedBannerPosition.AfterWorldCupBanner,
         ]),
       );
     });
@@ -914,101 +898,6 @@ describe('PredictFeed', () => {
       expect(mockSessionManager.startSession).toHaveBeenCalledWith(
         'homepage_new_prediction',
         'hot',
-      );
-    });
-  });
-
-  describe('World Cup tab feature flag (KEEP — CV flag harness heavy)', () => {
-    it('does not render World Cup tab when flag is disabled', () => {
-      const { queryByTestId } = render(<PredictFeed />);
-
-      expect(
-        queryByTestId(getPredictFeedMockSelector.tabKey('world-cup')),
-      ).toBeNull();
-    });
-
-    it('renders World Cup tab and page first when flag is enabled', () => {
-      mockIsWorldCupMainFeedTabEnabled = true;
-      mockWorldCupConfig = {
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        showMainFeedTab: true,
-      };
-
-      const { getByTestId } = render(<PredictFeed />);
-
-      expect(
-        getByTestId(getPredictFeedMockSelector.tabKey('world-cup')),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(getPredictFeedMockSelector.pagerPage(0)),
-      ).toBeOnTheScreen();
-      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
-        'homepage_new_prediction',
-        'world-cup',
-      );
-    });
-
-    it('places World Cup before Hot when both flags are enabled', () => {
-      mockIsWorldCupMainFeedTabEnabled = true;
-      mockWorldCupConfig = {
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        showMainFeedTab: true,
-      };
-      mockHotTabFlag.enabled = true;
-      mockHotTabFlag.queryParams = 'tag_id=149';
-
-      const mockOnTabSwitch = jest.fn();
-      mockUseFeedScrollManager.mockReturnValue({
-        headerTranslateY: { value: 0 },
-        headerHidden: false,
-        headerHeight: 100,
-        tabBarHeight: 48,
-        layoutReady: true,
-        onTabSwitch: mockOnTabSwitch,
-        scrollHandler: jest.fn(),
-        onHeaderLayout: jest.fn(),
-        onTabBarLayout: jest.fn(),
-      });
-
-      const { getByTestId } = render(<PredictFeed />);
-
-      fireEvent(
-        getByTestId(getPredictFeedMockSelector.pagerPage(0)),
-        'onTouchEnd',
-      );
-      fireEvent(
-        getByTestId(getPredictFeedMockSelector.pagerPage(1)),
-        'onTouchEnd',
-      );
-
-      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith(
-        'world-cup',
-      );
-      expect(mockSessionManager.trackTabChange).toHaveBeenCalledWith('hot');
-    });
-
-    it('passes World Cup custom query params to market data fetching', () => {
-      mockIsWorldCupMainFeedTabEnabled = true;
-      mockWorldCupConfig = {
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        showMainFeedTab: true,
-        tagSlug: 'custom-world-cup',
-      };
-
-      render(<PredictFeed />);
-
-      const worldCupTabCall = mockUsePredictMarketData.mock.calls.find(
-        (call: [{ category?: string }]) => call[0].category === 'world-cup',
-      );
-
-      expect(worldCupTabCall?.[0]).toEqual(
-        expect.objectContaining({
-          category: 'world-cup',
-          customQueryParams: buildPredictWorldCupAllQuery(mockWorldCupConfig),
-        }),
       );
     });
   });

@@ -16,6 +16,8 @@ import {
   snapUISelectorItemAndroidUIAutomator,
   snapUISelectorItemIosXPath,
   SNAP_UI_DROPDOWN_SHEET_TITLE,
+  snapUIJsxCountAndroidXPath,
+  snapUIJsxCountIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
@@ -140,6 +142,33 @@ class TestSnaps {
           ),
       },
     });
+  }
+
+  /** JSX Snap counter ("0" / "1"), scoped under the Snap UI scrollview. */
+  jsxCountElement(count: string): EncapsulatedElementType {
+    const scrollViewId = SnapUIRendererSelectorIDs.scrollView;
+    return encapsulated({
+      detox: () =>
+        element(
+          by.text(count).withAncestor(by.id(scrollViewId)),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            snapUIJsxCountAndroidXPath(count),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(snapUIJsxCountIosXPath(count)),
+      },
+    });
+  }
+
+  async tapJsxIncrementButton(): Promise<void> {
+    const button = Matchers.getElementByText(/^Increment$/i);
+    await Gestures.waitAndTap(
+      button,
+      this.snapUiTapOptions({ elemDescription: 'JSX Increment' }),
+    );
   }
 
   /** iOS: skip displayed/enabled waits for Snap UI nodes with visible=false. */
@@ -788,6 +817,7 @@ class TestSnaps {
         'network toast dismissed before confirming Solana snap signature',
       timeout: 15_000,
     });
+    await this.blurActiveWebViewInput();
     // Multichain Solana signing can use SnapDialog/BottomSheetFooter ("Approve") instead of
     // redesigned `confirm-button` — same as Solana Wallet Standard E2E.
     await SolanaTestDApp.confirmSignMessage();
