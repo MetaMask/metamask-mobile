@@ -315,7 +315,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       supportAccountSelection && !accountOverride;
     const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
     const hideBuyForNoFunds =
-      Boolean(accountOverride) && (hasAccountNoFunds || isQuotesLoading);
+      Boolean(accountOverride) &&
+      (hasAccountNoFunds || isQuotesLoading || isAmountUpdating);
 
     const hidePercentageButtons =
       Boolean(selectedFiatPaymentMethodId) || shouldHideAccountSelector;

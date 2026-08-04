@@ -2193,6 +2193,52 @@ describe('CustomAmountInfo', () => {
         queryByText(strings('confirm.custom_amount.buy_button')),
       ).toBeNull();
     });
+
+    it('hides buy section while amount is updating before quotes loading (prevents flash)', () => {
+      const deferred = createDeferredPromise();
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useTransactionAccountOverrideMock.mockReturnValue('0xoverride' as never);
+      // Keyboard needs hasAccountNoFunds when there are no payment options.
+      useAccountNoFundsAlertMock.mockReturnValue([
+        {
+          key: AlertKeys.AccountNoFunds,
+          title: 'No funds',
+          message: 'No funds available',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+      useTransactionCustomAmountMock.mockReturnValue({
+        ...useTransactionCustomAmountMock(),
+        updateTokenAmount: jest.fn(() => deferred.promise),
+      });
+
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
+
+      // Commit→fetch window: amount updating, quotes loading and no-funds alert
+      // not yet active — mirrors the old CustomAmountStage.Loading hide.
+      useAccountNoFundsAlertMock.mockReturnValue([]);
+      view.rerender(createCustomAmountInfo());
+
+      expect(
+        view.queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
   });
 
   describe('buy section without accountOverride', () => {
