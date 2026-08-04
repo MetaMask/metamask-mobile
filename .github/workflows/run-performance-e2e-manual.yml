@@ -46,7 +46,7 @@ on:
         type: string
         default: ''
       reuse_main_builds:
-        description: 'Reuse the latest matching Android apps from main CI'
+        description: 'For e2e only, reuse the latest matching Android apps from main CI'
         required: false
         type: boolean
         default: false
@@ -95,6 +95,6 @@ jobs:
       browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
       browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
       performance_tags: ${{ inputs.performance_tags }}
-      reuse_main_builds: ${{ inputs.reuse_main_builds }}
+      reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
       source_fingerprint: ${{ inputs.source_fingerprint }}
     secrets: inherit

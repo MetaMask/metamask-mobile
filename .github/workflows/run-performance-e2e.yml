@@ -34,7 +34,7 @@ on:
         required: true
         type: string
       build_variant:
-        description: 'BrowserStack build profile (e2e = build-e2e, works on feature branches; rc = build-rc, release branches only; exp = experimental)'
+        description: 'BrowserStack build profile (e2e = standard E2E, exp = experimental, rc = release candidate)'
         required: false
         type: string
         default: 'e2e'
@@ -55,8 +55,8 @@ on:
         default: ''
       reuse_main_builds:
         description: >-
-          When true, skip fresh Android BrowserStack builds and reuse the latest
-          uploaded apps from main-branch CI instead.
+          For e2e builds only, skip fresh Android BrowserStack builds and reuse
+          the latest uploaded apps from main-branch CI instead.
         required: false
         type: boolean
         default: false
@@ -266,6 +266,7 @@ jobs:
     if: >-
       needs.prepare.outputs.run_tests == 'true' &&
       inputs.reuse_main_builds &&
+      inputs.build_variant == 'e2e' &&
       !inputs.browserstack_app_url_android_onboarding &&
       !inputs.browserstack_app_url_android_imported_wallet
     outputs:
@@ -306,6 +307,7 @@ jobs:
       (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
       (
         !inputs.reuse_main_builds ||
+        inputs.build_variant != 'e2e' ||
         needs.resolve-main-browserstack-urls.outputs.found != 'true'
       )
     with:
@@ -313,7 +315,7 @@ jobs:
       source_ref: ${{ inputs.source_ref }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.prepare.outputs.fingerprint }}
-      main_branch_only: ${{ inputs.reuse_main_builds }}
+      main_branch_only: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
     secrets: inherit
 
   # =============================================================================

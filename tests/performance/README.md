@@ -133,7 +133,7 @@ Performance E2E never runs on push. Coverage comes from PR selection on `main` p
 | PR targeting `main`                   | Smart E2E Selection decides which performance tags to run (or none). The `run-performance-tests` label forces the full Android low-profile suite regardless of the AI's decision. |
 | PR targeting `release/*` or `stable`  | No automatic performance run — CI ignores AI performance selection for these base branches. The `run-performance-tests` label still forces a full run.                            |
 | Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.                                                                                |
-| Manual dispatch                       | Run against any branch/tag/commit with any build variant (`e2e`, `exp`, or `rc`).                                                                                                 |
+| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                                                                                            |
 
 Workflow layout:
 
@@ -606,10 +606,10 @@ TEST_PASSWORD_ONBOARDING="your onboarding password"
 # Feature flags for performance tests (client-config API: rc | exp | test; not e2e)
 E2E_PERFORMANCE_BUILD_VARIANT=rc
 
-# CI note: PR (main) and scheduled performance runs use build_variant=e2e or exp
-# (GitHub environment build-e2e/build-exp). E2E_PERFORMANCE_BUILD_VARIANT=rc is set
-# separately in performance-test-runner for the flags API. build_variant=rc is only
-# used for manual dispatch runs against release-candidate builds. See "CI Triggers".
+# CI note: PR (main) and scheduled performance runs use build_variant=e2e
+# (GitHub environment build-e2e). Manual dispatch also supports build_variant=exp
+# or rc. E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately in
+# performance-test-runner for the flags API. See "CI Triggers".
 #
 # Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
 # procedure as Detox E2E (build-android-e2e.yml), via find-reusable-build in
@@ -649,8 +649,9 @@ What gets sent per scenario:
 
 ### RC performance tracking (observe-only)
 
-`run-performance-e2e-release.yml` already runs performance E2E on `release/*`
-pushes. This path is **track-only** (does not block the release):
+RC performance E2E is available through manual dispatch of
+`run-performance-e2e-manual.yml` against a `release/*` branch with
+`build_variant=rc`. This path is **track-only** (does not block the release):
 
 - Uploads scenario + profiling metrics to the **test** Sentry project by default
   (`sentry_target: test`)
