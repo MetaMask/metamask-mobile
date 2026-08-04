@@ -35,18 +35,6 @@ interface ConfirmAddAssetRowProps {
 const getAssetRowKey = (asset: ImportAsset) =>
   `${asset.chainId}-${asset.address.toLowerCase()}`;
 
-const ConfirmAddAssetRow = React.memo(
-  ({ asset, networkName }: ConfirmAddAssetRowProps) => {
-    const tw = useTailwind();
-
-    return (
-      <ListItem gap={20} style={tw.style('p-0')}>
-        <AddAssetTokenRow asset={asset} networkName={networkName} />
-      </ListItem>
-    );
-  },
-);
-
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
     selectedAsset: ImportAsset[];
@@ -138,4 +126,20 @@ const ConfirmAddAsset = () => {
     </SafeAreaView>
   );
 };
+
+function ConfirmAddAssetRowComponent({
+  asset,
+  networkName,
+}: ConfirmAddAssetRowProps) {
+  const tw = useTailwind();
+
+  return (
+    <ListItem gap={20} style={tw.style('p-0')}>
+      <AddAssetTokenRow asset={asset} networkName={networkName} />
+    </ListItem>
+  );
+}
+
+const ConfirmAddAssetRow = React.memo(ConfirmAddAssetRowComponent);
+
 export default ConfirmAddAsset;
