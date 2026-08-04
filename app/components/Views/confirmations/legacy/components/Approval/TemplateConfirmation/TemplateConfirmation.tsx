@@ -5,13 +5,11 @@ import { ConfirmationTemplateValues, getTemplateValues } from './Templates';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import stylesheet from './TemplateConfirmation.styles';
 import { View } from 'react-native-animatable';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import {
+  BottomSheetFooter,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../../component-library/components/Buttons/Button';
+  ButtonsAlignment,
+} from '@metamask/design-system-react-native';
 import { useAppThemeFromContext } from '../../../../../../../util/theme';
 import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
 
@@ -63,38 +61,47 @@ const TemplateConfirmation = ({
     };
   }, [templatedValues.onCancel, onCancel, templatedValues]);
 
-  const buttons = [];
+  const showPrimary = !templatedValues.hideSubmitButton;
+  const showSecondary = !templatedValues.hideCancelButton;
 
-  if (!templatedValues.hideSubmitButton) {
-    buttons.push({
-      variant: ButtonVariants.Primary,
-      label: templatedValues.confirmText ?? strings('template_confirmation.ok'),
-      size: ButtonSize.Lg,
-      onPress: templatedValues.onConfirm ?? onConfirm,
-    });
-  }
-
-  if (!templatedValues.hideCancelButton) {
-    buttons.push({
-      variant: ButtonVariants.Secondary,
-      label:
-        templatedValues.cancelText ?? strings('template_confirmation.cancel'),
-      size: ButtonSize.Lg,
-      onPress: templatedValues.onCancel ?? onCancel,
-    });
+  if (!showPrimary && !showSecondary) {
+    return (
+      <View style={styles.root}>
+        <TemplateRenderer sections={templatedValues.content} />
+      </View>
+    );
   }
 
   return (
     <View style={styles.root}>
       <TemplateRenderer sections={templatedValues.content} />
-      {buttons.length > 0 && (
-        <View style={styles.actionContainer}>
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-            buttonPropsArray={buttons}
-          />
-        </View>
-      )}
+      <View style={styles.actionContainer}>
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          primaryButtonProps={
+            showPrimary
+              ? {
+                  children:
+                    templatedValues.confirmText ??
+                    strings('template_confirmation.ok'),
+                  size: ButtonSize.Lg,
+                  onPress: templatedValues.onConfirm ?? onConfirm,
+                }
+              : undefined
+          }
+          secondaryButtonProps={
+            showSecondary
+              ? {
+                  children:
+                    templatedValues.cancelText ??
+                    strings('template_confirmation.cancel'),
+                  size: ButtonSize.Lg,
+                  onPress: templatedValues.onCancel ?? onCancel,
+                }
+              : undefined
+          }
+        />
+      </View>
     </View>
   );
 };

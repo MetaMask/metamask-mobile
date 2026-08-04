@@ -2,12 +2,15 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal } from 'react-native';
 import {
   BottomSheet,
+  BottomSheetFooter,
   BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonIcon,
+  ButtonSize,
+  ButtonsAlignment,
   Icon,
   IconColor,
   IconName,
@@ -16,12 +19,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import type { SendAlert } from '../../../hooks/send/alerts/types';
 import { SendAlertModalProps } from './send-alert-modal.types';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
@@ -164,22 +161,18 @@ export const SendAlertModal = ({
         </Box>
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
-          buttonPropsArray={[
-            {
-              variant: ButtonVariants.Secondary,
-              size: ButtonSize.Lg,
-              label: strings('send.cancel'),
-              onPress: onClose,
-              testID: 'send-alert-modal-cancel-button',
-            },
-            {
-              variant: ButtonVariants.Primary,
-              size: ButtonSize.Lg,
-              label: acknowledgeLabel,
-              onPress: handleAcknowledgeStep,
-              testID: 'send-alert-modal-acknowledge-button',
-            },
-          ]}
+          secondaryButtonProps={{
+            children: strings('send.cancel'),
+            size: ButtonSize.Lg,
+            onPress: onClose,
+            testID: 'send-alert-modal-cancel-button',
+          }}
+          primaryButtonProps={{
+            children: acknowledgeLabel,
+            size: ButtonSize.Lg,
+            onPress: handleAcknowledgeStep,
+            testID: 'send-alert-modal-acknowledge-button',
+          }}
         />
       </BottomSheet>
     </Modal>

@@ -9,8 +9,8 @@ import {
 
 import {
   BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -179,7 +179,9 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
               onClose={handleSheetClosed}
               twClassName={surfaceClass}
             >
-              <HeaderStandard title={title} onClose={handleModalRequestClose} />
+              <BottomSheetHeader onClose={handleModalRequestClose}>
+                {title}
+              </BottomSheetHeader>
               <View style={styles.searchContainer}>
                 <Icon
                   name={IconName.Search}

@@ -21,8 +21,8 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import {
   BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-  HeaderStandard,
   Skeleton,
   Text,
   TextColor,
@@ -230,10 +230,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             onClose={handleSheetClosed}
             twClassName={surfaceClass}
           >
-            <HeaderStandard
-              title={selectorTitle}
-              onClose={() => closeAccountSheet()}
-            />
+            <BottomSheetHeader onClose={() => closeAccountSheet()}>
+              {selectorTitle}
+            </BottomSheetHeader>
             <View style={styles.modalSheetBody}>
               <MultichainAccountSelectorList
                 selectedAccountGroups={
