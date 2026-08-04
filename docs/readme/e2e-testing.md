@@ -537,7 +537,7 @@ yarn run-playwright:ios
         166 |   }
         167 |
         168 |   static async checkIfNotVisible(elementId) {
-      at Function.withTimeout (tests/helpers.js:165:8)
+      at Function.withTimeout (tests/framework/Assertions.ts:165:8)
       ...
   ```
 
