@@ -8,6 +8,7 @@ import {
 } from '../../../../util/trace';
 import type { HomeSectionName } from './useHomeViewedEvent';
 import { useRenderStormMonitor } from '../../../../hooks/performance/useRenderStormMonitor';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
@@ -26,9 +27,12 @@ interface UseSectionPerformanceConfig {
    */
   contentStateForTrace?: 'filled' | 'empty' | 'error';
   /**
-   * When provided, tracks **full** data loading (including background work) via
-   * the first `isLoading` true→false transition per mount. Can stay true after
-   * `contentReady` if the section still fetches optional/secondary data.
+   * When provided, tracks **full** data loading (including background work).
+   * The span opens at mount and closes on the first render where this is
+   * `false`, so every mount emits exactly one sample — near-zero when the
+   * section is already warm — and a later refresh cycle never opens a span.
+   * Can stay true after `contentReady` if the section still fetches
+   * optional/secondary data.
    */
   isLoading?: boolean;
   /** Skip all tracing when false. Use for feature-flagged sections that return null. @default true */
@@ -43,11 +47,18 @@ const DEFAULT_RE_RENDER_THRESHOLD = 3;
 const DEFAULT_RE_RENDER_WINDOW_MS = 500;
 
 /**
+ * Prefix for the dev-only structured log emitted next to every Data Fetch span
+ * boundary. The span itself is only observable in Sentry, so this is the sole
+ * way to verify the boundary on a live device (validation recipes grep Metro).
+ */
+const DATA_FETCH_LOG_PREFIX = '[homepage.section.performance] data_fetch';
+
+/**
  * Reusable performance telemetry for homepage sections.
  *
  * Captures three metrics via the existing trace/endTrace Sentry integration:
  * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
- * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
+ * 2. **Data Fetch Latency** — mount until the first non-loading render (opt-in; one sample per mount, refresh excluded).
  * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs after every commit).
  *
  * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
@@ -71,7 +82,14 @@ export const useSectionPerformance = ({
   const fetchTraceId = useRef(uuidv4());
   const fetchStarted = useRef(false);
   const fetchEnded = useRef(false);
-  const prevIsLoading = useRef<boolean | undefined>(undefined);
+  // Whether this section opted into Data Fetch tracing. Read at mount so the
+  // span boundary can never depend on a later render's `isLoading` value.
+  const tracksDataFetch = useRef(isLoading !== undefined);
+  // Loading state on the very first render, logged with the span start so a
+  // warm mount (already loaded) is distinguishable from a cold one on device.
+  const isLoadingAtFirstRender = useRef(isLoading);
+  // Guards the skip log so one post-mount reload logs once, not once per render.
+  const skipLogged = useRef(false);
 
   const traceContentState =
     contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
@@ -101,6 +119,25 @@ export const useSectionPerformance = ({
       tags: { section_id: sectionId },
     });
     ttcStarted.current = true;
+
+    // Data Fetch Latency — start on mount so every mount produces a sample,
+    // including warm mounts that are already loaded (near-zero duration).
+    if (tracksDataFetch.current) {
+      fetchTraceId.current = uuidv4();
+      fetchEnded.current = false;
+      trace({
+        name: TraceName.HomepageSectionDataFetch,
+        op: TraceOperation.HomepageSectionPerformance,
+        id: fetchTraceId.current,
+        tags: { section_id: sectionId },
+      });
+      fetchStarted.current = true;
+      DevLogger.log(
+        `${DATA_FETCH_LOG_PREFIX} start section=${sectionId} phase=mount first_render_loading=${String(
+          isLoadingAtFirstRender.current,
+        )}`,
+      );
+    }
 
     return () => {
       if (ttcStarted.current && !ttcEnded.current) {
@@ -139,33 +176,15 @@ export const useSectionPerformance = ({
   }, [enabled, contentReady, sectionId, traceContentState]);
 
   // ──────────────────────────────────────────────
-  // 2. Data Fetch Latency — track isLoading transitions
+  // 2. Data Fetch Latency — end the mount-scoped span once loading is done
   // ──────────────────────────────────────────────
   useEffect(() => {
     if (!enabled || isLoading === undefined) return;
 
-    const wasLoading = prevIsLoading.current;
-    prevIsLoading.current = isLoading;
-
-    // Start: first loading spell only (subsequent refresh cycles are not traced)
-    if (isLoading && !fetchStarted.current && !fetchEnded.current) {
-      fetchTraceId.current = uuidv4();
-      trace({
-        name: TraceName.HomepageSectionDataFetch,
-        op: TraceOperation.HomepageSectionPerformance,
-        id: fetchTraceId.current,
-        tags: { section_id: sectionId },
-      });
-      fetchStarted.current = true;
-    }
-
-    // End: isLoading transitioned from true → false
-    if (
-      wasLoading === true &&
-      !isLoading &&
-      fetchStarted.current &&
-      !fetchEnded.current
-    ) {
+    // End: first render of this mount that is no longer loading. The span is
+    // opened by the mount effect above, so a later refresh cycle can neither
+    // open a new span nor reopen this one.
+    if (!isLoading && fetchStarted.current && !fetchEnded.current) {
       endTrace({
         name: TraceName.HomepageSectionDataFetch,
         id: fetchTraceId.current,
@@ -177,6 +196,18 @@ export const useSectionPerformance = ({
       });
       fetchStarted.current = false;
       fetchEnded.current = true;
+      DevLogger.log(
+        `${DATA_FETCH_LOG_PREFIX} end section=${sectionId} success=true content_state=${traceContentState}`,
+      );
+    }
+
+    // A refresh that starts after the mount span already closed is deliberately
+    // not measured — logged so the boundary is verifiable on a live device.
+    if (isLoading && fetchEnded.current && !skipLogged.current) {
+      skipLogged.current = true;
+      DevLogger.log(
+        `${DATA_FETCH_LOG_PREFIX} skip section=${sectionId} reason=post_mount_reload`,
+      );
     }
   }, [enabled, isLoading, sectionId, traceContentState]);
 };

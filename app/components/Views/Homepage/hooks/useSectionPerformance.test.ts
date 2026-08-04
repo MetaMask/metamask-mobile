@@ -215,20 +215,74 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('does not end the fetch trace if isLoading was never true', () => {
+    it('starts the data fetch span at mount when the section is already loaded', () => {
+      renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: false }),
+      );
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          op: TraceOperation.HomepageSectionPerformance,
+          tags: { section_id: HomeSectionNames.TOKENS },
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            success: true,
+            section_id: HomeSectionNames.TOKENS,
+          }),
+        }),
+      );
+    });
+
+    it('ignores a loading cycle that begins after mount', () => {
       const { rerender } = renderHook(
         ({ isLoading }) =>
           useSectionPerformance({ ...defaultConfig, isLoading }),
         { initialProps: { isLoading: false } },
       );
+      jest.clearAllMocks();
 
+      rerender({ isLoading: true });
+      rerender({ isLoading: false });
+
+      const fetchTraceCalls = (mockTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      const fetchEndCalls = (mockEndTrace as jest.Mock).mock.calls.filter(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionDataFetch,
+      );
+      expect(fetchTraceCalls).toHaveLength(0);
+      expect(fetchEndCalls).toHaveLength(0);
+    });
+
+    it('ends the data fetch span once on the first non-loading render', () => {
+      const { rerender } = renderHook(
+        ({ isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, isLoading }),
+        { initialProps: { isLoading: true } },
+      );
+
+      rerender({ isLoading: false });
       rerender({ isLoading: false });
 
       const fetchEndCalls = (mockEndTrace as jest.Mock).mock.calls.filter(
         (call: [{ name: string }]) =>
           call[0].name === TraceName.HomepageSectionDataFetch,
       );
-      expect(fetchEndCalls).toHaveLength(0);
+      expect(fetchEndCalls).toHaveLength(1);
+      expect(fetchEndCalls[0][0].data).toEqual(
+        expect.objectContaining({
+          success: true,
+          section_id: HomeSectionNames.TOKENS,
+          content_state: 'filled',
+        }),
+      );
     });
 
     it('only tracks the first fetch cycle', () => {
