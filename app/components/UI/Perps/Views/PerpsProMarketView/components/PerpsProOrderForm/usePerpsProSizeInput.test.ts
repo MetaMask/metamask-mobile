@@ -87,6 +87,22 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenLastCalledWith('12');
   });
 
+  it('tracks focus state while editing the size input', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.onSizeFocus();
+    });
+
+    expect(result.current.isSizeFocused).toBe(true);
+
+    act(() => {
+      result.current.onSizeBlur();
+    });
+
+    expect(result.current.isSizeFocused).toBe(false);
+  });
+
   it('disables the unit toggle without a positive price', () => {
     const params = createParams({ effectivePrice: 0 });
     const { result } = renderHook(() => usePerpsProSizeInput(params));
@@ -110,6 +126,25 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInputValue).toBe('0.003');
     expect(result.current.sizeUnitLabel).toBe('BTC');
     expect(result.current.showUsdPrefix).toBe(false);
+  });
+
+  it('converts a trailing coin decimal on blur before committing USD', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ effectivePrice: 100 })),
+    );
+
+    act(() => {
+      result.current.onSizeUnitPress();
+    });
+    act(() => {
+      result.current.onSizeChange('1.2.');
+    });
+    act(() => {
+      result.current.onSizeBlur();
+    });
+
+    expect(result.current.sizeInputValue).toBe('1.2');
+    expect(mockSetAmount).toHaveBeenLastCalledWith('120');
   });
 
   it('projects coin edits to USD rounded to two decimals', () => {
@@ -146,6 +181,33 @@ describe('usePerpsProSizeInput', () => {
 
     expect(result.current.sizeInputValue).toBe('1.234');
     expect(result.current.effectiveUsdAmount).toBe('246.8');
+  });
+
+  it('updates a clean coin projection when the price changes', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ effectivePrice: 100 }) },
+    );
+
+    act(() => {
+      result.current.onSizeUnitPress();
+    });
+
+    rerender(createParams({ effectivePrice: 200 }));
+
+    expect(result.current.sizeInputValue).toBe('0.5');
+  });
+
+  it('updates the USD draft from an external canonical amount', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ usdAmount: '100' }) },
+    );
+
+    rerender(createParams({ usdAmount: '250' }));
+
+    expect(result.current.sizeInputValue).toBe('250');
+    expect(result.current.effectiveUsdAmount).toBe('250');
   });
 
   it('resyncs a dirty coin draft when canonical USD is clamped externally', () => {
@@ -216,6 +278,82 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInputValue).toBe('250');
     expect(result.current.effectiveUsdAmount).toBe('250');
     expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
+  it('clamps non-finite and out-of-range slider values', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.onBalancePercentageChange(Number.NaN);
+    });
+    expect(result.current.balancePercentage).toBe(0);
+
+    act(() => {
+      result.current.onBalancePercentageChange(150);
+    });
+    expect(result.current.balancePercentage).toBe(100);
+
+    act(() => {
+      result.current.onBalancePercentageChange(-10);
+    });
+    expect(result.current.balancePercentage).toBe(0);
+  });
+
+  it('ignores slider completion without a preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.onBalancePercentageDragEnd();
+      result.current.onBalancePercentageDragCancel();
+    });
+
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
+  it('returns zero balance percentage when the maximum amount is zero', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ maxPossibleAmount: 0 })),
+    );
+
+    expect(result.current.balancePercentage).toBe(0);
+  });
+
+  it('previews and commits slider values in coin mode', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '100', effectivePrice: 100 }),
+      ),
+    );
+
+    act(() => {
+      result.current.onSizeUnitPress();
+      result.current.onBalancePercentageChange(25);
+    });
+
+    expect(result.current.sizeInputValue).toBe('2.5');
+    expect(result.current.effectiveUsdAmount).toBe('250');
+
+    act(() => {
+      result.current.onBalancePercentageDragEnd();
+    });
+
+    expect(mockSetAmount).toHaveBeenLastCalledWith('250');
+    expect(result.current.sizeInputValue).toBe('2.5');
+  });
+
+  it('falls back to the canonical USD amount when coin conversion becomes unavailable', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ usdAmount: '100', effectivePrice: 100 }) },
+    );
+
+    act(() => {
+      result.current.onSizeUnitPress();
+    });
+    rerender(createParams({ usdAmount: '100', effectivePrice: 0 }));
+
+    expect(result.current.canToggleSizeUnit).toBe(false);
+    expect(result.current.effectiveUsdAmount).toBe('100');
   });
 
   it('commits the slider preview on drag end', () => {

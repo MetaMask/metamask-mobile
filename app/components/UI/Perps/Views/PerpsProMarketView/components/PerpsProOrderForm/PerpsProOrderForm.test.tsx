@@ -111,6 +111,35 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.SIZE_PREFIX)).not.toBeOnTheScreen();
     });
 
+    it('uses size defaults when optional denomination props are undefined', () => {
+      render(
+        <PerpsProOrderForm
+          {...createProps()}
+          sizeUnitLabel={undefined}
+          showUsdPrefix={undefined}
+          canToggleSizeUnit={undefined}
+        />,
+      );
+
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (USD)',
+      );
+      expect(screen.queryByTestId(ids.SIZE_PREFIX)).not.toBeOnTheScreen();
+      expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeEnabled();
+    });
+
+    it('forwards size focus and blur callbacks', () => {
+      const onSizeFocus = jest.fn();
+      const onSizeBlur = jest.fn();
+      renderForm({ onSizeFocus, onSizeBlur });
+
+      fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'focus');
+      fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'blur');
+
+      expect(onSizeFocus).toHaveBeenCalledTimes(1);
+      expect(onSizeBlur).toHaveBeenCalledTimes(1);
+    });
+
     it('shows available balance with add funds action below the size input', () => {
       renderForm({
         availableBalance: '$250 available',
