@@ -34,9 +34,7 @@ jest.mock('react-native-screens', () => {
     }) => (
       <MockView
         testID={mockOverlayTestId}
-        accessibilityContainerViewIsModal={
-          unstable_accessibilityContainerViewIsModal
-        }
+        accessibilityViewIsModal={unstable_accessibilityContainerViewIsModal}
       >
         {children}
       </MockView>
@@ -123,7 +121,7 @@ describe('ToasterOverlay', () => {
     expect(mockShowToast).toHaveBeenCalledWith({ title: 'Copied' });
   });
 
-  it('sets accessibilityContainerViewIsModal to false on the overlay', async () => {
+  it('sets accessibilityViewIsModal to false on the overlay', async () => {
     const { getByTestId } = render(<ToasterOverlay />);
 
     act(() => {
@@ -138,7 +136,7 @@ describe('ToasterOverlay', () => {
 
     expect(
       getByTestId(TOASTER_FULL_WINDOW_OVERLAY_TEST_ID).props
-        .accessibilityContainerViewIsModal,
+        .accessibilityViewIsModal,
     ).toBe(false);
   });
 
