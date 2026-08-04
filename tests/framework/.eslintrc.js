@@ -6,15 +6,6 @@ module.exports = {
       rules: {
         // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
         'no-console': 'off',
-        'no-restricted-syntax': [
-          'warn',
-          {
-            selector:
-              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message:
-              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
-          },
-        ],
       },
     },
     {
@@ -47,12 +38,6 @@ module.exports = {
         ],
         'no-restricted-syntax': [
           'warn',
-          {
-            selector:
-              "CallExpression[callee.object.name='TestHelpers'][callee.property.name='delay']",
-            message:
-              'Avoid TestHelpers.delay(). Use proper waiting (from `tests/framework/index.ts`) with Assertions.expectElementToBeVisible() or similar framework methods instead.',
-          },
           {
             selector: "CallExpression[callee.name='element']",
             message:

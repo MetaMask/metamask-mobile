@@ -2,12 +2,15 @@ import { toPushAnalyticsPayload } from '@metamask/notification-services-controll
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import { NativeModules, Platform } from 'react-native';
-import Logger from '../../../util/Logger';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { toFcmDataStringRecord } from '../utils/fcm-data';
+import {
+  extractPushNotificationData,
+  extractPushNotificationDeeplink,
+} from '../pushNotificationDeeplink';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -28,7 +31,9 @@ async function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    const data = toFcmDataStringRecord(remoteMessage?.data);
+    const data = toFcmDataStringRecord(
+      extractPushNotificationData(remoteMessage?.data),
+    );
     const payload = toPushAnalyticsPayload(data);
 
     const properties = payload
@@ -51,6 +56,8 @@ async function analyticsTrackPushClickEvent(
 
 type UnsubscribeFunc = () => void;
 
+const ANDROID_NOTIFICATION_OPENED_EVENT = 'metamask.notification_opened';
+
 /**
  * A notification tap, and what the payload carried with it. `opened` is true
  * even when there is no deeplink — on-chain activity notifications commonly
@@ -63,14 +70,14 @@ export interface PushTapResult {
   notificationSubtype?: string;
 }
 
-function toPushTapResult(
-  remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
-): PushTapResult {
-  const data = toFcmDataStringRecord(remoteMessage?.data);
-  const payload = toPushAnalyticsPayload(data);
+export function toPushTapResult(data: unknown, opened: boolean): PushTapResult {
+  const normalizedData = toFcmDataStringRecord(
+    extractPushNotificationData(data),
+  );
+  const payload = toPushAnalyticsPayload(normalizedData);
   return {
-    opened: Boolean(remoteMessage),
-    deeplink: data?.deeplink ?? null,
+    opened,
+    deeplink: extractPushNotificationDeeplink(data) ?? null,
     notificationType: payload?.notification_type,
     notificationSubtype: payload?.notification_subtype,
   };
@@ -224,7 +231,7 @@ class FCMService {
     try {
       const remoteMessage = await getInitialNotification();
       await analyticsTrackPushClickEvent(remoteMessage);
-      return toPushTapResult(remoteMessage);
+      return toPushTapResult(remoteMessage?.data, Boolean(remoteMessage));
     } catch {
       return { opened: false, deeplink: null };
     }
@@ -234,14 +241,27 @@ class FCMService {
     tapCallback: (tap: PushTapResult) => void,
   ) => {
     try {
-      messaging().onNotificationOpenedApp(async (remoteMessage) => {
+      const handleOpenedNotification = async (
+        remoteMessage?: FirebaseMessagingTypes.RemoteMessage,
+      ) => {
         try {
           await analyticsTrackPushClickEvent(remoteMessage);
-          tapCallback(toPushTapResult(remoteMessage));
+          tapCallback(
+            toPushTapResult(remoteMessage?.data, Boolean(remoteMessage)),
+          );
         } catch {
           // Do nothing
         }
-      });
+      };
+
+      if (Platform.OS === 'android') {
+        DeviceEventEmitter.addListener(
+          ANDROID_NOTIFICATION_OPENED_EVENT,
+          handleOpenedNotification,
+        );
+      } else {
+        messaging().onNotificationOpenedApp(handleOpenedNotification);
+      }
     } catch {
       // Do nothing
     }
