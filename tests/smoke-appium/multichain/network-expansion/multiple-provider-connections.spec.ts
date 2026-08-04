@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../../framework/fixtures/playwright/index.js';
-import { SmokeMMConnect } from '../../../tags.js';
+import { SmokeNetworkExpansion } from '../../../tags.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
@@ -75,12 +75,12 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
 }
 
 appiumTest.describe(
-  SmokeMMConnect('Multiple Standard Dapp Connections'),
+  SmokeNetworkExpansion('Multiple Standard Dapp Connections'),
   () => {
     appiumTest.describe.configure({ timeout: 300_000 });
 
     appiumTest(
-      'should default account selection to already permitted account when wallet_requestPermissions is called with no accounts specified',
+      'Defaults account selection to already permitted account when wallet_requestPermissions is called with no accounts specified',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
@@ -131,7 +131,7 @@ appiumTest.describe(
     );
 
     appiumTest(
-      'should retain Solana permissions when connecting through the EVM provider',
+      'Retains Solana permissions when connecting through the EVM provider',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
@@ -180,7 +180,7 @@ appiumTest.describe(
     );
 
     appiumTest(
-      'should default account selection to already permitted Solana account and requested Ethereum account when wallet_requestPermissions is called with specific Ethereum account',
+      'Defaults account selection to already permitted Solana account and requested Ethereum account when wallet_requestPermissions is called with specific Ethereum account',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {

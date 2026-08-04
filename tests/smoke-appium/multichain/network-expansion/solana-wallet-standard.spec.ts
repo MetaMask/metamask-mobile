@@ -14,7 +14,7 @@ import {
 } from '../../mm-connect/utils.js';
 import SolanaTestDApp, {
   SOLANA_DAPP_PORT,
-} from '../../../page-objects/Browser/SolanaTestDAppAppium.js';
+} from '../../../page-objects/Browser/SolanaTestDApp.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers.js';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures.js';
@@ -46,7 +46,7 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   });
 
   appiumTest(
-    'should connect and disconnect from Solana test dapp',
+    'Connects and disconnects from Solana test dapp',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -70,7 +70,7 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   );
 
   appiumTest(
-    'should cancel connection and reconnect',
+    'Cancels connection and reconnects',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -97,7 +97,7 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   );
 
   appiumTest(
-    'should stay connected after page refresh',
+    'Stays connected after page refresh',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -121,7 +121,7 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   );
 
   appiumTest(
-    'should trigger sign transaction confirmation and cancel (MMQA-586)',
+    'Triggers sign transaction confirmation and cancels (MMQA-586)',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -149,7 +149,7 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   // to both AccountsController.internalAccounts and the Snap Keyring in the fixture
   // before this test can run. The Detox original was also it.skip for the same reason.
   appiumTest.skip(
-    'should switch between 2 accounts and reflect in the dapp',
+    'Switches between 2 accounts and reflects in the dapp',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
@@ -190,7 +190,7 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   );
 
   appiumTest(
-    'should sign a message',
+    'Signs a message',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {
