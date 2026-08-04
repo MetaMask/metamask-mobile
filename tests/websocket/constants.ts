@@ -28,7 +28,10 @@ export const ACCOUNT_ACTIVITY_WS: WebSocketServiceConfig = {
 };
 
 export const SOLANA_INFURA_WS = {
-  fallbackPort: 8090,
+  // Keep outside MMConnect playground (8090) and the FixtureUtils dapp
+  // fallback band (8085–8184) so adb reverse / proxy translation cannot
+  // steal the browser-playground port.
+  fallbackPort: 8190,
   launchArgKey: 'solanaInfuraWsPort',
 };
 

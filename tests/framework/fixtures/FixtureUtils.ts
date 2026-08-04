@@ -103,7 +103,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     FALLBACK_DAPP_SERVER_PORT + 1, // 8086 (dapp-server-1)
     FALLBACK_DAPP_SERVER_PORT + 2, // 8087 (dapp-server-2)
     ACCOUNT_ACTIVITY_WS.fallbackPort, // 8089
-    SOLANA_INFURA_WS.fallbackPort, // 8090
+    SOLANA_INFURA_WS.fallbackPort, // 8190
   ];
 
   logger.debug('Cleaning up test port forwards before test...');

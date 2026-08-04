@@ -106,7 +106,8 @@ To mock a new WebSocket service (e.g., a new real-time data feed):
 ```typescript
 export const MY_NEW_WS: WebSocketServiceConfig = {
   url: 'wss://my-service.example.com',
-  fallbackPort: 8090, // pick a unique port
+  // Unique port outside MMConnect playground (8090) and dapp band (8085–8184)
+  fallbackPort: 8191,
   launchArgKey: 'myNewWsPort',
 };
 

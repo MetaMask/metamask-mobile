@@ -713,4 +713,21 @@ describe('PortManager', () => {
       });
     });
   });
+
+  describe('Solana Infura WS fallback port isolation', () => {
+    // MMConnect browser playground hardcodes localhost:8090. Fixture dapp
+    // HTTP translation also claims 8085–8184. Keep Solana outside both.
+    const MMCONNECT_PLAYGROUND_PORT = 8090;
+    const DAPP_FALLBACK_BAND_END = FALLBACK_DAPP_SERVER_PORT + 100;
+
+    it('does not collide with MMConnect playground or fixture dapp ports', () => {
+      expect(SOLANA_INFURA_WS.fallbackPort).not.toBe(MMCONNECT_PLAYGROUND_PORT);
+      expect(SOLANA_INFURA_WS.fallbackPort).not.toBe(
+        ACCOUNT_ACTIVITY_WS.fallbackPort,
+      );
+      expect(SOLANA_INFURA_WS.fallbackPort).toBeGreaterThanOrEqual(
+        DAPP_FALLBACK_BAND_END,
+      );
+    });
+  });
 });
