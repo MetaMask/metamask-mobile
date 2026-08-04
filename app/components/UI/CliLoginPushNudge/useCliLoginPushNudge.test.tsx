@@ -1,5 +1,5 @@
 // eslint-disable-next-line react-native/split-platform-components
-import { AppState, PermissionsAndroid, Platform } from 'react-native';
+import { Alert, AppState, PermissionsAndroid, Platform } from 'react-native';
 import { renderHook, act } from '@testing-library/react-native';
 import { useCliLoginPushNudge } from './useCliLoginPushNudge';
 import {
@@ -61,6 +61,7 @@ describe('useCliLoginPushNudge', () => {
     jest
       .spyOn(PermissionsAndroid, 'request')
       .mockResolvedValue(PermissionsAndroid.RESULTS.DENIED);
+    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     Platform.OS = 'ios';
     jest.spyOn(AppState, 'addEventListener').mockImplementation(((
       _event: string,
@@ -111,6 +112,23 @@ describe('useCliLoginPushNudge', () => {
 
     expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
     expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+    expect(result.current.isVisible).toBe(false);
+  });
+
+  it('shows an error when enabling notifications fails', async () => {
+    mockIsPushPermissionGranted.mockResolvedValue(true);
+    mockEnableNotifications.mockRejectedValue(new Error('Network error'));
+    const { result } = renderNudge();
+    emit();
+
+    await act(async () => {
+      await result.current.onYes();
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Something went wrong',
+      "We couldn't enable notifications. Please try again later.",
+    );
     expect(result.current.isVisible).toBe(false);
   });
 

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 // PermissionsAndroid usage below is gated behind `Platform.OS === 'android'`.
 // eslint-disable-next-line react-native/split-platform-components
-import { AppState, PermissionsAndroid, Platform } from 'react-native';
+import { Alert, AppState, PermissionsAndroid, Platform } from 'react-native';
+import { strings } from '../../../../locales/i18n';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications/constants';
 import { useEnableNotifications } from '../../../util/notifications/hooks/useNotifications';
 import NotificationService, {
@@ -57,6 +58,13 @@ export function useCliLoginPushNudge(): {
     appStateSubscriptionRef.current = null;
   }, []);
 
+  const showEnableNotificationsError = useCallback(() => {
+    Alert.alert(
+      strings('notifications.notifications_enabled_error_title'),
+      strings('notifications.notifications_enabled_error_desc'),
+    );
+  }, []);
+
   const scheduleForegroundRetry = useCallback(
     (retry: () => Promise<void>) => {
       clearForegroundRetry();
@@ -67,21 +75,21 @@ export function useCliLoginPushNudge(): {
             return;
           }
           clearForegroundRetry();
-          retry().catch(() => {
-            /* enable flow logs its own failures */
+          retry().catch((error) => {
+            logger.warn(
+              'Failed to enable notifications after returning from settings',
+              error,
+            );
+            showEnableNotificationsError();
           });
         },
       );
     },
-    [clearForegroundRetry],
+    [clearForegroundRetry, showEnableNotificationsError],
   );
 
   const runEnableNotifications = useCallback(async () => {
-    try {
-      await enableNotifications();
-    } catch (error) {
-      logger.warn('Failed to enable notifications from CLI login nudge', error);
-    }
+    await enableNotifications();
   }, [enableNotifications]);
 
   const openSettingsAndScheduleRetry = useCallback(
@@ -191,12 +199,20 @@ export function useCliLoginPushNudge(): {
       }
 
       await runIosPermissionFlow(isCurrent);
+    } catch (error) {
+      logger.warn('Failed to run CLI login push permission flow', error);
+      showEnableNotificationsError();
     } finally {
       if (!appStateSubscriptionRef.current) {
         inFlightRef.current = false;
       }
     }
-  }, [runGrantedFlow, runAndroidPermissionFlow, runIosPermissionFlow]);
+  }, [
+    runGrantedFlow,
+    runAndroidPermissionFlow,
+    runIosPermissionFlow,
+    showEnableNotificationsError,
+  ]);
 
   const onYes = useCallback(() => {
     setIsVisible(false);
