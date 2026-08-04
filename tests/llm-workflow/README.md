@@ -1,55 +1,57 @@
 # MetaMask Mobile LLM Workflow
 
-Local CLI tooling for LLM agents to launch and interact with MetaMask Mobile on an iOS Simulator. The workflow uses the `mm` CLI and a persistent local HTTP daemon from `@metamask/client-mcp-core`.
+Local CLI tooling for LLM agents to launch and interact with MetaMask Mobile on an iOS Simulator or an already-running Android emulator. The workflow uses the `mm` CLI and a persistent local HTTP daemon from `@metamask/client-mcp-core`.
 
-This MVP supports **prod only**. It operates on the app and wallet state already installed on the simulator. It does not start test infrastructure or create wallet state.
+This workflow supports **prod context only**. It reuses the app and wallet state already installed on the selected device. It does not build or install MetaMask, start test infrastructure, initialize fixtures, seed contracts, or create wallet state.
 
-## Architecture
+## Platform Support
 
-```text
-LLM Agent / Developer
-    │ yarn mm commands
-    ▼
-@metamask/client-mcp-core CLI and daemon
-    │
-    ├─ MetaMaskMobileSessionManager
-    ├─ MobilePlatformDriver
-    └─ KnowledgeStore
-    │
-    ▼
-iOS Simulator + @metamask/device-mcp
-```
+- Omitted `--platform`, `--platform browser`, and `--platform ios` use iOS for backward compatibility.
+- Only explicit `--platform android` uses Android.
+- iOS uses an iOS Simulator and the existing IDB-backed lifecycle.
+- Android supports running Android emulators whose serial matches `emulator-*`; physical devices are not supported.
 
-| Component       | Location                         | Responsibility                                                                      |
-| --------------- | -------------------------------- | ----------------------------------------------------------------------------------- |
-| Daemon          | `daemon.ts`                      | Starts the local server and creates the prod workflow context.                      |
-| Session manager | `metamask-provider.ts`           | Resolves the simulator/app, manages launch and cleanup, and exposes mobile drivers. |
-| Prerequisites   | `ios/prerequisites.ts`           | Validates Xcode, simulator, app identity, install safety, and optional Metro.       |
-| State snapshot  | `capabilities/state-snapshot.ts` | Reports current app state through the mobile platform driver.                       |
+The shared session manager delegates prerequisite resolution, driver creation, app launch, cleanup, and owned-resource cleanup to platform adapters. Both platforms use `MobilePlatformDriver` for accessibility-based interaction.
 
 ## Prerequisites
 
-- Node.js and Yarn versions required by this repository
-- Xcode with command-line tools
+### iOS
+
+- Xcode command-line tools
 - An iOS Simulator
-- `idb` and `idb-companion` (`brew tap facebook/fb && brew install idb-companion && pip3 install fb-idb`)
+- `idb` and `idb-companion`
 - MetaMask already installed on the target simulator
 
-Run `yarn mm:doctor` to verify the iOS toolchain (Xcode, `idb`, `idb_companion`, and a booted simulator) before launching. It prints a PASS/FAIL report with install commands for anything missing and exits non-zero when a prerequisite is absent.
+Install the IDB tooling with:
 
-`mm launch` does not build MetaMask and does not search local build outputs or Xcode DerivedData. You must install the app separately on the simulator before launching.
+```bash
+brew tap facebook/fb && brew install idb-companion && pip3 install fb-idb
+```
+
+Run `yarn mm:doctor` to verify the iOS toolchain. `mm launch` does not search build outputs or DerivedData. Install the app separately before launching.
+
+### Android
+
+- Android SDK Platform-Tools with `adb` on `PATH`
+- Exactly one running, authorized, online emulator, or an explicit online `emulator-*` serial
+- Exactly `io.metamask` installed for the emulator's current user
+- `io.metamask/io.metamask.MainActivity` available as the launcher activity
+- No worktree/current-directory `.device-session` override, because Android requires the ADB backend rather than Appium
+
+The Android workflow never starts, stops, restarts, clears, wipes, or deletes an emulator. It never installs, uninstalls, replaces, or clears app data. The core CLI launch option `--extension-path` is rejected on Android because this workflow has no APK lifecycle. Programmatic iOS lifecycle fields such as `reinstall`, `resetAppData`, `appBundlePath`, and `allowFoxCodeMismatch` are also rejected by the Android adapter; they are not core 0.6.0 launch flags.
+
+During an active Android session, the workflow temporarily sets the emulator's three global system animation scales to zero to make UiAutomator idle-state snapshots more reliable. Cleanup restores every value changed by the session, including after partial-launch and cleanup failures.
 
 ## Basic Workflow
 
 ```bash
-# Boot a simulator if needed
-xcrun simctl boot <UDID>
-
-# Launch the installed app while preserving its current state
+# iOS (default)
 yarn mm launch
+yarn mm launch --platform ios --device-id <SIMULATOR-UDID>
 
-# Optionally choose a simulator
-yarn mm launch --device-id <UDID>
+# Android
+yarn mm launch --platform android
+yarn mm launch --platform android --device-id emulator-5554
 
 # Install a specific build before launching
 yarn mm launch --app-bundle ios/build/MetaMask.app
@@ -60,45 +62,41 @@ yarn mm click e1
 yarn mm type e2 "text"
 yarn mm screenshot --name "result"
 
-# Cleanup
+# Force-stop the selected app and clear the active workflow session
 yarn mm cleanup
+
+# Also request simulator shutdown when using the supported iOS cleanup option
 yarn mm cleanup --shutdown
 ```
 
-There is no alternate launch context. Supplying `--context e2e` is rejected clearly.
+There is no alternate launch context. Supplying `--context e2e`, non-default state initialization, fixtures, contract seeding, or E2E ports is rejected.
 
-## Installed-App Safety
+## Installed-State Safety
 
-- The already-installed MetaMask app is reused without installation or data reset.
-- If no app is installed on the simulator, launch fails with instructions to install one before launching.
-- When launching, the workflow performs internal safety checks on the app's identity. If an identity mismatch is detected, you should reuse the existing installed app or install a matching app outside of the `mm` workflow.
+- The existing installed app and wallet state are reused.
+- Android verifies emulator eligibility, completed boot, exact `io.metamask` installation for the current user, and the launch activity before creating the driver.
+- Android cleanup force-stops only `io.metamask`. It does not stop or mutate the emulator.
+- iOS retains its existing optional install/reinstall behavior and destructive safeguards. Android has no APK lifecycle.
 
 ## Metro Watch Mode
 
-Metro attachment is available for development builds. The workflow is **attach-only** — it never spawns Metro. Start Metro separately and provide its port with either the flag or the environment variable (the flag wins when both are set):
+Metro attachment remains available for development builds. Start Metro and provide its port with either the flag or the environment variable (the flag wins when both are set):
 
 ```bash
 yarn watch:clean
 yarn mm launch --metro-port 8081
 
-# Equivalent, still supported
-MM_METRO_PORT=8081 yarn mm launch
+# iOS
+MM_METRO_PORT=8081 yarn mm launch --platform ios
+
+# Android
+MM_METRO_PORT=8081 yarn mm launch --platform android
 ```
 
-If Metro is not reachable on the given port, launch fails with `MM_INVALID_CONFIG` instructing you to run `yarn watch:clean`. Release/prod builds have no Hermes inspector; Metro attach requires a dev build.
-
-### Pure-Attach Behavior
-
-When the app is already running and healthily attached to Metro (a Hermes debug target is found at `/json` matching the app bundle ID), `mm launch` connects **without relaunching** — no deep-link, no app restart. This prevents the "reload required" overlay and crashes caused by unnecessary re-launches.
-
-If the app is running but **not** healthily attached (stale, crashed, or stuck on an overlay), the workflow terminates and re-launches via the deep link, then verifies JS liveness via a CDP `Runtime.evaluate` probe.
-
-On a fresh-booted simulator where the accessibility bridge was just enabled, a one-time relaunch is performed to ensure the accessibility tree is valid.
-
-On Node 20, CDP WebSocket use may require:
+On Node 20, Hermes/CDP WebSocket access may require the experimental WebSocket flag:
 
 ```bash
-NODE_OPTIONS="--experimental-websocket" yarn mm launch --metro-port 8081
+NODE_OPTIONS="--experimental-websocket" yarn mm launch --platform ios --metro-port 8081
 ```
 
 ## Destructive Launch Flags
@@ -114,48 +112,57 @@ NODE_OPTIONS="--experimental-websocket" yarn mm launch --metro-port 8081
 yarn mm launch --app-bundle ios/build/MetaMask.app --reinstall
 ```
 
-## Force Launch
+For Android, the workflow first validates `http://localhost:<port>/status`. It then inspects the selected emulator's ADB reverse mappings:
 
-If a session is already active, `mm launch` rejects with `MM_SESSION_ALREADY_RUNNING`. Use `--force` to clean up the existing session (terminate the app, clear session state) and launch a new one in a single step:
+- An identical `tcp:<port> -> tcp:<port>` mapping is reused and left untouched.
+- A conflicting mapping for the selected device port causes launch to fail; it is never overwritten.
+- An absent mapping is created and owned by the session.
+- Cleanup removes an owned mapping only if it still matches. External or changed mappings remain untouched; `reverse --remove-all` is never used.
 
-```bash
-yarn mm launch --force
-```
+The Android development-client URL passes only the Metro origin (for example, `http://localhost:8081`) in Expo's `url` parameter, keeps `disableOnboarding=1` as a separate Expo parameter, and opens `io.metamask/io.metamask.MainActivity` with `android.intent.action.VIEW`. Expo constructs the Android bundle URL itself; passing a pre-built `/index.bundle?...` URL breaks Metro asset resolution for custom assets such as `.riv` files.
+
+Android launch readiness is verified rather than inferred from process liveness. Direct launches require the exact resumed `io.metamask/io.metamask.MainActivity` and the mounted React Native `metamask-app-root` marker. Metro launches additionally require exactly one unambiguous `io.metamask` Hermes target. A running process, Metro `/status`, the resumed activity, or a fixed delay is not sufficient by itself, so an Expo Dev Launcher screen cannot be reported as a successful MetaMask launch.
 
 ## Commands
 
 ### Lifecycle
 
-- `yarn mm launch`: launch the installed app in its current state
-- `yarn mm cleanup`: terminate the app and clear the active session
-- `yarn mm status`: inspect daemon/session status
-- `yarn mm stop`: stop the daemon
+- `yarn mm launch`
+- `yarn mm cleanup`
+- `yarn mm cleanup --shutdown`: clean up and request iOS simulator shutdown
+- `yarn mm status`
+- `yarn mm stop`
 
 ### Interaction
 
 - `yarn mm describe-screen`
+- `yarn mm list-testids`
 - `yarn mm click <a11yRef>` or `--testid <id>`
 - `yarn mm type <a11yRef> <text>` or `--testid <id>`
 - `yarn mm wait-for`
 - `yarn mm get-text`
 - `yarn mm screenshot`
 - `yarn mm run-steps '<json>'`
-- `yarn mm cdp Runtime.evaluate '<json>'` when attached to Metro
+- `yarn mm cdp Runtime.evaluate '<json>'` when attached to a compatible Metro development build
 
-### Knowledge Store
+## Android Limitations and Validation Status
 
-- `yarn mm knowledge-search <query>`
-- `yarn mm knowledge-last`
-- `yarn mm knowledge-sessions`
-- `yarn mm knowledge-summarize`
+- Emulator-only; no physical-device support.
+- No emulator lifecycle management, APK discovery/build/install, app-data reset, Appium fallback, clipboard, WebView switching, Flask-specific handling, or CI support.
+- Android UI snapshots are locally serialized because `@metamask/device-mcp` 0.3.0 uses a shared `/sdcard/window_dump.xml`. One retry is performed only for recognized transient UiAutomator idle-state, killed/exit-137, or missing-dump failures. The upstream package should eventually provide unique dump paths and single-snapshot composite discovery.
+- Live validation was completed on AVD `Medium_Phone_API_36.1` (`emulator-5554`) with installed package `io.metamask`. Explicit Android launch succeeded and returned a loaded state with `extensionId: io.metamask` after activity resolution was updated to normalize Android's `io.metamask/.MainActivity` shorthand exactly.
+- The live unlock-screen session validated `describe-screen`, `list-testids`, `get-state`, screenshots, `type --testid`, `get-text --testid`, `wait-for`, valid `run-steps`, and `click --testid`. A screenshot path was returned. An intentionally invalid credential was used only to exercise typing and clicking; successful wallet unlock and home-screen navigation were not attempted.
+- Android resource IDs and app test IDs were observable and usable. Test IDs including `login`, `login-password-input`, and `log-in-button` worked without changes to `SCREEN_DETECTION_MAP`.
+- Live cleanup succeeded, left no `io.metamask` process, and left no reverse mapping. Metro reverse ownership and development-client deep linking were exercised during follow-up debugging; the readiness gate correctly rejected the Expo Dev Launcher when the React root did not mount. The original pre-built `/index.bundle?...` deep link reproduced `Invalid Rive resource` because Rive received an empty asset URI. Switching the deep link to the Metro origin fixed asset resolution, and a cold `yarn mm` Metro launch rendered MetaMask's welcome/onboarding UI without errors, mounted `metamask-app-root`, exposed the observed accessibility controls and Rive `TextureView`, and registered one `io.metamask` Hermes target. An induced real-device partial-launch failure was not performed.
+- Android prerequisite, routing, launch verification, cleanup/failure teardown, and ADB reverse ownership edge cases remain covered by mocked unit tests in addition to the live checks above.
 
 ## Operational Notes
 
-- The daemon binds only to `127.0.0.1` and records its worktree-local state in `.mm-server`.
-- The daemon shuts down after 30 minutes of inactivity and writes logs to `.mm-daemon.log`.
-- Android and browser-only navigation/tab APIs are not supported by this mobile workflow.
+- The daemon binds only to `127.0.0.1`, records worktree-local state in `.mm-server`, and allows up to 180 seconds for requests. Android readiness uses up to 120 seconds within that budget so a cold Metro bundle can complete before launch is cancelled.
+- The daemon shuts down after 30 minutes of inactivity and writes `.mm-daemon.log`.
+- Browser-only navigation and tab APIs are unavailable on mobile sessions.
 - Accessibility references are ephemeral; call `describe-screen` again after navigation or major UI changes.
-- Preserve sensitive installed wallet state. The workflow operates purely by reusing the installed app.
+- Generated agent skills are synced by `yarn skills` and intentionally are not committed in this repository. This committed README is the source for workflow-specific setup and safety notes.
 
 ## Troubleshooting
 
@@ -170,4 +177,4 @@ Launch errors use the core `ErrorCode` set, because `@metamask/client-mcp-core` 
 | `MM_NO_ACTIVE_SESSION`    | Run `yarn mm launch`.                                                                                                                                                                                                                                             |
 | `MM_TARGET_NOT_FOUND`     | Run `yarn mm describe-screen` and use fresh refs.                                                                                                                                                                                                                 |
 
-For the complete agent-facing interaction guide, see `.claude/skills/metamask-mobile-visual-testing/SKILL.md`. Mobile platform support is part of `@metamask/client-mcp-core`; `@metamask/device-mcp` supplies the device backend.
+Mobile platform support comes from `@metamask/client-mcp-core` 0.6.0; `@metamask/device-mcp` 0.3.0 supplies the device backends.
