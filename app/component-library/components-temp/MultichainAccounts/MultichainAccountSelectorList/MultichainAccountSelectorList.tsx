@@ -8,6 +8,7 @@ import React, {
 import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
@@ -43,6 +44,7 @@ import {
   areAddressesEqual,
   isAddressCompatibleWithChainId,
 } from '../../../../util/address';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 const keyExtractor = (
   item: FlattenedMultichainAccountListItem,
@@ -97,6 +99,19 @@ const MultichainAccountSelectorList = ({
   const selectedIdSet = useMemo(
     () => new Set(selectedAccountGroups.map((g) => g.id)),
     [selectedAccountGroups],
+  );
+
+  // Abandon in-flight CreateMultichainAccount spans when the hosting screen
+  // loses focus. Kept here (not in AccountListFooter) because the footer is a
+  // FlashList cell with removeClippedSubviews and can unmount while creation
+  // continues. endTrace is a no-op when no span is pending.
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        endTrace({ name: TraceName.CreateMultichainAccount });
+      },
+      [],
+    ),
   );
 
   const avatarAccountType = useSelector(selectAvatarAccountType);

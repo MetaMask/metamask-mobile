@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
 
 import AccountListFooter from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
@@ -19,9 +18,6 @@ import {
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -72,16 +68,10 @@ const mockUseAccountWalletOperationsLoadingStates =
   useAccountWalletOperationsLoadingStates as jest.MockedFunction<
     typeof useAccountWalletOperationsLoadingStates
   >;
-const mockUseNavigation = useNavigation as jest.MockedFunction<
-  typeof useNavigation
->;
 
 describe('AccountListFooter', () => {
   const mockWalletId = 'keyring:test-wallet-id' as const;
   const mockKeyringId = 'test-keyring-id';
-  let blurListener: (() => void) | undefined;
-  const mockAddListener = jest.fn();
-  const mockRemoveListener = jest.fn();
 
   const mockWallet = {
     id: mockWalletId,
@@ -101,17 +91,6 @@ describe('AccountListFooter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    blurListener = undefined;
-    mockRemoveListener.mockClear();
-    mockAddListener.mockImplementation((event, listener) => {
-      if (event === 'blur') {
-        blurListener = listener;
-      }
-      return mockRemoveListener;
-    });
-    mockUseNavigation.mockReturnValue({
-      addListener: mockAddListener,
-    } as unknown as ReturnType<typeof useNavigation>);
 
     (mockEngine as unknown as { context: unknown }).context = {
       MultichainAccountService: mockMultichainAccountService,
@@ -142,13 +121,9 @@ describe('AccountListFooter', () => {
   });
 
   describe('Tracing', () => {
-    it('ends the create account trace when the screen blurs during account creation', async () => {
-      let resolveCreateAccount: (() => void) | undefined;
-      const createAccountPromise = new Promise<void>((resolve) => {
-        resolveCreateAccount = resolve;
-      });
-      mockMultichainAccountService.createNextMultichainAccountGroup.mockReturnValue(
-        createAccountPromise,
+    it('ends the create account trace when account creation completes', async () => {
+      mockMultichainAccountService.createNextMultichainAccountGroup.mockResolvedValue(
+        { id: 'new-account-group-id' },
       );
 
       const { getByText } = render(
@@ -159,20 +134,16 @@ describe('AccountListFooter', () => {
       );
 
       fireEvent.press(getByText('Add account'));
-      blurListener?.();
 
       expect(trace).toHaveBeenCalledWith({
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.AccountCreate,
       });
-      expect(endTrace).toHaveBeenCalledWith({
-        name: TraceName.CreateMultichainAccount,
-      });
-
-      resolveCreateAccount?.();
 
       await waitFor(() => {
-        expect(getByText('Add account')).toBeOnTheScreen();
+        expect(endTrace).toHaveBeenCalledWith({
+          name: TraceName.CreateMultichainAccount,
+        });
       });
     });
 
@@ -201,7 +172,6 @@ describe('AccountListFooter', () => {
       // Simulate FlashList clipping the footer cell while creation is in flight.
       unmount();
 
-      expect(mockRemoveListener).toHaveBeenCalled();
       expect(endTrace).not.toHaveBeenCalled();
 
       resolveCreateAccount?.();

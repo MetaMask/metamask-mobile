@@ -49,6 +49,7 @@ import {
 } from '../test-utils';
 import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
 import { ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID } from './AccountListCell/AccountListCell.testIds';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -71,13 +72,21 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockNavigate = jest.fn();
+let mockFocusCleanup: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    addListener: jest.fn(() => jest.fn()),
+  useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: jest.fn((callback) => {
+    const cleanup = callback();
+    mockFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
   }),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: jest.fn(),
+  trace: jest.fn(),
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
@@ -105,6 +114,7 @@ describe('MultichainAccountSelectorList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusCleanup = undefined;
   });
 
   // Helper function to perform search and wait for results
@@ -953,6 +963,32 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   describe('Account Creation and Scrolling', () => {
+    it('ends the create account trace when the hosting screen loses focus', () => {
+      const account1 = createMockAccountGroup(
+        'entropy:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account1]}
+        />,
+        { state: mockState },
+      );
+
+      mockFocusCleanup?.();
+
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CreateMultichainAccount,
+      });
+    });
+
     it('renders AccountListFooter with correct props', () => {
       const account1 = createMockAccountGroup(
         'entropy:wallet1/group1',

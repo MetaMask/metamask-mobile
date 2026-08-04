@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 
 import {
   Icon,
@@ -47,7 +46,6 @@ const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const activeCreateTraceRef = useRef(false);
-    const navigation = useNavigation();
     const { styles } = useStyles(createStyles, {});
     const {
       areAnyOperationsLoading,
@@ -87,24 +85,14 @@ const AccountListFooter = memo(
     }, []);
 
     // End trace when the loading finishes.
+    // Do not end on unmount/blur here: this footer is a FlashList cell with
+    // removeClippedSubviews, so scrolling can tear it down while creation is
+    // still running. Screen-level abandon lives on MultichainAccountSelectorList.
     useEffect(() => {
       if (!isLoading) {
         endCreateMultichainAccountTrace();
       }
     }, [endCreateMultichainAccountTrace, isLoading]);
-
-    // End the active span if the screen blurs before creation completes.
-    // Use a navigation blur listener (not useFocusEffect / unmount cleanup):
-    // this footer is a FlashList cell with removeClippedSubviews, so scrolling
-    // can tear the cell down while account creation is still running.
-    useEffect(() => {
-      const unsubscribe = navigation.addListener(
-        'blur',
-        endCreateMultichainAccountTrace,
-      );
-
-      return unsubscribe;
-    }, [endCreateMultichainAccountTrace, navigation]);
 
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
