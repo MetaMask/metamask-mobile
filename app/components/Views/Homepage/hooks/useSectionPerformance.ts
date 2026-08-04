@@ -8,6 +8,7 @@ import {
 } from '../../../../util/trace';
 import type { HomeSectionName } from './useHomeViewedEvent';
 import { useRenderStormMonitor } from '../../../../hooks/performance/useRenderStormMonitor';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
@@ -73,6 +74,10 @@ export const useSectionPerformance = ({
   const fetchEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
 
+  // [PR-TAT-3662] reproduction marker state — removed before the fix commit
+  const isLoadingAtMount = useRef(isLoading);
+  const mountedAt = useRef(0);
+
   const traceContentState =
     contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
 
@@ -101,6 +106,14 @@ export const useSectionPerformance = ({
       tags: { section_id: sectionId },
     });
     ttcStarted.current = true;
+
+    // [PR-TAT-3662] reproduction marker — remove before the fix commit
+    mountedAt.current = Date.now();
+    if (isLoadingAtMount.current === false) {
+      DevLogger.log(
+        `[PR-TAT-3662] BUG_MARKER: mount with isLoading=false — Data Fetch span not started at mount, section=${sectionId}`,
+      );
+    }
 
     return () => {
       if (ttcStarted.current && !ttcEnded.current) {
@@ -157,6 +170,12 @@ export const useSectionPerformance = ({
         tags: { section_id: sectionId },
       });
       fetchStarted.current = true;
+      // [PR-TAT-3662] reproduction marker — remove before the fix commit
+      DevLogger.log(
+        `[PR-TAT-3662] BUG_MARKER: Data Fetch span started ${
+          Date.now() - mountedAt.current
+        }ms after mount, section=${sectionId}`,
+      );
     }
 
     // End: isLoading transitioned from true → false
