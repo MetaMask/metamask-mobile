@@ -137,14 +137,19 @@ describe('usePerpsProSizeInput', () => {
       result.current.onSizeUnitPress();
     });
     act(() => {
-      result.current.onSizeChange('1.2.');
+      result.current.onSizeChange('1.');
     });
+
+    // Trailing separator must remain until blur (unlike "1.2." which the
+    // normalizer collapses to "1.2" immediately).
+    expect(result.current.sizeInputValue).toBe('1.');
+
     act(() => {
       result.current.onSizeBlur();
     });
 
-    expect(result.current.sizeInputValue).toBe('1.2');
-    expect(mockSetAmount).toHaveBeenLastCalledWith('120');
+    expect(result.current.sizeInputValue).toBe('1');
+    expect(mockSetAmount).toHaveBeenLastCalledWith('100');
   });
 
   it('projects coin edits to USD rounded to two decimals', () => {
@@ -161,6 +166,75 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInputValue).toBe('1.2345');
     expect(result.current.effectiveUsdAmount).toBe('152.41');
     expect(mockSetAmount).toHaveBeenCalledWith('152.41');
+  });
+
+  it('snaps coin display to the USD round-trip size on blur', () => {
+    const params = createParams({ effectivePrice: 123.456, szDecimals: 4 });
+    const { result } = renderHook(() => usePerpsProSizeInput(params));
+
+    act(() => {
+      result.current.onSizeUnitPress();
+    });
+    act(() => {
+      result.current.onSizeChange('1.234');
+    });
+
+    expect(result.current.sizeInputValue).toBe('1.234');
+    expect(result.current.effectiveUsdAmount).toBe('152.34');
+
+    act(() => {
+      result.current.onSizeBlur();
+    });
+
+    expect(result.current.sizeInputValue).toBe('1.2339');
+    expect(result.current.effectiveUsdAmount).toBe('152.34');
+    expect(mockSetAmount).toHaveBeenLastCalledWith('152.34');
+  });
+
+  it('refreshes snapped coin projection when price changes after blur', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({
+          usdAmount: '100',
+          effectivePrice: 123.456,
+          szDecimals: 4,
+        }),
+      },
+    );
+
+    act(() => {
+      result.current.onSizeUnitPress();
+    });
+    act(() => {
+      result.current.onSizeChange('1.234');
+    });
+    act(() => {
+      result.current.onSizeBlur();
+    });
+
+    expect(result.current.sizeInputValue).toBe('1.2339');
+
+    // Echo the blur commit at the same price first (clears pending internal USD).
+    rerender(
+      createParams({
+        usdAmount: '152.34',
+        effectivePrice: 123.456,
+        szDecimals: 4,
+      }),
+    );
+    expect(result.current.sizeInputValue).toBe('1.2339');
+
+    // Clean draft: price-only updates refresh the coin projection.
+    rerender(
+      createParams({
+        usdAmount: '152.34',
+        effectivePrice: 200,
+        szDecimals: 4,
+      }),
+    );
+
+    expect(result.current.sizeInputValue).toBe('0.7617');
   });
 
   it('preserves dirty coin text when the price changes', () => {
