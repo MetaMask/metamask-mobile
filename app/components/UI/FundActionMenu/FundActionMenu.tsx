@@ -32,12 +32,10 @@ import type {
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
-  const surfaceClass = useElevatedSurface();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
@@ -171,7 +169,6 @@ const FundActionMenu = () => {
       ref={sheetRef}
       goBack={navigation.goBack}
       testID="fund-action-menu-bottom-sheet"
-      twClassName={surfaceClass}
     >
       <Box twClassName="py-4">
         {actionConfigs.map(

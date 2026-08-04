@@ -278,7 +278,6 @@ const config = {
 
     // Notification-only.
     '.github/workflows/prod-build-env-notify.yml',
-    '.github/workflows/publish-slack-release-testing-status.yml',
     '.github/workflows/slack-rc-notification.yml',
 
     // Builds a dev CI container image, not a shipped mobile binary.

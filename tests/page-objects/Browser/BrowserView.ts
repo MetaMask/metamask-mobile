@@ -1,4 +1,3 @@
-import TestHelpers from '../../helpers';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
@@ -593,8 +592,9 @@ class Browser {
    * @returns {Promise<void>}
    */
   async waitForBrowserPageToLoad(): Promise<void> {
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(5000);
+    await Assertions.expectElementToBeVisible(this.browserScreenID, {
+      elemDescription: 'Browser screen',
+    });
   }
 
   async navigateToTestDApp(): Promise<void> {
