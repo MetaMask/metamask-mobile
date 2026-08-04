@@ -6,19 +6,27 @@ import {
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
-import {
-  TimeDuration,
-  getPerpsDisplaySymbol,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
+import { TimeDuration, type PerpsMarketData } from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { AnimationDuration } from '@metamask/design-tokens';
-import { useRoute, type RouteProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
+import type { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
@@ -59,6 +67,8 @@ import { createStyles } from './PerpsProMarketView.styles';
  */
 const PerpsProMarketView = () => {
   const { styles } = useStyles(createStyles, {});
+  const navigation =
+    useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const routeMarket = route.params?.market;
@@ -81,6 +91,39 @@ const PerpsProMarketView = () => {
     return fullMarket || routeMarket;
   }, [hasFormattedMaxLeverage, markets, routeMarket]);
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Swapping the route param rather than pushing keeps a single Pro screen on
+  // the stack, so tapping through positions/orders doesn't build up history.
+  const handleSelectMarket = useCallback(
+    (
+      nextMarket: PerpsMarketData | Partial<PerpsMarketData>,
+      sourceSection:
+        | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
+        | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    ) => {
+      if (!nextMarket.symbol || nextMarket.symbol === routeMarket?.symbol) {
+        return;
+      }
+
+      // POSITION_TAB is the panel-level source; source_section distinguishes
+      // which tab the row came from (same pattern as Perps home).
+      navigation.setParams({
+        market: nextMarket,
+        source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
+        source_section: sourceSection,
+      });
+    },
+    [navigation, routeMarket?.symbol],
+  );
+
+  // Bring the chart back into view when the active market changes (e.g. the
+  // user tapped a positions/orders row while scrolled down). Matches Lite's
+  // related-markets behaviour in PerpsMarketDetailsView, including
+  // `animated: false` so a near-top scroll doesn't flash an animation.
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  }, [market?.symbol]);
 
   const handleCollapseOrderBook = useCallback(() => {
     setIsOrderBookCollapsed(true);
@@ -193,7 +236,6 @@ const PerpsProMarketView = () => {
     );
   }
 
-  const symbol = getPerpsDisplaySymbol(market.symbol);
   const marketPrice = (() => {
     if (!market.price) {
       return undefined;
@@ -222,6 +264,7 @@ const PerpsProMarketView = () => {
         priceSectionHeight={titleSectionHeightSv}
       />
       <Animated.ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
@@ -274,7 +317,10 @@ const PerpsProMarketView = () => {
             }
           />
           <SectionDivider marginVertical={0} />
-          <PerpsProPositionsPanel symbol={symbol} />
+          <PerpsProPositionsPanel
+            symbol={market.symbol}
+            onSelectMarket={handleSelectMarket}
+          />
         </Animated.View>
       </Animated.ScrollView>
       <PerpsCandlePeriodBottomSheet
