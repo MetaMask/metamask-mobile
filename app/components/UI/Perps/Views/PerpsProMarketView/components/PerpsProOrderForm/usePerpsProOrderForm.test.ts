@@ -196,6 +196,7 @@ const renderProForm = () => renderHook(() => usePerpsProOrderForm({ market }));
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockExecutionOptions = {};
     mockOrderForm.type = 'market';
     mockOrderForm.direction = 'long';
     mockOrderForm.amount = '100';
