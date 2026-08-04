@@ -109,29 +109,26 @@ class SignModal {
   } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(
-          async () => {
-            const sheetDeadline = Date.now() + timeout;
-            while (Date.now() < sheetDeadline) {
-              if (await this.isSignSheetVisible()) {
-                break;
-              }
-              await sleep(250);
-            }
-            if (!(await this.isSignSheetVisible())) {
-              throw new Error(
-                `SignModal: confirmation sheet not visible within ${timeout}ms`,
-              );
-            }
-            const element = await asPlaywrightElement(this.cancelButton);
-            await element.waitForDisplayed({
-              timeout: 5_000,
-              timeoutMsg: 'SignModal: cancel button not visible',
-            });
-            await element.click();
-          },
-          { maxRetries: 3, interval: 1000 },
-        );
+        // Single poll up to `timeout` — do not wrap in expectConditionWithRetry
+        // (that would multiply the budget by maxRetries).
+        const sheetDeadline = Date.now() + timeout;
+        while (Date.now() < sheetDeadline) {
+          if (await this.isSignSheetVisible()) {
+            break;
+          }
+          await sleep(250);
+        }
+        if (!(await this.isSignSheetVisible())) {
+          throw new Error(
+            `SignModal: confirmation sheet not visible within ${timeout}ms`,
+          );
+        }
+        const element = await asPlaywrightElement(this.cancelButton);
+        await element.waitForDisplayed({
+          timeout: 5_000,
+          timeoutMsg: 'SignModal: cancel button not visible',
+        });
+        await element.click();
       },
     });
     if (shouldCooldown) {

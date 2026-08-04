@@ -8,6 +8,7 @@ import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.te
 import {
   DEFAULT_MM_CONNECT_DAPP_PORT,
   MM_CONNECT_ACCOUNT_1,
+  MM_CONNECT_LEGACY_CHAIN_ID,
   assertLegacyEvmConnected,
   assertLegacyEvmDisconnected,
   connectLegacyDappViaMetaMask,
@@ -57,6 +58,7 @@ appiumTest.describe(SmokeMMConnect('EVM rejection'), () => {
             MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
           );
           await assertLegacyEvmConnected(dappUrl, {
+            chainId: MM_CONNECT_LEGACY_CHAIN_ID,
             activeAccount: MM_CONNECT_ACCOUNT_1,
           });
           await rejectLegacyPersonalSign(dappUrl, currentDeviceDetails);
@@ -73,6 +75,7 @@ appiumTest.describe(SmokeMMConnect('EVM rejection'), () => {
             MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
           );
           await assertLegacyEvmConnected(dappUrl, {
+            chainId: MM_CONNECT_LEGACY_CHAIN_ID,
             activeAccount: MM_CONNECT_ACCOUNT_1,
           });
           await rejectLegacyPersonalSign(dappUrl, currentDeviceDetails);
@@ -88,6 +91,7 @@ appiumTest.describe(SmokeMMConnect('EVM rejection'), () => {
             MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
           );
           await assertLegacyEvmConnected(dappUrl, {
+            chainId: MM_CONNECT_LEGACY_CHAIN_ID,
             activeAccount: MM_CONNECT_ACCOUNT_1,
           });
           await rejectLegacyPersonalSign(dappUrl, currentDeviceDetails);

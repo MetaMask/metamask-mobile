@@ -12,6 +12,7 @@ import {
   MM_CONNECT_ACCOUNT_1,
   MM_CONNECT_ACCOUNT_3,
   MM_CONNECT_ACCOUNT_3_NAME,
+  MM_CONNECT_LEGACY_CHAIN_ID,
   assertLegacyEvmConnected,
   connectLegacyDappViaMetaMask,
   createBrowserPlaygroundServer,
@@ -64,6 +65,7 @@ appiumTest.describe(SmokeMMConnect('EVM account switching'), () => {
             MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
           );
           await assertLegacyEvmConnected(dappUrl, {
+            chainId: MM_CONNECT_LEGACY_CHAIN_ID,
             activeAccount: MM_CONNECT_ACCOUNT_1,
           });
 
@@ -76,6 +78,7 @@ appiumTest.describe(SmokeMMConnect('EVM account switching'), () => {
             MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
           );
           await assertLegacyEvmConnected(dappUrl, {
+            chainId: MM_CONNECT_LEGACY_CHAIN_ID,
             activeAccount: MM_CONNECT_ACCOUNT_3,
           });
 
@@ -83,6 +86,7 @@ appiumTest.describe(SmokeMMConnect('EVM account switching'), () => {
             await refreshMobileBrowser();
           });
           await assertLegacyEvmConnected(dappUrl, {
+            chainId: MM_CONNECT_LEGACY_CHAIN_ID,
             activeAccount: MM_CONNECT_ACCOUNT_3,
           });
 
