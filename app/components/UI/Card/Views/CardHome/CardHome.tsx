@@ -150,6 +150,7 @@ const CardHome = () => {
   });
   const immersveLegalDocsUnavailable = Boolean(
     isImmersve &&
+      Boolean(cardRegionCode) &&
       !isImmersveLegalDocsLoading &&
       (immersveLegalDocsError || immersveLegalDocuments.length === 0),
   );
