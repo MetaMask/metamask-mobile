@@ -13,7 +13,7 @@ class ActivityDetails {
   }
 
   async verifyStatus(status: string, timeout = 20000): Promise<void> {
-    await Assertions.expectElementToHaveText(this.statusPill, status, {
+    await Assertions.expectTextDisplayed(status, {
       description: `Status pill should be ${status}`,
       timeout,
     });

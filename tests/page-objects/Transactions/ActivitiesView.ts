@@ -2,6 +2,8 @@ import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
 } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { ActivityScreenSelectorsIDs } from '../../../app/components/Views/ActivityScreen/ActivityScreen.testIds';
+import { activityListRowItemTestId } from '../../../app/components/Views/ActivityList/ActivityList.testIds';
 import {
   getOrderRowFiatAmountTestId,
   getOrderRowCryptoAmountTestId,
@@ -23,19 +25,31 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class ActivitiesView {
   get typeFilterChip(): EncapsulatedElementType {
-    return Matchers.getElementByID('activity-screen-type-filter-chip');
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
   }
 
   typeFilterOption(option: string): EncapsulatedElementType {
-    return Matchers.getElementByID(`activity-screen-type-filter-option-${option}`);
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${option}`,
+    );
   }
 
   get perpsFilterChip(): EncapsulatedElementType {
-    return Matchers.getElementByID('activity-screen-perps-filter-chip');
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
+    );
+  }
+
+  get perpsFilterSheet(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
+    );
   }
 
   perpsFilterOption(option: string): EncapsulatedElementType {
-    return Matchers.getElementByID(`activity-screen-perps-filter-option-${option}`);
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
+    );
   }
 
   async tapTypeFilterChip(): Promise<void> {
@@ -47,34 +61,30 @@ class ActivitiesView {
   async selectTypeFilterOptionSafe(option: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const label = option === 'perps' ? 'Perps' : option === 'deposit' ? 'Deposits' : option;
+        const label =
+          option === 'perps'
+            ? 'Perps'
+            : option === 'deposit'
+              ? 'Deposits'
+              : option;
         let sheetOpen = true;
         try {
-          await Assertions.expectElementToBeVisible(Matchers.getElementByText(label), {
-            timeout: 1500,
-            description: 'Check if filter sheet is open',
-          });
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText(label),
+            {
+              timeout: 1500,
+              description: 'Check if filter sheet is open',
+            },
+          );
         } catch {
           sheetOpen = false;
         }
 
         if (!sheetOpen) {
-          console.log('Sheet seems closed, tapping chip to open...');
-          try {
-            await UnifiedGestures.waitAndTap(this.typeFilterChip, {
-              description: 'Activity Type Filter Chip',
-              timeout: 3000,
-            });
-          } catch (e) {
-            console.log('Failed to tap chip. Dumping source...');
-            try {
-              const source = await global.driver?.getPageSource();
-              console.log('PAGE SOURCE:', source);
-            } catch (err) {
-              console.log('Failed to dump source', err);
-            }
-            throw e;
-          }
+          await UnifiedGestures.waitAndTap(this.typeFilterChip, {
+            description: 'Activity Type Filter Chip',
+            timeout: 3000,
+          });
         }
 
         // Tap the option container directly. Bypass display check to avoid iOS flattening bugs.
@@ -90,7 +100,10 @@ class ActivitiesView {
           description: 'Wait for perps filter chip to appear (sheet closed)',
         });
       },
-      { timeout: 30000, description: 'Selecting type filter option with retry' }
+      {
+        timeout: 30000,
+        description: 'Selecting type filter option with retry',
+      },
     );
   }
 
@@ -106,16 +119,18 @@ class ActivitiesView {
         const label = option === 'deposit' ? 'Deposits' : option;
         let sheetOpen = true;
         try {
-          await Assertions.expectElementToBeVisible(Matchers.getElementByText(label), {
-            timeout: 1500,
-            description: 'Check if perps filter sheet is open',
-          });
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText(label),
+            {
+              timeout: 1500,
+              description: 'Check if perps filter sheet is open',
+            },
+          );
         } catch {
           sheetOpen = false;
         }
 
         if (!sheetOpen) {
-          console.log('Perps sheet seems closed, tapping chip to open...');
           await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
             description: 'Activity Perps Filter Chip',
             timeout: 3000,
@@ -129,21 +144,23 @@ class ActivitiesView {
           timeout: 4000,
         });
 
-        // Wait for it to close
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await Assertions.expectElementToNotBeVisible(this.perpsFilterSheet, {
+          timeout: 4000,
+          description: 'Wait for perps filter sheet to close after selection',
+        });
       },
-      { timeout: 30000, description: 'Selecting perps filter option with retry' }
+      {
+        timeout: 30000,
+        description: 'Selecting perps filter option with retry',
+      },
     );
   }
 
-    async verifyActivityItemLabelAndAmount(
+  async verifyActivityItemLabelAndAmount(
     label: string,
     amount: string,
-    rowIndex = 0,
   ): Promise<void> {
-    const item = this.transactionItem(rowIndex);
-    await Assertions.expectElementToBeVisible(item, { timeout: 15000, description: 'Wait for transaction item' });
-    await Assertions.expectTextDisplayed(label, { timeout: 10000 });
+    await Assertions.expectTextDisplayed(label, { timeout: 15000 });
     await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
   }
 
@@ -227,7 +244,7 @@ class ActivitiesView {
   }
 
   transactionItem(row: number): EncapsulatedElementType {
-    return Matchers.getElementByID(`transaction-item-${row}`);
+    return Matchers.getElementByID(activityListRowItemTestId(row));
   }
 
   generateSwapActivityLabel(
@@ -286,7 +303,7 @@ class ActivitiesView {
 
   /**
    * Taps an activity row via its visible text label.
-   * Note: The ~transaction-item-0 wrapper testID can be flaky under XCUITest 
+   * Note: The ~transaction-item-0 wrapper testID can be flaky under XCUITest
    * (accessibility flattening swallows it into StaticText children), so tapping by label text is safer.
    */
   async tapOnActivityItemByLabel(label: string): Promise<void> {
@@ -297,7 +314,10 @@ class ActivitiesView {
           timeout: 10000,
         });
       },
-      { timeout: 30000, description: `Tapping activity item by label ${label} with retry` }
+      {
+        timeout: 30000,
+        description: `Tapping activity item by label ${label} with retry`,
+      },
     );
   }
 
