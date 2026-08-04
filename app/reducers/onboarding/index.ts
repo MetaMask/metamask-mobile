@@ -16,6 +16,7 @@ import {
   RESET_WALLET_HOME_ONBOARDING_STEPS,
   SET_WALLET_HOME_ONBOARDING_STEPS_STEP,
   SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
+  MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -56,6 +57,13 @@ export interface OnboardingState {
 
   /** Present after migration 135; absent only on partially rehydrated legacy state. */
   walletHomeOnboardingSteps?: WalletHomeOnboardingStepsState;
+
+  /**
+   * True once the OS push notification permission request has been asked for. Users who got
+   * that far already answered the notifications question, so the wallet home checklist drops
+   * its notifications step instead of asking a second time.
+   */
+  pushNotificationOsPromptRequested: boolean;
 }
 
 export const initialOnboardingState: OnboardingState = {
@@ -66,6 +74,7 @@ export const initialOnboardingState: OnboardingState = {
   walletHomeOnboardingStepsEligible: false,
   walletHomeOnboardingSkipInitialBalanceWait: false,
   walletHomeOnboardingSteps: { ...WALLET_HOME_ONBOARDING_STEPS_INITIAL },
+  pushNotificationOsPromptRequested: false,
 };
 
 /**
@@ -171,6 +180,11 @@ const onboardingReducer = (
           : {}),
       };
     }
+    case MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED:
+      return {
+        ...state,
+        pushNotificationOsPromptRequested: true,
+      };
     default:
       return state;
   }

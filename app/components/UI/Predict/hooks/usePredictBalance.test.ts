@@ -104,6 +104,17 @@ describe('usePredictBalance', () => {
       expect(mockGetBalance).not.toHaveBeenCalled();
     });
 
+    it('skips all setup when disabled', () => {
+      const { Wrapper } = createWrapper();
+
+      renderHook(() => usePredictBalance({ enabled: false }), {
+        wrapper: Wrapper,
+      });
+
+      expect(mockEnsurePolygonNetworkExists).not.toHaveBeenCalled();
+      expect(mockGetBalance).not.toHaveBeenCalled();
+    });
+
     it('fetches against the new address after the selected account changes', async () => {
       const { Wrapper } = createWrapper();
       mockGetBalance.mockImplementation(({ address }) =>

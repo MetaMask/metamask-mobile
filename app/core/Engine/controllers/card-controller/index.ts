@@ -24,36 +24,11 @@ export const cardControllerInit: MessengerClientInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
-  // Temporary: lets getCardFeatureFlag overlay selectedCardProgramId after
-  // the controller exists. Easy to remove with the multi-program test UI.
-  const controllerRef: { current?: CardController } = {};
-
-  const getCardFeatureFlag = (): CardFeatureFlag => {
-    const featureState = controllerMessenger.call(
-      'RemoteFeatureFlagController:getState',
+  const getCardFeatureFlag = (): CardFeatureFlag =>
+    resolveCardFeatureFlag(
+      controllerMessenger.call('RemoteFeatureFlagController:getState')
+        .remoteFeatureFlags?.cardFeature as CardFeatureFlag | undefined,
     );
-    const flag = resolveCardFeatureFlag(
-      featureState.remoteFeatureFlags?.cardFeature as
-        | CardFeatureFlag
-        | undefined,
-    );
-
-    // Temporary: overlay the SignUp-selected Immersve cardProgramId so the
-    // provider keeps reading from the feature flag as usual.
-    const selectedCardProgramId =
-      controllerRef.current?.state?.selectedCardProgramId;
-    if (selectedCardProgramId && flag.immersve) {
-      return {
-        ...flag,
-        immersve: {
-          ...flag.immersve,
-          cardProgramId: selectedCardProgramId,
-        },
-      };
-    }
-
-    return flag;
-  };
 
   const baanxConfig = resolveBaanxConfig();
   const baanxProvider = new BaanxProvider({
@@ -78,7 +53,6 @@ export const cardControllerInit: MessengerClientInitFunction<
     },
     providers: { baanx: baanxProvider, immersve: immersveProvider },
   });
-  controllerRef.current = controller;
 
   return { controller };
 };
