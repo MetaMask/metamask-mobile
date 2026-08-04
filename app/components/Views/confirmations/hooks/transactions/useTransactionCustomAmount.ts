@@ -453,7 +453,14 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
   }
 
   if (paymentOverride === PaymentOverride.MoneyAccount) {
-    return withdrawableFiatRaw ? parseFloat(withdrawableFiatRaw) : 0;
+    if (!withdrawableFiatRaw) {
+      return 0;
+    }
+    // ROUND_DOWN to cents before Max/percentage math so we never set an
+    // amount above the spendable withdrawable balance after display rounding.
+    return new BigNumber(withdrawableFiatRaw)
+      .decimalPlaces(2, BigNumber.ROUND_DOWN)
+      .toNumber();
   }
 
   return payTokenBalanceUsd;
