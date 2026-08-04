@@ -218,9 +218,8 @@ class SolanaTestDApp {
   }
 
   async reload(): Promise<void> {
-    // Soft refresh so wallet-adapter auto-reconnect can run from the same
-    // document origin (full URL re-navigation races provider reinjection on CI).
-    await this.evaluate('location.reload(); true');
+    // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
+    await this.evaluate('(() => { location.reload(); return true; })()');
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
     await this.waitForDappLoaded();
     await this.pollForText(sel(header.connectionStatus), 'Connected');

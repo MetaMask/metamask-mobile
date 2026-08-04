@@ -109,11 +109,6 @@ class BitcoinTestDapp {
     throw new Error(`Timed out: expected "${expected}", got "${actual}"`);
   }
 
-  /**
-   * After a page refresh the Bitcoin test dapp re-invokes wallet-standard
-   * `connect()` from localStorage. On slow Android CI that can open the
-   * MetaMask connect sheet again — tap it if it appears while polling.
-   */
   private async waitForReconnect(timeoutMs = 10_000): Promise<void> {
     const deadline = Date.now() + timeoutMs;
     let lastConnectAttemptAt = 0;
@@ -125,13 +120,12 @@ class BitcoinTestDapp {
       ).catch(() => null);
       if (actual === 'Connected') return;
 
-      // Auto-reconnect may re-open the MM connect sheet after wallets register.
       if (Date.now() - lastConnectAttemptAt >= 3_000) {
         lastConnectAttemptAt = Date.now();
         try {
           await DappConnectionModal.tapConnectButton({ timeout: 1_000 });
         } catch {
-          // Sheet not present — keep polling for silent reconnect.
+          // Connect sheet not shown yet.
         }
       }
 
@@ -189,11 +183,8 @@ class BitcoinTestDapp {
   }
 
   async reload(): Promise<void> {
-    // Soft refresh (same document origin) so wallet-standard auto-reconnect
-    // from localStorage can run. Full URL re-navigation was leaving CI Android
-    // stuck on "Not connected" for the full reconnect timeout.
-    await this.evaluate('location.reload(); true');
-    // Document swap invalidates the cached CDP page target.
+    // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
+    await this.evaluate('(() => { location.reload(); return true; })()');
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
     await this.waitForDappLoaded();
     await this.waitForReconnect();
