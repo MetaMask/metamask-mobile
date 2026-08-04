@@ -12,19 +12,21 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
     expect(options.contentStyle).toBeUndefined();
   });
 
-  it('returns header-visible options when showPerpsHeader is true', () => {
+  it('hides the native stack header when showPerpsHeader is true (inline ConfirmationNavHeader)', () => {
     const options = getRedesignedConfirmationsHeaderOptions({
       showPerpsHeader: true,
     });
 
-    expect(options.headerShown).toBe(true);
+    // Full-screen confirms render HeaderStandard inline; stack header stays hidden.
+    expect(options.headerShown).toBe(false);
     expect(options.headerBackVisible).toBe(false);
+    expect(options.gestureEnabled).toBe(false);
     expect(options).not.toHaveProperty('presentation');
   });
 
-  it('defaults to showing perps header when no params provided', () => {
+  it('defaults to hiding the native stack header when no params provided', () => {
     const options = getRedesignedConfirmationsHeaderOptions();
 
-    expect(options.headerShown).toBe(true);
+    expect(options.headerShown).toBe(false);
   });
 });

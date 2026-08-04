@@ -25,7 +25,8 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
     },
     scrollView: {
-      // Content owns its 16px insets (MMDS KeyValueRow/HelpText/keyboard wrappers).
+      // Content owns 16px insets (InfoSection, AlertBanner, SimulationDetails,
+      // HeroToken, CustomAmount KeyValueRow/HelpText/keyboard wrappers).
       paddingHorizontal: 0,
     },
     scrollViewContent: {

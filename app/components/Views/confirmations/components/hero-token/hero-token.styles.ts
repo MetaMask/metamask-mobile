@@ -33,7 +33,7 @@ const styleSheet = (params: {
     horizontalContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 0,
+      paddingHorizontal: 16,
       paddingTop: 12,
       paddingBottom: 24,
     },
