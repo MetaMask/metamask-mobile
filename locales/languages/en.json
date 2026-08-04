@@ -5965,7 +5965,7 @@
           },
           "notifications_off": {
             "title": "Notifications are off",
-            "description": "Turn them on anytime in Settings → Notifications."
+            "description": "Turn them on in Settings → Notifications to stay updated on your agent's activity."
           }
         }
       },
@@ -10244,8 +10244,9 @@
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
-      "title": "Turn on notifications",
-      "description": "Get alerts for transactions from your CLI session."
+      "title": "You won't get transaction alerts",
+      "description": "Notifications are off. Without them, you can't approve or review transactions from your CLI session.",
+      "turn_on_button": "Turn on notifications"
     },
     "show_otp": {
       "title": "Enter this code",

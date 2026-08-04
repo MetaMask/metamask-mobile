@@ -28,6 +28,8 @@ export interface NewUserSheetProps {
   title?: string;
   /** Optional body override. Defaults to the push-onboarding copy. */
   body?: string;
+  /** Optional primary-button label override. */
+  yesLabel?: string;
   /** Whether to render the notification preview card. Defaults to true. */
   showPreview?: boolean;
 }
@@ -40,6 +42,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   testID,
   title = strings('notifications.push_onboarding.new_user.title'),
   body = strings('notifications.push_onboarding.new_user.body'),
+  yesLabel = strings('notifications.push_onboarding.new_user.button_yes'),
   showPreview = true,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -110,7 +113,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
               twClassName="rounded-xl"
               testID={NewUserSheetSelectorsIDs.BUTTON_YES}
             >
-              {strings('notifications.push_onboarding.new_user.button_yes')}
+              {yesLabel}
             </Button>
             <Button
               variant={ButtonVariant.Tertiary}

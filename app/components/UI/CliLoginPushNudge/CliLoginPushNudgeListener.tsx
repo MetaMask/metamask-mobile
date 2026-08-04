@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { strings } from '../../../../locales/i18n';
 import NewUserSheet from '../../Views/Notifications/PushNotificationOnboarding/NewUserSheet';
 import { useCliLoginPushNudge } from './useCliLoginPushNudge';
@@ -14,15 +14,41 @@ import { useCliLoginPushNudge } from './useCliLoginPushNudge';
  */
 const CliLoginPushNudgeListener = () => {
   const { isVisible, onYes, onNotNow, onClose } = useCliLoginPushNudge();
+  // Copy-review preview only: make the CLI sheet available immediately after an
+  // authenticated development build launches. It never ships in production.
+  const [isDevPreviewVisible, setIsDevPreviewVisible] = useState(__DEV__);
+
+  const dismissDevPreview = useCallback(() => {
+    setIsDevPreviewVisible(false);
+  }, []);
+
+  const handleYes = useCallback(async () => {
+    dismissDevPreview();
+    await onYes();
+  }, [dismissDevPreview, onYes]);
+
+  const handleNotNow = useCallback(() => {
+    dismissDevPreview();
+    onNotNow();
+  }, [dismissDevPreview, onNotNow]);
+
+  const handleClose = useCallback(
+    (hasPendingAction?: boolean) => {
+      dismissDevPreview();
+      onClose(hasPendingAction);
+    },
+    [dismissDevPreview, onClose],
+  );
 
   return (
     <NewUserSheet
-      isVisible={isVisible}
-      onClose={onClose}
-      onYes={onYes}
-      onNotNow={onNotNow}
+      isVisible={isVisible || isDevPreviewVisible}
+      onClose={handleClose}
+      onYes={handleYes}
+      onNotNow={handleNotNow}
       title={strings('sdk_connect_v2.push_nudge.title')}
       body={strings('sdk_connect_v2.push_nudge.description')}
+      yesLabel={strings('sdk_connect_v2.push_nudge.turn_on_button')}
       showPreview={false}
       testID="cli-login-push-nudge"
     />

@@ -52,8 +52,8 @@ describe('NewUserSheet', () => {
   });
 
   it('renders title, body and buttons when visible', () => {
-    const { getByTestId } = renderWithProvider(
-      <NewUserSheet {...defaultProps} />,
+    const { getByTestId, getByText } = renderWithProvider(
+      <NewUserSheet {...defaultProps} yesLabel="Turn on notifications" />,
     );
     expect(getByTestId(NewUserSheetSelectorsIDs.TITLE)).toBeOnTheScreen();
     expect(getByTestId(NewUserSheetSelectorsIDs.BODY)).toBeOnTheScreen();
@@ -61,6 +61,7 @@ describe('NewUserSheet', () => {
     expect(
       getByTestId(NewUserSheetSelectorsIDs.BUTTON_NOT_NOW),
     ).toBeOnTheScreen();
+    expect(getByText('Turn on notifications')).toBeOnTheScreen();
   });
 
   it('closes the sheet before calling onYes when Yes is pressed', () => {
