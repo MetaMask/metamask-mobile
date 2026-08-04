@@ -30,6 +30,11 @@ class NotificationModule(context: ReactApplicationContext) : ReactContextBaseJav
       "gcm.notification.click_action"
     )
 
+    internal fun shouldEmitNotificationOpened(extras: Bundle): Boolean =
+      extras.containsKey("google.message_id") ||
+        extras.containsKey("message_id") ||
+        extras.getBundle("notification")?.getBundle("data") != null
+
     fun saveNotificationIntent(intent: Intent?) {
       intent?.extras?.let { extras ->
         val hasFCMData = extras.keySet().any { key ->
@@ -41,7 +46,9 @@ class NotificationModule(context: ReactApplicationContext) : ReactContextBaseJav
 
         if (hasFCMData) {
           savedNotificationData = Bundle(extras)
-          moduleReference?.get()?.emitNotificationOpened(extras)
+          if (shouldEmitNotificationOpened(extras)) {
+            moduleReference?.get()?.emitNotificationOpened(extras)
+          }
         }
       }
     }
