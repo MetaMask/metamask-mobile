@@ -276,20 +276,28 @@ describe('PredictFeedView (component view)', () => {
       Engine.context.PredictController,
       'trackFeedFilterChanged',
     );
-    listMarketsSpy.mockResolvedValue({ markets: [], nextCursor: null });
+    const gamesMarket = createMarket('games-1', 'Lakers game market');
+    const propsMarket = createMarket('props-1', 'Player props market');
+    listMarketsSpy.mockImplementation(
+      async (params?: { excludedTags?: string[] }) => {
+        if (params?.excludedTags?.length) {
+          return { markets: [propsMarket], nextCursor: null };
+        }
+        return { markets: [gamesMarket], nextCursor: null };
+      },
+    );
 
-    const { findByText, getByText } = renderPredictFeedView({
+    const { findByText, getByText, queryByText } = renderPredictFeedView({
       initialParams: { feedId: 'sports', entryPoint: 'home_section' },
     });
 
-    await findByText('Sports');
-    const callsBefore = listMarketsSpy.mock.calls.length;
+    expect(await findByText('Lakers game market')).toBeOnTheScreen();
+    expect(queryByText('Player props market')).not.toBeOnTheScreen();
 
     fireEvent.press(getByText('Props'));
 
-    await waitFor(() => {
-      expect(listMarketsSpy.mock.calls.length).toBeGreaterThan(callsBefore);
-    });
+    expect(await findByText('Player props market')).toBeOnTheScreen();
+    expect(queryByText('Lakers game market')).not.toBeOnTheScreen();
     expect(trackFilterSpy).toHaveBeenCalledWith({
       feedId: 'sports',
       tabId: 'all',

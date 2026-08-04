@@ -21,6 +21,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { Image } from 'expo-image';
 import {
   getPredictMarketDetailsSelector,
   PredictCryptoUpDownDetailsSelectorsIDs,
@@ -242,7 +243,7 @@ describe('PredictMarketDetails', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the title and image passed in route params instead of waiting for the market to load', async () => {
+    it('prefers the title and image from route params over the loaded market data', async () => {
       let resolveMarket: (market: PredictMarket) => void = () => undefined;
       controllerMock('getMarket').mockImplementation(
         () =>
@@ -251,17 +252,35 @@ describe('PredictMarketDetails', () => {
           }),
       );
 
-      const { findByText, queryByText } = renderPredictMarketDetailsView({
-        initialParams: {
-          marketId: MARKET_ID,
-          title: 'Title from the feed card',
-        },
+      const { findByTestId, findByText, queryByText, UNSAFE_getByType } =
+        renderPredictMarketDetailsView({
+          initialParams: {
+            marketId: MARKET_ID,
+            title: 'Title from the feed card',
+            image: 'https://example.com/feed-card.png',
+          },
+        });
+
+      expect(
+        await findByTestId(
+          PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
+        ),
+      ).toBeOnTheScreen();
+      expect(queryByText('Title from the feed card')).not.toBeOnTheScreen();
+
+      await act(async () => {
+        resolveMarket({
+          ...MOCK_PREDICT_MARKET,
+          title: 'Title from getMarket',
+          image: 'https://example.com/market.png',
+        });
       });
 
-      resolveMarket(MOCK_PREDICT_MARKET);
-
       expect(await findByText('Title from the feed card')).toBeOnTheScreen();
-      expect(queryByText(MOCK_PREDICT_MARKET.title)).not.toBeOnTheScreen();
+      expect(queryByText('Title from getMarket')).not.toBeOnTheScreen();
+      expect(UNSAFE_getByType(Image).props.source).toEqual({
+        uri: 'https://example.com/feed-card.png',
+      });
     });
 
     it('tracks geo block and navigates to unavailable modal when the user presses a bet button while ineligible', async () => {
@@ -380,6 +399,9 @@ describe('PredictMarketDetails', () => {
       expect(within(aboutTab).getByText('Volume')).toBeOnTheScreen();
       expect(within(aboutTab).getByText('$1M')).toBeOnTheScreen();
       expect(within(aboutTab).getByText('End date')).toBeOnTheScreen();
+      expect(
+        within(aboutTab).getByText(new Date('2026-12-31').toLocaleDateString()),
+      ).toBeOnTheScreen();
       expect(within(aboutTab).getByText('Polymarket')).toBeOnTheScreen();
       expect(
         within(aboutTab).getByText(MOCK_PREDICT_MARKET.description),
