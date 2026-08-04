@@ -1,6 +1,9 @@
 import React, { ReactNode, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   Text,
   TextVariant,
@@ -13,11 +16,6 @@ import { KeyringAccountType } from '@metamask/keyring-api';
 
 import I18n from '../../../../../../../locales/i18n';
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge from '../../../../../../component-library/components/Badges/Badge/Badge';
-import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
-import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
 import { getAssetTestId } from '../../../../../../../tests/selectors/Wallet/WalletView.selectors';
@@ -59,16 +57,15 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
       <Box twClassName="flex-row items-center px-4 flex-1 min-w-0">
         <Box twClassName="h-12 justify-center">
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
               asset.networkBadgeSource ? (
-                <Badge
-                  variant={BadgeVariant.Network}
+                <BadgeNetwork
                   name={asset.name || asset.symbol || 'Token'}
-                  imageSource={asset.networkBadgeSource}
-                  size={AvatarSize.Xs}
+                  src={asset.networkBadgeSource}
+                  testID="token-network-badge"
                 />
-              ) : undefined
+              ) : null
             }
           >
             {asset.isNative ? (

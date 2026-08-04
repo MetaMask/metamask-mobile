@@ -142,6 +142,21 @@ describe('Nft', () => {
     expect(mockOnPress).toHaveBeenCalledWith(mockNft);
   });
 
+  it('displays network badge when networkBadgeSource is provided', () => {
+    const mockNft = createMockNft({
+      networkBadgeSource: { uri: 'https://example.com/badge.png' },
+      collectionName: 'Badge Collection',
+      name: 'Badge NFT',
+      balance: '0',
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <Nft asset={mockNft} onPress={mockOnPress} />,
+    );
+
+    expect(getByTestId('nft-network-badge')).toBeOnTheScreen();
+  });
+
   it('renders without network badge when networkBadgeSource is undefined', () => {
     const mockNft = createMockNft({
       networkBadgeSource: undefined,
@@ -150,12 +165,13 @@ describe('Nft', () => {
       balance: '0',
     });
 
-    const { getByText } = renderWithProvider(
+    const { getByText, queryByTestId } = renderWithProvider(
       <Nft asset={mockNft} onPress={mockOnPress} />,
     );
 
     expect(getByText('Simple Collection')).toBeOnTheScreen();
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#123')).toBeOnTheScreen();
+    expect(queryByTestId('nft-network-badge')).toBeNull();
   });
 });

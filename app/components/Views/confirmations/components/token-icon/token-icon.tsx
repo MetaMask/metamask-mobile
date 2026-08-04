@@ -1,15 +1,14 @@
 import React from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
 import styleSheet from './token-icon.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useTokenWithBalance } from '../../hooks/tokens/useTokenWithBalance';
 import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
@@ -53,15 +52,11 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
   return (
     <BadgeWrapper
       style={styles.container}
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        showNetwork && (
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkImageSource}
-            style={styles.badge}
-          />
-        )
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        showNetwork && networkImageSource ? (
+          <BadgeNetwork src={networkImageSource} />
+        ) : null
       }
     >
       <BaseTokenIcon

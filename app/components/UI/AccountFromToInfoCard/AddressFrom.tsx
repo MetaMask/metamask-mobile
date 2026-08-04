@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../locales/i18n';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
@@ -96,9 +95,8 @@ const AddressFrom = ({
         accountTypeLabel={accountTypeLabel as string}
         accountNetwork={String(displayNetworkName)}
         badgeProps={{
-          variant: BadgeVariant.Network,
           name: displayNetworkName,
-          imageSource: displayNetworkImage,
+          src: displayNetworkImage,
         }}
         avatarAccountType={avatarAccountType}
       />
