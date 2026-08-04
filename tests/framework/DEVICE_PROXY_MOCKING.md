@@ -165,12 +165,15 @@ Unlike iOS (which needs the SocketRocket Podfile patch), Android requires **no n
 
 The exit-gate evidence for N2 is `tests/smoke-appium/account-activity/web-socket-connection.spec.ts` (migrated from Detox in #33196 / MMQA-1987). The Appium path exercises the device proxy on both platforms; the WS local-bridge in `withFixtures` is what makes those subscriptions succeed under the proxy.
 
+Chrome (MMConnect browser dapps) uses the Android global HTTP proxy but does **not** trust the APK-bundled MITM CA. The emulator exclusion list is also unreliable for Chrome (hosts listed in `global_http_proxy_exclusion_list` may still arrive at MockServer). Phase 0 therefore configures mockttp `https.tlsPassthrough` for `mm-sdk-relay.api.cx.metamask.io` and `mm-sdk-analytics.api.cx.metamask.io` so those CONNECT/TLS sessions are tunneled with real upstream certs. Look for `E2E_NATIVE_PROXY_TLS_PASSTHROUGH` (and the absence of `E2E_NATIVE_PROXY_TLS_CLIENT_ERROR` for those hosts).
+
 Useful Android log markers:
 
 ```text
 E2E_NATIVE_PROXY_CA_READY
 E2E_ANDROID_DEVICE_PROXY_CONFIGURED
 E2E_NATIVE_PROXY_HTTPS_ENABLED
+E2E_NATIVE_PROXY_TLS_PASSTHROUGH
 E2E_NATIVE_PROXY_REQUEST_INITIATED
 E2E_DEVICE_PROXY_UNMOCKED_REQUEST
 E2E_NATIVE_PROXY_WS_REQUEST

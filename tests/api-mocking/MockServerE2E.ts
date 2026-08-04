@@ -8,6 +8,7 @@ import {
   type InitiatedRequest,
   Mockttp,
   type TlsHandshakeFailure,
+  type TlsPassthroughEvent,
   type WebSocketClose,
   type WebSocketMessage,
 } from 'mockttp';
@@ -518,6 +519,20 @@ const logNativeProxyClientError = (error: ClientError): void => {
   );
 };
 
+/**
+ * Hosts where Mockttp must tunnel CONNECT/TLS without MITM.
+ *
+ * Chrome (MMConnect browser dapps) uses the Android global HTTP proxy but does
+ * not trust the E2E APK-bundled CA. Android's proxy exclusion list is unreliable
+ * for Chrome, so server-side tlsPassthrough is the Phase 0 fix: Chrome and
+ * MetaMask get real upstream certs for these hosts while other traffic stays
+ * intercepted.
+ */
+const NATIVE_PROXY_TLS_PASSTHROUGH_HOSTS = [
+  { hostname: 'mm-sdk-relay.api.cx.metamask.io' },
+  { hostname: 'mm-sdk-analytics.api.cx.metamask.io' },
+] as const;
+
 const getMockttpProxyOptions = () => {
   if (
     existsSync(E2E_PROXY_CA_CERT_PEM_PATH) &&
@@ -531,6 +546,7 @@ const getMockttpProxyOptions = () => {
       https: {
         certPath: E2E_PROXY_CA_CERT_PEM_PATH,
         keyPath: E2E_PROXY_CA_KEY_PATH,
+        tlsPassthrough: [...NATIVE_PROXY_TLS_PASSTHROUGH_HOSTS],
       },
       http2: 'fallback' as const,
     };
@@ -541,6 +557,17 @@ const getMockttpProxyOptions = () => {
   );
 
   return {};
+};
+
+const logNativeProxyTlsPassthroughOpened = (
+  event: TlsPassthroughEvent,
+): void => {
+  const host =
+    event.hostname ||
+    event.tlsMetadata?.sniHostname ||
+    event.tlsMetadata?.connectHostname ||
+    'unknown';
+  logger.warn(`[E2E_NATIVE_PROXY_TLS_PASSTHROUGH] host=${host}`);
 };
 
 /**
@@ -1124,6 +1151,10 @@ export default class MockServerE2E implements Resource {
     await server.on('request-initiated', this._trackHttpRequestForResponseLog);
     await server.on('response', this._logHttpProxyResponseServed);
     await server.on('tls-client-error', logNativeProxyTlsClientError);
+    await server.on(
+      'tls-passthrough-opened',
+      logNativeProxyTlsPassthroughOpened,
+    );
     await server.on('client-error', logNativeProxyClientError);
     await server.on('websocket-request', this._logNativeProxyWebSocketRequest);
     await server.on(
