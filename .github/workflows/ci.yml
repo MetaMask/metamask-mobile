@@ -1214,7 +1214,8 @@ jobs:
     name: 'Run Performance Tests (PR)'
     # Run when:
     # - run-performance-tests label is on the PR (forced run, all tests), OR
-    # - smart-e2e-selection ran and AI selected performance tags.
+    # - the PR targets main and Smart E2E Selection chose performance tags.
+    # PRs targeting release/* or stable only run performance tests via the label.
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
     # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
@@ -1228,6 +1229,7 @@ jobs:
         (
           needs.get_requirements.outputs.run_performance == 'true' ||
           (
+            github.event.pull_request.base.ref == 'main' &&
             needs.smart-e2e-selection.result == 'success' &&
             needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
           )
@@ -1240,6 +1242,7 @@ jobs:
       performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
+      source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
       reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
