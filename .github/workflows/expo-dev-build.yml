@@ -2,8 +2,15 @@
 #
 # Expo Dev Build.
 #
-# Triggered on every push to main. Builds the main-dev-expo configuration (Debug)
-# for both iOS and Android using the reusable build.yml workflow.
+# Triggered on every push to main, but only actually builds when the @expo/fingerprint
+# hash (plus a hash of builds.yml, which fingerprint doesn't track) differs from the last
+# successful build — i.e. only when native code changed. A weekly cron (and the
+# `force_build` manual dispatch input) forces a fresh build regardless, so the GitHub
+# Actions artifacts consumed by `yarn install:ios:dev` / `yarn install:android:dev` never
+# go stale for longer than a week even if native code hasn't changed.
+#
+# Builds the main-dev-expo configuration (Debug) for both iOS and Android using the
+# reusable build.yml workflow.
 #
 # Produces simulator .app + device IPA (iOS) and APK + test APK (Android).
 # No version bump or TestFlight upload.
@@ -20,6 +27,10 @@ on:
   push:
     branches:
       - main
+  schedule:
+    # Weekly safety-net build (Monday 06:00 UTC) so GitHub Actions artifacts don't expire
+    # and go stale during long stretches with no native-affecting changes on main.
+    - cron: '0 6 * * 1'
   workflow_dispatch:
     inputs:
       runner_provider:
@@ -30,14 +41,191 @@ on:
           - current
           - namespace
         default: current
+      force_build:
+        description: Force a fresh build even if the fingerprint is unchanged
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
   id-token: write
+  actions: read
+
+concurrency:
+  # Non-cancelling: a burst of merges to main serializes instead of racing, so a queued
+  # run can find the marker artifact uploaded by the run ahead of it and skip its build.
+  group: expo-dev-build-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
+  resolve-dev-build:
+    name: Resolve dev build gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      needs-build: ${{ steps.gate.outputs.needs-build }}
+      gate-key: ${{ steps.gate-key.outputs.gate-key }}
+      reusable-run-id: ${{ steps.gate.outputs.reusable-run-id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Compute gate key
+        id: gate-key
+        run: |
+          FINGERPRINT="$(yarn fingerprint:generate)"
+          if [[ -z "$FINGERPRINT" ]]; then
+            echo "::error::yarn fingerprint:generate produced an empty hash"
+            exit 1
+          fi
+          # builds.yml isn't tracked by @expo/fingerprint, but the main-dev-expo entry
+          # (signing, CONFIGURATION, IS_DEVICE_BUILD, code_fencing, ...) affects the
+          # binary, so fold a short hash of it into the gate key.
+          BUILDS_HASH="$(sha256sum builds.yml | cut -c1-8)"
+          GATE_KEY="${FINGERPRINT}-${BUILDS_HASH}"
+          echo "gate-key=${GATE_KEY}" >> "$GITHUB_OUTPUT"
+          echo "Fingerprint: ${FINGERPRINT}"
+          echo "builds.yml hash: ${BUILDS_HASH}"
+          echo "Gate key: ${GATE_KEY}"
+
+      - name: Look up reusable dev build
+        id: lookup
+        if: ${{ github.event_name != 'schedule' && inputs.force_build != true }}
+        uses: actions/github-script@v7
+        env:
+          GATE_KEY: ${{ steps.gate-key.outputs.gate-key }}
+        with:
+          script: |
+            const { GATE_KEY } = process.env;
+            const markerName = `expo-dev-build-key-${GATE_KEY}`;
+            const requiredArtifacts = [
+              'ios-app-main-dev-expo',
+              'ios-ipa-main-dev-expo',
+              'android-apk-main-dev-expo',
+            ];
+
+            const setNotFound = () => {
+              core.setOutput('found', 'false');
+              core.setOutput('run-id', '');
+            };
+
+            let markers;
+            try {
+              markers = await github.paginate(github.rest.actions.listArtifactsForRepo, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: markerName,
+                per_page: 100,
+              });
+            } catch (err) {
+              core.warning(`Failed to list marker artifacts: ${err.message}`);
+              setNotFound();
+              return;
+            }
+
+            const candidates = markers
+              .filter((a) => !a.expired && a.workflow_run && a.workflow_run.head_branch === 'main')
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            if (candidates.length === 0) {
+              core.info(`No live marker artifact named "${markerName}" found on main.`);
+              setNotFound();
+              return;
+            }
+
+            const runId = candidates[0].workflow_run.id;
+
+            let runArtifacts;
+            try {
+              runArtifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId,
+                per_page: 100,
+              });
+            } catch (err) {
+              core.warning(`listWorkflowRunArtifacts failed for run ${runId}: ${err.message}`);
+              setNotFound();
+              return;
+            }
+
+            const available = new Set(runArtifacts.filter((a) => !a.expired).map((a) => a.name));
+            const missing = requiredArtifacts.filter((n) => !available.has(n));
+            if (missing.length > 0) {
+              core.info(`Run ${runId} is missing artifacts: ${missing.join(', ')}`);
+              setNotFound();
+              return;
+            }
+
+            core.info(`Reusable dev build found: run ${runId} (gate key ${GATE_KEY})`);
+            core.setOutput('found', 'true');
+            core.setOutput('run-id', String(runId));
+
+      - name: Compute build gate
+        id: gate
+        env:
+          FORCE_BUILD: ${{ github.event_name == 'schedule' || inputs.force_build == true }}
+          LOOKUP_FOUND: ${{ steps.lookup.outputs.found }}
+          LOOKUP_RUN_ID: ${{ steps.lookup.outputs.run-id }}
+        run: |
+          if [[ "$FORCE_BUILD" == "true" ]]; then
+            echo "needs-build=true" >> "$GITHUB_OUTPUT"
+            echo "reusable-run-id=" >> "$GITHUB_OUTPUT"
+            echo "Forcing fresh build (schedule or force_build input)."
+          elif [[ "$LOOKUP_FOUND" == "true" ]]; then
+            echo "needs-build=false" >> "$GITHUB_OUTPUT"
+            echo "reusable-run-id=${LOOKUP_RUN_ID}" >> "$GITHUB_OUTPUT"
+            echo "Reusing dev build from run ${LOOKUP_RUN_ID}; fingerprint unchanged."
+          else
+            echo "needs-build=true" >> "$GITHUB_OUTPUT"
+            echo "reusable-run-id=" >> "$GITHUB_OUTPUT"
+            echo "No reusable dev build found; compiling fresh."
+          fi
+
+      - name: Write dev build gate summary
+        if: ${{ always() }}
+        env:
+          GATE_KEY: ${{ steps.gate-key.outputs.gate-key }}
+          NEEDS_BUILD: ${{ steps.gate.outputs.needs-build }}
+          REUSABLE_RUN_ID: ${{ steps.gate.outputs.reusable-run-id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          decision="Fresh build"
+          reused_run="n/a"
+          if [[ "$NEEDS_BUILD" != "true" ]]; then
+            decision="Reused (fingerprint unchanged)"
+          fi
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            reused_run="[https://github.com/${REPOSITORY}/actions/runs/${REUSABLE_RUN_ID}](https://github.com/${REPOSITORY}/actions/runs/${REUSABLE_RUN_ID})"
+          fi
+          {
+            echo "### Expo Dev Build gate"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | ${decision} |"
+            echo "| Gate key | \`${GATE_KEY}\` |"
+            echo "| Reused run | ${reused_run} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build-dev:
     name: Expo dev build (main-dev-expo)
+    needs: [resolve-dev-build]
+    if: ${{ needs.resolve-dev-build.outputs.needs-build == 'true' }}
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-dev-expo
@@ -45,3 +233,55 @@ jobs:
       source_branch: ${{ github.ref_name }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
+
+  record-dev-build:
+    name: Record dev build marker
+    needs: [resolve-dev-build, build-dev]
+    # Inherits workflow-level permissions (contents: write, actions: read) - no
+    # job-level override, since actions/upload-artifact's exact permission
+    # requirements aren't documented and the workflow-level set is a safe superset.
+    if: ${{ !cancelled() && needs.build-dev.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify app artifacts and write marker
+        id: verify
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const requiredArtifacts = [
+              'ios-app-main-dev-expo',
+              'ios-ipa-main-dev-expo',
+              'android-apk-main-dev-expo',
+            ];
+
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+              per_page: 100,
+            });
+
+            const available = new Set(artifacts.filter((a) => !a.expired).map((a) => a.name));
+            const missing = requiredArtifacts.filter((n) => !available.has(n));
+            if (missing.length > 0) {
+              core.setFailed(`Refusing to write marker: missing artifacts ${missing.join(', ')}`);
+              return;
+            }
+            core.info('All required app artifacts present; marker will be uploaded.');
+
+      - name: Write marker file
+        run: |
+          mkdir -p .expo-dev-build-marker
+          {
+            echo "gate_key=${{ needs.resolve-dev-build.outputs.gate-key }}"
+            echo "run_id=${{ github.run_id }}"
+            echo "head_sha=${{ github.sha }}"
+          } > .expo-dev-build-marker/marker.txt
+
+      - name: Upload marker artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-dev-build-key-${{ needs.resolve-dev-build.outputs.gate-key }}
+          path: .expo-dev-build-marker/marker.txt
+          if-no-files-found: error

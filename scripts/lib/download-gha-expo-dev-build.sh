@@ -57,29 +57,32 @@ run_has_artifact() {
     | grep -q .
 }
 
+# expo-dev-build.yml now only builds when the @expo/fingerprint gate key changed (see
+# resolve-dev-build job), skipping every other push to main. That means the run holding
+# the latest artifact can sit arbitrarily far back in the run history, so walking the N
+# most recent `gh run list` entries (the old approach) would routinely miss it. Query the
+# artifact by its exact name instead — one API call, immune to however many runs were
+# skipped in between — and read the producing run id straight off the artifact metadata.
 find_latest_run_with_artifact() {
   local artifact_name="$1"
   local branch="$2"
   local run_id
 
-  while IFS= read -r run_id; do
-    [[ -z "$run_id" ]] && continue
-    if run_has_artifact "$run_id" "$artifact_name"; then
-      echo "$run_id"
-      return 0
-    fi
-  done < <(
-    gh run list \
-      --repo "$GITHUB_REPO" \
-      --workflow="$EXPO_DEV_WORKFLOW_FILE" \
-      --branch="$branch" \
-      --status=success \
-      --limit=30 \
-      --json databaseId \
-      --jq '.[].databaseId'
-  )
+  # `--paginate --jq` runs the filter once per page, so a naive sort_by/first would only
+  # reduce within a page rather than across all of them. Emit one "created_at|run_id"
+  # line per matching artifact across every page instead, then reduce afterwards -
+  # ISO 8601 timestamps sort correctly as plain strings.
+  run_id="$(gh api "repos/${GITHUB_REPO}/actions/artifacts?name=${artifact_name}&per_page=100" \
+    --paginate \
+    --jq ".artifacts[] | select(.expired == false and .workflow_run.head_branch == \"${branch}\") | \"\(.created_at)|\(.workflow_run.id)\"" \
+    2>/dev/null | sort -r | head -1 | cut -d'|' -f2 || true)"
 
-  echo -e "${RED}❌ No successful \"${EXPO_DEV_WORKFLOW_FILE}\" run on branch \"${branch}\" contains \"${artifact_name}\"${NC}" >&2
+  if [[ -n "$run_id" && "$run_id" != "null" ]]; then
+    echo "$run_id"
+    return 0
+  fi
+
+  echo -e "${RED}❌ No live artifact named \"${artifact_name}\" found on branch \"${branch}\"${NC}" >&2
   echo -e "${YELLOW}Browse recent runs: https://github.com/${GITHUB_REPO}/actions/workflows/${EXPO_DEV_WORKFLOW_FILE}${NC}" >&2
   return 1
 }
