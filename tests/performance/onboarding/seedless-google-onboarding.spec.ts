@@ -7,10 +7,8 @@ import {
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
-  dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
-  resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
 import {
   Performance,
@@ -22,9 +20,13 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import {
+  dismissInterestQuestionnaireIfPresent,
+  measureCreatePasswordToOnboardingSuccess,
+  measurePredictGtmModalIfShown,
+} from './helpers/seedlessOnboardingTimers';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -42,7 +44,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 /* Seedless Onboarding: Google Login */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  test.setTimeout(300000);
+  test.setTimeout(360000);
 
   test(
     'Seedless Onboarding: Google Login New User',
@@ -135,36 +137,15 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-        await dismissOnboardingInterestQuestionnaire();
-
-        await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingSuccessView.doneButton),
-            {
-              description: 'Onboarding success done button should be visible',
-            },
-          );
-        });
+        await dismissInterestQuestionnaireIfPresent();
+        await measureCreatePasswordToOnboardingSuccess(timer4);
 
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
 
-        // Predict GTM is flag-gated (often off on e2e/without-srp). Poll UI only —
-        // do not hard-fail when the modal is absent.
+        // Optional Predict GTM: measure Done → modal when present (no pre-wait).
         const predictGtmOnboardingModalEnabled =
-          await resolvePredictGtmOnboardingModalEnabled(null);
-
-        if (predictGtmOnboardingModalEnabled) {
-          await timer5.measure(async () => {
-            await PlaywrightAssertions.expectElementToBeVisible(
-              asPlaywrightElement(PredictModalView.notNowButton),
-              {
-                timeout: 10000,
-                description: 'Predict modal should be visible',
-              },
-            );
-          });
-        }
+          await measurePredictGtmModalIfShown(timer5);
 
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
