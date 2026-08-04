@@ -27,6 +27,13 @@ import type { RootState } from '../../../reducers';
 const selectHasMarketingConsent = (state: RootState) =>
   Boolean(state.security.dataCollectionForMarketing);
 
+interface UseEnableNotificationsProps {
+  nudgeEnablePush?: boolean;
+  throwOnError?: boolean;
+}
+
+const DEFAULT_ENABLE_NOTIFICATIONS_PROPS: UseEnableNotificationsProps = {};
+
 /**
  * Custom hook to fetch and update the list of notifications.
  * Manages loading and error states internally.
@@ -104,12 +111,9 @@ export function useContiguousLoading(
  * - `loading`: A boolean indicating if the enabling process is ongoing.
  * - `error`: A string or null value representing any error that occurred during the process.
  */
-export function useEnableNotifications(
-  props: { nudgeEnablePush?: boolean; throwOnError?: boolean } = {
-    nudgeEnablePush: true,
-  },
-) {
-  const { nudgeEnablePush = true, throwOnError = false } = props;
+export function useEnableNotifications(props?: UseEnableNotificationsProps) {
+  const { nudgeEnablePush = true, throwOnError = false } =
+    props ?? DEFAULT_ENABLE_NOTIFICATIONS_PROPS;
   const { togglePushNotification, loading: pushLoading } =
     usePushNotificationsToggle({ nudgeEnablePush });
   const isMetamaskNotificationsEnabled = useSelector(
