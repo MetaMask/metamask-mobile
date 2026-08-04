@@ -104,7 +104,11 @@ export function useContiguousLoading(
  * - `loading`: A boolean indicating if the enabling process is ongoing.
  * - `error`: A string or null value representing any error that occurred during the process.
  */
-export function useEnableNotifications(props = { nudgeEnablePush: true }) {
+export function useEnableNotifications(
+  props: { nudgeEnablePush?: boolean; throwOnError?: boolean } = {
+    nudgeEnablePush: true,
+  },
+) {
   const { togglePushNotification, loading: pushLoading } =
     usePushNotificationsToggle(props);
   const isMetamaskNotificationsEnabled = useSelector(
@@ -121,17 +125,25 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
-    await enableNotificationsHelper({
-      hasMarketingConsent,
-      productAnnouncementEnabled,
-      registerPushNotifications: Boolean(props.nudgeEnablePush),
-    }).catch((e) => setError(e));
+    try {
+      await enableNotificationsHelper({
+        hasMarketingConsent,
+        productAnnouncementEnabled,
+        registerPushNotifications: Boolean(props.nudgeEnablePush),
+      });
+    } catch (enableError) {
+      setError(enableError);
+      if (props.throwOnError) {
+        throw enableError;
+      }
+    }
     await togglePushNotification(true).catch(() => {
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();
   }, [
     props.nudgeEnablePush,
+    props.throwOnError,
     hasMarketingConsent,
     productAnnouncementEnabled,
     togglePushNotification,
