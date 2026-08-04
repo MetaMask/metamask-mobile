@@ -6,10 +6,6 @@ import {
 import React from 'react';
 import { StatusTypes } from '@metamask/bridge-controller';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
@@ -20,6 +16,12 @@ import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { ARBITRUM_USDC } from '../../../constants/perps';
 import { StatusIcon } from '../../status-icon';
 import { getErrorMessage, getSeverity } from '../../../utils/transaction';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export function TransactionDetailsStatus({
   gap,
@@ -67,13 +69,14 @@ export function TransactionDetailsStatus({
         )}
         <Text
           color={textColour}
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           testID={testId}
         >
           {statusText}
         </Text>
       </Box>
-      {solutionText && <Text variant={TextVariant.BodyMD}>{solutionText}</Text>}
+      {solutionText && <Text variant={TextVariant.BodyMd}>{solutionText}</Text>}
     </Box>
   );
 }
@@ -93,12 +96,12 @@ function getStatusText(status: TransactionStatus): string {
 function getTextColour(status: TransactionStatus): TextColor {
   switch (status) {
     case TransactionStatus.confirmed:
-      return TextColor.Success;
+      return TextColor.SuccessDefault;
     case TransactionStatus.failed:
     case TransactionStatus.dropped:
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     default:
-      return TextColor.Warning;
+      return TextColor.WarningDefault;
   }
 }
 

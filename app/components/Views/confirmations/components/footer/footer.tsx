@@ -13,9 +13,6 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
@@ -46,6 +43,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -244,11 +242,11 @@ export const Footer = () => {
       {isStakingConfirmationBool && (
         <View style={styles.bottomTextContainer}>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part1')}
             </Text>
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               style={styles.linkText}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
@@ -256,12 +254,12 @@ export const Footer = () => {
             </Text>
           </View>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}
             </Text>
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               style={styles.linkText}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
@@ -269,7 +267,7 @@ export const Footer = () => {
             >
               {strings('confirm.staking_footer.risk_disclosure')}
             </Text>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part3')}
             </Text>
           </View>

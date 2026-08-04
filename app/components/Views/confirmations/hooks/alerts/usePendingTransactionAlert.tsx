@@ -5,13 +5,13 @@ import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import { selectTransactions } from '../../../../../selectors/transactionController';
-import Text from '../../../../../component-library/components/Texts/Text';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { SPEEDUP_CANCEL_TRANSACTION_URL } from '../../constants/url';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { Text } from '@metamask/design-system-react-native';
 
 export const usePendingTransactionAlert = () => {
   const transactions = useSelector(selectTransactions);

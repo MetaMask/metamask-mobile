@@ -1,8 +1,8 @@
 import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
-import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { useTheme } from '../../../../../util/theme';
+import { Text } from '@metamask/design-system-react-native';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

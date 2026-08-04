@@ -15,7 +15,6 @@ import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../compo
 import Accordion, {
   AccordionHeaderHorizontalAlignment,
 } from '../../../../../component-library/components/Accordions/Accordion';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 // TODO: Remove legacy import
 import BlockaidBannerLink from '../../components/blockaid-banner/BlockaidBannerLink';
@@ -28,6 +27,7 @@ import {
   SecurityAlertResponse,
 } from '../../components/blockaid-banner/BlockaidBanner.types';
 import styleSheet from './blockaid-alert-content.styles';
+import { Text } from '@metamask/design-system-react-native';
 
 interface BlockaidAlertContentProps {
   alertDetails?: string[];

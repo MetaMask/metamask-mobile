@@ -1,10 +1,8 @@
 import React, { ReactElement } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './alert-message.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export interface AlertMessageProps {
   content?: ReactElement;
@@ -24,7 +22,7 @@ export const AlertMessage: React.FC<AlertMessageProps> = React.memo((props) => {
       <View style={styles.border} />
       <View style={styles.content}>
         {content ?? (
-          <Text variant={TextVariant.BodySM} style={styles.message}>
+          <Text variant={TextVariant.BodySm} style={styles.message}>
             {alertMessage}
           </Text>
         )}

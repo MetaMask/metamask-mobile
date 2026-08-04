@@ -7,13 +7,13 @@ import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
+import { Text } from '@metamask/design-system-react-native';
 
 export interface CustomAmountProps {
   amountFiat: string;

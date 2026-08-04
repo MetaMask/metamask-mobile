@@ -4,13 +4,13 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { TextColor } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { AlertTypeIDs } from '../../../ConfirmationView.testIds';
 import { Alert, Severity } from '../../../types/alerts';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
 import styleSheet from './inline-alert.styles';
+import { TextColor } from '@metamask/design-system-react-native';
 
 export interface InlineAlertProps {
   /** Alert object */
@@ -24,11 +24,11 @@ export interface InlineAlertProps {
 const getTextColor = (severity: Severity) => {
   switch (severity) {
     case Severity.Danger:
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     case Severity.Warning:
-      return TextColor.Warning;
+      return TextColor.WarningDefault;
     default:
-      return TextColor.Info;
+      return TextColor.InfoDefault;
   }
 };
 

@@ -1,9 +1,5 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
@@ -22,6 +18,11 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -97,7 +98,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   if (disabled) {
     return (
       <View testID="pay-token-amount">
-        <Text color={TextColor.Muted}>0 ETH</Text>
+        <Text color={TextColor.TextMuted}>0 ETH</Text>
       </View>
     );
   }
@@ -108,7 +109,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
 
   return (
     <View testID="pay-token-amount">
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {formattedAmount} {payToken?.symbol}
       </Text>
     </View>

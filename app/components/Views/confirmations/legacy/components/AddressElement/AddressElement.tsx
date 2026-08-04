@@ -11,8 +11,6 @@ import {
 } from '../../../../../../util/address';
 import Identicon from '../../../../../UI/Identicon';
 import { useTheme } from '../../../../../../util/theme';
-import Text from '../../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
 import Icon, {
   IconName,
@@ -33,6 +31,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const AddressElement: React.FC<AddressElementProps> = ({
   name,
@@ -108,7 +107,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
       <View style={styles.addressElementInformation}>
         <View style={styles.accountNameLabel}>
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyMd}
             style={styles.addressTextNickname}
             numberOfLines={1}
           >
@@ -117,7 +116,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
         </View>
         {!!secondaryLabel && (
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyMd}
             style={styles.addressTextAddress}
             numberOfLines={1}
           >
@@ -126,7 +125,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
         )}
         {accountTypeLabel && (
           <Text
-            variant={TextVariant.BodySM}
+            variant={TextVariant.BodySm}
             style={styles.accountNameLabelText}
           >
             {accountTypeLabel}

@@ -9,10 +9,6 @@ import BadgeWrapper, {
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import BigNumber from 'bignumber.js';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -23,6 +19,10 @@ import {
   useTransactionPayTotals,
 } from '../../hooks/pay/useTransactionPayData';
 import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -237,8 +237,9 @@ export const TokenConversionAssetHeader = ({
           ]}
         >
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
             numberOfLines={isStackedLayout ? undefined : 2}
             ellipsizeMode="tail"
           >
@@ -298,8 +299,9 @@ export const TokenConversionAssetHeader = ({
           ]}
         >
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
             numberOfLines={isStackedLayout ? undefined : 2}
             ellipsizeMode="tail"
           >

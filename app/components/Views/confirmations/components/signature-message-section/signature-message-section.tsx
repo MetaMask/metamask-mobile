@@ -8,14 +8,15 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Expandable from '../UI/expandable';
 import styleSheet from './signature-message-section.styles';
 import InfoSection from '../UI/info-row/info-section';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 interface SignatureMessageSectionProps {
   messageCollapsed?: ReactNode | string;
@@ -38,7 +39,10 @@ const SignatureMessageSection = ({
         <InfoSection>
           <View style={styles.container}>
             <View>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('confirm.message')}
               </Text>
               {messageCollapsed && (

@@ -1,12 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../hooks/useStyles';
 import type { QuoteErrorInfo } from '@metamask/transaction-pay-controller';
 import styleSheet from './no-quote-alert.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const TAPS_TO_TOGGLE = 2;
 
@@ -27,7 +25,7 @@ export function NoQuoteAlert({ error }: Props) {
 
   return (
     <Pressable onPress={handlePress} testID="no-quote-alert">
-      <Text variant={TextVariant.BodySM} style={styles.message}>
+      <Text variant={TextVariant.BodySm} style={styles.message}>
         {isExpanded ? error.message : collapsedMessage}
       </Text>
       {isExpanded && error.detail && error.detail.length > 0 && (
@@ -35,7 +33,7 @@ export function NoQuoteAlert({ error }: Props) {
           {error.detail.map((row) => (
             <Text
               key={row}
-              variant={TextVariant.BodyXS}
+              variant={TextVariant.BodyXs}
               style={styles.detailRow}
             >
               {row}

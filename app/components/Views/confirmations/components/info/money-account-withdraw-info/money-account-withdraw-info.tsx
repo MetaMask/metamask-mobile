@@ -1,9 +1,5 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -12,6 +8,12 @@ import useNavbar from '../../../hooks/ui/useNavbar';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { CustomAmountInfo } from '../custom-amount-info';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
@@ -38,8 +40,9 @@ function MoneyAccountWithdrawBalance() {
   return (
     <Box alignItems={AlignItems.center} testID="money-account-withdraw-balance">
       <Text
-        variant={TextVariant.BodyMDMedium}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
       >{`${strings('confirm.available_balance')}${withdrawableFiatFormatted ?? ''}`}</Text>
     </Box>
   );

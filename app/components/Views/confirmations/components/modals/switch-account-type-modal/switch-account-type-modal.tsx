@@ -10,9 +10,6 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import Spinner from '../../../../../UI/AnimatedSpinner';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -25,6 +22,7 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../../../core/Engine';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface SwitchAccountTypeModalRouteParams {
   address?: Hex;
@@ -73,7 +71,7 @@ const SwitchAccountTypeModal = () => {
         </TouchableOpacity>
         <View style={styles.wrapper}>
           <View style={styles.spinner} testID="no-address-fallback">
-            <Text variant={TextVariant.BodyMD}>No account selected</Text>
+            <Text variant={TextVariant.BodyMd}>No account selected</Text>
           </View>
         </View>
       </BottomSheet>
@@ -103,7 +101,7 @@ const SwitchAccountTypeModal = () => {
                 size={AvatarSize.Md}
                 accountAddress={address}
               />
-              <Text style={styles.account_name} variant={TextVariant.HeadingMD}>
+              <Text style={styles.account_name} variant={TextVariant.HeadingMd}>
                 {account?.metadata.name}
               </Text>
             </View>

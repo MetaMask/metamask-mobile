@@ -2,11 +2,13 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { type GasOption as GasOptionType } from '../../../types/gas';
 import styleSheet from './gas-option.styles';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export const GasOption = ({ option }: { option: GasOptionType }) => {
   const { onSelect, name, estimatedTime, valueInFiat, value, isSelected, key } =
@@ -26,12 +28,17 @@ export const GasOption = ({ option }: { option: GasOptionType }) => {
       >
         <View style={styles.leftSection}>
           <View style={styles.optionTextContainer}>
-            <Text variant={TextVariant.BodyMDMedium} style={styles.optionName}>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              style={styles.optionName}
+            >
               {name}
             </Text>
             {estimatedTime && (
               <Text
-                variant={TextVariant.BodySMMedium}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
                 style={styles.estimatedTime}
               >
                 {estimatedTime}
@@ -40,11 +47,19 @@ export const GasOption = ({ option }: { option: GasOptionType }) => {
           </View>
         </View>
         <View style={styles.rightSection}>
-          <Text variant={TextVariant.BodyMDMedium} style={styles.valueInFiat}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            style={styles.valueInFiat}
+          >
             {valueInFiat}
           </Text>
           {!!value && (
-            <Text variant={TextVariant.BodySMMedium} style={styles.value}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              style={styles.value}
+            >
               {value}
             </Text>
           )}

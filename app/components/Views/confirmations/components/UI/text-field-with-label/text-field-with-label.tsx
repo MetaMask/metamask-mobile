@@ -1,12 +1,10 @@
 import React from 'react';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import styleSheet from './text-field-with-label.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export type TextFieldWithLabelProps = {
   error: string | boolean;
@@ -21,7 +19,7 @@ export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
   return (
     <>
       {label && (
-        <Text variant={TextVariant.BodyMD} style={styles.label}>
+        <Text variant={TextVariant.BodyMd} style={styles.label}>
           {label}
         </Text>
       )}
@@ -31,7 +29,7 @@ export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
           color={theme.colors.error.default}
           style={styles.error}
           testID={`${inputType}-error`}
-          variant={TextVariant.BodySM}
+          variant={TextVariant.BodySm}
         >
           {error}
         </Text>
