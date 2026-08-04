@@ -183,7 +183,9 @@ describe('NotificationSettingsSection', () => {
     );
     expect(screen.getByText('Deselect all')).toBeOnTheScreen();
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
     await waitFor(() => {
@@ -225,7 +227,9 @@ describe('NotificationSettingsSection', () => {
     );
     expect(screen.getByText('Select all')).toBeOnTheScreen();
 
-    fireEvent.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
     await waitFor(() => {
@@ -260,11 +264,13 @@ describe('NotificationSettingsSection', () => {
       description: 'Buy, sells, transfers, swaps and rewards',
     });
 
-    fireEvent.press(
-      screen.getByTestId(
-        NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
-      ),
-    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
+        ),
+      );
+    });
 
     await waitFor(() => {
       expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);

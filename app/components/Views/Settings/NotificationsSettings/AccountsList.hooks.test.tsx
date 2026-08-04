@@ -43,6 +43,11 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   }),
 }));
 
+// The arrange helpers below spy on the notification hook modules; restore the
+// originals between tests so a spy cannot leak into a test that does not set
+// one up (`clearAllMocks` only resets calls, it does not un-spy).
+afterEach(() => jest.restoreAllMocks());
+
 const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
 const EVM_ADDRESSES = [
   '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
