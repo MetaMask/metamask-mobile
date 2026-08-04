@@ -1540,6 +1540,7 @@
       "orders": "Orders",
       "orders_with_count": "Orders ({{count}})",
       "ticker_only": "{{ticker}} only",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
       "positions_empty_long": "No long positions.",

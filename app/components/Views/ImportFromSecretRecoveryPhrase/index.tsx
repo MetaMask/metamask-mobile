@@ -6,7 +6,6 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import PropTypes from 'prop-types';
 import {
   Alert,
   TouchableOpacity,
@@ -14,14 +13,23 @@ import {
   Dimensions,
   Keyboard,
   Platform,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect, useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
+import {
+  CommonActions,
+  ParamListBase,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { isTestEnvironment } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -36,6 +44,11 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import type {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+  JsonMap,
+} from '../../../core/Analytics/MetaMetrics.types';
 import { useTheme } from '../../../util/theme';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -57,14 +70,20 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  IconName as DSIconName,
   Label,
   Text,
   TextColor,
   TextVariant,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  Checkbox,
+  TextField,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
+import type { AuthData } from '../../../core/Authentication/Authentication';
 import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
@@ -74,19 +93,12 @@ import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.tes
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
-import Checkbox from '../../../component-library/components/Checkbox';
-import OldButton, {
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
-import TextField from '../../../component-library/components/Form/TextField/TextField';
-import { CommonActions } from '@react-navigation/native';
+import {
+  IconName as ToastIconName,
+  IconColor as ToastIconColor,
+} from '../../../component-library/components/Icons/Icon';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
@@ -99,9 +111,10 @@ import {
   endTrace,
   trace,
   TraceOperation,
+  TraceContext,
 } from '../../../util/trace';
 import { v4 as uuidv4 } from 'uuid';
-import SrpInputGrid from '../../UI/SrpInputGrid';
+import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import {
@@ -115,13 +128,26 @@ import { useScreenPerformance } from '../../../hooks/performance/useScreenPerfor
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
+type TrackFn = (
+  event: IMetaMetricsEvent | ITrackingEvent,
+  properties?: JsonMap,
+) => void;
+
+interface HandleWalletImportFailureParams {
+  importError: Error;
+  track: TrackFn;
+  navigation: NativeStackNavigationProp<ParamListBase>;
+  isMetricsEnabled: () => boolean;
+  onboardingTraceCtx?: TraceContext;
+}
+
 function handleWalletImportFailure({
   importError,
   track,
   navigation,
   isMetricsEnabled,
   onboardingTraceCtx,
-}) {
+}: HandleWalletImportFailureParams) {
   track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
     wallet_setup_type: 'import',
     error_type: importError.toString(),
@@ -169,19 +195,45 @@ function handleWalletImportFailure({
   });
 }
 
+interface ImportFromSecretRecoveryPhraseRouteParams {
+  qrSyncImport?: boolean;
+  onboardingTraceCtx?: TraceContext;
+  oauthLoginSuccess?: boolean;
+  previous_screen?: string;
+}
+
+interface PasswordVisibilityToggleProps {
+  isVisible: boolean;
+  onToggle: () => void;
+  testID: string;
+}
+
+const PasswordVisibilityToggle = ({
+  isVisible,
+  onToggle,
+  testID,
+}: PasswordVisibilityToggleProps) => (
+  <TouchableOpacity onPress={onToggle} testID={testID}>
+    <Icon
+      name={isVisible ? IconName.Eye : IconName.EyeSlash}
+      size={IconSize.Lg}
+      color={IconColor.IconAlternative}
+    />
+  </TouchableOpacity>
+);
+
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
  * The SRP was formally called the seed phrase
  */
-const ImportFromSecretRecoveryPhrase = ({
-  navigation,
-  passwordSet,
-  setLockTime,
-  seedphraseBackedUp,
-  saveOnboardingEvent,
-  route,
-}) => {
+const ImportFromSecretRecoveryPhrase = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
+  const route =
+    useRoute<
+      RouteProp<{ params: ImportFromSecretRecoveryPhraseRouteParams }, 'params'>
+    >();
+  const dispatch = useDispatch();
   const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
   const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
   const qrSyncImportMnemonic = useSelector(selectQrSyncImportMnemonic);
@@ -189,28 +241,30 @@ const ImportFromSecretRecoveryPhrase = ({
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
-  const { colors, themeAppearance } = useTheme();
+  const { themeAppearance } = useTheme();
   const tw = useTailwind();
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
-  const confirmPasswordInput = useRef();
+  const confirmPasswordInputRef = useRef<TextInput | null>(null);
 
   const { toastRef } = useContext(ToastContext);
-  const passwordSetupAttemptTraceCtxRef = useRef(null);
+  const passwordSetupAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [biometryType, setBiometryType] = useState(null);
+  const [biometryType, setBiometryType] = useState<string | null | undefined>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
-  const [seedPhrase, setSeedPhrase] = useState(['']);
+  const [seedPhrase, setSeedPhrase] = useState<string[]>(['']);
   const [currentStep, setCurrentStep] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
-  const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
+  const [showPasswordIndex, setShowPasswordIndex] = useState<number[]>([0, 1]);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
-  const srpInputGridRef = useRef(null);
+  const srpInputGridRef = useRef<SrpInputGridRef>(null);
   const [slideAnim] = useState(() => new Animated.Value(0));
   const [currentInputWord, setCurrentInputWord] = useState('');
 
@@ -296,13 +350,17 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
-  const track = useCallback(
+  const track = useCallback<TrackFn>(
     (event, properties) => {
       const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
-      eventBuilder.addProperties(properties);
-      trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
+      if (properties) {
+        eventBuilder.addProperties(properties);
+      }
+      trackOnboarding(eventBuilder.build(), (savedEvent: ITrackingEvent) =>
+        dispatch(saveEvent([savedEvent])),
+      );
     },
-    [saveOnboardingEvent],
+    [dispatch],
   );
 
   const onQrCodePress = useCallback(() => {
@@ -315,7 +373,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Scanner,
       disableTabber: true,
-      onScanSuccess: ({ seed = undefined }) => {
+      onScanSuccess: ({ seed }: { seed?: string }) => {
         if (seed) {
           srpInputGridRef.current?.handleSeedPhraseChange(seed);
         } else {
@@ -333,7 +391,7 @@ const ImportFromSecretRecoveryPhrase = ({
   }, [hideSeedPhraseInput, navigation]);
 
   const animateToStep = useCallback(
-    (nextStep) => {
+    (nextStep: number) => {
       if (isTestEnvironment) {
         setCurrentStep(nextStep);
         return;
@@ -412,19 +470,19 @@ const ImportFromSecretRecoveryPhrase = ({
     [],
   );
 
-  const onPasswordChange = (value) => {
+  const onPasswordChange = (value: string) => {
     setPassword(value);
     if (value === '') {
       setConfirmPassword('');
     }
   };
 
-  const onPasswordConfirmChange = (value) => {
+  const onPasswordConfirmChange = (value: string) => {
     setConfirmPassword(value);
   };
 
   const jumpToConfirmPassword = () => {
-    const { current } = confirmPasswordInput;
+    const { current } = confirmPasswordInputRef;
     current && current.focus();
   };
 
@@ -442,8 +500,8 @@ const ImportFromSecretRecoveryPhrase = ({
           { label: strings('import_from_seed.seed_phrase_length_error') },
         ],
         hasNoTimeout: false,
-        iconName: IconName.Error,
-        iconColor: IconColor.Error,
+        iconName: ToastIconName.Error,
+        iconColor: ToastIconColor.Error,
       });
       return false;
     }
@@ -490,7 +548,7 @@ const ImportFromSecretRecoveryPhrase = ({
     [isPasswordFieldFocused, password],
   );
 
-  const toggleShowPassword = (index) => {
+  const toggleShowPassword = (index: number) => {
     setShowPasswordIndex((prev) => {
       if (prev.includes(index)) {
         return prev.filter((item) => item !== index);
@@ -534,7 +592,7 @@ const ImportFromSecretRecoveryPhrase = ({
     const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
     const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
 
-    let authData;
+    let authData: AuthData;
     try {
       trace({
         name: TraceName.OnboardingSRPAccountImportTime,
@@ -566,7 +624,7 @@ const ImportFromSecretRecoveryPhrase = ({
     } catch (importError) {
       setLoading(false);
       handleWalletImportFailure({
-        importError,
+        importError: importError as Error,
         track,
         navigation,
         isMetricsEnabled,
@@ -577,9 +635,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setBiometryType(authData.availableBiometryType);
     setLoading(false);
-    passwordSet();
-    setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-    seedphraseBackedUp();
+    dispatch(passwordSet());
+    dispatch(setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT));
+    dispatch(seedphraseBackedUp());
     track(MetaMetricsEvents.WALLET_IMPORTED, {
       biometrics_enabled: Boolean(biometryType),
     });
@@ -664,7 +722,7 @@ const ImportFromSecretRecoveryPhrase = ({
           currentStep === 0
             ? [
                 {
-                  iconName: DSIconName.Scan,
+                  iconName: IconName.Scan,
                   onPress: onQrCodePress,
                   testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
                 },
@@ -744,7 +802,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Md}
-                        color={colors.icon.alternative}
+                        color={IconColor.IconAlternative}
                       />
                     </TouchableOpacity>
                   </Box>
@@ -799,32 +857,27 @@ const ImportFromSecretRecoveryPhrase = ({
                   onChangeText={onPasswordChange}
                   onFocus={() => setIsPasswordFieldFocused(true)}
                   onBlur={() => setIsPasswordFieldFocused(false)}
-                  secureTextEntry={showPasswordIndex.includes(0)}
-                  returnKeyType="next"
-                  autoCapitalize="none"
-                  autoComplete="new-password"
-                  keyboardAppearance={themeAppearance || 'light'}
-                  onSubmitEditing={jumpToConfirmPassword}
                   isError={isPasswordTooShort}
                   endAccessory={
-                    <Icon
-                      name={
-                        showPasswordIndex.includes(0)
-                          ? IconName.Eye
-                          : IconName.EyeSlash
-                      }
-                      size={IconSize.Lg}
-                      color={colors.icon.alternative}
-                      onPress={() => toggleShowPassword(0)}
+                    <PasswordVisibilityToggle
+                      isVisible={showPasswordIndex.includes(0)}
+                      onToggle={() => toggleShowPassword(0)}
                       testID={
                         ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
                       }
                     />
                   }
-                  testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-                  accessibilityLabel={
-                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
-                  }
+                  inputProps={{
+                    secureTextEntry: showPasswordIndex.includes(0),
+                    testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                    accessibilityLabel:
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                    onSubmitEditing: jumpToConfirmPassword,
+                    autoComplete: 'password-new',
+                    returnKeyType: 'next',
+                    autoCapitalize: 'none',
+                    keyboardAppearance: themeAppearance,
+                  }}
                 />
                 <Text
                   variant={TextVariant.BodySm}
@@ -850,36 +903,32 @@ const ImportFromSecretRecoveryPhrase = ({
                   {strings('import_from_seed.confirm_password')}
                 </Label>
                 <TextField
-                  ref={confirmPasswordInput}
+                  inputRef={confirmPasswordInputRef}
                   onChangeText={onPasswordConfirmChange}
-                  secureTextEntry={showPasswordIndex.includes(1)}
-                  autoComplete="new-password"
-                  returnKeyType="done"
-                  autoCapitalize="none"
                   value={confirmPassword}
                   isError={isError}
-                  keyboardAppearance={themeAppearance || 'light'}
-                  onSubmitEditing={Keyboard.dismiss}
                   endAccessory={
-                    <Icon
-                      name={
-                        showPasswordIndex.includes(1)
-                          ? IconName.Eye
-                          : IconName.EyeSlash
-                      }
-                      size={IconSize.Lg}
-                      color={colors.icon.alternative}
-                      onPress={() => toggleShowPassword(1)}
+                    <PasswordVisibilityToggle
+                      isVisible={showPasswordIndex.includes(1)}
+                      onToggle={() => toggleShowPassword(1)}
                       testID={
                         ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
                       }
                     />
                   }
-                  testID={ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}
-                  accessibilityLabel={
-                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                  }
                   isDisabled={password === ''}
+                  inputProps={{
+                    secureTextEntry: showPasswordIndex.includes(1),
+                    testID:
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                    accessibilityLabel:
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                    onSubmitEditing: Keyboard.dismiss,
+                    autoComplete: 'password-new',
+                    returnKeyType: 'done',
+                    autoCapitalize: 'none',
+                    keyboardAppearance: themeAppearance,
+                  }}
                 />
                 {isError && (
                   <Text
@@ -898,35 +947,35 @@ const ImportFromSecretRecoveryPhrase = ({
                 twClassName="gap-2 mt-2 mb-4 bg-background-section rounded-lg p-4"
               >
                 <Checkbox
-                  onPress={() => setLearnMore(!learnMore)}
-                  isChecked={learnMore}
-                  style={tw.style('items-start')}
+                  onChange={() => setLearnMore(!learnMore)}
+                  isSelected={learnMore}
                   testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                />
-                <OldButton
-                  variant={ButtonVariants.Link}
-                  onPress={() => setLearnMore(!learnMore)}
-                  style={tw.style(
-                    'flex-row items-start justify-start gap-px flex-wrap w-[90%] -mt-1.5',
-                  )}
-                  testID={ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID}
-                  label={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {strings('import_from_seed.learn_more')}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.PrimaryDefault}
-                        onPress={learnMoreLink}
-                        testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
-                      >
-                        {' ' + strings('reset_password.learn_more')}
-                      </Text>
-                    </Text>
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                   }
                 />
+                <TouchableOpacity
+                  onPress={() => setLearnMore(!learnMore)}
+                  testID={ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID}
+                  style={tw.style(
+                    'flex-row items-start justify-start flex-wrap w-[90%] -mt-1.5',
+                  )}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {strings('import_from_seed.learn_more')}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.PrimaryDefault}
+                      onPress={learnMoreLink}
+                      testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
+                    >
+                      {' ' + strings('reset_password.learn_more')}
+                    </Text>
+                  </Text>
+                </TouchableOpacity>
               </Box>
             </Box>
           )}
@@ -988,44 +1037,4 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 };
 
-ImportFromSecretRecoveryPhrase.propTypes = {
-  /**
-   * The navigator object
-   */
-  navigation: PropTypes.object,
-  /**
-   * The action to update the password set flag
-   * in the redux store
-   */
-  passwordSet: PropTypes.func,
-  /**
-   * The action to set the locktime
-   * in the redux store
-   */
-  setLockTime: PropTypes.func,
-  /**
-   * The action to update the seedphrase backed up flag
-   * in the redux store
-   */
-  seedphraseBackedUp: PropTypes.func,
-  /**
-   * Action to save onboarding event
-   */
-  saveOnboardingEvent: PropTypes.func,
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
-};
-
-const mapDispatchToProps = (dispatch) => ({
-  setLockTime: (time) => dispatch(setLockTime(time)),
-  passwordSet: () => dispatch(passwordSet()),
-  seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
-});
-
-export default connect(
-  null,
-  mapDispatchToProps,
-)(ImportFromSecretRecoveryPhrase);
+export default ImportFromSecretRecoveryPhrase;
