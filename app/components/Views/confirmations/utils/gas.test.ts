@@ -227,5 +227,70 @@ describe('gas utils', () => {
       expect(addHexes).toHaveBeenCalledWith('0xdef', '0x100');
       expect(mockGetFeesFromHexFn).toHaveBeenCalledWith('0xabcdef');
     });
+
+    it('falls back to receiptL1Fee when layer1GasFee is absent', () => {
+      const { addHexes } = jest.requireMock('../../../../util/conversions') as {
+        addHexes: jest.Mock;
+      };
+      mockMultiplyHexes.mockReturnValue('0xdef' as never);
+      addHexes.mockReturnValue('0xabcdef' as never);
+
+      calculateGasEstimate({
+        feePerGas: '0x100',
+        priorityFeePerGas: '0x10',
+        gasPrice: '0x50',
+        gas: '0x5208',
+        shouldUseEIP1559FeeLogic: true,
+        estimatedBaseFee: '10',
+        receiptL1Fee: '0x200',
+        getFeesFromHexFn: mockGetFeesFromHexFn,
+        receiptGasPrice: '0x300',
+      });
+
+      expect(mockMultiplyHexes).toHaveBeenCalledWith('0x300', '0x5208');
+      expect(addHexes).toHaveBeenCalledWith('0xdef', '0x200');
+      expect(mockGetFeesFromHexFn).toHaveBeenCalledWith('0xabcdef');
+    });
+
+    it('prefers layer1GasFee over receiptL1Fee when both are provided', () => {
+      const { addHexes } = jest.requireMock('../../../../util/conversions') as {
+        addHexes: jest.Mock;
+      };
+      mockMultiplyHexes.mockReturnValue('0xdef' as never);
+      addHexes.mockReturnValue('0xabcdef' as never);
+
+      calculateGasEstimate({
+        feePerGas: '0x100',
+        priorityFeePerGas: '0x10',
+        gasPrice: '0x50',
+        gas: '0x5208',
+        shouldUseEIP1559FeeLogic: true,
+        estimatedBaseFee: '10',
+        layer1GasFee: '0x100',
+        receiptL1Fee: '0x999',
+        getFeesFromHexFn: mockGetFeesFromHexFn,
+        receiptGasPrice: '0x200',
+      });
+
+      expect(addHexes).toHaveBeenCalledWith('0xdef', '0x100');
+      expect(addHexes).not.toHaveBeenCalledWith(expect.anything(), '0x999');
+    });
+
+    it('returns L2 fee only when neither layer1GasFee nor receiptL1Fee is present', () => {
+      mockMultiplyHexes.mockReturnValue('0xdef' as never);
+
+      calculateGasEstimate({
+        feePerGas: '0x100',
+        priorityFeePerGas: '0x10',
+        gasPrice: '0x50',
+        gas: '0x5208',
+        shouldUseEIP1559FeeLogic: true,
+        estimatedBaseFee: '10',
+        getFeesFromHexFn: mockGetFeesFromHexFn,
+        receiptGasPrice: '0x200',
+      });
+
+      expect(mockGetFeesFromHexFn).toHaveBeenCalledWith('0xdef');
+    });
   });
 });
