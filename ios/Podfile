@@ -130,6 +130,13 @@ end
 # plugin never runs against. Keep this block in sync if `expo-widgets` is
 # upgraded and its Podfile template changes
 # (node_modules/expo-widgets/plugin/src/withPodsLinking.ts).
+#
+# If `pod install` fails with `Unable to find a target named
+# 'ExpoWidgetsTarget' in project 'MetaMask.xcodeproj'`, the Xcode target
+# itself is missing (most likely a project.pbxproj merge/rebase conflict
+# resolved by taking one side wholesale) — run
+# `ruby scripts/ios/setup-expo-widgets-target.rb` to recreate it, then rerun
+# `pod install`.
 target 'ExpoWidgetsTarget' do
   # Only autolinks `expo`, `expo-widgets`, and `@expo/ui` — the extension does
   # not need the full set of Expo modules the main app uses.

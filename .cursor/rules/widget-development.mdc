@@ -12,7 +12,7 @@ alwaysApply: false
 
 - `app/core/Widgets/` — all JS/TS foundation code (theme bridge, wrappers, `WidgetUpdaterService`)
 - `ios/ExpoWidgetsTarget/` — the native WidgetKit extension target (Swift)
-- `app/core/Widgets/widgets/BalanceWidget.ios.tsx` + `.android.ts` — the reference widget; copy its shape for new widgets
+- `app/core/Widgets/widgets/BalanceWidget.ios.tsx` + `BalanceWidget.ts` (non-iOS fallback) — the reference widget; copy its shape for new widgets
 
 ## The one non-negotiable rule: no closures inside `'widget'`-directive functions
 
@@ -46,9 +46,9 @@ Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()
 `expo-widgets`/`@expo/ui`'s JS entry points call a *throwing* `requireNativeModule`/`requireNativeView` at import time — merely importing them on Android crashes the app.
 
 - ✅ `MyThing.ios.ts(x)` — real implementation, imports `expo-widgets`/`@expo/ui/swift-ui`
-- ✅ `MyThing.android.ts` — no-op stub, same exported names/types (duplicate small prop interfaces rather than value-importing from the `.ios` file)
-- ✅ Import both via the **extensionless** path (`from './MyThing'`) so Metro/`tsc` pick the right platform file
-- ❌ Never `import ... from './MyThing.ios'` (explicit `.ios` suffix) for a *value* — this bypasses Metro's platform exclusion and bundles it into Android too. `import type` is fine (fully erased by Babel).
+- ✅ `MyThing.ts` (plain, extensionless) — no-op fallback, same exported names/types (duplicate small prop interfaces rather than value-importing from the `.ios` file)
+- ✅ Import both via the **extensionless** path (`from './MyThing'`) — Metro resolves `.ios.tsx` on iOS and falls back to the plain `.ts` everywhere else; `tsc` resolves the plain `.ts` directly with default settings
+- ❌ Never `import ... from './MyThing.ios'` (explicit `.ios` suffix) for a *value* — this bypasses Metro's platform exclusion and bundles it into Android too. `import type` is fine (fully erased by Babel), but prefer importing the type from the extensionless fallback module anyway.
 - ❌ Never import `expo-widgets` or `@expo/ui/swift-ui` from a file lacking an `.ios.` extension
 
 ## Theming
@@ -70,17 +70,19 @@ Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()
 ## Adding a new widget — checklist
 
 1. `app/core/Widgets/widgets/MyWidget.ios.tsx` — props interface + `'widget'` layout + `createMetaMaskWidget(name, layout)`
-2. `app/core/Widgets/widgets/MyWidget.android.ts` — no-op stub, `createMetaMaskWidget` from `../createMetaMaskWidget.android`
+2. `app/core/Widgets/widgets/MyWidget.ts` — no-op fallback, `createMetaMaskWidget` from `../createMetaMaskWidget`
 3. `WidgetUpdaterService.ts` — `computeMyWidgetProps()` + `pushMyWidgetUpdate()`, called from `pushUpdates()`
 4. `ios/ExpoWidgetsTarget/MyWidget.swift` — copy `BalanceWidget.swift`, matching `name` exactly to the JS registration name
 5. `ios/ExpoWidgetsTarget/index.swift` — add `MyWidget()` to the `WidgetBundle` (4-widget-per-bundle WidgetKit limit)
-6. Add the new `.swift` file to the `ExpoWidgetsTarget` Xcode target membership
-7. Document the widget in `app.config.js`'s `expo-widgets` plugin `widgets` array (documentation-only in this bare-workflow repo — never auto-applied)
+6. Document the widget in `app.config.js`'s `expo-widgets` plugin `widgets` array (documentation-only in this bare-workflow repo — never auto-applied; must mirror the Swift file's `name`/`configurationDisplayName`/`description`/`supportedFamilies`)
+7. Add the new `.swift` file to the `ExpoWidgetsTarget` Xcode target membership
 8. Tests + a simulator check (light/dark mode, data updates)
+
+Note: `ExpoWidgetsTarget` is only embedded in the `MetaMask` scheme — `MetaMask-Flask` ships without widgets (see `docs/widgets/README.md#limitations`). Device/IPA (archive/export) builds also need Apple Developer portal provisioning work not yet done — see `docs/widgets/README.md#provisioning-for-device-and-ipa-builds`; simulator builds and E2E are unaffected.
 
 ## Enforcement
 
 - **REJECT** any reference inside a `'widget'`-directive function to something other than its own params/`@expo/ui/swift-ui`
 - **REJECT** `import ... from 'expo-widgets'` / `'@expo/ui/swift-ui'` in a file without an `.ios.` extension
 - **REJECT** explicit `.ios`-suffixed *value* imports of platform-split files
-- **REQUIRE** a `.android.ts` no-op counterpart for every new `.ios.ts(x)` file under `app/core/Widgets/`
+- **REQUIRE** a plain `.ts(x)` no-op fallback counterpart for every new `.ios.ts(x)` file under `app/core/Widgets/`

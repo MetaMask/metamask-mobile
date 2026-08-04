@@ -1,9 +1,9 @@
-import { createMetaMaskWidget } from '../createMetaMaskWidget.android';
+import { createMetaMaskWidget } from '../createMetaMaskWidget';
 
-// See createMetaMaskWidget.android.ts — widgets are iOS-only. Kept the same
-// exported shape as BalanceWidget.ios.tsx (name, props type, `BalanceWidget`
-// instance) so `WidgetUpdaterService` (platform-agnostic) can import this
-// module without a Platform.OS branch.
+// See createMetaMaskWidget.ts — widgets are iOS-only, so this base file is
+// the non-iOS fallback. Kept the same exported shape as BalanceWidget.ios.tsx
+// (name, props type, `BalanceWidget` instance) so `WidgetUpdaterService`
+// (platform-agnostic) can import this module without a Platform.OS branch.
 //
 // `BalanceWidgetProps` is duplicated here rather than imported from
 // `./BalanceWidget.ios` — even a type-only import of an explicit `.ios`

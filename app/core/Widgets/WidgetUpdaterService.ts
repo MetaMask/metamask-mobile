@@ -9,8 +9,10 @@ import { selectPrivacyMode } from '../../selectors/preferencesController';
 import { strings } from '../../../locales/i18n';
 
 import { darkWidgetTheme, lightWidgetTheme } from './WidgetTheme';
-import { BalanceWidget } from './widgets/BalanceWidget';
-import type { BalanceWidgetProps } from './widgets/BalanceWidget.ios';
+import {
+  BalanceWidget,
+  type BalanceWidgetProps,
+} from './widgets/BalanceWidget';
 import type { WithWidgetTheme } from './types';
 
 /** Coalesces rapid Redux updates (e.g. balance streaming in token-by-token) into a single native write. */
@@ -69,7 +71,7 @@ class WidgetUpdaterServiceImplementation {
   /**
    * Starts listening for Redux state changes and pushes an initial snapshot
    * immediately. Safe to call on every platform — it's a no-op on Android
-   * (see createMetaMaskWidget.android.ts), and safe to call more than once.
+   * (see createMetaMaskWidget.ts), and safe to call more than once.
    */
   initialize(): void {
     if (this.initialized || Platform.OS !== 'ios') {

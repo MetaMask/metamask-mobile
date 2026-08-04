@@ -1,8 +1,8 @@
 import type { WithWidgetTheme } from './types';
 
 /**
- * Android counterpart of createMetaMaskLiveActivity.ios.ts — see that file
- * and createMetaMaskWidget.android.ts for why this no-op stub exists.
+ * Non-iOS fallback counterpart of createMetaMaskLiveActivity.ios.ts — see
+ * that file and createMetaMaskWidget.ts for why this no-op stub exists.
  * Live Activities are an iOS-only OS feature (Dynamic Island / Lock Screen),
  * so there is no meaningful Android behavior to provide here.
  */

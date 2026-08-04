@@ -9,12 +9,15 @@
 # `expo-widgets` ships a config plugin that normally performs this exact setup
 # during `expo prebuild` / Continuous Native Generation. This repo is a bare
 # React Native app with a checked-in `ios/` directory and does NOT run
-# `expo prebuild` against it (the plugins declared in app.config.js are only
-# applied by @expo/repack-app for OTA repackaging, never to this Xcode
-# project). This script reproduces, by hand, exactly what that config plugin
-# would do to the Xcode project, using the same target name, bundle
-# identifier convention, deployment target, and build settings documented in
-# the plugin source (github.com/expo/expo, `sdk-55` branch,
+# `expo prebuild` against it, for two independent reasons: (1) `expo run:ios`
+# only prebuilds when the `ios/` directory is absent, and (2) app.config.js
+# exports a nested `expo:` object, so @expo/config discards every top-level
+# key — including `plugins` — before any Expo tool (not even @expo/repack-app,
+# which only reads `name`, `ios`, and `android` off the top level for OTA
+# repackaging) ever sees it. This script reproduces, by hand, exactly what
+# that config plugin would do to the Xcode project, using the same target
+# name, bundle identifier convention, deployment target, and build settings
+# documented in the plugin source (github.com/expo/expo, `sdk-55` branch,
 # packages/expo-widgets/plugin/src/**).
 #
 # WHEN TO RE-RUN THIS
@@ -22,14 +25,25 @@
 # - Never, for day-to-day widget development. Editing the Swift files under
 #   ios/ExpoWidgetsTarget/ and the JS/TSX widget code does not require
 #   touching the Xcode project.
-# - Re-run it only if the `ExpoWidgetsTarget` target is ever deleted from the
-#   project and needs to be recreated (idempotent: exits early if the target
-#   already exists).
+# - Re-run it if the `ExpoWidgetsTarget` target is missing from
+#   ios/MetaMask.xcodeproj/project.pbxproj — most likely after a
+#   `project.pbxproj` merge/rebase conflict was resolved by taking one side
+#   wholesale and dropping the other's target. The observable symptom is
+#   `pod install` failing because the Podfile declares a `target
+#   'ExpoWidgetsTarget'` block that CocoaPods can't find in the Xcode
+#   project (see the comment above that block in ios/Podfile). Re-running is
+#   idempotent: exits early — after fixing the `Embed Foundation Extensions`
+#   build phase order if needed (see below) — if the target already exists.
+# - Re-run it if the main `MetaMask` target's `Embed Foundation Extensions`
+#   build phase is ordered incorrectly relative to other copy/link phases
+#   (can happen after a manual Xcode edit or another pbxproj merge). The
+#   script fixes this ordering unconditionally on every run, even when the
+#   target already exists — it is not purely a first-time setup script.
 #
 # See docs/widgets/README.md for the full picture (architecture, limitations,
 # and what to do when adding a brand-new widget kind, which still requires a
-# manual Swift file + Xcode "Sources" build phase membership + app.config.js
-# entry, but does NOT require re-running this script).
+# manual Swift file + Xcode "Sources" build phase membership, but does NOT
+# require re-running this script).
 #
 # Usage: ruby scripts/ios/setup-expo-widgets-target.rb
 
@@ -122,7 +136,6 @@ def configure_build_settings(target, bundle_identifier:, development_team:, mark
       'INFOPLIST_FILE' => "#{WIDGETS_TARGET_NAME}/Info.plist",
       'GENERATE_INFOPLIST_FILE' => 'YES',
       'INFOPLIST_KEY_CFBundleDisplayName' => 'MetaMask Widgets',
-      'INFOPLIST_KEY_NSHumanReadableCopyright' => '',
       'CURRENT_PROJECT_VERSION' => current_project_version || '1',
       'MARKETING_VERSION' => marketing_version || '1.0',
       'IPHONEOS_DEPLOYMENT_TARGET' => DEPLOYMENT_TARGET,

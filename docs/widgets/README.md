@@ -8,7 +8,7 @@ and [`@expo/ui`](https://docs.expo.dev/versions/latest/sdk/ui/).
 **iOS only.** `expo-widgets` has no Android equivalent (Android home screen
 widgets are a completely different, native-Kotlin/Jetpack Glance system that
 would be its own separate foundation). Everything described here compiles out
-to no-ops on Android — see [Platform split](#platform-split-iosts--androidts).
+to no-ops on Android — see [Platform split](#platform-split-iosts--base-ts).
 
 If you just want to add a new widget, skip to
 [Adding a new widget](#adding-a-new-widget) or use the
@@ -20,7 +20,7 @@ whole document as agent-usable instructions.
 - [Why this exists](#why-this-exists)
 - [Architecture at a glance](#architecture-at-a-glance)
 - [How widget code actually runs](#how-widget-code-actually-runs)
-- [Platform split (`.ios.ts` / `.android.ts`)](#platform-split-iosts--androidts)
+- [Platform split (`.ios.ts` / base `.ts`)](#platform-split-iosts--base-ts)
 - [Theming](#theming)
 - [Data flow: `WidgetUpdaterService`](#data-flow-widgetupdaterservice)
 - [The reference widget: `BalanceWidget`](#the-reference-widget-balancewidget)
@@ -29,6 +29,7 @@ whole document as agent-usable instructions.
 - [Testing widgets](#testing-widgets)
 - [Possibilities](#possibilities)
 - [Limitations](#limitations)
+- [Provisioning for device and IPA builds](#provisioning-for-device-and-ipa-builds)
 - [Troubleshooting](#troubleshooting)
 
 ## Why this exists
@@ -55,14 +56,14 @@ app/core/Widgets/
 ├── WidgetTheme.ts                    @metamask/design-tokens -> WidgetTheme (pure, testable)
 ├── WidgetTheme.test.ts
 ├── createMetaMaskWidget.ios.ts       Typed wrapper around expo-widgets' createWidget
-├── createMetaMaskWidget.android.ts   No-op stub (keeps expo-widgets out of the Android bundle)
+├── createMetaMaskWidget.ts           No-op fallback (keeps expo-widgets out of the Android bundle)
 ├── createMetaMaskLiveActivity.ios.ts     Typed wrapper around expo-widgets' createLiveActivity
-├── createMetaMaskLiveActivity.android.ts No-op stub
+├── createMetaMaskLiveActivity.ts         No-op fallback
 ├── WidgetUpdaterService.ts           Subscribes to Redux, computes + pushes props to every widget
 ├── index.ts                          Barrel (WidgetUpdaterService, WidgetTheme helpers, types)
 └── widgets/
     ├── BalanceWidget.ios.tsx         Reference widget: layout + registration
-    └── BalanceWidget.android.ts      No-op stub with the same exported shape
+    └── BalanceWidget.ts              No-op fallback with the same exported shape
 
 ios/ExpoWidgetsTarget/                The WidgetKit app extension (a *second*, separate iOS target)
 ├── Info.plist                        NSExtensionPointIdentifier = com.apple.widgetkit-extension
@@ -70,7 +71,7 @@ ios/ExpoWidgetsTarget/                The WidgetKit app extension (a *second*, s
 ├── index.swift                       @main WidgetBundle — lists every widget kind + WidgetLiveActivity()
 └── BalanceWidget.swift               One `Widget` per widget kind (name must match the JS name)
 
-scripts/ios/setup-expo-widgets-target.rb   One-off script that created the Xcode target (see below)
+scripts/ios/setup-expo-widgets-target.rb   Created the Xcode target; re-run only to recreate it (see below)
 ```
 
 Two processes are involved at runtime:
@@ -93,15 +94,47 @@ the source of almost every rule in this document.
 ### Why a checked-in Xcode target instead of the config plugin
 
 `expo-widgets` ships an Expo **config plugin** that normally does all of the
-native wiring above automatically via `expo prebuild`. This repo is a bare
-React Native project with a checked-in `ios/` directory — `expo prebuild`
-never runs against it, so the plugin never executes. `scripts/ios/setup-expo-widgets-target.rb`
-was run _once_ to hand-apply the same changes the plugin would have made
-(new Xcode target, Podfile block, entitlements, Info.plist keys). It's kept
-in the repo as documentation of what was changed and as a reference if the
-target ever needs to be recreated from scratch — you will not normally need
-to run it again. See the comments at the top of that script and in
-`app.config.js`'s `expo-widgets` plugin entry for the full rationale.
+native wiring above automatically via `expo prebuild`. That plugin never
+executes here, for two independent reasons:
+
+1. This repo is a bare React Native project with a checked-in `ios/`
+   directory. `expo run:ios` only calls `expo prebuild` when the `ios/`
+   directory is _absent_ — with it present, it resolves the existing Xcode
+   project and runs `xcodebuild` directly. `scripts/build.sh`'s
+   `prebuild_ios()` is unrelated despite the name: it only writes CI
+   xcconfig stubs, runs `git submodule update`, and decodes
+   `GoogleService-Info.plist`.
+2. `app.config.js` declares a nested `expo:` object. `@expo/config`'s
+   `getConfig()` reduces via `config.expo ?? config`, which discards every
+   top-level key — `plugins` included — before any Expo tool sees the file
+   (it even logs `Ignoring extra keys in Expo config` if something does
+   evaluate it through `@expo/config`). `@expo/repack-app`, used for OTA
+   repackaging, only reads `name`/`ios`/`android` off the top level via a
+   raw `require()` that bypasses `@expo/config` entirely, which is why those
+   three keys still matter but `plugins` never has.
+
+So the `expo-widgets` entry in `app.config.js` is inert — like every other
+entry in that `plugins` array (`expo-build-properties`, `expo-font`, etc. are
+equally unable to run here). It's kept anyway as the canonical declaration of
+each widget's metadata, exactly like `expo-font`'s `fonts` array is declared
+there even though the actual `UIAppFonts` list is hand-committed into
+`ios/MetaMask/Info.plist`. For widgets, the native wiring is committed
+instead in `ios/ExpoWidgetsTarget/` and `ios/Podfile`.
+
+`ios/ExpoWidgetsTarget/BalanceWidget.swift`, `index.swift`, `Info.plist`, and
+the entitlements file are exactly what the plugin's
+`withWidgetSourceFiles.ts` would generate for the `app.config.js` entry —
+`scripts/ios/setup-expo-widgets-target.rb` was run once to hand-apply the
+rest of what the plugin would have done (the Xcode target itself, the
+Podfile block). Keep both in sync by hand: if `expo prebuild` were ever run
+against this project, `withWidgetSourceFiles.ts` deletes and regenerates the
+entire `ios/ExpoWidgetsTarget/` directory from the `app.config.js` entry
+alone, discarding any drift.
+
+You will not normally need to re-run the script — see its own header
+comment for the concrete triggers (a missing Xcode target after a
+`project.pbxproj` merge conflict, or a misordered "Embed Foundation
+Extensions" build phase).
 
 ## How widget code actually runs
 
@@ -161,7 +194,7 @@ destructure pre-computed props, arrange `@expo/ui/swift-ui` components. Do
 all data-fetching, formatting, and business logic in `WidgetUpdaterService`
 (or an equivalent, testable, non-widget-directive function it calls).
 
-## Platform split (`.ios.ts` / `.android.ts`)
+## Platform split (`.ios.ts` / base `.ts`)
 
 `expo-widgets`' JS entry point calls the _throwing_ variant of
 `requireNativeModule('ExpoWidgets')` at **import time** — merely importing
@@ -170,36 +203,41 @@ anywhere reachable from the Android bundle crashes the app at startup, since
 neither native module is registered on Android.
 
 Every module in `app/core/Widgets/` that touches `expo-widgets` or
-`@expo/ui` therefore ships as a pair:
+`@expo/ui` therefore ships as a pair: a real `.ios.ts(x)` implementation, and
+a plain, extensionless `.ts` fallback (same exported names/types, does
+nothing) that Metro/`tsc` resolve on every other platform:
 
-| File                                    | Runs on | Behavior                              |
-| --------------------------------------- | ------- | ------------------------------------- |
-| `createMetaMaskWidget.ios.ts`           | iOS     | Real `expo-widgets` wrapper           |
-| `createMetaMaskWidget.android.ts`       | Android | No-op stub, same call signature       |
-| `createMetaMaskLiveActivity.ios.ts`     | iOS     | Real `expo-widgets` wrapper           |
-| `createMetaMaskLiveActivity.android.ts` | Android | No-op stub                            |
-| `widgets/BalanceWidget.ios.tsx`         | iOS     | Real widget (SwiftUI-in-JS layout)    |
-| `widgets/BalanceWidget.android.ts`      | Android | No-op stub, same exported names/types |
+| File                                | Runs on         | Behavior                                  |
+| ----------------------------------- | --------------- | ----------------------------------------- |
+| `createMetaMaskWidget.ios.ts`       | iOS             | Real `expo-widgets` wrapper               |
+| `createMetaMaskWidget.ts`           | Everywhere else | No-op fallback, same call signature       |
+| `createMetaMaskLiveActivity.ios.ts` | iOS             | Real `expo-widgets` wrapper               |
+| `createMetaMaskLiveActivity.ts`     | Everywhere else | No-op fallback                            |
+| `widgets/BalanceWidget.ios.tsx`     | iOS             | Real widget (SwiftUI-in-JS layout)        |
+| `widgets/BalanceWidget.ts`          | Everywhere else | No-op fallback, same exported names/types |
 
 Metro's bundler resolves an **extensionless** import (`import { BalanceWidget } from './widgets/BalanceWidget'`)
-to the right platform file automatically and excludes the other one from
-that platform's bundle entirely. `WidgetUpdaterService.ts` relies on this —
-it imports every widget module extensionlessly so it works, unmodified, on
-both platforms (no-op on Android).
+to `BalanceWidget.ios.tsx` on iOS and falls back to the plain `BalanceWidget.ts`
+everywhere else, excluding the other file from that platform's bundle
+entirely. `WidgetUpdaterService.ts` relies on this — it imports every widget
+module extensionlessly so it works, unmodified, on both platforms (no-op on
+Android). `tsc` uses its own default (non-platform-aware) module resolution
+for the same extensionless import, which also lands on the plain `.ts`
+fallback — that's fine, since each platform file is still fully type-checked
+on its own when `tsc` walks it directly, and the fallback is written to
+mirror the `.ios` file's exported shape exactly.
 
 **Rule of thumb:** never write `import ... from 'expo-widgets'` or
 `from '@expo/ui/swift-ui'` in a file that doesn't have an `.ios.` extension,
 and never `import` an `.ios.ts(x)` file via its literal `.ios` suffix from a
 file that isn't itself `.ios`-only (an explicit `./Foo.ios` import bypasses
-Metro's platform exclusion and _will_ get bundled into the Android build). A
-bare `import type { ... } from './Foo.ios'` is fine — TypeScript type-only
-imports are fully erased by Babel before Metro ever sees them.
-
-`tsconfig.json` sets `"moduleSuffixes": [".ios", ".android", ".native", ""]`
-so `tsc` can resolve these same extensionless imports (it always type-checks
-against the `.ios` variant, since `tsc` has no concept of "which platform" —
-each platform file is still fully type-checked on its own when `tsc` walks it
-directly).
+Metro's platform exclusion and _will_ get bundled into the Android build).
+Prefer importing types from the extensionless fallback module (e.g.
+`import type { BalanceWidgetProps } from './widgets/BalanceWidget'`) rather
+than the explicit `.ios` path, even though a `type`-only import of an `.ios`
+path is technically safe (fully erased by Babel before Metro ever sees it) —
+resolving through the fallback keeps the import consistent regardless of
+that erasure.
 
 ## Theming
 
@@ -342,11 +380,11 @@ used elsewhere in the app), and reads the label from
      via `environment.colorScheme` (see [Theming](#theming)).
    - Export `export const MY_WIDGET_NAME = 'MyWidget';` and
      `export const MyWidget = createMetaMaskWidget<MyWidgetProps>(MY_WIDGET_NAME, MyWidgetLayout);`.
-3. **Android stub — `app/core/Widgets/widgets/MyWidget.android.ts`:**
+3. **Non-iOS fallback — `app/core/Widgets/widgets/MyWidget.ts`:**
    Duplicate the `MyWidgetProps` interface (don't type-import it from the
-   `.ios.tsx` file's _value_ export — see [Platform split](#platform-split-iosts--androidts)),
+   `.ios.tsx` file's _value_ export — see [Platform split](#platform-split-iosts--base-ts)),
    and call `createMetaMaskWidget<MyWidgetProps>(MY_WIDGET_NAME, () => undefined)`
-   from `../createMetaMaskWidget.android`.
+   from `../createMetaMaskWidget`.
 4. **Data — `WidgetUpdaterService.ts`:** add `computeMyWidgetProps()` and
    `pushMyWidgetUpdate()` methods (mirroring the Balance ones), and call the
    push method from `pushUpdates()`.
@@ -358,16 +396,21 @@ used elsewhere in the app), and reads the label from
    `MyWidget()` inside the `WidgetBundle`'s `body`. WidgetKit limits a single
    `WidgetBundle` to 4 widgets — if you're adding a 4th+1 widget, you'll need
    to chain a second nested bundle (see the comments in that file).
-7. **Add the file to the Xcode target.** The new `.swift` file needs to be a
-   member of the `ExpoWidgetsTarget` target, not just exist on disk. Either
-   add it via Xcode (select the target's membership checkbox) or extend
-   `scripts/ios/setup-expo-widgets-target.rb`'s `add_source_files` and rerun
-   the relevant portion — check with your team's iOS engineer if unsure.
-8. **Document it in `app.config.js`.** Add an entry to the `expo-widgets`
-   plugin's `widgets` array (name, `supportedFamilies`, `displayName`,
-   `description`) — this repo doesn't run `expo prebuild`, so this is
-   documentation-only, but keep it in sync so `expo config` output and any
-   future prebuild migration stay accurate.
+7. **Document in `app.config.js`.** Add an entry to the `expo-widgets`
+   plugin's `widgets` array with `name` (must exactly equal `MY_WIDGET_NAME`
+   from step 2), `displayName`, `description`, `supportedFamilies`, and
+   `contentMarginsDisabled` matching what you put in step 5's Swift file.
+   This entry is never evaluated by any Expo tool in this bare-workflow repo
+   (see [Why a checked-in Xcode target instead of the config plugin](#why-a-checked-in-xcode-target-instead-of-the-config-plugin))
+   — it exists purely as the canonical, human-readable declaration of the
+   widget's metadata, mirroring every other plugin entry in that file.
+8. **Add the file to the Xcode target.** The new `.swift` file needs to be a
+   member of the `ExpoWidgetsTarget` target, not just exist on disk. Add it
+   via Xcode (select the target's membership checkbox in the File Inspector)
+   — `scripts/ios/setup-expo-widgets-target.rb` does not help here; it only
+   registers files that already existed when the target itself was first
+   created, and early-returns once the target exists (see that script's
+   header comment).
 9. **Tests.** See [Testing widgets](#testing-widgets).
 10. **Verify in a simulator.** Build and run the dev app, long-press the
     home screen → "+" → search for the widget's `displayName`, add it, and
@@ -376,8 +419,8 @@ used elsewhere in the app), and reads the label from
 
 ## Adding a Live Activity
 
-The foundation includes `createMetaMaskLiveActivity` (iOS) /
-`.android.ts` no-op stub, mirroring `createMetaMaskWidget`. `WidgetLiveActivity()`
+The foundation includes `createMetaMaskLiveActivity` (iOS) / a plain `.ts`
+no-op fallback, mirroring `createMetaMaskWidget`. `WidgetLiveActivity()`
 — `expo-widgets`' built-in generic Live Activity renderer — is already
 included in `ios/ExpoWidgetsTarget/index.swift`'s bundle, so **no further
 native/Xcode changes are needed for the first Live Activity** you register.
@@ -387,7 +430,7 @@ To add one (e.g. a Perps P/L Live Activity, a natural follow-up to this PR):
 1. Define `MyActivityProps` (JSON-serializable content, e.g. `{ symbol, pnl, entryPrice, currentPrice }`).
 2. Write a `.ios.ts(x)` file with a `'widget'`-directive component and
    `export const MyActivity = createMetaMaskLiveActivity<MyActivityProps>('MyActivity', MyActivityLayout);`,
-   plus an `.android.ts` no-op counterpart (same pattern as widgets).
+   plus a plain `.ts` no-op counterpart (same pattern as widgets).
 3. Wherever the feature's state machine knows an activity should start (e.g.
    a Perps position opening), call
    `MyActivity.start(initialProps)` and keep the returned `LiveActivity`
@@ -410,8 +453,8 @@ each layer at the boundary where it's still real code:
 - **`createMetaMaskWidget.ios.ts` / `createMetaMaskLiveActivity.ios.ts`** —
   assert they delegate to `expo-widgets`' `createWidget`/`createLiveActivity`
   with the right `(name, layout)` args (mocked via `app/__mocks__/expo-widgets.ts`).
-- **`createMetaMaskWidget.android.ts` / `createMetaMaskLiveActivity.android.ts`**
-  — assert every method is a safe no-op and never throws.
+- **`createMetaMaskWidget.ts` / `createMetaMaskLiveActivity.ts`** (the non-iOS
+  fallbacks) — assert every method is a safe no-op and never throws.
 - **A widget's own `*.ios.tsx` file** (see `BalanceWidget.test.ts`) — you can
   still assert the _registration_ (widget name matches the Swift file /
   `createWidget` was called with the right name and that its "layout" arg is
@@ -490,17 +533,68 @@ auto-discovered root `__mocks__/` convention):
 - **A widget's own file can't be meaningfully unit-tested for rendering
   output** — only its registration and the data layer (`WidgetUpdaterService`)
   are testable. See [Testing widgets](#testing-widgets).
-- **This repo's native project is bare/checked-in**, so `expo prebuild`
-  changes to `app.config.js`'s `expo-widgets` plugin config are
-  documentation-only and never applied automatically — every native change
-  (new widget kind, new entitlement, ...) must be hand-applied to `ios/`. See
-  [Why a checked-in Xcode target](#why-a-checked-in-xcode-target-instead-of-the-config-plugin).
+- **This repo's native project is bare/checked-in**, so `expo prebuild` never
+  runs and `expo-widgets`' config plugin never executes — every native
+  change (new widget kind, new entitlement, ...) must be hand-applied to
+  `ios/`. See [Why a checked-in Xcode target](#why-a-checked-in-xcode-target-instead-of-the-config-plugin).
 - **WidgetKit's 4-widgets-per-`WidgetBundle` limit** applies once this
   foundation has 5+ widget kinds — see the chunking note in
   `ios/ExpoWidgetsTarget/index.swift`.
 - **No push-based remote updates** are wired up yet (Live Activities support
   APNs push updates via `getPushToken()`/`addPushTokenListener()` on
   `expo-widgets`' API, but no server-side integration exists in this repo).
+- **`MetaMask-Flask` ships without widgets.** `ExpoWidgetsTarget` is only
+  embedded in and depended on by the `MetaMask` scheme/target — the
+  `MetaMask-Flask` scheme has no dependency on it and no
+  "Embed Foundation Extensions" phase referencing it, and the extension's
+  hardcoded `PRODUCT_BUNDLE_IDENTIFIER` (`io.metamask.MetaMask.ExpoWidgetsTarget`)
+  is not a valid child of `io.metamask.MetaMask-Flask` in any case. This is
+  intentional for now — widgets are a `main`-build-type feature. Shipping
+  them on Flask too would require a second, parallel extension target (its
+  own bundle id, entitlements, and provisioning) rather than a config
+  change; open an issue/RFC before taking that on.
+- **Device/IPA builds require additional Apple Developer portal setup that
+  does not exist yet** — see [Provisioning for device and IPA builds](#provisioning-for-device-and-ipa-builds).
+  Simulator builds and E2E are unaffected.
+
+## Provisioning for device and IPA builds
+
+`ExpoWidgetsTarget` currently signs with `CODE_SIGN_STYLE = Automatic` and no
+`PROVISIONING_PROFILE_SPECIFIER`, which is sufficient for local
+Xcode-managed device runs but not for the manually-signed archives this repo's
+CI produces. Before a device or IPA build with widgets present will succeed,
+someone with Apple Developer portal access needs to:
+
+1. **Enable the App Group capability** on the existing `Bitrise AppStore io.metamask.MetaMask`
+   and `development-metamask` provisioning profiles (`ios/MetaMask/MetaMask.entitlements`
+   and `MetaMaskDebug.entitlements` now declare
+   `com.apple.security.application-groups: group.io.metamask.MetaMask`, which
+   the app's existing profiles don't yet grant).
+2. **Create two new provisioning profiles** for the extension's bundle id,
+   `io.metamask.MetaMask.ExpoWidgetsTarget`, mirroring the app's own
+   development and App Store distribution profiles, both with the same App
+   Group capability enabled.
+3. **Add `provisioningProfiles` entries** for `io.metamask.MetaMask.ExpoWidgetsTarget`
+   to `ios/MetaMask/IosExportOptionsMetaMaskDevelopment.plist` and
+   `IosExportOptionsMetaMaskRelease.plist` (the two plists `MetaMask`-scheme
+   `xcodebuild -exportArchive` calls use) — currently they only map the app's
+   own bundle id, and `-exportArchive` will fail to export an archive
+   containing an embedded extension it has no mapping for.
+4. **Switch `ExpoWidgetsTarget` to `CODE_SIGN_STYLE = Manual`** with a
+   `PROVISIONING_PROFILE_SPECIFIER` pointing at the new profile from step 2,
+   matching how the `MetaMask` target itself signs.
+5. **Revisit `scripts/build.sh`'s `archiveOverrides`** (used when
+   `PROFILE=development`). `xcodebuild` command-line build-setting overrides
+   apply to every target in the archive, including the embedded extension —
+   today's override hardcodes `PROVISIONING_PROFILE_SPECIFIER=development-metamask`,
+   which is the _app's_ profile name, not the extension's. See the `NOTE
+(widgets)` comment at that call site.
+
+Until this is done, `PROFILE=development` (and any distribution) archive of
+the `MetaMask` scheme with `ExpoWidgetsTarget` embedded will fail at the
+signing step for the extension. This does not affect `yarn start:ios`,
+`yarn build:ios:main:dev` simulator builds, or E2E, which don't go through
+`xcodebuild archive`/`-exportArchive`.
 
 ## Troubleshooting
 
@@ -512,10 +606,11 @@ auto-discovered root `__mocks__/` convention):
 - **"Widget shows stale/blank data"** — check that `WidgetUpdaterService.initialize()`
   ran (it's called once, from `app/store/index.ts`, after persisted state
   loads) and that the App Group identifier matches exactly across
-  `app.config.js`, `MetaMask.entitlements`, `MetaMaskDebug.entitlements`, and
-  `ExpoWidgetsTarget.entitlements` (`group.io.metamask.MetaMask`).
-  Mismatched entitlements silently fail to share data instead of erroring.
-  Also remember the ~2s debounce.
+  `ios/MetaMask/Info.plist`'s `ExpoWidgetsAppGroupIdentifier`,
+  `MetaMask.entitlements`, `MetaMaskDebug.entitlements`, and
+  `ExpoWidgetsTarget/Info.plist` + `ExpoWidgetsTarget.entitlements`
+  (`group.io.metamask.MetaMask` everywhere). Mismatched entitlements silently
+  fail to share data instead of erroring. Also remember the ~2s debounce.
 - **"`ReferenceError` for some variable inside the widget at runtime on
   device, but it looked fine in the editor"** — you referenced something
   outside the layout function's own params (a closure, an import, a
@@ -529,4 +624,20 @@ auto-discovered root `__mocks__/` convention):
 - **"App crashes on Android after touching `app/core/Widgets/`"** — you
   imported `expo-widgets` or `@expo/ui` from a file without an `.ios.`
   extension, or used an explicit `.ios` suffix on a _value_ import from a
-  file that isn't itself iOS-only. See [Platform split](#platform-split-iosts--androidts).
+  file that isn't itself iOS-only. See [Platform split](#platform-split-iosts--base-ts).
+- **"Two entries for the same widget in the simulator's widget gallery"** —
+  a stale WidgetKit registration from before the `ExpoWidgetsTarget` Xcode
+  target's identity last changed (e.g. after re-running
+  `setup-expo-widgets-target.rb`, or switching branches across a target
+  rename), not a code defect — `pluginkit -m -p com.apple.widgetkit-extension`
+  (run via `xcrun simctl spawn <udid> pluginkit ...` for a simulator) will
+  show only one entry for `io.metamask.MetaMask.ExpoWidgetsTarget` if the
+  extension itself is registered correctly. Erase the simulator
+  (`xcrun simctl erase <udid>`) or delete the app from a device, wipe
+  DerivedData, and reinstall.
+- **"`pod install` fails: `Unable to find a target named 'ExpoWidgetsTarget'
+in project 'MetaMask.xcodeproj'`"** — the Xcode target itself is missing,
+  most likely from a `project.pbxproj` merge/rebase conflict resolved by
+  taking one side wholesale. Run `ruby scripts/ios/setup-expo-widgets-target.rb`
+  to recreate it (idempotent — safe even if you're unsure whether it's
+  actually missing), then rerun `pod install`.

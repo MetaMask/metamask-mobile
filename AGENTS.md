@@ -201,18 +201,18 @@ If the user asks to implement a ticket directly from Jira:
 
 ## Documentation References
 
-| Documentation                 | Path                                         |
-| ----------------------------- | -------------------------------------------- |
-| Architecture                  | `/docs/readme/architecture.md`               |
-| Environment Setup             | `/docs/readme/environment.md`                |
-| E2E Testing                   | `/docs/readme/e2e-testing.md`                |
-| Debugging                     | `/docs/readme/debugging.md`                  |
-| Performance                   | `/docs/performance/`                         |
-| Storybook                     | `/docs/readme/storybook.md`                  |
-| Troubleshooting               | `/docs/readme/troubleshooting.md`            |
-| iOS Widgets & Live Activities | `/docs/widgets/README.md`                    |
-| MetaMask Contributor Docs     | https://github.com/MetaMask/contributor-docs |
-| E2E CI Decision Tree          | `.github/guidelines/E2E_DECISION_TREE.md`    |
+| Documentation             | Path                                         |
+| ------------------------- | -------------------------------------------- |
+| Architecture              | `/docs/readme/architecture.md`               |
+| Environment Setup         | `/docs/readme/environment.md`                |
+| E2E Testing               | `/docs/readme/e2e-testing.md`                |
+| Debugging                 | `/docs/readme/debugging.md`                  |
+| Performance               | `/docs/performance/`                         |
+| Storybook                 | `/docs/readme/storybook.md`                  |
+| Troubleshooting           | `/docs/readme/troubleshooting.md`            |
+| iOS Widgets               | `/docs/widgets/README.md`                    |
+| MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
+| E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
 
 ## Test Guidelines
 

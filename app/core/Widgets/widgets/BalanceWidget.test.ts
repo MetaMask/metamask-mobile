@@ -2,9 +2,9 @@ import { createWidget } from 'expo-widgets';
 
 // Extensionless import: Jest's haste config (via `@react-native/jest-preset`)
 // defaults to resolving platform files as `ios`, matching how production
-// code (WidgetUpdaterService.ts) imports this module. See
-// BalanceWidget.android.ts for the Android counterpart, which is trivial
-// enough (a no-op) not to need its own test.
+// code (WidgetUpdaterService.ts) imports this module. See BalanceWidget.ts
+// for the non-iOS fallback, which is trivial enough (a no-op) not to need
+// its own test.
 import { BALANCE_WIDGET_NAME, BalanceWidget } from './BalanceWidget';
 
 describe('BalanceWidget', () => {

@@ -1,6 +1,6 @@
-import { createMetaMaskWidget } from './createMetaMaskWidget.android';
+import { createMetaMaskWidget } from './createMetaMaskWidget';
 
-describe('createMetaMaskWidget (android)', () => {
+describe('createMetaMaskWidget (non-iOS fallback)', () => {
   it('returns a no-op widget that never throws', async () => {
     const layout = jest.fn();
     const widget = createMetaMaskWidget('TestWidget', layout);

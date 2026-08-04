@@ -5,9 +5,10 @@ import type { WithWidgetTheme } from './types';
  * `"platforms": ["apple"]`) and its JS entry point calls the *throwing*
  * `requireNativeModule('ExpoWidgets')` at import time, not the optional
  * variant — importing it anywhere reachable from the Android bundle crashes
- * the app at startup. This `.android.ts` file (paired with
- * `createMetaMaskWidget.ios.ts`) exists so Metro's platform-extension
- * resolution keeps `expo-widgets` out of the Android bundle graph entirely.
+ * the app at startup. This base `.ts` file (paired with
+ * `createMetaMaskWidget.ios.ts`) is what Metro's platform-extension
+ * resolution falls back to on every platform other than iOS, keeping
+ * `expo-widgets` out of the Android bundle graph entirely.
  *
  * Never import `expo-widgets` or `@expo/ui/swift-ui` from a file that lacks
  * an `.ios.` extension — see docs/widgets/README.md.

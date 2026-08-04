@@ -1,6 +1,6 @@
-import { createMetaMaskLiveActivity } from './createMetaMaskLiveActivity.android';
+import { createMetaMaskLiveActivity } from './createMetaMaskLiveActivity';
 
-describe('createMetaMaskLiveActivity (android)', () => {
+describe('createMetaMaskLiveActivity (non-iOS fallback)', () => {
   it('returns a no-op factory whose start() never throws', async () => {
     const factory = createMetaMaskLiveActivity('TestActivity', jest.fn());
 

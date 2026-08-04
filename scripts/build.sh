@@ -343,6 +343,16 @@ generateIosBinary() {
 		# When PROFILE=development, override the signing settings so a Release
 		# archive can be signed with the development certificate and profile
 		# instead of the distribution identity hardcoded in the Xcode project.
+		#
+		# NOTE (widgets): xcodebuild command-line build-setting overrides apply
+		# to every target in the archive, including the `ExpoWidgetsTarget`
+		# WidgetKit extension embedded in the `MetaMask` scheme. Today there is
+		# no `development-metamask`-equivalent provisioning profile for
+		# `io.metamask.MetaMask.ExpoWidgetsTarget` in the Apple Developer
+		# portal, so a PROFILE=development archive of the `MetaMask` scheme
+		# will fail to sign the extension. See docs/widgets/README.md for the
+		# provisioning work required before this path is used with widgets
+		# present.
 		local -a archiveOverrides=()
 		if [ "$profile" = "development" ] && [ "$configuration" = "Release" ]; then
 			archiveOverrides=(

@@ -82,17 +82,22 @@ module.exports = {
     ],
     'expo-asset',
     '@react-native-community/datetimepicker',
-    // NOTE: This repo is a bare workflow project with a checked-in ios/
-    // directory, so `expo prebuild` is never run against it and this plugin
-    // config is NOT automatically applied to ios/MetaMask.xcodeproj. It is
-    // declared here for documentation/parity purposes only (e.g. so this
-    // config accurately reflects the widgets that exist, for anyone running
-    // `expo config` or a future prebuild-based migration). The actual native
-    // wiring lives in ios/ExpoWidgetsTarget/, ios/Podfile, and was created by
-    // scripts/ios/setup-expo-widgets-target.rb. See docs/widgets/README.md
-    // before adding or removing an entry from `widgets` below — you'll also
-    // need to hand-edit ios/ExpoWidgetsTarget/index.swift and add a matching
-    // <WidgetName>.swift file.
+    // NOTE: This entry never reaches a running Expo tool, for two independent
+    // reasons: (1) this repo is a bare workflow project with a checked-in
+    // ios/ directory, so `expo prebuild` — the only thing that ever applies
+    // config plugins — is never run against it; and (2) this file exports a
+    // nested `expo:` object below, so @expo/config's `reduceExpoObject`
+    // reduces via `config.expo ?? config` and discards every top-level key,
+    // `plugins` included (it even warns "Ignoring extra keys in Expo config"
+    // if anything ever does read this file through @expo/config). It's kept
+    // here anyway, like the other plugin entries above, as the canonical
+    // declaration of the widget's metadata — the actual native wiring lives
+    // in ios/ExpoWidgetsTarget/ and ios/Podfile, hand-applied by
+    // scripts/ios/setup-expo-widgets-target.rb. Keep `name`, `displayName`,
+    // `description`, `supportedFamilies`, and `contentMarginsDisabled` in
+    // sync with ios/ExpoWidgetsTarget/BalanceWidget.swift — see
+    // docs/widgets/README.md before adding or removing an entry from
+    // `widgets` below.
     [
       'expo-widgets',
       {
