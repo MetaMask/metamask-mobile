@@ -3242,6 +3242,7 @@
   },
   "wallet": {
     "title": "Wallet",
+    "search_accessibility_label": "Search",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",

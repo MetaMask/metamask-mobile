@@ -1141,6 +1141,9 @@ const Wallet = ({
                         iconName={MMDSIconName.Search}
                         size={ButtonIconSize.Md}
                         testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+                        accessibilityLabel={strings(
+                          'wallet.search_accessibility_label',
+                        )}
                         hitSlop={touchAreaSlop}
                       />
                       {isMoneyAccountVisible && (
