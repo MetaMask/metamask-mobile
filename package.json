@@ -183,6 +183,16 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/wallet": {
+      "type": "breaking",
+      "previewVersion": "9.0.0-preview-b156b30ed"
+    },
+    "@metamask/subscription-controller": {
+      "type": "non-breaking",
+      "previewVersion": "6.2.1-preview-b156b30ed"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
@@ -345,7 +355,7 @@
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch",
     "@metamask/react-native-search-api": "1.0.1",
     "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch",
-    "@metamask/remote-feature-flag-controller": "^4.2.2",
+    "@metamask/remote-feature-flag-controller": "^5.0.0",
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/sample-controllers": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
@@ -367,13 +377,14 @@
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
     "@metamask/storage-service": "^1.0.0",
+    "@metamask/subscription-controller": "^6.2.1",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^69.4.0",
     "@metamask/transaction-pay-controller": "^26.2.0",
     "@metamask/tron-wallet-snap": "^1.33.1",
     "@metamask/utils": "^11.11.0",
-    "@metamask/wallet": "^8.1.0",
+    "@metamask/wallet": "^9.0.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.1",

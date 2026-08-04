@@ -449,6 +449,9 @@ export class Engine {
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );
+    const subscriptionController = this.#wallet.getInstance(
+      'SubscriptionController',
+    );
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -597,6 +600,7 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
+      SubscriptionController: subscriptionController,
       GasFeeController: this.gasFeeController,
       GatorPermissionsController: gatorPermissionsController,
       ApprovalController: approvalController,
@@ -1287,6 +1291,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       LoggingController,
       MoneyAccountController,
+      SubscriptionController,
     } = this.context;
 
     // Remove all permissions.
@@ -1320,6 +1325,9 @@ export class Engine {
 
     // Accounts:
     MoneyAccountController.clearState();
+
+    // Subscriptions:
+    SubscriptionController.clearState();
   };
 
   removeAllListeners() {
@@ -1497,6 +1505,7 @@ export default {
       SelectedNetworkController,
       SignatureController,
       SmartTransactionsController,
+      SubscriptionController,
       TokenBalancesController,
       TokenRatesController,
       TokensController,
@@ -1572,6 +1581,7 @@ export default {
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
       SmartTransactionsController: SmartTransactionsController.state,
+      SubscriptionController: SubscriptionController.state,
       TokenBalancesController: TokenBalancesController.state,
       TokenRatesController: TokenRatesController.state,
       TokensController: TokensController.state,
