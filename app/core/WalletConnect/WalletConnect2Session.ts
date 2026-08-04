@@ -662,6 +662,10 @@ class WalletConnect2Session {
       }
 
       return this.handleAdapterRequest({
+        // The channel id is the unspoofable per-session identifier and is
+        // what Snaps must receive as the request origin — never the dapp's
+        // self-reported metadata URL.
+        origin: this.channelId,
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -790,9 +794,11 @@ class WalletConnect2Session {
    * the request namespace.
    */
   private handleAdapterRequest = async ({
+    origin,
     requestEvent,
     scope,
   }: {
+    origin: string;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -803,6 +809,7 @@ class WalletConnect2Session {
 
     try {
       const result = await handleMultichainRequestByAdapter({
+        origin,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,
