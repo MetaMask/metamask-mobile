@@ -96,7 +96,7 @@ export class TestMuAIConfigBuilder {
       queueTimeout: 600,
       video: true,
       devicelog: true,
-      network: true,
+      network: false,
       appProfiling: true,
       smartHeal: true,
       ...(platformName === 'android' ? { autoGrantPermissions: true } : {}),

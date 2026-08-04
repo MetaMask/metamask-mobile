@@ -126,7 +126,15 @@ export class BrowserStackEnricher extends BaseSessionDataEnricher {
       }
     }
 
-    // 4. Fetch network logs
+    // 4. Fetch network logs unless network capture is disabled for the run.
+    if (process.env.DISABLE_NETWORK_LOGS === 'true') {
+      this.logger.info(
+        `Skipping network logs for ${testTitle}: network capture disabled`,
+      );
+      session.networkLogsEntries = [];
+      return;
+    }
+
     try {
       if (!buildId) {
         this.logger.info(
