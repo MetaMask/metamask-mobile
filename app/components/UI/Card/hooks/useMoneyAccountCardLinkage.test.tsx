@@ -89,7 +89,23 @@ jest.mock(
         this.name = 'CardLinkageInProgressError';
       }
     }
-    return { CardLinkageInProgressError: MockCardLinkageInProgressError };
+    class MockCardProviderError extends Error {
+      code: string;
+
+      constructor(code: string, message: string) {
+        super(message);
+        this.name = 'CardProviderError';
+        this.code = code;
+      }
+    }
+    return {
+      CardLinkageInProgressError: MockCardLinkageInProgressError,
+      CardProviderError: MockCardProviderError,
+      CardProviderErrorCode: {
+        MoneyAccountLinkedToDifferentCard:
+          'money_account_linked_to_different_card',
+      },
+    };
   },
 );
 
@@ -1315,6 +1331,39 @@ describe('useMoneyAccountCardLinkage', () => {
         labelOptions: [{ label: 'Something went wrong linking your card' }],
         hasNoTimeout: false,
       });
+    });
+
+    it('shows the different-card conflict toast when the controller rejects with MoneyAccountLinkedToDifferentCard', async () => {
+      const { CardProviderError: MockedCardProviderError } = jest.requireMock(
+        '../../../../core/Engine/controllers/card-controller/provider-types',
+      );
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(
+        new MockedCardProviderError(
+          'money_account_linked_to_different_card',
+          'Money Account is already linked to a different card account',
+        ),
+      );
+
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground();
+      });
+
+      expect(returned).toBe(false);
+      expect(result.current.status).toBe('error');
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label:
+                'This wallet is already linked to a different MetaMask Card',
+            },
+          ],
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('sets status=cancelled and shows NO error toast on UserCancelledError', async () => {

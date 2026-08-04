@@ -1,4 +1,5 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
+import { ethers } from 'ethers';
 import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import {
   TransactionType,
@@ -63,11 +64,19 @@ import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
-import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import {
+  isMoneyAccountDelegatedForCard,
+  resolveMoneyAccountCardToken,
+} from './utils/moneyAccountCardToken';
+import {
+  getVedaTokenConfig,
   MONEY_ACCOUNT_DELEGATION_NETWORK,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
 } from '../../../../components/UI/Card/util/vedaToken';
+import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
+import { readErc20AllowanceAndBalance } from '../../../../components/UI/Card/util/onChainAllowance';
+import { toCardFundingToken } from '../../../../components/UI/Card/util/toCardTokenAllowance';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
@@ -638,6 +647,39 @@ export class CardController extends BaseController<
 
     if (result.done && result.tokenSet) {
       const { tokenSet } = result;
+
+      // Cross-device guardrail: refuse to complete login when the primary
+      // Money Account is already delegated on-chain to a different card
+      // account (e.g. linked from another device under another card login).
+      // Completing the login would let the user link the same Money Account
+      // to a second card, leaving the SRP with two competing linked cards.
+      Logger.log(
+        'CardController: running Money Account card conflict check (login)',
+        { provider: pid },
+      );
+      const hasConflict = await this.#detectMoneyAccountCardConflict(tokenSet);
+      Logger.log(
+        'CardController: Money Account card conflict check (login) result',
+        { hasConflict },
+      );
+      if (hasConflict) {
+        try {
+          await provider.logout(tokenSet);
+        } catch (logoutError) {
+          Logger.error(logoutError as Error, {
+            tags: { feature: 'card', provider: pid },
+            context: {
+              name: 'CardController',
+              data: { method: 'submitCredentials/conflictLogout' },
+            },
+          });
+        }
+        throw new CardProviderError(
+          CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
+          'Money Account is already linked to a different card account',
+        );
+      }
+
       const stored = await CardTokenStore.set(pid, tokenSet);
       if (!stored) {
         Logger.error(new Error('Token store write failed after auth'), {
@@ -1334,6 +1376,192 @@ export class CardController extends BaseController<
     return this.state.moneyAccountCardLinkInProgress;
   }
 
+  /**
+   * Cross-device guardrail: detects whether the primary Money Account is
+   * already linked to a DIFFERENT card account than the one the given tokens
+   * authenticate.
+   *
+   * The server-side registration (`GET /v1/wallet/external`) is scoped to the
+   * authenticated card user, so a link created on another device under a
+   * different card login is invisible to this session. The on-chain Monad
+   * allowance from the Money Account to the delegation contract, however, is
+   * globally observable. A non-zero allowance combined with the Money Account
+   * being absent from this session's funding wallets means the Money Account
+   * is delegated to another card account.
+   *
+   * Fail-open by design: any error in the check (RPC unreachable, wallet
+   * fetch failure) resolves to `false` so a degraded network never blocks
+   * login. Returns `false` immediately when there is no primary Money
+   * Account or the provider exposes no Monad delegation config (e.g.
+   * Immersve), since the guardrail is then irrelevant.
+   *
+   * @param tokens - Auth tokens for the card session being checked. Passed
+   * explicitly because the login path runs this check before tokens are
+   * persisted.
+   */
+  async #detectMoneyAccountCardConflict(
+    tokens: CardAuthTokens,
+  ): Promise<boolean> {
+    let stage = 'select_money_account';
+    try {
+      const moneyAccountAddress = selectPrimaryMoneyAccount(
+        ReduxService.store.getState() as RootState,
+      )?.address;
+      if (!moneyAccountAddress) {
+        Logger.log(
+          'CardController: Money Account card conflict check skipped — no primary Money Account',
+        );
+        return false;
+      }
+
+      stage = 'fetch_card_home_data';
+      const provider = this.getActiveProvider();
+      const homeData = await provider.getCardHomeData(
+        moneyAccountAddress,
+        tokens,
+      );
+
+      stage = 'resolve_veda_config';
+      const vedaConfig = getVedaTokenConfig(homeData.delegationSettings);
+      if (!vedaConfig?.delegationContract) {
+        Logger.log(
+          'CardController: Money Account card conflict check skipped — no Monad delegation config',
+          { hasDelegationSettings: Boolean(homeData.delegationSettings) },
+        );
+        return false;
+      }
+
+      // Money Account registered on THIS card session — same card owns the
+      // link (re-login on the original card, or a spending-cap update).
+      const fundingTokens = homeData.fundingAssets.map((asset) =>
+        toCardFundingToken(asset),
+      );
+      if (
+        isMoneyAccountDelegatedForCard({
+          fundingTokens,
+          moneyAccountAddress,
+          vedaConfig,
+        })
+      ) {
+        Logger.log(
+          'CardController: Money Account card conflict check — delegated to this card session, no conflict',
+        );
+        return false;
+      }
+
+      stage = 'read_on_chain_allowance';
+      const allowance = await this.#readMoneyAccountDelegationAllowance({
+        caipChainId: vedaConfig.caipChainId,
+        tokenAddress: vedaConfig.address,
+        owner: moneyAccountAddress,
+        spender: vedaConfig.delegationContract,
+        decimals: vedaConfig.decimals,
+      });
+      const allowanceFloat = parseFloat(allowance);
+      const hasConflict = Number.isFinite(allowanceFloat) && allowanceFloat > 0;
+      Logger.log(
+        'CardController: Money Account card conflict check — on-chain allowance read',
+        {
+          allowance,
+          hasConflict,
+          caipChainId: vedaConfig.caipChainId,
+          token: vedaConfig.address,
+          owner: moneyAccountAddress,
+          spender: vedaConfig.delegationContract,
+        },
+      );
+      return hasConflict;
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: 'detectMoneyAccountCardConflict', stage },
+        },
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Reads the Money Account's ERC-20 allowance to the delegation contract.
+   *
+   * Tries the dedicated Monad RPC first (the pattern every other Card
+   * on-chain read uses — `StaticJsonRpcProvider` with `skipFetchSetup`,
+   * required in React Native), then falls back to the app's own network
+   * client. Throws only when every provider fails, so the caller's
+   * fail-open handling still applies.
+   */
+  async #readMoneyAccountDelegationAllowance(params: {
+    caipChainId: string;
+    tokenAddress: string;
+    owner: string;
+    spender: string;
+    decimals: number;
+  }): Promise<string> {
+    const { caipChainId, tokenAddress, owner, spender, decimals } = params;
+    const chainNumber = Number.parseInt(caipChainId.split(':')[1] ?? '', 10);
+
+    const providers: ethers.providers.Provider[] = [];
+    const rpcUrl = cardNetworkInfos[MONEY_ACCOUNT_DELEGATION_NETWORK]?.rpcUrl;
+    // An Infura URL without a project ID ends in `/v3/` — unusable.
+    if (rpcUrl && !rpcUrl.endsWith('/v3/') && Number.isFinite(chainNumber)) {
+      providers.push(
+        new ethers.providers.StaticJsonRpcProvider(
+          { url: rpcUrl, skipFetchSetup: true },
+          { name: MONEY_ACCOUNT_DELEGATION_NETWORK, chainId: chainNumber },
+        ),
+      );
+    }
+    try {
+      providers.push(this.#getEthersProviderForCaipChainId(caipChainId));
+    } catch {
+      // Monad not configured in NetworkController — static RPC remains.
+    }
+
+    let lastError: unknown;
+    for (const provider of providers) {
+      try {
+        const { allowance } = await readErc20AllowanceAndBalance(
+          provider,
+          tokenAddress,
+          owner,
+          spender,
+          decimals,
+        );
+        return allowance;
+      } catch (error) {
+        lastError = error;
+        Logger.log(
+          'CardController: delegation allowance read failed, trying next provider',
+          { message: (error as Error)?.message },
+        );
+      }
+    }
+    throw (
+      (lastError as Error) ??
+      new Error('No RPC provider available for the delegation allowance read')
+    );
+  }
+
+  #getEthersProviderForCaipChainId(
+    caipChainId: string,
+  ): ethers.providers.Web3Provider {
+    const chainNumber = parseInt(caipChainId.split(':')[1] ?? '143', 10);
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      hexChainId,
+    );
+    const networkClient = this.messenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
+    return new ethers.providers.Web3Provider(
+      networkClient.provider as unknown as ethers.providers.ExternalProvider,
+    );
+  }
+
   async #linkMoneyAccountCardUnsafe(params: {
     moneyAccountAddress: string;
     delegationAmountHuman: string;
@@ -1360,7 +1588,7 @@ export class CardController extends BaseController<
     }
 
     // Fail fast before any transaction work when there is no usable session.
-    await this.requireValidTokens();
+    const tokens = await this.requireValidTokens();
     const provider = this.getActiveProvider();
     if (
       !provider.fetchDelegationChallenge ||
@@ -1371,6 +1599,28 @@ export class CardController extends BaseController<
         CardProviderErrorCode.Unknown,
         'Money account card delegation is not supported for this provider',
       );
+    }
+
+    // Pre-flight: refuse to link when the Money Account is already delegated
+    // on-chain to a different card account (linked from another device under
+    // another card login). Never blocks unlink/revoke (amount "0") so users
+    // can always take an allowance down.
+    const delegationAmountFloat = parseFloat(delegationAmountHuman);
+    if (Number.isFinite(delegationAmountFloat) && delegationAmountFloat > 0) {
+      Logger.log(
+        'CardController: running Money Account card conflict check (link)',
+      );
+      const hasConflict = await this.#detectMoneyAccountCardConflict(tokens);
+      Logger.log(
+        'CardController: Money Account card conflict check (link) result',
+        { hasConflict },
+      );
+      if (hasConflict) {
+        throw new CardProviderError(
+          CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
+          'Money Account is already linked to a different card account',
+        );
+      }
     }
 
     const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
