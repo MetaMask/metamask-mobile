@@ -9308,6 +9308,7 @@
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",
+        "legal_docs_error": "Unable to load legal documents.",
         "order_metal_card": "Metal Card",
         "order_metal_card_description": "Order your physical Metal Card now",
         "cashback": "{{cashbackPercentage}}% mUSD Back",

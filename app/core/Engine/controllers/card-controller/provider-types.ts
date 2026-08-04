@@ -59,7 +59,13 @@ export class CardLinkageInProgressError extends Error {
 
 // -- Provider Identity --
 
-export type CardProviderId = string;
+export const CardProviderIds = {
+  Baanx: 'baanx',
+  Immersve: 'immersve',
+} as const;
+
+export type CardProviderId =
+  (typeof CardProviderIds)[keyof typeof CardProviderIds];
 
 export type CardAuthMethod = 'email_password' | 'siwe';
 

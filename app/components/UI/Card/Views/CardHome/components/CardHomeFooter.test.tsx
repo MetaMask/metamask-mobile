@@ -95,4 +95,23 @@ describe('CardHomeFooter', () => {
       getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
     ).toBeOnTheScreen();
   });
+
+  it('shows error and retry for Immersve instead of TOS fallback when docs unavailable', () => {
+    const onRetryLegalDocuments = jest.fn();
+
+    const { getByTestId, queryByTestId } = render(
+      <CardHomeFooter
+        {...baseProps}
+        showLegalDocumentsError
+        onRetryLegalDocuments={onRetryLegalDocuments}
+      />,
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeNull();
+    expect(
+      getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-error`),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-retry`));
+    expect(onRetryLegalDocuments).toHaveBeenCalledTimes(1);
+  });
 });

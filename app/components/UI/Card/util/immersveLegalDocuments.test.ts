@@ -3,7 +3,7 @@ import {
   getPermanentLegalDocuments,
   getRegionByCode,
 } from './immersveLegalDocuments';
-import type { CardApiImmersveSupportedRegionsResponse } from '../../../../core/Engine/controllers/card-controller/services/immersve-supported-regions.types';
+import type { CardApiSupportedRegionsResponse } from '../../../../core/Engine/controllers/card-controller/services/card-supported-regions.types';
 
 const GB_DOCUMENTS = {
   generalTermsOfUse: {
@@ -28,7 +28,7 @@ const GB_DOCUMENTS = {
   ],
 };
 
-const RESPONSE: CardApiImmersveSupportedRegionsResponse = {
+const RESPONSE: CardApiSupportedRegionsResponse = {
   provider: 'immersve',
   regions: [
     {

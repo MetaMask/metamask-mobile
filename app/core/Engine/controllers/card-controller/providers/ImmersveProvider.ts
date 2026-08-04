@@ -15,7 +15,6 @@ import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
-import type { CardApiImmersveSupportedRegionsResponse } from '../services/immersve-supported-regions.types';
 import {
   AuthTokenValidity,
   CardAction,
@@ -32,6 +31,7 @@ import {
   CardProviderCapabilities,
   CardProviderError,
   CardProviderErrorCode,
+  CardProviderIds,
   CardSensitiveDetails,
   CardSpendingPrerequisitesParams,
   CardSpendingPrerequisitesResult,
@@ -254,7 +254,7 @@ export interface CardResumeInfo {
 }
 
 export class ImmersveProvider implements ICardProvider {
-  readonly id = 'immersve' as const;
+  readonly id = CardProviderIds.Immersve;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'siwe',
@@ -632,25 +632,6 @@ export class ImmersveProvider implements ICardProvider {
       };
     } catch (error) {
       throw mapApiError(error, 'getResumeCardInfo');
-    }
-  }
-
-  /**
-   * Fetches Immersve supported regions + legal documents via MetaMask Card API.
-   * No Immersve auth required.
-   */
-  async getSupportedRegions(): Promise<CardApiImmersveSupportedRegionsResponse> {
-    try {
-      return await this.service.getSupportedRegions();
-    } catch (error) {
-      if (error instanceof CardApiError && error.statusCode === 502) {
-        throw new CardProviderError(
-          CardProviderErrorCode.ServerError,
-          'Immersve supported regions are temporarily unavailable',
-          502,
-        );
-      }
-      throw mapApiError(error, 'getSupportedRegions');
     }
   }
 

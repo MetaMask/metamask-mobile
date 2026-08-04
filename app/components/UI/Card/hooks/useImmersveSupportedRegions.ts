@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   selectCardFeatureFlag,
   selectImmersveOnboardingEnabled,
@@ -52,7 +53,8 @@ const useImmersveSupportedRegions = (
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: cardQueries.dashboard.keys.immersveSupportedRegions(),
-    queryFn: () => getController().getImmersveSupportedRegions(),
+    queryFn: () =>
+      getController().getSupportedRegions(CardProviderIds.Immersve),
     enabled: queryEnabled,
     staleTime: 5 * 60 * 1000,
   });

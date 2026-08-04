@@ -56,6 +56,7 @@ import {
 import {
   CardStatus,
   FundingAssetStatus,
+  CardProviderIds,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -136,14 +137,22 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
-  const isImmersve = useSelector(selectCardActiveProviderId) === 'immersve';
+  const isImmersve =
+    useSelector(selectCardActiveProviderId) === CardProviderIds.Immersve;
   const cardRegionCode = data?.card?.regionCode;
   const {
     permanentDocuments: immersveLegalDocuments,
     isLoading: isImmersveLegalDocsLoading,
+    error: immersveLegalDocsError,
+    refetch: refetchImmersveLegalDocs,
   } = useImmersveSupportedRegions(cardRegionCode, {
     enabled: isImmersve && Boolean(cardRegionCode),
   });
+  const immersveLegalDocsUnavailable = Boolean(
+    isImmersve &&
+      !isImmersveLegalDocsLoading &&
+      (immersveLegalDocsError || immersveLegalDocuments.length === 0),
+  );
   const cardTermsAndConditionsUrl = useMemo(
     () =>
       isImmersve
@@ -739,6 +748,16 @@ const CardHome = () => {
               : undefined
           }
           hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+          showLegalDocumentsError={immersveLegalDocsUnavailable}
+          onRetryLegalDocuments={
+            immersveLegalDocsUnavailable
+              ? () => {
+                  refetchImmersveLegalDocs().catch(() => {
+                    // Error surfaces via hook state / footer retry UI.
+                  });
+                }
+              : undefined
+          }
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />

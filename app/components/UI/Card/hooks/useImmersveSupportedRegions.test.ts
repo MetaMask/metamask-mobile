@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import useImmersveSupportedRegions from './useImmersveSupportedRegions';
 import Engine from '../../../../core/Engine';
-import type { CardApiImmersveSupportedRegionsResponse } from '../../../../core/Engine/controllers/card-controller/services/immersve-supported-regions.types';
+import type { CardApiSupportedRegionsResponse } from '../../../../core/Engine/controllers/card-controller/services/card-supported-regions.types';
 import {
   selectImmersveOnboardingEnabled,
   selectCardFeatureFlag,
@@ -12,12 +12,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockGetImmersveSupportedRegions = jest.fn();
+const mockGetSupportedRegions = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
-      getImmersveSupportedRegions: jest.fn(),
+      getSupportedRegions: jest.fn(),
     },
   },
 }));
@@ -47,7 +47,7 @@ jest.mock('@tanstack/react-query', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-const RESPONSE: CardApiImmersveSupportedRegionsResponse = {
+const RESPONSE: CardApiSupportedRegionsResponse = {
   provider: 'immersve',
   regions: [
     {
@@ -126,9 +126,9 @@ describe('useImmersveSupportedRegions', () => {
     mockRefetch.mockResolvedValue({ data: null });
 
     (
-      Engine.context.CardController.getImmersveSupportedRegions as jest.Mock
-    ).mockImplementation(mockGetImmersveSupportedRegions);
-    mockGetImmersveSupportedRegions.mockResolvedValue(RESPONSE);
+      Engine.context.CardController.getSupportedRegions as jest.Mock
+    ).mockImplementation(mockGetSupportedRegions);
+    mockGetSupportedRegions.mockResolvedValue(RESPONSE);
   });
 
   it('uses full-list query key without regionCode and 5m staleTime', () => {
@@ -175,7 +175,7 @@ describe('useImmersveSupportedRegions', () => {
     );
   });
 
-  it('calls CardController.getImmersveSupportedRegions from queryFn', async () => {
+  it('calls CardController.getSupportedRegions(CardProviderIds.Immersve) from queryFn', async () => {
     mockImmersveSelectors();
 
     renderHook(() => useImmersveSupportedRegions('GB'));
@@ -183,7 +183,8 @@ describe('useImmersveSupportedRegions', () => {
     const result = await mockQueryFn?.();
 
     expect(result).toStrictEqual(RESPONSE);
-    expect(mockGetImmersveSupportedRegions).toHaveBeenCalledTimes(1);
+    expect(mockGetSupportedRegions).toHaveBeenCalledTimes(1);
+    expect(mockGetSupportedRegions).toHaveBeenCalledWith('immersve');
   });
 
   it('derives region docs from cached full list when regionCode changes', () => {

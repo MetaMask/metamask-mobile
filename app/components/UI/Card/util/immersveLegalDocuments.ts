@@ -1,9 +1,9 @@
 import type {
-  CardApiImmersveLegalDocument,
-  CardApiImmersveRegionDocuments,
-  CardApiImmersveSupportedRegion,
-  CardApiImmersveSupportedRegionsResponse,
-} from '../../../../core/Engine/controllers/card-controller/services/immersve-supported-regions.types';
+  CardApiLegalDocument,
+  CardApiRegionDocuments,
+  CardApiSupportedRegion,
+  CardApiSupportedRegionsResponse,
+} from '../../../../core/Engine/controllers/card-controller/services/card-supported-regions.types';
 
 export interface ImmersveLegalDocumentLink {
   id: string;
@@ -13,7 +13,7 @@ export interface ImmersveLegalDocumentLink {
 
 function toLink(
   id: string,
-  legalDocument: CardApiImmersveLegalDocument | undefined,
+  legalDocument: CardApiLegalDocument | undefined,
 ): ImmersveLegalDocumentLink | null {
   if (!legalDocument?.url || !legalDocument.title) {
     return null;
@@ -23,7 +23,7 @@ function toLink(
 
 function mapDocumentList(
   prefix: string,
-  documents: CardApiImmersveLegalDocument[] | undefined,
+  documents: CardApiLegalDocument[] | undefined,
 ): ImmersveLegalDocumentLink[] {
   if (!documents?.length) {
     return [];
@@ -38,9 +38,9 @@ function mapDocumentList(
  * Finds a region in the Card API supported-regions response by ISO code.
  */
 export function getRegionByCode(
-  response: CardApiImmersveSupportedRegionsResponse | null | undefined,
+  response: CardApiSupportedRegionsResponse | null | undefined,
   code: string | null | undefined,
-): CardApiImmersveSupportedRegion | null {
+): CardApiSupportedRegion | null {
   if (!response?.regions?.length || !code) {
     return null;
   }
@@ -56,7 +56,7 @@ export function getRegionByCode(
  * Excludes marketCompliance (permanent-access only).
  */
 export function getOnboardingLegalDocuments(
-  documents: CardApiImmersveRegionDocuments | null | undefined,
+  documents: CardApiRegionDocuments | null | undefined,
 ): ImmersveLegalDocumentLink[] {
   if (!documents) {
     return [];
@@ -72,7 +72,7 @@ export function getOnboardingLegalDocuments(
  * Permanent / Card Home docs: onboarding set plus marketCompliance.
  */
 export function getPermanentLegalDocuments(
-  documents: CardApiImmersveRegionDocuments | null | undefined,
+  documents: CardApiRegionDocuments | null | undefined,
 ): ImmersveLegalDocumentLink[] {
   if (!documents) {
     return [];

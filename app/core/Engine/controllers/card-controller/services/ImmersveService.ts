@@ -2,10 +2,8 @@ import { create, isAxiosError, type AxiosInstance } from 'axios';
 import Logger from '../../../../../util/Logger';
 import type { CardAuthTokens } from '../provider-types';
 import { CardApiError } from './BaanxService';
-import type { CardApiImmersveSupportedRegionsResponse } from './immersve-supported-regions.types';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
-const SUPPORTED_REGIONS_PATH = '/v1/providers/immersve/supported-regions';
 
 interface RequestOptions {
   method?: string;
@@ -19,17 +17,9 @@ interface RequestOptions {
 export class ImmersveService {
   private readonly client: AxiosInstance;
   private readonly getBaseUrl: () => string;
-  private readonly getCardApiBaseUrl: () => string;
 
-  constructor({
-    getBaseUrl,
-    getCardApiBaseUrl,
-  }: {
-    getBaseUrl: () => string;
-    getCardApiBaseUrl: () => string;
-  }) {
+  constructor({ getBaseUrl }: { getBaseUrl: () => string }) {
     this.getBaseUrl = getBaseUrl;
-    this.getCardApiBaseUrl = getCardApiBaseUrl;
     this.client = create({
       timeout: DEFAULT_TIMEOUT_MS,
       headers: {
@@ -108,26 +98,5 @@ export class ImmersveService {
     tokenSet?: CardAuthTokens,
   ): Promise<T> {
     return this.request<T>(path, { method: 'PATCH', body, tokenSet });
-  }
-
-  /**
-   * Fetches Immersve supported regions (incl. legal documents) via MetaMask Card API.
-   * Public endpoint — no client key or Immersve bearer required.
-   */
-  async getSupportedRegions(): Promise<CardApiImmersveSupportedRegionsResponse> {
-    const baseURL = this.getCardApiBaseUrl();
-
-    if (!baseURL) {
-      throw new CardApiError(
-        0,
-        SUPPORTED_REGIONS_PATH,
-        'Card API base URL is not configured',
-      );
-    }
-
-    return this.request<CardApiImmersveSupportedRegionsResponse>(
-      SUPPORTED_REGIONS_PATH,
-      { baseURL },
-    );
   }
 }
