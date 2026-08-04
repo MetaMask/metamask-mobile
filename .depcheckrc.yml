@@ -5,6 +5,10 @@ ignores:
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
   - 'webpack-cli'
+  # Consumed as a webpack entry string (entry: '@metamask/advanced-chart-core')
+  # in scripts/advanced-chart-webview/webpack.config.core.js, so nothing imports
+  # it and depcheck can't detect the usage.
+  - '@metamask/advanced-chart-core'
   - '@react-native-community/datetimepicker'
   - '@react-native-community/slider'
   - 'patch-package'
