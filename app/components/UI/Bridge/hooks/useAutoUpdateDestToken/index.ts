@@ -80,7 +80,7 @@ export const useAutoUpdateDestToken = () => {
         // Fall back to native token if:
         // 1. No default dest token exists for this chain, OR
         // 2. Default dest equals source token
-        // 3. No default "from" token is defined in BRIDGE_CHAINID_TO_DEFAULT_FROM_TOKEN.
+        // 3. No default "source" token is defined in BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN.
         const defaultSourceToken =
           BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN[newSourceToken.chainId];
         expectedDestToken = defaultSourceToken ?? nativeToken;
