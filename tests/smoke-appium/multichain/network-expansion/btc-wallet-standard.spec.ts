@@ -69,7 +69,7 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
     },
   );
 
-  appiumTest.only(
+  appiumTest(
     'Stays connected after page refresh',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(

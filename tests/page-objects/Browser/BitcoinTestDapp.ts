@@ -9,6 +9,7 @@ import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import Utilities from '../../framework/Utilities.js';
+import { logger } from '../../framework/logger.js';
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
 export const BITCOIN_DAPP_PORT = 8094;
@@ -18,6 +19,7 @@ const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
 const CLICK_TIMEOUT_MS = 15_000;
 const POLL_MS = 300;
+const RECONNECT_LOG_INTERVAL_MS = 5_000;
 
 const { header, walletSelectionModal, signMessage } = dataTestIds.testPage;
 
@@ -28,6 +30,14 @@ function sel(testId: string): string {
 const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+interface ReloadDiagnostics {
+  status: string | null;
+  persisted: Record<string, unknown> | null;
+  walletCount: number;
+  walletNames: string[];
+  connectSheetVisible: boolean;
+}
+
 class BitcoinTestDapp {
   private async getConnectionStatus(): Promise<string | null> {
     return this.evaluate<string>(
@@ -37,6 +47,64 @@ class BitcoinTestDapp {
 
   private async isConnectSheetVisible(): Promise<boolean> {
     return Utilities.isElementVisible(DappConnectionModal.connectButton, 500);
+  }
+
+  /**
+   * Snapshot used to diagnose post-reload reconnect failures on CI.
+   * Dispatches `wallet-standard:app-ready` the same way the dapp discovers wallets.
+   */
+  private async getReloadDiagnostics(): Promise<ReloadDiagnostics> {
+    const status = await this.getConnectionStatus();
+    const connectSheetVisible = await this.isConnectSheetVisible();
+    const pageState = await this.evaluate<{
+      persisted: Record<string, unknown> | null;
+      walletCount: number;
+      walletNames: string[];
+    }>(`(() => {
+      let persisted = null;
+      try {
+        const raw = localStorage.getItem('btc_connection');
+        persisted = raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        persisted = { parseError: String(e && e.message ? e.message : e) };
+      }
+      const found = [];
+      const register = (...wallets) => {
+        for (const w of wallets) found.push(w);
+      };
+      try {
+        window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', {
+          detail: { register },
+          bubbles: false,
+          cancelable: false,
+          composed: false,
+        }));
+      } catch {
+        // ignore
+      }
+      return {
+        persisted,
+        walletCount: found.length,
+        walletNames: found.map((w) => (w && w.name != null ? String(w.name) : 'unknown')),
+      };
+    })()`);
+
+    return {
+      status,
+      persisted: pageState?.persisted ?? null,
+      walletCount: pageState?.walletCount ?? 0,
+      walletNames: pageState?.walletNames ?? [],
+      connectSheetVisible,
+    };
+  }
+
+  private logReloadDiagnostics(
+    label: string,
+    diagnostics: ReloadDiagnostics,
+  ): void {
+    logger.info(
+      `[BitcoinTestDapp.reload] ${label}: ${JSON.stringify(diagnostics)}`,
+    );
   }
 
   async setupAndNavigate(): Promise<void> {
@@ -121,19 +189,41 @@ class BitcoinTestDapp {
   private async waitForReconnect(
     timeoutMs = CONNECT_TIMEOUT_MS,
   ): Promise<void> {
-    const deadline = Date.now() + timeoutMs;
+    const startedAt = Date.now();
+    const deadline = startedAt + timeoutMs;
     let lastConnectAttemptAt = 0;
+    let lastLogAt = 0;
     let actual: string | null = null;
+    let connectTapCount = 0;
 
     while (Date.now() < deadline) {
       actual = await this.getConnectionStatus();
-      if (actual === 'Connected') return;
+      const elapsedMs = Date.now() - startedAt;
+
+      if (actual === 'Connected') {
+        const diagnostics = await this.getReloadDiagnostics();
+        this.logReloadDiagnostics(
+          `reconnect-success elapsedMs=${elapsedMs} connectTapCount=${connectTapCount}`,
+          diagnostics,
+        );
+        return;
+      }
+
+      if (elapsedMs - lastLogAt >= RECONNECT_LOG_INTERVAL_MS) {
+        lastLogAt = elapsedMs;
+        const diagnostics = await this.getReloadDiagnostics();
+        this.logReloadDiagnostics(
+          `reconnect-poll elapsedMs=${elapsedMs} connectTapCount=${connectTapCount}`,
+          diagnostics,
+        );
+      }
 
       // Auto-reconnect may re-open the MetaMask connect sheet after wallets register.
       if (Date.now() - lastConnectAttemptAt >= 3_000) {
         lastConnectAttemptAt = Date.now();
         try {
           await DappConnectionModal.tapConnectButton({ timeout: 1_000 });
+          connectTapCount += 1;
         } catch {
           // Connect sheet not shown yet.
         }
@@ -142,8 +232,13 @@ class BitcoinTestDapp {
       await wait(POLL_MS);
     }
 
+    const diagnostics = await this.getReloadDiagnostics();
+    this.logReloadDiagnostics(
+      `reconnect-timeout elapsedMs=${timeoutMs} connectTapCount=${connectTapCount}`,
+      diagnostics,
+    );
     throw new Error(
-      `Timed out waiting for reconnect: expected "Connected", got "${actual}"`,
+      `Timed out waiting for reconnect: expected "Connected", got "${actual}" diagnostics=${JSON.stringify(diagnostics)}`,
     );
   }
 
@@ -192,11 +287,22 @@ class BitcoinTestDapp {
     await this.pollForText(sel(signMessage.signedMessage), expected, timeoutMs);
   }
 
+  /**
+   * Match Detox `reloadBitcoinTestDApp`: resubmit via the browser URL bar
+   * (full WebView navigation / provider reinjection), not CDP `location.reload()`.
+   */
   async reload(): Promise<void> {
-    // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
-    await this.evaluate('(() => { location.reload(); return true; })()');
+    const before = await this.getReloadDiagnostics();
+    this.logReloadDiagnostics('before-reload', before);
+
+    await BrowserView.tapUrlInputBox();
+    await BrowserView.navigateToURL(BASE_URL);
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
     await this.waitForDappLoaded();
+
+    const afterLoad = await this.getReloadDiagnostics();
+    this.logReloadDiagnostics('after-dapp-loaded', afterLoad);
+
     await this.waitForReconnect();
   }
 }
