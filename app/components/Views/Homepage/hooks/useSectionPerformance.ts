@@ -150,6 +150,10 @@ export const useSectionPerformance = ({
         tags: {
           section_id: sectionId,
           loading_at_span_open: loadingAtSpanOpen,
+          // `mount` measures mount → loaded; `enabled` measures flag-flip →
+          // loaded. Different intervals, so they must stay splittable in Sentry
+          // rather than only in the dev-gated log.
+          phase: spanOpenPhase,
         },
       });
       fetchStarted.current = true;

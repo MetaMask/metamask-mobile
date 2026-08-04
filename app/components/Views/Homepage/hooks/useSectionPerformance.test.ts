@@ -201,6 +201,7 @@ describe('useSectionPerformance', () => {
           tags: {
             section_id: HomeSectionNames.TOKENS,
             loading_at_span_open: true,
+            phase: 'mount',
           },
         }),
       );
@@ -238,6 +239,7 @@ describe('useSectionPerformance', () => {
           tags: {
             section_id: HomeSectionNames.TOKENS,
             loading_at_span_open: false,
+            phase: 'mount',
           },
         }),
       );
@@ -377,6 +379,7 @@ describe('useSectionPerformance', () => {
       expect(fetchTraceCalls[0][0].tags).toEqual({
         section_id: HomeSectionNames.TOKENS,
         loading_at_span_open: false,
+        phase: 'enabled',
       });
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
         '[homepage.section.performance] data_fetch start section=tokens phase=enabled loading_at_span_open=false',
@@ -413,6 +416,16 @@ describe('useSectionPerformance', () => {
 
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
         '[homepage.section.performance] data_fetch start section=tokens phase=mount loading_at_span_open=false',
+      );
+    });
+
+    it('logs the mount span open for a cold mount that is still loading', () => {
+      renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: true }),
+      );
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch start section=tokens phase=mount loading_at_span_open=true',
       );
     });
 
