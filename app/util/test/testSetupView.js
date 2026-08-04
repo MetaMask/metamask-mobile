@@ -579,6 +579,13 @@ jest.mock('@sentry/react-native', () => ({
   getGlobalScope: jest.fn(() => ({
     setTag: jest.fn(),
   })),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
+  })),
 }));
 
 // Mock Firebase Messaging
