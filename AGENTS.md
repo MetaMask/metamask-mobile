@@ -254,8 +254,8 @@ For adding or modifying a home screen widget or Live Activity, use the canonical
 
 - `docs/widgets/README.md` (architecture, theming, data flow, adding a widget/Live Activity, testing, possibilities/limitations)
 
-Cursor rule entrypoint:
+Agent skill entrypoint (synced by `yarn skills`, so not tracked here):
 
-- `.cursor/rules/widget-development.mdc`
+- `mms-ios-widgets` — source: [`domains/ui/skills/ios-widgets`](https://github.com/MetaMask/skills/tree/main/domains/ui/skills/ios-widgets) in MetaMask/skills
 
 Foundation code lives in `app/core/Widgets/` (JS/TS) and `ios/ExpoWidgetsTarget/` (native, iOS-only). See `app/core/Widgets/widgets/BalanceWidget.ios.tsx` for the reference widget.

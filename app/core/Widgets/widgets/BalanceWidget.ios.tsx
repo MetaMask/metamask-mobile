@@ -14,7 +14,7 @@ import type { WithWidgetTheme } from '../types';
 /**
  * Reference widget: shows the user's total wallet balance on the home
  * screen. Also serves as the worked example for docs/widgets/README.md and
- * `.cursor/rules/widget-development.mdc` — copy this file's shape (props
+ * the `mms-ios-widgets` agent skill — copy this file's shape (props
  * interface + layout function + `createMetaMaskWidget` registration) when
  * adding a new widget.
  */

@@ -11,9 +11,10 @@ would be its own separate foundation). Everything described here compiles out
 to no-ops on Android — see [Platform split](#platform-split-iosts--base-ts).
 
 If you just want to add a new widget, skip to
-[Adding a new widget](#adding-a-new-widget) or use the
-`.cursor/rules/widget-development.mdc` rule / Claude skill, which encodes this
-whole document as agent-usable instructions.
+[Adding a new widget](#adding-a-new-widget) or point your agent at the
+`mms-ios-widgets` skill (`yarn skills`, source
+[`domains/ui/skills/ios-widgets`](https://github.com/MetaMask/skills/tree/main/domains/ui/skills/ios-widgets)),
+which condenses this whole document into agent-usable instructions.
 
 ## Table of contents
 
