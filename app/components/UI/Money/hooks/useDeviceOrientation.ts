@@ -8,9 +8,9 @@ import {
 import { getTotalMemorySync } from 'react-native-device-info';
 
 const DEG = Math.PI / 180;
-// Rotation away from neutral (per axis) that maps to a full ±1 tilt.
-const PITCH_TRAVEL = 30 * DEG;
-const ROLL_TRAVEL = 30 * DEG;
+// Rotation away from neutral (per axis) that maps to a full ±1 tilt. Surfaces
+// that render the animation small need less travel to read as movement.
+const DEFAULT_TILT_TRAVEL = 30 * DEG;
 // How long the neutral takes to follow a sustained change in holding angle.
 const NEUTRAL_TRACKING_SECONDS = 4;
 // Smallest roll gain the correction below will divide by. The gain vanishes as
@@ -21,7 +21,7 @@ const ROLL_GAIN_FLOOR = 0.15;
 const SMOOTHING = 0.2;
 // Exponent shaping the reported tilt. Above 1 the response is gentle near the
 // neutral and unchanged at the extremes.
-const RESPONSE_EXPONENT = 2;
+const DEFAULT_RESPONSE_EXPONENT = 2;
 const HZ_LOW_END = 30;
 const HZ_DEFAULT = 60;
 const ONE_GIGABYTE = 1024 * 1024 * 1024;
@@ -113,14 +113,11 @@ export function accelerationToTilt(
   y: number,
   z: number,
   neutral: { pitch: number; roll: number },
+  travel: number = DEFAULT_TILT_TRAVEL,
 ): { x: number; y: number } {
   return {
-    x: clamp((accelerationToRoll(x, y, z) - neutral.roll) / ROLL_TRAVEL, -1, 1),
-    y: clamp(
-      (accelerationToPitch(x, y, z) - neutral.pitch) / PITCH_TRAVEL,
-      -1,
-      1,
-    ),
+    x: clamp((accelerationToRoll(x, y, z) - neutral.roll) / travel, -1, 1),
+    y: clamp((accelerationToPitch(x, y, z) - neutral.pitch) / travel, -1, 1),
   };
 }
 
@@ -134,12 +131,25 @@ export function accelerationToTilt(
  * attenuated by an order of magnitude, a full tilt still reaches full travel,
  * and no latency is added. Pure so it can be unit-tested directly.
  */
-export function applyResponseCurve(tilt: number): number {
-  return Math.sign(tilt) * Math.abs(tilt) ** RESPONSE_EXPONENT;
+export function applyResponseCurve(
+  tilt: number,
+  exponent: number = DEFAULT_RESPONSE_EXPONENT,
+): number {
+  return Math.sign(tilt) * Math.abs(tilt) ** exponent;
 }
 
 interface UseDeviceOrientationOptions {
   enabled?: boolean;
+  /**
+   * Rotation away from neutral, in degrees, that maps to a full ±1 tilt.
+   * Lower means a smaller movement reaches the animation's full travel.
+   */
+  travelDegrees?: number;
+  /**
+   * Exponent shaping the response. 1 is linear; higher damps small tilts more
+   * aggressively at the cost of making the effect harder to notice.
+   */
+  responseExponent?: number;
 }
 
 /**
@@ -157,6 +167,11 @@ export function useDeviceOrientation(
   options?: UseDeviceOrientationOptions,
 ): void {
   const enabled = options?.enabled ?? true;
+  const travel = options?.travelDegrees
+    ? options.travelDegrees * DEG
+    : DEFAULT_TILT_TRAVEL;
+  const responseExponent =
+    options?.responseExponent ?? DEFAULT_RESPONSE_EXPONENT;
   const onOrientationRef = useRef(onOrientation);
   const smoothed = useRef({ x: 0, y: 0 });
   const neutralPitch = useRef<number | null>(null);
@@ -189,22 +204,28 @@ export function useDeviceOrientation(
           hz,
         );
         neutralRoll.current = trackNeutralAngle(neutralRoll.current, roll, hz);
-        const tilt = accelerationToTilt(x, y, z, {
-          pitch: neutralPitch.current,
-          roll: neutralRoll.current,
-        });
+        const tilt = accelerationToTilt(
+          x,
+          y,
+          z,
+          {
+            pitch: neutralPitch.current,
+            roll: neutralRoll.current,
+          },
+          travel,
+        );
         smoothed.current = {
           x: smoothed.current.x + SMOOTHING * (tilt.x - smoothed.current.x),
           y: smoothed.current.y + SMOOTHING * (tilt.y - smoothed.current.y),
         };
         onOrientationRef.current(
-          applyResponseCurve(smoothed.current.x),
-          applyResponseCurve(smoothed.current.y),
+          applyResponseCurve(smoothed.current.x, responseExponent),
+          applyResponseCurve(smoothed.current.y, responseExponent),
         );
       },
       error: () => undefined,
     });
 
     return () => subscription.unsubscribe();
-  }, [enabled]);
+  }, [enabled, travel, responseExponent]);
 }

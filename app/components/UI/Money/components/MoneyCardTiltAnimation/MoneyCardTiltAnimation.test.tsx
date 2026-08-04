@@ -163,9 +163,7 @@ describe('MoneyCardTiltAnimation', () => {
 
     expect(mockUseDeviceOrientation).toHaveBeenCalledWith(
       expect.any(Function),
-      {
-        enabled: true,
-      },
+      expect.objectContaining({ enabled: true }),
     );
   });
 
@@ -176,10 +174,21 @@ describe('MoneyCardTiltAnimation', () => {
 
     expect(mockUseDeviceOrientation).toHaveBeenCalledWith(
       expect.any(Function),
-      {
-        enabled: false,
-      },
+      expect.objectContaining({ enabled: false }),
     );
+  });
+
+  it('requests a shorter travel and flatter response than the shared defaults', () => {
+    render(<MoneyCardTiltAnimation isMetalCard={false} />);
+
+    const options = mockUseDeviceOrientation.mock.calls[0][1] as {
+      travelDegrees: number;
+      responseExponent: number;
+    };
+
+    expect(options.travelDegrees).toBeLessThan(30);
+    expect(options.responseExponent).toBeLessThan(2);
+    expect(options.responseExponent).toBeGreaterThanOrEqual(1);
   });
 
   it('drives the bound Rive number properties from mapped tilt values', () => {
