@@ -588,6 +588,24 @@ jobs:
             eval "$(node /tmp/export-profile-secrets.js "$build_name")"
           }
 
+          # Expo export:embed forces resetCache=false when CI=true (see
+          # @expo/cli exportEmbedAsync). Dual with/without-SRP packs therefore
+          # share /tmp/metro-cache and the second pack can reuse babel-inlined
+          # PREDEFINED_PASSWORD / ADDITIONAL_SRP_* from the first. Wipe explicitly.
+          clear_metro_transform_cache() {
+            local label="$1"
+            rm -rf /tmp/metro-cache
+            echo "Cleared /tmp/metro-cache before $label repack (CI disables Metro resetCache)"
+          }
+
+          unset_srp_bake_ins() {
+            unset PREDEFINED_PASSWORD || true
+            local i
+            for i in $(seq 1 20); do
+              unset "ADDITIONAL_SRP_$i" || true
+            done
+          }
+
           repack_profile() {
             local build_name="$1"
             local src_dir="$2"
@@ -606,12 +624,23 @@ jobs:
 
             export_build_env "$build_name"
 
+            # Isolate Metro transform cache keys between with-SRP and without-SRP.
+            export METRO_TRANSFORM_PROFILE="$label"
+
+            # Boolean-only diagnostics — never print secret values.
+            if [ -n "${PREDEFINED_PASSWORD:-}" ] || [ -n "${ADDITIONAL_SRP_1:-}" ]; then
+              echo "Transform bake-ins present=yes (profile=$label)"
+            else
+              echo "Transform bake-ins present=no (profile=$label)"
+            fi
+
             export REPACK_SOURCE_APK="$src_apk"
             export REPACK_OUTPUT_APK="android/app/build/outputs/apk/prod/release/app-prod-release-repack-$label.apk"
             export REPACK_FINAL_APK="$out_dir/app-prod-release.apk"
             export REPACK_WORKING_DIR="android/app/build/repack-working-$label"
             export REPACK_SOURCEMAP_PATH="sourcemaps/android/index.android.bundle.$label.map"
 
+            clear_metro_transform_cache "$label"
             yarn build:repack:android
             echo "✅ Repacked $label → $REPACK_FINAL_APK ($(du -h "$REPACK_FINAL_APK" | cut -f1))"
           }
@@ -619,8 +648,9 @@ jobs:
           # with-SRP first (ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD inlined into JS via metro)
           repack_profile "$WITH_SRP_BUILD_NAME" artifacts/with-srp artifacts/with-srp-repacked with-srp
 
-          # without-SRP: drop with-SRP bake-ins so they are not left in process.env
-          unset ADDITIONAL_SRP_1 PREDEFINED_PASSWORD || true
+          # without-SRP: drop with-SRP bake-ins so they are not left in process.env,
+          # then wipe Metro cache so CI cannot reuse the with-SRP transforms.
+          unset_srp_bake_ins
           repack_profile "$WITHOUT_SRP_BUILD_NAME" artifacts/without-srp artifacts/without-srp-repacked without-srp
 
           # Replace staged dirs so the upload step always reads artifacts/{with,without}-srp

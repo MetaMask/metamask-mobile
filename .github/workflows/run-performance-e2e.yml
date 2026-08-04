@@ -315,7 +315,10 @@ jobs:
       source_ref: ${{ inputs.source_ref }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.prepare.outputs.fingerprint }}
-      main_branch_only: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
+      # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
+      # unset; passing a blank value into this boolean workflow_call input makes
+      # the reusable Android build job fail to start.
+      main_branch_only: ${{ inputs.reuse_main_builds == true && inputs.build_variant == 'e2e' }}
     secrets: inherit
 
   # =============================================================================
@@ -326,11 +329,7 @@ jobs:
     name: Performance Test Android (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
-      [
-        prepare,
-        trigger-android-dual-versions,
-        resolve-main-browserstack-urls,
-      ]
+      [prepare, trigger-android-dual-versions, resolve-main-browserstack-urls]
     if: >-
       always() && !failure() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
@@ -389,11 +388,7 @@ jobs:
     name: Performance Test Android (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
-      [
-        prepare,
-        trigger-android-dual-versions,
-        resolve-main-browserstack-urls,
-      ]
+      [prepare, trigger-android-dual-versions, resolve-main-browserstack-urls]
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
