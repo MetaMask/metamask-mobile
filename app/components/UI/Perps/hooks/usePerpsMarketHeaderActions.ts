@@ -41,8 +41,12 @@ export interface UsePerpsMarketHeaderActionsResult {
 export const usePerpsMarketHeaderActions = ({
   symbol,
 }: UsePerpsMarketHeaderActionsParams): UsePerpsMarketHeaderActionsResult => {
-  const { navigateBack, navigateToWallet, navigateToMarketList, canGoBack } =
-    usePerpsNavigation();
+  const {
+    navigateBack,
+    navigateToWallet,
+    navigateToMarketListFromHeader,
+    canGoBack,
+  } = usePerpsNavigation();
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const { track } = usePerpsEventTracking();
   const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
@@ -81,10 +85,10 @@ export const usePerpsMarketHeaderActions = ({
       [PERPS_EVENT_PROPERTY.ASSET]: symbol,
     });
 
-    navigateToMarketList({
+    navigateToMarketListFromHeader({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     });
-  }, [symbol, track, navigateToMarketList]);
+  }, [symbol, track, navigateToMarketListFromHeader]);
 
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {

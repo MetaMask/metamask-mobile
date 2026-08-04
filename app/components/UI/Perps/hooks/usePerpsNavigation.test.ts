@@ -294,6 +294,21 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('navigates to market list from header with slide_from_bottom animation', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { source: 'perp_asset_screen' };
+
+      result.current.navigateToMarketListFromHeader(params);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          ...params,
+          animation: 'slide_from_bottom',
+        },
+      });
+    });
+
     it('navigates to order screen with direction and asset', async () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const params = { direction: 'long' as const, asset: 'BTC' };

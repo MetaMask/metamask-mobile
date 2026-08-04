@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import {
   type Position,
   type Order,
@@ -138,6 +139,7 @@ export type PerpsStackParamList = {
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+        animation?: NativeStackNavigationOptions['animation'];
       }
     | undefined;
 
@@ -309,6 +311,7 @@ export type PerpsStackParamList = {
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+        animation?: NativeStackNavigationOptions['animation'];
       }
     | undefined;
   PerpsOrderDetailsView: {

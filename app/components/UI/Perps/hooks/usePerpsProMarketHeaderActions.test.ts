@@ -10,6 +10,7 @@ import { usePerpsProMarketHeaderActions } from './usePerpsProMarketHeaderActions
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketListFromHeader = jest.fn();
 let mockCanGoBack = true;
 
 jest.mock('./usePerpsNavigation', () => ({
@@ -17,6 +18,7 @@ jest.mock('./usePerpsNavigation', () => ({
     navigateBack: mockNavigateBack,
     navigateToWallet: mockNavigateToWallet,
     navigateToMarketList: mockNavigateToMarketList,
+    navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     canGoBack: mockCanGoBack,
   })),
 }));
@@ -98,7 +100,7 @@ describe('usePerpsProMarketHeaderActions', () => {
       result.current.handleMarketListPress();
     });
 
-    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+    expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     });
     expect(mockTrack).toHaveBeenCalledWith(
@@ -120,7 +122,7 @@ describe('usePerpsProMarketHeaderActions', () => {
       result.current.handleMarketListPress();
     });
 
-    expect(mockNavigateToMarketList).not.toHaveBeenCalled();
+    expect(mockNavigateToMarketListFromHeader).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalled();
   });
 

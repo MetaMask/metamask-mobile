@@ -49,6 +49,9 @@ export interface PerpsNavigationHandlers {
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
+  navigateToMarketListFromHeader: (
+    params?: PerpsNavigationParamList['PerpsMarketListView'],
+  ) => void;
   navigateToOrder: (params: PerpsNavigationParamList['PerpsOrder']) => void;
   navigateToTutorial: (
     params?: PerpsNavigationParamList['PerpsTutorial'],
@@ -170,6 +173,16 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const navigateToMarketListFromHeader = useCallback(
+    (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
+      navigateToMarketList({
+        ...params,
+        animation: 'slide_from_bottom',
+      });
+    },
+    [navigateToMarketList],
+  );
+
   const { depositWithOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
@@ -277,6 +290,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToMarketDetails,
     navigateToHome,
     navigateToMarketList,
+    navigateToMarketListFromHeader,
     navigateToOrder,
     navigateToTutorial,
     navigateToAdjustMargin,

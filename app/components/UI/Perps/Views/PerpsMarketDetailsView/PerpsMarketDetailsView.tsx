@@ -206,7 +206,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
   const {
     navigateToHome,
-    navigateToMarketList,
+    navigateToMarketListFromHeader,
     navigateToOrder,
     navigateToTutorial,
     navigateToClosePosition,
@@ -995,10 +995,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
     });
 
-    navigateToMarketList({
+    navigateToMarketListFromHeader({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     });
-  }, [market, track, navigateToMarketList]);
+  }, [market, track, navigateToMarketListFromHeader]);
 
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') =>

@@ -50,7 +50,7 @@ const PerpsMarketSummary = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
         gap={2}
-        twClassName="px-4 pb-2"
+        twClassName="px-4 py-2"
         onLayout={onLayout}
       >
         <Box twClassName="flex-1">
