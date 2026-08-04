@@ -344,6 +344,39 @@ describe('usePerpsProOrderForm', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('flushes a pending slider preview before allowing submission', async () => {
+      // Arrange
+      const { result, rerender } = renderProForm();
+      act(() => {
+        result.current.sizeSlider.onValueChange(250);
+      });
+
+      // Act: the first tap commits the preview but must not race submission
+      // against the canonical order-form state update.
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockSetAmount).toHaveBeenCalledWith('250');
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      // Arrange: echo the context update and render the canonical amount.
+      mockOrderForm.amount = '250';
+      rerender({});
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder.mock.calls[0][0]).toMatchObject({
+        usdAmount: '250',
+      });
+    });
+
     it('blocks submit and shows a toast when validation is invalid', async () => {
       // Arrange
       mockValidation.isValid = false;
@@ -825,7 +858,7 @@ describe('usePerpsProOrderForm', () => {
       });
       expect(mockSetAmount).not.toHaveBeenCalled();
       act(() => {
-        result.current.sizeSlider.onDragEnd();
+        result.current.sizeSlider.onDragEnd(500);
       });
 
       // Assert

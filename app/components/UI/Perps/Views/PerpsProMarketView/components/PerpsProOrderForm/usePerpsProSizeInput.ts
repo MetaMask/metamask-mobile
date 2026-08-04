@@ -32,6 +32,7 @@ export interface UsePerpsProSizeInputResult {
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;
   effectiveUsdAmount: string;
+  commitPendingSliderPreview: () => boolean;
 }
 
 const getDecimalPlaces = (szDecimals: number) =>
@@ -136,6 +137,11 @@ export const usePerpsProSizeInput = ({
   // echoes and from live price ticks that should keep a dirty asset draft.
   const pendingInternalUsdRef = useRef<string | null>(null);
 
+  const clearSliderPreview = useCallback(() => {
+    sliderPreviewRef.current = null;
+    setSliderPreview(null);
+  }, []);
+
   const commitUsdAmount = useCallback(
     (nextUsdAmount: string) => {
       if (new BigNumber(nextUsdAmount || 0).eq(new BigNumber(usdAmount || 0))) {
@@ -184,6 +190,7 @@ export const usePerpsProSizeInput = ({
     }
 
     // External canonical update (amount clamp, reset, payment-token change).
+    clearSliderPreview();
     setUsdDraft(usdAmount);
     if (canToggleDenomination) {
       setAssetDraftState({
@@ -194,6 +201,7 @@ export const usePerpsProSizeInput = ({
   }, [
     assetDraftState.source,
     canToggleDenomination,
+    clearSliderPreview,
     denominationUnit,
     effectivePrice,
     isSizeFocused,
@@ -222,6 +230,10 @@ export const usePerpsProSizeInput = ({
         return;
       }
 
+      // A valid keyboard edit supersedes any preview left by an interrupted
+      // slider gesture. Invalid edits preserve the current displayed value.
+      clearSliderPreview();
+
       if (denominationUnit === 'usd') {
         setUsdDraft(result.value);
         commitUsdAmount(result.value || '0');
@@ -238,6 +250,7 @@ export const usePerpsProSizeInput = ({
     [
       assetDraft,
       canToggleDenomination,
+      clearSliderPreview,
       commitUsdAmount,
       denominationUnit,
       effectivePrice,
@@ -300,12 +313,17 @@ export const usePerpsProSizeInput = ({
     usdDraft,
   ]);
 
-  const onFocus = useCallback(() => setIsSizeFocused(true), []);
+  const onFocus = useCallback(() => {
+    clearSliderPreview();
+    setIsSizeFocused(true);
+  }, [clearSliderPreview]);
 
   const onToggleDenomination = useCallback(() => {
     if (!canToggleDenomination) {
       return;
     }
+
+    clearSliderPreview();
 
     if (denominationUnit === 'usd') {
       const canonicalUsdDraft = finalizeNumericTextInput(usdDraft) || '0';
@@ -324,6 +342,7 @@ export const usePerpsProSizeInput = ({
   }, [
     assetDraft,
     canToggleDenomination,
+    clearSliderPreview,
     commitUsdAmount,
     denominationUnit,
     effectivePrice,
@@ -372,23 +391,50 @@ export const usePerpsProSizeInput = ({
     [maxPossibleAmount],
   );
 
-  const commitSliderPreview = useCallback(() => {
+  const commitSliderUsdAmount = useCallback(
+    (nextUsdAmount: string) => {
+      commitUsdAmount(nextUsdAmount);
+      setUsdDraft(nextUsdAmount);
+      if (canToggleDenomination) {
+        setAssetDraftState({
+          value: getAssetFromUsd(nextUsdAmount, effectivePrice, szDecimals),
+          source: 'canonical',
+        });
+      }
+      clearSliderPreview();
+    },
+    [
+      canToggleDenomination,
+      clearSliderPreview,
+      commitUsdAmount,
+      effectivePrice,
+      szDecimals,
+    ],
+  );
+
+  const onSliderDragEnd = useCallback(
+    (value: number) => {
+      commitSliderUsdAmount(clampSliderUsdAmount(value, maxPossibleAmount));
+    },
+    [commitSliderUsdAmount, maxPossibleAmount],
+  );
+
+  const onSliderDragCancel = useCallback(() => {
+    const nextUsdAmount = sliderPreviewRef.current;
+    if (nextUsdAmount !== null) {
+      commitSliderUsdAmount(nextUsdAmount);
+    }
+  }, [commitSliderUsdAmount]);
+
+  const commitPendingSliderPreview = useCallback((): boolean => {
     const nextUsdAmount = sliderPreviewRef.current;
     if (nextUsdAmount === null) {
-      return;
+      return false;
     }
 
-    commitUsdAmount(nextUsdAmount);
-    setUsdDraft(nextUsdAmount);
-    if (canToggleDenomination) {
-      setAssetDraftState({
-        value: getAssetFromUsd(nextUsdAmount, effectivePrice, szDecimals),
-        source: 'canonical',
-      });
-    }
-    sliderPreviewRef.current = null;
-    setSliderPreview(null);
-  }, [canToggleDenomination, commitUsdAmount, effectivePrice, szDecimals]);
+    commitSliderUsdAmount(nextUsdAmount);
+    return true;
+  }, [commitSliderUsdAmount]);
 
   const value = useMemo(() => {
     if (sliderPreview === null) {
@@ -445,13 +491,14 @@ export const usePerpsProSizeInput = ({
       value: getSliderDisplayValue(effectiveUsdAmount, maxPossibleAmount),
       maximumValue: Math.max(0, maxPossibleAmount),
       onValueChange: onSliderValueChange,
-      onDragEnd: commitSliderPreview,
-      onDragCancel: commitSliderPreview,
+      onDragEnd: onSliderDragEnd,
+      onDragCancel: onSliderDragCancel,
     }),
     [
-      commitSliderPreview,
       effectiveUsdAmount,
       maxPossibleAmount,
+      onSliderDragCancel,
+      onSliderDragEnd,
       onSliderValueChange,
     ],
   );
@@ -460,5 +507,6 @@ export const usePerpsProSizeInput = ({
     sizeInput,
     sizeSlider,
     effectiveUsdAmount,
+    commitPendingSliderPreview,
   };
 };

@@ -31,7 +31,7 @@ export interface PerpsProSizeSliderModel {
   value: number;
   maximumValue: number;
   onValueChange: (value: number) => void;
-  onDragEnd: () => void;
+  onDragEnd: (value: number) => void;
   onDragCancel: () => void;
 }
 
