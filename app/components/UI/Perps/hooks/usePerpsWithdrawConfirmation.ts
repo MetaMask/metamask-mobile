@@ -99,6 +99,7 @@ export function usePerpsWithdrawConfirmation() {
           networkClientId,
           disableHook: true,
           disableSequential: true,
+          overwriteUpgrade: true,
           transactions: [
             {
               params: {
