@@ -1,5 +1,4 @@
 import UIKit
-import os.log
 internal import Expo
 import React
 import ReactAppDependencyProvider
@@ -73,17 +72,6 @@ class AppDelegate: ExpoAppDelegate {
     let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
     let initialProps: [AnyHashable: Any] = ["foxCode": foxCode]
 
-    // Enable Branch logging for TestFlight/dev debugging — remove before production release.
-    // The SDK's own NSLog output is redacted as <private> in the unified log on
-    // release/TestFlight builds, so mirror every Branch log line (all severities)
-    // through os_log with public visibility. Filter Console.app by "Branch Log".
-    BNCLogSetDisplayLevel(.debugSDK)
-    BNCLogSetOutputFunction { _, level, message in
-      os_log("[Branch Log][%{public}@] %{public}@",
-             type: .default,
-             BNCLogStringFromLogLevel(level),
-             message ?? "")
-    }
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
 
