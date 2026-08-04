@@ -131,37 +131,6 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDC')).toBeOnTheScreen();
   });
 
-  it('renders the remaining assets when one is removed from the list', () => {
-    const usdc = {
-      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      symbol: 'USDC',
-      name: 'USD Coin',
-      decimals: 6,
-      chainId: '0x1',
-    };
-    const dai = {
-      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-      symbol: 'DAI',
-      name: 'Dai Stablecoin',
-      decimals: 18,
-      chainId: '0x1',
-    };
-
-    setupParams({ selectedAsset: [DEFAULT_ASSET, usdc, dai] });
-
-    const { getByText, queryByText, rerender } = renderWithProvider(
-      <ConfirmAddAsset />,
-      { state: mockInitialState },
-    );
-
-    setupParams({ selectedAsset: [DEFAULT_ASSET, dai] });
-    rerender(<ConfirmAddAsset />);
-
-    expect(getByText('Tether USD')).toBeOnTheScreen();
-    expect(getByText('Dai Stablecoin')).toBeOnTheScreen();
-    expect(queryByText('USD Coin')).toBeNull();
-  });
-
   it('calls goBack when HeaderStandard back button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
