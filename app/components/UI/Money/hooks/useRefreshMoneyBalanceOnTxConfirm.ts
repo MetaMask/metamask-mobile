@@ -105,6 +105,7 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
       store.dispatch(markMoneyBalanceUserOp());
 
       refreshMoneyBalanceQueries(address).catch((error) => {
+        store.dispatch(clearMoneyBalanceUserOp());
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
       });
     };
