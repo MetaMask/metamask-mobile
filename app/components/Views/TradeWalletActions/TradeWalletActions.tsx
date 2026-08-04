@@ -536,10 +536,10 @@ function TradeWalletActions() {
   return (
     <View style={tw.style('flex-1 justify-end')}>
       <Animated.View
-        style={[StyleSheet.absoluteFillObject, backdropAnimatedStyle]}
+        style={[StyleSheet.absoluteFill, backdropAnimatedStyle]}
       >
         <Pressable
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           onPress={handleNavigateBack}
         >
           <OverlayWithHole

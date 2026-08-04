@@ -8,11 +8,9 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
-  StyleProp,
   TextLayoutEvent,
   TouchableOpacity,
   View,
-  ViewStyle,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -209,7 +207,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value }],
   }));
-  const baseStyle: StyleProp<ViewStyle> = useMemo(
+  const baseStyle = useMemo(
     () => [
       styles.base,
       shouldTopAlign && styles.baseTopAligned,
