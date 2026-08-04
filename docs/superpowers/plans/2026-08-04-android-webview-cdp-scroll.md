@@ -40,15 +40,15 @@
   - `pickMetaMaskWebViewDebuggerUrl(rawContexts: RawAppiumContext[], packageId: string): string | undefined`
   - `AndroidWebViewCdpHelpers.scrollElementByIdIntoView(webId: string, options: { pageUrl: string }): Promise<boolean>`
 
-- [ ] **Step 1: Write failing tests** for enable flag, URL matching, MetaMask-vs-Chrome context pick, scroll success/failure (mock fetch/ws/driver)
+- [x] **Step 1: Write failing tests** for enable flag, URL matching, MetaMask-vs-Chrome context pick, scroll success/failure (mock fetch/ws/driver)
 
-- [ ] **Step 2: Run tests — expect FAIL** (`yarn jest tests/framework/AndroidWebViewCdpHelpers.test.ts`)
+- [x] **Step 2: Run tests — expect FAIL** (`yarn jest tests/framework/AndroidWebViewCdpHelpers.test.ts`)
 
-- [ ] **Step 3: Implement helper**
+- [x] **Step 3: Implement helper**
 
-- [ ] **Step 4: Run tests — expect PASS**
+- [x] **Step 4: Run tests — expect PASS**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ### Task 2: Wire CDP into AndroidWebViewNative scroll
 
@@ -60,18 +60,18 @@
 - Consumes: `AndroidWebViewCdpHelpers.scrollElementByIdIntoView`, `isAndroidWebViewCdpScrollEnabled`
 - Extends `AndroidWebViewScrollOptions` with `pageUrl?: string`
 
-- [ ] **Step 1: Write failing tests** — with pageUrl + CDP true, skips UiScrollable; CDP false falls back; no pageUrl skips CDP
+- [x] **Step 1: Write failing tests** — with pageUrl + CDP true, skips UiScrollable; CDP false falls back; no pageUrl skips CDP
 
-- [ ] **Step 2: Run — expect FAIL**
+- [x] **Step 2: Run — expect FAIL**
 
-- [ ] **Step 3: Wire CDP attempt after in-place miss**
+- [x] **Step 3: Wire CDP attempt after in-place miss**
 
-- [ ] **Step 4: Run — expect PASS**
+- [x] **Step 4: Run — expect PASS**
 
-- [ ] **Step 5: Commit + push + update PR**
+- [x] **Step 5: Commit + push + update PR**
 
 ### Task 3: Verification
 
-- [ ] Run both unit test files
-- [ ] Lint touched files if needed
-- [ ] Push and update PR body
+- [x] Run both unit test files
+- [x] Lint touched files if needed
+- [x] Push and update PR body
