@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { FlashList } from '@shopify/flash-list';
 import NetworkListBottomSheet, {
   NETWORK_LIST_BOTTOM_SHEET,
 } from './NetworkListBottomSheet';
@@ -59,6 +60,22 @@ const mockInitialState = {
     },
   },
 };
+
+const buildNetworkConfigurations = (count: number) =>
+  Object.fromEntries(
+    Array.from({ length: count }, (_, index) => {
+      const chainId = `0x${(index + 1).toString(16)}` as Hex;
+      return [
+        chainId,
+        {
+          chainId,
+          name: `Network ${index + 1}`,
+          nativeCurrency: 'ETH',
+          rpcEndpoints: [{ networkClientId: `network-${index + 1}` }],
+        },
+      ];
+    }),
+  );
 
 const defaultProps = {
   selectedNetwork: '0x1' as Hex,
@@ -126,5 +143,63 @@ describe('NetworkListBottomSheet', () => {
     fireEvent(getByTestId(NETWORK_LIST_BOTTOM_SHEET), 'onClose');
 
     expect(mockSetOpenNetworkSelector).toHaveBeenCalledWith(false);
+  });
+
+  it('renders networks in a virtualized list keyed by chain id', () => {
+    const manyNetworksState = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkController: {
+            ...mockInitialState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: buildNetworkConfigurations(30),
+          },
+        },
+      },
+    };
+
+    const { UNSAFE_getByType, getByText } = renderComponent({
+      state: manyNetworksState,
+    });
+
+    const list = UNSAFE_getByType(FlashList);
+    expect(list.props.data).toHaveLength(30);
+    expect(list.props.data.map(list.props.keyExtractor)).toEqual(
+      list.props.data.map((network: { chainId: Hex }) => network.chainId),
+    );
+    expect(getByText('Network 1')).toBeOnTheScreen();
+  });
+
+  it('filters out non-EVM networks when displayEvmNetworksOnly is true', () => {
+    const nonEvmState = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkController: {
+            ...mockInitialState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...mockInitialState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                name: 'Solana',
+                nativeCurrency: 'SOL',
+                isEvm: false,
+                rpcEndpoints: [{ networkClientId: 'solana' }],
+              },
+            },
+          },
+        },
+      },
+    } as unknown as typeof mockInitialState;
+
+    const { queryByText } = renderComponent({ state: nonEvmState });
+
+    expect(queryByText('Solana')).toBeNull();
+    expect(queryByText('Ethereum Mainnet')).toBeOnTheScreen();
   });
 });
