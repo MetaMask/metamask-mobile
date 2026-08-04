@@ -293,12 +293,12 @@ export function useContinueWithQuote(
           );
 
         if (useExternalBrowser) {
-          if (effectiveOrderId && effectiveWallet) {
+          if (effectiveOrderId && effectiveWallet && network) {
             addPrecreatedOrder({
               orderId: effectiveOrderId,
               providerCode,
               walletAddress: effectiveWallet,
-              chainId: network || undefined,
+              chainId: network,
             });
           }
 
