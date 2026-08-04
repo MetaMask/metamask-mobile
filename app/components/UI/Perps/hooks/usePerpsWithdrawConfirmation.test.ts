@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -192,11 +192,11 @@ describe('usePerpsWithdrawConfirmation', () => {
 
     const { result } = renderHook(() => usePerpsWithdrawConfirmation());
 
-    await expect(
-      act(async () => {
-        await result.current.withdrawWithConfirmation();
-      }),
-    ).rejects.toThrow('batch failed');
+    await act(async () => {
+      await expect(result.current.withdrawWithConfirmation()).rejects.toThrow(
+        'batch failed',
+      );
+    });
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockWithdrawalStartFailed).toHaveBeenCalledWith(
@@ -204,8 +204,8 @@ describe('usePerpsWithdrawConfirmation', () => {
     );
     expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalStartFailedToast);
 
-    act(() => {
-      retryWithdraw?.();
+    await act(async () => {
+      await retryWithdraw?.();
     });
 
     expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
@@ -217,11 +217,11 @@ describe('usePerpsWithdrawConfirmation', () => {
 
     const { result } = renderHook(() => usePerpsWithdrawConfirmation());
 
-    await expect(
-      act(async () => {
-        await result.current.withdrawWithConfirmation();
-      }),
-    ).rejects.toThrow('batch failed');
+    await act(async () => {
+      await expect(result.current.withdrawWithConfirmation()).rejects.toThrow(
+        'batch failed',
+      );
+    });
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalStartFailedToast);
@@ -233,11 +233,11 @@ describe('usePerpsWithdrawConfirmation', () => {
 
     const { result } = renderHook(() => usePerpsWithdrawConfirmation());
 
-    await expect(
-      act(async () => {
-        await result.current.withdrawWithConfirmation();
-      }),
-    ).rejects.toThrow(error.message);
+    await act(async () => {
+      await expect(result.current.withdrawWithConfirmation()).rejects.toThrow(
+        error.message,
+      );
+    });
 
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockWithdrawalStartFailed).not.toHaveBeenCalled();
@@ -251,20 +251,17 @@ describe('usePerpsWithdrawConfirmation', () => {
 
     const { result } = renderHook(() => usePerpsWithdrawConfirmation());
 
-    await expect(
-      act(async () => {
-        await result.current.withdrawWithConfirmation();
-      }),
-    ).rejects.toThrow('batch failed');
-
-    act(() => {
-      retryWithdraw?.();
+    await act(async () => {
+      await expect(result.current.withdrawWithConfirmation()).rejects.toThrow(
+        'batch failed',
+      );
     });
 
-    await waitFor(() => {
-      expect(mockGoBack).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      await retryWithdraw?.();
     });
 
+    expect(mockGoBack).toHaveBeenCalledTimes(2);
     expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
     expect(mockShowToast).toHaveBeenCalledTimes(2);
     expect(mockWithdrawalStartFailed).toHaveBeenCalledTimes(2);

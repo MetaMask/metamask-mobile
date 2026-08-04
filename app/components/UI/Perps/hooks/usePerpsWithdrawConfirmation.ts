@@ -123,9 +123,7 @@ export function usePerpsWithdrawConfirmation() {
         navigation.goBack();
         showToast(
           PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
-            () => {
-              runWithdrawWithConfirmation().catch(() => undefined);
-            },
+            () => runWithdrawWithConfirmation().catch(() => undefined),
           ),
         );
         throw errorObj;
