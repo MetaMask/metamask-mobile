@@ -232,7 +232,7 @@ describe('orderUtils', () => {
       expect(formatOrderTypeLabel(order)).toBe('Stop market');
     });
 
-    it('falls back to limit or market when detailed type is absent', () => {
+    it('falls back to translated limit or market when detailed type is absent', () => {
       const limitOrder: Order = {
         orderId: '1',
         symbol: 'BTC',

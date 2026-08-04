@@ -204,7 +204,10 @@ const PerpsProOrderCard = ({
                 </Text>
               </Box>
             </Box>
-            <Tag severity={TagSeverity.Neutral}>
+            <Tag
+              severity={TagSeverity.Neutral}
+              testID={PerpsProMarketViewSelectorsIDs.ORDER_TYPE}
+            >
               {formatOrderTypeLabel(order)}
             </Tag>
           </Box>

@@ -7,6 +7,7 @@ import {
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
+import { strings } from '../../../../../locales/i18n';
 import { Position } from '../hooks';
 import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 
@@ -541,6 +542,36 @@ export const getOrderPositionDirection = (order: Order): OrderDirection =>
   resolveOrderDirection(order.side, isClosingOrder(order));
 
 /**
+ * Resolves the raw order type token from provider data before i18n or
+ * title-casing. Prefers `detailedOrderType` when present; otherwise maps
+ * `orderType` to canonical limit/market tokens shared by label formatters.
+ */
+const resolveOrderTypeString = (order: Order): string => {
+  const detailedType = order.detailedOrderType?.trim();
+  if (detailedType) {
+    return detailedType;
+  }
+
+  return order.orderType === 'limit' ? 'limit' : 'market';
+};
+
+/**
+ * Formats a resolved order type token for compact UI pills with i18n for
+ * canonical limit/market types and title-casing for provider-specific names.
+ */
+const formatOrderTypeString = (typeString: string): string => {
+  const normalized = typeString.toLowerCase();
+  if (normalized === 'limit') {
+    return strings('perps.order.limit');
+  }
+  if (normalized === 'market') {
+    return strings('perps.order.market');
+  }
+
+  return capitalize(typeString);
+};
+
+/**
  * Format an order label following the pattern: [Type] [Close?] [Direction]
  *
  * Examples:
@@ -555,16 +586,11 @@ export const getOrderPositionDirection = (order: Order): OrderDirection =>
  * @returns Formatted order label string
  */
 export const formatOrderLabel = (order: Order): string => {
-  const { side, detailedOrderType, orderType } = order;
+  const { side } = order;
 
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
-
-  // Get the order type string
-  // Use detailedOrderType if available (e.g., "Stop Market", "Take Profit Limit")
-  // Otherwise fall back to basic orderType
-  const typeString =
-    detailedOrderType || (orderType === 'limit' ? 'Limit' : 'Market');
+  const typeString = resolveOrderTypeString(order);
 
   // Build the label: [Type] [Close?] [Direction]
   if (isClosing) {
@@ -582,13 +608,8 @@ export const formatOrderLabel = (order: Order): string => {
  * @param order - The order object
  * @returns Formatted order type string for compact UI pills
  */
-export const formatOrderTypeLabel = (order: Order): string => {
-  const typeString =
-    order.detailedOrderType ||
-    (order.orderType === 'limit' ? 'Limit' : 'Market');
-
-  return capitalize(typeString);
-};
+export const formatOrderTypeLabel = (order: Order): string =>
+  formatOrderTypeString(resolveOrderTypeString(order));
 
 /**
  * Get just the direction portion of an order label

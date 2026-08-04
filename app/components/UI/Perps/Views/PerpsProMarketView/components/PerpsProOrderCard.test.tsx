@@ -213,6 +213,23 @@ describe('PerpsProOrderCard', () => {
     },
   );
 
+  it('exposes the order type pill via testID', () => {
+    render(
+      <PerpsProOrderCard
+        order={{
+          ...baseOrder,
+          detailedOrderType: 'Stop Market',
+          orderType: 'market',
+          isTrigger: true,
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_TYPE),
+    ).toHaveTextContent('Stop market');
+  });
+
   it('invokes the market switch handler when the card is pressed', () => {
     const onPress = jest.fn();
 
