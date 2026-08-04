@@ -1479,20 +1479,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const postMarketInsightsSections = useMemo(
     () => [
       {
-        key: 'about',
-        // Outer guard avoids mounting the component when there is no
-        // description; the component also returns null defensively for
-        // direct/standalone use.
-        visible: hasAboutDescription,
-        onLayout: handleAboutLayout,
-        content: (
-          <PerpsMarketAboutSection
-            description={market?.description}
-            assetName={market?.name}
-          />
-        ),
-      },
-      {
         key: 'stats',
         visible: true,
         content: (
@@ -1506,6 +1492,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             onOrderBookPress={
               isOrderBookEnabled ? handleOrderBookPress : undefined
             }
+          />
+        ),
+      },
+      {
+        key: 'about',
+        // Outer guard avoids mounting the component when there is no
+        // description; the component also returns null defensively for
+        // direct/standalone use. Placed below stats per TAT-2308 follow-up.
+        visible: hasAboutDescription,
+        onLayout: handleAboutLayout,
+        content: (
+          <PerpsMarketAboutSection
+            description={market?.description}
+            assetName={market?.name}
           />
         ),
       },
