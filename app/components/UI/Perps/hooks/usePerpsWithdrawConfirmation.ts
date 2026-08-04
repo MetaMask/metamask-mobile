@@ -99,6 +99,7 @@ export function usePerpsWithdrawConfirmation() {
           networkClientId,
           disableHook: true,
           disableSequential: true,
+          overwriteUpgrade: true,
           transactions: [
             {
               params: {
@@ -122,9 +123,7 @@ export function usePerpsWithdrawConfirmation() {
         navigation.goBack();
         showToast(
           PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
-            () => {
-              runWithdrawWithConfirmation().catch(() => undefined);
-            },
+            () => runWithdrawWithConfirmation().catch(() => undefined),
           ),
         );
         throw errorObj;
