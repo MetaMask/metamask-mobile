@@ -1293,7 +1293,17 @@ describe('navIntegration', () => {
   });
 
   it('is created with enableTimeToInitialDisplay: true so TTID spans are emitted', () => {
+    // navIntegration is created at module load time. jest.clearAllMocks() calls
+    // in sibling describe blocks (e.g. setEASUpdateContext) wipe the call history
+    // before this test runs, leaving 0 recorded calls on the module-level mock.
+    // Re-load utils in an isolated registry so we get a fresh, uncleaned call
+    // record while still using the same jest.fn() mock instance.
     const mockedFactory = jest.mocked(reactNavigationIntegration);
+    mockedFactory.mockClear();
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('./utils');
+    });
     expect(mockedFactory).toHaveBeenCalledWith(
       expect.objectContaining({ enableTimeToInitialDisplay: true }),
     );
