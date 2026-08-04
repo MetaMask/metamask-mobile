@@ -121,10 +121,15 @@ export const usePerpsProSizeInput = ({
 
   const commitUsdAmount = useCallback(
     (nextUsdAmount: string) => {
+      if (new BigNumber(nextUsdAmount || 0).eq(new BigNumber(usdAmount || 0))) {
+        pendingInternalUsdRef.current = null;
+        return;
+      }
+
       pendingInternalUsdRef.current = nextUsdAmount;
       setAmount(nextUsdAmount);
     },
-    [setAmount],
+    [setAmount, usdAmount],
   );
 
   useEffect(() => {
@@ -242,6 +247,14 @@ export const usePerpsProSizeInput = ({
       return;
     }
 
+    if (coinDraftState.source === 'canonical') {
+      setCoinDraftState({
+        value: finalizedDraft,
+        source: 'canonical',
+      });
+      return;
+    }
+
     // Snap the coin field to the USD→coin round-trip so the display matches
     // deriveOrderSizing / provider size (USD cents half-up, szDecimals down).
     // Keep the committed USD (not re-derived from the snapped coin) so cents
@@ -261,6 +274,7 @@ export const usePerpsProSizeInput = ({
   }, [
     canToggleSizeUnit,
     coinDraft,
+    coinDraftState.source,
     commitUsdAmount,
     effectivePrice,
     sizeUnit,

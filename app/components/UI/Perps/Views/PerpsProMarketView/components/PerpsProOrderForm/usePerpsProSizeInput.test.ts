@@ -87,6 +87,23 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenLastCalledWith('12');
   });
 
+  it('does not leave a pending commit after an unchanged USD blur', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ effectivePrice: 100 }) },
+    );
+
+    act(() => {
+      result.current.onSizeBlur();
+      result.current.onSizeUnitPress();
+    });
+    expect(mockSetAmount).not.toHaveBeenCalled();
+
+    rerender(createParams({ effectivePrice: 200 }));
+
+    expect(result.current.sizeInputValue).toBe('0.5');
+  });
+
   it('tracks focus state while editing the size input', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
 
@@ -128,6 +145,26 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.showUsdPrefix).toBe(false);
   });
 
+  it('does not reconvert an unchanged canonical coin draft on blur', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ effectivePrice: 123.456 }) },
+    );
+
+    act(() => {
+      result.current.onSizeUnitPress();
+      result.current.onSizeBlur();
+    });
+
+    expect(result.current.effectiveUsdAmount).toBe('100');
+    expect(mockSetAmount).not.toHaveBeenCalled();
+
+    rerender(createParams({ effectivePrice: 200 }));
+
+    expect(result.current.sizeInputValue).toBe('0.5');
+    expect(result.current.effectiveUsdAmount).toBe('100');
+  });
+
   it('converts a trailing coin decimal on blur before committing USD', () => {
     const { result } = renderHook(() =>
       usePerpsProSizeInput(createParams({ effectivePrice: 100 })),
@@ -149,7 +186,8 @@ describe('usePerpsProSizeInput', () => {
     });
 
     expect(result.current.sizeInputValue).toBe('1');
-    expect(mockSetAmount).toHaveBeenLastCalledWith('100');
+    expect(result.current.effectiveUsdAmount).toBe('100');
+    expect(mockSetAmount).not.toHaveBeenCalled();
   });
 
   it('projects coin edits to USD rounded to two decimals', () => {
