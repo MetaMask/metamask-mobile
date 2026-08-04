@@ -27,9 +27,8 @@ import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
-import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
+import Utilities, { sleep } from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import {
@@ -832,9 +831,7 @@ class TestSnaps {
       async () => {
         try {
           await this.tapButton('getWebSocketState');
-
-          // eslint-disable-next-line no-restricted-syntax
-          await TestHelpers.delay(250);
+          await sleep(250);
 
           const text = await WebView.readTextById(
             TestSnapResultSelectorWebIDS.networkAccessResultSpan,
