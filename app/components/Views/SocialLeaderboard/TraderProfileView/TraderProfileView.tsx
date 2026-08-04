@@ -355,12 +355,18 @@ const TraderProfileView = () => {
   const headerTitle = profile?.profile.name;
 
   return (
+    // The top edge is deliberately off: a native SafeAreaView top padding is
+    // recalculated as the view is attached, which lands after this screen's
+    // `slide_from_right` push and visibly drops the header into place. The top
+    // inset comes from `includesTopInset` (JS `marginTop` off the already
+    // resolved provider) instead.
     <SafeAreaView
-      edges={['top']}
+      edges={['bottom', 'left', 'right']}
       style={tw.style('flex-1 bg-default')}
       testID={TraderProfileViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandardAnimated
+        includesTopInset
         scrollY={scrollYShared}
         titleSectionHeight={titleSectionHeightSv}
         title={
