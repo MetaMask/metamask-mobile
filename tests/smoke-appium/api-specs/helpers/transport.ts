@@ -285,7 +285,7 @@ export async function requestViaEthereumProvider(
  * OpenRPC transport compatible with `@open-rpc/test-coverage`.
  *
  * Fire is queued separately from poll so ConfirmationsRejectRule.afterRequest
- * can enqueue Cancel between them (matches Detox helpers.js).
+ * can enqueue Cancel between them (matches legacy Detox confirmations flow).
  */
 export const createAppiumDriverTransport =
   (pageUrl: string) =>
