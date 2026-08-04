@@ -303,6 +303,7 @@ const PerpsProOrderForm = ({
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
+  onLimitPriceBlur,
   onUseMidPricePress,
   sizeInput,
   balancePercentage,
@@ -432,6 +433,7 @@ const PerpsProOrderForm = ({
                 label={strings('perps.order.limit_price_modal.title')}
                 value={limitPrice}
                 onChangeText={onLimitPriceChange}
+                onBlur={onLimitPriceBlur}
                 testID={ids.LIMIT_PRICE_INPUT}
                 variant="inline"
                 placeholder={strings('perps.order.limit_price_modal.title')}

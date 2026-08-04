@@ -41,6 +41,7 @@ const PerpsProOrderFormPanel = ({
     onOrderTypeButtonPress,
     limitPrice,
     onLimitPriceChange,
+    onLimitPriceBlur,
     onUseMidPricePress,
     sizeInput,
     balancePercentage,
@@ -104,6 +105,7 @@ const PerpsProOrderFormPanel = ({
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={onLimitPriceChange}
+        onLimitPriceBlur={onLimitPriceBlur}
         onUseMidPricePress={onUseMidPricePress}
         sizeInput={sizeInput}
         balancePercentage={balancePercentage}

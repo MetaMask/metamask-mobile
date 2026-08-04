@@ -42,6 +42,7 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onOrderTypeButtonPress: jest.fn(),
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
+  onLimitPriceBlur: jest.fn(),
   onUseMidPricePress: jest.fn(),
   sizeInput: DEFAULT_SIZE_INPUT,
   balancePercentage: 20,

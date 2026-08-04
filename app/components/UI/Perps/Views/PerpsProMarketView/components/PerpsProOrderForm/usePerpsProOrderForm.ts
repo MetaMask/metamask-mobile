@@ -61,7 +61,10 @@ import { deriveOrderSizing } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
 import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
 import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
-import { normalizeNumericTextInput } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
+import {
+  finalizeNumericTextInput,
+  normalizeNumericTextInput,
+} from '../../../../../../Base/Keypad/normalizeNumericTextInput';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
 import type {
   PerpsProOrderDirection,
@@ -85,6 +88,7 @@ export interface UsePerpsProOrderFormResult {
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
+  onLimitPriceBlur: () => void;
   onUseMidPricePress: () => void;
   sizeInput: PerpsProSizeInputModel;
   balancePercentage: number;
@@ -490,6 +494,11 @@ export const usePerpsProOrderForm = ({
 
       // reduce-only is Pro-specific (TAT-3595); the direct Pro path never
       // uses pay-with-any-token, so those tracking fields are omitted.
+      // Finalize trailing decimals so Place Order does not depend on blur timing.
+      const finalizedLimitPrice = orderForm.limitPrice
+        ? finalizeNumericTextInput(orderForm.limitPrice)
+        : orderForm.limitPrice;
+
       const orderParams = buildPerpsOrderParams({
         asset: orderForm.asset,
         isBuy: orderForm.direction === 'long',
@@ -499,7 +508,7 @@ export const usePerpsProOrderForm = ({
         leverage: orderForm.leverage,
         usdAmount: effectiveUsdAmount,
         maxSlippageBps,
-        limitPrice: orderForm.limitPrice,
+        limitPrice: finalizedLimitPrice,
         takeProfitPrice: orderForm.takeProfitPrice,
         stopLossPrice: orderForm.stopLossPrice,
         reduceOnly,
@@ -899,6 +908,14 @@ export const usePerpsProOrderForm = ({
     [orderForm.limitPrice, setLimitPrice],
   );
 
+  const onLimitPriceBlur = useCallback(() => {
+    const currentLimitPrice = orderForm.limitPrice ?? '';
+    const finalizedLimitPrice = finalizeNumericTextInput(currentLimitPrice);
+    if (finalizedLimitPrice !== currentLimitPrice) {
+      setLimitPrice(finalizedLimitPrice);
+    }
+  }, [orderForm.limitPrice, setLimitPrice]);
+
   const onPlaceOrderPress = useCallback(() => {
     handlePlaceOrder();
   }, [handlePlaceOrder]);
@@ -912,6 +929,7 @@ export const usePerpsProOrderForm = ({
     onOrderTypeButtonPress: () => setIsOrderTypeVisible(true),
     limitPrice: orderForm.limitPrice ?? '',
     onLimitPriceChange,
+    onLimitPriceBlur,
     onUseMidPricePress,
     sizeInput,
     balancePercentage,
