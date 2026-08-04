@@ -15,7 +15,6 @@ import {
 import BitcoinTestDapp, {
   BITCOIN_DAPP_PORT,
 } from '../../../page-objects/Browser/BitcoinTestDapp.js';
-import { sleep } from '../../../framework/Utilities.js';
 
 // Truncated Bitcoin account address shown in the dapp header after connect
 const account1Short = 'bc1q...yump';
@@ -45,7 +44,7 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
     await bitcoinDappServer.stop();
   });
 
-  appiumTest.skip(
+  appiumTest(
     'Connects and disconnects from Bitcoin test dapp',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
@@ -85,7 +84,6 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
           await BitcoinTestDapp.verifyAccount(account1Short);
           await BitcoinTestDapp.verifyConnectionStatus('Connected');
 
-          await sleep(1000);
           await BitcoinTestDapp.reload();
 
           await BitcoinTestDapp.verifyAccount(account1Short);
@@ -95,7 +93,7 @@ appiumTest.describe(SmokeNetworkExpansion('Bitcoin Wallet Standard'), () => {
     },
   );
 
-  appiumTest.skip(
+  appiumTest(
     'Signs a message',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(

@@ -1,4 +1,3 @@
-import test from '@playwright/test';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
 import {
   loginToAppPlaywright,
@@ -9,8 +8,6 @@ import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import { getDriver } from '../../framework/PlaywrightUtilities.js';
-import { logger } from '../../framework/logger.js';
 import Utilities from '../../framework/Utilities.js';
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
@@ -21,7 +18,8 @@ const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
 const CLICK_TIMEOUT_MS = 15_000;
 const POLL_MS = 300;
-const RECONNECT_LOG_INTERVAL_MS = 5_000;
+/** Hold Connected + btc_connection + wallets before reload (replaces blind 1s sleep). */
+const STABILITY_WINDOW_MS = 1_000;
 
 const { header, walletSelectionModal, signMessage } = dataTestIds.testPage;
 
@@ -44,84 +42,28 @@ class BitcoinTestDapp {
   }
 
   /**
-   * Debug-only snapshot of Bitcoin wallet-standard availability in the page.
-   * Dispatches `wallet-standard:app-ready` so any injected wallet re-registers
-   * with this probe (same discovery path the dapp uses).
+   * Count wallet-standard wallets currently registered with the page
+   * (same discovery path the Bitcoin test dapp uses).
    */
-  private async getProviderSnapshot(): Promise<Record<string, unknown>> {
-    const walletOptionSelector = `button${sel(walletSelectionModal.walletOption)}`;
-    try {
-      const snapshot = await this.evaluate<Record<string, unknown>>(`(() => {
-        const found = [];
-        const register = (...wallets) => {
-          for (const w of wallets) {
-            found.push({
-              name: w && w.name != null ? String(w.name) : null,
-              version: w && w.version != null ? String(w.version) : null,
-              chains: Array.isArray(w && w.chains) ? w.chains.map(String) : [],
-              features: w && w.features ? Object.keys(w.features) : [],
-            });
-          }
-        };
-        let appReadyError = null;
-        try {
-          window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', {
-            detail: { register },
-            bubbles: false,
-            cancelable: false,
-            composed: false,
-          }));
-        } catch (e) {
-          appReadyError = String(e && e.message ? e.message : e);
-        }
-        const bodyText = document.body ? (document.body.innerText || '') : '';
-        return {
-          walletCount: found.length,
-          wallets: found,
-          appReadyError,
-          hasEthereum: typeof window.ethereum !== 'undefined',
-          ethereumIsMetaMask: !!(window.ethereum && window.ethereum.isMetaMask),
-          navigatorWalletsLength: Array.isArray(window.navigator && window.navigator.wallets)
-            ? window.navigator.wallets.length
-            : null,
-          walletOptionCount: document.querySelectorAll(${JSON.stringify(walletOptionSelector)}).length,
-          noWalletAvailableText: bodyText.includes('No wallet available'),
-          connectionStatus: document.querySelector(${JSON.stringify(sel(header.connectionStatus))})?.textContent?.trim() || null,
-        };
-      })()`);
-      return snapshot ?? { error: 'evaluate returned null' };
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : String(error),
+  private async getWalletCount(): Promise<number> {
+    const count = await this.evaluate<number>(`(() => {
+      const found = [];
+      const register = (...wallets) => {
+        for (const w of wallets) found.push(w);
       };
-    }
-  }
-
-  /** Debug-only: log provider snapshot + attach a screenshot. Never throws. */
-  private async debugCapture(label: string, details?: string): Promise<void> {
-    const provider = await this.getProviderSnapshot();
-    const message = details
-      ? `[BitcoinTestDapp.reload] ${label}: ${details} provider=${JSON.stringify(provider)}`
-      : `[BitcoinTestDapp.reload] ${label}: provider=${JSON.stringify(provider)}`;
-    logger.info(message);
-    try {
-      const drv = getDriver();
-      if (!drv) return;
-      const screenshot = await drv.takeScreenshot();
-      await test.info().attach(`btc-reload-${label}`, {
-        body: Buffer.from(screenshot, 'base64'),
-        contentType: 'image/png',
-      });
-      await test.info().attach(`btc-reload-${label}-provider.json`, {
-        body: Buffer.from(JSON.stringify(provider, null, 2), 'utf8'),
-        contentType: 'application/json',
-      });
-    } catch (error) {
-      logger.warn(
-        `[BitcoinTestDapp.reload] screenshot failed for ${label}:`,
-        error,
-      );
-    }
+      try {
+        window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', {
+          detail: { register },
+          bubbles: false,
+          cancelable: false,
+          composed: false,
+        }));
+      } catch {
+        return 0;
+      }
+      return found.length;
+    })()`);
+    return count ?? 0;
   }
 
   async setupAndNavigate(): Promise<void> {
@@ -206,49 +148,19 @@ class BitcoinTestDapp {
   private async waitForReconnect(
     timeoutMs = CONNECT_TIMEOUT_MS,
   ): Promise<void> {
-    const startedAt = Date.now();
-    const deadline = startedAt + timeoutMs;
+    const deadline = Date.now() + timeoutMs;
     let lastConnectAttemptAt = 0;
-    let lastLogAt = 0;
     let actual: string | null = null;
-    let connectSheetSeen = false;
-    let connectTapCount = 0;
 
     while (Date.now() < deadline) {
       actual = await this.getConnectionStatus();
-      const elapsedMs = Date.now() - startedAt;
+      if (actual === 'Connected') return;
 
-      if (actual === 'Connected') {
-        await this.debugCapture(
-          'reconnect-success',
-          `status=Connected elapsedMs=${elapsedMs} connectSheetSeen=${connectSheetSeen} connectTapCount=${connectTapCount}`,
-        );
-        return;
-      }
-
-      if (elapsedMs - lastLogAt >= RECONNECT_LOG_INTERVAL_MS) {
-        lastLogAt = elapsedMs;
-        const sheetVisible = await this.isConnectSheetVisible();
-        if (sheetVisible) connectSheetSeen = true;
-        await this.debugCapture(
-          `reconnect-poll-${elapsedMs}ms`,
-          `status=${JSON.stringify(actual)} connectSheetVisible=${sheetVisible} connectTapCount=${connectTapCount}`,
-        );
-      }
-
+      // Auto-reconnect may re-open the MetaMask connect sheet after wallets register.
       if (Date.now() - lastConnectAttemptAt >= 3_000) {
         lastConnectAttemptAt = Date.now();
-        const sheetVisible = await this.isConnectSheetVisible();
-        if (sheetVisible) connectSheetSeen = true;
-        logger.info(
-          `[BitcoinTestDapp.reload] reconnect tap attempt at ${elapsedMs}ms: status=${JSON.stringify(actual)} connectSheetVisible=${sheetVisible}`,
-        );
         try {
           await DappConnectionModal.tapConnectButton({ timeout: 1_000 });
-          connectTapCount += 1;
-          logger.info(
-            `[BitcoinTestDapp.reload] reconnect tapConnectButton succeeded (tap #${connectTapCount})`,
-          );
         } catch {
           // Connect sheet not shown yet.
         }
@@ -257,13 +169,86 @@ class BitcoinTestDapp {
       await wait(POLL_MS);
     }
 
-    const sheetVisible = await this.isConnectSheetVisible();
-    await this.debugCapture(
-      'reconnect-timeout',
-      `expected=Connected actual=${JSON.stringify(actual)} elapsedMs=${timeoutMs} connectSheetSeen=${connectSheetSeen} connectSheetVisibleNow=${sheetVisible} connectTapCount=${connectTapCount}`,
-    );
     throw new Error(
-      `Timed out waiting for reconnect: expected "Connected", got "${actual}" (connectSheetSeen=${connectSheetSeen}, connectTapCount=${connectTapCount})`,
+      `Timed out waiting for reconnect: expected "Connected", got "${actual}"`,
+    );
+  }
+
+  /**
+   * The Bitcoin test dapp stores `{ walletName, connectionType }` in
+   * `localStorage.btc_connection` after a successful connect. Auto-reconnect
+   * after reload depends on that key plus wallet-standard providers still
+   * being registered. Wait until Connected + persisted key + walletCount>0
+   * hold continuously for STABILITY_WINDOW_MS (same budget as the old 1s
+   * sleep, but tied to state).
+   */
+  private async getPersistedConnection(): Promise<Record<
+    string,
+    unknown
+  > | null> {
+    return this.evaluate<Record<string, unknown> | null>(`(() => {
+      const raw = localStorage.getItem('btc_connection');
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return { parseError: true, raw };
+      }
+    })()`);
+  }
+
+  private async getPreReloadReadiness(): Promise<{
+    status: string | null;
+    persisted: Record<string, unknown> | null;
+    walletCount: number;
+  }> {
+    const status = await this.getConnectionStatus();
+    const persisted = await this.getPersistedConnection();
+    const walletCount = await this.getWalletCount();
+    return { status, persisted, walletCount };
+  }
+
+  private isPreReloadReady(snapshot: {
+    status: string | null;
+    persisted: Record<string, unknown> | null;
+    walletCount: number;
+  }): boolean {
+    return (
+      snapshot.status === 'Connected' &&
+      !!snapshot.persisted &&
+      typeof snapshot.persisted.walletName === 'string' &&
+      snapshot.persisted.walletName.length > 0 &&
+      snapshot.walletCount > 0
+    );
+  }
+
+  private async waitForStableConnectionBeforeReload(
+    timeoutMs = CONNECT_TIMEOUT_MS,
+  ): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let stableSince: number | null = null;
+    let last = {
+      status: null as string | null,
+      persisted: null as Record<string, unknown> | null,
+      walletCount: 0,
+    };
+
+    while (Date.now() < deadline) {
+      last = await this.getPreReloadReadiness();
+      if (this.isPreReloadReady(last)) {
+        if (stableSince == null) {
+          stableSince = Date.now();
+        } else if (Date.now() - stableSince >= STABILITY_WINDOW_MS) {
+          return;
+        }
+      } else {
+        stableSince = null;
+      }
+      await wait(POLL_MS);
+    }
+
+    throw new Error(
+      `Timed out waiting for stable pre-reload connection (last=${JSON.stringify(last)})`,
     );
   }
 
@@ -313,24 +298,12 @@ class BitcoinTestDapp {
   }
 
   async reload(): Promise<void> {
-    const statusBefore = await this.getConnectionStatus();
-    await this.debugCapture(
-      'before-reload',
-      `status=${JSON.stringify(statusBefore)}`,
-    );
+    await this.waitForStableConnectionBeforeReload();
 
     // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
     await this.evaluate('(() => { location.reload(); return true; })()');
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
     await this.waitForDappLoaded();
-
-    const statusAfterLoad = await this.getConnectionStatus();
-    const sheetVisible = await this.isConnectSheetVisible();
-    await this.debugCapture(
-      'after-dapp-loaded',
-      `status=${JSON.stringify(statusAfterLoad)} connectSheetVisible=${sheetVisible}`,
-    );
-
     await this.waitForReconnect();
   }
 }
