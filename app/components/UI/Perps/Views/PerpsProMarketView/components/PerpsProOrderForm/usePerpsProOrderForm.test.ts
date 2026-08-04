@@ -40,9 +40,11 @@ const mockSetStopLossPrice = jest.fn();
 const mockSetLimitPrice = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
+const mockUpdateOrderForm = jest.fn();
 
 const mockContextValue = {
   orderForm: mockOrderForm,
+  updateOrderForm: mockUpdateOrderForm,
   setAmount: mockSetAmount,
   setLeverage: mockSetLeverage,
   setDirection: mockSetDirection,
@@ -340,6 +342,16 @@ describe('usePerpsProOrderForm', () => {
       });
       expect(submitted).toHaveBeenCalled();
       expect(mockClearPendingTradeConfiguration).toHaveBeenCalledWith('BTC');
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith({
+        amount: '',
+        direction: 'long',
+        type: 'market',
+        balancePercent: 0,
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+      expect(result.current.reduceOnly).toBe(false);
       // No success navigation
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -464,6 +476,9 @@ describe('usePerpsProOrderForm', () => {
         error: 'rejected',
       });
       const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
 
       // Act
       await act(async () => {
@@ -472,6 +487,8 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(mockClearPendingTradeConfiguration).not.toHaveBeenCalled();
+      expect(mockUpdateOrderForm).not.toHaveBeenCalled();
+      expect(result.current.reduceOnly).toBe(true);
     });
   });
 
