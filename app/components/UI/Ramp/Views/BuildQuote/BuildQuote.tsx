@@ -282,6 +282,20 @@ function BuildQuote() {
     if (effectiveAssetId) {
       const switched = setSelectedProviderForAsset(effectiveAssetId);
       if (switched) return;
+
+      // Controller no-ops when the current provider already lists the asset in
+      // supportedCryptoCurrencies. Empty payment methods can still mark the
+      // token unavailable for that provider, so try a different supporting
+      // provider before showing the modal (parity with pre-delegation UI).
+      const otherSupporting = providers.find(
+        (p) =>
+          p.id !== selectedProvider?.id &&
+          providerSupportsAsset(p, effectiveAssetId),
+      );
+      if (otherSupporting) {
+        setSelectedProvider(otherSupporting, { autoSelected: true });
+        return;
+      }
     }
 
     const key = `${selectedProvider?.id}:${effectiveAssetId}`;
@@ -308,6 +322,7 @@ function BuildQuote() {
     selectedProvider?.id,
     focusTrigger,
     providers,
+    setSelectedProvider,
     setSelectedProviderForAsset,
   ]);
 

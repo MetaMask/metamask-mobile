@@ -1634,7 +1634,7 @@ describe('BuildQuote', () => {
     });
 
     it('does not open payment selection when token unavailable disables pill', () => {
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
@@ -1647,6 +1647,28 @@ describe('BuildQuote', () => {
         'RampModals',
         expect.objectContaining({
           screen: 'RampPaymentSelectionModal',
+        }),
+      );
+    });
+
+    it('switches to another supporting provider when current has empty payment methods', () => {
+      mockSetSelectedProviderForAsset.mockReturnValue(false);
+      mockUnavailableController({
+        selectedProvider: transakProvider,
+        providers: [transakProvider, WIDGET_PROVIDER],
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(TOKEN_ASSET);
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
+        autoSelected: true,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
         }),
       );
     });
