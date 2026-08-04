@@ -19,6 +19,11 @@ process.env.LAUNCH_DARKLY_URL =
 
 process.env.MM_SMART_ACCOUNT_UI_ENABLED = 'true';
 
+// Defaults to 'false' in builds.yml (still in development) — tests exercise
+// the enabled path by default; WidgetUpdaterService.test.ts overrides this
+// locally to also cover the disabled no-op path.
+process.env.MM_WIDGETS_ENABLED = 'true';
+
 process.env.ANDROID_APPLE_CLIENT_ID = 'AppleClientId';
 process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID = 'androidGoogleWebClientId';
 

@@ -71,10 +71,17 @@ class WidgetUpdaterServiceImplementation {
   /**
    * Starts listening for Redux state changes and pushes an initial snapshot
    * immediately. Safe to call on every platform — it's a no-op on Android
-   * (see createMetaMaskWidget.ts), and safe to call more than once.
+   * (see createMetaMaskWidget.ts), a no-op unless `MM_WIDGETS_ENABLED` is
+   * `'true'` (build-time flag, `builds.yml`'s `_public_envs`, defaults to
+   * `'false'` while this feature is still in development — see
+   * docs/widgets/README.md), and safe to call more than once.
    */
   initialize(): void {
-    if (this.initialized || Platform.OS !== 'ios') {
+    if (
+      this.initialized ||
+      Platform.OS !== 'ios' ||
+      process.env.MM_WIDGETS_ENABLED !== 'true'
+    ) {
       return;
     }
 

@@ -23,6 +23,7 @@ whole document as agent-usable instructions.
 - [Platform split (`.ios.ts` / base `.ts`)](#platform-split-iosts--base-ts)
 - [Theming](#theming)
 - [Data flow: `WidgetUpdaterService`](#data-flow-widgetupdaterservice)
+- [Feature flag: `MM_WIDGETS_ENABLED`](#feature-flag-mm_widgets_enabled)
 - [The reference widget: `BalanceWidget`](#the-reference-widget-balancewidget)
 - [Adding a new widget](#adding-a-new-widget)
 - [Adding a Live Activity](#adding-a-live-activity)
@@ -330,6 +331,12 @@ rehydrated:
 WidgetUpdaterService.initialize();
 ```
 
+`initialize()` is a no-op unless `MM_WIDGETS_ENABLED` is `'true'` — a
+build-time flag declared in `builds.yml`'s `_public_envs` (see
+[Feature flag](#feature-flag-mm_widgets_enabled) below), inlined into the JS
+bundle by `transform-inline-environment-variables` (same mechanism as every
+other `process.env.MM_*` flag in this repo).
+
 What it does:
 
 1. Subscribes to the Redux store (no-op on Android, see the platform split).
@@ -351,6 +358,31 @@ Each widget gets one `private computeXProps()` method and one
 **all** selector reads, formatting (`@metamask/client-utils`'s
 `createFormatters`), privacy-mode masking, and i18n (`strings()`) here —
 never in the widget's own `.ios.tsx` file.
+
+## Feature flag: `MM_WIDGETS_ENABLED`
+
+The whole foundation is gated behind one build-time flag,
+`MM_WIDGETS_ENABLED`, checked in `WidgetUpdaterService.initialize()`. It
+defaults to `'false'` in `builds.yml`'s `_public_envs` — every build
+(`main-prod`, `main-dev`, etc.) ships with widgets disabled while this
+feature is still in development, even though `ExpoWidgetsTarget` is compiled
+and embedded and a user could still add the widget from the home screen
+gallery; it would just never receive data.
+
+- **To enable for a specific `builds.yml` build**, override it under that
+  build's `env:` block (same pattern as any other flag override, e.g.
+  `RAMPS_ENVIRONMENT` under `main-test`).
+- **To enable for local development**, set
+  `export MM_WIDGETS_ENABLED="true"` in your `.js.env` (see
+  `.js.env.example`) — local `.js.env` takes precedence over `builds.yml`.
+  Restart Metro after changing it; like every `process.env.MM_*` flag in
+  this repo, the value is inlined into the bundle at build/transform time by
+  Babel's `transform-inline-environment-variables`, not read at runtime.
+- **In tests**, `jest.config.js` defaults it to `'true'` so
+  `WidgetUpdaterService.test.ts`'s suite exercises the enabled path; that
+  file is excluded from the inline-environment-variables transform (see
+  `babel.config.tests.js`) specifically so its own test can still toggle the
+  flag to `'false'` at runtime to cover the disabled no-op path.
 
 ## The reference widget: `BalanceWidget`
 
@@ -511,6 +543,9 @@ auto-discovered root `__mocks__/` convention):
 
 ## Limitations
 
+- **Disabled by default while in development.** `WidgetUpdaterService`
+  never pushes data unless `MM_WIDGETS_ENABLED` is `'true'` — see
+  [Feature flag](#feature-flag-mm_widgets_enabled).
 - **iOS only.** No Android widget support exists or is planned as part of
   this foundation.
 - **No closures / no arbitrary imports inside a layout function** — see

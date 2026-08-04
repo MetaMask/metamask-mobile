@@ -119,6 +119,20 @@ describe('WidgetUpdaterService', () => {
       expect(BalanceWidget.updateSnapshot).not.toHaveBeenCalled();
     });
 
+    it('is a no-op when MM_WIDGETS_ENABLED is not "true"', () => {
+      const originalFlag = process.env.MM_WIDGETS_ENABLED;
+      process.env.MM_WIDGETS_ENABLED = 'false';
+
+      try {
+        service.initialize();
+
+        expect(subscribe).not.toHaveBeenCalled();
+        expect(BalanceWidget.updateSnapshot).not.toHaveBeenCalled();
+      } finally {
+        process.env.MM_WIDGETS_ENABLED = originalFlag;
+      }
+    });
+
     it('does not subscribe twice when called multiple times', () => {
       service.initialize();
       service.initialize();
