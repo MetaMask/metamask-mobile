@@ -304,14 +304,7 @@ const PerpsProOrderForm = ({
   limitPrice,
   onLimitPriceChange,
   onUseMidPricePress,
-  size,
-  onSizeChange,
-  sizeUnitLabel = 'USD',
-  showUsdPrefix = false,
-  onSizeFocus,
-  onSizeBlur,
-  onSizeUnitPress,
-  canToggleSizeUnit = Boolean(onSizeUnitPress),
+  sizeInput,
   balancePercentage,
   onBalancePercentageChange,
   onBalancePercentageDragEnd,
@@ -467,14 +460,13 @@ const PerpsProOrderForm = ({
             ) : null}
           </Box>
           <PerpsProSizeInput
-            value={size}
-            onChangeText={onSizeChange}
-            unitLabel={sizeUnitLabel}
-            showUsdPrefix={showUsdPrefix}
-            canToggleUnit={canToggleSizeUnit}
-            onFocus={onSizeFocus}
-            onBlur={onSizeBlur}
-            onUnitPress={onSizeUnitPress}
+            value={sizeInput.value}
+            onChangeText={sizeInput.onChange}
+            denomination={sizeInput.denomination}
+            canToggleDenomination={sizeInput.canToggleDenomination}
+            onFocus={sizeInput.onFocus}
+            onBlur={sizeInput.onBlur}
+            onToggleDenomination={sizeInput.onToggleDenomination}
             balancePercentage={balancePercentage}
             onBalancePercentageChange={onBalancePercentageChange}
             onBalancePercentageDragEnd={onBalancePercentageDragEnd}

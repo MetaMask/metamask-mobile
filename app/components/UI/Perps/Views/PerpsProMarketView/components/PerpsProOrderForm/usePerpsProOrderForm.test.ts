@@ -703,11 +703,11 @@ describe('usePerpsProOrderForm', () => {
 
       // Act
       act(() => {
-        result.current.onSizeChange('1234567890'); // 10 digits -> ignored
+        result.current.sizeInput.onChange('1234567890'); // 10 digits -> ignored
       });
       expect(mockSetAmount).not.toHaveBeenCalled();
       act(() => {
-        result.current.onSizeChange('1234'); // valid
+        result.current.sizeInput.onChange('1234'); // valid
       });
 
       // Assert
@@ -742,6 +742,19 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(mockSetLimitPrice).toHaveBeenCalledWith('12.5');
+    });
+
+    it('rejects repeated decimal separators in limit price input', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceChange('1.2.3');
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
     });
 
     it('sets the limit price from the live mid', () => {

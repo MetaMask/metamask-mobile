@@ -32,17 +32,15 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
   onUseMidPricePress: jest.fn(),
-  size: '100',
-  sizeInputValue: '100',
-  sizeDisplay: '100',
-  sizeUnit: 'usd' as const,
-  sizeUnitLabel: 'USD',
-  showUsdPrefix: true,
-  canToggleSizeUnit: true,
-  onSizeFocus: jest.fn(),
-  onSizeBlur: jest.fn(),
-  onSizeUnitPress: jest.fn(),
-  onSizeChange: jest.fn(),
+  sizeInput: {
+    value: '100',
+    denomination: { unit: 'usd' as const },
+    canToggleDenomination: true,
+    onChange: jest.fn(),
+    onFocus: jest.fn(),
+    onBlur: jest.fn(),
+    onToggleDenomination: jest.fn(),
+  },
   balancePercentage: 20,
   onBalancePercentageChange: jest.fn(),
   onBalancePercentageDragEnd: jest.fn(),
@@ -254,9 +252,11 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockHookResult.onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the size unit returned by the hook', () => {
-    mockHookResult.sizeUnitLabel = 'BTC';
-    mockHookResult.showUsdPrefix = false;
+  it('renders the size denomination returned by the hook', () => {
+    mockHookResult.sizeInput = {
+      ...mockHookResult.sizeInput,
+      denomination: { unit: 'asset', symbol: 'BTC' },
+    };
 
     renderPanel();
 

@@ -42,15 +42,7 @@ const PerpsProOrderFormPanel = ({
     limitPrice,
     onLimitPriceChange,
     onUseMidPricePress,
-    size,
-    onSizeChange,
-    sizeUnit,
-    sizeUnitLabel,
-    showUsdPrefix,
-    canToggleSizeUnit,
-    onSizeFocus,
-    onSizeBlur,
-    onSizeUnitPress,
+    sizeInput,
     balancePercentage,
     onBalancePercentageChange,
     onBalancePercentageDragEnd,
@@ -113,15 +105,7 @@ const PerpsProOrderFormPanel = ({
         limitPrice={limitPrice}
         onLimitPriceChange={onLimitPriceChange}
         onUseMidPricePress={onUseMidPricePress}
-        size={size}
-        onSizeChange={onSizeChange}
-        sizeUnit={sizeUnit}
-        sizeUnitLabel={sizeUnitLabel}
-        showUsdPrefix={showUsdPrefix}
-        canToggleSizeUnit={canToggleSizeUnit}
-        onSizeFocus={onSizeFocus}
-        onSizeBlur={onSizeBlur}
-        onSizeUnitPress={onSizeUnitPress}
+        sizeInput={sizeInput}
         balancePercentage={balancePercentage}
         onBalancePercentageChange={onBalancePercentageChange}
         onBalancePercentageDragEnd={onBalancePercentageDragEnd}
