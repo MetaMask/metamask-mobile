@@ -44,11 +44,6 @@ jest.mock('./usePerpsWatchlistActions', () => ({
   })),
 }));
 
-const mockShowPerpsModeFlash = jest.fn();
-jest.mock('../utils/perpsModeFlash', () => ({
-  showPerpsModeFlash: (...args: unknown[]) => mockShowPerpsModeFlash(...args),
-}));
-
 let mockIsWatchlist = false;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -165,7 +160,7 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
   });
 
-  it('switches mode and flashes the mode transition', () => {
+  it('switches mode without a full-screen flash overlay', () => {
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
@@ -175,7 +170,6 @@ describe('usePerpsProMarketHeaderActions', () => {
     });
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
-    expect(mockShowPerpsModeFlash).toHaveBeenCalledWith(PerpsMode.Lite);
   });
 
   it('exposes the current mode and watchlist state', () => {

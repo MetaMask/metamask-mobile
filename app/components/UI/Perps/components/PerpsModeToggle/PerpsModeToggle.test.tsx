@@ -1,13 +1,18 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PerpsMode,
 } from '@metamask/perps-controller';
-import PerpsModeToggle from './PerpsModeToggle';
+import { withSpring } from 'react-native-reanimated';
+import PerpsModeToggle, {
+  PERPS_PRO_ACCENT_SELECTED_BG,
+} from './PerpsModeToggle';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
+import { lightTheme } from '@metamask/design-tokens';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { mockTheme } from '../../../../../util/theme';
 
 const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -26,12 +31,58 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  return {
+    ...Reanimated,
+    withSpring: jest.fn((value: number) => value),
+    interpolateColor: jest.fn(
+      (_value: number, _input: number[], output: string[]) => output[0],
+    ),
+  };
+});
+
 jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
-    SegmentedControlSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     ButtonBaseSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    BoxFlexDirection: { Row: 'row' },
+    FontWeight: { Medium: '500', Regular: '400' },
+    TextVariant: { BodySm: 'BodySm' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+    },
+    Box: ({
+      children,
+      testID,
+      accessibilityRole,
+      style,
+      ...rest
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      accessibilityRole?: string;
+      style?: unknown;
+      twClassName?: string;
+      flexDirection?: string;
+    }) => (
+      <View
+        testID={testID}
+        accessibilityRole={accessibilityRole}
+        style={style}
+        {...rest}
+      >
+        {children}
+      </View>
+    ),
+    Text: ({
+      children,
+      color,
+    }: {
+      children: React.ReactNode;
+      color?: string;
+    }) => <Text style={{ color }}>{children}</Text>,
     ButtonBase: ({
       children,
       testID,
@@ -54,52 +105,31 @@ jest.mock('@metamask/design-system-react-native', () => {
         <Text>{children}</Text>
       </TouchableOpacity>
     ),
-    SegmentedControl: ({
-      value,
-      onChange,
-      children,
-      testID,
-    }: {
-      value: string;
-      onChange: (value: string) => void;
-      children: React.ReactNode;
-      testID?: string;
-    }) => (
-      <View testID={testID} accessibilityState={{ selected: value }}>
-        {ReactActual.Children.map(
-          children,
-          (child: React.ReactElement<{ value: string }>) =>
-            ReactActual.cloneElement(child, {
-              onPress: () => onChange(child.props.value),
-            }),
-        )}
-      </View>
-    ),
-    FilterButton: ({
-      children,
-      testID,
-      onPress,
-      isSelected,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-      onPress?: () => void;
-      isSelected?: boolean;
-    }) => (
-      <TouchableOpacity
-        testID={testID}
-        onPress={onPress}
-        accessibilityState={{ selected: !!isSelected }}
-      >
-        <Text>{children}</Text>
-      </TouchableOpacity>
-    ),
   };
 });
+
+const layoutLiteSegment = (width = 56) =>
+  fireEvent(
+    screen.getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
+    'layout',
+    {
+      nativeEvent: { layout: { x: 0, y: 0, width, height: 28 } },
+    },
+  );
+
+const layoutProSegment = (width = 52) =>
+  fireEvent(
+    screen.getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
+    'layout',
+    {
+      nativeEvent: { layout: { x: 56, y: 0, width, height: 28 } },
+    },
+  );
 
 describe('PerpsModeToggle', () => {
   beforeEach(() => {
     mockTrack.mockClear();
+    (withSpring as jest.Mock).mockClear();
   });
 
   it('renders both Lite and Pro segments in the default toggle variant', () => {
@@ -257,5 +287,55 @@ describe('PerpsModeToggle', () => {
     const pill = getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT);
     expect(pill.props.accessibilityLabel).toBe('Currently Lite mode');
     expect(pill.props.accessibilityHint).toBe('Switches to Pro mode');
+  });
+
+  it('uses the Figma pro-selected fill color when no shared token exists', () => {
+    // Figma variables expose accent/02 light/normal/dark only; selected fill
+    // remains the documented ~18% accent/02/normal over background/default.
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    expect(PERPS_PRO_ACCENT_SELECTED_BG).toBe('#382b43');
+  });
+
+  it('wires Pro gradient label colors from accent02 design tokens', () => {
+    expect(mockTheme.colors.accent02.light).toBe(
+      lightTheme.colors.accent02.light,
+    );
+    expect(mockTheme.colors.accent02.normal).toBe(
+      lightTheme.colors.accent02.normal,
+    );
+  });
+
+  it('snaps the slider without animating when mounted in Pro mode', () => {
+    render(<PerpsModeToggle mode={PerpsMode.Pro} onChange={jest.fn()} />);
+
+    layoutLiteSegment();
+    layoutProSegment();
+
+    expect(withSpring).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(PerpsModeToggleSelectorsIDs.SLIDER),
+    ).toBeOnTheScreen();
+  });
+
+  it('animates the slider only after the initial placement when mode changes', () => {
+    const { rerender } = render(
+      <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
+    );
+
+    layoutLiteSegment();
+    layoutProSegment();
+
+    expect(withSpring).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(PerpsModeToggleSelectorsIDs.SLIDER),
+    ).toBeOnTheScreen();
+
+    rerender(<PerpsModeToggle mode={PerpsMode.Pro} onChange={jest.fn()} />);
+
+    expect(withSpring).toHaveBeenCalledTimes(1);
+    expect(withSpring).toHaveBeenCalledWith(1, {
+      duration: 150,
+      dampingRatio: 0.75,
+    });
   });
 });

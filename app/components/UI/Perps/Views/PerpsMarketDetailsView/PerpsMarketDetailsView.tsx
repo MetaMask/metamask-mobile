@@ -74,7 +74,6 @@ import {
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -352,14 +351,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isWatchlist = useSelector(selectIsWatchlist);
 
   // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Pressing it
-  // flips the shared mode and flashes the switch on top of the current market
-  // screen — no navigation either direction.
+  // flips the shared mode — no navigation either direction. Transition feedback
+  // is the pill animation itself (TAT-3640); no full-screen flash.
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
-      showPerpsModeFlash(nextMode);
     },
     [setPerpsMode],
   );

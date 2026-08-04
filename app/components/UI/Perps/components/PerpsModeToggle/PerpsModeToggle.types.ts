@@ -30,7 +30,8 @@ export interface PerpsModeToggleProps {
   variant?: PerpsModeToggleVariant;
 
   /**
-   * Size of the underlying segmented control.
+   * Retained for API compatibility with the previous SegmentedControl-based
+   * toggle. The animated pill uses Sm sizing to match Figma Body/Sm/Medium.
    *
    * @default SegmentedControlSize.Sm
    */

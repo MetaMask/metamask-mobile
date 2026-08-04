@@ -80,7 +80,6 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { usePerpsMode } from '../../UI/Perps/hooks';
 import PerpsModeToggle from '../../UI/Perps/components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../UI/Perps/utils/perpsModeFlash';
 import {
   buildDefaultProMarket,
   toPerpsNavigatorScreenParams,
@@ -262,10 +261,9 @@ function TradeWalletActions() {
       postCallback.current = () => {
         // First-time users must still go through onboarding (same as tapping
         // the Perps row): routing straight into Perps would skip the tutorial
-        // otherwise, so no mode-switch flash is shown here. The redirect
-        // mirrors the Pro/Lite branches below so completing the tutorial
-        // doesn't land back on Perps Home while Pro mode is active
-        // (TAT-3612).
+        // otherwise. The redirect mirrors the Pro/Lite branches below so
+        // completing the tutorial doesn't land back on Perps Home while Pro
+        // mode is active (TAT-3612).
         if (isFirstTimePerpsUser) {
           navigate(
             Routes.PERPS.TUTORIAL,
@@ -282,8 +280,6 @@ function TradeWalletActions() {
           );
           return;
         }
-        // Flash the destination mode on top of the Perps stack once it mounts.
-        showPerpsModeFlash(nextMode);
         if (nextMode === PerpsMode.Pro) {
           // Pro lands on the default (BTC) market screen. Deliberately no
           // `initial: false` here: Perps Home must never be seeded beneath
