@@ -23,7 +23,7 @@ import {
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
-import TestHelpers from '../../helpers';
+import { launchApp as launchDetoxApp } from '../detox/DetoxAppLaunch';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
@@ -660,9 +660,6 @@ export async function withFixtures(
   // This ensures we start with a clean slate on Android
   await cleanupAllAndroidPortForwarding();
 
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
-
   // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
   // Resources must be started in this specific order to ensure ports are allocated
   // before they're referenced by subsequent resources, especially in testSpecificMock.
@@ -828,7 +825,7 @@ export async function withFixtures(
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
-        await TestHelpers.launchApp({
+        await launchDetoxApp({
           delete: true,
           launchArgs: {
             fixtureServerPort: isAndroid
