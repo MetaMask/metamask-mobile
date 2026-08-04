@@ -1,6 +1,4 @@
-import {
-  scrollAndroidWebIdIntoView,
-} from './AndroidWebViewNative';
+import { scrollAndroidWebIdIntoView } from './AndroidWebViewNative';
 import AndroidWebViewCdpHelpers, {
   isAndroidWebViewCdpScrollEnabled,
 } from './AndroidWebViewCdpHelpers';
@@ -54,9 +52,7 @@ interface MockElement {
   elementId?: string;
 }
 
-function mockDriverWithFindSequence(
-  outcomes: ('miss' | 'hit')[],
-): jest.Mock {
+function mockDriverWithFindSequence(outcomes: ('miss' | 'hit')[]): jest.Mock {
   let call = 0;
   const dollar = jest.fn(() => {
     const outcome = outcomes[Math.min(call, outcomes.length - 1)];

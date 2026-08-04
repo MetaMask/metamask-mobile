@@ -11,6 +11,8 @@ const logger = createPlaywrightLogger('AndroidWebViewCdp');
 const WEBVIEW_CDP_FORWARD_PORT = 9223;
 const CDP_READY_TIMEOUT_MS = 15_000;
 const PAGE_TIMEOUT_MS = 15_000;
+/** Cap stuck WebSocket handshakes so native scroll fallback can start. */
+const CDP_CONNECT_TIMEOUT_MS = 5_000;
 const POLL_MS = 400;
 
 export interface RawAppiumWebViewContext {
@@ -69,8 +71,41 @@ class CdpSession {
     return new Promise((resolve, reject) => {
       const ws = new WsClient(wsUrl);
       const session = new CdpSession(ws);
-      ws.once('open', () => resolve(session));
-      ws.once('error', (err) => reject(err));
+      let settled = false;
+      const timerRef: { id?: ReturnType<typeof setTimeout> } = {};
+
+      const settle = (fn: () => void) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if (timerRef.id !== undefined) {
+          clearTimeout(timerRef.id);
+        }
+        fn();
+      };
+
+      timerRef.id = setTimeout(() => {
+        settle(() => {
+          try {
+            ws.terminate();
+          } catch {
+            ws.close();
+          }
+          reject(
+            new Error(
+              `CDP WebSocket connect timed out after ${CDP_CONNECT_TIMEOUT_MS}ms`,
+            ),
+          );
+        });
+      }, CDP_CONNECT_TIMEOUT_MS);
+
+      ws.once('open', () => {
+        settle(() => resolve(session));
+      });
+      ws.once('error', (err) => {
+        settle(() => reject(err));
+      });
     });
   }
 
@@ -350,12 +385,14 @@ export default class AndroidWebViewCdpHelpers {
     }
     execFileSync(
       'adb',
-      ['forward', `tcp:${port}`, `localabstract:webview_devtools_remote_${pid}`],
+      [
+        'forward',
+        `tcp:${port}`,
+        `localabstract:webview_devtools_remote_${pid}`,
+      ],
       { stdio: 'pipe' },
     );
-    logger.debug(
-      `ADB forwarded tcp:${port} → webview_devtools_remote_${pid}`,
-    );
+    logger.debug(`ADB forwarded tcp:${port} → webview_devtools_remote_${pid}`);
   }
 
   private static async waitForCdpEndpoint(endpoint: string): Promise<void> {

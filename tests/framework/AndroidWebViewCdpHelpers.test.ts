@@ -28,9 +28,14 @@ jest.mock('ws', () => {
     >();
     private opened = false;
     readonly mockUrl: string;
+    terminated = false;
 
     constructor(mockUrl: string) {
       this.mockUrl = mockUrl;
+      // Simulate a WebSocket that never opens so connect timeout can fire.
+      if (mockUrl.includes('/hang')) {
+        return;
+      }
       queueMicrotask(() => {
         this.opened = true;
         this.emit('open');
@@ -86,6 +91,10 @@ jest.mock('ws', () => {
 
     close(): void {
       // no-op
+    }
+
+    terminate(): void {
+      this.terminated = true;
     }
 
     private emit(event: string, ...args: unknown[]): void {
@@ -319,5 +328,41 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
     );
 
     expect(result).toBe(false);
+  });
+
+  it('returns false when CDP WebSocket connect never opens', async () => {
+    jest.useFakeTimers();
+    try {
+      global.fetch = jest.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith('/json/version')) {
+          return { ok: true } as Response;
+        }
+        if (url.endsWith('/json/list')) {
+          return {
+            ok: true,
+            json: async () => [
+              {
+                type: 'page',
+                url: pageUrl,
+                webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/hang',
+              },
+            ],
+          } as Response;
+        }
+        return { ok: false } as Response;
+      }) as typeof fetch;
+
+      const resultPromise = AndroidWebViewCdpHelpers.scrollElementByIdIntoView(
+        'connectbip32',
+        { pageUrl },
+      );
+      await jest.advanceTimersByTimeAsync(5_000);
+      const result = await resultPromise;
+
+      expect(result).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
