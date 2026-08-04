@@ -6,6 +6,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+import type { PerpsProSizeInputModel } from './PerpsProOrderForm/PerpsProOrderForm.types';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -22,6 +23,16 @@ jest.mock('../../../contexts/PerpsOrderContext', () => ({
   PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+const DEFAULT_SIZE_INPUT: PerpsProSizeInputModel = {
+  value: '100',
+  denomination: { unit: 'usd' },
+  canToggleDenomination: true,
+  onChange: jest.fn(),
+  onFocus: jest.fn(),
+  onBlur: jest.fn(),
+  onToggleDenomination: jest.fn(),
+};
+
 const DEFAULT_MOCK_HOOK_RESULT = {
   direction: 'long' as 'long' | 'short',
   onDirectionChange: jest.fn(),
@@ -32,15 +43,7 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
   onUseMidPricePress: jest.fn(),
-  sizeInput: {
-    value: '100',
-    denomination: { unit: 'usd' as const },
-    canToggleDenomination: true,
-    onChange: jest.fn(),
-    onFocus: jest.fn(),
-    onBlur: jest.fn(),
-    onToggleDenomination: jest.fn(),
-  },
+  sizeInput: DEFAULT_SIZE_INPUT,
   balancePercentage: 20,
   onBalancePercentageChange: jest.fn(),
   onBalancePercentageDragEnd: jest.fn(),
