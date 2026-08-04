@@ -5,7 +5,10 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import {
+  ConfirmationFooterSelectorIDs,
+  ConfirmationUIType,
+} from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { PlaywrightAssertions, sleep } from '../../framework';
 
 class SignModal {
@@ -27,6 +30,18 @@ class SignModal {
     });
   }
 
+  get modalContainer(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () => PlaywrightMatchers.getElementById(ConfirmationUIType.MODAL),
+    });
+  }
+
+  get flatContainer(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () => PlaywrightMatchers.getElementById(ConfirmationUIType.FLAT),
+    });
+  }
+
   getNetworkText(network: string): EncapsulatedElementType {
     return encapsulated({
       appium: () =>
@@ -34,6 +49,29 @@ class SignModal {
           `(//android.widget.TextView[@text="${network}"])[1]`,
         ),
     });
+  }
+
+  /**
+   * True when a redesign confirmation (sign / typed-data / tx) is on screen.
+   * `cancel-button` alone is shared with the connect sheet.
+   */
+  async isSignSheetVisible(): Promise<boolean> {
+    for (const getter of [
+      () => this.modalContainer,
+      () => this.flatContainer,
+      () => this.confirmButton,
+    ]) {
+      try {
+        const element = await asPlaywrightElement(getter());
+        // PlaywrightElement exposes isVisible() (maps to WDIO isDisplayed).
+        if (await element.isVisible()) {
+          return true;
+        }
+      } catch {
+        // Selector not present; try next.
+      }
+    }
+    return false;
   }
 
   async tapConfirmButton({
@@ -73,9 +111,21 @@ class SignModal {
       appium: async () => {
         await PlaywrightAssertions.expectConditionWithRetry(
           async () => {
+            const sheetDeadline = Date.now() + timeout;
+            while (Date.now() < sheetDeadline) {
+              if (await this.isSignSheetVisible()) {
+                break;
+              }
+              await sleep(250);
+            }
+            if (!(await this.isSignSheetVisible())) {
+              throw new Error(
+                `SignModal: confirmation sheet not visible within ${timeout}ms`,
+              );
+            }
             const element = await asPlaywrightElement(this.cancelButton);
             await element.waitForDisplayed({
-              timeout,
+              timeout: 5_000,
               timeoutMsg: 'SignModal: cancel button not visible',
             });
             await element.click();

@@ -48,6 +48,15 @@ class AndroidScreenHelpers {
   } = {}): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
+        // In-session requests can show the sheet before any chooser.
+        // Collapsing the status bar has dismissed that sheet on CI.
+        if (await this.isExpectedSheetVisible(awaitSheet)) {
+          logger.debug(
+            `MetaMask ${awaitSheet} sheet already visible; skipping chooser`,
+          );
+          return;
+        }
+
         PlaywrightUtilities.collapseStatusBar();
 
         const deadline = Date.now() + CHOOSER_TIMEOUT_MS;

@@ -272,15 +272,19 @@ export async function switchWalletAccount(
 /**
  * Request personal_sign from the Legacy EVM card and cancel in MetaMask.
  *
- * MetaMask stays foregrounded while the RPC is sent (avoids transport
- * timeout). Cancel taps the sign sheet directly — no deeplink chooser in
- * this path. Do not activateApp/unlock after the click: that collapses the
- * status bar / restarts the activity and dismisses the confirmation sheet.
+ * CI google_apis Chrome often sits on FRE while backgrounded; warm it first,
+ * then foreground MetaMask and CDP-click so the SDK can deliver the request.
+ * Do not `activateApp` after the click — that can tear down the confirmation.
+ * Cancel via SignModal only (wait for redesign surface, not bare cancel-button);
+ * do not route through the deeplink chooser helper — collapseStatusBar there can
+ * dismiss an in-session sheet that is still animating in.
  */
 export async function rejectLegacyPersonalSign(
   dappUrl: string,
   currentDeviceDetails?: CurrentDeviceDetails,
 ): Promise<void> {
+  // Warm Chrome / clear FRE so a backgrounded tab can still serve CDP + SDK.
+  await switchToMobileBrowser();
   PlaywrightUtilities.collapseStatusBar();
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
@@ -288,18 +292,19 @@ export async function rejectLegacyPersonalSign(
       currentDeviceDetails,
       APP_PACKAGE_IDS.ANDROID,
     );
-    await unlockIfLockScreenVisible();
   });
 
-  // Keep MetaMask foregrounded while the RPC is sent.
   await ChromeCdpHelpers.waitAndClickTestId(
     dappUrl,
     MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN,
   );
 
   await PlaywrightContextHelpers.withNativeAction(async () => {
-    // Confirmation sheet animates in after the RPC arrives.
-    await SignModal.tapCancelButton({ timeout: 30_000 });
+    await SignModal.tapCancelButton({
+      timeout: 30_000,
+      shouldCooldown: true,
+      timeToCooldown: 2_000,
+    });
   });
 
   await switchToMobileBrowser();
@@ -307,6 +312,7 @@ export async function rejectLegacyPersonalSign(
     dappUrl,
     MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT,
     'rejected',
+    30_000,
   );
 }
 
