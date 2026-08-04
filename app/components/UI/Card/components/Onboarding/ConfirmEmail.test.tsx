@@ -8,7 +8,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useRegions from '../../hooks/useRegions';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
@@ -521,6 +521,34 @@ describe('ConfirmEmail Component', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         screen: CardScreens.CONFIRM_EMAIL,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED with CONFIRM_EMAIL_BUTTON when code is submitted', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+      await act(async () => {
+        const onChangeTextHandler = codeFieldInput.props.onChangeText;
+        if (onChangeTextHandler) {
+          onChangeTextHandler('123456');
+        }
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action: CardActions.CONFIRM_EMAIL_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });

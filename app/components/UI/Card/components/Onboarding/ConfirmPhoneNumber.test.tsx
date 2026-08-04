@@ -7,7 +7,7 @@ import ConfirmPhoneNumber from './ConfirmPhoneNumber';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
@@ -395,6 +395,31 @@ describe('ConfirmPhoneNumber Component', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         screen: CardScreens.CONFIRM_PHONE_NUMBER,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED with CONFIRM_PHONE_NUMBER_BUTTON when code is submitted', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      const codeFieldInput = getByTestId('confirm-phone-number-code-field');
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
