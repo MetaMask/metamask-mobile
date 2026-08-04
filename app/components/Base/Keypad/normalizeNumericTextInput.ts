@@ -56,9 +56,10 @@ const parseNumericTextParts = (
     }
 
     if (character === decimalSeparator) {
-      if (!hasDecimalSeparator) {
-        hasDecimalSeparator = true;
+      if (hasDecimalSeparator) {
+        return null;
       }
+      hasDecimalSeparator = true;
       continue;
     }
 

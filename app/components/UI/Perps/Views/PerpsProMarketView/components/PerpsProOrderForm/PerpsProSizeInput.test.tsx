@@ -33,10 +33,9 @@ const createProps = (
 ): PerpsProSizeInputProps => ({
   value: '',
   onChangeText: jest.fn(),
-  unitLabel: 'USD',
-  showUsdPrefix: true,
-  canToggleUnit: true,
-  onUnitPress: jest.fn(),
+  denomination: { unit: 'usd' },
+  canToggleDenomination: true,
+  onToggleDenomination: jest.fn(),
   balancePercentage: 25,
   onBalancePercentageChange: jest.fn(),
   availableBalance: '$500 available',
@@ -60,24 +59,24 @@ describe('PerpsProSizeInput', () => {
     expect(mockInputFocus).toHaveBeenCalledTimes(1);
   });
 
-  it('refocuses the input after the unit toggle is pressed', () => {
-    const onUnitPress = jest.fn();
-    renderInput({ onUnitPress });
+  it('refocuses the input after the denomination toggle is pressed', () => {
+    const onToggleDenomination = jest.fn();
+    renderInput({ onToggleDenomination });
 
     fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
 
-    expect(onUnitPress).toHaveBeenCalledTimes(1);
+    expect(onToggleDenomination).toHaveBeenCalledTimes(1);
     expect(mockInputFocus).toHaveBeenCalledTimes(1);
   });
 
-  it('disables the unit toggle when conversion is unavailable', () => {
-    renderInput({ canToggleUnit: false });
+  it('disables the denomination toggle when conversion is unavailable', () => {
+    renderInput({ canToggleDenomination: false });
 
     expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
   });
 
-  it('uses the unit in field and toggle accessibility text', () => {
-    renderInput({ unitLabel: 'BTC' });
+  it('uses the asset symbol in field and toggle accessibility text', () => {
+    renderInput({ denomination: { unit: 'asset', symbol: 'BTC' } });
 
     expect(screen.getByTestId(ids.SIZE_FIELD)).toHaveAccessibleName(
       'Size (BTC)',

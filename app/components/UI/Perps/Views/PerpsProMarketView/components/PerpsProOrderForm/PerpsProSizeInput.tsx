@@ -20,18 +20,21 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
+import type { PerpsProSizeDenomination } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+
+const getUnitLabel = (denomination: PerpsProSizeDenomination): string =>
+  denomination.unit === 'usd' ? 'USD' : denomination.symbol;
 
 export interface PerpsProSizeInputProps {
   value: string;
   onChangeText: (value: string) => void;
-  unitLabel: string;
-  showUsdPrefix: boolean;
-  canToggleUnit: boolean;
+  denomination: PerpsProSizeDenomination;
+  canToggleDenomination: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
-  onUnitPress?: () => void;
+  onToggleDenomination?: () => void;
   balancePercentage: number;
   onBalancePercentageChange: (value: number) => void;
   onBalancePercentageDragEnd?: () => void;
@@ -43,12 +46,11 @@ export interface PerpsProSizeInputProps {
 const PerpsProSizeInput = ({
   value,
   onChangeText,
-  unitLabel,
-  showUsdPrefix,
-  canToggleUnit,
+  denomination,
+  canToggleDenomination,
   onFocus,
   onBlur,
-  onUnitPress,
+  onToggleDenomination,
   balancePercentage,
   onBalancePercentageChange,
   onBalancePercentageDragEnd,
@@ -58,10 +60,13 @@ const PerpsProSizeInput = ({
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
   const inputRef = useRef<TextInput>(null);
+  const unitLabel = getUnitLabel(denomination);
+  const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
     unit: unitLabel,
   });
-  const canPressUnitToggle = canToggleUnit && Boolean(onUnitPress);
+  const canPressDenominationToggle =
+    canToggleDenomination && Boolean(onToggleDenomination);
   const inputAccessoryViewID =
     Platform.OS === 'ios'
       ? getPerpsProInputAccessoryID(ids.SIZE_INPUT)
@@ -71,14 +76,14 @@ const PerpsProSizeInput = ({
     inputRef.current?.focus();
   }, []);
 
-  const handleUnitPress = useCallback(() => {
-    if (!canPressUnitToggle) {
+  const handleToggleDenomination = useCallback(() => {
+    if (!canPressDenominationToggle) {
       return;
     }
 
-    onUnitPress?.();
+    onToggleDenomination?.();
     focusInput();
-  }, [canPressUnitToggle, focusInput, onUnitPress]);
+  }, [canPressDenominationToggle, focusInput, onToggleDenomination]);
 
   return (
     <Box
@@ -140,8 +145,10 @@ const PerpsProSizeInput = ({
           <ButtonIcon
             iconName={IconName.SwapHorizontal}
             size={ButtonIconSize.Xs}
-            isDisabled={!canPressUnitToggle}
-            onPress={canPressUnitToggle ? handleUnitPress : undefined}
+            isDisabled={!canPressDenominationToggle}
+            onPress={
+              canPressDenominationToggle ? handleToggleDenomination : undefined
+            }
             testID={ids.SIZE_UNIT_BUTTON}
             accessibilityLabel={`${strings(
               'perps.pro_order_form.toggle_size_unit',

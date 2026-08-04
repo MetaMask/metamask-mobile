@@ -1,12 +1,35 @@
 import type { OrderType } from '@metamask/perps-controller';
-import type { PerpsProSizeUnit } from './usePerpsProSizeInput';
+
 export type PerpsProOrderDirection = 'long' | 'short';
+
+/**
+ * Active size-denomination for the Pro order form size field.
+ * USD is the canonical controller amount; asset is a UI conversion view.
+ */
+export type PerpsProSizeDenomination =
+  | { unit: 'usd' }
+  | { unit: 'asset'; symbol: string };
+
+/**
+ * Editable size field state and handlers for the Pro order form.
+ */
+export interface PerpsProSizeInputModel {
+  value: string;
+  denomination: PerpsProSizeDenomination;
+  canToggleDenomination: boolean;
+  onChange: (value: string) => void;
+  onFocus: () => void;
+  onBlur: () => void;
+  onToggleDenomination: () => void;
+}
+
 export interface PerpsProOrderNotice {
   id: string;
   variant: 'banner' | 'inline';
   title?: string;
   message: string;
 }
+
 export interface PerpsProOrderSummaryProps {
   margin: string;
   liquidationPrice: string;
@@ -17,6 +40,7 @@ export interface PerpsProOrderSummaryProps {
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
 }
+
 export interface PerpsProOrderFormProps {
   direction: PerpsProOrderDirection;
   onDirectionChange: (direction: PerpsProOrderDirection) => void;
@@ -34,15 +58,7 @@ export interface PerpsProOrderFormProps {
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
   onUseMidPricePress?: () => void;
-  size: string;
-  onSizeChange: (value: string) => void;
-  sizeUnit?: PerpsProSizeUnit;
-  sizeUnitLabel?: string;
-  showUsdPrefix?: boolean;
-  canToggleSizeUnit?: boolean;
-  onSizeFocus?: () => void;
-  onSizeBlur?: () => void;
-  onSizeUnitPress?: () => void;
+  sizeInput: PerpsProSizeInputModel;
   balancePercentage: number;
   onBalancePercentageChange: (value: number) => void;
   onBalancePercentageDragEnd?: () => void;

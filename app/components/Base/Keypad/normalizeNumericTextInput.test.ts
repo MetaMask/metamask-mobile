@@ -27,12 +27,25 @@ describe('normalizeNumericTextInput', () => {
     expect(result).toEqual({ value: '', ok: true });
   });
 
-  it('ignores decimal separators after the first separator', () => {
-    const previousValue = '1.2';
+  it.each(['1.2.3', '1..2', '..1'])(
+    'rejects repeated decimal separators in %s',
+    (text) => {
+      const previousValue = '1.2';
 
-    const result = normalizeNumericTextInput('1.2.3', previousValue);
+      const result = normalizeNumericTextInput(text, previousValue);
 
-    expect(result).toEqual({ value: '1.23', ok: true });
+      expect(result).toEqual({ value: previousValue, ok: false });
+    },
+  );
+
+  it('rejects repeated configured decimal separators', () => {
+    const previousValue = '1,2';
+
+    const result = normalizeNumericTextInput('1,2,3', previousValue, {
+      decimalSeparator: ',',
+    });
+
+    expect(result).toEqual({ value: previousValue, ok: false });
   });
 
   it('rejects text containing non-numeric characters', () => {

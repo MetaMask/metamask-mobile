@@ -16,52 +16,62 @@ const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 const ids = PerpsProOrderFormSelectorsIDs;
 
-const createProps = (
-  overrides: Partial<PerpsProOrderFormProps> = {},
-): PerpsProOrderFormProps => ({
-  direction: 'long',
-  onDirectionChange: jest.fn(),
-  marginModeLabel: 'Isolated',
-  leverageLabel: '3x',
-  orderType: 'market',
-  onOrderTypeButtonPress: jest.fn(),
-  limitPrice: '',
-  onLimitPriceChange: jest.fn(),
-  size: '',
-  onSizeChange: jest.fn(),
-  sizeUnit: 'usd',
-  sizeUnitLabel: 'USD',
-  showUsdPrefix: true,
-  canToggleSizeUnit: true,
-  onSizeUnitPress: jest.fn(),
-  balancePercentage: 0,
-  onBalancePercentageChange: jest.fn(),
-  onBalancePercentageDragEnd: jest.fn(),
-  onBalancePercentageDragCancel: jest.fn(),
-  availableBalance: '-- available',
-  reduceOnly: false,
-  onReduceOnlyChange: jest.fn(),
-  isTPSLConfigured: false,
-  notices: [],
-  summary: { margin: '--', liquidationPrice: '--', slippage: '--' },
-  placeOrderLabel: 'Place order',
-  placeOrderIntent: 'long',
-  onPlaceOrderPress: jest.fn(),
+const createSizeInput = (
+  overrides: Partial<PerpsProOrderFormProps['sizeInput']> = {},
+): PerpsProOrderFormProps['sizeInput'] => ({
+  value: '',
+  denomination: { unit: 'usd' },
+  canToggleDenomination: true,
+  onChange: jest.fn(),
+  onFocus: jest.fn(),
+  onBlur: jest.fn(),
+  onToggleDenomination: jest.fn(),
   ...overrides,
 });
+
+const createProps = (
+  overrides: Partial<PerpsProOrderFormProps> = {},
+): PerpsProOrderFormProps => {
+  const { sizeInput, ...rest } = overrides;
+  return {
+    direction: 'long',
+    onDirectionChange: jest.fn(),
+    marginModeLabel: 'Isolated',
+    leverageLabel: '3x',
+    orderType: 'market',
+    onOrderTypeButtonPress: jest.fn(),
+    limitPrice: '',
+    onLimitPriceChange: jest.fn(),
+    sizeInput: createSizeInput(sizeInput),
+    balancePercentage: 0,
+    onBalancePercentageChange: jest.fn(),
+    onBalancePercentageDragEnd: jest.fn(),
+    onBalancePercentageDragCancel: jest.fn(),
+    availableBalance: '-- available',
+    reduceOnly: false,
+    onReduceOnlyChange: jest.fn(),
+    isTPSLConfigured: false,
+    notices: [],
+    summary: { margin: '--', liquidationPrice: '--', slippage: '--' },
+    placeOrderLabel: 'Place order',
+    placeOrderIntent: 'long',
+    onPlaceOrderPress: jest.fn(),
+    ...rest,
+  };
+};
 
 const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
 describe('PerpsProOrderForm', () => {
   describe('inputs', () => {
-    it('passes raw size text to onSizeChange', () => {
-      const onSizeChange = jest.fn();
-      renderForm({ onSizeChange });
+    it('passes raw size text to sizeInput.onChange', () => {
+      const onChange = jest.fn();
+      renderForm({ sizeInput: createSizeInput({ onChange }) });
 
       fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '1..2');
 
-      expect(onSizeChange).toHaveBeenCalledWith('1..2');
+      expect(onChange).toHaveBeenCalledWith('1..2');
     });
 
     it('passes raw limit price text to onLimitPriceChange', () => {
@@ -92,7 +102,9 @@ describe('PerpsProOrderForm', () => {
     });
 
     it('renders the size label with the active unit', () => {
-      renderForm({ sizeUnitLabel: 'USD' });
+      renderForm({
+        sizeInput: createSizeInput({ denomination: { unit: 'usd' } }),
+      });
 
       expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
         'Size (USD)',
@@ -100,44 +112,36 @@ describe('PerpsProOrderForm', () => {
     });
 
     it('renders the dollar prefix for USD size', () => {
-      renderForm({ showUsdPrefix: true });
+      renderForm({
+        sizeInput: createSizeInput({ denomination: { unit: 'usd' } }),
+      });
 
       expect(screen.getByTestId(ids.SIZE_PREFIX)).toHaveTextContent('$');
     });
 
-    it('omits the dollar prefix for coin size', () => {
-      renderForm({ showUsdPrefix: false, sizeUnitLabel: 'BTC' });
+    it('omits the dollar prefix for asset size', () => {
+      renderForm({
+        sizeInput: createSizeInput({
+          denomination: { unit: 'asset', symbol: 'BTC' },
+        }),
+      });
 
       expect(screen.queryByTestId(ids.SIZE_PREFIX)).not.toBeOnTheScreen();
-    });
-
-    it('uses size defaults when optional denomination props are undefined', () => {
-      render(
-        <PerpsProOrderForm
-          {...createProps()}
-          sizeUnitLabel={undefined}
-          showUsdPrefix={undefined}
-          canToggleSizeUnit={undefined}
-        />,
-      );
-
       expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
-        'Size (USD)',
+        'Size (BTC)',
       );
-      expect(screen.queryByTestId(ids.SIZE_PREFIX)).not.toBeOnTheScreen();
-      expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeEnabled();
     });
 
     it('forwards size focus and blur callbacks', () => {
-      const onSizeFocus = jest.fn();
-      const onSizeBlur = jest.fn();
-      renderForm({ onSizeFocus, onSizeBlur });
+      const onFocus = jest.fn();
+      const onBlur = jest.fn();
+      renderForm({ sizeInput: createSizeInput({ onFocus, onBlur }) });
 
       fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'focus');
       fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'blur');
 
-      expect(onSizeFocus).toHaveBeenCalledTimes(1);
-      expect(onSizeBlur).toHaveBeenCalledTimes(1);
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
     it('shows available balance with add funds action below the size input', () => {
@@ -235,17 +239,18 @@ describe('PerpsProOrderForm', () => {
       );
     });
 
-    it('enables the size unit toggle when conversion is available', () => {
+    it('enables the size denomination toggle when conversion is available', () => {
       renderForm({
-        canToggleSizeUnit: true,
-        onSizeUnitPress: jest.fn(),
+        sizeInput: createSizeInput({ canToggleDenomination: true }),
       });
 
       expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeEnabled();
     });
 
-    it('disables the size unit toggle when conversion is unavailable', () => {
-      renderForm({ canToggleSizeUnit: false });
+    it('disables the size denomination toggle when conversion is unavailable', () => {
+      renderForm({
+        sizeInput: createSizeInput({ canToggleDenomination: false }),
+      });
 
       expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
     });
@@ -348,7 +353,19 @@ describe('PerpsProOrderForm', () => {
       ['slippage', ids.SUMMARY_SLIPPAGE_BUTTON],
       ['fees', ids.SUMMARY_FEES_BUTTON],
     ])('disables deferred %s action without a callback', (_name, testID) => {
-      renderForm({ orderType: 'limit', onSizeUnitPress: undefined });
+      renderForm({
+        orderType: 'limit',
+        sizeInput: createSizeInput({ canToggleDenomination: false }),
+        onAddFundsPress: undefined,
+        onTPSLPress: undefined,
+        onUseMidPricePress: undefined,
+        onLeveragePress: undefined,
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          slippage: '--',
+        },
+      });
 
       expect(screen.getByTestId(testID)).toBeDisabled();
     });

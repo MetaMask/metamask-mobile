@@ -67,11 +67,9 @@ import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
+  PerpsProSizeInputModel,
 } from './PerpsProOrderForm.types';
-import {
-  usePerpsProSizeInput,
-  type PerpsProSizeUnit,
-} from './usePerpsProSizeInput';
+import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 
 export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
@@ -88,18 +86,7 @@ export interface UsePerpsProOrderFormResult {
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
   onUseMidPricePress: () => void;
-  size: string;
-  sizeDisplay: string;
-  sizeInputValue: string;
-  sizeUnit: PerpsProSizeUnit;
-  sizeUnitLabel: string;
-  onSizeChange: (value: string) => void;
-  onSizeFocus: () => void;
-  onSizeBlur: () => void;
-  onSizeUnitPress: () => void;
-  canToggleSizeUnit: boolean;
-  showUsdPrefix: boolean;
-  isSizeFocused: boolean;
+  sizeInput: PerpsProSizeInputModel;
   balancePercentage: number;
   onBalancePercentageChange: (value: number) => void;
   onBalancePercentageDragEnd: () => void;
@@ -252,7 +239,14 @@ export const usePerpsProOrderForm = ({
     return parsedLimitPrice > 0 ? parsedLimitPrice : assetData.price;
   }, [assetData.price, orderForm.limitPrice, orderForm.type]);
 
-  const sizeInput = usePerpsProSizeInput({
+  const {
+    sizeInput,
+    balancePercentage,
+    onBalancePercentageChange,
+    onBalancePercentageDragEnd,
+    onBalancePercentageDragCancel,
+    effectiveUsdAmount,
+  } = usePerpsProSizeInput({
     usdAmount: orderForm.amount,
     setAmount,
     assetSymbol: symbol,
@@ -261,7 +255,6 @@ export const usePerpsProOrderForm = ({
     maxPossibleAmount,
     maxDigits: MAX_PERPS_INPUT_DIGITS,
   });
-  const { effectiveUsdAmount } = sizeInput;
 
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -920,8 +913,12 @@ export const usePerpsProOrderForm = ({
     limitPrice: orderForm.limitPrice ?? '',
     onLimitPriceChange,
     onUseMidPricePress,
-    size: sizeInput.sizeInputValue,
-    ...sizeInput,
+    sizeInput,
+    balancePercentage,
+    onBalancePercentageChange,
+    onBalancePercentageDragEnd,
+    onBalancePercentageDragCancel,
+    effectiveUsdAmount,
     availableBalance,
     onAddFundsPress: handleAddFunds,
     reduceOnly,
