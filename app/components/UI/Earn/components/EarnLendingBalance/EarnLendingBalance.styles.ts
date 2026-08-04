@@ -39,11 +39,8 @@ const styleSheet = (params: {
       paddingTop: 16,
       paddingBottom: userHasLendingPositions ? 8 : 0,
     },
-    EarnEmptyStateCta: {
-      paddingTop: 16,
-    },
     earnings: {
-      paddingTop: 16,
+      paddingHorizontal: 16,
     },
   });
 };

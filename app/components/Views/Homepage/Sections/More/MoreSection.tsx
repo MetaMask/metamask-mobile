@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Icon,
@@ -22,7 +23,7 @@ import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { HomepageMoreSelectorsIDs } from '../../Homepage.testIds';
 
 const MoreSection = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const currentChainId = useSelector(selectEvmChainId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();

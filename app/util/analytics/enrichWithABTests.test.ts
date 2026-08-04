@@ -1,6 +1,7 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingView/abTestConfig';
+import { HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY } from '../../components/Views/Homepage/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 
@@ -42,6 +43,23 @@ describe('enrichWithABTests', () => {
         ),
       ],
     });
+  });
+
+  it('enriches homepage breakdown row events with the experiment assignment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.BALANCE_BREAKDOWN_SLICE_TAPPED,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY]: 'allocation',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+        'allocation',
+      ),
+    ]);
   });
 
   it('injects multiple assignments when multiple tests match the same event', () => {
@@ -192,22 +210,6 @@ describe('enrichWithABTests', () => {
         ),
       ],
     });
-  });
-
-  it('enriches Home Viewed events with hub page discovery tabs assignment', () => {
-    const event =
-      AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
-
-    const result = enrichWithABTests(event, {
-      coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(
-        'coreMCU589AbtestHubPageDiscoveryTabs',
-        'treatment',
-      ),
-    ]);
   });
 
   it('enriches Explore Page Interacted events with Whats Happening Explore assignment', () => {

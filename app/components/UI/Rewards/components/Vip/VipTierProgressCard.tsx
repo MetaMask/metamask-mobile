@@ -34,6 +34,7 @@ export const VIP_TIER_PROGRESS_CARD_TEST_IDS = {
   PROGRESS_BAR: 'vip-tier-progress-card-bar',
   PROGRESS_FILL: 'vip-tier-progress-card-fill',
   SUBLINE: 'vip-tier-progress-card-subline',
+  MAINTAIN_SUBLINE: 'vip-tier-progress-card-maintain-subline',
 } as const;
 
 interface VipTierProgressCardProps {
@@ -41,6 +42,13 @@ interface VipTierProgressCardProps {
   programName?: string;
   progress: VipProgressDto;
   subline: string;
+  /**
+   * Optional secondary line under `subline` stating the points needed to
+   * maintain the current tier (e.g. "250k points to maintain this tier").
+   * Rendered only when non-empty — omitted for tier-1/unset tiers and in
+   * environments where no maintain threshold is configured.
+   */
+  maintainSubline?: string;
   memberIdTitle: string;
   memberId: string;
   onPress?: () => void;
@@ -61,6 +69,7 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
   programName,
   progress,
   subline,
+  maintainSubline,
   memberIdTitle,
   memberId,
   onPress,
@@ -165,6 +174,15 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
               >
                 {subline}
               </Text>
+              {maintainSubline ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE}
+                >
+                  {maintainSubline}
+                </Text>
+              ) : null}
             </Box>
           </Box>
         </LinearGradient>

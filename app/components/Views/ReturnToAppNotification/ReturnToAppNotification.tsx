@@ -12,6 +12,7 @@ import {
 } from '../../../core/SDKConnect/SDKConnectConstants.ts';
 import { ImageURISource } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { wait } from '../../../core/SDKConnect/utils/wait.util.ts';
 
 interface ReturnToAppNotificationRouteParams {
@@ -58,7 +59,7 @@ const ReturnToAppNotification = () => {
   const delayAfterMethod: number = 1200;
   const delayBetweenToast: number = 1500;
   const { method, origin, hideReturnToApp } = route.params ?? {};
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { toastRef } = useContext(ToastContext);
   const favicon = useFavicon(origin ?? '');
   const hasExecuted = useRef<boolean>(false);

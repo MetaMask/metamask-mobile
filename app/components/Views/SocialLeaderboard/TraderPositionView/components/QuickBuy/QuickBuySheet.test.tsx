@@ -8,6 +8,7 @@ import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
+import { useQuickBuyQuickAmountPreferences } from './hooks/useQuickBuyQuickAmountPreferences';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { positionToQuickBuyTarget } from './types';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
@@ -24,6 +25,15 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
+  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
+    buyAmounts: [10, 50, 100, 250],
+    sellPercentages: [25, 50, 75, 100],
+    savePreferences: jest.fn(),
+    isLoaded: true,
+  })),
+}));
+
 jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
@@ -37,17 +47,6 @@ jest.mock('../../../analytics', () => {
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
   };
 });
-
-// Keyboard A/B test — default to the slider (control) variant for this suite.
-// A plain variable (not a jest.fn) survives `resetMocks` between tests.
-let mockUseKeyboard = false;
-jest.mock('../../../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variant: { useKeyboard: mockUseKeyboard },
-    variantName: mockUseKeyboard ? 'treatment' : 'control',
-    isActive: mockUseKeyboard,
-  }),
-}));
 
 // Captures the onOpenDialog callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
@@ -319,12 +318,21 @@ const setMockQuickBuyController = (
   );
 };
 
+const setMockQuickBuyPreferences = () => {
+  (useQuickBuyQuickAmountPreferences as jest.Mock).mockReturnValue({
+    buyAmounts: [10, 50, 100, 250],
+    sellPercentages: [25, 50, 75, 100],
+    savePreferences: jest.fn(),
+    isLoaded: true,
+  });
+};
+
 describe('QuickBuy.Root', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
-    mockUseKeyboard = false;
     setMockQuickBuyController();
+    setMockQuickBuyPreferences();
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
       destToken: undefined,
@@ -446,8 +454,7 @@ describe('QuickBuy.Root', () => {
       expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     });
 
-    it('does not render the keypad on the slider control variant', () => {
-      mockUseKeyboard = false;
+    it('renders the keypad by default', () => {
       setMockQuickBuyController({ isUnsupportedChain: false });
 
       renderWithProvider(
@@ -462,30 +469,11 @@ describe('QuickBuy.Root', () => {
         storedOnOpenCallback?.();
       });
 
-      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
+      expect(screen.queryByTestId('quick-buy-keypad-done')).toBeNull();
     });
 
-    it('does not render the keypad by default on the keyboard treatment', () => {
-      mockUseKeyboard = true;
-      setMockQuickBuyController({ isUnsupportedChain: false });
-
-      renderWithProvider(
-        <QuickBuy.Root
-          isVisible
-          target={positionToQuickBuyTarget(createPosition())}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          onClose={jest.fn()}
-        />,
-      );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
-      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
-    });
-
-    it('opens the keypad when the amount headline is tapped on the treatment', () => {
-      mockUseKeyboard = true;
+    it('keeps the keypad open when the amount headline is tapped', () => {
       setMockQuickBuyController({ isUnsupportedChain: false });
 
       renderWithProvider(
@@ -503,61 +491,6 @@ describe('QuickBuy.Root', () => {
       fireEvent.press(screen.getByTestId('quick-buy-amount-area-pressable'));
 
       expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
-      expect(screen.getByTestId('quick-buy-keypad-done')).toBeOnTheScreen();
-    });
-
-    it('remounts input state when the keyboard A/B assignment flips to treatment', () => {
-      mockUseKeyboard = false;
-      (useQuickBuyController as jest.Mock).mockImplementation(
-        (
-          _target: unknown,
-          _onClose: unknown,
-          _analytics: unknown,
-          useKeyboard: boolean,
-        ) => {
-          const result = buildHookResult({
-            isUnsupportedChain: false,
-            fiatAmountLabel: useKeyboard ? '$0.00' : '$50.00',
-            sliderPercent: useKeyboard ? 0 : 50,
-          });
-          mockControllerState.getResult = () => result;
-          return result;
-        },
-      );
-
-      const target = positionToQuickBuyTarget(createPosition());
-      const { rerender } = renderWithProvider(
-        <QuickBuy.Root
-          isVisible
-          target={target}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          onClose={jest.fn()}
-        />,
-      );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-
-      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
-      expect((useQuickBuyController as jest.Mock).mock.calls[0]?.[3]).toBe(
-        false,
-      );
-
-      mockUseKeyboard = true;
-      rerender(
-        <QuickBuy.Root
-          isVisible
-          target={target}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          onClose={jest.fn()}
-        />,
-      );
-
-      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
-      const lastCall = (useQuickBuyController as jest.Mock).mock.calls.at(-1);
-      expect(lastCall?.[3]).toBe(true);
-      expect(mockControllerState.getResult().fiatAmountLabel).toBe('$0.00');
-      expect(mockControllerState.getResult().sliderPercent).toBe(0);
     });
 
     it('calls handleConfirm from the sticky confirm button', () => {

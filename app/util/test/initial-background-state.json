@@ -723,7 +723,6 @@
   },
   "CardController": {
     "selectedCountry": null,
-    "selectedCardProgramId": null,
     "activeProviderId": "baanx",
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
@@ -829,6 +828,9 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "DeFiPositionsControllerV2": {
+    "allDeFiPositionsV2": {}
   },
   "SamplePetnamesController": {
     "namesByChainIdAndAddress": {}
