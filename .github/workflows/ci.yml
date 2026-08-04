@@ -167,6 +167,9 @@ jobs:
           # events and as the pushed/scheduled commit SHA otherwise — so this is the same
           # SHA the lookup queries against.
           target-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          # Lets a future fingerprint-changed investigation diff two runs' full source
+          # lists instead of re-deriving them locally (see fingerprint.config.js).
+          debug-artifact-name: fingerprint-sources-${{ github.run_id }}-${{ github.run_attempt }}
 
   dedupe:
     name: Dedupe
