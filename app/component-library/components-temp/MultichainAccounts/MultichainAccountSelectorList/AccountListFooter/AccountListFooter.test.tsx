@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 
-import AccountListFooter from './AccountListFooter';
+import AccountListFooter, {
+  abandonCreateMultichainAccountTrace,
+} from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
@@ -91,6 +93,9 @@ describe('AccountListFooter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset module-level create-trace ownership between tests.
+    abandonCreateMultichainAccountTrace();
+    (endTrace as jest.Mock).mockClear();
 
     (mockEngine as unknown as { context: unknown }).context = {
       MultichainAccountService: mockMultichainAccountService,
@@ -138,11 +143,15 @@ describe('AccountListFooter', () => {
       expect(trace).toHaveBeenCalledWith({
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.AccountCreate,
+        id: expect.any(String),
       });
+
+      const createTraceId = (trace as jest.Mock).mock.calls[0][0].id;
 
       await waitFor(() => {
         expect(endTrace).toHaveBeenCalledWith({
           name: TraceName.CreateMultichainAccount,
+          id: createTraceId,
         });
       });
     });
@@ -167,7 +176,9 @@ describe('AccountListFooter', () => {
       expect(trace).toHaveBeenCalledWith({
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.AccountCreate,
+        id: expect.any(String),
       });
+      const createTraceId = (trace as jest.Mock).mock.calls[0][0].id;
 
       // Simulate FlashList clipping the footer cell while creation is in flight.
       unmount();
@@ -179,6 +190,77 @@ describe('AccountListFooter', () => {
       await waitFor(() => {
         expect(endTrace).toHaveBeenCalledWith({
           name: TraceName.CreateMultichainAccount,
+          id: createTraceId,
+        });
+      });
+    });
+
+    it('does not let a stale finally close a newer create trace after screen abandon', async () => {
+      let resolveFirstCreate: (() => void) | undefined;
+      let resolveSecondCreate: (() => void) | undefined;
+      const firstCreatePromise = new Promise<void>((resolve) => {
+        resolveFirstCreate = resolve;
+      });
+      const secondCreatePromise = new Promise<void>((resolve) => {
+        resolveSecondCreate = resolve;
+      });
+      mockMultichainAccountService.createNextMultichainAccountGroup
+        .mockReturnValueOnce(firstCreatePromise)
+        .mockReturnValueOnce(secondCreatePromise);
+
+      const firstRender = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(firstRender.getByText('Add account'));
+      const firstTraceId = (trace as jest.Mock).mock.calls[0][0].id;
+
+      // Screen loses focus: ends the first span and clears ownership.
+      abandonCreateMultichainAccountTrace();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CreateMultichainAccount,
+        id: firstTraceId,
+      });
+
+      firstRender.unmount();
+
+      const secondRender = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(secondRender.getByText('Add account'));
+      const secondTraceId = (trace as jest.Mock).mock.calls[1][0].id;
+      expect(secondTraceId).not.toBe(firstTraceId);
+
+      (endTrace as jest.Mock).mockClear();
+
+      // Stale first create finishes after a newer create has started.
+      resolveFirstCreate?.();
+
+      await waitFor(() => {
+        expect(endTrace).toHaveBeenCalledWith({
+          name: TraceName.CreateMultichainAccount,
+          id: firstTraceId,
+        });
+      });
+
+      expect(endTrace).not.toHaveBeenCalledWith({
+        name: TraceName.CreateMultichainAccount,
+        id: secondTraceId,
+      });
+
+      resolveSecondCreate?.();
+
+      await waitFor(() => {
+        expect(endTrace).toHaveBeenCalledWith({
+          name: TraceName.CreateMultichainAccount,
+          id: secondTraceId,
         });
       });
     });

@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   Icon,
@@ -42,10 +43,34 @@ interface AccountListFooterProps {
   onAccountCreated: (newAccountId: string) => void;
 }
 
+/**
+ * ID of the in-flight CreateMultichainAccount span owned by a footer create.
+ * Shared so screen-level abandon can close the same span the footer started,
+ * without relying on the default trace key that a stale finally could close
+ * after a newer create has already begun.
+ */
+let activeCreateMultichainAccountTraceId: string | undefined;
+
+/**
+ * Abandon any in-flight CreateMultichainAccount span started by a footer.
+ * Clears ownership first so a later finally for the abandoned create cannot
+ * endTrace a newer pending span that reused the named metric.
+ */
+export function abandonCreateMultichainAccountTrace(): void {
+  const id = activeCreateMultichainAccountTraceId;
+  activeCreateMultichainAccountTraceId = undefined;
+  endTrace({
+    name: TraceName.CreateMultichainAccount,
+    ...(id ? { id } : {}),
+  });
+}
+
 const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
-    const activeCreateTraceRef = useRef(false);
+    // Per-create span id. Kept in a ref so finally can end only this create's
+    // span after FlashList clipping / screen abandon / a newer create starts.
+    const createTraceIdRef = useRef<string | undefined>(undefined);
     const { styles } = useStyles(createStyles, {});
     const {
       areAnyOperationsLoading,
@@ -76,12 +101,16 @@ const AccountListFooter = memo(
     const walletInfo = useWalletInfo(wallet);
 
     const endCreateMultichainAccountTrace = useCallback(() => {
-      if (!activeCreateTraceRef.current) {
+      const id = createTraceIdRef.current;
+      if (!id) {
         return;
       }
 
-      activeCreateTraceRef.current = false;
-      endTrace({ name: TraceName.CreateMultichainAccount });
+      createTraceIdRef.current = undefined;
+      if (activeCreateMultichainAccountTraceId === id) {
+        activeCreateMultichainAccountTraceId = undefined;
+      }
+      endTrace({ name: TraceName.CreateMultichainAccount, id });
     }, []);
 
     // End trace when the loading finishes.
@@ -127,6 +156,7 @@ const AccountListFooter = memo(
       } finally {
         // End here so the span still closes if the FlashList cell was clipped
         // (unmounted) before creation finished and local isLoading state is gone.
+        // Uses this create's id so a stale finally cannot close a newer span.
         endCreateMultichainAccountTrace();
         setIsLoading(false);
       }
@@ -137,12 +167,16 @@ const AccountListFooter = memo(
     ]);
 
     const handlePress = useCallback(() => {
+      const createTraceId = uuidv4();
+      createTraceIdRef.current = createTraceId;
+      activeCreateMultichainAccountTraceId = createTraceId;
+
       // Start the trace before setting the loading state
       trace({
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.AccountCreate,
+        id: createTraceId,
       });
-      activeCreateTraceRef.current = true;
 
       // Force immediate state update
       setIsLoading(true);

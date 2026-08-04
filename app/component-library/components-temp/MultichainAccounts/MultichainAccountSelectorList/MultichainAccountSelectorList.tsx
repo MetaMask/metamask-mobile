@@ -23,7 +23,9 @@ import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAcc
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
-import AccountListFooter from './AccountListFooter';
+import AccountListFooter, {
+  abandonCreateMultichainAccountTrace,
+} from './AccountListFooter';
 
 import {
   MultichainAccountSelectorListProps,
@@ -44,7 +46,6 @@ import {
   areAddressesEqual,
   isAddressCompatibleWithChainId,
 } from '../../../../util/address';
-import { endTrace, TraceName } from '../../../../util/trace';
 
 const keyExtractor = (
   item: FlattenedMultichainAccountListItem,
@@ -104,11 +105,12 @@ const MultichainAccountSelectorList = ({
   // Abandon in-flight CreateMultichainAccount spans when the hosting screen
   // loses focus. Kept here (not in AccountListFooter) because the footer is a
   // FlashList cell with removeClippedSubviews and can unmount while creation
-  // continues. endTrace is a no-op when no span is pending.
+  // continues. Clears span ownership so a stale footer finally cannot end a
+  // newer create's pending span.
   useFocusEffect(
     useCallback(
       () => () => {
-        endTrace({ name: TraceName.CreateMultichainAccount });
+        abandonCreateMultichainAccountTrace();
       },
       [],
     ),
