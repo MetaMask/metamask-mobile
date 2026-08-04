@@ -109,6 +109,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   ]);
   const hasSliderDraggedRef = useRef(false);
   const promoteFrameRef = useRef<number | null>(null);
+  // While an incoming slider is mounting after a preset chip, ignore late
+  // drag events from the outgoing active instance so tempLeverage cannot
+  // desync from the chip value that will be promoted.
+  const isSliderRemountingRef = useRef(false);
 
   // Cache last valid liquidation price to avoid skeleton blinking when the
   // price updates passively (market price ticks). The cache is intentionally
@@ -205,6 +209,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setLeverageChanged(false);
       setSliderEntries([{ key: 0, value: initialLeverage, role: 'active' }]);
       hasSliderDraggedRef.current = false;
+      isSliderRemountingRef.current = false;
       if (promoteFrameRef.current !== null) {
         cancelAnimationFrame(promoteFrameRef.current);
         promoteFrameRef.current = null;
@@ -321,6 +326,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   }, [minLeverage, maxLeverage, midLeverage]);
 
   const displayLeverage = isDragging ? draggingLeverage : tempLeverage;
+  const hasIncomingSlider = sliderEntries.some(
+    (entry) => entry.role === 'incoming',
+  );
 
   const syncActiveSliderValue = useCallback((value: number) => {
     setSliderEntries((prev) =>
@@ -331,6 +339,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   }, []);
 
   const handleSliderChange = useCallback((value: number) => {
+    if (isSliderRemountingRef.current) {
+      return;
+    }
     hasSliderDraggedRef.current = true;
     setIsDragging(true);
     setDraggingLeverage(value);
@@ -338,6 +349,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const handleSliderDragEnd = useCallback(
     (value: number) => {
+      if (isSliderRemountingRef.current) {
+        return;
+      }
       setIsDragging(false);
       if (value !== tempLeverage) {
         leverageChangeTime.current = Date.now();
@@ -354,6 +368,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   // ScrollView / gesture arbitration can finalize the MMDS pan without
   // onDragEnd; mirror drag-end so liquidation UI refreshes for the settled value.
   const handleSliderDragCancel = useCallback(() => {
+    if (isSliderRemountingRef.current) {
+      return;
+    }
     if (isDragging) {
       setIsDragging(false);
       if (draggingLeverage !== tempLeverage) {
@@ -419,6 +436,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           }
           return [{ key: incoming.key, value: incoming.value, role: 'active' }];
         });
+        isSliderRemountingRef.current = false;
       });
     });
   }, []);
@@ -444,17 +462,25 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setDraggingLeverage(value);
       setInputMethod('preset');
 
+      // Arm the guard before the remount state flush so any late drag
+      // callbacks queued in this tick cannot overwrite tempLeverage.
+      if (wasDragging || hasSliderDraggedRef.current) {
+        isSliderRemountingRef.current = true;
+      }
+
       setSliderEntries((prev) => {
         const hasIncoming = prev.some((entry) => entry.role === 'incoming');
         const shouldRemountSlider =
           wasDragging || hasSliderDraggedRef.current || hasIncoming;
 
         if (!shouldRemountSlider) {
+          isSliderRemountingRef.current = false;
           return prev.map((entry) =>
             entry.role === 'active' ? { ...entry, value } : entry,
           );
         }
 
+        isSliderRemountingRef.current = true;
         hasSliderDraggedRef.current = false;
         const active = prev.find((entry) => entry.role === 'active') ?? prev[0];
         const nextKey = Math.max(...prev.map((entry) => entry.key)) + 1;
@@ -495,8 +521,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
           >
             {sliderEntries.map((entry) => {
               const isActive = entry.role === 'active';
+              // Outgoing active slider must not accept input during remount;
+              // late dragEnd would overwrite the chip's tempLeverage.
+              const acceptsInput = isActive && !hasIncomingSlider;
               const sliderValue =
-                isActive && isDragging ? draggingLeverage : entry.value;
+                acceptsInput && isDragging ? draggingLeverage : entry.value;
 
               return (
                 <Box
@@ -507,7 +536,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                       : PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP
                   }
                   style={isActive ? undefined : styles.sliderIncoming}
-                  pointerEvents={isActive ? 'auto' : 'none'}
+                  pointerEvents={acceptsInput ? 'auto' : 'none'}
                   onLayout={
                     isActive
                       ? undefined
@@ -524,17 +553,17 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     }
                     value={sliderValue}
                     onValueChange={
-                      isActive ? handleSliderChange : () => undefined
+                      acceptsInput ? handleSliderChange : () => undefined
                     }
-                    onDragEnd={isActive ? handleSliderDragEnd : undefined}
+                    onDragEnd={acceptsInput ? handleSliderDragEnd : undefined}
                     minimumValue={minLeverage}
                     maximumValue={maxLeverage}
                     step={1}
                     marks={sliderMarks}
                     showRangeLabels
                     showRangeDots
-                    onGrip={isActive ? handleSliderGrip : undefined}
-                    onMark={isActive ? handleSliderMark : undefined}
+                    onGrip={acceptsInput ? handleSliderGrip : undefined}
+                    onMark={acceptsInput ? handleSliderMark : undefined}
                   />
                 </Box>
               );

@@ -251,14 +251,16 @@ describe('PerpsLeverageBottomSheet', () => {
     });
 
     it('formats liquidation price with PRICE_RANGES_UNIVERSAL', () => {
-      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+      mockUsePerpsLiquidationPrice.mockReturnValue({
+        liquidationPrice: '1234.3552435',
+        isCalculating: false,
+        error: null,
+      });
 
-      expect(
-        screen.getByText('perps.order.leverage_modal.liquidation_price'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('perps.order.leverage_modal.current_price'),
-      ).toBeOnTheScreen();
+      render(<PerpsLeverageBottomSheet {...defaultProps} leverage={5} />);
+
+      // $1k–$10k: 5 sig figs, max 1 decimal via PRICE_RANGES_UNIVERSAL
+      expect(screen.getByText('$1,234.4')).toBeOnTheScreen();
     });
   });
 
@@ -389,6 +391,47 @@ describe('PerpsLeverageBottomSheet', () => {
       ).toBeNull();
       expect(slider().props.value).toBe(20);
       expect(screen.getByText('Set 20x')).toBeOnTheScreen();
+    });
+
+    it('ignores late slider drag during preset remount so confirm matches chip', async () => {
+      const mockOnConfirm = jest.fn();
+      const { getByTestId } = render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          leverage={5}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+
+      const slider = () =>
+        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
+
+      fireEvent(slider(), 'valueChange', 8);
+      fireEvent(slider(), 'dragEnd', 8);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-10`,
+        ),
+      );
+
+      // Late events from the outgoing active slider in the remount window
+      // must not overwrite the chip's committed leverage.
+      fireEvent(slider(), 'valueChange', 15);
+      fireEvent(slider(), 'dragEnd', 15);
+
+      fireEvent(
+        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP),
+        'layout',
+      );
+      await flushSliderPromoteFrames();
+
+      expect(slider().props.value).toBe(10);
+      expect(screen.getByText('Set 10x')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByText(/Set \d+x/));
+
+      expect(mockOnConfirm).toHaveBeenCalledWith(10, 'preset');
     });
 
     it('shows all available quick select options for maxLeverage 40', () => {
