@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { type MarketInfo, wait } from '@metamask/perps-controller';
 import { MARKET_DATA_FETCH_RETRY_CONFIG } from '../constants/perpsConfig';
@@ -47,12 +47,24 @@ export const usePerpsMarketData = (
   // Always call hook (Rules of Hooks requirement)
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
+  // The retry loop below awaits between attempts, so a fetch for a previous
+  // asset can still be in flight when a newer one starts. Track the latest
+  // request and the mounted state so only the current request may write state
+  // — same guards as `usePerpsMarketForAsset`.
+  const isMountedRef = useRef(true);
+  const requestIdRef = useRef(0);
+
   const fetchMarketData = useCallback(async () => {
     if (!asset) {
       setMarketData(null);
       setIsLoading(false);
       return;
     }
+
+    // Any request started here supersedes every earlier one.
+    const requestId = ++requestIdRef.current;
+    const isCurrentRequest = () =>
+      requestIdRef.current === requestId && isMountedRef.current;
 
     setIsLoading(true);
     setError(null);
@@ -68,6 +80,10 @@ export const usePerpsMarketData = (
     ) {
       try {
         const markets = await getMarkets({ symbols: [asset] });
+        if (!isCurrentRequest()) {
+          return;
+        }
+
         const assetMarket = markets.find((market) => market.name === asset);
 
         // The market list came back, so its contents are a real verdict on
@@ -80,8 +96,15 @@ export const usePerpsMarketData = (
         setIsLoading(false);
         return;
       } catch (err) {
+        if (!isCurrentRequest()) {
+          return;
+        }
+
         if (attempt < MARKET_DATA_FETCH_RETRY_CONFIG.MaxRetries) {
           await wait(MARKET_DATA_FETCH_RETRY_CONFIG.RetryDelayMs);
+          if (!isCurrentRequest()) {
+            return;
+          }
           continue;
         }
 
@@ -98,7 +121,12 @@ export const usePerpsMarketData = (
   }, [getMarkets, asset]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchMarketData();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchMarketData]);
 
   // Show the "not tradable" toast only when the market list actually came back

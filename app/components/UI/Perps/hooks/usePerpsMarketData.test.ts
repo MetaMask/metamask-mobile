@@ -1,8 +1,8 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts, { type PerpsToastOptionsConfig } from './usePerpsToasts';
-import { type MarketInfo } from '@metamask/perps-controller';
+import { type MarketInfo, wait } from '@metamask/perps-controller';
 
 // Mock the usePerpsTrading hook
 jest.mock('./usePerpsTrading');
@@ -309,6 +309,129 @@ describe('usePerpsMarketData', () => {
       await waitFor(() => {
         expect(objectResult.current.marketData).toEqual(mockMarketData);
       });
+    });
+  });
+
+  describe('lifecycle races (TAT-3645 retry loop)', () => {
+    // A deferred promise keeps a request in flight across an asset change,
+    // which the instant-delay retry mock otherwise makes impossible to observe.
+    const createDeferred = () => {
+      let resolve!: (value: MarketInfo[]) => void;
+      let reject!: (reason: Error) => void;
+      const promise = new Promise<MarketInfo[]>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    };
+
+    const ethMarket: MarketInfo = { ...mockMarketData, name: 'ETH' };
+
+    // Let every pending continuation run, so a stale write would land here if
+    // the guards did not stop it. Without this the assertions pass vacuously.
+    const flushPendingContinuations = async () => {
+      await act(async () => {
+        for (let i = 0; i < 5; i++) {
+          await Promise.resolve();
+        }
+      });
+    };
+
+    it('ignores a superseded asset request that resolves after the current one', async () => {
+      const btcDeferred = createDeferred();
+      const ethDeferred = createDeferred();
+      mockGetMarkets
+        .mockReturnValueOnce(btcDeferred.promise)
+        .mockReturnValueOnce(ethDeferred.promise);
+
+      const { result, rerender } = renderHook(
+        ({ asset }) => usePerpsMarketData(asset),
+        { initialProps: { asset: 'BTC' } },
+      );
+      rerender({ asset: 'ETH' });
+      ethDeferred.resolve([ethMarket]);
+      await waitFor(() => {
+        expect(result.current.marketData).toEqual(ethMarket);
+      });
+      btcDeferred.resolve([mockMarketData]);
+      await flushPendingContinuations();
+
+      expect(result.current.marketData).toEqual(ethMarket);
+      expect(result.current.error).toBe(null);
+    });
+
+    it('does not let a superseded asset request raise a not-tradable verdict for the current asset', async () => {
+      // BTC's list comes back without BTC — a real verdict, but for an asset
+      // the user already navigated away from. Attributing it to ETH is exactly
+      // what the toast effect would format.
+      const btcDeferred = createDeferred();
+      const ethDeferred = createDeferred();
+      mockGetMarkets
+        .mockReturnValueOnce(btcDeferred.promise)
+        .mockReturnValueOnce(ethDeferred.promise);
+
+      const { result, rerender } = renderHook(
+        ({ asset }) => usePerpsMarketData(asset),
+        { initialProps: { asset: 'BTC' } },
+      );
+      rerender({ asset: 'ETH' });
+      ethDeferred.resolve([ethMarket]);
+      await waitFor(() => {
+        expect(result.current.marketData).toEqual(ethMarket);
+      });
+      btcDeferred.resolve([]);
+      await flushPendingContinuations();
+
+      expect(result.current.marketData).toEqual(ethMarket);
+      expect(result.current.error).toBe(null);
+    });
+
+    it('ignores a superseded asset request that fails after the current one succeeds', async () => {
+      const btcDeferred = createDeferred();
+      const ethDeferred = createDeferred();
+      mockGetMarkets
+        .mockReturnValueOnce(btcDeferred.promise)
+        .mockReturnValueOnce(ethDeferred.promise);
+
+      const { result, rerender } = renderHook(
+        ({ asset }) => usePerpsMarketData(asset),
+        { initialProps: { asset: 'BTC' } },
+      );
+      rerender({ asset: 'ETH' });
+      ethDeferred.resolve([ethMarket]);
+      await waitFor(() => {
+        expect(result.current.marketData).toEqual(ethMarket);
+      });
+      btcDeferred.reject(new Error('CLIENT_NOT_INITIALIZED'));
+      await flushPendingContinuations();
+
+      expect(result.current.marketData).toEqual(ethMarket);
+      expect(result.current.error).toBe(null);
+    });
+
+    it('stops retrying once the component unmounts', async () => {
+      // Park the loop inside its retry delay so the unmount lands while a
+      // retry is genuinely pending — with an instant delay the loop would
+      // already have finished and the assertion would be vacuous.
+      const retryGate = createDeferred();
+      jest
+        .mocked(wait)
+        .mockImplementationOnce(
+          () => retryGate.promise as unknown as Promise<void>,
+        );
+      mockGetMarkets.mockRejectedValue(new Error('CLIENT_NOT_INITIALIZED'));
+
+      const { unmount } = renderHook(() =>
+        usePerpsMarketData({ asset: 'BTC', showErrorToast: true }),
+      );
+      await flushPendingContinuations();
+      const callsWhileParked = mockGetMarkets.mock.calls.length;
+
+      unmount();
+      retryGate.resolve([]);
+      await flushPendingContinuations();
+
+      expect(mockGetMarkets.mock.calls.length).toBe(callsWhileParked);
     });
   });
 });
