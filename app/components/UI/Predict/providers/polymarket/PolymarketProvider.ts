@@ -389,6 +389,18 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().enabledSportsMarketTypes;
   }
 
+  #canGroupAllActiveMarkets(event: PolymarketApiEvent): boolean {
+    const enabledMarketTypes = new Set(this.#getEnabledSportsMarketTypes());
+
+    return event.markets
+      .filter((market) => market.active !== false)
+      .every(
+        (market) =>
+          Boolean(market.sportsMarketType) &&
+          enabledMarketTypes.has(market.sportsMarketType?.toLowerCase() ?? ''),
+      );
+  }
+
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -474,6 +486,16 @@ export class PolymarketProvider implements PredictProvider {
   }> {
     const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
     if (!eventLeague || !extendedSportsMarketsLeagues.includes(eventLeague)) {
+      return { resolvedEvent: event };
+    }
+
+    // Preserve direct child pages until every active market can render in the
+    // curated parent view. Remove this guard once all sports types are grouped.
+    if (
+      event.parentEventId !== undefined &&
+      event.parentEventId !== null &&
+      !this.#canGroupAllActiveMarkets(event)
+    ) {
       return { resolvedEvent: event };
     }
 
@@ -2806,6 +2828,31 @@ export class PolymarketProvider implements PredictProvider {
         depositWalletAddress,
         numberToHex(POLYGON_MAINNET_CHAIN_ID),
       );
+
+      if (legacySafeIsDeployed && !depositWalletIsDeployed) {
+        const protocol = this.#getProtocol();
+        const [legacyPusdBalance, legacyUsdceBalance] = await Promise.all([
+          getRawBalance({
+            address: legacySafeAddress,
+            tokenAddress: protocol.collateral.tradingToken,
+          }),
+          getRawBalance({
+            address: legacySafeAddress,
+            tokenAddress: protocol.collateral.legacyUsdceToken,
+          }),
+        ]);
+
+        if (legacyPusdBalance > 0n || legacyUsdceBalance > 0n) {
+          const accountState: AccountState = {
+            address: legacySafeAddress,
+            isDeployed: true,
+            walletType: 'safe',
+          };
+          this.#setCachedAccountState(normalizedOwnerAddress, accountState);
+          return accountState;
+        }
+      }
+
       const accountState: AccountState = {
         address: depositWalletAddress,
         isDeployed: depositWalletIsDeployed,
@@ -3273,20 +3320,28 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Signer address is required');
     }
 
-    const safeAddress =
-      this.#getCachedAccountState(signer.address)?.address ??
-      computeProxyAddress(signer.address);
-
     const amount = getSafeTransferAmount(callData);
-    const requestedAmountRaw = getSafeTransferAmountRaw(callData);
+    const accountState =
+      this.#getCachedAccountState(signer.address) ??
+      (await this.getAccountState({ ownerAddress: signer.address }));
 
+    if (accountState.walletType === 'deposit-wallet') {
+      // Transaction Pay signs and publishes deposit-wallet batches externally.
+      return {
+        callData,
+        amount,
+        walletType: accountState.walletType,
+      };
+    }
+
+    const requestedAmountRaw = getSafeTransferAmountRaw(callData);
     const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
-      safeAddress,
+      safeAddress: accountState.address,
       protocol,
     });
     const signedWithdrawTransaction = await buildWithdrawTransaction({
       signer,
-      safeAddress,
+      safeAddress: accountState.address,
       requestedAmountRaw,
       protocol,
       safeLegacyUsdceBalance,
@@ -3295,6 +3350,7 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedWithdrawTransaction.params.data,
       amount,
+      walletType: accountState.walletType,
     };
   }
 

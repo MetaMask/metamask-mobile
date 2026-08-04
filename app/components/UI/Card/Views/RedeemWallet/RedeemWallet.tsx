@@ -15,6 +15,7 @@ import {
   AvatarBaseSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import Icon, {
@@ -66,7 +67,7 @@ interface RedeemWalletProps {
 const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const config = REDEEM_CONFIG[mode];
   const { testIds } = config;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
   const theme = useTheme();

@@ -8,8 +8,8 @@ on:
         required: false
         type: string
         default: '["ALL"]'
-      changed_files:
-        description: 'Changed files'
+      changed_spec_files:
+        description: 'Space-separated list of changed E2E spec file paths, used to run modified specs twice for flakiness detection'
         required: false
         type: string
         default: ''
@@ -37,64 +37,13 @@ jobs:
       test_suite_tag: 'SmokeConfirmations'
       split_number: ${{ matrix.split }}
       total_splits: 4
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  stake-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeStake')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: stake-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeStake'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  perps-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokePerps')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: perps-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokePerps'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  wallet-platform-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform')
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: wallet-platform-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeWalletPlatform'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # SmokeWalletPlatform Detox job removed — tag fully migrated to Appium
+  # (run-appium-smoke-tests-ios.yml / appium-wallet-platform-ios-smoke).
 
   network-abstraction-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions')
@@ -109,7 +58,7 @@ jobs:
       test_suite_tag: 'SmokeNetworkAbstractions'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -127,71 +76,16 @@ jobs:
       test_suite_tag: 'SmokeNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  multichain-api-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: multichain-api-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeMultiChainAPI'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  browser-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeBrowser')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: browser-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeBrowser'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  snaps-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSnaps')
-    strategy:
-      matrix:
-        split: [1, 2, 3, 4]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: snaps-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeSnaps'
-      split_number: ${{ matrix.split }}
-      total_splits: 4
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && matrix.split == 1 && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || '' }}
     secrets: inherit
 
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
-    # an Appium-only tag like SmokeAccounts / SmokeSwap). Non-empty tags still trigger this workflow.
+    # an Appium-only tag like SmokeAccounts / SmokeSwap / SmokeStake / SmokeBrowser). Non-empty tags still trigger this workflow.
     if: >-
       ${{
         !cancelled() &&
@@ -202,14 +96,8 @@ jobs:
       }}
     needs:
       - confirmations-ios-smoke
-      - stake-ios-smoke
-      - perps-ios-smoke
-      - wallet-platform-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
-      - multichain-api-ios-smoke
-      - browser-ios-smoke
-      - snaps-ios-smoke
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1

@@ -151,6 +151,65 @@ describe('useTokenWatchlistQuery', () => {
     ]);
   });
 
+  it('drops tokens removed from the optimistic blob while getTokens is in flight', async () => {
+    const { Wrapper, queryClient } = createWrapper();
+    mockedReadFromTokenWatchList.mockResolvedValue({
+      assets: ['eip155:1/slip44:60', 'eip155:1/erc20:0xbbb'],
+      version: 1,
+    });
+
+    interface TokenFixture {
+      assetId: string;
+      symbol: string;
+      name: string;
+      decimals: number;
+    }
+    let resolveGetTokens!: (value: TokenFixture[]) => void;
+    mockedGetTokens.mockImplementation(
+      () =>
+        new Promise<TokenFixture[]>((resolve) => {
+          resolveGetTokens = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useTokenWatchlistQuery(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(mockedGetTokens).toHaveBeenCalled();
+    });
+
+    // Simulate remove winning while Token API hydration is still pending.
+    queryClient.setQueryData(tokenWatchlistQueryKeys.blob, {
+      assets: ['eip155:1/slip44:60'],
+      version: 1,
+    });
+
+    resolveGetTokens([
+      {
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+      },
+      {
+        assetId: 'eip155:1/erc20:0xbbb',
+        symbol: 'BBB',
+        name: 'Token BBB',
+        decimals: 18,
+      },
+    ]);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toStrictEqual(true);
+    });
+
+    expect(result.current.data?.map((token) => token.assetId)).toStrictEqual([
+      'eip155:1/slip44:60',
+    ]);
+  });
+
   it('hydrates the user balance from controller state for watched tokens held by the wallet', async () => {
     mockAssetsByChain = {
       'eip155:1': [
@@ -305,7 +364,7 @@ describe('useTokenWatchlistQuery', () => {
       });
 
       expect(
-        queryClient.getQueryData(tokenWatchlistQueryKeys.suggested),
+        queryClient.getQueryData(tokenWatchlistQueryKeys.suggested(false)),
       ).toStrictEqual([]);
       expect(
         queryClient.getQueryData(tokenWatchlistQueryKeys.hydrated),

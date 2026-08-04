@@ -1,11 +1,15 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { updateMoneyAccountDepositAmount } from '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update';
+import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
@@ -13,14 +17,17 @@ import {
   updateAtomicBatchData,
   updateTransaction,
 } from '../../../../../util/transaction-controller';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
-import { hasTransactionType } from '../../utils/transaction';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from './useTransactionPayData';
 
 const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
@@ -31,11 +38,43 @@ type MoneyAccountAmountUpdater = (
   recipientOverride?: Hex,
 ) => Promise<UpdateTransactionPayAmountCall[]>;
 
+interface OptimizedAmountUpdate {
+  amountHuman: string;
+  promise: Promise<boolean>;
+  transactionId: string;
+}
+
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const fiatPayment = useTransactionPayFiatPayment();
   const accountOverride = useTransactionAccountOverride();
+  const isMoneyAccountDepositQuotePipelineEnabled = useSelector(
+    selectMoneyAccountDepositQuotePipelineEnabled,
+  );
+  const optimizedAmountUpdateRef = useRef<OptimizedAmountUpdate | undefined>(
+    undefined,
+  );
+  const isMoneyAccountDeposit = Boolean(
+    transactionMeta &&
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]),
+  );
+  const depositIntent =
+    isMoneyAccountDeposit && transactionMeta
+      ? getMoneyAccountDepositIntent(transactionMeta.batchId)
+      : undefined;
+  // Initially optimize only generic/convert crypto deposits. addMusd uses the
+  // Relay max/gas-station path and card uses the multi-stage fiat path, so both
+  // retain the existing pipeline until validated separately.
+  const isAmountUpdateQuotePipelineEnabled = Boolean(
+    isMoneyAccountDepositQuotePipelineEnabled &&
+      isMoneyAccountDeposit &&
+      (depositIntent === undefined || depositIntent === 'convert') &&
+      !fiatPayment?.selectedPaymentMethodId,
+  );
 
   const applyMoneyAccountAmountUpdates = useCallback(
     async (
@@ -76,17 +115,58 @@ export function useUpdateTransactionPayAmount() {
     [transactionMeta],
   );
 
+  const updateOptimizedAmount = useCallback(
+    (amountHuman: string, transaction: TransactionMeta) => {
+      // The coordinator deduplicates only in-flight intents. Retain a
+      // successful prefetch so Continue can reuse it instead of launching the
+      // pipeline again.
+      const existingUpdate = optimizedAmountUpdateRef.current;
+      if (
+        existingUpdate?.amountHuman === amountHuman &&
+        existingUpdate.transactionId === transaction.id
+      ) {
+        return existingUpdate.promise;
+      }
+
+      const promise = updateMoneyAccountDepositAmount(transaction, amountHuman);
+      optimizedAmountUpdateRef.current = {
+        amountHuman,
+        promise,
+        transactionId: transaction.id,
+      };
+
+      promise.then(
+        (isPublished) => {
+          if (
+            !isPublished &&
+            optimizedAmountUpdateRef.current?.promise === promise
+          ) {
+            optimizedAmountUpdateRef.current = undefined;
+          }
+        },
+        () => {
+          if (optimizedAmountUpdateRef.current?.promise === promise) {
+            optimizedAmountUpdateRef.current = undefined;
+          }
+        },
+      );
+
+      return promise;
+    },
+    [],
+  );
+
   const updateTransactionPayAmount = useCallback(
     async (amountHuman: string) => {
       if (!transactionMeta) {
         return;
       }
 
-      if (
-        hasTransactionType(transactionMeta, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
+      if (isMoneyAccountDeposit) {
+        if (isAmountUpdateQuotePipelineEnabled) {
+          return updateOptimizedAmount(amountHuman, transactionMeta);
+        }
+
         syncMoneyAccountDepositRequiredAssets(
           transactionMeta,
           amountHuman,
@@ -114,7 +194,7 @@ export function useUpdateTransactionPayAmount() {
         return;
       }
 
-      updateTokenAmount(amountHuman);
+      await updateTokenAmount(amountHuman);
     },
     [
       transactionMeta,
@@ -122,10 +202,16 @@ export function useUpdateTransactionPayAmount() {
       updateTokenAmount,
       requiredTokens,
       accountOverride,
+      isMoneyAccountDeposit,
+      isAmountUpdateQuotePipelineEnabled,
+      updateOptimizedAmount,
     ],
   );
 
-  return { updateTransactionPayAmount };
+  return {
+    isAmountUpdateQuotePipelineEnabled,
+    updateTransactionPayAmount,
+  };
 }
 
 function syncMoneyAccountDepositRequiredAssets(

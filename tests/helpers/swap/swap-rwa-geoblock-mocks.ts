@@ -35,7 +35,6 @@ export const RWA_GEO_BLOCK_REMOTE_FEATURE_FLAG_OVERRIDES = {
   stxMigrationCancel: false,
   stxMigrationGetFees: false,
   stxMigrationSubmitTransactions: false,
-  swapsSWAPS4543AbtestPostTradeModal: 'control',
 };
 
 const USDC_TO_GOOGLON_QUOTE_STREAM_PATTERN = new RegExp(

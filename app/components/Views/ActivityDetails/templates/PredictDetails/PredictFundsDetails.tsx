@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { SectionDivider } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import {
@@ -9,9 +10,11 @@ import {
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsDoItAgainButton,
   ActivityDetailsNetworkValue,
+  ActivityDetailsPayFeesAndTotal,
   ActivityDetailsStepTimeline,
   ActivityDetailsTemplateFrame,
   formatActivityTokenAmount,
+  useActivityPayFiat,
 } from '../../components';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import { useActivityNetworkName } from '../../hooks/useActivityNetworkName';
@@ -79,6 +82,9 @@ export function PredictFundsDetails({
       ? getPredictFundsSteps(item.status, item.timestamp)
       : undefined;
   const completedCount = item.status === 'success' ? 2 : 1;
+  const pay = useActivityPayFiat(item);
+  const showPaySection = isDeposit && Boolean(pay);
+  const showDetails = showPaySection || Boolean(steps);
 
   return (
     <ActivityDetailsTemplateFrame
@@ -91,18 +97,30 @@ export function PredictFundsDetails({
       }
       metadata={<PredictFundsMetadata item={item} />}
       details={
-        steps ? (
-          <ActivityDetailsStepTimeline
-            explorerTarget={
-              item.hash ? { chainId: item.chainId, hash: item.hash } : undefined
-            }
-            steps={steps}
-            title={getPredictFundsStepTitle(
-              item.status,
-              completedCount,
-              steps.length,
-            )}
-          />
+        showDetails ? (
+          <>
+            {showPaySection && pay ? (
+              <ActivityDetailsPayFeesAndTotal pay={pay} />
+            ) : null}
+            {showPaySection && steps ? (
+              <SectionDivider marginVertical={3} />
+            ) : null}
+            {steps ? (
+              <ActivityDetailsStepTimeline
+                explorerTarget={
+                  item.hash
+                    ? { chainId: item.chainId, hash: item.hash }
+                    : undefined
+                }
+                steps={steps}
+                title={getPredictFundsStepTitle(
+                  item.status,
+                  completedCount,
+                  steps.length,
+                )}
+              />
+            ) : null}
+          </>
         ) : undefined
       }
       footer={

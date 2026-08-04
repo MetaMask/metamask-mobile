@@ -29,6 +29,11 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
   typeof usePerpsLivePrices
 >;
 
+// Fixed epoch (2023-11-14T22:13:20.000Z) — no test asserts on `timestamp`
+// directly, but a pinned constant keeps these fixtures deterministic across
+// runs instead of capturing `Date.now()` at test-execution time.
+const MOCK_TIMESTAMP = 1700000000000;
+
 describe('LivePriceHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -46,7 +51,7 @@ describe('LivePriceHeader', () => {
         symbol: 'ETH',
         price: '0',
         percentChange24h: '5',
-        timestamp: Date.now(),
+        timestamp: MOCK_TIMESTAMP,
         isTradable: true,
       },
     });
@@ -79,7 +84,7 @@ describe('LivePriceHeader', () => {
         symbol: 'ETH',
         price: '3000',
         percentChange24h: '5.5',
-        timestamp: Date.now(),
+        timestamp: MOCK_TIMESTAMP,
         isTradable: true,
       },
     });
@@ -96,7 +101,7 @@ describe('LivePriceHeader', () => {
         symbol: 'ETH',
         price: '2500',
         percentChange24h: '-3.2',
-        timestamp: Date.now(),
+        timestamp: MOCK_TIMESTAMP,
         isTradable: true,
       },
     });
@@ -113,7 +118,7 @@ describe('LivePriceHeader', () => {
         symbol: 'ETH',
         price: '2000',
         percentChange24h: '0',
-        timestamp: Date.now(),
+        timestamp: MOCK_TIMESTAMP,
         isTradable: true,
       },
     });
@@ -130,7 +135,7 @@ describe('LivePriceHeader', () => {
         symbol: 'SOL',
         price: '100',
         percentChange24h: '2.1',
-        timestamp: Date.now(),
+        timestamp: MOCK_TIMESTAMP,
         isTradable: true,
       },
     });
@@ -157,7 +162,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '3000',
           percentChange24h: undefined,
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -191,7 +196,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '3000',
           percentChange24h: '5.5',
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -214,7 +219,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '2500',
           percentChange24h: '-3.2',
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -237,7 +242,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '2000',
           percentChange24h: '0',
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -262,7 +267,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '3000',
           percentChange24h: '5.5',
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -306,6 +311,20 @@ describe('LivePriceHeader', () => {
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
       expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
       expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
+    });
+
+    it('renders a smaller prominent price for the prominent variant (Pro)', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="prominent" />,
+      );
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const priceText = textElements.find(
+        (el) => el.props.children === '$3,000',
+      );
+
+      expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
+      expect(priceText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('shows the absolute change and percentage for the large variant', () => {
@@ -367,7 +386,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '3000',
           percentChange24h: undefined,
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -385,7 +404,7 @@ describe('LivePriceHeader', () => {
         ETH: {
           symbol: 'ETH',
           price: '2500',
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         } as PriceUpdate,
       });
@@ -404,7 +423,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '2000',
           percentChange24h: '0',
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -435,7 +454,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '3100',
           percentChange24h: undefined,
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });
@@ -458,7 +477,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '3000',
           percentChange24h: '5.5',
-          timestamp: Date.now(),
+          timestamp: MOCK_TIMESTAMP,
           isTradable: true,
         },
       });

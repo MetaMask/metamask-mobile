@@ -279,9 +279,14 @@ describe('PredictCryptoUpDownChart', () => {
       window: 300,
     });
 
+    // The component is memoized, so a same-props rerender would bail out
+    // before reading the updated hook mock. In production the hook's own
+    // state update re-renders the component; simulate that here by changing
+    // a prop alongside the mocked hook value.
     rerender(
       <PredictCryptoUpDownChart
         market={market}
+        targetPrice={100}
         onCurrentPriceChange={onCurrentPriceChange}
       />,
     );

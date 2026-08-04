@@ -82,14 +82,18 @@ type OrderPriceLabelKey =
   | 'perps.order.limit_price'
   | 'perps.order.market_price';
 
+/**
+ * True for TP/SL (and other) trigger orders. Non-trigger limit/market orders may
+ * still carry a positive `triggerPrice`; do not treat that alone as a trigger.
+ */
+export const isTriggerOrder = (order: Order): boolean =>
+  Boolean(order.isTrigger || isTPSLOrder(order.detailedOrderType));
+
 export const resolveOrderDisplayPriceAndLabel = (
   order: Order,
 ): { priceValue: number | null; labelKey: OrderPriceLabelKey } => {
   const detailedOrderType = order.detailedOrderType ?? '';
   const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
-  const isTriggerOrder = Boolean(
-    order.isTrigger || isTPSLOrder(order.detailedOrderType),
-  );
   const isLimitOrder = Boolean(
     order.orderType === 'limit' ||
       normalizedDetailedOrderType.includes('limit'),
@@ -97,7 +101,7 @@ export const resolveOrderDisplayPriceAndLabel = (
   const validTriggerPrice = getValidTriggerPrice(order);
   const validOrderPrice = getValidOrderPrice(order);
 
-  if (isTriggerOrder && validTriggerPrice !== null) {
+  if (isTriggerOrder(order) && validTriggerPrice !== null) {
     return {
       priceValue: validTriggerPrice,
       labelKey: 'perps.order.trigger_price',
@@ -339,9 +343,7 @@ export const shouldDisplayOrderInMarketDetailsOrders = (
   // Only TP/SL trigger orders are relocated to the Auto-close section. A plain
   // limit-close order is a regular open order and must stay in the list even
   // when it closes the full position.
-  const isTpSlOrder =
-    order.isTrigger === true || isTPSLOrder(order.detailedOrderType);
-  if (!isTpSlOrder) {
+  if (!isTriggerOrder(order)) {
     return true;
   }
 

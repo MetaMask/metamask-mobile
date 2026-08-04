@@ -5,14 +5,17 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import type { AnyAction, Dispatch } from 'redux';
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { callbackBaseUrl } from '../../Aggregator/sdk';
+import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -25,7 +28,11 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import {
+  emitOrderConfirmedAnalyticsFromCallback,
+  emitTerminalOrderAnalyticsFromCallback,
+  isTerminalOrderStatus,
+} from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
@@ -38,6 +45,7 @@ import {
   failSession,
   getSession,
 } from '../../headless/sessionRegistry';
+import type { HeadlessSession } from '../../headless/types';
 import {
   dismissHeadlessFlow,
   setHeadlessEntryCardTouchThrough,
@@ -50,12 +58,14 @@ import { getProviderWebviewColors } from '../../utils/getProviderWebviewColors';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
+import { buildHeadlessOrderFailedProps } from '../../utils/headlessOrderFailedProps';
 import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
 import {
   buildBaseProps,
   extractHostname,
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
+import type { RampSurface } from '../../types/depositAnalytics';
 
 interface CheckoutParams {
   url: string;
@@ -93,13 +103,91 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
   Routes.RAMP.CHECKOUT,
 );
 
+interface HandleHeadlessCheckoutCallbackParams {
+  sessionId: string;
+  session: HeadlessSession;
+  providerCode: string;
+  callbackUrl: string;
+  walletAddress: string;
+  headlessRampSurface: RampSurface | undefined;
+  regionCode: string | undefined;
+  getOrderFromCallback: (
+    providerCode: string,
+    callbackUrl: string,
+    walletAddress: string,
+  ) => Promise<RampsOrder>;
+  addOrder: (order: RampsOrder) => void;
+  dispatch: Dispatch<AnyAction>;
+  dismissActiveHeadlessFlow: () => void;
+}
+
+/**
+ * Headless checkout callback: fetch order, emit mid/terminal analytics, notify
+ * consumer, and tear down the session. Caller must gate on session presence.
+ */
+async function handleHeadlessCheckoutCallback({
+  sessionId,
+  session,
+  providerCode,
+  callbackUrl,
+  walletAddress,
+  headlessRampSurface,
+  regionCode,
+  getOrderFromCallback,
+  addOrder,
+  dispatch,
+  dismissActiveHeadlessFlow,
+}: HandleHeadlessCheckoutCallbackParams): Promise<void> {
+  const rampsOrder = await getOrderFromCallback(
+    providerCode,
+    callbackUrl,
+    walletAddress,
+  );
+  if (!rampsOrder) {
+    throw new Error('Order could not be retrieved from callback');
+  }
+  addOrder(rampsOrder);
+
+  // TRAM-3623/3691: carry headless context for terminal RAMPS_TRANSACTION_FAILED.
+  setHeadlessOrderContext(rampsOrder.providerOrderId, {
+    rampSurface: headlessRampSurface,
+    region: regionCode ?? '',
+  });
+
+  // TRAM-3738 / TRAM-3691: headless callback skips OrderDetails.
+  if (isTerminalOrderStatus(rampsOrder.status)) {
+    emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+  } else {
+    emitOrderConfirmedAnalyticsFromCallback(rampsOrder, {
+      rampType: 'HEADLESS',
+      rampSurface: headlessRampSurface,
+      region: regionCode,
+    });
+  }
+
+  dispatch(protectWalletModalVisible());
+  try {
+    session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
+  } catch (callbackError) {
+    Logger.error(
+      callbackError as Error,
+      'UnifiedCheckout: onOrderCreated callback threw',
+    );
+  }
+  closeSession(sessionId, { reason: 'completed' });
+  dismissActiveHeadlessFlow();
+}
+
 const Checkout = () => {
+  // Must match redirectUrl from getRampCallbackBaseUrl() on quote fetch
+  // (including Dev → on-ramp.dev-api), not Aggregator/sdk's content host.
+  const callbackBaseUrl = getRampCallbackBaseUrl();
   const sheetRef = useRef<BottomSheetRef>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
   const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<CheckoutParams>();
   const { themeAppearance } = useTheme();
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
@@ -259,22 +347,27 @@ const Checkout = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
             .addProperties({
-              ramp_type: 'HEADLESS',
-              ramp_surface: session.params?.rampSurface,
-              amount_source: Number(
-                quoteRecord?.amountIn ?? session.params?.amount ?? 0,
-              ),
-              amount_destination: Number(quoteRecord?.amountOut ?? 0),
-              payment_method_id: quoteRecord?.paymentMethod ?? '',
-              region: regionCode ?? '',
-              chain_id: network ?? '',
-              currency_destination: params?.cryptocurrency ?? '',
-              currency_source: params?.currency ?? '',
-              error_message:
-                checkoutError instanceof Error
-                  ? checkoutError.message
-                  : String(checkoutError),
-              is_authenticated: true,
+              ...buildHeadlessOrderFailedProps({
+                rampSurface: session.params?.rampSurface,
+                // Additive vs the previous inline payload: both fields are
+                // optional in segment-schema and the native flow already
+                // sends them.
+                providerOrderId: effectiveOrderId ?? undefined,
+                amountSource: Number(
+                  quoteRecord?.amountIn ?? session.params?.amount ?? 0,
+                ),
+                amountDestination: Number(quoteRecord?.amountOut ?? 0),
+                paymentMethodId: quoteRecord?.paymentMethod ?? '',
+                region: regionCode ?? '',
+                chainId: network ?? '',
+                currencyDestination: params?.cryptocurrency ?? '',
+                currencyDestinationSymbol: params?.cryptocurrency,
+                currencySource: params?.currency ?? '',
+                errorMessage:
+                  checkoutError instanceof Error
+                    ? checkoutError.message
+                    : String(checkoutError),
+              }),
             })
             .build(),
         );
@@ -290,6 +383,7 @@ const Checkout = () => {
       createEventBuilder,
       regionCode,
       network,
+      effectiveOrderId,
       params?.cryptocurrency,
       params?.currency,
     ],
@@ -360,6 +454,7 @@ const Checkout = () => {
       providerName,
       effectiveOrderId,
       headlessBaseOverrides,
+      callbackBaseUrl,
     ],
   );
 
@@ -417,47 +512,25 @@ const Checkout = () => {
         // close the session, and unwind out of the ramp stack so the caller
         // regains foreground. Skip RAMPS_ORDER_DETAILS — the headless consumer
         // drives its own UI.
-        const session = getSession(headlessSessionId);
-        if (headlessSessionId && session) {
-          const rampsOrder = await getOrderFromCallback(
+        const headlessSession = headlessSessionId
+          ? getSession(headlessSessionId)
+          : undefined;
+        if (headlessSessionId && headlessSession) {
+          await handleHeadlessCheckoutCallback({
+            sessionId: headlessSessionId,
+            session: headlessSession,
             providerCode,
-            navState.url,
+            callbackUrl: navState.url,
             walletAddress,
-          );
-          if (!rampsOrder) {
-            throw new Error('Order could not be retrieved from callback');
-          }
-          addOrder(rampsOrder);
-
-          // TRAM-3623/3691: carry the headless context (surface + region) so the
-          // terminal RAMPS_TRANSACTION_FAILED is tagged HEADLESS — whether it
-          // fails now (read by emitTerminalOrderAnalyticsFromCallback below) or
-          // later via polling/relaunch. Mirrors useTransakRouting; safe here
-          // because this branch is already headless-gated.
-          setHeadlessOrderContext(rampsOrder.providerOrderId, {
-            rampSurface: headlessRampSurface,
-            region: regionCode ?? '',
+            headlessRampSurface,
+            regionCode,
+            getOrderFromCallback,
+            addOrder,
+            dispatch,
+            dismissActiveHeadlessFlow,
           });
-
-          // TRAM-3691: headless callback skips OrderDetails, so an
-          // already-terminal order here is never polled and its terminal
-          // metrics event would be lost. Emit it directly (no-ops for
-          // non-terminal orders and dedups against the polling path).
-          emitTerminalOrderAnalyticsFromCallback(rampsOrder);
-
-          dispatch(protectWalletModalVisible());
-          try {
-            session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
-          } catch (callbackError) {
-            Logger.error(
-              callbackError as Error,
-              'UnifiedCheckout: onOrderCreated callback threw',
-            );
-          }
           hasTerminatedHeadlessSessionRef.current = true;
-          closeSession(headlessSessionId, { reason: 'completed' });
           closeSourceRef.current = 'callback_success';
-          dismissActiveHeadlessFlow();
           return;
         }
 
@@ -514,6 +587,7 @@ const Checkout = () => {
       headlessBaseOverrides,
       headlessRampSurface,
       regionCode,
+      callbackBaseUrl,
     ],
   );
 
