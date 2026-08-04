@@ -8,6 +8,11 @@ import {
 
 export type PerpsProSizeUnit = 'usd' | 'coin';
 
+interface CoinDraftState {
+  value: string;
+  source: 'canonical' | 'user';
+}
+
 export interface UsePerpsProSizeInputParams {
   usdAmount: string;
   setAmount: (value: string) => void;
@@ -98,15 +103,16 @@ export const usePerpsProSizeInput = ({
     Number.isFinite(effectivePrice) && effectivePrice > 0;
   const [sizeUnit, setSizeUnit] = useState<PerpsProSizeUnit>('usd');
   const [usdDraft, setUsdDraft] = useState(usdAmount);
-  const [coinDraft, setCoinDraft] = useState(() =>
-    canToggleSizeUnit
+  const [coinDraftState, setCoinDraftState] = useState<CoinDraftState>(() => ({
+    value: canToggleSizeUnit
       ? getCoinFromUsd(usdAmount, effectivePrice, szDecimals)
       : '0',
-  );
+    source: 'canonical',
+  }));
+  const coinDraft = coinDraftState.value;
   const [isSizeFocused, setIsSizeFocused] = useState(false);
   const [sliderPreview, setSliderPreview] = useState<number | null>(null);
   const sliderPreviewRef = useRef<number | null>(null);
-  const coinDraftDirtyRef = useRef(false);
   const lastUsdAmountRef = useRef(usdAmount);
   // Tracks USD amounts this hook just committed so external clamps (leverage /
   // balance / payment-token caps) can be distinguished from our own setAmount
@@ -127,14 +133,20 @@ export const usePerpsProSizeInput = ({
 
     if (!amountChanged) {
       // Price/szDecimals-only updates: refresh a clean coin projection, but keep
-      // user-typed coin text stable while the draft is dirty or focused.
+      // user-typed coin text stable while the draft is dirty or focused, and
+      // avoid overwriting a blur snap with a stale usdAmount before the parent
+      // echoes the pending internal commit.
       if (
         sizeUnit === 'coin' &&
         canToggleSizeUnit &&
-        !coinDraftDirtyRef.current &&
-        !isSizeFocused
+        coinDraftState.source === 'canonical' &&
+        !isSizeFocused &&
+        pendingInternalUsdRef.current === null
       ) {
-        setCoinDraft(getCoinFromUsd(usdAmount, effectivePrice, szDecimals));
+        setCoinDraftState({
+          value: getCoinFromUsd(usdAmount, effectivePrice, szDecimals),
+          source: 'canonical',
+        });
       }
       return;
     }
@@ -150,13 +162,16 @@ export const usePerpsProSizeInput = ({
     }
 
     // External canonical update (amount clamp, reset, payment-token change).
-    coinDraftDirtyRef.current = false;
     setUsdDraft(usdAmount);
     if (canToggleSizeUnit) {
-      setCoinDraft(getCoinFromUsd(usdAmount, effectivePrice, szDecimals));
+      setCoinDraftState({
+        value: getCoinFromUsd(usdAmount, effectivePrice, szDecimals),
+        source: 'canonical',
+      });
     }
   }, [
     canToggleSizeUnit,
+    coinDraftState.source,
     effectivePrice,
     isSizeFocused,
     sizeUnit,
@@ -190,10 +205,11 @@ export const usePerpsProSizeInput = ({
         return;
       }
 
-      setCoinDraft(result.value);
-      coinDraftDirtyRef.current = true;
+      setCoinDraftState({ value: result.value, source: 'user' });
       if (canToggleSizeUnit) {
-        commitUsdAmount(getUsdFromCoin(result.value, effectivePrice));
+        const nextUsdAmount = getUsdFromCoin(result.value, effectivePrice);
+        setUsdDraft(nextUsdAmount);
+        commitUsdAmount(nextUsdAmount);
       }
     },
     [
@@ -218,16 +234,37 @@ export const usePerpsProSizeInput = ({
     }
 
     const finalizedDraft = finalizeNumericTextInput(coinDraft);
-    setCoinDraft(finalizedDraft);
-    if (canToggleSizeUnit) {
-      commitUsdAmount(getUsdFromCoin(finalizedDraft, effectivePrice));
+    if (!canToggleSizeUnit) {
+      setCoinDraftState({
+        value: finalizedDraft,
+        source: 'canonical',
+      });
+      return;
     }
+
+    // Snap the coin field to the USD→coin round-trip so the display matches
+    // deriveOrderSizing / provider size (USD cents half-up, szDecimals down).
+    // Keep the committed USD (not re-derived from the snapped coin) so cents
+    // do not drift a second time after snap.
+    const nextUsdAmount = getUsdFromCoin(finalizedDraft, effectivePrice);
+    const snappedCoinAmount = getCoinFromUsd(
+      nextUsdAmount,
+      effectivePrice,
+      szDecimals,
+    );
+    setUsdDraft(nextUsdAmount);
+    setCoinDraftState({
+      value: snappedCoinAmount,
+      source: 'canonical',
+    });
+    commitUsdAmount(nextUsdAmount);
   }, [
     canToggleSizeUnit,
     coinDraft,
     commitUsdAmount,
     effectivePrice,
     sizeUnit,
+    szDecimals,
     usdDraft,
   ]);
   const onSizeFocus = useCallback(() => setIsSizeFocused(true), []);
@@ -239,10 +276,10 @@ export const usePerpsProSizeInput = ({
 
     if (sizeUnit === 'usd') {
       const canonicalUsdDraft = finalizeNumericTextInput(usdDraft) || '0';
-      setCoinDraft(
-        getCoinFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
-      );
-      coinDraftDirtyRef.current = false;
+      setCoinDraftState({
+        value: getCoinFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
+        source: 'canonical',
+      });
       setSizeUnit('coin');
       return;
     }
@@ -250,7 +287,6 @@ export const usePerpsProSizeInput = ({
     const nextUsdAmount = getUsdFromCoin(coinDraft, effectivePrice);
     setUsdDraft(nextUsdAmount);
     commitUsdAmount(nextUsdAmount);
-    coinDraftDirtyRef.current = false;
     setSizeUnit('usd');
   }, [
     canToggleSizeUnit,
@@ -279,12 +315,22 @@ export const usePerpsProSizeInput = ({
       return finalizeNumericTextInput(usdDraft) || '0';
     }
 
-    return canToggleSizeUnit
-      ? getUsdFromCoin(coinDraft, effectivePrice)
-      : usdAmount || '0';
+    if (!canToggleSizeUnit) {
+      return usdAmount || '0';
+    }
+
+    // Dirty coin drafts re-project against the live price. Once clean (after
+    // blur snap), use the committed USD so szDecimals snap does not re-round
+    // cents and change order sizing.
+    if (coinDraftState.source === 'user') {
+      return getUsdFromCoin(coinDraft, effectivePrice);
+    }
+
+    return finalizeNumericTextInput(usdDraft) || '0';
   }, [
     canToggleSizeUnit,
     coinDraft,
+    coinDraftState.source,
     effectivePrice,
     previewUsdAmount,
     sizeUnit,
@@ -326,9 +372,11 @@ export const usePerpsProSizeInput = ({
     commitUsdAmount(nextUsdAmount);
     setUsdDraft(nextUsdAmount);
     if (canToggleSizeUnit) {
-      setCoinDraft(getCoinFromUsd(nextUsdAmount, effectivePrice, szDecimals));
+      setCoinDraftState({
+        value: getCoinFromUsd(nextUsdAmount, effectivePrice, szDecimals),
+        source: 'canonical',
+      });
     }
-    coinDraftDirtyRef.current = false;
     sliderPreviewRef.current = null;
     setSliderPreview(null);
   }, [
