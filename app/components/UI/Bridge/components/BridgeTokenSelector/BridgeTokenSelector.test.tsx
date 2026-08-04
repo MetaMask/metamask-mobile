@@ -1151,6 +1151,17 @@ describe('BridgeTokenSelector', () => {
     });
   });
 
+  describe('keyboard interactions', () => {
+    it('forwards handled taps while the search keyboard is open', () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      expect(getByTestId('bridge-token-list')).toHaveProp(
+        'keyboardShouldPersistTaps',
+        'handled',
+      );
+    });
+  });
+
   describe('pagination', () => {
     it('disables visible-content position maintenance', () => {
       const { UNSAFE_getByType } = renderWithReduxProvider(

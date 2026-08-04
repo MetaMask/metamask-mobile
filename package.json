@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "8.6.0",
+  "version": "8.7.0",
   "private": true,
   "repository": {
     "type": "git",
@@ -338,7 +338,7 @@
     "@metamask/preinstalled-example-snap": "^0.8.1",
     "@metamask/profile-metrics-controller": "^4.0.1",
     "@metamask/profile-sync-controller": "^28.3.0",
-    "@metamask/ramps-controller": "^18.0.0",
+    "@metamask/ramps-controller": "^19.0.0",
     "@metamask/react-data-query": "^0.2.2",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
@@ -356,7 +356,7 @@
     "@metamask/sentinel-api-service": "^1.0.0",
     "@metamask/signature-controller": "^39.2.0",
     "@metamask/slip44": "^4.2.0",
-    "@metamask/smart-transactions-controller": "25.0.0",
+    "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A25.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-25.0.0-3afc599382.patch",
     "@metamask/snap-account-service": "^2.1.1",
     "@metamask/snaps-controllers": "^21.0.0",
     "@metamask/snaps-execution-environments": "^11.2.0",
