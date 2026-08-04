@@ -18,6 +18,10 @@ interface TestSpec {
     params: { foo: string };
     response: { signature: string };
   };
+  test_method_no_params: {
+    params: undefined;
+    response: { signature: string };
+  };
 }
 
 describe('createSnapCaller', () => {
@@ -62,15 +66,20 @@ describe('createSnapCaller', () => {
     mockedCall.mockResolvedValue({ signature: '0xsig' });
     const callSnap = createSnapCaller<TestSpec>();
 
-    const baseArgs = {
+    await callSnap({
+      origin: 'channel-id-1',
       connectedAddresses: ['tron:728126428:TAddr' as CaipAccountId],
       scope: 'tron:728126428' as CaipChainId,
       requestId: 1,
       request: { method: 'test_method', params: { foo: 'bar' } },
-    } as const;
-
-    await callSnap({ ...baseArgs, origin: 'channel-id-1' });
-    await callSnap({ ...baseArgs, origin: 'channel-id-2' });
+    });
+    await callSnap({
+      origin: 'channel-id-2',
+      connectedAddresses: ['tron:728126428:TAddr' as CaipAccountId],
+      scope: 'tron:728126428' as CaipChainId,
+      requestId: 1,
+      request: { method: 'test_method', params: { foo: 'bar' } },
+    });
 
     const origins = mockedCall.mock.calls.map(([, args]) => args.origin);
     expect(origins).toStrictEqual(['channel-id-1', 'channel-id-2']);
@@ -85,7 +94,7 @@ describe('createSnapCaller', () => {
       connectedAddresses: [],
       scope: 'tron:728126428' as CaipChainId,
       requestId: 7,
-      request: { method: 'test_method', params: undefined },
+      request: { method: 'test_method_no_params', params: undefined },
     });
 
     expect(mockedCall).toHaveBeenCalledWith(
@@ -94,7 +103,7 @@ describe('createSnapCaller', () => {
         request: {
           jsonrpc: '2.0',
           id: 7,
-          method: 'test_method',
+          method: 'test_method_no_params',
         },
       }),
     );
