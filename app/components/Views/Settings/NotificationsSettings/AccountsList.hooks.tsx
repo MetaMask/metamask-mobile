@@ -10,19 +10,27 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 
 export function useNotificationAccountListProps() {
   const accountAddresses = useSelector(getValidNotificationAccounts);
   const accountsMap = useSelector(selectInternalAccountsById);
   const { update, initialLoading, accountsBeingUpdated, data } =
     useFetchAccountNotifications(accountAddresses);
+  const { refetch: refetchPreferences } = useNotificationStoragePreferences();
 
   // Only disable switches during initial data loading, not when individual accounts are updating
   const shouldDisableSwitches = initialLoading;
 
+  // Enabling/disabling an account rewrites `walletActivity.accounts` in the
+  // preferences blob through the controller, which does not update the cached
+  // preferences copy the UI writes from. Refresh it alongside the presence
+  // data, otherwise the next section write (a channel toggle, or the
+  // select/deselect-all channel flip) PUTs a stale accounts array and
+  // resurrects the accounts the user just changed.
   const refetchAccountSettings = useCallback(async () => {
-    await update(accountAddresses);
-  }, [accountAddresses, update]);
+    await Promise.all([update(accountAddresses), refetchPreferences()]);
+  }, [accountAddresses, update, refetchPreferences]);
 
   // Helper to get addresses from account IDs
   const getEvmAddressesFromAccountIds = useCallback(

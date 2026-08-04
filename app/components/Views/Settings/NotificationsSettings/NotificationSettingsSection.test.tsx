@@ -92,6 +92,24 @@ jest.mock('./AccountsList.hooks', () => ({
   }),
 }));
 
+interface WalletActivitySection {
+  pushNotificationsEnabled: boolean;
+  inAppNotificationsEnabled: boolean;
+  accounts: { address: string; enabled: boolean }[];
+}
+
+// Wallet-activity section writes pass an updater so they are applied to the
+// latest preferences rather than a render-time copy. Run it to assert on the
+// section that actually gets persisted.
+const applyWalletActivityUpdate = (
+  walletActivity: WalletActivitySection = mockPreferences.walletActivity,
+) => {
+  const [, sectionUpdate] = mockUpdatePreferencesSection.mock.calls[0];
+  return (sectionUpdate as (section: WalletActivitySection) => unknown)(
+    walletActivity,
+  );
+};
+
 const marketingDisclaimer =
   'By turning this on, you agree to receive product news and marketing updates from MetaMask.';
 
@@ -184,12 +202,13 @@ describe('NotificationSettingsSection', () => {
     expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
     expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
       'walletActivity',
-      {
-        ...mockPreferences.walletActivity,
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
+      expect.any(Function),
     );
+    expect(applyWalletActivityUpdate()).toStrictEqual({
+      ...mockPreferences.walletActivity,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+    });
   });
 
   it('enables both channels and tracks an ALL update when selecting all accounts', async () => {
@@ -225,12 +244,46 @@ describe('NotificationSettingsSection', () => {
     expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
     expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
       'walletActivity',
-      {
-        ...mockPreferences.walletActivity,
-        pushNotificationsEnabled: true,
-        inAppNotificationsEnabled: true,
-      },
+      expect.any(Function),
     );
+    expect(applyWalletActivityUpdate()).toStrictEqual({
+      ...mockPreferences.walletActivity,
+      pushNotificationsEnabled: true,
+      inAppNotificationsEnabled: true,
+    });
+  });
+
+  it('keeps the accounts written by the controller when flipping channels for all accounts', async () => {
+    renderSection({
+      type: 'walletActivity',
+      title: 'Wallet Activity',
+      description: 'Buy, sells, transfers, swaps and rewards',
+    });
+
+    fireEvent.press(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
+    });
+
+    // The section update must be derived from the refreshed preferences, not
+    // from this render's copy - the controller has already disabled every
+    // account by the time this runs.
+    const refreshedWalletActivity = {
+      pushNotificationsEnabled: true,
+      inAppNotificationsEnabled: true,
+      accounts: [{ address: '0x1', enabled: false }],
+    };
+
+    expect(applyWalletActivityUpdate(refreshedWalletActivity)).toStrictEqual({
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      accounts: [{ address: '0x1', enabled: false }],
+    });
   });
 
   it('updates and tracks the push channel when toggling push notifications', async () => {
