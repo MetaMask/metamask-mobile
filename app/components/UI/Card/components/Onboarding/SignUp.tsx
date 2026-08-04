@@ -547,7 +547,7 @@ const SignUp = () => {
           </Box>
           <Box>
             <Label>
-              {strings('card.card_onboarding.sign_up.account_label')}
+              {strings('card.card_onboarding.sign_up.account_label_immersve')}
             </Label>
             <SelectField
               value={accountName ?? undefined}
@@ -558,7 +558,9 @@ const SignUp = () => {
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative mt-1"
             >
-              {strings('card.card_onboarding.sign_up.account_description')}
+              {strings(
+                'card.card_onboarding.sign_up.account_description_immersve',
+              )}
             </Text>
             {immersveError ? (
               <Text
@@ -669,7 +671,11 @@ const SignUp = () => {
           fontWeight={FontWeight.Medium}
           twClassName="text-default text-center p-4"
         >
-          {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
+          {strings(
+            isImmersveCountry
+              ? 'card.card_onboarding.sign_up.i_already_have_an_account_immersve'
+              : 'card.card_onboarding.sign_up.i_already_have_an_account',
+          )}
         </Text>
       </TouchableOpacity>
     </>
@@ -678,7 +684,11 @@ const SignUp = () => {
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.sign_up.title')}
-      description={strings('card.card_onboarding.sign_up.description')}
+      description={strings(
+        isImmersveCountry
+          ? 'card.card_onboarding.sign_up.description_immersve'
+          : 'card.card_onboarding.sign_up.description',
+      )}
       formFields={renderFormFields()}
       actions={renderActions()}
       headerMode="back"
