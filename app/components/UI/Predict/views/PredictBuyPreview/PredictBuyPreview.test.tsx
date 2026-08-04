@@ -584,7 +584,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961.53')).toBeOnTheScreen();
     });
 
     it('hides balance text while balance is loading', () => {
@@ -601,7 +601,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1,234.56')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1,187.07')).toBeOnTheScreen();
     });
 
     it('displays zero balance as $0.00', () => {
@@ -619,7 +619,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $999,999.99')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961,538.45')).toBeOnTheScreen();
     });
   });
 
@@ -641,7 +641,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$1\.50/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$1\.44/)).toBeOnTheScreen();
     });
 
     it('hides insufficient funds error when balance is loading', () => {
@@ -685,7 +685,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $0.50')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.48')).toBeOnTheScreen();
       expect(
         screen.queryByText('Minimum amount is $1.00'),
       ).not.toBeOnTheScreen();
@@ -698,8 +698,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount with 4% fee = 2 * 0.96 = 1.92
-      expect(screen.getByText('Available: $2.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1.92')).toBeOnTheScreen();
     });
 
     it('calculates max bet amount correctly with fees', () => {
@@ -709,8 +708,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 10 * (1 - 4/100) = 9.6
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
     });
 
     it('validates minimum bet with fees included', () => {
@@ -720,7 +718,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
     });
   });
 
@@ -814,7 +812,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$100\.00/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$96\.15/)).toBeOnTheScreen();
       expect(screen.getByText('$20')).toBeOnTheScreen();
       expect(screen.getByText('$50')).toBeOnTheScreen();
       expect(screen.getByText('$100')).toBeOnTheScreen();
@@ -856,7 +854,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$1\.40/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$1\.34/)).toBeOnTheScreen();
     });
 
     it('formats very large balance with commas and two decimals', () => {
@@ -865,7 +863,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $999,999,999.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961,538,460.57')).toBeOnTheScreen();
     });
 
     it('renders component with custom fees', () => {
@@ -876,7 +874,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$100\.00/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$96\.15/)).toBeOnTheScreen();
     });
   });
 
@@ -1029,7 +1027,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.96')).toBeOnTheScreen();
     });
 
     it('calculates minimum bet with fees when fee percentage is provided', () => {
@@ -1039,7 +1037,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1.05')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1.00')).toBeOnTheScreen();
     });
 
     it('displays correct available balance with fee adjustment', () => {
@@ -1050,8 +1048,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 5 * 0.96 = 4.8, shown as Available
-      expect(screen.getByText('Available: $5.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $4.80')).toBeOnTheScreen();
     });
 
     it('handles large fee percentages correctly', () => {
@@ -1061,8 +1058,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 10 * 0.5 = 5
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $6.66')).toBeOnTheScreen();
     });
   });
 
@@ -1104,8 +1100,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 10 * 0.96 = 9.6 (> MINIMUM_BET of 1)
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
     });
 
     it('returns null when balance is loading', () => {
@@ -1182,7 +1177,7 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       // Component renders successfully with low balance
-      expect(screen.getByText('Available: $1.03')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.99')).toBeOnTheScreen();
     });
 
     it('renders when balance equals minimumBetWithFees', () => {
@@ -1194,7 +1189,7 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       // Component renders successfully
-      expect(screen.getByText('Available: $1.04')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1.00')).toBeOnTheScreen();
     });
 
     it('handles very small fee percentages in minimumBetFees calculation', () => {
@@ -1556,7 +1551,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = calculateMaxBetAmount(50, 0) = 50
+      // A preview with no fee rate leaves the full balance available.
       expect(screen.getByText('Available: $50.00')).toBeOnTheScreen();
     });
 
@@ -1666,7 +1661,7 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       expect(screen.getByText('Done')).toBeOnTheScreen();
-      expect(screen.getByText('Available: $100.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $94.33')).toBeOnTheScreen();
     });
 
     it('renders correctly with different balance scenarios', () => {
@@ -1688,7 +1683,7 @@ describe('PredictBuyPreview', () => {
 
       rerender(<PredictBuyPreview />);
 
-      expect(screen.getByText('Available: $0.50')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.48')).toBeOnTheScreen();
     });
 
     it('tests canPlaceBet with minimumBetWithFees comparison explicitly', () => {
@@ -2352,7 +2347,7 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('Available: $1,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961.53')).toBeOnTheScreen();
     });
 
     it('displays to-win amount in sheet mode', () => {
@@ -2508,7 +2503,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
       expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
 

@@ -80,6 +80,7 @@ import {
   getPredictExchangeFee,
   roundUpToCents,
 } from '../../utils/orders';
+import { usePredictMaxBetAmount } from '../../hooks/usePredictMaxBetAmount';
 
 /**
  * Module-level flag shared by consumers to distinguish an explicit
@@ -192,6 +193,16 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     size: currentValue,
     autoRefreshTimeout: 1000,
   });
+
+  const { maxBetAmount, isLoading: isMaxBetAmountLoading } =
+    usePredictMaxBetAmount({
+      availableBalance: balance,
+      marketId: market.id,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcomeToken.id,
+      preview,
+    });
+  const isAvailableBalanceLoading = isBalanceLoading || isMaxBetAmountLoading;
 
   const {
     retrySheetRef,
@@ -465,7 +476,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         </Box>
         {/* Available balance */}
         <Box twClassName="text-center mt-2">
-          {isBalanceLoading ? (
+          {isAvailableBalanceLoading ? (
             <Skeleton width={120} height={20} />
           ) : (
             <Text
@@ -473,7 +484,10 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               color={TextColor.TextAlternative}
             >
               {`${strings('predict.order.available')}: `}
-              {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
+              {formatPrice(maxBetAmount, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
             </Text>
           )}
         </Box>
