@@ -194,8 +194,7 @@ const expectNotificationsOffToast = () => {
       variant: ToastVariants.Plain,
       labelOptions: [{ label: 'Notifications are off', isBold: true }],
       descriptionOptions: {
-        description:
-          "Turn them on in Settings → Notifications to stay updated on your agent's activity.",
+        description: 'Turn them on anytime in Settings → Notifications.',
       },
       startAccessory: expect.any(Object),
       hasNoTimeout: false,

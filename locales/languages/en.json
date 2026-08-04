@@ -5965,7 +5965,7 @@
           },
           "notifications_off": {
             "title": "Notifications are off",
-            "description": "Turn them on in Settings → Notifications to stay updated on your agent's activity."
+            "description": "Turn them on anytime in Settings → Notifications."
           }
         }
       },
