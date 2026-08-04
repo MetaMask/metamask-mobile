@@ -21,41 +21,12 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = (..._args: unknown[]) => ({});
-    tw.style = (...args: unknown[]) =>
-      args.reduce<Record<string, unknown>>((acc, arg) => {
-        if (typeof arg === 'object' && arg !== null) {
-          return { ...acc, ...(arg as Record<string, unknown>) };
-        }
-        return acc;
-      }, {});
-    return tw;
-  },
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const ReactActual = require('react');
-  const { Text: RNText, View: RNView } = jest.requireActual('react-native');
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    style?: unknown;
-    variant?: string;
-    color?: string;
-    testID?: string;
-    twClassName?: string;
-  }) => <RNText {...props}>{children}</RNText>;
-  const MockSkeleton = (props: {
-    height?: number;
-    width?: number;
-    twClassName?: string;
-  }) => <RNText testID="skeleton">{`${props.height}x${props.width}`}</RNText>;
+  const { View: RNView } = jest.requireActual('react-native');
+
   const MockBottomSheet = ReactActual.forwardRef(
     (
       {
@@ -82,13 +53,10 @@ jest.mock('@metamask/design-system-react-native', () => {
       return <RNView testID={testID}>{children}</RNView>;
     },
   );
+
   return {
     ...actual,
     BottomSheet: MockBottomSheet,
-    Text: MockText,
-    Skeleton: MockSkeleton,
-    TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
-    TextColor: { TextAlternative: 'TextAlternative' },
   };
 });
 
