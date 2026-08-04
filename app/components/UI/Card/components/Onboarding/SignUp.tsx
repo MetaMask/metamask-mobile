@@ -627,7 +627,7 @@ const SignUp = () => {
   const renderActions = () => (
     <>
       {isImmersveCountry ? (
-        <Box twClassName="mb-2">
+        <Box twClassName="mb-6">
           <ImmersveLegalClickwrap
             documents={onboardingDocuments}
             isLoading={isLegalDocsLoading}
