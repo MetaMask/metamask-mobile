@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { toHex } from '@metamask/controller-utils';
 import { TextColor } from '@metamask/design-system-react-native';
+import BigNumber from 'bignumber.js';
 import Logger from '../../../../util/Logger';
 import { TokenI } from '../../Tokens/types';
 import type { TokenListItemCta } from '../../Tokens/TokenList/TokenListItem/TokenListItem';
@@ -96,6 +97,7 @@ export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
         token_position_in_list: context.tokenPositionInList,
         token_chain_id: asset.chainId,
         tokens_in_list: context.tokensInList,
+        token_has_balance: new BigNumber(asset.balance).gt(0),
       });
 
       if (redirectedToOnboarding) {

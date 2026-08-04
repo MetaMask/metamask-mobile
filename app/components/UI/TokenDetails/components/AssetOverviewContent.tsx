@@ -44,6 +44,7 @@ import PerpsCard from '../../Perps/components/PerpsCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
+import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
@@ -77,18 +78,22 @@ import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTra
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
-  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
+import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
+import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
+import { getIsAssetRequireActivate } from '../../../../selectors/stellar/stellar-assets';
+import { useSpendableBalance } from '../hooks/useSpendableBalance';
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
@@ -143,6 +148,10 @@ export interface AssetOverviewContentProps {
 
   // Balance data
   balance: string | number | undefined;
+  balanceCta?: React.ReactNode;
+  balanceDescription?: React.ReactNode;
+  balancePriceChangeOverride?: string;
+  balancePriceChangeOverrideColor?: ComponentLibraryTextColor;
   mainBalance: string;
   secondaryBalance: string | undefined;
 
@@ -157,9 +166,6 @@ export interface AssetOverviewContentProps {
   timePeriod: TimePeriod;
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
-
-  // Feature flags
-  isPerpsEnabled: boolean;
 
   // Currency
   currentCurrency: string;
@@ -200,6 +206,11 @@ export interface AssetOverviewContentProps {
   onExitAction?: () => void;
   /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
   isPricePositive?: boolean | null;
+  /** Called whenever the perps market loading state settles. Lets the parent avoid a duplicate hook call. */
+  onPerpsMarketResolved?: (result: {
+    hasPerpsMarket: boolean;
+    isLoading: boolean;
+  }) => void;
 }
 
 /**
@@ -216,6 +227,10 @@ export interface AssetOverviewContentProps {
 const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   token,
   balance,
+  balanceCta,
+  balanceDescription,
+  balancePriceChangeOverride,
+  balancePriceChangeOverrideColor,
   mainBalance,
   secondaryBalance,
   currentPrice,
@@ -227,7 +242,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   timePeriod,
   setTimePeriod,
   chartNavigationButtons,
-  isPerpsEnabled,
   currentCurrency,
   onBuy,
   onSend,
@@ -244,6 +258,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   useAmbientColor,
   onExitAction,
   isPricePositive,
+  onPerpsMarketResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -258,6 +273,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
+  const isAssetInactive = useSelector((state) =>
+    getIsAssetRequireActivate(state, {
+      assetId: token.address,
+    }),
+  );
+  const spendableBalanceData = useSpendableBalance({
+    assetId: token.address,
+  });
+  const showSpendableBalance = spendableBalanceData.hasSpendableBalance;
 
   const {
     hasPerpsMarket,
@@ -265,10 +289,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isLoading: isPerpsLoading,
     handlePerpsAction,
   } = usePerpsActions({
-    symbol: isPerpsEnabled ? token.symbol : null,
+    symbol: token.symbol,
     fromTokenDetails: true,
     transactionActiveAbTests: token.transactionActiveAbTests,
   });
+
+  useEffect(() => {
+    onPerpsMarketResolved?.({ hasPerpsMarket, isLoading: isPerpsLoading });
+  }, [hasPerpsMarket, isPerpsLoading, onPerpsMarketResolved]);
 
   const isEligible = useSelector(selectPerpsEligibility);
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -334,16 +362,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isButtonsLoading = isBuyableLoading || isPerpsLoading;
 
-  // Check if user has a position for this asset (only if perps is enabled and market exists)
+  // Check if user has a position for this asset (only if market exists)
   const { position: perpsPosition, isLoading: isPerpsPositionLoading } =
-    usePerpsPositionForAsset(
-      isPerpsEnabled && hasPerpsMarket ? token.symbol : null,
-    );
+    usePerpsPositionForAsset(hasPerpsMarket ? token.symbol : null);
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   const showPerpsSection =
-    isPerpsEnabled &&
     hasPerpsMarket &&
     Boolean(marketData) &&
     isTokenTrustworthy &&
@@ -593,6 +618,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             )}
 
+          {isAssetInactive ? (
+            <AssetActivateCard token={token} chainName="Stellar" />
+          ) : null}
+
           <Price
             asset={token}
             prices={prices}
@@ -655,12 +684,28 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
-          {balance != null && (
-            <Balance
-              asset={token}
-              mainBalance={mainBalance}
-              secondaryBalance={secondaryBalance}
+          {balance != null && spendableBalanceData.hasSpendableBalance && (
+            <SpendableBalanceSection
+              minimumReserveBalance={spendableBalanceData.minimumReserveBalance}
+              spendableBalance={spendableBalanceData.spendableBalance}
+              totalBalance={String(balance)}
+              symbol={token.symbol}
+              fiatValue={mainBalance}
             />
+          )}
+          {balance != null && !spendableBalanceData.hasSpendableBalance && (
+            <>
+              <Balance
+                asset={token}
+                balanceCta={balanceCta}
+                balanceDescription={balanceDescription}
+                mainBalance={mainBalance}
+                priceChangeOverride={balancePriceChangeOverride}
+                priceChangeOverrideColor={balancePriceChangeOverrideColor}
+                secondaryBalance={secondaryBalance}
+              />
+              <EarnBalance asset={token} />
+            </>
           )}
           {isTokenEligibleForMerklClaim && (
             <AssetOverviewClaimBonus asset={token} />

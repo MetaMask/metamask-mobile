@@ -27,6 +27,7 @@ import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import {
   loginForPredictTests,
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
@@ -50,6 +51,7 @@ const positionDetails = {
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
@@ -62,15 +64,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
       minimumVersion: '0.0.0',
     },
     carouselBanners: false,
-    predictExtendedSportsMarkets: {
-      versions: {
-        '7.82.0': {
-          enabled: false,
-          leagues: [],
-          enabledSportsMarketTypes: [],
-        },
-      },
-    },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e

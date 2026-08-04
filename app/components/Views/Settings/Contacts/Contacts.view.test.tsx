@@ -128,7 +128,7 @@ describeForPlatforms('Contacts component views', () => {
     expect(await findByTestId(NETWORK_LIST_BOTTOM_SHEET)).toBeOnTheScreen();
   });
 
-  // --- Migrated from addressbook-ens.spec.ts ---
+  // --- Address validation and ENS resolution ---
 
   it('shows an error for an invalid address format', async () => {
     const { findByTestId, findByText } = renderContactForm();
@@ -205,7 +205,7 @@ describeForPlatforms('Contacts component views', () => {
     ensLookupSpy.mockRestore();
   });
 
-  // --- Migrated from addressbook-send-add-contact.spec.ts ---
+  // --- Contact delete ---
 
   it('deletes a contact through the address book controller', async () => {
     const deleteContactSpy = jest.spyOn(

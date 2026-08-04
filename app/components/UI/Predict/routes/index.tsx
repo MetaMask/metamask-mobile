@@ -20,7 +20,6 @@ import {
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictPositionsView from '../views/PredictPositionsView';
 import PredictMarketListRoute from './PredictMarketListRoute';
-import PredictWorldCupRoute from './PredictWorldCupRoute';
 import PredictFeedView from '../views/PredictFeedView';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
@@ -96,11 +95,6 @@ const PredictScreenStack = () => {
             title: strings('predict.markets.title'),
             animation: 'none',
           }}
-        />
-
-        <Stack.Screen
-          name={Routes.PREDICT.WORLD_CUP}
-          component={PredictWorldCupRoute}
         />
 
         <Stack.Screen name={Routes.PREDICT.FEED} component={PredictFeedView} />
