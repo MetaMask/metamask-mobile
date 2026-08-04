@@ -4,6 +4,7 @@ import { DepositKeyboard, DepositKeyboardProps } from './deposit-keyboard';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
+import { strings } from '../../../../../../locales/i18n';
 
 function render(props: Partial<DepositKeyboardProps> = {}) {
   return renderWithProvider(
@@ -82,6 +83,23 @@ describe('DepositKeyboard', () => {
     expect(getByText('Test Alert')).toBeDefined();
     expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
     expect(queryByText('50%')).toBeNull();
+  });
+
+  it('disables done button when isDoneDisabled without swapping label', () => {
+    const onDonePressMock = jest.fn();
+    const { getByTestId, getByText } = render({
+      hasInput: true,
+      value: '1',
+      isDoneDisabled: true,
+      onDonePress: onDonePressMock,
+    });
+
+    const doneButton = getByTestId('deposit-keyboard-done-button');
+    expect(getByText(strings('confirm.edit_amount_done'))).toBeDefined();
+    expect(doneButton).toBeDisabled();
+
+    fireEvent.press(doneButton);
+    expect(onDonePressMock).not.toHaveBeenCalled();
   });
 
   it('renders doneLabel if specified', async () => {

@@ -472,7 +472,9 @@ export function useTransactionCustomAmount({
       setIsMaxDeposit(isMaxMoneyAccountDeposit);
 
       setAmountFiat(newAmount);
-      return true;
+      // Dust balances can ROUND_DOWN to $0 — treat as nothing applied so Max
+      // does not enter the auto-submit / loading-review path.
+      return newAmount !== '0';
     },
     [
       balanceUsd,

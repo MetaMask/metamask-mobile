@@ -48,7 +48,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center' as const,
       justifyContent: 'space-between' as const,
       paddingVertical: 12,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
     },
 
     skeletonInfoRow: {
@@ -56,7 +56,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center' as const,
       justifyContent: 'space-between' as const,
       paddingBottom: 10,
-      paddingHorizontal: 8,
+      paddingHorizontal: 16,
     },
 
     skeletonRowRight: {

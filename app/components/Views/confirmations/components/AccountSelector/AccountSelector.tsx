@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  Modal,
-  StyleProp,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Modal, StyleProp, View, ViewStyle } from 'react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
@@ -14,19 +8,13 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import {
   BottomSheet,
   BottomSheetRef,
   HeaderStandard,
-  Skeleton,
-  Text,
+  KeyValueSelect,
+  KeyValueSelectVariant,
   TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
@@ -39,6 +27,7 @@ import {
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
+import { KeyValueRowSkeleton } from '../rows/key-value-row-skeleton';
 
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
@@ -172,48 +161,31 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   }, [filteredAccountSections, selectedAccountGroup, label]);
 
   return (
-    <View style={[styles.container, style]}>
-      <TouchableOpacity
-        onPress={openModal}
-        style={styles.row}
+    <>
+      <KeyValueSelect
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {displayLabel}
-        </Text>
-        <View style={styles.valueContainer}>
-          {selectedAddress && accountName ? (
-            <>
-              <Avatar
-                variant={AvatarVariant.Account}
-                type={accountAvatarType}
-                accountAddress={selectedAddress}
-                size={AvatarSize.Sm}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                numberOfLines={1}
-                ellipsizeMode="middle"
-                twClassName="shrink"
-              >
-                {accountName}
-              </Text>
-            </>
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('transaction.recipient_address')}
-            </Text>
-          )}
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        </View>
-      </TouchableOpacity>
+        variant={KeyValueSelectVariant.Summary}
+        keyLabel={displayLabel}
+        keyTextProps={{
+          color: TextColor.TextAlternative,
+        }}
+        value={selectedAddress && accountName ? accountName : undefined}
+        valueStartAccessory={
+          selectedAddress && accountName ? (
+            <Avatar
+              variant={AvatarVariant.Account}
+              type={accountAvatarType}
+              accountAddress={selectedAddress}
+              size={AvatarSize.Sm}
+            />
+          ) : undefined
+        }
+        onPress={openModal}
+        style={style}
+        selectButtonProps={{
+          placeholder: strings('transaction.recipient_address'),
+        }}
+      />
       <Modal
         visible={isModalVisible}
         animationType="none"
@@ -249,24 +221,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
           </BottomSheet>
         </View>
       </Modal>
-    </View>
+    </>
   );
 };
 
 export function AccountSelectorSkeleton() {
-  const { styles } = useStyles(stylesheet, {});
-
-  return (
-    <View style={styles.container} testID="account-selector-skeleton">
-      <View style={styles.row}>
-        <Skeleton height={18} width={60} />
-        <View style={styles.valueContainer}>
-          <Skeleton height={32} width={32} twClassName="rounded-full" />
-          <Skeleton height={18} width={120} />
-        </View>
-      </View>
-    </View>
-  );
+  return <KeyValueRowSkeleton testID="account-selector-skeleton" />;
 }
 
 export default AccountSelector;

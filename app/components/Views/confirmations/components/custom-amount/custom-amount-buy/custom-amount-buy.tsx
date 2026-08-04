@@ -1,29 +1,19 @@
 import React, { useCallback } from 'react';
-import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
 import { toCaipAssetType } from '@metamask/utils';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
+  Box,
+  BoxAlignItems,
   Button,
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { Box } from '../../../../../UI/Box/Box';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { AlignItems } from '../../../../../UI/Box/box.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 export function CustomAmountBuy() {
-  const transactionMeta = useTransactionMetadataRequest();
   const tokens = useAccountTokens({ includeNoBalance: true });
   const requiredTokens = useTransactionPayRequiredTokens();
 
@@ -51,23 +41,8 @@ export function CustomAmountBuy() {
     goToBuy({ assetId });
   }, [assetId, goToBuy]);
 
-  let message: string | undefined;
-
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
-    message = strings('confirm.custom_amount.buy_perps');
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    message = strings('confirm.custom_amount.buy_predict');
-  }
-
   return (
-    <Box alignItems={AlignItems.center} gap={20}>
-      {message && (
-        <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-          {message}
-        </Text>
-      )}
+    <Box alignItems={BoxAlignItems.Center} gap={5}>
       <Button
         variant={ButtonVariant.Primary}
         onPress={handleBuyPress}

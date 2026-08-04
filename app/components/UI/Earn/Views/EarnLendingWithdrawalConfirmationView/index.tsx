@@ -465,7 +465,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
         }}
         includesTopInset
       />
-      <View style={styles.contentContainer}>
+      <View>
         <Erc20TokenHero
           token={token}
           amountTokenMinimalUnit={amountTokenMinimalUnit}

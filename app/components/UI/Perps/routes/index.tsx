@@ -2,7 +2,7 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import type {
   PerpsNavigationParamList,
@@ -48,21 +48,16 @@ import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWa
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
-
-/* eslint-disable-next-line */
-import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
-import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
 
 const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
@@ -74,17 +69,9 @@ const styles = StyleSheet.create({
 });
 
 export function getRedesignedConfirmationsHeaderOptions(
-  params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
+  _params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
 ): NativeStackNavigationOptions {
-  const showPerpsHeader =
-    params?.showPerpsHeader ??
-    CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
-  if (showPerpsHeader) {
-    return {
-      ...getEmptyNavHeader(),
-      headerBackVisible: false,
-    };
-  }
+  // Confirmations render HeaderStandard inline; keep the stack header off.
   return {
     headerShown: false,
     title: '',
@@ -93,38 +80,15 @@ export function getRedesignedConfirmationsHeaderOptions(
 }
 
 const PerpsConfirmScreen = () => {
-  const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  // When showPerpsHeader is false (deposit-and-trade / long-short flow), Confirm internally
-  // calls navigation.setOptions({ headerShown: true }) for full-screen confirmations, which
-  // would cause the native nav bar to animate in. We intercept setOptions via NavigationContext
-  // so headerShown: true is never passed to the native stack, preventing any header animation
-  // or reserved header space. This is scoped only to this screen and does not affect Confirm
-  // or any other shared component.
-  const noHeaderNavigation = useMemo(
-    () =>
-      Object.assign({}, navigation, {
-        setOptions: (options: Parameters<typeof navigation.setOptions>[0]) =>
-          navigation.setOptions({ ...options, headerShown: false }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any,
-    [navigation],
-  );
-
-  if (showPerpsHeader) {
-    return <Confirm />;
-  }
-
-  return (
-    <NavigationContext.Provider value={noHeaderNavigation}>
-      <Confirm disableSafeArea />
-    </NavigationContext.Provider>
-  );
+  // Deposit-and-trade embeds under Perps chrome without the confirmation header
+  // or SafeArea top inset (see showPerpsHeader === false).
+  return <Confirm disableSafeArea={!showPerpsHeader} />;
 };
 
 const PerpsModalStack = () => {

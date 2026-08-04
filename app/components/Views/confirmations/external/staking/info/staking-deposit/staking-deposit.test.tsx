@@ -6,7 +6,7 @@ import { stakingDepositConfirmationState } from '../../../../../../../util/test/
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
-import { getNavbar } from '../../../../components/UI/navbar/navbar';
+import useNavbar from '../../../../hooks/ui/useNavbar';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 import StakingDeposit from './staking-deposit';
 
@@ -50,8 +50,9 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
-jest.mock('../../../../components/UI/navbar/navbar', () => ({
-  getNavbar: jest.fn(),
+jest.mock('../../../../hooks/ui/useNavbar', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents', () => ({
@@ -80,7 +81,7 @@ describe('StakingDeposit', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockTrackAdvancedDetailsToggledEvent = jest.fn();
   const mockSetConfirmationMetric = jest.fn();
-  const mockGetNavbar = jest.mocked(getNavbar);
+  const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
@@ -118,16 +119,7 @@ describe('StakingDeposit', () => {
     expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Advanced details')).toBeDefined();
 
-    expect(mockGetNavbar).toHaveBeenCalled();
-    expect(mockGetNavbar).toHaveBeenCalledWith({
-      title: 'Stake',
-      onReject: mockOnReject,
-      addBackButton: true,
-      theme: expect.any(Object),
-      mmPayRequestInProgressNavHandler: expect.objectContaining({
-        current: false,
-      }),
-    });
+    expect(mockUseNavbar).toHaveBeenCalledWith('Stake');
   });
 
   it('tracks metrics events', async () => {

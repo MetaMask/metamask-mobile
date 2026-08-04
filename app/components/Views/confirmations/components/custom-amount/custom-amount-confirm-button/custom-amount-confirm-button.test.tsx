@@ -3,7 +3,6 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { merge, noop } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { CustomAmountConfirmButton } from './custom-amount-confirm-button';
-import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
@@ -14,6 +13,7 @@ import {
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Alert } from '../../../types/alerts';
@@ -23,6 +23,7 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../context/confirmation-context');
 jest.mock('../../../hooks/useConfirmActions');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/pay/useTransactionPayData');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -30,18 +31,18 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
-function render(props: {
-  alertTitle?: string;
-  isDisabled?: boolean;
-  onContinue?: () => void;
-  stage?: CustomAmountStage;
-}) {
+function render(
+  props: {
+    disableConfirm?: boolean;
+    isAmountUpdating?: boolean;
+    onContinue?: () => void;
+  } = {},
+) {
   return renderWithProvider(
     <CustomAmountConfirmButton
-      alertTitle={props.alertTitle}
-      isDisabled={props.isDisabled ?? false}
+      disableConfirm={props.disableConfirm}
+      isAmountUpdating={props.isAmountUpdating}
       onContinue={props.onContinue}
-      stage={props.stage ?? CustomAmountStage.ShowTotals}
     />,
     {
       state: merge(
@@ -60,6 +61,9 @@ describe('CustomAmountConfirmButton', () => {
   const useConfirmActionsMock = jest.mocked(useConfirmActions);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
+  );
+  const useIsTransactionPayLoadingMock = jest.mocked(
+    useIsTransactionPayLoading,
   );
   const useRouteMock = jest.mocked(useRoute);
   const setIsConfirmationSubmittingMock = jest.fn();
@@ -81,6 +85,8 @@ describe('CustomAmountConfirmButton', () => {
 
     useConfirmationContextMock.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
+      navHeaderConfig: null,
+      setNavHeaderConfig: noop,
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -107,32 +113,19 @@ describe('CustomAmountConfirmButton', () => {
       type: TransactionType.contractInteraction,
       txParams: { from: '0x123' },
     } as never);
+
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
   });
 
   it('renders the confirm button', () => {
-    const { getByTestId } = render({});
+    const { getByTestId } = render();
 
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
   });
 
-  it('shows the default label during loading even when alertTitle is set', () => {
-    // useTransactionMetadataRequest returns undefined → useButtonLabel returns the default 'done' string
-    const { getByTestId, queryByText } = renderWithProvider(
-      <CustomAmountConfirmButton
-        alertTitle="Test Alert Title"
-        isDisabled={false}
-        stage={CustomAmountStage.Loading}
-      />,
-      {},
-    );
-    const button = getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
-    expect(button).toBeOnTheScreen();
-    expect(queryByText('Test Alert Title')).toBeNull();
-  });
-
-  it('calls onConfirm and onContinue when pressed (enabled state)', async () => {
+  it('calls onConfirm and onContinue when pressed', async () => {
     const onConfirmMock = jest.fn();
     const onContinueMock = jest.fn();
 
@@ -142,8 +135,6 @@ describe('CustomAmountConfirmButton', () => {
     });
 
     const { getByTestId } = render({
-      stage: CustomAmountStage.ShowTotals,
-      isDisabled: false,
       onContinue: onContinueMock,
     });
 
@@ -158,10 +149,9 @@ describe('CustomAmountConfirmButton', () => {
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
-  it('button is disabled when isDisabled is true', () => {
+  it('button is disabled when disableConfirm is true', () => {
     const { getByTestId } = render({
-      isDisabled: true,
-      stage: CustomAmountStage.ShowTotals,
+      disableConfirm: true,
     });
 
     expect(
@@ -169,11 +159,20 @@ describe('CustomAmountConfirmButton', () => {
     ).toBeDisabled();
   });
 
-  it('button is disabled when stage is not ShowTotals', () => {
+  it('button is disabled when isAmountUpdating is true', () => {
     const { getByTestId } = render({
-      isDisabled: false,
-      stage: CustomAmountStage.Loading,
+      isAmountUpdating: true,
     });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('button is disabled when pay is loading', () => {
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { getByTestId } = render();
 
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
@@ -188,10 +187,7 @@ describe('CustomAmountConfirmButton', () => {
       hasBlockingAlerts: true,
     } as unknown as AlertsContextParams);
 
-    const { getByTestId } = render({
-      isDisabled: false,
-      stage: CustomAmountStage.ShowTotals,
-    });
+    const { getByTestId } = render();
 
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
