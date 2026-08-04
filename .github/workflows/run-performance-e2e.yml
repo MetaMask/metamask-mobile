@@ -471,8 +471,10 @@ jobs:
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
-      app_version: ${{ needs.resolve-main-browserstack-urls.outputs.without-srp-version || needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      # Prefer an explicitly supplied or freshly uploaded app. Reused main
+      # URLs are only a fallback so onboarding cannot receive a stale variant.
+      browserstack_app_url: ${{ inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || needs.resolve-main-browserstack-urls.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
@@ -553,8 +555,8 @@ jobs:
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
-      app_version: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || needs.resolve-main-browserstack-urls.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}

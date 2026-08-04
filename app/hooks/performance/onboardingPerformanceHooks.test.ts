@@ -235,7 +235,7 @@ describe('onboarding performance hooks', () => {
     [Routes.ONBOARDING.CHOOSE_PASSWORD, 'ChoosePassword/index.tsx'],
     [
       Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-      'ImportFromSecretRecoveryPhrase/index.js',
+      'ImportFromSecretRecoveryPhrase/index.tsx',
     ],
     [
       Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
