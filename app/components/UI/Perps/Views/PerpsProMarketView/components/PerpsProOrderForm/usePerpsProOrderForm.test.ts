@@ -815,17 +815,17 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetLimitPrice).toHaveBeenCalled();
     });
 
-    it('previews a slider percentage before committing USD on drag end', () => {
+    it('previews a slider USD amount before committing on drag end', () => {
       // Arrange
       const { result } = renderProForm();
 
       // Act
       act(() => {
-        result.current.onBalancePercentageChange(50);
+        result.current.sizeSlider.onValueChange(500);
       });
       expect(mockSetAmount).not.toHaveBeenCalled();
       act(() => {
-        result.current.onBalancePercentageDragEnd();
+        result.current.sizeSlider.onDragEnd();
       });
 
       // Assert

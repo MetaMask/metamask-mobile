@@ -71,6 +71,7 @@ import type {
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
   PerpsProSizeInputModel,
+  PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
 
@@ -91,10 +92,7 @@ export interface UsePerpsProOrderFormResult {
   onLimitPriceBlur: () => void;
   onUseMidPricePress: () => void;
   sizeInput: PerpsProSizeInputModel;
-  balancePercentage: number;
-  onBalancePercentageChange: (value: number) => void;
-  onBalancePercentageDragEnd: () => void;
-  onBalancePercentageDragCancel: () => void;
+  sizeSlider: PerpsProSizeSliderModel;
   effectiveUsdAmount: string;
   availableBalance: string;
   onAddFundsPress: () => void;
@@ -243,14 +241,7 @@ export const usePerpsProOrderForm = ({
     return parsedLimitPrice > 0 ? parsedLimitPrice : assetData.price;
   }, [assetData.price, orderForm.limitPrice, orderForm.type]);
 
-  const {
-    sizeInput,
-    balancePercentage,
-    onBalancePercentageChange,
-    onBalancePercentageDragEnd,
-    onBalancePercentageDragCancel,
-    effectiveUsdAmount,
-  } = usePerpsProSizeInput({
+  const { sizeInput, sizeSlider, effectiveUsdAmount } = usePerpsProSizeInput({
     usdAmount: orderForm.amount,
     setAmount,
     assetSymbol: symbol,
@@ -932,10 +923,7 @@ export const usePerpsProOrderForm = ({
     onLimitPriceBlur,
     onUseMidPricePress,
     sizeInput,
-    balancePercentage,
-    onBalancePercentageChange,
-    onBalancePercentageDragEnd,
-    onBalancePercentageDragCancel,
+    sizeSlider,
     effectiveUsdAmount,
     availableBalance,
     onAddFundsPress: handleAddFunds,

@@ -392,15 +392,57 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenLastCalledWith('123');
   });
 
+  it('syncs the amount-domain slider from typed USD input', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '0', maxPossibleAmount: 43.55 }),
+      ),
+    );
+
+    act(() => {
+      result.current.sizeInput.onChange('10');
+    });
+
+    expect(result.current.sizeSlider.value).toBe(10);
+    expect(result.current.sizeSlider.maximumValue).toBe(43.55);
+    expect(result.current.effectiveUsdAmount).toBe('10');
+    expect(mockSetAmount).toHaveBeenCalledWith('10');
+  });
+
+  it('updates the slider maximum when maxPossibleAmount changes with leverage', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({
+          usdAmount: '10',
+          maxPossibleAmount: 43.55,
+        }),
+      },
+    );
+
+    expect(result.current.sizeSlider.value).toBe(10);
+    expect(result.current.sizeSlider.maximumValue).toBe(43.55);
+
+    rerender(
+      createParams({
+        usdAmount: '10',
+        maxPossibleAmount: 87.1,
+      }),
+    );
+
+    expect(result.current.sizeSlider.value).toBe(10);
+    expect(result.current.sizeSlider.maximumValue).toBe(87.1);
+  });
+
   it('previews slider USD without committing order state', () => {
     const params = createParams();
     const { result } = renderHook(() => usePerpsProSizeInput(params));
 
     act(() => {
-      result.current.onBalancePercentageChange(25);
+      result.current.sizeSlider.onValueChange(250);
     });
 
-    expect(result.current.balancePercentage).toBe(25);
+    expect(result.current.sizeSlider.value).toBe(250);
     expect(result.current.sizeInput.value).toBe('250');
     expect(result.current.effectiveUsdAmount).toBe('250');
     expect(mockSetAmount).not.toHaveBeenCalled();
@@ -410,38 +452,55 @@ describe('usePerpsProSizeInput', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
 
     act(() => {
-      result.current.onBalancePercentageChange(Number.NaN);
+      result.current.sizeSlider.onValueChange(Number.NaN);
     });
-    expect(result.current.balancePercentage).toBe(0);
+    expect(result.current.sizeSlider.value).toBe(0);
 
     act(() => {
-      result.current.onBalancePercentageChange(150);
+      result.current.sizeSlider.onValueChange(1500);
     });
-    expect(result.current.balancePercentage).toBe(100);
+    expect(result.current.sizeSlider.value).toBe(1000);
 
     act(() => {
-      result.current.onBalancePercentageChange(-10);
+      result.current.sizeSlider.onValueChange(-10);
     });
-    expect(result.current.balancePercentage).toBe(0);
+    expect(result.current.sizeSlider.value).toBe(0);
   });
 
   it('ignores slider completion without a preview', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
 
     act(() => {
-      result.current.onBalancePercentageDragEnd();
-      result.current.onBalancePercentageDragCancel();
+      result.current.sizeSlider.onDragEnd();
+      result.current.sizeSlider.onDragCancel();
     });
 
     expect(mockSetAmount).not.toHaveBeenCalled();
   });
 
-  it('returns zero balance percentage when the maximum amount is zero', () => {
+  it('returns a zeroed amount-domain slider when the maximum amount is zero', () => {
     const { result } = renderHook(() =>
       usePerpsProSizeInput(createParams({ maxPossibleAmount: 0 })),
     );
 
-    expect(result.current.balancePercentage).toBe(0);
+    expect(result.current.sizeSlider.value).toBe(0);
+    expect(result.current.sizeSlider.maximumValue).toBe(0);
+  });
+
+  it('clamps the visual slider value above the maximum without rewriting typed input', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '0', maxPossibleAmount: 43.55 }),
+      ),
+    );
+
+    act(() => {
+      result.current.sizeInput.onChange('50');
+    });
+
+    expect(result.current.sizeInput.value).toBe('50');
+    expect(result.current.effectiveUsdAmount).toBe('50');
+    expect(result.current.sizeSlider.value).toBe(43.55);
   });
 
   it('previews and commits slider values in asset mode', () => {
@@ -453,14 +512,14 @@ describe('usePerpsProSizeInput', () => {
 
     act(() => {
       result.current.sizeInput.onToggleDenomination();
-      result.current.onBalancePercentageChange(25);
+      result.current.sizeSlider.onValueChange(250);
     });
 
     expect(result.current.sizeInput.value).toBe('2.5');
     expect(result.current.effectiveUsdAmount).toBe('250');
 
     act(() => {
-      result.current.onBalancePercentageDragEnd();
+      result.current.sizeSlider.onDragEnd();
     });
 
     expect(mockSetAmount).toHaveBeenLastCalledWith('250');
@@ -486,11 +545,11 @@ describe('usePerpsProSizeInput', () => {
     const params = createParams();
     const { result } = renderHook(() => usePerpsProSizeInput(params));
     act(() => {
-      result.current.onBalancePercentageChange(25);
+      result.current.sizeSlider.onValueChange(250);
     });
 
     act(() => {
-      result.current.onBalancePercentageDragEnd();
+      result.current.sizeSlider.onDragEnd();
     });
 
     expect(result.current.sizeInput.value).toBe('250');
@@ -501,11 +560,11 @@ describe('usePerpsProSizeInput', () => {
     const params = createParams();
     const { result } = renderHook(() => usePerpsProSizeInput(params));
     act(() => {
-      result.current.onBalancePercentageChange(75);
+      result.current.sizeSlider.onValueChange(750);
     });
 
     act(() => {
-      result.current.onBalancePercentageDragCancel();
+      result.current.sizeSlider.onDragCancel();
     });
 
     expect(result.current.sizeInput.value).toBe('750');

@@ -28,20 +28,33 @@ jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 const ids = PerpsProOrderFormSelectorsIDs;
 
-const createProps = (
-  overrides: Partial<PerpsProSizeInputProps> = {},
-): PerpsProSizeInputProps => ({
-  value: '',
-  onChangeText: jest.fn(),
-  denomination: { unit: 'usd' },
-  canToggleDenomination: true,
-  onToggleDenomination: jest.fn(),
-  balancePercentage: 25,
-  onBalancePercentageChange: jest.fn(),
-  availableBalance: '$500 available',
-  onAddFundsPress: jest.fn(),
+const createSizeSlider = (
+  overrides: Partial<PerpsProSizeInputProps['sizeSlider']> = {},
+): PerpsProSizeInputProps['sizeSlider'] => ({
+  value: 25,
+  maximumValue: 100,
+  onValueChange: jest.fn(),
+  onDragEnd: jest.fn(),
+  onDragCancel: jest.fn(),
   ...overrides,
 });
+
+const createProps = (
+  overrides: Partial<PerpsProSizeInputProps> = {},
+): PerpsProSizeInputProps => {
+  const { sizeSlider, ...rest } = overrides;
+  return {
+    value: '',
+    onChangeText: jest.fn(),
+    denomination: { unit: 'usd' },
+    canToggleDenomination: true,
+    onToggleDenomination: jest.fn(),
+    sizeSlider: createSizeSlider(sizeSlider),
+    availableBalance: '$500 available',
+    onAddFundsPress: jest.fn(),
+    ...rest,
+  };
+};
 
 const renderInput = (overrides: Partial<PerpsProSizeInputProps> = {}) =>
   render(<PerpsProSizeInput {...createProps(overrides)} />);
@@ -96,28 +109,36 @@ describe('PerpsProSizeInput', () => {
     });
   });
 
-  it('passes value changes and drag completion to the slider', () => {
-    const onBalancePercentageChange = jest.fn();
-    const onBalancePercentageDragEnd = jest.fn();
+  it('passes the amount-domain slider model to PerpsSlider', () => {
+    const onValueChange = jest.fn();
+    const onDragEnd = jest.fn();
     renderInput({
-      onBalancePercentageChange,
-      onBalancePercentageDragEnd,
+      sizeSlider: createSizeSlider({
+        value: 10,
+        maximumValue: 43.55,
+        onValueChange,
+        onDragEnd,
+      }),
     });
     const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
 
-    slider.props.onValueChange(50);
-    slider.props.onDragEnd(50);
+    expect(slider).toHaveProp('value', 10);
+    expect(slider).toHaveProp('maximumValue', 43.55);
+    expect(slider).toHaveProp('step', 1);
 
-    expect(onBalancePercentageChange).toHaveBeenCalledWith(50);
-    expect(onBalancePercentageDragEnd).toHaveBeenCalledTimes(1);
+    slider.props.onValueChange(20);
+    slider.props.onDragEnd(20);
+
+    expect(onValueChange).toHaveBeenCalledWith(20);
+    expect(onDragEnd).toHaveBeenCalledTimes(1);
   });
 
   it('commits the slider preview when the touch is cancelled', () => {
-    const onBalancePercentageDragCancel = jest.fn();
-    renderInput({ onBalancePercentageDragCancel });
+    const onDragCancel = jest.fn();
+    renderInput({ sizeSlider: createSizeSlider({ onDragCancel }) });
 
     fireEvent(screen.getByTestId(ids.SIZE_SLIDER_SECTION), 'touchCancel');
 
-    expect(onBalancePercentageDragCancel).toHaveBeenCalledTimes(1);
+    expect(onDragCancel).toHaveBeenCalledTimes(1);
   });
 });

@@ -23,6 +23,18 @@ export interface PerpsProSizeInputModel {
   onToggleDenomination: () => void;
 }
 
+/**
+ * Amount-domain size slider, matching Lite's USD amount / maxPossibleAmount
+ * controlled range rather than a Pro-only percentage adapter.
+ */
+export interface PerpsProSizeSliderModel {
+  value: number;
+  maximumValue: number;
+  onValueChange: (value: number) => void;
+  onDragEnd: () => void;
+  onDragCancel: () => void;
+}
+
 export interface PerpsProOrderNotice {
   id: string;
   variant: 'banner' | 'inline';
@@ -60,10 +72,7 @@ export interface PerpsProOrderFormProps {
   onLimitPriceBlur?: () => void;
   onUseMidPricePress?: () => void;
   sizeInput: PerpsProSizeInputModel;
-  balancePercentage: number;
-  onBalancePercentageChange: (value: number) => void;
-  onBalancePercentageDragEnd?: () => void;
-  onBalancePercentageDragCancel?: () => void;
+  sizeSlider: PerpsProSizeSliderModel;
   availableBalance: string;
   onAddFundsPress?: () => void;
   reduceOnly: boolean;

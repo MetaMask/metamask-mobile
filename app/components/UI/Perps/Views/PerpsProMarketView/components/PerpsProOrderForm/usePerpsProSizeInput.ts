@@ -8,6 +8,7 @@ import {
 import type {
   PerpsProSizeDenomination,
   PerpsProSizeInputModel,
+  PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
 
 type SizeDenominationUnit = PerpsProSizeDenomination['unit'];
@@ -29,10 +30,7 @@ export interface UsePerpsProSizeInputParams {
 
 export interface UsePerpsProSizeInputResult {
   sizeInput: PerpsProSizeInputModel;
-  balancePercentage: number;
-  onBalancePercentageChange: (value: number) => void;
-  onBalancePercentageDragEnd: () => void;
-  onBalancePercentageDragCancel: () => void;
+  sizeSlider: PerpsProSizeSliderModel;
   effectiveUsdAmount: string;
 }
 
@@ -70,22 +68,41 @@ const getAssetFromUsd = (
     .toFixed();
 };
 
-const getSliderUsdAmount = (
-  percentage: number,
+const clampSliderUsdAmount = (
+  value: number,
   maxPossibleAmount: number,
-): string =>
-  new BigNumber(maxPossibleAmount)
-    .times(percentage)
-    .dividedBy(100)
-    .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-    .toFixed();
+): string => {
+  if (!Number.isFinite(value) || maxPossibleAmount <= 0) {
+    return '0';
+  }
+
+  // Match Lite: the amount-domain slider uses whole-dollar steps.
+  const clamped = Math.min(maxPossibleAmount, Math.max(0, value));
+  return Math.floor(clamped).toString();
+};
+
+const getSliderDisplayValue = (
+  usdAmount: string,
+  maxPossibleAmount: number,
+): number => {
+  if (maxPossibleAmount <= 0) {
+    return 0;
+  }
+
+  const amount = Number.parseFloat(usdAmount || '0');
+  if (!Number.isFinite(amount)) {
+    return 0;
+  }
+
+  return Math.min(maxPossibleAmount, Math.max(0, amount));
+};
 
 /**
  * Owns the Pro size field's editable draft while keeping order state canonical
  * in USD. Asset drafts remain stable across live price updates.
  *
  * @param params - Canonical amount, market conversion, and sizing constraints.
- * @returns Size-input model, deferred slider behavior, and effective USD amount.
+ * @returns Size-input model, amount-domain slider, and effective USD amount.
  */
 export const usePerpsProSizeInput = ({
   usdAmount,
@@ -111,8 +128,8 @@ export const usePerpsProSizeInput = ({
   );
   const assetDraft = assetDraftState.value;
   const [isSizeFocused, setIsSizeFocused] = useState(false);
-  const [sliderPreview, setSliderPreview] = useState<number | null>(null);
-  const sliderPreviewRef = useRef<number | null>(null);
+  const [sliderPreview, setSliderPreview] = useState<string | null>(null);
+  const sliderPreviewRef = useRef<string | null>(null);
   const lastUsdAmountRef = useRef(usdAmount);
   // Tracks USD amounts this hook just committed so external clamps (leverage /
   // balance / payment-token caps) can be distinguished from our own setAmount
@@ -314,17 +331,9 @@ export const usePerpsProSizeInput = ({
     usdDraft,
   ]);
 
-  const previewUsdAmount = useMemo(
-    () =>
-      sliderPreview === null
-        ? null
-        : getSliderUsdAmount(sliderPreview, maxPossibleAmount),
-    [maxPossibleAmount, sliderPreview],
-  );
-
   const effectiveUsdAmount = useMemo(() => {
-    if (previewUsdAmount !== null) {
-      return previewUsdAmount;
+    if (sliderPreview !== null) {
+      return sliderPreview;
     }
 
     if (denominationUnit === 'usd') {
@@ -349,42 +358,26 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     denominationUnit,
     effectivePrice,
-    previewUsdAmount,
+    sliderPreview,
     usdAmount,
     usdDraft,
   ]);
 
-  const balancePercentage = useMemo(() => {
-    if (sliderPreview !== null) {
-      return sliderPreview;
-    }
-    if (maxPossibleAmount <= 0) {
-      return 0;
-    }
+  const onSliderValueChange = useCallback(
+    (value: number) => {
+      const nextUsdAmount = clampSliderUsdAmount(value, maxPossibleAmount);
+      sliderPreviewRef.current = nextUsdAmount;
+      setSliderPreview(nextUsdAmount);
+    },
+    [maxPossibleAmount],
+  );
 
-    const percentage = new BigNumber(effectiveUsdAmount)
-      .dividedBy(maxPossibleAmount)
-      .times(100)
-      .decimalPlaces(0, BigNumber.ROUND_HALF_UP)
-      .toNumber();
-    return Math.min(100, Math.max(0, percentage));
-  }, [effectiveUsdAmount, maxPossibleAmount, sliderPreview]);
-
-  const onBalancePercentageChange = useCallback((value: number) => {
-    const nextValue = Number.isFinite(value)
-      ? Math.min(100, Math.max(0, value))
-      : 0;
-    sliderPreviewRef.current = nextValue;
-    setSliderPreview(nextValue);
-  }, []);
-
-  const commitBalancePercentage = useCallback(() => {
-    const percentage = sliderPreviewRef.current;
-    if (percentage === null) {
+  const commitSliderPreview = useCallback(() => {
+    const nextUsdAmount = sliderPreviewRef.current;
+    if (nextUsdAmount === null) {
       return;
     }
 
-    const nextUsdAmount = getSliderUsdAmount(percentage, maxPossibleAmount);
     commitUsdAmount(nextUsdAmount);
     setUsdDraft(nextUsdAmount);
     if (canToggleDenomination) {
@@ -395,23 +388,17 @@ export const usePerpsProSizeInput = ({
     }
     sliderPreviewRef.current = null;
     setSliderPreview(null);
-  }, [
-    canToggleDenomination,
-    commitUsdAmount,
-    effectivePrice,
-    maxPossibleAmount,
-    szDecimals,
-  ]);
+  }, [canToggleDenomination, commitUsdAmount, effectivePrice, szDecimals]);
 
   const value = useMemo(() => {
-    if (previewUsdAmount === null) {
+    if (sliderPreview === null) {
       return denominationUnit === 'usd' ? usdDraft : assetDraft;
     }
     if (denominationUnit === 'usd') {
-      return previewUsdAmount;
+      return sliderPreview;
     }
     if (canToggleDenomination) {
-      return getAssetFromUsd(previewUsdAmount, effectivePrice, szDecimals);
+      return getAssetFromUsd(sliderPreview, effectivePrice, szDecimals);
     }
     return assetDraft;
   }, [
@@ -419,7 +406,7 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     denominationUnit,
     effectivePrice,
-    previewUsdAmount,
+    sliderPreview,
     szDecimals,
     usdDraft,
   ]);
@@ -453,12 +440,25 @@ export const usePerpsProSizeInput = ({
     ],
   );
 
+  const sizeSlider = useMemo<PerpsProSizeSliderModel>(
+    () => ({
+      value: getSliderDisplayValue(effectiveUsdAmount, maxPossibleAmount),
+      maximumValue: Math.max(0, maxPossibleAmount),
+      onValueChange: onSliderValueChange,
+      onDragEnd: commitSliderPreview,
+      onDragCancel: commitSliderPreview,
+    }),
+    [
+      commitSliderPreview,
+      effectiveUsdAmount,
+      maxPossibleAmount,
+      onSliderValueChange,
+    ],
+  );
+
   return {
     sizeInput,
-    balancePercentage,
-    onBalancePercentageChange,
-    onBalancePercentageDragEnd: commitBalancePercentage,
-    onBalancePercentageDragCancel: commitBalancePercentage,
+    sizeSlider,
     effectiveUsdAmount,
   };
 };
