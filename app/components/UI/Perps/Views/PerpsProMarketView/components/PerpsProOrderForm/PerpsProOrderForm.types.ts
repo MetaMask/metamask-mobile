@@ -1,4 +1,5 @@
 import type { OrderType } from '@metamask/perps-controller';
+import type { PerpsProSizeUnit } from './usePerpsProSizeInput';
 export type PerpsProOrderDirection = 'long' | 'short';
 export interface PerpsProOrderNotice {
   id: string;
@@ -35,9 +36,17 @@ export interface PerpsProOrderFormProps {
   onUseMidPricePress?: () => void;
   size: string;
   onSizeChange: (value: string) => void;
+  sizeUnit?: PerpsProSizeUnit;
+  sizeUnitLabel?: string;
+  showUsdPrefix?: boolean;
+  canToggleSizeUnit?: boolean;
+  onSizeFocus?: () => void;
+  onSizeBlur?: () => void;
   onSizeUnitPress?: () => void;
   balancePercentage: number;
   onBalancePercentageChange: (value: number) => void;
+  onBalancePercentageDragEnd?: () => void;
+  onBalancePercentageDragCancel?: () => void;
   availableBalance: string;
   onAddFundsPress?: () => void;
   reduceOnly: boolean;

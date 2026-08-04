@@ -730,6 +730,19 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetLimitPrice).toHaveBeenCalledWith('1234.56');
     });
 
+    it('normalizes leading zeroes in limit price input', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceChange('0012.5');
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalledWith('12.5');
+    });
+
     it('sets the limit price from the live mid', () => {
       // Arrange
       const { result } = renderProForm();
@@ -743,7 +756,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetLimitPrice).toHaveBeenCalled();
     });
 
-    it('maps a slider percentage to a fractional amount handler', () => {
+    it('previews a slider percentage before committing USD on drag end', () => {
       // Arrange
       const { result } = renderProForm();
 
@@ -751,9 +764,13 @@ describe('usePerpsProOrderForm', () => {
       act(() => {
         result.current.onBalancePercentageChange(50);
       });
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      act(() => {
+        result.current.onBalancePercentageDragEnd();
+      });
 
       // Assert
-      expect(mockHandlePercentageAmount).toHaveBeenCalledWith(0.5);
+      expect(mockSetAmount).toHaveBeenCalledWith('500');
     });
 
     it('forwards the direction and add-funds handlers', () => {
