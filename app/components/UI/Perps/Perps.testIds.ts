@@ -840,6 +840,14 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   LIMIT_OPTION: 'perps-order-type-limit',
 } as const;
 
+export const PerpsLeverageBottomSheetSelectorsIDs = {
+  SLIDER: 'perps-leverage-slider',
+  SLIDER_INCOMING: 'perps-leverage-slider-incoming',
+  SLIDER_INCOMING_WRAP: 'perps-leverage-slider-incoming-wrap',
+  HELP_TEXT: 'perps-leverage-help-text',
+  QUICK_SELECT: 'leverage-quick-select',
+} as const;
+
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {
   ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',
   REDUCE_MARGIN_OPTION: 'perps-adjust-margin-reduce-btn',
