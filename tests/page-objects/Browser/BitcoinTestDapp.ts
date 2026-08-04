@@ -8,6 +8,7 @@ import BrowserView from './BrowserView.js';
 import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 
 export const BITCOIN_DAPP_PORT = 8094;
 const BASE_URL = `http://localhost:${BITCOIN_DAPP_PORT}`;
@@ -17,17 +18,7 @@ const CONNECT_TIMEOUT_MS = 30_000;
 const CLICK_TIMEOUT_MS = 15_000;
 const POLL_MS = 300;
 
-// data-testid values from @metamask/test-dapp-bitcoin
-const TESTIDS = {
-  CONNECT: 'testpage.header.connect',
-  DISCONNECT: 'testpage.header.disconnect',
-  CONNECTION_STATUS: 'testpage.header.connectionstatus',
-  ACCOUNT: 'testpage.header.account',
-  WALLET_OPTION: 'testpage.walletselectionmodal.walletoption',
-  STANDARD_BUTTON: 'testpage.walletselectionmodal.standardbutton',
-  SIGN_MESSAGE_BUTTON: 'testpage.signmessage.signmessage',
-  SIGNED_MESSAGE: 'testpage.signmessage.signedmessage',
-} as const;
+const { header, walletSelectionModal, signMessage } = dataTestIds.testPage;
 
 function sel(testId: string): string {
   return `[data-testid="${testId}"]`;
@@ -58,7 +49,7 @@ class BitcoinTestDapp {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const text = await this.evaluate<string>(
-        `document.querySelector(${JSON.stringify(sel(TESTIDS.CONNECTION_STATUS))})?.textContent?.trim() || null`,
+        `document.querySelector(${JSON.stringify(sel(header.connectionStatus))})?.textContent?.trim() || null`,
       ).catch(() => null);
       if (text) return;
       await wait(POLL_MS);
@@ -113,37 +104,73 @@ class BitcoinTestDapp {
         `document.querySelector(${JSON.stringify(cssSelector)})?.textContent?.trim() || null`,
       ).catch(() => null);
       if (actual === expected) return;
-      await wait(500);
+      await wait(POLL_MS);
     }
     throw new Error(`Timed out: expected "${expected}", got "${actual}"`);
   }
 
+  /**
+   * After a page refresh the Bitcoin test dapp re-invokes wallet-standard
+   * `connect()` from localStorage. On slow Android CI that can open the
+   * MetaMask connect sheet again — tap it if it appears while polling.
+   */
+  private async waitForReconnect(timeoutMs = 10_000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastConnectAttemptAt = 0;
+    let actual: string | null = null;
+
+    while (Date.now() < deadline) {
+      actual = await this.evaluate<string>(
+        `document.querySelector(${JSON.stringify(sel(header.connectionStatus))})?.textContent?.trim() || null`,
+      ).catch(() => null);
+      if (actual === 'Connected') return;
+
+      // Auto-reconnect may re-open the MM connect sheet after wallets register.
+      if (Date.now() - lastConnectAttemptAt >= 3_000) {
+        lastConnectAttemptAt = Date.now();
+        try {
+          await DappConnectionModal.tapConnectButton({ timeout: 1_000 });
+        } catch {
+          // Sheet not present — keep polling for silent reconnect.
+        }
+      }
+
+      await wait(POLL_MS);
+    }
+
+    throw new Error(
+      `Timed out waiting for reconnect: expected "Connected", got "${actual}"`,
+    );
+  }
+
   async connect(): Promise<void> {
-    await this.click(`button${sel(TESTIDS.CONNECT)}`);
-    await this.waitForElement(`button${sel(TESTIDS.WALLET_OPTION)}`);
-    await this.click(`button${sel(TESTIDS.WALLET_OPTION)}`);
-    await this.click(`button${sel(TESTIDS.STANDARD_BUTTON)}`);
+    await this.click(`button${sel(header.connect)}`);
+    await this.waitForElement(
+      `button${sel(walletSelectionModal.walletOption)}`,
+    );
+    await this.click(`button${sel(walletSelectionModal.walletOption)}`);
+    await this.click(`button${sel(walletSelectionModal.standardButton)}`);
     await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
     await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);
   }
 
   async disconnect(): Promise<void> {
-    await this.click(`button${sel(TESTIDS.DISCONNECT)}`);
+    await this.click(`button${sel(header.disconnect)}`);
   }
 
   async verifyConnectionStatus(
     expected: string,
     timeoutMs = 10_000,
   ): Promise<void> {
-    await this.pollForText(sel(TESTIDS.CONNECTION_STATUS), expected, timeoutMs);
+    await this.pollForText(sel(header.connectionStatus), expected, timeoutMs);
   }
 
   async verifyAccount(expected: string, timeoutMs = 10_000): Promise<void> {
-    await this.pollForText(`${sel(TESTIDS.ACCOUNT)} a`, expected, timeoutMs);
+    await this.pollForText(`${sel(header.account)} a`, expected, timeoutMs);
   }
 
   async signMessage(): Promise<void> {
-    await this.click(`button${sel(TESTIDS.SIGN_MESSAGE_BUTTON)}`);
+    await this.click(`button${sel(signMessage.signMessage)}`);
   }
 
   async confirmSignMessage(): Promise<void> {
@@ -158,21 +185,18 @@ class BitcoinTestDapp {
     expected: string,
     timeoutMs = 15_000,
   ): Promise<void> {
-    await this.pollForText(sel(TESTIDS.SIGNED_MESSAGE), expected, timeoutMs);
+    await this.pollForText(sel(signMessage.signedMessage), expected, timeoutMs);
   }
 
   async reload(): Promise<void> {
+    // Soft refresh (same document origin) so wallet-standard auto-reconnect
+    // from localStorage can run. Full URL re-navigation was leaving CI Android
+    // stuck on "Not connected" for the full reconnect timeout.
+    await this.evaluate('location.reload(); true');
+    // Document swap invalidates the cached CDP page target.
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(BASE_URL);
     await this.waitForDappLoaded();
-    // Wait for the snap to restore the connection before returning so that
-    // subsequent verifyAccount / verifyConnectionStatus calls don't race.
-    await this.pollForText(
-      sel(TESTIDS.CONNECTION_STATUS),
-      'Connected',
-      CONNECT_TIMEOUT_MS,
-    );
+    await this.waitForReconnect();
   }
 }
 

@@ -8,8 +8,6 @@ import FixtureBuilder, {
 import {
   DappVariants,
   PlaywrightAssertions,
-  PlaywrightMatchers,
-  PlaywrightGestures,
   asPlaywrightElement,
 } from '../../../framework/index.js';
 import {
@@ -22,49 +20,10 @@ import {
 } from '../../../flows/wallet.flow.js';
 import { navigateToBrowserView } from '../../../flows/browser.flow.js';
 import BrowserView from '../../../page-objects/Browser/BrowserView.js';
+import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import DappConnectionModal from '../../../page-objects/MMConnect/DappConnectionModal.js';
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers.js';
-import { getDappUrl } from '../../../framework/fixtures/FixtureUtils.js';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds.js';
-
-// Calls wallet_requestPermissions in the TestDApp WebView via CDP.
-async function requestPermissions({
-  accounts,
-}: { accounts?: string[] } = {}): Promise<void> {
-  const request = JSON.stringify({
-    jsonrpc: '2.0',
-    method: 'wallet_requestPermissions',
-    params: [
-      {
-        eth_accounts: accounts
-          ? { caveats: [{ type: 'restrictReturnedAccounts', value: accounts }] }
-          : {},
-      },
-    ],
-  });
-  await ChromeCdpHelpers.evaluateInWebView(
-    getDappUrl(0),
-    `window.ethereum.request(${request})`,
-  );
-}
-
-// Clicks #connectButton in the TestDApp WebView (eth_requestAccounts flow).
-async function connectTestDapp(): Promise<void> {
-  await ChromeCdpHelpers.evaluateInWebView(
-    getDappUrl(0),
-    `document.querySelector('#connectButton')?.click()`,
-  );
-}
-
-// Taps the in-browser account / network avatar button to open the connected
-// accounts sheet.
-async function tapNetworkAvatarButton(): Promise<void> {
-  const el = await PlaywrightMatchers.getElementById('navbar-account-button');
-  await PlaywrightGestures.waitAndTap(el, {
-    checkForDisplayed: true,
-    timeout: 10_000,
-  });
-}
 
 async function setupAndNavigateToTestDapp(): Promise<void> {
   ChromeCdpHelpers.resetMetaMaskWebViewCache();
@@ -115,7 +74,7 @@ appiumTest.describe(
           async () => {
             await setupAndNavigateToTestDapp();
 
-            await requestPermissions();
+            await TestDApp.requestPermissions();
 
             // The account already permitted (Account 2) should be pre-selected
             await PlaywrightAssertions.expectTextDisplayed('Account 2');
@@ -123,7 +82,7 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // Only the already-permitted EVM account should remain connected
-            await tapNetworkAvatarButton();
+            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
             await PlaywrightAssertions.expectTextDisplayed('Account 2');
           },
         );
@@ -143,14 +102,14 @@ appiumTest.describe(
           async () => {
             await setupAndNavigateToTestDapp();
 
-            await connectTestDapp();
+            await TestDApp.tapDappConnectButton();
 
             // Account 1 should be the default selection
             await PlaywrightAssertions.expectTextDisplayed('Account 1');
 
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
-            await tapNetworkAvatarButton();
+            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
             await PlaywrightAssertions.expectTextDisplayed('Account 1');
 
             // Navigate to the permissions summary and open the network editor
@@ -192,7 +151,7 @@ appiumTest.describe(
           async () => {
             await setupAndNavigateToTestDapp();
 
-            await requestPermissions({
+            await TestDApp.requestPermissions({
               accounts: [DEFAULT_FIXTURE_ACCOUNT],
             });
 
@@ -202,7 +161,7 @@ appiumTest.describe(
             await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
 
             // EVM account should be connected
-            await tapNetworkAvatarButton();
+            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
             await PlaywrightAssertions.expectTextDisplayed('Account 1');
           },
         );

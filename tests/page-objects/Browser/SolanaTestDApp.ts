@@ -10,6 +10,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors.js';
+import { dataTestIds } from '@metamask/test-dapp-solana';
 
 export const SOLANA_DAPP_PORT = 8095;
 const BASE_URL = `http://localhost:${SOLANA_DAPP_PORT}`;
@@ -19,16 +20,7 @@ const CONNECT_TIMEOUT_MS = 30_000;
 const CLICK_TIMEOUT_MS = 15_000;
 const POLL_MS = 300;
 
-// data-testid values from @metamask/test-dapp-solana
-const TESTIDS = {
-  CONNECT: 'testpage.header.connect',
-  DISCONNECT: 'testpage.header.disconnect',
-  CONNECTION_STATUS: 'testpage.header.connectionstatus',
-  ACCOUNT: 'testpage.header.account',
-  SIGN_MESSAGE_BUTTON: 'testpage.signmessage.signmessage',
-  SIGNED_MESSAGE: 'testpage.signmessage.signedmessage',
-  SIGN_TRANSACTION_BUTTON: 'testpage.sendsol.signtransaction',
-} as const;
+const { header, signMessage, sendSol } = dataTestIds.testPage;
 
 function sel(testId: string): string {
   return `[data-testid="${testId}"]`;
@@ -59,7 +51,7 @@ class SolanaTestDApp {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       const text = await this.evaluate<string>(
-        `document.querySelector(${JSON.stringify(sel(TESTIDS.CONNECTION_STATUS))})?.textContent?.trim() || null`,
+        `document.querySelector(${JSON.stringify(sel(header.connectionStatus))})?.textContent?.trim() || null`,
       ).catch(() => null);
       if (text) return;
       await wait(POLL_MS);
@@ -114,14 +106,14 @@ class SolanaTestDApp {
         `document.querySelector(${JSON.stringify(cssSelector)})?.textContent?.trim() || null`,
       ).catch(() => null);
       if (actual === expected) return;
-      await wait(500);
+      await wait(POLL_MS);
     }
     throw new Error(`Timed out: expected "${expected}", got "${actual}"`);
   }
 
   // Connect button has structure <div data-testid="..."><div><button/></div></div>
   async clickConnectButton(): Promise<void> {
-    await this.click(`${sel(TESTIDS.CONNECT)} button`);
+    await this.click(`${sel(header.connect)} button`);
   }
 
   // MetaMask wallet option is inside the Solana wallet adapter modal (CSS class)
@@ -139,7 +131,7 @@ class SolanaTestDApp {
 
   async disconnect(): Promise<void> {
     // Disconnect button has structure <div data-testid="..."><button/></div>
-    await this.click(`${sel(TESTIDS.DISCONNECT)} button`);
+    await this.click(`${sel(header.disconnect)} button`);
   }
 
   async tapCancel(): Promise<void> {
@@ -186,7 +178,7 @@ class SolanaTestDApp {
   }
 
   async signMessage(): Promise<void> {
-    await this.click(`button${sel(TESTIDS.SIGN_MESSAGE_BUTTON)}`);
+    await this.click(`button${sel(signMessage.signMessage)}`);
   }
 
   async confirmSignMessage(): Promise<void> {
@@ -198,45 +190,40 @@ class SolanaTestDApp {
   async getSignedMessage(timeoutMs = 30_000): Promise<string> {
     const deadline = Date.now() + timeoutMs;
     let text: string | null = null;
-    const cssSel = `pre${sel(TESTIDS.SIGNED_MESSAGE)}`;
+    const cssSel = `pre${sel(signMessage.signedMessage)}`;
     while (Date.now() < deadline) {
       text = await this.evaluate<string>(
         `document.querySelector(${JSON.stringify(cssSel)})?.textContent?.trim() || null`,
       ).catch(() => null);
       if (text) return text;
-      await wait(500);
+      await wait(POLL_MS);
     }
     throw new Error(`Timed out waiting for signed message`);
   }
 
   async signTransaction(): Promise<void> {
-    await this.click(`button${sel(TESTIDS.SIGN_TRANSACTION_BUTTON)}`);
+    await this.click(`button${sel(sendSol.signTransaction)}`);
   }
 
   async verifyConnectionStatus(
     expected: string,
     timeoutMs = 10_000,
   ): Promise<void> {
-    await this.pollForText(sel(TESTIDS.CONNECTION_STATUS), expected, timeoutMs);
+    await this.pollForText(sel(header.connectionStatus), expected, timeoutMs);
   }
 
   async verifyAccount(expected: string, timeoutMs = 10_000): Promise<void> {
     // Account element contains an <a> tag with the address text
-    await this.pollForText(`${sel(TESTIDS.ACCOUNT)} a`, expected, timeoutMs);
+    await this.pollForText(`${sel(header.account)} a`, expected, timeoutMs);
   }
 
   async reload(): Promise<void> {
+    // Soft refresh so wallet-adapter auto-reconnect can run from the same
+    // document origin (full URL re-navigation races provider reinjection on CI).
+    await this.evaluate('location.reload(); true');
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    await BrowserView.tapUrlInputBox();
-    await BrowserView.navigateToURL(BASE_URL);
     await this.waitForDappLoaded();
-    // Wait for the snap to restore the connection before returning so that
-    // subsequent verifyAccount / verifyConnectionStatus calls don't race.
-    await this.pollForText(
-      sel(TESTIDS.CONNECTION_STATUS),
-      'Connected',
-      CONNECT_TIMEOUT_MS,
-    );
+    await this.pollForText(sel(header.connectionStatus), 'Connected');
   }
 }
 
