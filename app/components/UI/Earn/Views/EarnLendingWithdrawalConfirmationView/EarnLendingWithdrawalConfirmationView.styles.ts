@@ -11,9 +11,6 @@ const styleSheet = (params: { theme: Theme }) => {
       height: '100%',
       justifyContent: 'space-between',
     },
-    contentContainer: {
-      paddingHorizontal: 16,
-    },
     infoSections: {
       paddingTop: 16,
     },
