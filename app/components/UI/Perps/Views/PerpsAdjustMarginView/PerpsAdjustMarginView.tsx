@@ -267,34 +267,9 @@ const PerpsAdjustMarginView: React.FC = () => {
     handleRemoveMargin,
   ]);
 
-  // Show error if no position found (either from route or live data)
-  if ((!routePosition && !position) || !mode) {
-    return (
-      <SafeAreaView style={tw.style('flex-1 bg-default')}>
-        <Box twClassName="flex-1 items-center justify-center p-6">
-          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
-            {strings('perps.errors.position_not_found')}
-          </Text>
-        </Box>
-      </SafeAreaView>
-    );
-  }
-
-  const title = isAddMode
-    ? strings('perps.adjust_margin.add_title')
-    : strings('perps.adjust_margin.remove_title');
-
   const buttonLabel = isAddMode
     ? strings('perps.adjust_margin.add_margin')
     : strings('perps.adjust_margin.reduce_margin');
-
-  // Use submitted estimate during exit animation, otherwise use live calculated values.
-  const submittedEstimate = submittedEstimateRef.current;
-  const displayNewLiquidationPrice =
-    submittedEstimate?.price ?? newLiquidationPrice;
-  const displayNewLiquidationDistance =
-    submittedEstimate?.distance ?? newLiquidationDistance;
-  const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
   const isConfirmDisabled =
     marginAmount <= 0 ||
@@ -313,6 +288,31 @@ const PerpsAdjustMarginView: React.FC = () => {
     }),
     [buttonLabel, handleConfirm, isConfirmDisabled, isAdjusting],
   );
+
+  // Show error if no position found (either from route or live data)
+  if ((!routePosition && !position) || !mode) {
+    return (
+      <SafeAreaView style={tw.style('flex-1 bg-default')}>
+        <Box twClassName="flex-1 items-center justify-center p-6">
+          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+            {strings('perps.errors.position_not_found')}
+          </Text>
+        </Box>
+      </SafeAreaView>
+    );
+  }
+
+  const title = isAddMode
+    ? strings('perps.adjust_margin.add_title')
+    : strings('perps.adjust_margin.remove_title');
+
+  // Use submitted estimate during exit animation, otherwise use live calculated values.
+  const submittedEstimate = submittedEstimateRef.current;
+  const displayNewLiquidationPrice =
+    submittedEstimate?.price ?? newLiquidationPrice;
+  const displayNewLiquidationDistance =
+    submittedEstimate?.distance ?? newLiquidationDistance;
+  const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
   const renderTransitionValue = (
     currentDisplay: string,

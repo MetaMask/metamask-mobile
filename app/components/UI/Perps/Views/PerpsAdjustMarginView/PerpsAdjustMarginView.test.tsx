@@ -10,16 +10,37 @@ jest.mock('react-native-reanimated', () =>
   jest.requireActual('react-native-reanimated/mock'),
 );
 
-jest.mock('react-native-gesture-handler', () => ({
-  GestureHandlerRootView: 'View',
-  GestureDetector: 'View',
-  Gesture: {
-    Pan: jest.fn().mockReturnValue({
-      onUpdate: jest.fn().mockReturnThis(),
-      onEnd: jest.fn().mockReturnThis(),
-    }),
-  },
-}));
+jest.mock('react-native-gesture-handler', () => {
+  const chainable = () => {
+    const api: Record<string, unknown> = {};
+    const returnApi = () => api;
+    [
+      'enabled',
+      'onBegin',
+      'onStart',
+      'onUpdate',
+      'onEnd',
+      'onFinalize',
+      'activeOffsetX',
+      'hitSlop',
+      'minDistance',
+      'maxPointers',
+    ].forEach((method) => {
+      api[method] = jest.fn(returnApi);
+    });
+    return api;
+  };
+
+  return {
+    GestureHandlerRootView: 'View',
+    GestureDetector: ({ children }: { children?: unknown }) => children,
+    Gesture: {
+      Pan: jest.fn(chainable),
+      Tap: jest.fn(chainable),
+      Simultaneous: jest.fn((...gestures: unknown[]) => gestures),
+    },
+  };
+});
 
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();
@@ -92,16 +113,6 @@ jest.mock(
   '../../components/PerpsBottomSheetTooltip',
   () => 'PerpsBottomSheetTooltip',
 );
-
-// Slider host stub only — needed to fire onValueChange without gesture internals.
-// Other MMDS components keep their real implementations (testIDs attach natively).
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  return {
-    ...actual,
-    Slider: 'Slider',
-  };
-});
 
 jest.mock('../../../../../util/haptics', () => ({
   playImpact: jest.fn(),
@@ -456,12 +467,14 @@ describe('PerpsAdjustMarginView', () => {
     });
 
     it('uses ArrowRight (not Arrow2Right) for liquidation price and distance transition arrows', () => {
-      const { UNSAFE_getByType } = render(<PerpsAdjustMarginView />);
+      render(<PerpsAdjustMarginView />);
 
-      // Trigger showTransition by setting a non-zero margin amount via the slider
-      // Slider is percentage-based (0–100); 50% of $1000 max = $500
-      const slider = UNSAFE_getByType('Slider' as never);
-      fireEvent(slider, 'valueChange', 50);
+      const slider = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.SLIDER,
+      );
+      fireEvent(slider, 'accessibilityAction', {
+        nativeEvent: { actionName: 'increment' },
+      });
 
       const arrowIcons = screen.getAllByLabelText('ArrowRight');
       expect(arrowIcons).toHaveLength(2);
