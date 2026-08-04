@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { PerpsLiveActivityService } from '../services/PerpsLiveActivityService';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
 
 jest.mock('react-redux', () => ({
@@ -12,6 +13,10 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../services/PerpsConnectionManager');
+
+jest.mock('../services/PerpsLiveActivityService', () => ({
+  PerpsLiveActivityService: { start: jest.fn(), stop: jest.fn() },
+}));
 
 jest.mock('../utils/perpsLifecycleContext', () => ({
   initPerpsLifecycleTracking: jest.fn(() => jest.fn()),
@@ -115,6 +120,40 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
     expect(getByText('child content')).toBeOnTheScreen();
+  });
+
+  it('starts the P/L Live Activity service on mount when perps is enabled', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(PerpsLiveActivityService.start).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start the P/L Live Activity service when perps is disabled', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(PerpsLiveActivityService.start).not.toHaveBeenCalled();
+  });
+
+  it('stops the P/L Live Activity service on unmount', () => {
+    const { unmount } = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    unmount();
+
+    expect(PerpsLiveActivityService.stop).toHaveBeenCalledTimes(1);
   });
 
   it('calls resumeFromForeground on mount when perps is enabled', () => {
