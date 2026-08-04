@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity, ViewStyle } from 'react-native';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
@@ -10,7 +11,6 @@ import { Alert, Severity } from '../../../types/alerts';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
 import styleSheet from './inline-alert.styles';
-import { TextColor } from '@metamask/design-system-react-native';
 
 export interface InlineAlertProps {
   /** Alert object */
@@ -21,14 +21,14 @@ export interface InlineAlertProps {
   disabled?: boolean;
 }
 
-const getTextColor = (severity: Severity) => {
+const getIconColor = (severity: Severity) => {
   switch (severity) {
     case Severity.Danger:
-      return TextColor.ErrorDefault;
+      return IconColor.Error;
     case Severity.Warning:
-      return TextColor.WarningDefault;
+      return IconColor.Warning;
     default:
-      return TextColor.InfoDefault;
+      return IconColor.Info;
   }
 };
 
@@ -67,7 +67,7 @@ export default function InlineAlert({
         // Show info icon for all severities except danger
         name={severity === Severity.Danger ? IconName.Danger : IconName.Info}
         size={IconSize.Sm}
-        color={getTextColor(severity)}
+        color={getIconColor(severity)}
         testID="inline-alert-icon"
       />
     </TouchableOpacity>
