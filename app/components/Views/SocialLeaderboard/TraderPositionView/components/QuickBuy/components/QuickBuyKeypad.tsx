@@ -8,9 +8,9 @@ import CollapsibleReveal from './CollapsibleReveal';
 const UNPRICED_KEYPAD_CURRENCY = 'native';
 
 /**
- * Numeric keypad for the Quick Buy keyboard A/B treatment. Opens by default
- * with the amount footer still visible (taller sheet). Quick-amount pills live
- * in the footer above Pay with / Total / CTA — not duplicated here.
+ * Numeric keypad for Quick Buy amount entry. Opens by default with the amount
+ * footer still visible (taller sheet). Quick-amount pills live in the footer
+ * above Pay with / Total / CTA — not duplicated here.
  *
  * Height is animated via CollapsibleReveal so the bottom-anchored sheet can
  * still lerp if the keypad is dismissed. Mount is deferred until the first
@@ -18,7 +18,6 @@ const UNPRICED_KEYPAD_CURRENCY = 'native';
  */
 const QuickBuyKeypad: React.FC = () => {
   const {
-    useKeyboard,
     isKeypadOpen,
     hasSourcePrice,
     currentCurrency,
@@ -57,7 +56,7 @@ const QuickBuyKeypad: React.FC = () => {
     [handleAmountChange],
   );
 
-  if (!useKeyboard || (!hasOpenedOnce && !isKeypadOpen)) {
+  if (!hasOpenedOnce && !isKeypadOpen) {
     return null;
   }
 

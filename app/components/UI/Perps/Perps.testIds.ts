@@ -436,6 +436,9 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
   MORE_SECTION: 'perps-market-details-more-section',
+  ABOUT_SECTION: 'perps-market-details-about-section',
+  ABOUT_DESCRIPTION: 'perps-market-details-about-description',
+  ABOUT_READ_MORE: 'perps-market-details-about-read-more',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-geo-block-bottom-sheet-tooltip',
   MARKET_HOURS_BANNER: 'perps-market-hours-banner',
@@ -463,6 +466,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   HEADER_MARKET_LIST_BUTTON: 'perps-pro-market-header-market-list-button',
   HEADER_WALLET_BUTTON: 'perps-pro-market-header-wallet-button',
   HEADER_FAVORITE_BUTTON: 'perps-pro-market-header-favorite-button',
+  HEADER_PRICE: 'perps-pro-market-header-price',
+  HEADER_PRICE_CHANGE: 'perps-pro-market-header-price-change',
   MARKET_SUMMARY: 'perps-pro-market-summary',
   MARKET_PRICE: 'perps-pro-market-price',
   MARKET_PRICE_CHANGE: 'perps-pro-market-price-change',
@@ -501,15 +506,26 @@ export const PerpsProMarketViewSelectorsIDs = {
     'perps-pro-market-positions-panel-tab-positions',
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
   POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
+  POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
+  POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
+  POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
+  POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
   POSITIONS_LIST: 'perps-pro-market-positions-list',
+  POSITIONS_CLOSE_ALL: 'perps-pro-market-positions-close-all',
+  POSITION_CLOSE: 'perps-pro-market-position-close',
+  POSITION_REVERSE: 'perps-pro-market-position-reverse',
+  POSITION_SHARE: 'perps-pro-market-position-share',
+  POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
+  POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
+  ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_ROW: 'perps-pro-market-order-row',
 };
 
 // Helper for dynamic Pro position row test IDs
-export const getPerpsProPositionRowSelector = (symbol: string, index: number) =>
-  `${PerpsProMarketViewSelectorsIDs.POSITION_ROW}-${symbol}-${index}`;
+export const getPerpsProPositionRowSelector = (symbol: string) =>
+  `${PerpsProMarketViewSelectorsIDs.POSITION_ROW}-${symbol}`;
 
 export const getPerpsProOrderRowSelector = (symbol: string, index: number) =>
   `${PerpsProMarketViewSelectorsIDs.ORDER_ROW}-${symbol}-${index}`;
@@ -635,6 +651,23 @@ export const PerpsMarketBalanceActionsSelectorsIDs = {
   LEARN_MORE_BUTTON: 'perps-market-balance-learn-more-button',
   EMPTY_STATE_TITLE: 'perps-market-empty-state-title',
   EMPTY_STATE_DESCRIPTION: 'perps-market-empty-state-description',
+};
+
+// ========================================
+// PERPS BALANCE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsBalanceBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-balance-bottom-sheet',
+  CLOSE_BUTTON: 'perps-balance-bottom-sheet-close-button',
+  HISTORY_BUTTON: 'perps-balance-bottom-sheet-history-button',
+  BALANCE_VALUE: 'perps-balance-bottom-sheet-balance-value',
+  AVAILABLE_VALUE: 'perps-balance-bottom-sheet-available-value',
+  PNL_VALUE: 'perps-balance-bottom-sheet-pnl-value',
+  WITHDRAW_BUTTON: 'perps-balance-bottom-sheet-withdraw-button',
+  ADD_FUNDS_BUTTON: 'perps-balance-bottom-sheet-add-funds-button',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-balance-bottom-sheet-geo-block-tooltip',
 };
 
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {

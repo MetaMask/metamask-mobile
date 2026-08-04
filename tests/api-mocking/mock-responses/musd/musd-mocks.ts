@@ -132,7 +132,9 @@ export async function setupMusdMocks(
   options: MusdMockOptions = {},
 ): Promise<void> {
   const { hasMusdBalance = false, musdBalance = 100 } = options;
+
   await setupRemoteFeatureFlagsMock(mockServer, {
+    earnMoneyHubEnabled: { enabled: false, minimumVersion: '0.0.0' },
     earnMusdConversionFlowEnabled: { enabled: true, minimumVersion: '0.0.0' },
     earnMusdCtaEnabled: { enabled: true, minimumVersion: '0.0.0' },
     earnMusdConversionTokenListItemCtaEnabled: {
@@ -242,6 +244,14 @@ export async function setupMusdMocks(
         ],
       },
     },
+    requestMethod: 'POST',
+    responseCode: 200,
+  });
+
+  // Asset Overview can trigger wallet compliance batch scan
+  await setupMockRequest(mockServer, {
+    url: /compliance\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v1\/wallet\/batch/,
+    response: { results: [] },
     requestMethod: 'POST',
     responseCode: 200,
   });

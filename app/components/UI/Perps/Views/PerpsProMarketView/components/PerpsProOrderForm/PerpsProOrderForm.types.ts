@@ -19,6 +19,12 @@ export interface PerpsProOrderSummaryProps {
 export interface PerpsProOrderFormProps {
   direction: PerpsProOrderDirection;
   onDirectionChange: (direction: PerpsProOrderDirection) => void;
+  /**
+   * When true, an order-book icon renders beside the direction control to
+   * restore the collapsed order-book column (Figma "No Order Book" state).
+   */
+  isOrderBookCollapsed?: boolean;
+  onExpandOrderBook?: () => void;
   marginModeLabel: string;
   leverageLabel: string;
   onLeveragePress?: () => void;

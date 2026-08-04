@@ -1513,6 +1513,7 @@
       "size_usd": "サイズのUSD換算額",
       "size_percentage": "注文サイズの割合",
       "toggle_size_unit": "サイズ単位の切り替え",
+      "available_balance": "{{amount}} 使用可能",
       "available_balance_unavailable": "-- 使用可能",
       "est_liquidation": "推定清算価格",
       "tpsl": "TP / SL",

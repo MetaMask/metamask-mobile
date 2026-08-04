@@ -8,11 +8,18 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const mockTrackBottomSheetViewed = jest.fn();
+const mockTrackButtonClicked = jest.fn();
+const mockNavigateToMoneyHome = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
+}));
+
+jest.mock('../../hooks/useMoneyNavigation', () => ({
+  useMoneyNavigation: jest.fn(),
 }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -105,6 +112,11 @@ describe('MoneyEarnCryptoInfoSheet', () => {
     mockUseParams.mockReturnValue({});
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
+      trackButtonClicked: mockTrackButtonClicked,
+    });
+    jest.mocked(useMoneyNavigation).mockReturnValue({
+      isOnboardingRedirectNeeded: false,
+      navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: 4,
@@ -143,6 +155,22 @@ describe('MoneyEarnCryptoInfoSheet', () => {
         strings('money.earn_crypto_info_sheet.body', { percentage: 4 }),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('navigates to Money home from the optional CTA', () => {
+    mockUseParams.mockReturnValue({ showMoneyHomeCta: true });
+    const { getByTestId } = renderWithProvider(<MoneyEarnCryptoInfoSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyEarnCryptoInfoSheetTestIds.MONEY_HOME_BUTTON),
+    );
+
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        label_key: 'money.earn_crypto_info_sheet.go_to_money_account',
+      }),
+    );
   });
 
   it('closes the sheet when the close button is pressed', () => {
