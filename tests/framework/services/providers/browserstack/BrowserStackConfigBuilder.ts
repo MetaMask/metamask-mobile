@@ -106,9 +106,6 @@ export class BrowserStackConfigBuilder {
           debug: true,
           local: isLocal,
           interactiveDebugging: true,
-          networkLogsOptions: {
-            captureContent: true,
-          },
           networkLogs: false,
           appiumVersion: '3.1.0',
           idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
