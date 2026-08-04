@@ -8,6 +8,7 @@ import { strings } from '../../../locales/i18n';
 import { darkWidgetTheme, lightWidgetTheme } from './WidgetTheme';
 import { WidgetUpdaterServiceImplementation } from './WidgetUpdaterService';
 import { BalanceWidget } from './widgets/BalanceWidget';
+import { trackWidgetAdoption } from './trackWidgetAdoption';
 
 // `selectBalanceBySelectedAccountGroup` is a selector *factory*. Production
 // instantiates it exactly once, so the mock hands back the same selector
@@ -43,6 +44,10 @@ jest.mock('@metamask/client-utils', () => ({
 jest.mock('./widgets/BalanceWidget', () => ({
   BalanceWidget: { updateSnapshot: jest.fn() },
   BALANCE_WIDGET_NAME: 'BalanceWidget',
+}));
+
+jest.mock('./trackWidgetAdoption', () => ({
+  trackWidgetAdoption: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockSelectBalanceBySelectedAccountGroup = jest.mocked(
@@ -110,6 +115,12 @@ describe('WidgetUpdaterService', () => {
       expect(strings).toHaveBeenCalledWith('widgets.balance_widget.label');
     });
 
+    it('reports widget adoption once', () => {
+      service.initialize();
+
+      expect(trackWidgetAdoption).toHaveBeenCalledTimes(1);
+    });
+
     it('is a no-op on Android', () => {
       Platform.OS = 'android';
 
@@ -117,6 +128,7 @@ describe('WidgetUpdaterService', () => {
 
       expect(subscribe).not.toHaveBeenCalled();
       expect(BalanceWidget.updateSnapshot).not.toHaveBeenCalled();
+      expect(trackWidgetAdoption).not.toHaveBeenCalled();
     });
 
     it('is a no-op when MM_WIDGETS_ENABLED is not "true"', () => {
@@ -128,6 +140,7 @@ describe('WidgetUpdaterService', () => {
 
         expect(subscribe).not.toHaveBeenCalled();
         expect(BalanceWidget.updateSnapshot).not.toHaveBeenCalled();
+        expect(trackWidgetAdoption).not.toHaveBeenCalled();
       } finally {
         process.env.MM_WIDGETS_ENABLED = originalFlag;
       }

@@ -1,6 +1,6 @@
 ---
 description: Build iOS home screen widgets and Live Activities on the expo-widgets foundation in app/core/Widgets/ — closures, platform split, theming, data flow
-globs: app/core/Widgets/**/*.{ts,tsx},ios/ExpoWidgetsTarget/**/*.swift
+globs: app/core/Widgets/**/*.{ts,tsx},ios/ExpoWidgetsTarget/**/*.swift,ios/MetaMask/NativeModules/RCTWidgetInfo/**
 alwaysApply: false
 ---
 
@@ -62,6 +62,7 @@ Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()
 - `WidgetUpdaterService` is the **only** place that reads Redux/selectors on behalf of a widget. Add one `computeXProps()` + `pushXWidgetUpdate()` method pair per widget, called from `pushUpdates()`.
 - It debounces (`UPDATE_DEBOUNCE_MS`, 2s) and skips redundant `updateSnapshot()` calls when computed props are unchanged — don't fight this by pushing from elsewhere.
 - `initialize()` is a no-op unless the build-time flag `MM_WIDGETS_ENABLED` is `'true'` — defaults to `'false'` in `builds.yml` while this feature is in development. Set `MM_WIDGETS_ENABLED="true"` in your local `.js.env` and restart Metro to test. See `docs/widgets/README.md#feature-flag-mm_widgets_enabled`.
+- `initialize()` also fire-and-forgets `trackWidgetAdoption()` once per launch — reports which widgets are actually installed (`WidgetCenter.getCurrentConfigurations` via `ios/MetaMask/NativeModules/RCTWidgetInfo/` + `getInstalledWidgets.ios.ts`), not taps, since a passive glanceable widget is looked at rather than tapped. Keyed on WidgetKit `kind`, so every new widget is covered automatically — no analytics code to add. See `docs/widgets/README.md#adoption-analytics`.
 
 ## Testing
 
@@ -78,6 +79,7 @@ Do all data-fetching/formatting/masking in `WidgetUpdaterService.computeXProps()
 6. Document the widget in `app.config.js`'s `expo-widgets` plugin `widgets` array (documentation-only in this bare-workflow repo — never auto-applied; must mirror the Swift file's `name`/`configurationDisplayName`/`description`/`supportedFamilies`)
 7. Add the new `.swift` file to the `ExpoWidgetsTarget` Xcode target membership
 8. Tests + a simulator check (light/dark mode, data updates)
+9. No analytics step needed — [adoption tracking](../../docs/widgets/README.md#adoption-analytics) is automatic, keyed on `name`/`MY_WIDGET_NAME`
 
 Note: `ExpoWidgetsTarget` is only embedded in the `MetaMask` scheme — `MetaMask-Flask` ships without widgets (see `docs/widgets/README.md#limitations`). Device/IPA (archive/export) builds also need Apple Developer portal provisioning work not yet done — see `docs/widgets/README.md#provisioning-for-device-and-ipa-builds`; simulator builds and E2E are unaffected.
 

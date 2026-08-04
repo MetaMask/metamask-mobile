@@ -20,6 +20,8 @@
 		2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
+		56A5997D03C04D5B9D8DF444 /* RCTWidgetInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */; };
+		83718C99605A41A78EE1F06C /* RCTWidgetInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */; };
 		2EF282612B0FF86900D7B4B1 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		2EF282622B0FF86900D7B4B1 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		2EF282632B0FF86900D7B4B1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
@@ -63,6 +65,8 @@
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
+		DF31425B6C5C484AADF4CE9C /* RCTWidgetInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */; };
+		E8F830487AF540E3B8CF0575 /* RCTWidgetInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */; };
 		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		E4B580722E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
@@ -218,6 +222,8 @@
 		C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTMinimizer.h; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.h; sourceTree = "<group>"; };
 		CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTMinimizer.m; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.m; sourceTree = "<group>"; };
+		3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RCTWidgetInfo.swift; path = MetaMask/NativeModules/RCTWidgetInfo/RCTWidgetInfo.swift; sourceTree = "<group>"; };
+		0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTWidgetInfo.m; path = MetaMask/NativeModules/RCTWidgetInfo/RCTWidgetInfo.m; sourceTree = "<group>"; };
 		CF98DA9A28D9FE7800096782 /* RCTScreenshotDetect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTScreenshotDetect.h; sourceTree = "<group>"; };
 		CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RCTScreenshotDetect.m; sourceTree = "<group>"; };
 		CFB6EFC38FA80146A66F4B17 /* ExpoWidgetsTarget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ExpoWidgetsTarget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -347,6 +353,7 @@
 			children = (
 				CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */,
 				CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */,
+				B1304A416257473FBF353AAA /* RCTWidgetInfo */,
 			);
 			name = NativeModules;
 			sourceTree = "<group>";
@@ -518,6 +525,15 @@
 				CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */,
 			);
 			name = RCTMinimizer;
+			sourceTree = "<group>";
+		};
+		B1304A416257473FBF353AAA /* RCTWidgetInfo */ = {
+			isa = PBXGroup;
+			children = (
+				3120CA50BA6A48078A1B206A /* RCTWidgetInfo.swift */,
+				0E18EF7624E94512AD7CA8CC /* RCTWidgetInfo.m */,
+			);
+			name = RCTWidgetInfo;
 			sourceTree = "<group>";
 		};
 		CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */ = {
@@ -1124,6 +1140,8 @@
 				2EF283372B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
+				DF31425B6C5C484AADF4CE9C /* RCTWidgetInfo.swift in Sources */,
+				E8F830487AF540E3B8CF0575 /* RCTWidgetInfo.m in Sources */,
 				A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1140,6 +1158,8 @@
 				2EF283392B17EC7900D7B4B1 /* Light-Swift-Untar.swift in Sources */,
 				2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */,
 				2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */,
+				56A5997D03C04D5B9D8DF444 /* RCTWidgetInfo.swift in Sources */,
+				83718C99605A41A78EE1F06C /* RCTWidgetInfo.m in Sources */,
 				F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
