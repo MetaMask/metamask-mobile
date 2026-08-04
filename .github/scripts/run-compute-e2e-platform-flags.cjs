@@ -6,6 +6,7 @@
 const fs = require('node:fs');
 const {
   computeE2EPlatformFlags,
+  shouldBuildIosApps,
 } = require('./compute-e2e-platform-flags.cjs');
 
 function readBool(value) {
@@ -84,11 +85,28 @@ if (
   runPerformance = true;
 }
 
+const iosBuildNeeded = shouldBuildIosApps({
+  githubEventName: process.env.GITHUB_EVENT_NAME || '',
+  pullRequestBase: process.env.PULL_REQUEST_BASE || '',
+  iosE2eNeeded: flags.ios,
+  androidE2eNeeded: flags.android,
+  iosPathChanges: readBool(process.env.IOS_PATH_CHANGES),
+  forceIosE2E: readBool(process.env.FORCE_IOS_E2E),
+  runAppiumIos,
+});
+
+if (flags.ios && !iosBuildNeeded) {
+  console.log(
+    '-> ios_build_needed=false (Android-first on feature PR to main)',
+  );
+}
+
 console.log(flags.message);
 
 const outputLines = [
   `android_final=${flags.android}`,
   `ios_final=${flags.ios}`,
+  `ios_build_needed=${iosBuildNeeded}`,
   `e2e_needed=${flags.e2eNeeded}`,
   `native_build_needed=${flags.nativeBuildNeeded}`,
   `run_smart_e2e_selection=${flags.runSmartE2ESelection}`,

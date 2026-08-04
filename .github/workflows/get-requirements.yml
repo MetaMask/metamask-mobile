@@ -17,6 +17,9 @@ on:
       ios_e2e_needed:
         description: 'Whether iOS E2E tests and builds should run (true when iOS-specific or shared files changed)'
         value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
+      ios_build_needed:
+        description: 'Whether Build iOS Apps should run after Android-first gating on feature PRs to main'
+        value: ${{ jobs.detect-changes.outputs.ios_build_needed }}
       changed_spec_files:
         description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
         value: ${{ jobs.detect-changes.outputs.changed_spec_files }}
@@ -32,6 +35,12 @@ on:
       run_appium_ios:
         description: 'Whether Appium iOS smoke tests should also run on a PR via the run-appium-ios-tests label or e2e smoke infra / smoke-appium file changes'
         value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
+      run_ios_e2e:
+        description: 'Whether to opt in to iOS Detox E2E (and the iOS native build) on a feature PR targeting main via the run-ios-e2e label'
+        value: ${{ jobs.detect-changes.outputs.run_ios_e2e }}
+      ios_path_changes:
+        description: 'Whether any ios/** files changed (keeps iOS E2E on feature PRs to main even when Android also runs)'
+        value: ${{ jobs.detect-changes.outputs.ios_path_changes }}
       native_build_needed:
         description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
         value: ${{ jobs.detect-changes.outputs.native_build_needed }}
@@ -46,11 +55,14 @@ jobs:
       skip_e2e: ${{ steps.set-outputs.outputs.e2e_needed != 'true' && 'true' || 'false' }}
       android_e2e_needed: ${{ steps.set-outputs.outputs.android_final }}
       ios_e2e_needed: ${{ steps.set-outputs.outputs.ios_final }}
+      ios_build_needed: ${{ steps.set-outputs.outputs.ios_build_needed }}
       changed_spec_files: ${{ steps.set-outputs.outputs.changed_spec_files }}
       block_merge_for_e2e_readiness: ${{ steps.set-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
       run_performance: ${{ steps.set-outputs.outputs.run_performance }}
       run_appium_ios: ${{ steps.set-outputs.outputs.run_appium_ios }}
+      run_ios_e2e: ${{ steps.check-labels.outputs.RUN_IOS_E2E || 'false' }}
+      ios_path_changes: ${{ steps.filter.outputs.ios || 'false' }}
       native_build_needed: ${{ steps.set-outputs.outputs.native_build_needed }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
@@ -88,10 +100,14 @@ jobs:
 
       - name: Check PR labels
         id: check-labels
-        if: steps.skip-merge-queue.outputs.up-to-date != 'true' && github.event_name == 'pull_request'
+        if: >-
+          steps.skip-merge-queue.outputs.up-to-date != 'true' &&
+          (github.event_name == 'pull_request' || github.event_name == 'merge_group')
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_HEAD_REF: ${{ github.event.merge_group.head_ref }}
         run: |
           {
             echo "SKIP_E2E=false"
@@ -99,7 +115,19 @@ jobs:
             echo "SKIP_SMART_SELECTION=false"
             echo "RUN_PERFORMANCE=false"
             echo "RUN_APPIUM_IOS=false"
+            echo "RUN_IOS_E2E=false"
           } >> "$GITHUB_OUTPUT"
+
+          # merge_group.head_ref is gh-readonly-queue/<base>/pr-<N>-<sha>, not the PR branch.
+          if [ "$EVENT_NAME" = "merge_group" ]; then
+            if [[ "$MERGE_HEAD_REF" =~ /pr-([0-9]+)- ]]; then
+              PR_NUMBER="${BASH_REMATCH[1]}"
+              echo "-> Resolved merge group PR #${PR_NUMBER} from ${MERGE_HEAD_REF}"
+            else
+              echo "::error::Could not parse PR number from merge group head ref: ${MERGE_HEAD_REF}"
+              exit 1
+            fi
+          fi
 
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
 
@@ -131,6 +159,11 @@ jobs:
             echo "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR"
           fi
 
+          if echo "$LABELS" | grep -qx "run-ios-e2e"; then
+            echo "RUN_IOS_E2E=true" >> "$GITHUB_OUTPUT"
+            echo "-> RUN_IOS_E2E=true due to 'run-ios-e2e' label on PR"
+          fi
+
       - name: Filter changed files
         id: filter
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
@@ -150,6 +183,9 @@ jobs:
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_BASE: ${{ github.base_ref }}
+          FORCE_IOS_E2E: ${{ steps.check-labels.outputs.RUN_IOS_E2E }}
+          IOS_PATH_CHANGES: ${{ steps.filter.outputs.ios }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}

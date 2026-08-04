@@ -43,9 +43,13 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 - **run-performance-tests**: Forces the PR performance E2E workflow to run (all performance tests on Android low-profile devices), even when Smart E2E Selection would skip them (e.g. no performance-relevant changes detected, `skip-e2e`, or `pr-not-ready-for-e2e`). Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
+### Force iOS E2E on feature PRs
+
+- **run-ios-e2e**: Opt in to iOS Detox E2E (and the iOS native build) on PRs targeting `main` when Android E2E would also run and no `ios/**` files changed. iOS-only path changes and any `ios/**` changes still build iOS without this label. PRs to `release/*` or `stable` still run iOS without this label. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+
 ### Force Appium iOS Smoke Tests
 
-- **run-appium-ios-tests**: Also runs Appium iOS smoke tests on a PR (normally they run on `main` push/schedule, or automatically when `tests/smoke-appium/**` / shared smoke infra paths change). Uses the same Smart E2E Selection tags as Detox/Appium Android — it does not bypass path filters, build gates, or AI tag selection. Remove `pr-not-ready-for-e2e` when the PR is ready for E2E validation. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **run-appium-ios-tests**: Also runs Appium iOS smoke tests on a PR (normally they run on `main` push/schedule, or automatically when `tests/smoke-appium/**` / shared smoke infra paths change). On PRs targeting `main`, this also opts the iOS native build back in so Appium can run. Uses the same Smart E2E Selection tags as Detox/Appium Android — it does not bypass path filters, build gates, or AI tag selection. Remove `pr-not-ready-for-e2e` when the PR is ready for E2E validation. Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
 ### Block merge if any is present
 

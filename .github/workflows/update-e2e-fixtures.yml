@@ -110,6 +110,7 @@ jobs:
       BRANCH: ${{ steps.branch.outputs.BRANCH }}
       PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
       RUN_ID: ${{ steps.validate-ci.outputs.RUN_ID }}
+      IOS_ARTIFACT_AVAILABLE: ${{ steps.validate-ci.outputs.IOS_ARTIFACT_AVAILABLE }}
     steps:
       - uses: actions/checkout@v4
 
@@ -164,22 +165,60 @@ jobs:
           fi
 
           if [ "${RUN_STATUS}" != "completed" ]; then
-            echo "::error title=CI still running::The CI workflow is still in progress (status: ${RUN_STATUS}). Wait for the 'Build iOS Apps' job to complete, then run @metamaskbot update-mobile-fixture again. View CI: ${RUN_URL}"
+            echo "::error title=CI still running::The CI workflow is still in progress (status: ${RUN_STATUS}). Wait for CI to finish, then run @metamaskbot update-mobile-fixture again. View CI: ${RUN_URL}"
             exit 1
           fi
 
           if [ "${RUN_CONCLUSION}" != "success" ]; then
-            echo "::warning title=CI did not succeed::The CI workflow concluded with '${RUN_CONCLUSION}'. The iOS build artifact may not be available. View CI: ${RUN_URL}"
+            echo "::warning title=CI did not succeed::The CI workflow concluded with '${RUN_CONCLUSION}'. The iOS build artifact may not be available; a fallback iOS build will run if needed. View CI: ${RUN_URL}"
+          fi
+
+          if gh api --paginate "repos/${{ github.repository }}/actions/runs/${RUN_ID}/artifacts" \
+            --jq '.artifacts[]? | select(.name == "main-e2e-MetaMask.app" and .expired == false) | .id' \
+            | grep -q .; then
+            echo "IOS_ARTIFACT_AVAILABLE=true" >> "$GITHUB_OUTPUT"
+            echo "✅ CI iOS artifact found on run ${RUN_ID}"
+          else
+            echo "IOS_ARTIFACT_AVAILABLE=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No CI iOS artifact::Build iOS Apps was skipped on this PR CI run. A fallback iOS E2E build will run in this workflow."
           fi
 
           echo "✅ CI run validated. RUN_ID=${RUN_ID}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  build-ios-fallback:
+    name: Build iOS app (fixture fallback)
+    needs: [is-fork-pull-request, prepare]
+    if: >-
+      ${{
+        needs.prepare.result == 'success' &&
+        needs.is-fork-pull-request.outputs.IS_FORK == 'false' &&
+        needs.prepare.outputs.IOS_ARTIFACT_AVAILABLE != 'true'
+      }}
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
+      statuses: read
+      pull-requests: read
+    uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
   update-fixtures:
     name: Export & update fixtures
-    needs: [is-fork-pull-request, prepare]
-    if: ${{ needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    needs: [is-fork-pull-request, prepare, build-ios-fallback]
+    if: >-
+      ${{
+        always() &&
+        needs.prepare.result == 'success' &&
+        needs.is-fork-pull-request.outputs.IS_FORK == 'false' &&
+        (needs.build-ios-fallback.result == 'success' || needs.build-ios-fallback.result == 'skipped')
+      }}
     # Appium fixture update uses Cirrus macOS (current), same as appium-smoke-tests-ios.
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
     timeout-minutes: 60
@@ -233,6 +272,7 @@ jobs:
           runner_provider: current
 
       - name: Download iOS app artifact from CI
+        if: ${{ needs.prepare.outputs.IOS_ARTIFACT_AVAILABLE == 'true' }}
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
           ARTIFACT_NAME="main-e2e-MetaMask.app"
@@ -242,12 +282,19 @@ jobs:
           # gh run download uses the ListArtifacts API, which includes artifacts from all
           # attempts of a run — including earlier attempts when only failed jobs were re-run.
           if ! gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "${APP_PATH}"; then
-            echo "::error title=iOS artifact not found::The iOS build was skipped in CI run ${RUN_ID} — no iOS-impacting changes were detected, so no artifact was produced.%0A%0AIf you need to force fixture regeneration, add the 'skip-smart-e2e-selection' label to your PR and re-run CI, then retry this command.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+            echo "::error title=iOS artifact not found::Failed to download iOS artifact from CI run ${RUN_ID}.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
             exit 1
           fi
           echo "✅ Downloaded iOS artifact from PR CI run ${RUN_ID}."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download iOS app artifact from fallback build
+        if: ${{ needs.prepare.outputs.IOS_ARTIFACT_AVAILABLE != 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: main-e2e-MetaMask.app
+          path: artifacts/main-e2e-MetaMask.app
 
       - name: Restore iOS bundle executable permissions
         env:
@@ -484,7 +531,7 @@ jobs:
         run: |
           passed="${{ needs.check-status.outputs.PASSED }}"
           if [[ $passed != "true" ]]; then
-            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build iOS Apps' to complete\n- CI workflow was skipped — ensure your PR has iOS-impacting changes or use \`skip-smart-e2e-selection\` label\n- iOS build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
+            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for CI to finish on the latest commit\n- Fallback iOS build failed — check the 'Build iOS app (fixture fallback)' job\n- Fixture export / commit step failed — check workflow logs\n\n[View logs and retry](${ACTION_RUN_URL})"
             gh pr comment "${PR_NUMBER}" --body "$body"
           fi
         env:

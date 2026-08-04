@@ -1359,11 +1359,12 @@ jobs:
     name: 'Build iOS Apps'
     # NAMESPACE-SHADOW: iOS pipeline runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true
     # (downstream iOS jobs cascade-skip via needs when this is skipped)
+    # Android-first gate is applied in get-requirements (ios_build_needed).
     if: >-
       ${{
         !cancelled() &&
         (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') &&
-        needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
+        needs.get_requirements.outputs.ios_build_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
@@ -1485,7 +1486,12 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
+    # Also on merge_group when iOS built there (Android-first PRs skip iOS on the PR).
+    if: >-
+      ${{
+        needs.ios-tests-ready.result == 'success' &&
+        (github.event_name == 'pull_request' || github.event_name == 'merge_group')
+      }}
     permissions:
       contents: read
       checks: write
@@ -1509,7 +1515,8 @@ jobs:
     name: 'Report Fixture Validation'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    # PR comments only make sense on pull_request (merge_group has no PR number in event).
+    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' && github.event_name == 'pull_request' }}
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
@@ -1750,6 +1757,7 @@ jobs:
       - e2e-smoke-tests-ios
       - appium-smoke-tests-android
       - appium-smoke-tests-ios
+      - validate-e2e-fixtures
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1770,7 +1778,7 @@ jobs:
         with:
           needs-json: ${{ toJSON(needs) }}
           requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
-          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android|appium-smoke-tests-ios)$'
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios|appium-smoke-tests-android|appium-smoke-tests-ios|validate-e2e-fixtures)$'
           event-name: ${{ github.event_name }}
           is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 

@@ -59,9 +59,22 @@ Runs only when all of the following are true:
 - Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of infra issues.
 - Using this label should be exceptional in case of CI friction and urgencies. Verify new changes and regressions manually before merging.
 
+## Android-first on feature PRs
+
+PRs targeting `main` skip iOS Detox E2E and the iOS native build when Android E2E also runs. iOS still builds/runs on the PR when:
+
+- Any `ios/**` path changes (including mixed with shared files)
+- Android E2E is not needed (iOS-only paths)
+- `run-ios-e2e` label
+- Appium iOS demand (`run-appium-ios-tests`, or smoke-appium / shared smoke infra path changes)
+
+Shared work that skips iOS on the PR still runs iOS (and fixture validation) on the merge queue. `skip-e2e` is honored there too. `@metamaskbot update-mobile-fixture` reuses the CI iOS artifact when present; otherwise it builds iOS in the fixture workflow.
+
+PRs to `release/*` or `stable`, plus `main` push/schedule, are unchanged. CI re-runs when `run-ios-e2e` is added or removed.
+
 ## (Exceptional) force Appium iOS smoke tests on PRs
 
-Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). They also run automatically on a PR when shared smoke infra or Appium specs change (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, `tests/smoke-appium/**`). To force them on any other PR, add the `run-appium-ios-tests` label. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
+Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). They also run automatically on a PR when shared smoke infra or Appium specs change (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, `tests/smoke-appium/**`). To force them on any other PR, add the `run-appium-ios-tests` label. On PRs targeting `main`, that label (or the path triggers above) also opts the iOS native build back in so Appium can run. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
 
 ## E2E flakiness detection in PRs
 
