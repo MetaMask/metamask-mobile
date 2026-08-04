@@ -14,8 +14,96 @@ export interface NormalizeNumericTextInputResult {
   ok: boolean;
 }
 
+interface ParsedNumericTextParts {
+  integerPart: string;
+  fractionalPart: string;
+  hasDecimalSeparator: boolean;
+}
+
 const isNonNegativeInteger = (value: number) =>
   Number.isInteger(value) && value >= 0;
+
+const areNormalizeOptionsValid = ({
+  maxDigits,
+  maxDecimalPlaces,
+  decimalSeparator,
+}: {
+  maxDigits: number;
+  maxDecimalPlaces?: number;
+  decimalSeparator: string;
+}): boolean =>
+  decimalSeparator.length === 1 &&
+  !/\d/.test(decimalSeparator) &&
+  isNonNegativeInteger(maxDigits) &&
+  (maxDecimalPlaces === undefined || isNonNegativeInteger(maxDecimalPlaces));
+
+const parseNumericTextParts = (
+  text: string,
+  decimalSeparator: string,
+): ParsedNumericTextParts | null => {
+  let integerPart = '';
+  let fractionalPart = '';
+  let hasDecimalSeparator = false;
+
+  for (const character of text) {
+    if (/\d/.test(character)) {
+      if (hasDecimalSeparator) {
+        fractionalPart += character;
+      } else {
+        integerPart += character;
+      }
+      continue;
+    }
+
+    if (character === decimalSeparator) {
+      if (!hasDecimalSeparator) {
+        hasDecimalSeparator = true;
+      }
+      continue;
+    }
+
+    return null;
+  }
+
+  if (!integerPart && !fractionalPart && !hasDecimalSeparator) {
+    return null;
+  }
+
+  return { integerPart, fractionalPart, hasDecimalSeparator };
+};
+
+const exceedsNumericLimits = ({
+  normalizedIntegerPart,
+  fractionalPart,
+  hasDecimalSeparator,
+  maxDigits,
+  maxDecimalPlaces,
+}: {
+  normalizedIntegerPart: string;
+  fractionalPart: string;
+  hasDecimalSeparator: boolean;
+  maxDigits: number;
+  maxDecimalPlaces?: number;
+}): boolean =>
+  normalizedIntegerPart.length + fractionalPart.length > maxDigits ||
+  (maxDecimalPlaces !== undefined &&
+    fractionalPart.length > maxDecimalPlaces) ||
+  (maxDecimalPlaces === 0 && hasDecimalSeparator);
+
+const formatNormalizedNumericValue = ({
+  normalizedIntegerPart,
+  fractionalPart,
+  hasDecimalSeparator,
+  decimalSeparator,
+}: {
+  normalizedIntegerPart: string;
+  fractionalPart: string;
+  hasDecimalSeparator: boolean;
+  decimalSeparator: string;
+}): string =>
+  hasDecimalSeparator
+    ? `${normalizedIntegerPart}${decimalSeparator}${fractionalPart}`
+    : normalizedIntegerPart;
 
 /**
  * Normalizes a complete native numeric-input edit while preserving editable
@@ -39,10 +127,11 @@ export const normalizeNumericTextInput = (
   }: NormalizeNumericTextInputOptions = {},
 ): NormalizeNumericTextInputResult => {
   if (
-    decimalSeparator.length !== 1 ||
-    /\d/.test(decimalSeparator) ||
-    !isNonNegativeInteger(maxDigits) ||
-    (maxDecimalPlaces !== undefined && !isNonNegativeInteger(maxDecimalPlaces))
+    !areNormalizeOptionsValid({
+      maxDigits,
+      maxDecimalPlaces,
+      decimalSeparator,
+    })
   ) {
     return { value: previousValue, ok: false };
   }
@@ -51,50 +140,35 @@ export const normalizeNumericTextInput = (
     return { value: '', ok: true };
   }
 
-  let integerPart = '';
-  let fractionalPart = '';
-  let hasDecimalSeparator = false;
-
-  for (const character of text) {
-    if (/\d/.test(character)) {
-      if (hasDecimalSeparator) {
-        fractionalPart += character;
-      } else {
-        integerPart += character;
-      }
-      continue;
-    }
-
-    if (character === decimalSeparator) {
-      if (!hasDecimalSeparator) {
-        hasDecimalSeparator = true;
-      }
-      continue;
-    }
-
+  const parsed = parseNumericTextParts(text, decimalSeparator);
+  if (!parsed) {
     return { value: previousValue, ok: false };
   }
 
-  if (!integerPart && !fractionalPart && !hasDecimalSeparator) {
-    return { value: previousValue, ok: false };
-  }
-
-  const normalizedIntegerPart = integerPart.replace(/^0+(?=\d)/, '') || '0';
+  const normalizedIntegerPart =
+    parsed.integerPart.replace(/^0+(?=\d)/, '') || '0';
 
   if (
-    normalizedIntegerPart.length + fractionalPart.length > maxDigits ||
-    (maxDecimalPlaces !== undefined &&
-      fractionalPart.length > maxDecimalPlaces) ||
-    (maxDecimalPlaces === 0 && hasDecimalSeparator)
+    exceedsNumericLimits({
+      normalizedIntegerPart,
+      fractionalPart: parsed.fractionalPart,
+      hasDecimalSeparator: parsed.hasDecimalSeparator,
+      maxDigits,
+      maxDecimalPlaces,
+    })
   ) {
     return { value: previousValue, ok: false };
   }
 
-  const value = hasDecimalSeparator
-    ? `${normalizedIntegerPart}${decimalSeparator}${fractionalPart}`
-    : normalizedIntegerPart;
-
-  return { value, ok: true };
+  return {
+    value: formatNormalizedNumericValue({
+      normalizedIntegerPart,
+      fractionalPart: parsed.fractionalPart,
+      hasDecimalSeparator: parsed.hasDecimalSeparator,
+      decimalSeparator,
+    }),
+    ok: true,
+  };
 };
 
 /**
