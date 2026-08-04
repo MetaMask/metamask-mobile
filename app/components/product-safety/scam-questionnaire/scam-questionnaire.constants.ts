@@ -1,3 +1,11 @@
+export const SCAM_QUESTIONNAIRE_FLAG_KEY =
+  'productSafetyScamQuestionnaireEnabled';
+
+export const SCAM_QUESTIONNAIRE_VARIANTS = {
+  control: { showQuestionnaire: false },
+  treatment: { showQuestionnaire: true },
+} as const;
+
 export const TOTAL_QUESTIONS = 3;
 
 // Seconds the bypass ("continue anyway") link stays disabled on the scam
