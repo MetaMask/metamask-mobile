@@ -1,8 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import Routes from '../../../../constants/navigation/Routes';
+import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PredictDetails } from './PredictDetails';
 
 const mockNavigate = jest.fn();
@@ -38,6 +40,9 @@ function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
     ...overrides,
   } as ActivityListItem;
 }
+
+/** Real network configurations, so chain ids resolve to display names. */
+const stateWithNetworks = { engine: { backgroundState } };
 
 describe('PredictDetails', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -280,20 +285,74 @@ describe('PredictDetails', () => {
     // The step timeline still renders without a fee section above it.
     expect(queryByText('Steps (2 completed)')).not.toBeNull();
   });
+
+  describe('Network row', () => {
+    // Every Predict row carries the same injected chain id — Polymarket settles
+    // on Polygon — so the row's own chain can't describe where the user paid.
+    it('omits the row entirely for a deposit', () => {
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PredictDetails
+          item={addFundsItemWithPayMetadata({ chainId: '0x1' })}
+        />,
+        { state: stateWithNetworks },
+      );
+
+      expect(queryByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW)).toBeNull();
+      expect(queryByText('Polygon')).toBeNull();
+    });
+
+    it('names the payment chain on a withdrawal, not the injected Predict chain', () => {
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PredictDetails
+          item={fundsItemWithPayMetadata('predictionsWithdrawFunds', {
+            chainId: '0x1',
+          })}
+        />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByText('Polygon')).toBeNull();
+    });
+
+    it("falls back to the row's chain on a withdrawal Pay did not route", () => {
+      const { getByTestId, getByText } = renderWithProvider(
+        <PredictDetails
+          item={fundsItemWithPayMetadata('predictionsWithdrawFunds', undefined)}
+        />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Polygon')).toBeOnTheScreen();
+    });
+  });
 });
 
 function addFundsItemWithPayMetadata(
   metamaskPay: Record<string, string> | undefined,
 ): ActivityListItem {
+  return fundsItemWithPayMetadata('predictionsAddFunds', metamaskPay);
+}
+
+function fundsItemWithPayMetadata(
+  type: 'predictionsAddFunds' | 'predictionsWithdrawFunds',
+  metamaskPay: Record<string, string> | undefined,
+): ActivityListItem {
   return predictItem({
-    type: 'predictionsAddFunds',
+    type,
     hash: '0xfund',
     data: {
       token: {
         amount: '100000',
         decimals: 6,
         symbol: 'USDC',
-        direction: 'in',
+        direction: type === 'predictionsAddFunds' ? 'in' : 'out',
       },
     },
     raw: {

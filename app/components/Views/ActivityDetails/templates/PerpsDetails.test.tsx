@@ -96,6 +96,9 @@ function stateWithPayTransaction(hash: string) {
   };
 }
 
+/** Real network configurations, so chain ids resolve to display names. */
+const stateWithNetworks = { engine: { backgroundState } };
+
 /**
  * A deposit that only exists locally — the state the funding toast's "Track"
  * opens into, before the HyperLiquid feed returns the row.
@@ -425,6 +428,103 @@ describe('PerpsDetails', () => {
       expect(queryByText('Transaction fee')).toBeNull();
       expect(queryByText('Total amount')).toBeNull();
       expect(getByText('Initiate withdrawal')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Network row', () => {
+    // Every perps row carries the same injected chain id — HyperLiquid has no
+    // CAIP-2 of its own, so the Activity list passes Arbitrum. The Network row
+    // must never present that as the network the user transacted on.
+    const withdrawalTransaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'wallet-withdrawal-1',
+      type: 'withdrawal',
+      category: 'withdrawal',
+      title: 'Withdrawal',
+      asset: 'USDC',
+      depositWithdrawal: {
+        amount: '-$1,000',
+        amountNumber: 1000,
+        isPositive: false,
+        asset: 'USDC',
+        txHash: '0xperpswithdrawal',
+        status: 'completed',
+        type: 'withdrawal',
+      },
+    };
+
+    const depositTransaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'wallet-deposit-network',
+      type: 'deposit',
+      category: 'deposit',
+      title: 'Account funded',
+      asset: 'USDC',
+      depositWithdrawal: {
+        amount: '+$1,000',
+        amountNumber: 1000,
+        isPositive: true,
+        asset: 'USDC',
+        txHash: '0xperpsdeposit',
+        status: 'completed',
+        type: 'deposit',
+      },
+    };
+
+    it('omits the row entirely for a feed-backed deposit', () => {
+      const item = {
+        ...perpsItem('perpsAddFunds', depositTransaction),
+        hash: '0xperpsdeposit',
+      } as ActivityListItem;
+
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PerpsDetails item={item} />,
+        { state: stateWithPayTransaction('0xperpsdeposit') },
+      );
+
+      expect(queryByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW)).toBeNull();
+      expect(queryByText('Arbitrum')).toBeNull();
+    });
+
+    it('omits the row entirely for a local-only deposit', () => {
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PerpsDetails item={localPerpsFundsItem()} />,
+        { state: stateWithNetworks },
+      );
+
+      expect(queryByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW)).toBeNull();
+      expect(queryByText('Arbitrum')).toBeNull();
+    });
+
+    it('names the payment chain on a withdrawal, not the injected perps chain', () => {
+      // PAY_METADATA pays from Ethereum while the row's chainId is Arbitrum.
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PerpsDetails item={localPerpsFundsItem('perpsWithdraw')} />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByText('Arbitrum')).toBeNull();
+    });
+
+    it("falls back to the row's chain on a withdrawal Pay did not route", () => {
+      const item = {
+        ...perpsItem('perpsWithdraw', withdrawalTransaction),
+        hash: '0xperpswithdrawal',
+      } as ActivityListItem;
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsDetails item={item} />,
+        { state: stateWithNetworks },
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW),
+      ).toBeOnTheScreen();
+      expect(getByText('Arbitrum')).toBeOnTheScreen();
     });
   });
 });

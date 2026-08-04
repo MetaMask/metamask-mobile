@@ -392,7 +392,9 @@ function FundsDetails({
           symbol={depositWithdrawal.asset}
         />
       }
-      metadata={<ActivityDetailsPerpsMetadata item={item} />}
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
       details={
         <PerpsFundsDetailsBody
           pay={isDeposit ? pay : undefined}
@@ -437,7 +439,9 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
           symbol={token?.symbol}
         />
       }
-      metadata={<ActivityDetailsPerpsMetadata item={item} />}
+      metadata={
+        <ActivityDetailsPerpsMetadata item={item} isDeposit={isDeposit} />
+      }
       details={
         <PerpsFundsDetailsBody
           pay={isDeposit ? pay : undefined}

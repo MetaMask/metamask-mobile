@@ -3,25 +3,29 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
-import { useActivityNetworkName } from '../hooks/useActivityNetworkName';
 import { ActivityDetailsStatus } from './ActivityDetailsStatus';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
 } from './ActivityDetailsLayout';
 import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
-import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
+import { ActivityDetailsPayNetworkRow } from './ActivityDetailsPayNetworkRow';
 import {
   formatPerpsTransactionDate,
   type PerpsActivityListItem,
 } from './ActivityDetailsPerps.utils';
 
+/**
+ * Metadata for a perps deposit/withdrawal. `isDeposit` drives the Network row —
+ * see {@link ActivityDetailsPayNetworkRow}.
+ */
 export function ActivityDetailsPerpsMetadata({
   item,
+  isDeposit,
 }: {
   item: PerpsActivityListItem;
+  isDeposit: boolean;
 }) {
-  const networkName = useActivityNetworkName(item.chainId);
   const selectedAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
@@ -50,16 +54,7 @@ export function ActivityDetailsPerpsMetadata({
         }
         testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}
       />
-      <ActivityDetailRow
-        label={strings('activity_details.network')}
-        value={
-          <ActivityDetailsNetworkValue
-            chainId={item.chainId}
-            name={networkName}
-          />
-        }
-        testID={ActivityDetailsSelectorsIDs.NETWORK_ROW}
-      />
+      <ActivityDetailsPayNetworkRow item={item} isDeposit={isDeposit} />
     </ActivityDetailSection>
   );
 }
