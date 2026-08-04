@@ -8,6 +8,7 @@ import {
 } from '../../../core/AgenticCli/cliLoginPushNudgeSignal';
 
 const mockEnableNotifications = jest.fn();
+let mockEnableNotificationsError: unknown;
 const mockIsPushPermissionPromptable = jest.fn();
 const mockIsPushPermissionGranted = jest.fn();
 const mockOpenSystemSettings = jest.fn();
@@ -20,6 +21,7 @@ jest.mock('../../../util/notifications/constants', () => ({
 jest.mock('../../../util/notifications/hooks/useNotifications', () => ({
   useEnableNotifications: () => ({
     enableNotifications: mockEnableNotifications,
+    error: mockEnableNotificationsError,
   }),
 }));
 
@@ -56,6 +58,7 @@ describe('useCliLoginPushNudge', () => {
     removeMocks = [];
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockEnableNotifications.mockResolvedValue(undefined);
+    mockEnableNotificationsError = undefined;
     mockIsPushPermissionPromptable.mockResolvedValue(true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
     jest
@@ -130,6 +133,20 @@ describe('useCliLoginPushNudge', () => {
       "We couldn't enable notifications. Please try again later.",
     );
     expect(result.current.isVisible).toBe(false);
+  });
+
+  it('shows an error exposed by the notification hook', async () => {
+    const { rerender } = renderNudge();
+    mockEnableNotificationsError = new Error('Network error');
+
+    await act(async () => {
+      rerender({});
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Something went wrong',
+      "We couldn't enable notifications. Please try again later.",
+    );
   });
 
   it('enables via the OS dialog when push is still promptable on iOS', async () => {

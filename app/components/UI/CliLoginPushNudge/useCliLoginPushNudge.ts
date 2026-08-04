@@ -39,9 +39,10 @@ export function useCliLoginPushNudge(): {
   onClose: (hasPendingAction?: boolean) => void;
 } {
   const [isVisible, setIsVisible] = useState(false);
-  const { enableNotifications } = useEnableNotifications({
-    nudgeEnablePush: true,
-  });
+  const { enableNotifications, error: enableNotificationsError } =
+    useEnableNotifications({
+      nudgeEnablePush: true,
+    });
 
   const inFlightRef = useRef(false);
   // Bumped each time a new nudge is shown so a fresh CLI login supersedes any
@@ -253,6 +254,12 @@ export function useCliLoginPushNudge(): {
     },
     [clearForegroundRetry],
   );
+
+  useEffect(() => {
+    if (enableNotificationsError) {
+      showEnableNotificationsError();
+    }
+  }, [enableNotificationsError, showEnableNotificationsError]);
 
   return { isVisible, onYes, onNotNow, onClose };
 }
