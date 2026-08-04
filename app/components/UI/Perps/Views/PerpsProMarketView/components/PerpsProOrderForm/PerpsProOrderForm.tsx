@@ -306,10 +306,7 @@ const PerpsProOrderForm = ({
   onLimitPriceBlur,
   onUseMidPricePress,
   sizeInput,
-  balancePercentage,
-  onBalancePercentageChange,
-  onBalancePercentageDragEnd,
-  onBalancePercentageDragCancel,
+  sizeSlider,
   availableBalance,
   onAddFundsPress,
   reduceOnly,
@@ -469,10 +466,7 @@ const PerpsProOrderForm = ({
             onFocus={sizeInput.onFocus}
             onBlur={sizeInput.onBlur}
             onToggleDenomination={sizeInput.onToggleDenomination}
-            balancePercentage={balancePercentage}
-            onBalancePercentageChange={onBalancePercentageChange}
-            onBalancePercentageDragEnd={onBalancePercentageDragEnd}
-            onBalancePercentageDragCancel={onBalancePercentageDragCancel}
+            sizeSlider={sizeSlider}
             availableBalance={availableBalance}
             onAddFundsPress={onAddFundsPress}
           />

@@ -6,7 +6,10 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
-import type { PerpsProSizeInputModel } from './PerpsProOrderForm/PerpsProOrderForm.types';
+import type {
+  PerpsProSizeInputModel,
+  PerpsProSizeSliderModel,
+} from './PerpsProOrderForm/PerpsProOrderForm.types';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -33,6 +36,14 @@ const DEFAULT_SIZE_INPUT: PerpsProSizeInputModel = {
   onToggleDenomination: jest.fn(),
 };
 
+const DEFAULT_SIZE_SLIDER: PerpsProSizeSliderModel = {
+  value: 100,
+  maximumValue: 500,
+  onValueChange: jest.fn(),
+  onDragEnd: jest.fn(),
+  onDragCancel: jest.fn(),
+};
+
 const DEFAULT_MOCK_HOOK_RESULT = {
   direction: 'long' as 'long' | 'short',
   onDirectionChange: jest.fn(),
@@ -45,10 +56,7 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onLimitPriceBlur: jest.fn(),
   onUseMidPricePress: jest.fn(),
   sizeInput: DEFAULT_SIZE_INPUT,
-  balancePercentage: 20,
-  onBalancePercentageChange: jest.fn(),
-  onBalancePercentageDragEnd: jest.fn(),
-  onBalancePercentageDragCancel: jest.fn(),
+  sizeSlider: DEFAULT_SIZE_SLIDER,
   availableBalance: '$500 available',
   onAddFundsPress: jest.fn(),
   reduceOnly: false,
@@ -276,9 +284,12 @@ describe('PerpsProOrderFormPanel', () => {
     renderPanel();
     const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
 
+    expect(slider).toHaveProp('value', 100);
+    expect(slider).toHaveProp('maximumValue', 500);
+
     slider.props.onDragEnd(20);
 
-    expect(mockHookResult.onBalancePercentageDragEnd).toHaveBeenCalledTimes(1);
+    expect(mockHookResult.sizeSlider.onDragEnd).toHaveBeenCalledTimes(1);
   });
 
   it('wires the TP/SL row to the hook', () => {

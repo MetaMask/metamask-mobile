@@ -29,10 +29,21 @@ const createSizeInput = (
   ...overrides,
 });
 
+const createSizeSlider = (
+  overrides: Partial<PerpsProOrderFormProps['sizeSlider']> = {},
+): PerpsProOrderFormProps['sizeSlider'] => ({
+  value: 0,
+  maximumValue: 1000,
+  onValueChange: jest.fn(),
+  onDragEnd: jest.fn(),
+  onDragCancel: jest.fn(),
+  ...overrides,
+});
+
 const createProps = (
   overrides: Partial<PerpsProOrderFormProps> = {},
 ): PerpsProOrderFormProps => {
-  const { sizeInput, ...rest } = overrides;
+  const { sizeInput, sizeSlider, ...rest } = overrides;
   return {
     direction: 'long',
     onDirectionChange: jest.fn(),
@@ -44,10 +55,7 @@ const createProps = (
     onLimitPriceChange: jest.fn(),
     onLimitPriceBlur: jest.fn(),
     sizeInput: createSizeInput(sizeInput),
-    balancePercentage: 0,
-    onBalancePercentageChange: jest.fn(),
-    onBalancePercentageDragEnd: jest.fn(),
-    onBalancePercentageDragCancel: jest.fn(),
+    sizeSlider: createSizeSlider(sizeSlider),
     availableBalance: '-- available',
     reduceOnly: false,
     onReduceOnlyChange: jest.fn(),
@@ -223,7 +231,9 @@ describe('PerpsProOrderForm', () => {
     });
 
     it('passes compact accessibility props to the size slider', () => {
-      renderForm();
+      renderForm({
+        sizeSlider: createSizeSlider({ value: 10, maximumValue: 43.55 }),
+      });
 
       expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
         'variant',
@@ -237,15 +247,27 @@ describe('PerpsProOrderForm', () => {
         'accessibilityLabel',
         'Order size percentage (USD)',
       );
+      expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
+        'value',
+        10,
+      );
+      expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
+        'maximumValue',
+        43.55,
+      );
+      expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
+        'step',
+        1,
+      );
     });
 
     it('passes drag completion to the size slider', () => {
-      const onBalancePercentageDragEnd = jest.fn();
-      renderForm({ onBalancePercentageDragEnd });
+      const onDragEnd = jest.fn();
+      renderForm({ sizeSlider: createSizeSlider({ onDragEnd }) });
 
       expect(screen.UNSAFE_getByType(host('PerpsSlider'))).toHaveProp(
         'onDragEnd',
-        onBalancePercentageDragEnd,
+        onDragEnd,
       );
     });
 

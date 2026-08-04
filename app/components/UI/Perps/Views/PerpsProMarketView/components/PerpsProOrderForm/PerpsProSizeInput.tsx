@@ -20,7 +20,10 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
-import type { PerpsProSizeDenomination } from './PerpsProOrderForm.types';
+import type {
+  PerpsProSizeDenomination,
+  PerpsProSizeSliderModel,
+} from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 
@@ -35,10 +38,7 @@ export interface PerpsProSizeInputProps {
   onFocus?: () => void;
   onBlur?: () => void;
   onToggleDenomination?: () => void;
-  balancePercentage: number;
-  onBalancePercentageChange: (value: number) => void;
-  onBalancePercentageDragEnd?: () => void;
-  onBalancePercentageDragCancel?: () => void;
+  sizeSlider: PerpsProSizeSliderModel;
   availableBalance: string;
   onAddFundsPress?: () => void;
 }
@@ -51,10 +51,7 @@ const PerpsProSizeInput = ({
   onFocus,
   onBlur,
   onToggleDenomination,
-  balancePercentage,
-  onBalancePercentageChange,
-  onBalancePercentageDragEnd,
-  onBalancePercentageDragCancel,
+  sizeSlider,
   availableBalance,
   onAddFundsPress,
 }: PerpsProSizeInputProps) => {
@@ -162,15 +159,16 @@ const PerpsProSizeInput = ({
       </ButtonBase>
       <Box
         twClassName="overflow-visible px-3 pb-4 pt-6"
-        onTouchCancel={onBalancePercentageDragCancel}
+        onTouchCancel={sizeSlider.onDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >
         <PerpsSlider
-          value={balancePercentage}
-          onValueChange={onBalancePercentageChange}
-          onDragEnd={onBalancePercentageDragEnd}
+          value={sizeSlider.value}
+          onValueChange={sizeSlider.onValueChange}
+          onDragEnd={sizeSlider.onDragEnd}
           minimumValue={0}
-          maximumValue={100}
+          maximumValue={sizeSlider.maximumValue}
+          step={1}
           showPercentageLabels={false}
           showPercentageMarkers
           variant="compact"

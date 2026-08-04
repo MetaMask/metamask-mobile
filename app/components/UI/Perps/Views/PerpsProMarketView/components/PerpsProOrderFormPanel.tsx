@@ -44,10 +44,7 @@ const PerpsProOrderFormPanel = ({
     onLimitPriceBlur,
     onUseMidPricePress,
     sizeInput,
-    balancePercentage,
-    onBalancePercentageChange,
-    onBalancePercentageDragEnd,
-    onBalancePercentageDragCancel,
+    sizeSlider,
     availableBalance,
     onAddFundsPress,
     reduceOnly,
@@ -108,10 +105,7 @@ const PerpsProOrderFormPanel = ({
         onLimitPriceBlur={onLimitPriceBlur}
         onUseMidPricePress={onUseMidPricePress}
         sizeInput={sizeInput}
-        balancePercentage={balancePercentage}
-        onBalancePercentageChange={onBalancePercentageChange}
-        onBalancePercentageDragEnd={onBalancePercentageDragEnd}
-        onBalancePercentageDragCancel={onBalancePercentageDragCancel}
+        sizeSlider={sizeSlider}
         availableBalance={availableBalance}
         onAddFundsPress={onAddFundsPress}
         reduceOnly={reduceOnly}
