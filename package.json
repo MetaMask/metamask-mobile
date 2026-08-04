@@ -183,6 +183,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "breaking",
+      "previewVersion": "18.0.1-preview-0efc7ef01"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",

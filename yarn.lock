@@ -9957,7 +9957,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^18.0.0, @metamask/ramps-controller@npm:^18.0.1":
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@18.0.1-preview-0efc7ef01":
+  version: 18.0.1-preview-0efc7ef01
+  resolution: "@metamask-previews/ramps-controller@npm:18.0.1-preview-0efc7ef01"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/profile-sync-controller": "npm:^28.3.0"
+    "@metamask/remote-feature-flag-controller": "npm:^5.0.0"
+  checksum: 10/3eab34819e49eca1db3e6e751ad86eecf8ab0b90ee34278637d18c513e41ebc4b29a7ae969cbf65c43eac2d29f6fae711d44d401b502aff9351b3480b7278526
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@npm:^18.0.1":
   version: 18.0.1
   resolution: "@metamask/ramps-controller@npm:18.0.1"
   dependencies:
