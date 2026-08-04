@@ -3244,6 +3244,9 @@
     },
     "perps_pnl_live_activity": {
       "direction": "{{direction}} · {{leverage}}"
+    },
+    "balance_live_activity": {
+      "default_account_label": "Wallet"
     }
   },
   "wallet": {
@@ -4342,6 +4345,13 @@
         "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
         "onboarding_seen": "Onboarding seen: {{seen}}",
         "reset_onboarding": "Reset onboarding"
+      },
+      "widgets": {
+        "title": "Widgets",
+        "description": "Start the balance Live Activity to see the selected account's total balance on the Lock Screen and in the Dynamic Island. It follows the wallet in real time and ends when you stop it here. Privacy mode hides it entirely.",
+        "start_balance_live_activity": "Start balance Live Activity",
+        "stop_balance_live_activity": "Stop balance Live Activity",
+        "start_failed": "Could not start. Check that Live Activities are enabled for MetaMask in iOS Settings, and that privacy mode is off."
       },
       "haptics": {
         "title": "Haptics",
