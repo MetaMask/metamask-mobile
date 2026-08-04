@@ -42,6 +42,11 @@ jest.mock('./instance-options/seedless-onboarding-controller', () => ({
 jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
 }));
+jest.mock('./instance-options/subscription-service', () => ({
+  getSubscriptionServiceInstanceOptions: jest.fn(
+    () => 'subscription-service-options',
+  ),
+}));
 jest.mock('./instance-options/transaction-controller', () => ({
   getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
   setupTransactionControllerListeners: jest.fn(),
@@ -71,6 +76,7 @@ describe('initializeWallet', () => {
         gasFeeController: 'gas-fee-options',
         seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
+        subscriptionService: 'subscription-service-options',
         networkController: getNetworkControllerInstanceOptions(),
         transactionController: 'transaction-options',
       },

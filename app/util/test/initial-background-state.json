@@ -567,6 +567,10 @@
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
   },
+  "SubscriptionController": {
+    "subscriptions": [],
+    "trialedProducts": []
+  },
   "AuthenticationController": {
     "isSignedIn": false,
     "needsProfilePairing": true

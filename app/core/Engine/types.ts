@@ -397,6 +397,15 @@ import type {
   StorageServiceEvents,
 } from '@metamask/storage-service';
 import {
+  SubscriptionController,
+  type SubscriptionControllerActions,
+  type SubscriptionControllerEvents,
+  type SubscriptionControllerState,
+  SubscriptionService,
+  type SubscriptionServiceActions,
+  type SubscriptionServiceEvents,
+} from '@metamask/subscription-controller';
+import {
   AccountTreeController,
   AccountTreeControllerState,
   AccountTreeControllerActions,
@@ -525,6 +534,7 @@ type RequiredControllers = Omit<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'StorageService'
+  | 'SubscriptionService'
   | 'ComplianceService'
   | 'ChompApiService'
 >;
@@ -538,6 +548,7 @@ type OptionalControllers = Pick<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'StorageService'
+  | 'SubscriptionService'
   | 'ComplianceService'
   | 'ChompApiService'
 >;
@@ -638,6 +649,8 @@ export type GlobalActions =
   | DeFiPositionsControllerActions
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
+  | SubscriptionControllerActions
+  | SubscriptionServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
@@ -703,6 +716,8 @@ export type GlobalEvents =
   | LoggingControllerEvents
   | AnalyticsControllerEvents
   | StorageServiceEvents
+  | SubscriptionControllerEvents
+  | SubscriptionServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -836,6 +851,8 @@ export type MessengerClients = {
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   StorageService: StorageService;
+  SubscriptionController: SubscriptionController;
+  SubscriptionService: SubscriptionService;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
@@ -931,6 +948,7 @@ export type EngineState = {
   SmartTransactionsController: SmartTransactionsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  SubscriptionController: SubscriptionControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
   DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)

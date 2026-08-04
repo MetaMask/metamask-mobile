@@ -7,6 +7,7 @@ import { getConnectivityControllerInstanceOptions } from './instance-options/con
 import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
 import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
+import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
 import {
   getNetworkControllerInstanceOptions,
   setupRpcEndpointMetrics,
@@ -58,6 +59,7 @@ export function initializeWallet({
       seedlessOnboardingController:
         getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
+      subscriptionService: getSubscriptionServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,
       }),
