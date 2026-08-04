@@ -725,6 +725,7 @@ describe('PredictFeed', () => {
         findByTestId,
       } = renderPredictFeedViewWithRoutes({
         overrides: predictUpDownFlagOverrides,
+        // Default probe is enough — we only assert navigation occurred.
         extraRoutes: [{ name: Routes.PREDICT.ROOT }],
       });
 
@@ -734,12 +735,13 @@ describe('PredictFeed', () => {
         'btc',
       );
 
-      const searchResult = await findByTestId(
-        getPredictSearchSelector.resultCard(0),
-        {},
-        { timeout: 3000 },
-      );
-      expect(searchResult).toBeOnTheScreen();
+      expect(
+        await findByTestId(
+          getPredictSearchSelector.resultCard(0),
+          {},
+          { timeout: 3000 },
+        ),
+      ).toBeOnTheScreen();
       expect(
         await findByTestId(
           PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
@@ -747,7 +749,9 @@ describe('PredictFeed', () => {
       ).toBeOnTheScreen();
       expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
 
-      fireEvent.press(searchResult);
+      // Re-query immediately before press: the live card clock re-renders every
+      // second, so a held element reference can go stale under CI load.
+      fireEvent.press(getByTestId(getPredictSearchSelector.resultCard(0)));
 
       expect(
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),
