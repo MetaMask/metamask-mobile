@@ -5,23 +5,29 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
+import Animated from 'react-native-reanimated';
 import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
+  IconColor,
+  IconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
-import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
@@ -39,6 +45,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import { useMoneyHomeHeaderScroll } from '../../hooks/useMoneyHomeHeaderScroll';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
@@ -108,7 +115,6 @@ const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -354,6 +360,61 @@ const MoneyHomeView = () => {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
     });
   }, [navigation, trackButtonClicked]);
+
+  // Stable ref so the focus effect does not re-run (and clear the compact
+  // title) when handleMenuPress / styles identities change after setOptions.
+  const handleMenuPressRef = useRef(handleMenuPress);
+  handleMenuPressRef.current = handleMenuPress;
+
+  const handleCompactTitleVisibilityChange = useCallback(
+    (visible: boolean) => {
+      navigation.setOptions({
+        title: visible ? strings('money.title') : '',
+      });
+    },
+    [navigation],
+  );
+
+  const { onScroll, setTitleSectionHeight, largeTitleAnimatedStyle } =
+    useMoneyHomeHeaderScroll({
+      onCompactTitleVisibilityChange: handleCompactTitleVisibilityChange,
+    });
+
+  const handleTitleSectionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(event.nativeEvent.layout.height);
+    },
+    [setTitleSectionHeight],
+  );
+
+  // Native stack header — more menu on the right (iOS 26 liquid glass).
+  // Title starts empty; scroll reveals the centered compact "Money" title.
+  useFocusEffect(
+    useCallback(() => {
+      navigation.setOptions({
+        title: '',
+        headerRightContainerStyle: styles.nativeHeaderRightContainer,
+        headerRight: () => (
+          <ButtonIcon
+            iconName={IconName.MoreVertical}
+            size={ButtonIconSize.Md}
+            iconProps={{ color: IconColor.IconDefault }}
+            onPress={() => handleMenuPressRef.current()}
+            accessibilityLabel="Menu"
+            testID={MoneyHomeViewTestIds.MENU_BUTTON}
+          />
+        ),
+      });
+
+      return () => {
+        navigation.setOptions({
+          title: '',
+          headerRight: undefined,
+          headerRightContainerStyle: undefined,
+        });
+      };
+    }, [navigation, styles.nativeHeaderRightContainer]),
+  );
 
   const handleAddPress = useCallback(
     ({
@@ -860,15 +921,16 @@ const MoneyHomeView = () => {
 
   return (
     <Box
-      style={[styles.safeArea, { paddingTop: insets.top }]}
+      style={styles.safeArea}
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader onMenuPress={handleMenuPress} />
-      <ScrollView
+      <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -891,6 +953,21 @@ const MoneyHomeView = () => {
             />
           </Box>
         )}
+        <Animated.View
+          onLayout={handleTitleSectionLayout}
+          style={largeTitleAnimatedStyle}
+          testID={MoneyHomeViewTestIds.TITLE_SECTION}
+        >
+          <Box twClassName="px-4 pt-2">
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              testID={MoneyHomeViewTestIds.TITLE}
+            >
+              {strings('money.title')}
+            </Text>
+          </Box>
+        </Animated.View>
         <MoneyBalanceSummary
           apy={apyPercent}
           displayState={displayState}
@@ -921,7 +998,7 @@ const MoneyHomeView = () => {
             {section.node}
           </React.Fragment>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </Box>
   );
 };

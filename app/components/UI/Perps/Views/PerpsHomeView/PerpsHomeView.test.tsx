@@ -8,18 +8,13 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
-  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
-import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import {
-  PerpsHomeViewSelectorsIDs,
-  PerpsModeToggleSelectorsIDs,
-} from '../../Perps.testIds';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import {
   HOME_SCREEN_CONFIG,
   SUPPORT_CONFIG,
@@ -48,6 +43,10 @@ jest.mock('react-native-worklets', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+const mockSetOptions = jest.fn();
+const mockGetParent = jest.fn(() => ({
+  setOptions: mockSetOptions,
+}));
 let mockRouteParams: Record<string, unknown> = {
   source: 'main_action_button',
 };
@@ -57,6 +56,8 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
+    getParent: mockGetParent,
+    setOptions: mockSetOptions,
   }),
   useRoute: () => ({
     params: mockRouteParams,
@@ -67,25 +68,30 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-// Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
-// (its analytics/design-system internals are covered by its own unit tests).
-jest.mock('../../components/PerpsModeToggle', () => {
-  const ReactActual = jest.requireActual('react');
-  const { TouchableOpacity } = jest.requireActual('react-native');
-  const { PerpsModeToggleSelectorsIDs: SelectorsIDs } = jest.requireActual(
-    '../../Perps.testIds',
+/**
+ * Returns the native headerRight search renderer configured via setOptions.
+ * Search lives on the MainNavigator native header, not the in-app HeaderStandard.
+ */
+const getNativeHeaderRight = () => {
+  const headerRightCall = mockSetOptions.mock.calls
+    .map(([options]) => options as { headerRight?: () => React.ReactNode })
+    .reverse()
+    .find((options) => typeof options?.headerRight === 'function');
+
+  expect(headerRightCall?.headerRight).toEqual(expect.any(Function));
+  return headerRightCall?.headerRight as () => React.ReactNode;
+};
+
+const renderNativeHeaderSearch = () => render(<>{getNativeHeaderRight()()}</>);
+
+const expectNativeHeaderSearchConfigured = () => {
+  expect(mockSetOptions).toHaveBeenCalledWith(
+    expect.objectContaining({
+      title: '',
+      headerRight: expect.any(Function),
+    }),
   );
-  return {
-    __esModule: true,
-    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
-      ReactActual.createElement(TouchableOpacity, {
-        testID: SelectorsIDs.CONTAINER,
-        // Simulate the user switching to Pro from the stubbed toggle.
-        onPress: () => onChange?.('pro'),
-      }),
-    PerpsMode: { Lite: 'lite', Pro: 'pro' },
-  };
-});
+};
 
 // Mock Redux - default feedback disabled
 const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
@@ -119,7 +125,6 @@ const mockNavigateToMarketList = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
-const mockSetPerpsMode = jest.fn();
 const mockUsePerpsHomeSectionTracking = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
@@ -142,10 +147,6 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
-  usePerpsMode: jest.fn(() => ({
-    mode: 'lite',
-    setMode: mockSetPerpsMode,
-  })),
 }));
 
 // Mock direct import of usePerpsCategories (used for sections_displayed gating)
@@ -278,6 +279,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       header: {},
       headerTitle: {},
       searchButton: {},
+      nativeHeaderRightContainer: {},
       searchContainer: {},
       scrollView: {},
       scrollViewContent: {},
@@ -561,106 +563,30 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert - Component renders with essential elements
-    expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-    ).toBeTruthy();
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT)).toBeTruthy();
+    expectNativeHeaderSearchConfigured();
   });
 
-  it('shows header with navigation controls', () => {
+  it('configures native header search', () => {
     // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    render(<PerpsHomeView />);
 
     // Assert
-    expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-    ).toBeTruthy();
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expectNativeHeaderSearchConfigured();
   });
 
   it('shows search toggle button', () => {
     // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+    render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
-  });
-
-  it('renders the Lite/Pro toggle in the header when the Pro mode flag is enabled', () => {
-    // Arrange
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
-    );
-
-    // Act
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    // Assert - back/search remain and the toggle is shown centered
-    expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-    ).toBeTruthy();
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
-    expect(
-      getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
-    // Arrange
-    mockUseSelector.mockReturnValue(false);
-
-    // Act
-    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
-
-    // Assert
-    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
-    expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
-  });
-
-  it('navigates to the default Pro market when the header toggle switches to Pro', () => {
-    // Arrange
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
-    );
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    // Act - stubbed toggle switches to Pro on press
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
-
-    // Assert - persists the new mode and lands on the default (BTC) market
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
-      expect.objectContaining({
-        market: expect.objectContaining({ symbol: 'BTC' }),
-      }),
-    );
-  });
-
-  it('routes first-time users to the Perps tutorial when the header toggle switches mode', () => {
-    // Arrange
-    mockUseSelector.mockImplementation(
-      (selector: unknown) =>
-        selector === selectPerpsProModeEnabledFlag ||
-        selector === selectIsFirstTimePerpsUser,
-    );
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    // Act
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
-
-    // Assert - mode is persisted, but onboarding is not skipped
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
-      expect.anything(),
-    );
+    expectNativeHeaderSearchConfigured();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {
     // Arrange
-    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
+    const { queryByTestId } = render(<PerpsHomeView />);
+    const { getByTestId } = renderNativeHeaderSearch();
 
     // Assert - Search bar should not be visible initially
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
@@ -728,9 +654,10 @@ describe('PerpsHomeView', () => {
       transactionActiveAbTests,
     };
 
-    const { getByTestId } = render(<PerpsHomeView />);
+    render(<PerpsHomeView />);
+    const { getByTestId: getHeaderByTestId } = renderNativeHeaderSearch();
 
-    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
+    fireEvent.press(getHeaderByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
@@ -835,17 +762,6 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(queryByText('perps.home.orders')).toBeNull();
-  });
-
-  it('navigates to wallet home when back button is pressed', () => {
-    // Arrange
-    const { getByTestId } = render(<PerpsHomeView />);
-
-    // Act
-    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON));
-
-    // Assert - Always navigates to wallet home to avoid loops (e.g., from tutorial)
-    expect(mockNavigateToWallet).toHaveBeenCalled();
   });
 
   it('navigates to close all modal when close all is pressed', () => {
@@ -1191,12 +1107,9 @@ describe('PerpsHomeView', () => {
   });
 
   describe('header', () => {
-    it('renders the header by default', () => {
-      const { getByTestId } = render(<PerpsHomeView />);
-      expect(
-        getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
-      ).toBeTruthy();
-      expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    it('configures native header search by default', () => {
+      render(<PerpsHomeView />);
+      expectNativeHeaderSearchConfigured();
     });
   });
 

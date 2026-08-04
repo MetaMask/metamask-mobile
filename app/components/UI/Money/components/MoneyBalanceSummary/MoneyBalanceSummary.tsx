@@ -156,7 +156,7 @@ const MoneyBalanceSummary = ({
 
   return (
     <Box
-      twClassName="px-4 pt-4 gap-1"
+      twClassName="px-4 pt-1 gap-1"
       testID={MoneyBalanceSummaryTestIds.CONTAINER}
     >
       {renderBalanceSlot()}

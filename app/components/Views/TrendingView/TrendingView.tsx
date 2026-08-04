@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import {
   RouteProp,
   useFocusEffect,
@@ -17,13 +17,14 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
+  IconColor,
+  IconName,
   Text,
   TextVariant,
-  IconName,
-  Icon,
-  IconSize,
 } from '@metamask/design-system-react-native';
-import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
 import {
   TabsListRef,
@@ -36,7 +37,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import NowTab from './tabs/NowTab';
@@ -51,6 +51,14 @@ import {
   type ExploreTabName,
 } from './search/analytics';
 import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
+
+const styles = StyleSheet.create({
+  nativeHeaderRightContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 16,
+  },
+});
 
 const TAB_NAMES: ExploreTabName[] = [
   'Now',
@@ -259,6 +267,59 @@ export const ExploreFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  // Native stack header — search + browser on the right (iOS 26 liquid glass)
+  useFocusEffect(
+    useCallback(() => {
+      navigation.setOptions({
+        headerRightContainerStyle: styles.nativeHeaderRightContainer,
+        headerRight: () => (
+          <Box twClassName="flex-row items-center gap-2 px-1">
+            <ButtonIcon
+              iconName={IconName.Search}
+              size={ButtonIconSize.Md}
+              iconProps={{ color: IconColor.IconDefault }}
+              onPress={handleSearchPress}
+              accessibilityLabel={strings('trending.search_placeholder')}
+              testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON}
+            />
+            {browserTabsCount > 0 ? (
+              <TouchableOpacity
+                onPress={handleBrowserPress}
+                testID="trending-view-browser-button"
+                accessibilityRole="button"
+                style={tw.style('h-8 w-8 items-center justify-center')}
+              >
+                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+              </TouchableOpacity>
+            ) : (
+              <ButtonIcon
+                iconName={IconName.Explore}
+                size={ButtonIconSize.Md}
+                iconProps={{ color: IconColor.IconDefault }}
+                onPress={handleBrowserPress}
+                accessibilityLabel={strings('browser.title')}
+                testID="trending-view-browser-button"
+              />
+            )}
+          </Box>
+        ),
+      });
+
+      return () => {
+        navigation.setOptions({
+          headerRight: undefined,
+          headerRightContainerStyle: undefined,
+        });
+      };
+    }, [
+      navigation,
+      handleSearchPress,
+      handleBrowserPress,
+      browserTabsCount,
+      tw,
+    ]),
+  );
+
   // Created once per `tabProps` identity (not on every render) so
   // `ExploreTabs` can forward this array through `TabsList` unchanged on a
   // tab switch — see `ExploreTabs` for why that reference stability is what
@@ -317,30 +378,15 @@ export const ExploreFeed: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
-      <HeaderRoot
-        includesTopInset
-        title={strings('trending.title')}
-        testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
-      />
-
       <Box twClassName="gap-4 flex-1">
-        <Box twClassName="mt-2 mb-2 flex-row items-center gap-2 px-4">
-          <Box twClassName="flex-1">
-            <ExploreSearchBar type="button" onPress={handleSearchPress} />
-          </Box>
-
-          <TouchableOpacity
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
+        <Box twClassName="px-4 pt-2">
+          <Text
+            variant={TextVariant.HeadingLg}
+            fontWeight={FontWeight.Bold}
+            testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
           >
-            {browserTabsCount > 0 ? (
-              <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
-                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
-              </Box>
-            ) : (
-              <Icon name={IconName.Explore} size={IconSize.Xl} />
-            )}
-          </TouchableOpacity>
+            {strings('trending.title')}
+          </Text>
         </Box>
 
         {!isBasicFunctionalityEnabled ? (

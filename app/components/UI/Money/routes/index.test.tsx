@@ -54,14 +54,27 @@ jest.mock('@react-navigation/native-stack', () => ({
           {screenOptions?.contentStyle?.backgroundColor ?? 'none'}
         </MockText>
         {screenOptions?.headerShown === false && (
-          <MockText testID="money-header-hidden">header-hidden</MockText>
+          <MockText testID="money-header-hidden-by-default">
+            header-hidden-by-default
+          </MockText>
         )}
         {children}
       </MockView>
     ),
-    Screen: ({ name }: { name: string }) => (
+    Screen: ({
+      name,
+      options,
+    }: {
+      name: string;
+      options?: { headerShown?: boolean; title?: string };
+    }) => (
       <MockView testID={`money-screen-${name}`}>
         <MockText>{name}</MockText>
+        {options?.headerShown === true && (
+          <MockText testID={`money-screen-${name}-header-shown`}>
+            {options.title ?? 'header-shown'}
+          </MockText>
+        )}
       </MockView>
     ),
   }),
@@ -135,12 +148,15 @@ describe('MoneyTabScreenStack', () => {
     );
   });
 
-  it('hides the stack header', () => {
+  it('hides stack headers by default and shows the Money home native header', () => {
     const { getByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(getByTestId('money-header-hidden')).toBeOnTheScreen();
+    expect(getByTestId('money-header-hidden-by-default')).toBeOnTheScreen();
+    expect(
+      getByTestId('money-screen-MoneyHome-header-shown'),
+    ).toBeOnTheScreen();
   });
 
   it('calls useUpgradeMoneyAccountOnFocus', () => {
@@ -174,7 +190,7 @@ describe('MoneyConfirmationScreenStack', () => {
       { theme: themeWithCustomBackground },
     );
 
-    expect(getByTestId('money-header-hidden')).toBeOnTheScreen();
+    expect(getByTestId('money-header-hidden-by-default')).toBeOnTheScreen();
   });
 
   it('sets stack content background from theme', () => {

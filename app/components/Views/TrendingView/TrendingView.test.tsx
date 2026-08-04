@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 const mockIsEnabled = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
 
@@ -70,14 +71,39 @@ jest.mock('../../Nav/Main/MainNavigator', () => ({
   updateLastTrendingScreen: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-    addListener: mockAddListener,
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const ReactActual = jest.requireActual<typeof React>('react');
+  return {
+    ...jest.requireActual('@react-navigation/native'),
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: mockAddListener,
+    }),
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = effect();
+        return cleanup;
+      });
+    },
+  };
+});
+
+/**
+ * Returns the native headerRight renderer configured via setOptions.
+ */
+const getNativeHeaderRight = () => {
+  const headerRightCall = mockSetOptions.mock.calls
+    .map(([options]) => options as { headerRight?: () => React.ReactNode })
+    .reverse()
+    .find((options) => typeof options?.headerRight === 'function');
+
+  expect(headerRightCall?.headerRight).toEqual(expect.any(Function));
+  return headerRightCall?.headerRight as () => React.ReactNode;
+};
+
+const renderNativeHeaderRight = () => render(<>{getNativeHeaderRight()()}</>);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -266,7 +292,8 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 0 }),
       );
 
-      const { getByTestId, queryByText } = renderTrendingView();
+      renderTrendingView();
+      const { getByTestId, queryByText } = renderNativeHeaderRight();
 
       const browserButton = getByTestId('trending-view-browser-button');
       expect(browserButton).toBeOnTheScreen();
@@ -278,7 +305,8 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 1 }),
       );
 
-      const { getByText } = renderTrendingView();
+      renderTrendingView();
+      const { getByText } = renderNativeHeaderRight();
 
       expect(getByText('1')).toBeOnTheScreen();
     });
@@ -288,7 +316,8 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 5 }),
       );
 
-      const { getByText } = renderTrendingView();
+      renderTrendingView();
+      const { getByText } = renderNativeHeaderRight();
 
       expect(getByText('5')).toBeOnTheScreen();
     });
@@ -298,7 +327,8 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 99 }),
       );
 
-      const { getByText } = renderTrendingView();
+      renderTrendingView();
+      const { getByText } = renderNativeHeaderRight();
 
       expect(getByText('99')).toBeOnTheScreen();
     });
@@ -308,7 +338,8 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 0 }),
       );
 
-      const { getByTestId } = renderTrendingView();
+      renderTrendingView();
+      const { getByTestId } = renderNativeHeaderRight();
 
       const browserButton = getByTestId('trending-view-browser-button');
       fireEvent.press(browserButton);
@@ -330,7 +361,8 @@ describe('TrendingView', () => {
         createMockSelectorImplementation({ browserTabsCount: 3 }),
       );
 
-      const { getByTestId } = renderTrendingView();
+      renderTrendingView();
+      const { getByTestId } = renderNativeHeaderRight();
 
       const browserButton = getByTestId('trending-view-browser-button');
       fireEvent.press(browserButton);
@@ -371,26 +403,37 @@ describe('TrendingView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders HeaderRoot', () => {
-    const { getByTestId } = renderTrendingView();
+  it('renders Explore title in content', () => {
+    const { getByTestId, getByText } = renderTrendingView();
 
+    expect(getByText('Explore')).toBeOnTheScreen();
     expect(
       getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
     ).toBeOnTheScreen();
   });
 
-  it('renders search bar button', () => {
-    const { getByTestId } = renderTrendingView();
+  it('configures native header with search and browser buttons', () => {
+    renderTrendingView();
 
-    const searchButton = getByTestId('explore-view-search-button');
-
-    expect(searchButton).toBeOnTheScreen();
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerRight: expect.any(Function),
+      }),
+    );
+    const { getByTestId } = renderNativeHeaderRight();
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId('trending-view-browser-button')).toBeOnTheScreen();
   });
 
-  it('navigates to ExploreSearch route when search bar is pressed', () => {
-    const { getByTestId } = renderTrendingView();
+  it('navigates to ExploreSearch route when search button is pressed', () => {
+    renderTrendingView();
+    const { getByTestId } = renderNativeHeaderRight();
 
-    const searchButton = getByTestId('explore-view-search-button');
+    const searchButton = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON,
+    );
     fireEvent.press(searchButton);
 
     expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');

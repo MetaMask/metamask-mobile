@@ -46,7 +46,20 @@ const MoneyTabScreenStack = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <TabStack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
+      <TabStack.Screen
+        name={Routes.MONEY.HOME}
+        component={MoneyHomeView}
+        options={{
+          headerShown: true,
+          title: '',
+          headerShadowVisible: false,
+          headerBackVisible: false,
+          headerStyle: {
+            backgroundColor: colors.background.default,
+          },
+          headerTintColor: colors.text.default,
+        }}
+      />
       <TabStack.Screen
         name={Routes.MONEY.ACTIVITY}
         component={MoneyActivityView}

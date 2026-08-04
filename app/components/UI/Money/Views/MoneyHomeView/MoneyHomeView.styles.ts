@@ -7,6 +7,11 @@ const styleSheet = (params: { theme: Theme }) =>
       flex: 1,
       backgroundColor: params.theme.colors.background.default,
     },
+    nativeHeaderRightContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingRight: 16,
+    },
     scrollContent: {
       paddingBottom: 40,
     },

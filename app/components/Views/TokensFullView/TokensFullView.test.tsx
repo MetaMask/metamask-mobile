@@ -1,7 +1,7 @@
-import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import TokensFullView from './TokensFullView';
-import { useNavigation } from '@react-navigation/native';
+import Engine from '../../../core/Engine';
+import { DEFAULT_TOKEN_SORT_CONFIG } from '../../UI/Tokens/util/sortAssets';
 
 // Mock external dependencies that are not under test
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -10,11 +10,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
     tw.style = () => ({});
     return tw;
   },
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(),
 }));
 
 // Mock AssetPollingProvider to avoid Engine/controller polling setup
@@ -48,46 +43,28 @@ jest.mock('../../UI/Tokens', () => {
   };
 });
 
-// Type the mocked functions
-const mockUseNavigation = useNavigation as jest.MockedFunction<
-  typeof useNavigation
->;
-
 describe('TokensFullView', () => {
-  const mockGoBack = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Setup default mocks
-    mockUseNavigation.mockReturnValue({
-      goBack: mockGoBack,
-    } as unknown as ReturnType<typeof useNavigation>);
   });
 
-  it('renders header with title and back button', () => {
-    // Arrange
-    const { getByTestId, getByText } = renderScreen(TokensFullView, {
-      name: 'TokensFullView',
-    });
-
-    // Act & Assert
-    expect(getByTestId('back-button')).toBeOnTheScreen();
-    expect(getByText('Tokens')).toBeOnTheScreen();
-    expect(getByTestId('tokens-component')).toBeOnTheScreen();
-  });
-
-  it('calls goBack when back button is pressed', () => {
-    // Arrange
+  it('renders tokens content', () => {
     const { getByTestId } = renderScreen(TokensFullView, {
       name: 'TokensFullView',
     });
 
-    // Act
-    const backButton = getByTestId('back-button');
-    fireEvent.press(backButton);
+    expect(getByTestId('tokens-component')).toBeOnTheScreen();
+  });
 
-    // Assert
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  it('resets token sort config on unmount', () => {
+    const { unmount } = renderScreen(TokensFullView, {
+      name: 'TokensFullView',
+    });
+
+    unmount();
+
+    expect(
+      Engine.context.PreferencesController.setTokenSortConfig,
+    ).toHaveBeenCalledWith(DEFAULT_TOKEN_SORT_CONFIG);
   });
 });

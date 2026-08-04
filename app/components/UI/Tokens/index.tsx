@@ -356,7 +356,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             goToAddToken={goToAddToken}
             showAddToken={!showOnlyMusd}
             hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-3` : undefined}
+            style={isFullView ? tw`px-4 pb-3 pt-1` : undefined}
           />
         )}
         {tokenContent}

@@ -19,6 +19,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 // Mock navigation
 const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -27,6 +28,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      setOptions: mockSetOptions,
     }),
     useFocusEffect: (effect: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -36,6 +38,21 @@ jest.mock('@react-navigation/native', () => {
     },
   };
 });
+
+/**
+ * Returns the native headerRight renderer configured via setOptions.
+ */
+const getNativeHeaderRight = () => {
+  const headerRightCall = mockSetOptions.mock.calls
+    .map(([options]) => options as { headerRight?: () => React.ReactNode })
+    .reverse()
+    .find((options) => typeof options?.headerRight === 'function');
+
+  expect(headerRightCall?.headerRight).toEqual(expect.any(Function));
+  return headerRightCall?.headerRight as () => React.ReactNode;
+};
+
+const renderNativeHeaderRight = () => render(<>{getNativeHeaderRight()()}</>);
 
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
@@ -176,6 +193,8 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.main_title': 'Rewards',
+      'rewards.referral_title': 'Referrals',
+      'rewards.settings.title': 'Rewards settings',
     };
     return translations[key] || key;
   }),
@@ -435,12 +454,13 @@ describe('RewardsDashboard', () => {
   });
 
   describe('rendering', () => {
-    it('renders main title', () => {
+    it('renders the Rewards title', () => {
       // Act
-      const { getByText } = render(<RewardsDashboard />);
+      const { getByText, getByTestId } = render(<RewardsDashboard />);
 
       // Assert
       expect(getByText('Rewards')).toBeTruthy();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeTruthy();
     });
 
     it('mounts campaign outcome toast hooks on render', () => {
@@ -456,10 +476,13 @@ describe('RewardsDashboard', () => {
     it('renders all child components', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
+      const { getByTestId: getHeaderTestId } = renderNativeHeaderRight();
 
       // Assert
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
+      expect(
+        getHeaderTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+      ).toBeTruthy();
       expect(getByTestId('campaigns-preview')).toBeTruthy();
       expect(getByTestId('earn-rewards-preview')).toBeTruthy();
       expect(getByTestId('benefits-preview')).toBeTruthy();
@@ -485,33 +508,53 @@ describe('RewardsDashboard', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders HeaderRoot with title Rewards', () => {
+    it('renders Rewards title in content', () => {
       // Act
-      const { getByText } = render(<RewardsDashboard />);
+      const { getByText, getByTestId } = render(<RewardsDashboard />);
 
       // Assert
       expect(getByText('Rewards')).toBeOnTheScreen();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
     });
 
-    it('renders settings button in header', () => {
+    it('configures native header with settings and referral buttons', () => {
+      // Act
+      render(<RewardsDashboard />);
+
+      // Assert
+      expect(mockSetOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: '',
+          headerRight: expect.any(Function),
+        }),
+      );
+      const { getByTestId } = renderNativeHeaderRight();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the large Rewards title section', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
 
       // Assert
       expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+        getByTestId(REWARDS_VIEW_SELECTORS.TITLE_SECTION),
       ).toBeOnTheScreen();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.TITLE)).toBeOnTheScreen();
     });
   });
 
   describe('navigation', () => {
     it('navigates to Rewards settings when settings button is pressed', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const settingsButton = getByTestId(
-        REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
-      );
-      fireEvent.press(settingsButton);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON));
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
@@ -522,7 +565,8 @@ describe('RewardsDashboard', () => {
 
     it('navigates to referral view when referral button is pressed', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON));
 
       // Assert
@@ -533,7 +577,8 @@ describe('RewardsDashboard', () => {
     });
 
     it('does not render the VIP button when VIP is disabled', () => {
-      const { queryByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { queryByTestId } = renderNativeHeaderRight();
 
       expect(queryByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON)).toBeNull();
     });
@@ -557,7 +602,8 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
 
       expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON)).toBeOnTheScreen();
     });
@@ -581,7 +627,8 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      const { queryByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { queryByTestId } = renderNativeHeaderRight();
 
       expect(queryByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON)).toBeNull();
     });
@@ -605,7 +652,8 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
@@ -634,7 +682,8 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
@@ -644,7 +693,8 @@ describe('RewardsDashboard', () => {
     });
 
     it('does not render the VIP referee button when the user is not a VIP referee', () => {
-      const { queryByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { queryByTestId } = renderNativeHeaderRight();
 
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON),
@@ -672,7 +722,8 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
 
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON),
@@ -700,7 +751,8 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
@@ -731,7 +783,8 @@ describe('RewardsDashboard', () => {
         return undefined;
       });
 
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
@@ -843,7 +896,8 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       const referralButton = getByTestId(
         REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
       );
@@ -871,7 +925,8 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
@@ -882,7 +937,8 @@ describe('RewardsDashboard', () => {
 
     it('enables settings button when user is opted in', () => {
       // Act
-      const { getByTestId } = render(<RewardsDashboard />);
+      render(<RewardsDashboard />);
+      const { getByTestId } = renderNativeHeaderRight();
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
