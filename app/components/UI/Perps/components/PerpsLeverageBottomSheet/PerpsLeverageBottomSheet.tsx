@@ -230,15 +230,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     },
   });
 
-  const handleConfirm = () => {
-    DevLogger.log(
-      `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
-    );
-
-    onConfirm(tempLeverage, inputMethod);
-    onClose();
-  };
-
   const liquidationDropPercentage = useMemo(() => {
     const leverageToUse = isDragging ? draggingLeverage : tempLeverage;
 
@@ -375,6 +366,34 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setInputMethod('slider');
     }
   }, [draggingLeverage, isDragging, syncActiveSliderValue, tempLeverage]);
+
+  const handleConfirm = useCallback(() => {
+    // Guard against confirming a stale committed `tempLeverage` while
+    // `isDragging` is (or is stuck) true — e.g. a cancelled gesture
+    // that never reached handleSliderDragEnd (see handleSliderDragCancel
+    // above). Flush the last live value and bail; `tempLeverage`
+    // reflects it on the next render, so the very next tap confirms the
+    // leverage shown on the numeral/footer instead of racing a same-tick
+    // confirm against a state update.
+    if (isDragging) {
+      handleSliderDragCancel();
+      return;
+    }
+
+    DevLogger.log(
+      `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
+    );
+
+    onConfirm(tempLeverage, inputMethod);
+    onClose();
+  }, [
+    handleSliderDragCancel,
+    inputMethod,
+    isDragging,
+    onClose,
+    onConfirm,
+    tempLeverage,
+  ]);
 
   const handleSliderGrip = useCallback(() => {
     playImpact(ImpactMoment.SliderGrip);

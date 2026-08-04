@@ -516,7 +516,9 @@ describe('PerpsLeverageBottomSheet', () => {
 
       const slider = getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
       const sliderContainer = slider.parent;
-      expect(sliderContainer).not.toBeNull();
+      if (!sliderContainer) {
+        throw new Error('Expected slider container for touchCancel');
+      }
 
       fireEvent(slider, 'valueChange', 12);
       expect(screen.getByText('12x')).toBeOnTheScreen();
@@ -557,6 +559,35 @@ describe('PerpsLeverageBottomSheet', () => {
       fireEvent.press(screen.getByText('Set 5x'));
 
       expect(mockOnConfirm).toHaveBeenCalledWith(5, 'slider');
+    });
+
+    it('flushes a stuck live drag value instead of confirming a stale leverage', () => {
+      const mockOnConfirm = jest.fn();
+      render(
+        <PerpsLeverageBottomSheet
+          {...defaultProps}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+
+      const slider = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.SLIDER,
+      );
+      fireEvent(slider, 'valueChange', 12);
+
+      expect(screen.getByText('12x')).toBeOnTheScreen();
+      expect(screen.getByText('Set 12x')).toBeOnTheScreen();
+
+      // Stuck mid-drag (no dragEnd / touchCancel): first confirm only flushes.
+      fireEvent.press(screen.getByText('Set 12x'));
+
+      expect(mockOnConfirm).not.toHaveBeenCalled();
+      expect(screen.getByText('Set 12x')).toBeOnTheScreen();
+
+      // Second tap confirms the flushed live value, not the pre-drag temp.
+      fireEvent.press(screen.getByText('Set 12x'));
+
+      expect(mockOnConfirm).toHaveBeenCalledWith(12, 'slider');
     });
 
     it('calls onClose after confirm', () => {
