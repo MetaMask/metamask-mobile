@@ -52,6 +52,10 @@ export const useWatchlistEditDraft = ({
   const [draft, setDraft] = useState<WatchlistEditDraft | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const baselineOrderRef = useRef<string[]>([]);
+  /** Normalized asset id -> original (un-lowercased) CAIP asset id, for analytics. */
+  const originalAssetIdByNormalizedIdRef = useRef<Map<string, string>>(
+    new Map(),
+  );
 
   const queryAssetIdSet = useMemo(
     () =>
@@ -82,12 +86,17 @@ export const useWatchlistEditDraft = ({
       );
 
       removedAssetIds.forEach((assetId) => {
+        const originalAssetId =
+          originalAssetIdByNormalizedIdRef.current.get(
+            normalizeAssetId(assetId),
+          ) ?? assetId;
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED)
             .addProperties({
               source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
-              asset_id: assetId,
-              asset_type: getWatchlistAssetType(assetId),
+              asset_id: originalAssetId,
+              asset_type: getWatchlistAssetType(originalAssetId),
             })
             .build(),
         );
@@ -138,6 +147,12 @@ export const useWatchlistEditDraft = ({
 
   const handleEditPress = useCallback(() => {
     baselineOrderRef.current = getTokenAssetIdOrder(queryTokens);
+    originalAssetIdByNormalizedIdRef.current = new Map(
+      queryTokens.map((token) => {
+        const assetId = String(token.assetId);
+        return [normalizeAssetId(assetId), assetId];
+      }),
+    );
     setDraft(createDraftFromTokens(queryTokens));
     setIsEditMode(true);
   }, [queryTokens]);
