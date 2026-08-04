@@ -575,6 +575,22 @@ export const formatOrderLabel = (order: Order): string => {
 };
 
 /**
+ * Format just the order type portion of an order label (no direction/close).
+ *
+ * Examples: "Limit", "Stop market", "Take profit limit"
+ *
+ * @param order - The order object
+ * @returns Formatted order type string for compact UI pills
+ */
+export const formatOrderTypeLabel = (order: Order): string => {
+  const typeString =
+    order.detailedOrderType ||
+    (order.orderType === 'limit' ? 'Limit' : 'Market');
+
+  return capitalize(typeString);
+};
+
+/**
  * Get just the direction portion of an order label
  * Used for compatibility with existing code that expects just "long" or "short"
  *

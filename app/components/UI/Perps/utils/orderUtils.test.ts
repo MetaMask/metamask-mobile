@@ -6,6 +6,7 @@ import {
   isSyntheticPlaceholderOrderId,
   shouldDisplayOrderInMarketDetailsOrders,
   formatOrderLabel,
+  formatOrderTypeLabel,
   resolveOrderDisplayPriceAndLabel,
   getOrderLabelDirection,
   getOrderPositionDirection,
@@ -206,6 +207,55 @@ describe('orderUtils', () => {
       };
 
       expect(formatOrderLabel(order)).toBe('Market close short');
+    });
+  });
+
+  describe('formatOrderTypeLabel', () => {
+    it('returns detailed order type when available', () => {
+      const order: Order = {
+        orderId: '1',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'market',
+        detailedOrderType: 'Stop Market',
+        size: '1',
+        originalSize: '1',
+        price: '50000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+        reduceOnly: true,
+        isTrigger: true,
+      };
+
+      expect(formatOrderTypeLabel(order)).toBe('Stop market');
+    });
+
+    it('falls back to limit or market when detailed type is absent', () => {
+      const limitOrder: Order = {
+        orderId: '1',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '1',
+        originalSize: '1',
+        price: '50000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+        reduceOnly: false,
+        isTrigger: false,
+      };
+
+      const marketOrder: Order = {
+        ...limitOrder,
+        orderType: 'market',
+      };
+
+      expect(formatOrderTypeLabel(limitOrder)).toBe('Limit');
+      expect(formatOrderTypeLabel(marketOrder)).toBe('Market');
     });
   });
 
