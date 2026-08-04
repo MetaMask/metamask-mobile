@@ -33,7 +33,7 @@ interface ChainSwapDestConfig {
 }
 
 export const BRIDGE_CHAINID_TO_DEFAULT_FROM_TOKEN: {
-  [key: `0x${string}` | `${string}:${string}`]: BridgeToken;
+  [key: Hex | CaipChainId]: BridgeToken;
 } = {
   [ARC_HEX_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
   [ARC_CAIP_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
