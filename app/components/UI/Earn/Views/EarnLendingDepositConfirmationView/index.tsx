@@ -801,7 +801,6 @@ const EarnLendingDepositConfirmationView = () => {
       />
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
         <Erc20TokenHero
