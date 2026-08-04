@@ -9,6 +9,7 @@ import {
 import { AssetType } from '../../../types/token';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayAmountStale } from '../../../hooks/pay/useIsTransactionPayAmountStale';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -56,6 +57,10 @@ jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useTransactionPayRequiredTokens: jest.fn(() => []),
 }));
 
+jest.mock('../../../hooks/pay/useIsTransactionPayAmountStale', () => ({
+  useIsTransactionPayAmountStale: jest.fn(),
+}));
+
 jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
@@ -96,6 +101,9 @@ const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
+const mockUseIsTransactionPayAmountStale = jest.mocked(
+  useIsTransactionPayAmountStale,
+);
 const mockUseConfirmActions = jest.mocked(useConfirmActions);
 const mockUseAlerts = jest.mocked(useAlerts);
 const mockUseFiatFormatter = jest.mocked(useFiatFormatter);
@@ -106,6 +114,7 @@ function setupMocksForSuccessPath() {
     chainId: '0x1',
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockUseIsTransactionPayLoading.mockReturnValue(false);
+  mockUseIsTransactionPayAmountStale.mockReturnValue(false);
   mockUseConfirmActions.mockReturnValue({
     onConfirm: jest.fn(),
     onReject: jest.fn(),
@@ -229,6 +238,17 @@ describe('MusdMaxConversionInfo', () => {
 
     it('disables confirm button when quotes are loading', () => {
       mockUseIsTransactionPayLoading.mockReturnValue(true);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      const confirmButton = screen.getByTestId(
+        MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeDisabled();
+    });
+
+    it('disables confirm button when pay amount is stale', () => {
+      mockUseIsTransactionPayAmountStale.mockReturnValue(true);
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 
