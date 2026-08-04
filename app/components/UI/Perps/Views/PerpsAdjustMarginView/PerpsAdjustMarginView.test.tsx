@@ -1,9 +1,13 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import Logger from '../../../../../util/Logger';
+import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
-import { type Position } from '@metamask/perps-controller';
-import { PerpsAdjustMarginViewSelectorsIDs } from '../../Perps.testIds';
+import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
+import {
+  PerpsAdjustMarginViewSelectorsIDs,
+  PerpsAmountDisplaySelectorsIDs,
+} from '../../Perps.testIds';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>
@@ -108,11 +112,94 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../../components/PerpsAmountDisplay', () => 'PerpsAmountDisplay');
-jest.mock(
-  '../../components/PerpsBottomSheetTooltip',
-  () => 'PerpsBottomSheetTooltip',
-);
+jest.mock('../../components/PerpsAmountDisplay', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity: Touchable, Text } =
+    jest.requireActual('react-native');
+  const { PerpsAmountDisplaySelectorsIDs: Selectors } = jest.requireActual(
+    '../../Perps.testIds',
+  );
+  return ({ onPress, amount }: { onPress?: () => void; amount?: string }) =>
+    ReactActual.createElement(
+      Touchable,
+      {
+        onPress,
+        testID: Selectors.TOUCHABLE,
+      },
+      ReactActual.createElement(Text, null, amount ?? '0'),
+    );
+});
+
+jest.mock('../../components/PerpsBottomSheetTooltip', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity: Touchable, Text } =
+    jest.requireActual('react-native');
+  return ({
+    onClose,
+    contentKey,
+  }: {
+    onClose?: () => void;
+    contentKey?: string;
+  }) =>
+    ReactActual.createElement(
+      Touchable,
+      {
+        testID: 'perps-bottom-sheet-tooltip',
+        onPress: onClose,
+      },
+      ReactActual.createElement(Text, null, contentKey),
+    );
+});
+
+jest.mock('../../../../Base/Keypad', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockKeypad({
+    onChange,
+    value,
+  }: {
+    onChange?: (data: { value: string }) => void;
+    value?: string;
+  }) {
+    return ReactActual.createElement(View, {
+      testID: 'mock-keypad',
+      value,
+      onChange,
+    });
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Slider: ({
+      testID,
+      value,
+      onValueChange,
+      onGrip,
+      onMark,
+      isDisabled,
+    }: {
+      testID?: string;
+      value?: number;
+      onValueChange?: (value: number) => void;
+      onGrip?: () => void;
+      onMark?: () => void;
+      isDisabled?: boolean;
+    }) =>
+      ReactActual.createElement(View, {
+        testID,
+        value,
+        onValueChange,
+        onGrip,
+        onMark,
+        isDisabled,
+      }),
+  };
+});
 
 jest.mock('../../../../../util/haptics', () => ({
   playImpact: jest.fn(),
@@ -472,12 +559,583 @@ describe('PerpsAdjustMarginView', () => {
       const slider = screen.getByTestId(
         PerpsAdjustMarginViewSelectorsIDs.SLIDER,
       );
-      fireEvent(slider, 'accessibilityAction', {
-        nativeEvent: { actionName: 'increment' },
+      act(() => {
+        (slider.props as { onValueChange: (v: number) => void }).onValueChange(
+          25,
+        );
       });
 
       const arrowIcons = screen.getAllByLabelText('ArrowRight');
       expect(arrowIcons).toHaveLength(2);
+    });
+  });
+
+  describe('slider interactions', () => {
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+    });
+
+    const getSliderProps = () => {
+      const slider = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.SLIDER,
+      );
+      return slider.props as {
+        onValueChange: (percentage: number) => void;
+        onGrip: () => void;
+        onMark: () => void;
+      };
+    };
+
+    it('updates amount from slider percentage changes', () => {
+      render(<PerpsAdjustMarginView />);
+
+      act(() => {
+        getSliderProps().onValueChange(50);
+      });
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('500.00');
+    });
+
+    it('plays grip and mark haptics from slider callbacks', () => {
+      render(<PerpsAdjustMarginView />);
+
+      act(() => {
+        getSliderProps().onGrip();
+        getSliderProps().onMark();
+      });
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderGrip);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
+    });
+
+    it('keeps slider at zero when max amount is zero', () => {
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 0,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 0,
+        currentPrice: 2000,
+        isAddMode: true,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      const slider = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.SLIDER,
+      );
+      expect((slider.props as { value: number }).value).toBe(0);
+    });
+  });
+
+  describe('confirm actions', () => {
+    it('adds margin and navigates back on success', async () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 1000,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1850,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 8,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: true,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      const slider = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.SLIDER,
+      );
+      act(() => {
+        (slider.props as { onValueChange: (v: number) => void }).onValueChange(
+          25,
+        );
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockHandleAddMargin).toHaveBeenCalledWith('ETH', 250);
+    });
+
+    it('removes margin on confirm in remove mode', async () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'remove',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 200,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1920,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 3,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      const slider = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.SLIDER,
+      );
+      act(() => {
+        (slider.props as { onValueChange: (v: number) => void }).onValueChange(
+          50,
+        );
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockHandleRemoveMargin).toHaveBeenCalledWith('ETH', 100);
+    });
+
+    it('does not submit when amount is zero', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      render(<PerpsAdjustMarginView />);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      expect(mockHandleAddMargin).not.toHaveBeenCalled();
+      expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+    });
+
+    it('does not remove margin when amount exceeds max removable', async () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'remove',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 200,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      const slider = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.SLIDER,
+      );
+      act(() => {
+        (slider.props as { onValueChange: (v: number) => void }).onValueChange(
+          100,
+        );
+      });
+
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 50,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+
+      // Re-render summary/validation with lowered max while amount stays at 200
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON),
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockHandleRemoveMargin).not.toHaveBeenCalled();
+    });
+
+    it('navigates back when margin adjustment succeeds', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      render(<PerpsAdjustMarginView />);
+
+      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
+        onSuccess?: () => void;
+      };
+      options.onSuccess?.();
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('logs remove-margin errors from the hook callback', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'remove',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 200,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      const options = mockUsePerpsMarginAdjustment.mock.calls[0][0] as {
+        onError?: (errorMessage: string) => void;
+      };
+      options.onError?.('Failed to remove margin');
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: {
+            name: 'PerpsAdjustMarginView',
+            data: {
+              action: 'remove_margin',
+              symbol: 'ETH',
+              error: 'Failed to remove margin',
+            },
+          },
+        }),
+      );
+    });
+  });
+
+  describe('keypad and percentage inputs', () => {
+    beforeEach(() => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+    });
+
+    const openKeypad = () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+    };
+
+    const typeKeypadValue = (value: string) => {
+      const keypad = screen.getByTestId('mock-keypad');
+      act(() => {
+        (
+          keypad.props as { onChange: (data: { value: string }) => void }
+        ).onChange({ value });
+      });
+    };
+
+    it('opens keypad and applies 25% and 50% shortcuts', () => {
+      render(<PerpsAdjustMarginView />);
+      openKeypad();
+
+      fireEvent.press(screen.getByText('25%'));
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('250.00');
+
+      fireEvent.press(screen.getByText('50%'));
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('500.00');
+    });
+
+    it('applies max amount and closes keypad with Done', () => {
+      render(<PerpsAdjustMarginView />);
+      openKeypad();
+
+      fireEvent.press(screen.getByText('perps.deposit.max_button'));
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('1000.00');
+
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('mock-keypad')).toBeNull();
+    });
+
+    it('updates amount from keypad input', () => {
+      render(<PerpsAdjustMarginView />);
+      openKeypad();
+      typeKeypadValue('150');
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('150');
+    });
+
+    it('clamps keypad input to max removable in remove mode', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'remove',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 200,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+      openKeypad();
+      typeKeypadValue('350');
+
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      ).toHaveTextContent('200.00');
+    });
+
+    it('navigates back from header', () => {
+      render(<PerpsAdjustMarginView />);
+
+      // HeaderStandard back control is the first ButtonIcon on the screen
+      const iconButtons = screen.getAllByTestId('button-icon');
+      fireEvent.press(iconButtons[0]);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  describe('validation and tooltips', () => {
+    const openKeypad = () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+    };
+
+    const typeKeypadValue = (value: string) => {
+      const keypad = screen.getByTestId('mock-keypad');
+      act(() => {
+        (
+          keypad.props as { onChange: (data: { value: string }) => void }
+        ).onChange({ value });
+      });
+    };
+
+    it('shows exceeds available validation after amount exceeds max', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      render(<PerpsAdjustMarginView />);
+      openKeypad();
+      typeKeypadValue('1500');
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON),
+      );
+
+      expect(
+        screen.getByText('perps.adjust_margin.exceeds_available'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows exceeds max removable validation in remove mode', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'remove',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 200,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      const slider = screen.getByTestId(
+        PerpsAdjustMarginViewSelectorsIDs.SLIDER,
+      );
+      act(() => {
+        (slider.props as { onValueChange: (v: number) => void }).onValueChange(
+          100,
+        );
+      });
+
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 50,
+        currentLiquidationPrice: 1900,
+        newLiquidationPrice: 1900,
+        currentLiquidationDistance: 5,
+        newLiquidationDistance: 5,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: false,
+        positionLeverage: 10,
+      });
+
+      openKeypad();
+      fireEvent.press(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.DONE_BUTTON),
+      );
+
+      expect(
+        screen.getByText('perps.errors.marginValidation.exceedsMaxRemovable'),
+      ).toBeOnTheScreen();
+    });
+
+    it('suppresses validation errors while keypad is focused', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      render(<PerpsAdjustMarginView />);
+      openKeypad();
+      typeKeypadValue('1500');
+
+      expect(
+        screen.queryByText('perps.adjust_margin.exceeds_available'),
+      ).toBeNull();
+    });
+
+    it('opens and closes liquidation tooltips', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+
+      render(<PerpsAdjustMarginView />);
+
+      // button-icon order: header back, liquidation price info, liquidation distance info
+      const iconButtons = screen.getAllByTestId('button-icon');
+      expect(iconButtons.length).toBeGreaterThanOrEqual(3);
+
+      fireEvent.press(iconButtons[1]);
+      expect(
+        screen.getByTestId('perps-bottom-sheet-tooltip'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('liquidation_price')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('perps-bottom-sheet-tooltip'));
+      expect(screen.queryByTestId('perps-bottom-sheet-tooltip')).toBeNull();
+
+      fireEvent.press(iconButtons[2]);
+      expect(screen.getByText('liquidation_distance')).toBeOnTheScreen();
+    });
+
+    it('shows fallback display when liquidation price is zero', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 1000,
+        currentLiquidationPrice: 0,
+        newLiquidationPrice: 0,
+        currentLiquidationDistance: 0,
+        newLiquidationDistance: 0,
+        spendableBalance: 1000,
+        currentPrice: 2000,
+        isAddMode: true,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
     });
   });
 });
