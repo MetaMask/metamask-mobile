@@ -110,7 +110,7 @@ export const useSectionPerformance = ({
   });
 
   // ──────────────────────────────────────────────
-  // 1. Time to Content — start span on mount
+  // 1. Time to Content + Data Fetch Latency — start spans on mount
   // ──────────────────────────────────────────────
   useEffect(() => {
     if (!enabled) return;
