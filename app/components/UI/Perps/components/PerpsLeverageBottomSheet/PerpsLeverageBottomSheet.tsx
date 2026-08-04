@@ -361,15 +361,20 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   );
 
   // ScrollView / gesture arbitration can finalize the MMDS pan without
-  // onDragEnd; clear the parent drag flag so displayLeverage is not wedged.
+  // onDragEnd; mirror drag-end so liquidation UI refreshes for the settled value.
   const handleSliderDragCancel = useCallback(() => {
     if (isDragging) {
       setIsDragging(false);
+      if (draggingLeverage !== tempLeverage) {
+        leverageChangeTime.current = Date.now();
+        setLeverageChanged(true);
+        lastValidLiquidationPrice.current = null;
+      }
       setTempLeverage(draggingLeverage);
       syncActiveSliderValue(draggingLeverage);
       setInputMethod('slider');
     }
-  }, [draggingLeverage, isDragging, syncActiveSliderValue]);
+  }, [draggingLeverage, isDragging, syncActiveSliderValue, tempLeverage]);
 
   const handleSliderGrip = useCallback(() => {
     playImpact(ImpactMoment.SliderGrip);
@@ -401,8 +406,15 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const handleQuickSelect = useCallback(
     (value: number) => {
-      const shouldRemountSlider = isDragging || hasSliderDraggedRef.current;
+      // A second chip during the promote window must cancel the pending
+      // promote and remount again; otherwise the first chip's incoming value
+      // is restored after the sync-only path updates tempLeverage.
+      if (promoteFrameRef.current !== null) {
+        cancelAnimationFrame(promoteFrameRef.current);
+        promoteFrameRef.current = null;
+      }
 
+      const wasDragging = isDragging;
       setIsDragging(false);
       if (value !== tempLeverage) {
         leverageChangeTime.current = Date.now();
@@ -413,23 +425,29 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setDraggingLeverage(value);
       setInputMethod('preset');
 
-      if (shouldRemountSlider) {
+      setSliderEntries((prev) => {
+        const hasIncoming = prev.some((entry) => entry.role === 'incoming');
+        const shouldRemountSlider =
+          wasDragging || hasSliderDraggedRef.current || hasIncoming;
+
+        if (!shouldRemountSlider) {
+          return prev.map((entry) =>
+            entry.role === 'active' ? { ...entry, value } : entry,
+          );
+        }
+
         hasSliderDraggedRef.current = false;
-        setSliderEntries((prev) => {
-          const active =
-            prev.find((entry) => entry.role === 'active') ?? prev[0];
-          return [
-            { key: active.key, value: active.value, role: 'active' },
-            { key: active.key + 1, value, role: 'incoming' },
-          ];
-        });
-      } else {
-        syncActiveSliderValue(value);
-      }
+        const active = prev.find((entry) => entry.role === 'active') ?? prev[0];
+        const nextKey = Math.max(...prev.map((entry) => entry.key)) + 1;
+        return [
+          { key: active.key, value: active.value, role: 'active' },
+          { key: nextKey, value, role: 'incoming' },
+        ];
+      });
 
       playSelection();
     },
-    [isDragging, syncActiveSliderValue, tempLeverage],
+    [isDragging, tempLeverage],
   );
 
   if (!isVisible) return null;
@@ -486,7 +504,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                         : PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING
                     }
                     value={sliderValue}
-                    onValueChange={isActive ? handleSliderChange : undefined}
+                    onValueChange={
+                      isActive ? handleSliderChange : () => undefined
+                    }
                     onDragEnd={isActive ? handleSliderDragEnd : undefined}
                     minimumValue={minLeverage}
                     maximumValue={maxLeverage}

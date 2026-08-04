@@ -127,7 +127,6 @@ jest.mock('@metamask/design-system-react-native', () => {
         View,
         {
           testID: testID ?? 'perps-leverage-slider',
-          // @ts-expect-error test helper props for fireEvent / .props.value
           onValueChange,
           onDragEnd,
           value,
@@ -383,6 +382,47 @@ describe('PerpsLeverageBottomSheet', () => {
       expect(screen.getByText('Set 20x')).toBeOnTheScreen();
     });
 
+    it('keeps the latest chip value when pressed during slider remount promote', async () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} leverage={5} />,
+      );
+
+      const slider = () =>
+        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
+
+      fireEvent(slider(), 'valueChange', 8);
+      fireEvent(slider(), 'dragEnd', 8);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-10`,
+        ),
+      );
+      fireEvent(
+        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP),
+        'layout',
+      );
+
+      // Second chip during the promote window — must not let the first
+      // incoming value win after promotion.
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT}-20`,
+        ),
+      );
+      fireEvent(
+        getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING_WRAP),
+        'layout',
+      );
+      await flushSliderPromoteFrames();
+
+      expect(
+        queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER_INCOMING),
+      ).toBeNull();
+      expect(slider().props.value).toBe(20);
+      expect(screen.getByText('Set 20x')).toBeOnTheScreen();
+    });
+
     it('shows all available quick select options for maxLeverage 40', () => {
       const props = { ...defaultProps, maxLeverage: 40 };
 
@@ -489,6 +529,30 @@ describe('PerpsLeverageBottomSheet', () => {
       fireEvent.press(screen.getByText(/Set \d+x/));
 
       expect(mockOnConfirm).toHaveBeenCalledWith(12, 'slider');
+    });
+
+    it('refreshes liquidation UI when drag is cancelled mid-gesture', () => {
+      const { getByTestId, queryByTestId, UNSAFE_getAllByType } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} leverage={5} />,
+      );
+      const { Skeleton: SkeletonComponent } = jest.requireActual(
+        '@metamask/design-system-react-native',
+      );
+
+      const slider = getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SLIDER);
+      const sliderContainer = slider.parent;
+      expect(sliderContainer).not.toBeNull();
+
+      fireEvent(slider, 'valueChange', 12);
+      expect(screen.getByText('12x')).toBeOnTheScreen();
+
+      fireEvent(sliderContainer, 'touchCancel');
+
+      expect(screen.getByText('Set 12x')).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsLeverageBottomSheetSelectorsIDs.HELP_TEXT),
+      ).toBeNull();
+      expect(UNSAFE_getAllByType(SkeletonComponent).length).toBeGreaterThan(0);
     });
 
     it('shows labeled max mark for high max leverage', () => {
