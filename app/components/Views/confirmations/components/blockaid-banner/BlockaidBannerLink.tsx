@@ -1,8 +1,7 @@
 import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
-import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import { useTheme } from '../../../../../util/theme';
-import { Text } from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,7 +26,7 @@ const BlockaidBannerLink = ({
     <Text
       suppressHighlighting
       style={styles.attributionLink}
-      variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+      variant={TextVariant.BodySm}
       onPress={() => {
         onContactUsClicked?.();
         Linking.openURL(link);

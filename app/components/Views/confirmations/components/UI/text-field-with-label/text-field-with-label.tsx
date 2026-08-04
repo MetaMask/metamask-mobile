@@ -4,7 +4,11 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import { TextFieldProps } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import styleSheet from './text-field-with-label.styles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 export type TextFieldWithLabelProps = {
   error: string | boolean;
@@ -14,7 +18,7 @@ export type TextFieldWithLabelProps = {
 
 export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
   const { error, inputType, label, ...restProps } = props;
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <>
@@ -26,7 +30,7 @@ export const TextFieldWithLabel = (props: TextFieldWithLabelProps) => {
       <TextField autoCapitalize="none" autoCorrect={false} {...restProps} />
       {error && (
         <Text
-          color={theme.colors.error.default}
+          color={TextColor.ErrorDefault}
           style={styles.error}
           testID={`${inputType}-error`}
           variant={TextVariant.BodySm}

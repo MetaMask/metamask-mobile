@@ -127,7 +127,7 @@ export const Amount = () => {
   );
 
   const defaultValue = fiatMode ? '0.00' : '0';
-  let textColor = TextColor.TextDefault;
+  let textColor: TextColor = TextColor.TextDefault;
   if (amountError) {
     textColor = TextColor.ErrorDefault;
   }

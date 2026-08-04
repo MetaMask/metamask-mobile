@@ -11,7 +11,6 @@ import {
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
 } from '../../../../../constants/urls';
-import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import Accordion, {
   AccordionHeaderHorizontalAlignment,
 } from '../../../../../component-library/components/Accordions/Accordion';
@@ -27,7 +26,7 @@ import {
   SecurityAlertResponse,
 } from '../../components/blockaid-banner/BlockaidBanner.types';
 import styleSheet from './blockaid-alert-content.styles';
-import { Text } from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface BlockaidAlertContentProps {
   alertDetails?: string[];
@@ -92,7 +91,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
 
   return (
     <>
-      <Text variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}>
+      <Text variant={TextVariant.BodySm}>
         {strings(
           REASON_DESCRIPTION_I18N_KEY_MAP[
             securityAlertResponse.reason as Reason
@@ -114,7 +113,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
         </View>
         <View style={styles.attributionBase}>
           <Text
-            variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+            variant={TextVariant.BodySm}
             data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}
           >
             {strings('blockaid_banner.does_not_look_right')}
