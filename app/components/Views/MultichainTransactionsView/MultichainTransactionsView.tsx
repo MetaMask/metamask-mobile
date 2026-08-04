@@ -50,6 +50,7 @@ import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListIt
 import { Box } from '@metamask/design-system-react-native';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
+import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../ActivityList/getActivityDetailsRoute';
 import Routes from '../../../constants/navigation/Routes';
@@ -190,45 +191,61 @@ const MultichainTransactionsView = ({
   const shouldUseActivityRedesign =
     isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
-  const bridgeArrivalItems = useMemo(
-    () =>
-      (bridgeArrivalTransactions ?? []).map((tx) => {
-        const bridgeHistoryItem = findBridgeHistoryItem({
-          bridgeHistory,
-          transactionMetaId: tx.id,
-          // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
-          transactionActionId: tx.actionId,
-          transactionHash: tx.hash,
-        });
+  const { bridgeArrivalItems, arrivalDestTxHashes } = useMemo(() => {
+    const items: ActivityListItem[] = [];
+    const destTxHashes = new Set<string>();
 
-        return mapTransactionToActivityItem({
+    for (const tx of bridgeArrivalTransactions ?? []) {
+      const bridgeHistoryItem = findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
+        transactionActionId: tx.actionId,
+        transactionHash: tx.hash,
+      });
+
+      const destTxHash = bridgeHistoryItem?.status?.destChain?.txHash;
+      if (destTxHash) {
+        destTxHashes.add(destTxHash.toLowerCase());
+      }
+
+      items.push(
+        mapTransactionToActivityItem({
           transaction: tx,
           currentChainId: tx.chainId,
           bridgeHistoryItem,
-        });
-      }),
-    [bridgeArrivalTransactions, bridgeHistory],
-  );
+        }),
+      );
+    }
+
+    return { bridgeArrivalItems: items, arrivalDestTxHashes: destTxHashes };
+  }, [bridgeArrivalTransactions, bridgeHistory]);
 
   const activityListData = useMemo(
     () =>
       shouldUseActivityRedesign
         ? groupActivityListItems([
             ...bridgeArrivalItems,
-            ...visibleMultichainTransactions.map((transaction) =>
-              mapKeyringTransaction({
-                transaction: {
-                  ...transaction,
-                  chain: transaction.chain ?? chainId,
-                },
-                bridgeHistory:
-                  bridgeHistoryItemsBySrcTxHash[transaction.id] ??
-                  bridgeHistoryItemsByDestTxHash[transaction.id],
-              }),
-            ),
+            ...visibleMultichainTransactions
+              .filter(
+                (transaction) =>
+                  !arrivalDestTxHashes.has(transaction.id?.toLowerCase()),
+              )
+              .map((transaction) =>
+                mapKeyringTransaction({
+                  transaction: {
+                    ...transaction,
+                    chain: transaction.chain ?? chainId,
+                  },
+                  bridgeHistory:
+                    bridgeHistoryItemsBySrcTxHash[transaction.id] ??
+                    bridgeHistoryItemsByDestTxHash[transaction.id],
+                }),
+              ),
           ])
         : visibleMultichainTransactions,
     [
+      arrivalDestTxHashes,
       bridgeArrivalItems,
       bridgeHistoryItemsByDestTxHash,
       bridgeHistoryItemsBySrcTxHash,
@@ -240,15 +257,36 @@ const MultichainTransactionsView = ({
 
   const handleBridgeArrivalPress = React.useCallback(
     (item: ActivityListItem) => {
-      if (!isTransactionsRedesignEnabled) {
+      if (isTransactionsRedesignEnabled) {
+        const detailsRoute = getActivityDetailsRoute(item);
+        if (detailsRoute) {
+          nav.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+          return;
+        }
+      }
+
+      const evmTxMeta =
+        item.raw?.type === 'localTransaction'
+          ? item.raw.data.primaryTransaction
+          : undefined;
+
+      if (!evmTxMeta) {
         return;
       }
-      const detailsRoute = getActivityDetailsRoute(item);
-      if (detailsRoute) {
-        nav.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-      }
+
+      handleUnifiedSwapsTxHistoryItemClick({
+        navigation: nav,
+        evmTxMeta,
+        bridgeTxHistoryItem: findBridgeHistoryItem({
+          bridgeHistory,
+          transactionMetaId: evmTxMeta.id,
+          // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
+          transactionActionId: evmTxMeta.actionId,
+          transactionHash: evmTxMeta.hash,
+        }),
+      });
     },
-    [isTransactionsRedesignEnabled, nav],
+    [bridgeHistory, isTransactionsRedesignEnabled, nav],
   );
 
   const [refreshing, setRefreshing] = React.useState(false);
