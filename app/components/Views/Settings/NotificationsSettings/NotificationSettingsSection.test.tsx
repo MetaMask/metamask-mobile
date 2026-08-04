@@ -98,9 +98,7 @@ interface WalletActivitySection {
   accounts: { address: string; enabled: boolean }[];
 }
 
-// Wallet-activity section writes pass an updater so they are applied to the
-// latest preferences rather than a render-time copy. Run it to assert on the
-// section that actually gets persisted.
+// Runs the updater passed to updatePreferencesSection to get the persisted section.
 const applyWalletActivityUpdate = (
   walletActivity: WalletActivitySection = mockPreferences.walletActivity,
 ) => {
@@ -276,9 +274,7 @@ describe('NotificationSettingsSection', () => {
       expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
     });
 
-    // The section update must be derived from the refreshed preferences, not
-    // from this render's copy - the controller has already disabled every
-    // account by the time this runs.
+    // Updater must apply to the refreshed preferences, not this render's copy.
     const refreshedWalletActivity = {
       pushNotificationsEnabled: true,
       inAppNotificationsEnabled: true,

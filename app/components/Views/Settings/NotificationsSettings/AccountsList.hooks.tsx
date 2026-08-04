@@ -22,12 +22,9 @@ export function useNotificationAccountListProps() {
   // Only disable switches during initial data loading, not when individual accounts are updating
   const shouldDisableSwitches = initialLoading;
 
-  // Enabling/disabling an account rewrites `walletActivity.accounts` in the
-  // preferences blob through the controller, which does not update the cached
-  // preferences copy the UI writes from. Refresh it alongside the presence
-  // data, otherwise the next section write (a channel toggle, or the
-  // select/deselect-all channel flip) PUTs a stale accounts array and
-  // resurrects the accounts the user just changed.
+  // Account toggles rewrite `walletActivity.accounts` behind the cached
+  // preferences, so refresh both — otherwise the next section write PUTs a
+  // stale accounts array.
   const refetchAccountSettings = useCallback(async () => {
     await Promise.all([update(accountAddresses), refetchPreferences()]);
   }, [accountAddresses, update, refetchPreferences]);

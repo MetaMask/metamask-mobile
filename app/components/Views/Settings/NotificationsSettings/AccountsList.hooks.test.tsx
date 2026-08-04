@@ -43,9 +43,7 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   }),
 }));
 
-// The arrange helpers below spy on the notification hook modules; restore the
-// originals between tests so a spy cannot leak into a test that does not set
-// one up (`clearAllMocks` only resets calls, it does not un-spy).
+// Un-spy the notification hook modules between tests (clearAllMocks does not).
 afterEach(() => jest.restoreAllMocks());
 
 const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
@@ -372,9 +370,6 @@ describe('useNotificationAccountListProps', () => {
   });
 
   it('refetches the preferences blob alongside account settings', async () => {
-    // The controller writes `walletActivity.accounts` behind the cached
-    // preferences copy, so it has to be refreshed or later section writes
-    // persist a stale accounts array.
     const { hook } = arrange(['0x123', '0x456']);
 
     await act(async () => hook.result.current.refetchAccountSettings());
