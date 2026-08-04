@@ -30,7 +30,7 @@ export function getDeFiPositionsControllerV2Messenger(
   rootMessenger.delegate({
     actions: [
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      'DeFiPositionsControllerV2:getState',
+      'RemoteFeatureFlagController:getState',
     ],
     messenger,
   });
