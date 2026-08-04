@@ -7,6 +7,12 @@ import { type MarketInfo } from '@metamask/perps-controller';
 // Mock the usePerpsTrading hook
 jest.mock('./usePerpsTrading');
 
+// Keep the retry policy real but make its delay instant.
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
+  wait: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock usePerpsToasts hook
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
@@ -186,55 +192,103 @@ describe('usePerpsMarketData', () => {
       // Toast should not be called
     });
 
-    it('should show toast when showErrorToast is true and error occurs', async () => {
+    it('does not show the not-tradable toast when the fetch itself fails', async () => {
+      // TAT-3645: a thrown error (e.g. CLIENT_NOT_INITIALIZED while the Perps
+      // connection is still initialising) says nothing about tradability, so it
+      // must never be reported as "<asset> is not a tradable asset".
       const mockShowToast = jest.fn();
-      const mockToastConfig = {
+      const mockMarketDataUnavailable = jest.fn(() => ({
         variant: 'error' as const,
         hasNoTimeout: false,
-      };
-      const mockMarketDataUnavailable = jest.fn(() => mockToastConfig);
-
-      // Override the mock for this test (use mockReturnValue for all calls in this test)
+      }));
       const mockedUsePerpsToasts = jest.mocked(usePerpsToasts);
       mockedUsePerpsToasts.mockReturnValue({
         showToast: mockShowToast,
         PerpsToastOptions: {
           dataFetching: {
             market: {
-              error: {
-                marketDataUnavailable: mockMarketDataUnavailable,
-              },
+              error: { marketDataUnavailable: mockMarketDataUnavailable },
             },
           },
         } as unknown as PerpsToastOptionsConfig,
       });
-
-      const error = new Error('Network error');
-      mockGetMarkets.mockRejectedValue(error);
+      mockGetMarkets.mockRejectedValue(new Error('CLIENT_NOT_INITIALIZED'));
 
       const { result } = renderHook(() =>
         usePerpsMarketData({ asset: 'BTC', showErrorToast: true }),
       );
 
       await waitFor(() => {
-        expect(result.current.error).toBe('Network error');
+        expect(result.current.error).toBe('CLIENT_NOT_INITIALIZED');
       });
-      expect(mockMarketDataUnavailable).toHaveBeenCalledWith('BTC');
-      expect(mockShowToast).toHaveBeenCalledWith(mockToastConfig);
 
-      // Reset mock to default for other tests
+      expect(mockMarketDataUnavailable).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('shows the not-tradable toast when the market list comes back without the asset', async () => {
+      // The only legitimate trigger: the fetch succeeded and the asset is
+      // genuinely absent from the returned market list.
+      const mockShowToast = jest.fn();
+      const mockToastConfig = {
+        variant: 'error' as const,
+        hasNoTimeout: false,
+      };
+      const mockMarketDataUnavailable = jest.fn(() => mockToastConfig);
+      const mockedUsePerpsToasts = jest.mocked(usePerpsToasts);
       mockedUsePerpsToasts.mockReturnValue({
-        showToast: jest.fn(),
+        showToast: mockShowToast,
         PerpsToastOptions: {
           dataFetching: {
             market: {
-              error: {
-                marketDataUnavailable: jest.fn(),
-              },
+              error: { marketDataUnavailable: mockMarketDataUnavailable },
             },
           },
         } as unknown as PerpsToastOptionsConfig,
       });
+      mockGetMarkets.mockResolvedValue([{ ...mockMarketData, name: 'ETH' }]);
+
+      const { result } = renderHook(() =>
+        usePerpsMarketData({ asset: 'NOTREAL', showErrorToast: true }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Asset NOTREAL is not tradable');
+      });
+
+      expect(mockMarketDataUnavailable).toHaveBeenCalledWith('NOTREAL');
+      expect(mockShowToast).toHaveBeenCalledWith(mockToastConfig);
+    });
+
+    it('recovers without a toast when a retry succeeds after a transient failure', async () => {
+      // The connection finishes initialising mid-flight, so the market loads.
+      const mockShowToast = jest.fn();
+      const mockMarketDataUnavailable = jest.fn();
+      const mockedUsePerpsToasts = jest.mocked(usePerpsToasts);
+      mockedUsePerpsToasts.mockReturnValue({
+        showToast: mockShowToast,
+        PerpsToastOptions: {
+          dataFetching: {
+            market: {
+              error: { marketDataUnavailable: mockMarketDataUnavailable },
+            },
+          },
+        } as unknown as PerpsToastOptionsConfig,
+      });
+      mockGetMarkets
+        .mockRejectedValueOnce(new Error('CLIENT_NOT_INITIALIZED'))
+        .mockResolvedValue([mockMarketData]);
+
+      const { result } = renderHook(() =>
+        usePerpsMarketData({ asset: 'BTC', showErrorToast: true }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.marketData).toEqual(mockMarketData);
+      });
+
+      expect(result.current.error).toBe(null);
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('should support both string and object parameter formats', async () => {
