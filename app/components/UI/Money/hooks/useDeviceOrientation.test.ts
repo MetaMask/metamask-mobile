@@ -275,25 +275,6 @@ describe('accelerationToTilt', () => {
     expect(tilt.x).toBeCloseTo(-15 / 30);
   });
 
-  it('reaches full travel at a smaller angle when the travel is shortened', () => {
-    const { x, y, z } = gravityAtRoll(15);
-
-    expect(accelerationToTilt(x, y, z, { pitch: 0, roll: 0 }, 15 * DEG).x).toBe(
-      1,
-    );
-  });
-
-  it('reports more travel on both axes for the same posture as the travel shortens', () => {
-    const { x, y, z } = gravityAtPitchAndRoll(10, 10);
-    const neutral = { pitch: 0, roll: 0 };
-
-    const wide = accelerationToTilt(x, y, z, neutral);
-    const narrow = accelerationToTilt(x, y, z, neutral, 15 * DEG);
-
-    expect(narrow.x).toBeGreaterThan(wide.x);
-    expect(narrow.y).toBeGreaterThan(wide.y);
-  });
-
   it('clamps the roll to the [-1, 1] range beyond the travel', () => {
     const right = gravityAtRoll(75);
     const left = gravityAtRoll(-75);
@@ -424,9 +405,7 @@ describe('applyResponseCurve', () => {
   });
 
   it('increases monotonically so the response never reverses', () => {
-    const shaped = [0, 0.2, 0.4, 0.6, 0.8, 1].map((tilt) =>
-      applyResponseCurve(tilt),
-    );
+    const shaped = [0, 0.2, 0.4, 0.6, 0.8, 1].map(applyResponseCurve);
 
     shaped.forEach((value, index) => {
       if (index > 0) expect(value).toBeGreaterThan(shaped[index - 1]);
@@ -435,20 +414,6 @@ describe('applyResponseCurve', () => {
 
   it('is symmetric about the neutral', () => {
     expect(applyResponseCurve(-0.35)).toBeCloseTo(-applyResponseCurve(0.35));
-  });
-
-  it('reports the tilt unchanged when the caller asks for a linear response', () => {
-    expect(applyResponseCurve(0.5, 1)).toBeCloseTo(0.5);
-  });
-
-  it('reports more travel for a mid tilt as the exponent flattens', () => {
-    expect(applyResponseCurve(0.5, 1.3)).toBeGreaterThan(
-      applyResponseCurve(0.5),
-    );
-  });
-
-  it('still attenuates tremor at a flattened exponent', () => {
-    expect(Math.abs(applyResponseCurve(0.05, 1.3))).toBeLessThan(0.05);
   });
 });
 

@@ -37,13 +37,6 @@ const RIVE_ARTBOARD_METAL = 'CardTiltMetal';
 const RIVE_PROPERTY_X = 'xValue';
 const RIVE_PROPERTY_Y = 'yValue';
 
-// The card is drawn at 104x66, roughly a sixth of the artboard's 620x400, so
-// the shared defaults (30 degrees of travel, squared response) leave the tilt
-// too small to notice here. Reaching full travel sooner and flattening the
-// curve keeps the same motion but makes it legible at thumbnail size.
-const TILT_TRAVEL_DEGREES = 15;
-const TILT_RESPONSE_EXPONENT = 1.3;
-
 interface MoneyCardTiltAnimationProps {
   /** Which card variant to show. */
   isMetalCard: boolean;
@@ -73,11 +66,7 @@ const MoneyCardTiltAnimation = ({
     rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
   }, []);
 
-  useDeviceOrientation(applyTilt, {
-    enabled: animate,
-    travelDegrees: TILT_TRAVEL_DEGREES,
-    responseExponent: TILT_RESPONSE_EXPONENT,
-  });
+  useDeviceOrientation(applyTilt, { enabled: animate });
 
   const handleError = useCallback((riveError: RNRiveError) => {
     log(`Rive error: ${riveError.message}`);
