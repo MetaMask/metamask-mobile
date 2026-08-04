@@ -663,7 +663,7 @@ class WalletConnect2Session {
 
       return this.handleAdapterRequest({
         // The channel id is the unspoofable per-session identifier and is
-        // what Snaps must receive as the request origin — never the dapp's
+        // what Snaps must receive as the request origin, never the dapp's
         // self-reported metadata URL.
         origin: this.channelId,
         requestEvent,
