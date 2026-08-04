@@ -7,7 +7,11 @@ import {
   TransactionEnvelopeType,
   TransactionParams,
 } from '@metamask/transaction-controller';
-import { BoxBackgroundColor } from '@metamask/design-system-react-native';
+import {
+  BoxBackgroundColor,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { addHexPrefix, safeBNToHex } from '../number';
 import { safeToChecksumAddress } from '../address';
 import { strings } from '../../../locales/i18n';
@@ -16,10 +20,6 @@ import {
   ButtonIconVariant,
   type ToastOptions,
 } from '../../component-library/components/Toast/Toast.types';
-import {
-  IconColor,
-  IconName,
-} from '../../component-library/components/Icons/Icon';
 
 export function buildTransactionParams({
   gasDataEIP1559,
@@ -93,7 +93,7 @@ export function resolveTransactionUpdateErrorMessage(
 const TRANSACTION_UPDATE_ERROR_TOAST_BASE = {
   variant: ToastVariants.Icon,
   iconName: IconName.CircleX,
-  iconColor: IconColor.Error,
+  iconColor: IconColor.ErrorDefault,
   backgroundColor: BoxBackgroundColor.Transparent,
 } as const;
 

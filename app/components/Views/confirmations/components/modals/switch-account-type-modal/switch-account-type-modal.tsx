@@ -19,11 +19,12 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useEIP7702Networks } from '../../../hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Engine from '../../../../../../core/Engine';
 
 interface SwitchAccountTypeModalRouteParams {
@@ -67,7 +68,7 @@ const SwitchAccountTypeModal = () => {
           <Icon
             name={IconName.ArrowLeft}
             size={IconSize.Sm}
-            color={IconColor.Default}
+            color={IconColor.IconDefault}
             style={styles.backIcon}
           />
         </TouchableOpacity>
@@ -86,7 +87,7 @@ const SwitchAccountTypeModal = () => {
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Sm}
-          color={IconColor.Default}
+          color={IconColor.IconDefault}
           style={styles.backIcon}
         />
       </TouchableOpacity>

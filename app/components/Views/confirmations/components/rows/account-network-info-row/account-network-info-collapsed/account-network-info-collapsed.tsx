@@ -6,11 +6,12 @@ import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarVariant,
 } from '../../../../../../../component-library/components/Avatars/Avatar';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -66,7 +67,7 @@ const AccountNetworkInfoCollapsed = () => {
           </View>
         </View>
         <Icon
-          color={IconColor.Muted}
+          color={IconColor.IconMuted}
           size={IconSize.Sm}
           name={IconName.ArrowDown}
         />

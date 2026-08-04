@@ -1,12 +1,12 @@
 import BN from 'bnjs4';
-import { BoxBackgroundColor } from '@metamask/design-system-react-native';
+import {
+  BoxBackgroundColor,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { TransactionEnvelopeType } from '@metamask/transaction-controller';
 import { ToastVariants } from '../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../component-library/components/Icons/Icon';
 import { strings } from '../../../locales/i18n';
 import {
   buildTransactionParams,
@@ -172,7 +172,7 @@ describe('Confirmation Transactions Utils', () => {
         expect.objectContaining({
           variant: ToastVariants.Icon,
           iconName: IconName.CircleX,
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           backgroundColor: BoxBackgroundColor.Transparent,
           labelOptions: [
             {

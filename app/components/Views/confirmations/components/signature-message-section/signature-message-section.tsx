@@ -3,11 +3,12 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { ConfirmationRowComponentIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -60,7 +61,7 @@ const SignatureMessageSection = ({
             </View>
             <Icon
               style={styles.icon}
-              color={IconColor.Muted}
+              color={IconColor.IconMuted}
               size={IconSize.Sm}
               name={IconName.ArrowRight}
             />

@@ -1,7 +1,7 @@
 import Button from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
-import Icon from '../../../component-library/components/Icons/Icon';
+import { Icon } from '@metamask/design-system-react-native';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import SmartTransactionStatus from '../../Views/transactions/SmartTransactionStatus/SmartTransactionStatus';
 import {

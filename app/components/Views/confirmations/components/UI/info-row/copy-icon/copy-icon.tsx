@@ -1,11 +1,12 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import Icon from '../../../../../../../component-library/components/Icons/Icon';
 import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
+} from '@metamask/design-system-react-native';
+
 import ClipboardManager from '../../../../../../../core/ClipboardManager';
 
 interface CopyIconProps {

@@ -16,7 +16,7 @@ import {
   useSelectedGasFeeToken,
 } from '../../../hooks/gas/useGasFeeToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 

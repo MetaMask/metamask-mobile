@@ -5,11 +5,12 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
@@ -45,7 +46,7 @@ export function TransactionDetailsFeeSection() {
         >
           <Icon
             name={IconName.CheckBold}
-            color={IconColor.Success}
+            color={IconColor.SuccessDefault}
             size={IconSize.Sm}
           />
           <Text variant={TextVariant.BodyMD} color={TextColor.Success}>

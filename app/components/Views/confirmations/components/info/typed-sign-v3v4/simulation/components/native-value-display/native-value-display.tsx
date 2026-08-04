@@ -9,11 +9,7 @@ import { selectConversionRateByChainId } from '../../../../../../../../../select
 import { useTheme } from '../../../../../../../../../util/theme';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../../../../../component-library/components/Icons/Icon';
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
 import Text from '../../../../../../../../../component-library/components/Texts/Text';
 
 import AssetPill from '../../../../../../../../UI/SimulationDetails/AssetPill/AssetPill';
@@ -139,7 +135,6 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
             <View style={styles.valueModal}>
               <View style={styles.valueModalHeader}>
                 <ButtonIcon
-                  iconColor={IconColor.Default}
                   style={styles.valueModalHeaderIcon}
                   onPress={() => setHasValueModalOpen(false)}
                   iconName={IconName.ArrowLeft}

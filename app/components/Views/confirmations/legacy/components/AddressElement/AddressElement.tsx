@@ -14,10 +14,12 @@ import { useTheme } from '../../../../../../util/theme';
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
-import Icon, {
+import {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
@@ -141,7 +143,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
           <Icon
             name={IconName.Danger}
             size={IconSize.Lg}
-            color={styles.warningIcon.color}
+            color={IconColor.IconDefault}
           />
         </TouchableOpacity>
       )}

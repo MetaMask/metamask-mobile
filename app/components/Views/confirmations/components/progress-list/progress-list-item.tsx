@@ -1,11 +1,13 @@
 import React from 'react';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
+  ButtonIcon,
+  ButtonIconSize,
   IconColor,
   IconName,
-  IconSize,
+} from '@metamask/design-system-react-native';
+import {
+  IconColor as LegacyIconColor,
+  IconSize as LegacyIconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
@@ -78,8 +80,8 @@ function DotListItem({
           testID="block-explorer-button"
           accessibilityLabel={title}
           iconName={buttonIcon}
-          size={ButtonIconSizes.Sm}
-          iconColor={IconColor.Alternative}
+          size={ButtonIconSize.Sm}
+          iconProps={{ color: IconColor.IconAlternative }}
           onPress={onButtonPress}
         />
       ) : null}
@@ -121,8 +123,8 @@ function DotStatusLine({
         gap={4}
       >
         <PendingSpinner
-          size={IconSize.Sm}
-          color={IconColor.Warning}
+          size={LegacyIconSize.Sm}
+          color={LegacyIconColor.Warning}
           testID="progress-list-item-pending-spinner"
         />
         <Text

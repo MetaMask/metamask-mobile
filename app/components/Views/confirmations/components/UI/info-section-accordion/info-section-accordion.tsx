@@ -14,10 +14,12 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import Icon, {
+import {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -124,7 +126,7 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
           <Icon
             name={IconName.ArrowDown}
             size={IconSize.Sm}
-            color={styles.icon.color}
+            color={IconColor.IconMuted}
             testID={`${testID}-arrow`}
           />
         </Animated.View>

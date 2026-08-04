@@ -1,11 +1,12 @@
 import React, { ReactNode, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { TouchableOpacity, View, ViewStyle } from 'react-native';
-import Icon, {
+import {
+  HeaderStandard,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../bottom-modal';
@@ -71,7 +72,7 @@ const Tooltip = ({
   tooltipTestId = 'info-row-tooltip',
   onPress,
   iconName = IconName.Info,
-  iconColor = IconColor.Muted,
+  iconColor = IconColor.IconMuted,
   iconSize = IconSize.Sm,
   iconStyle,
 }: TooltipProps) => {

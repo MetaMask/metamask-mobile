@@ -14,15 +14,14 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import {
   BottomSheet,
   BottomSheetRef,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -210,7 +209,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
           <Icon
             name={IconName.ArrowDown}
             size={IconSize.Sm}
-            color={IconColor.Alternative}
+            color={IconColor.IconAlternative}
           />
         </View>
       </TouchableOpacity>

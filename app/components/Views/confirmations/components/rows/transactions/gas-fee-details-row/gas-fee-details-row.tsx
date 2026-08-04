@@ -7,10 +7,12 @@ import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
-import Icon, {
+import {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import {
   TextColor,
   TextVariant,
@@ -38,7 +40,7 @@ import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
-import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
+
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import type { RootState } from '../../../../../../../reducers';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
@@ -199,7 +201,7 @@ const ClickableEstimationInfo = ({
   onPress: () => void;
   fiatOnly: boolean;
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   const transactionMetadata = useTransactionMetadataRequest();
   const feeCalculations = useFeeCalculations(
@@ -211,7 +213,7 @@ const ClickableEstimationInfo = ({
       <Icon
         name={IconName.Edit}
         size={IconSize.Md}
-        color={theme.colors.info.default}
+        color={IconColor.InfoDefault}
         style={styles.editIcon}
       />
       <EstimationInfo
@@ -328,7 +330,7 @@ const GasFeesDetailsRow = ({
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
           tooltip={confirmGasFeeTokenTooltip}
-          tooltipColor={IconColor.Muted}
+          tooltipColor={IconColor.IconMuted}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>

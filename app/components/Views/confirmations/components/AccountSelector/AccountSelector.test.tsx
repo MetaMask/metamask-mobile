@@ -87,6 +87,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     BottomSheet: MockBottomSheet,
     Text: MockText,
     Skeleton: MockSkeleton,
+    Icon: ({ name }: { name: string }) => <RNView testID={`icon-${name}`} />,
     TextVariant: { BodyMd: 'BodyMd', HeadingMd: 'HeadingMd' },
     TextColor: { TextAlternative: 'TextAlternative' },
   };
@@ -101,17 +102,6 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
     ),
     AvatarVariant: { Account: 'Account' },
     AvatarSize: { Sm: 'Sm' },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
-    IconColor: { Alternative: 'Alternative' },
-    IconName: { ArrowDown: 'ArrowDown', Close: 'Close' },
-    IconSize: { Sm: 'Sm', Md: 'Md' },
   };
 });
 
