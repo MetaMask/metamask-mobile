@@ -311,7 +311,7 @@
     "warning_text_2": "naalis",
     "warning_text_3": "kung magpapatuloy ka.",
     "warning_text_4": "Mare-recover mo LANG ang mga iyon gamit ang Lihim na Parirala sa Pagbawi ng iyong wallet. Hindi makakatulong sa iyo ang MetaMask na i-recover ito.",
-    "warning_proceed": "Alisin ang wallet at magpatuloy",
+    "warning_proceed": "Remove wallet and proceed",
     "warning_cancel": "Kanselahin",
     "step1": "Pag-set up ng wallet",
     "step2": "Gumawa ng password",
@@ -421,7 +421,7 @@
     "step4": {
       "title": "Pangunahing menu",
       "content1": "Maa-access mo ang history ng transaction, mga setting, at suporta mula sa menu na ito.",
-      "content2": "Marami kang magagawa sa iyong mga account at maa-access mo ang mga setting ng MetaMask."
+      "content2": "You can take more actions with your accounts and access MetaMask settings."
     },
     "step5": {
       "title": "Tuklasin ang browser",
@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "Uri",
+      "placeholder": "Uri",
       "all": "Lahat ng uri",
       "tokens": "Mga Token",
       "perps": "Perps"
+    },
+    "timeframe_filter": {
+      "title": "Time frame",
+      "7d": "7A",
+      "30d": "30D"
+    },
+    "sort_filter": {
+      "title": "I-sort ayon sa",
+      "pnl": "P&L",
+      "roi": "P&L %",
+      "win_rate": "Rate ng panalo"
     },
     "feed": {
       "title": "Mga nangungunang trader",
@@ -1266,7 +1279,7 @@
       "get_new_quote": "Kumuha ng bagong quote",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Magpalipat-lipat sa pagitan ng token at halaga ng dollar",
-      "includes_mm_fee": "Kabilang ang {{fee}}% bayad sa MM",
+      "includes_mm_fee": "Kabilang ang {{fee}}% na bayad sa MetaMask",
       "pay_with_no_tokens": "Walang available na token na pambayad",
       "receive_with_no_tokens": "Walang mga available na token na tatanggapin",
       "pay_with_filter_all": "Lahat",
@@ -1281,14 +1294,14 @@
       "toast_complete_sell": "Nagbenta ng {{amount}} ng {{symbol}} para sa {{counter}}",
       "toast_failed_buy": "Hindi makabili ng {{symbol}}",
       "toast_failed_sell": "Hindi makapagbenta ng {{symbol}}",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "Kumpirmahin",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "edit_quick_amounts_title": "I-edit ang default na halaga",
+      "edit_quick_amounts_set_buy": "Para bumili",
+      "edit_quick_amounts_set_sell": "Para magbenta",
+      "edit_quick_amounts_confirm": "I-save",
+      "edit_quick_amounts_buy_above_zero": "Ang halaga ng pagbili ay dapat na mas mataas sa {{min}}",
+      "edit_quick_amounts_buy_below_max": "Ang halaga ng pagbili ay dapat na mas mababa sa {{max}}",
+      "edit_quick_amounts_sell_above_zero": "Ang halaga ng pagbenta ay dapat na mas mataas sa 0%",
+      "edit_quick_amounts_sell_below_max": "Ang halaga ng pagbenta ay dapat na mas mababa sa 100%"
     }
   },
   "perps": {
@@ -1358,7 +1371,8 @@
       "add_margin_button": "Idagdag",
       "protect_losses_title": "Protektahan sa lalong pagkalugi",
       "set_stop_loss_subtitle": "Itakda ang stop loss sa {{price}} ({{percent}})",
-      "set_button": "Itakda"
+      "set_button": "Itakda",
+      "success_title": "I-set ang stop loss"
     },
     "confirm": "Kumpirmahin",
     "deposit": {
@@ -1510,7 +1524,7 @@
     "pro_order_form": {
       "isolated": "Naka-isolate",
       "choose_order_type": "Piliin ang uri ng order",
-      "size_usd": "Laki USD",
+      "size_usd": "Size (USD)",
       "size_percentage": "Porsiyento ng laki ng order",
       "toggle_size_unit": "Palitan ang laki ng denominasyon",
       "available_balance_unavailable": "-- available",
@@ -1521,13 +1535,27 @@
     },
     "pro_positions_panel": {
       "positions": "Mga Posisyon",
-      "positions_with_count": "Positions ({{count}})",
+      "positions_with_count": "Mga posisyon ({{count}})",
       "orders": "Mga Order",
-      "orders_with_count": "Orders ({{count}})",
+      "orders_with_count": "Mga order ({{count}})",
       "ticker_only": "{{ticker}} lang",
-      "positions_empty": "Your open positions will appear here.",
-      "positions_empty_filtered": "No open {{ticker}} positions.",
-      "orders_empty": "Your open orders will appear here.",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
+      "positions_empty": "Makikita ang mga bukas na posisyon mo dito.",
+      "positions_empty_filtered": "Walang bukas ba {{ticker}} posisyon.",
+      "positions_empty_long": "Walang mahahabang posisyon.",
+      "positions_empty_short": "Walang maiikling posisyon.",
+      "orders_empty": "Makikita ang mga bukas na order mo dito.",
+      "side_filter": {
+        "all_sides": "Lahat ng panig",
+        "long": "Long",
+        "short": "Short"
+      },
+      "sort": {
+        "position_value": "Halaga ng posisyon",
+        "unrealized_pnl": "Unrealized P&L",
+        "funding_rate": "Rate ng pagpopondo",
+        "settings_accessibility": "Iayos ang mga posisyon"
+      },
       "card": {
         "entry_price": "Entry price",
         "margin": "Margin",
@@ -1548,10 +1576,6 @@
         "reduce_only": "Reduce only",
         "tp_sl": "TP / SL",
         "trigger_condition": "Kondisyon ng trigger",
-        "take_profit": "Take profit",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
         "cancel": "Kanselahin"
       }
     },
@@ -1835,7 +1859,8 @@
       "margin_available_to_remove": "Available na margin na aalisin",
       "perps_balance": "Balanse ng perps",
       "liquidation_price": "Liquidation price",
-      "liquidation_distance": "Layo sa liquidation"
+      "liquidation_distance": "Layo sa liquidation",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "Awtomatikong nagsasara",
@@ -2041,11 +2066,18 @@
       },
       "statistics": "Overview",
       "stats": "Estadistika",
+      "about": "Tungkol Dito",
+      "about_asset": "Tungkol sa {{assetName}}",
+      "read_more": "Magbasa pa",
+      "read_more_about": "Magbasa pa tungkol sa {{assetName}}",
       "24h_high": "24h high",
       "24h_low": "24h low",
       "24h_volume": "24h volume",
+      "24h_vol": "24h vol",
       "open_interest": "Bukas na interes",
+      "funding": "Pagpopondo",
       "funding_rate": "Rate ng pagpopondo",
+      "mark_price": "Mark price",
       "oracle_price": "Presyo ng orakulo",
       "order_book": "Order book",
       "countdown": "Countdown",
@@ -2547,8 +2579,19 @@
     },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
+      "collapse_chart": "I-collapse ang tsart",
+      "expand_chart": "I-expand ang tsart",
       "market_list": "Mag-browse ng mga market",
-      "perp_pair": "{{ticker}}-{{collateral}} perp"
+      "perp_pair": "{{ticker}}-{{collateral}} perp",
+      "back": "Bumalik",
+      "wallet": "Balanse ng perps",
+      "add_to_watchlist": "Idagdag sa watchlist",
+      "remove_from_watchlist": "Alisin sa watchlist"
+    },
+    "balance_bottom_sheet": {
+      "close_button": "Isara",
+      "history_button": "Tingnan ang aktibidad",
+      "available": "Available"
     }
   },
   "market_insights": {
@@ -2602,47 +2645,9 @@
       "events_in_total": "{{count}} (na) event sa kabuuan",
       "events_in_total_overflow": "{{count}}+ (na) market sa kabuuan",
       "props_pill": "Props",
-      "championship_unavailable": "Wala pang maipapakitang merkado para sa kampyeonato.",
-      "mens_world_cup_title": "Men's World Cup",
-      "mens_world_cup_events": "{{count}} (na) event sa men's world cup",
-      "mens_world_cup_events_overflow": "{{count}}+ (na) event sa men's world cup",
-      "winner_unavailable": "Wala pang maipapakitang merkado para sa World Cup."
+      "championship_unavailable": "Wala pang maipapakitang merkado para sa kampyeonato."
     },
     "world_cup": {
-      "title": "World Cup",
-      "predictions_title": "Mga prediction sa World Cup",
-      "banner_title": "World Cup 2026",
-      "banner_description": "Mag-trade sa bawat match, sa bawat pagkakataon.",
-      "hub_banner_title": "$75K pataas ang pwedeng makuha",
-      "hub_banner_description": "Hulaan ang mga knockut game ng World Cup para manalo—sumali ngayon",
-      "tabs": {
-        "all": "Lahat",
-        "props": "Props",
-        "live": "Live",
-        "games": "Mga Laro"
-      },
-      "who_will_win": "Sino ang mananalo sa World Cup?",
-      "stages": {
-        "group_stage": "Group Stage",
-        "round_of_32": "Round na 32",
-        "round_of_16": "Round na 16",
-        "quarterfinals": "Quarter-finals",
-        "semifinals": "Semi-finals",
-        "third_place": "Ikatlong Pwesto",
-        "final": "Final",
-        "group_a": "Grupo A",
-        "group_b": "Grupo B",
-        "group_c": "Grupo C",
-        "group_d": "Grupo D",
-        "group_e": "Grupo E",
-        "group_f": "Grupo F",
-        "group_g": "Grupo G",
-        "group_h": "Grupo H",
-        "group_i": "Grupo I",
-        "group_j": "Grupo J",
-        "group_k": "Grupo K",
-        "group_l": "Grupo L"
-      },
       "market_info": {
         "regulation_time_winner": {
           "title": "Nanalo sa oras ng regulasyon"
@@ -2714,6 +2719,16 @@
     },
     "outcome_groups": {
       "game_lines": "Mga Linya ng Laro",
+      "map_1": "Map 1",
+      "map_2": "Map 2",
+      "map_3": "Map 3",
+      "map_4": "Map 4",
+      "map_5": "Map 5",
+      "game_1": "Game 1",
+      "game_2": "Game 2",
+      "game_3": "Game 3",
+      "game_4": "Game 4",
+      "game_5": "Game 5",
       "halves": "Mga Half",
       "first_half": "1st Half",
       "first_set": "Unang Set",
@@ -2778,7 +2793,27 @@
       "tennis_match_totals": "Kabuuang Laro",
       "tennis_first_set_totals": "Kabuuang Laro sa Unang Set",
       "tennis_first_set_winner": "Panalo sa Unang Set",
-      "tennis_completed_match": "Nakumpletong Match"
+      "tennis_completed_match": "Nakumpletong Match",
+      "child_moneyline": "Nanalo",
+      "map_handicap": "Handicap",
+      "round_handicap_game": "Handicap ng mga Round",
+      "round_over_under_game": "Kabuuang Round",
+      "first_blood_game": "First Blood",
+      "kill_over_under_game": "Kabuuang Napatay",
+      "map_participant_win_total": "Panalong mga Map",
+      "cs2_odd_even_total_kills": "Odd/Even na Kabuuang Napatay",
+      "cs2_odd_even_total_rounds": "Odd/Even na Kabuuang Round",
+      "lol_both_teams_baron": "Napatay ng Parehong Team si Baron Nashor",
+      "lol_both_teams_dragon": "Napatay ng Parehong Team ang Dragon",
+      "lol_both_teams_inhibitors": "Parehong Team ang Nakawasak ng mga Inhibitor",
+      "lol_odd_even_total_kills": "Odd/Even na Kabuuang Napatay",
+      "lol_penta_kill": "Kahit Sinong Player sa Pagpatay na Penta",
+      "lol_quadra_kill": "Kahit Sinong Player sa Pagpatay na Quadra",
+      "dota2_both_teams_barracks": "Parehong Team ang Nakawasak ng Barracks",
+      "dota2_both_teams_roshan": "Parehong Koponan ang Nakatalo kay Roshan",
+      "dota2_game_ends_daytime": "Magtatapos sa Araw",
+      "dota2_rampage": "Rampage ng Kahit Sinong Player",
+      "dota2_ultra_kill": "Kahit Sinong Player sa Pagpatay na Ultra"
     },
     "sell_position": "Posisyon sa pagbebenta",
     "odds": "Mga Odd",
@@ -2824,15 +2859,63 @@
       "live": "Live",
       "popular_today": "Sikat ngayon",
       "tabs": {
+        "all": "Lahat",
         "basketball": "Basketball",
         "tennis": "Tennis",
         "soccer": "Soccer",
         "baseball": "Baseball",
-        "football": "Football"
+        "football": "Football",
+        "esports": "Esports",
+        "cricket": "Cricket",
+        "golf": "Golf",
+        "combat": "Combat",
+        "hockey": "Hockey"
       },
       "filters": {
         "all": "Lahat",
-        "live": "Live"
+        "live": "Live",
+        "games": "Mga Laro",
+        "tournaments": "Mga Torneo",
+        "fights": "Labanan",
+        "props": "Props",
+        "mls": "MLS",
+        "champions-league": "UCL",
+        "EPL": "EPL",
+        "uel": "Europa League",
+        "la-liga": "La Liga",
+        "serie-a": "Serie A",
+        "bundesliga": "Bundesliga",
+        "ligue-1": "Ligue 1",
+        "lib": "Copa Libertadores",
+        "mlb": "MLB",
+        "kbo": "KBO",
+        "npb": "NPB",
+        "cpbl": "CPBL",
+        "awards": "MLB Awards",
+        "nfl": "NFL",
+        "nfl-team-futures": "NFL Futures",
+        "nfl-free-agency": "NFL Offseason",
+        "cfb": "College",
+        "cfl": "CFL",
+        "nba": "NBA",
+        "nba-free-agency": "NBA Offseason",
+        "wnba": "WNBA",
+        "ncaa": "NCAA",
+        "league-of-legends": "LoL",
+        "counter-strike-2": "CS2",
+        "valorant": "Valorant",
+        "dota-2": "Dota 2",
+        "rainbow-six-siege": "R6 Siege",
+        "atp": "ATP",
+        "wta": "WTA",
+        "itf": "ITF",
+        "international-cricket": "Internasyonal",
+        "t20-blast": "T20 Blast",
+        "pga-tour": "PGA Tour",
+        "liv-golf": "LIV",
+        "ufc": "UFC",
+        "boxing": "Boksing",
+        "nhl": "NHL"
       }
     },
     "search_placeholder": "Maghanap ng mga market sa paghula",
@@ -3299,7 +3382,8 @@
       "view_on_portfolio": "Tingnan sa Portfolio",
       "view_on_block": "Tingnan sa block explorer",
       "token_details": "Mga detalye ng token",
-      "remove_token": "Alisin ang token"
+      "remove_token": "Alisin ang token",
+      "deactivate_asset": "I-deactivate ang asset"
     }
   },
   "nft_details": {
@@ -3463,7 +3547,7 @@
     "description_content_1_legacy": "Gustong kunin ng MetaMask ang pangunahing data ng paggamit para mas maunawaan kung paano ginagamit ng mga user ang mobile app. Gagamitin ang data na ito para patuloy na mapahusay ang kakayahang magamit at karanasan ng user sa paggamit ng produkto namin.",
     "description_content_2_legacy": "Gagawin ng MetaMask ang sumusunod...",
     "action_description_1_legacy": "Palagi kang papayagang mag-opt out sa pamamagitan ng Mga Setting",
-    "action_description_2_legacy": "Magpapadala ng mga anonymous na kaganapang pag-click at pagtingin sa page",
+    "action_description_2_legacy": "Send anonymized click and pageview events",
     "action_description_3_legacy": "Magpapadala ng data ng bansa, rehiyon, lungsod (hindi partikular na lokasyon)",
     "action_description_4_legacy": "Huwag kailanman mangolekta ng mga key, address, transaksyon, balanse, hash, o anumang personal na impormasyon",
     "action_description_5_legacy": "Huwag kailanman kolektahin ang iyong IP address",
@@ -3802,9 +3886,9 @@
     "privacy_mode": "Modang pagkapribado",
     "privacy_mode_desc": "Dapat humiling ang mga website ng access para tingnan ang impormasyon ng iyong account.",
     "nft_opensea_mode": "Paganahin ang API ng OpenSea",
-    "nft_opensea_desc": "Ang pagpapakita ng media at data ng NFT ay maaaring ilantad ang iyong IP address sa mga sentralisadong server. Gamitin ang API ng OpenSea para kumuha ng data ng NFT. Ang awtomatikong pagtuklas ng NFT ay umaasa sa API ng OpenSea, at hindi magagamit kapag naka-off ito. Ang pagpapagana sa awtomatikong pagtuklas ng NFT ay maaaring maglantad sa iyo sa mga pekeng NFT na ipinapadala sa iyong wallet ng sinuman, at maaaring payagan ang isang umaatake na malaman ang iyong IP address mula sa iyong Ethereum address.",
+    "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "Mag-auto detect ng mga NFT",
-    "nft_autodetect_desc": "Ang pagpapakita ng media at data ng NFT ay maaaring ilantad ang iyong IP address sa mga sentralisadong server. Ginagamit ang mga third-party na API (tulad ng OpenSea) para makita ang mga NFT sa iyong wallet. Inilalantad nito ang address ng iyong account sa mga serbisyong iyon. Iwan itong hindi gumagana kung ayaw mong makuha ng app ang data mula sa mga serbisyong iyon.",
+    "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Ipakita ang palitan sa mga test network",
     "show_fiat_on_testnets_desc": "Piliin ito para ipakita ang palitan ng fiat sa mga test network.",
     "show_fiat_on_testnets_modal_title": "Maging maingat",
@@ -4021,7 +4105,7 @@
     "manage_sdk_connections_text": "Alisin ang mga koneksyon sa mga site at/o MetaMask SDK.",
     "fiat_on_ramp": {
       "title": "Bumili at magbenta ng crypto",
-      "description": "Rehiyon at higit pa...",
+      "description": "Region and more...",
       "current_region": "Kasalukuyang rehiyon",
       "reset_region": "I-reset ang rehiyon",
       "change_region": "Baguhin ang rehiyon",
@@ -4095,7 +4179,7 @@
         "quote_tag_most_reliable": "Pinakamaasahan",
         "quote_unknown_provider": "Hindi kilalang provider",
         "start_headless_buy": "Simulan ang headless buy",
-        "replace_and_start_headless_buy": "Palitan at simulan ang headless buy",
+        "replace_and_start_headless_buy": "Replace and start headless buy",
         "start_headless_buy_disabled_hint": "Maglagay ng valid na halaga para i-enable",
         "start_headless_buy_pending": "Aktibo ang headless na sesyon — buksan ang BuildQuote",
         "cancel_headless_buy": "Kanselahin ang headless na sesyon",
@@ -5510,6 +5594,11 @@
     "enable_device_passcode_ios": "I-unlock gamit ang passcode ng device?",
     "enable_device_passcode_android": "I-unlock gamit ang PIN ng device?"
   },
+  "balance_breakdown": {
+    "allocation": "Alokasyon",
+    "hide_balance": "Itago ang kabuuang balanse",
+    "show_balance": "Ipakita ang kabuuang balanse"
+  },
   "authentication": {
     "auth_prompt_desc": "Mag-authenticate para magamit ang MetaMask",
     "labels": {
@@ -6173,7 +6262,7 @@
     "debit_credit_card_required": "Mga debit o credit card. Hindi magagamit ang Apple Cash.",
     "select_card_country": "Piliin ang bansa kung saan naka-register ang iyong card (hindi ang lokasyon kung nasaan ka).",
     "search_country": "Maghanap ng bansa",
-    "wyre_countries": " U.S. + 33 bansa, iba-iba ang mga bayarin at limitasyon",
+    "wyre_countries": "Higit 55 na bansa, iba-iba ang mga bayad at limit",
     "wyre_fees_us": "2.9% + $0.30 + mga bayad sa gas ($5 ang pinakamababang bayad)",
     "wyre_fees_us_fee": "Bayad na 2.9% + $0.30 + gas ($5 ang pinakamababa)",
     "wyre_fees_outside_us_fee": "Bayad na 3.9% + $0.30 + gas ($5 ang pinakamababa)",
@@ -7067,11 +7156,11 @@
     "bluetooth_off": "Naka-off ang Bluetooth",
     "bluetooth_off_message": "Mangyaring i-on ang Bluetooth sa iyong device",
     "bluetooth_access_blocked": "Kailangan ng Ledger ng access sa Bluetooth para ipares ang iyong mobile device.",
-    "bluetooth_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, paganahin ito sa Mga Setting at subukang muli.",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "Kailangan ng MetaMask ng permiso sa pag-access ng lokasyon para maipares sa iyong ledger.",
-    "location_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, kailangan mong paganahin ang access sa lokasyon sa Mga Setting at subukang muli.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
     "nearbyDevices_access_blocked": "Kailangan ng MetaMask ng permiso sa mga malapit na device para maipares sa iyong ledger.",
-    "nearbyDevices_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, kailangan mong paganahin ang access sa mga malapit na device sa Mga Setting at subukang muli.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Error habang ini-scan ang device",
     "bluetooth_scanning_error_message": "Siguraduhing naka-unlock ang iyong device at gumagana ang app ng Ethereum",
     "bluetooth_connection_failed": "Nabigo ang koneksyon sa Bluetooth",
@@ -7265,13 +7354,6 @@
     "your_bonus_tooltip_lifetime_bonus": "Na-claim ang panghabambuhay na bonus ",
     "your_bonus_tooltip_lifetime_bonus_desc": "Ang kabuuang bonus na na-claim mo mula ng magsimula ka.",
     "learn_more": "Matuto pa",
-    "empty_state_cta": {
-      "heading": "Magpahiram ng {{tokenSymbol}} at kumita ng",
-      "body": "Ipahiram ang iyong {{tokenSymbol}} sa {{protocol}} at kumita",
-      "annually": "taun-taon.",
-      "learn_more": "Matuto pa.",
-      "earn": "Kumita"
-    },
     "service_interruption_banner": {
       "maintenance_message": "Naka-down kami dahil sa maintenance. Magbabalik kami online sa lalong madaling panahon!"
     },
@@ -7317,8 +7399,10 @@
       }
     },
     "withdraw": "I-withdraw",
+    "withdraw_from_aave": "Mag-withdraw mula sa Aave",
     "deposit_more": "Magdeposito pa",
     "earning": "Kumikita",
+    "lending_earnings": "Kinita sa pagpapautang",
     "withdrawal_time": "Oras ng pag-withdraw",
     "withdrawing_to": "Pag-withdraw patungo sa",
     "network": "Network",
@@ -7489,14 +7573,27 @@
       "card": "Card"
     },
     "token_list_cta": {
-      "get_apy": "Makakuha ng {{apy}}% APY"
+      "get_apy": "Get {{apy}}% APY"
+    },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "{{apy}}% APY",
+        "start_earning": "Magsimulang kumita",
+        "current_apy_disclaimer": "Kasalukuyang APY, nagbabago at hindi garantisado."
+      },
+      "balance_cta": {
+        "description_prefix": "Idagdag ang iyong {{symbol}} sa iyong Money account at kumita nang hanggang",
+        "description_suffix": " sa isang taon.",
+        "earn_apy": "Kumita ng {{apy}}% APY",
+        "earnings_tooltip_accessibility_label": "Alamin ang tungkol sa inaasahang kita"
+      }
     },
     "earnings": {
       "title": "Mga Kita",
       "estimated_monthly": "Buwanan",
-      "estimated_lifetime": "Lifetime",
-      "monthly_info_label": "Monthly earnings info",
-      "lifetime_info_label": "Lifetime earnings info"
+      "estimated_lifetime": "Panghabambuhay",
+      "monthly_info_label": "Impormasyon ng buwanang kita",
+      "lifetime_info_label": "Impormasyong ng panghabambuhay na kita"
     },
     "how_it_works": {
       "title": "Paano ito gumagana",
@@ -7533,7 +7630,7 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "cashback": "Ibabalik na {{percentage}}% mUSD",
-      "get_now": "Get",
+      "get_now": "Kunin ang",
       "link_title": "I-link ang card",
       "link_subtitle": "Gastusin ang balanse mo at kumita sa mga pagbili.",
       "link_subtitle_no_apy": "Gastusin ang balanse mo at kumita sa mga pagbili.",
@@ -7643,18 +7740,19 @@
     },
     "earnings_tooltip": {
       "monthly": {
-        "title": "Monthly earnings",
-        "body": "The total you've earned on your Money account balance in the last 30 days."
+        "title": "Buwanang kita",
+        "body": "Ang kabuuang kinita mo sa balanse ng iyong Money account sa nakalipas na 30 araw."
       },
       "lifetime": {
         "title": "Panghabambuhay na kita",
-        "body": "The total you've earned on your Money account balance over time."
+        "body": "Ang kabuuang kinita mo sa iyong balanse ng Money account sa paglipas ng panahon."
       }
     },
     "earn_crypto_info_sheet": {
       "title": "Kumita sa crypto mo",
       "deposit_title": "Tinatayang balanse sa 1 taon",
-      "body": "Ipinagpapalagay sa pagtatantiya na ang {{percentage}}% Annual Percentage Yield (APY) ay hindi nagbabago sa loob ng isang taon. Nagbabago ang APY at hindi ito garantisado."
+      "body": "Ipinagpapalagay sa projection na ang {{percentage}}% Annual Percentage Yield (APY) ay hindi nagbabago sa loob ng isang taon. Nagbabago ang APY at hindi ito garantisado. Walang garantiya ng return.",
+      "go_to_money_account": "Magpunta sa Money account"
     },
     "activity": {
       "title": "Aktibidad",
@@ -7670,8 +7768,8 @@
       "filter_purchases": "Mga Binili"
     },
     "condensed_cards": {
-      "how_it_works_title": "How your money grows",
-      "musd_title": "Meet mUSD",
+      "how_it_works_title": "Paano lumalago ang pera mo",
+      "musd_title": "Kilalanin ang mUSD",
       "what_you_get_title": "Alamin ang mga benepisyo mo"
     },
     "transaction": {
@@ -8300,6 +8398,8 @@
     "sort_balance": "Balanse",
     "next": "Susunod",
     "explore_tokens": "Tuklasin ang mga token",
+    "robinhood_banner_title": "Narito na ang Robinhood Chain",
+    "robinhood_banner_subtitle": "I-explore ang mga trending na token",
     "no_tokens_found": "Walang nakitang token",
     "no_tokens_found_description": "Wala kaming nakitang anumang token na may ganitong pangalan. Subukang maghanap ng iba.",
     "select_network": "Pumili ng network",
@@ -8896,8 +8996,7 @@
         "country_not_available": "Hindi pa available ang card sign-up sa iyong bansa.",
         "account_label": "Account",
         "account_description": "Ang iyong MetaMask Card ay maiuugnay sa account na ito.",
-        "account_exists_toast": "Mayroon ka ng card account.",
-        "card_program_label": "Programa sa card (pagsusuri)"
+        "account_exists_toast": "Mayroon ka ng card account."
       },
       "confirm_email": {
         "title": "Kumpirmahin ang email mo",
@@ -9070,8 +9169,8 @@
         "title": "Sumali sa waitlist",
         "load_error": "Nagkaproblema sa paglo-load ng form. Pakisubukan muli.",
         "try_again": "Subukang muli",
-        "success_toast": "You're on the waitlist!",
-        "success_toast_description": "We'll let you know when the card is available in your country."
+        "success_toast": "Nasa waitlist ka!",
+        "success_toast_description": "Ipapaalam namin sa iyo kapag ang card ay available sa iyong bansa."
       },
       "region_selector": {
         "title": "Piliin ang iyong Rehiyon"
@@ -9562,6 +9661,8 @@
       "retry_button": "Subukang muli",
       "tiers_title": "Mga Tier",
       "tier_thresholds": "{{points}} (na) point",
+      "maintain_threshold_label": "Panatilihin ang threshold",
+      "maintain_this_tier": "{{points}} puntos para mapanatili ang tier na ito",
       "bps_value": "{{bps}} bps",
       "referee_splash_continue": "Magpatuloy",
       "referee_referred_by": "Ni-refer ni {{code}}",
@@ -10070,7 +10171,7 @@
     "earn_rewards": {
       "title": "Kumita ng mga reward",
       "musd_money_title": "Kumita ng hanggang {{percentage}}% APY",
-      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
+      "musd_disclaimer_accessibility_label": "Disclaimer ng mUSD APY",
       "musd_subtitle": "Narito ang mga money account",
       "card_title": "Hanggang sa 3% ang maibabalik sa ginastos",
       "card_subtitle": "Kunin ang iyong MetaMask Card ngayon",
@@ -10327,7 +10428,7 @@
     "low_to_high": "Mababa Pataas",
     "apply": "Ilapat",
     "search_placeholder": "Maghanap ng mga token, merkado, at URL",
-    "quick_trade": "Mabilis na Pagbili at Pagbebenta",
+    "quick_trade": "Quick Buy and Sell",
     "cancel": "Kanselahin",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
@@ -10524,7 +10625,7 @@
       "related_assets": "Mga Nauugnay na Asset",
       "perpetuals": "Perpetuals",
       "predictions": "Mga prediksyon",
-      "top_traders": "Mga nangungunang trader linggu-linggo",
+      "top_traders": "Mga nangungunang trader",
       "defi": "DeFi",
       "nfts": "Mga NFT",
       "watchlist": "Watchlist",
@@ -10552,6 +10653,7 @@
   "whats_happening": {
     "title": "Ano ang nangyayari",
     "ai": "AI",
+    "ai_generated": "AI Generated",
     "outdated": "Napaglipasan na",
     "impact": {
       "bullish": "Bullish",
@@ -10582,5 +10684,19 @@
     "empty_add_tokens_cta": "Idagdag ang {{count}} token",
     "empty_add_tokens_cta_plural": "Idagdag ang {{count}} (na) token",
     "search_placeholder": "Maghanap ng anumang asset na idadagdag"
+  },
+  "asset_spendable_balance": {
+    "spendable": "Puwedeng gastusin",
+    "base_reserved": "Nakareserba (naka-lock)",
+    "fiat_value": "Value",
+    "total_balance": "Kabuuang balanse"
+  },
+  "asset_activation": {
+    "activate": "I-activate",
+    "activate_description": "I-activate ang {{symbol}} sa {{chainName}} para magsimula.",
+    "inactive": "Di aktibo",
+    "activate_error": "Nagkaproblema habang idinadagdag ang trustline na ito. Subukan muli.",
+    "deactivate_error": "Nagkaproblema habang inaalis ang trustline na ito. Subukan muli.",
+    "deactivate_error_non_zero_balance_stellar": "Mayroon ka pang {{balance}} {{symbol}} sa wallet na ito. Kailangan mo itong ipadala o i-swap ang lahat ng ito bago mag-deactivate ng asset na ito sa Stellar."
   }
 }
