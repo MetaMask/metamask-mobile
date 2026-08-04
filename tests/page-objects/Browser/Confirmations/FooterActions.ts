@@ -1,7 +1,6 @@
 import { ConfirmationFooterSelectorIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import TestHelpers from '../../../helpers';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
 import { EncapsulatedElementType } from '../../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
@@ -22,12 +21,10 @@ class FooterActions {
     await encapsulatedAction({
       detox: async () => {
         const isAndroid = device.getPlatform() === 'android';
-        // Android needs extra delay to avoid element being obscured by bottom toast notifications
-        // eslint-disable-next-line no-restricted-syntax
-        if (isAndroid) await TestHelpers.delay(3000);
+        // Android needs extra pre-tap delay so toasts do not obscure the button
         await Gestures.waitAndTap(this.confirmButton, {
           elemDescription: 'Confirm button',
-          delay: 1800,
+          delay: isAndroid ? 4800 : 1800,
           timeout,
           waitForElementToDisappear: isAndroid,
         });
