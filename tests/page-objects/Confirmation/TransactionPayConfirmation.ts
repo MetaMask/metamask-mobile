@@ -9,6 +9,7 @@ import enContent from '../../../locales/languages/en.json';
 import {
   Assertions,
   FrameworkDetector,
+  Gestures,
   Matchers,
   PlatformDetector,
   PlaywrightAssertions,
@@ -44,6 +45,53 @@ class TransactionPayConfirmation {
           },
         ),
     });
+  }
+
+  get keypad(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionPayComponentIDs.KEYPAD,
+          { exact: true },
+        ),
+    });
+  }
+
+  async expectAmountScreenLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard is visible',
+      timeout: 15000,
+    });
+  }
+
+  async focusAmountInput(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard is visible before typing amount',
+    });
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(asDetoxElement(this.keypad), {
+          elemDescription: 'Focus amount via deposit keyboard container',
+          checkEnabled: false,
+          checkVisibility: false,
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(await asPlaywrightElement(this.keypad), {
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+      },
+    });
+  }
+
+  async typeAmount(amount: string): Promise<void> {
+    await this.tapKeyboardAmount(amount);
+  }
+
+  async tapContinue(): Promise<void> {
+    await this.tapKeyboardContinueButton();
   }
 
   get keyboardContainer(): EncapsulatedElementType {

@@ -22,6 +22,131 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class ActivitiesView {
+  get typeFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID('activity-screen-type-filter-chip');
+  }
+
+  typeFilterOption(option: string): EncapsulatedElementType {
+    return Matchers.getElementByID(`activity-screen-type-filter-option-${option}`);
+  }
+
+  get perpsFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID('activity-screen-perps-filter-chip');
+  }
+
+  perpsFilterOption(option: string): EncapsulatedElementType {
+    return Matchers.getElementByID(`activity-screen-perps-filter-option-${option}`);
+  }
+
+  async tapTypeFilterChip(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.typeFilterChip, {
+      description: 'Activity Type Filter Chip',
+    });
+  }
+
+  async selectTypeFilterOptionSafe(option: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const label = option === 'perps' ? 'Perps' : option === 'deposit' ? 'Deposits' : option;
+        let sheetOpen = true;
+        try {
+          await Assertions.expectElementToBeVisible(Matchers.getElementByText(label), {
+            timeout: 1500,
+            description: 'Check if filter sheet is open',
+          });
+        } catch {
+          sheetOpen = false;
+        }
+
+        if (!sheetOpen) {
+          console.log('Sheet seems closed, tapping chip to open...');
+          try {
+            await UnifiedGestures.waitAndTap(this.typeFilterChip, {
+              description: 'Activity Type Filter Chip',
+              timeout: 3000,
+            });
+          } catch (e) {
+            console.log('Failed to tap chip. Dumping source...');
+            try {
+              const source = await global.driver?.getPageSource();
+              console.log('PAGE SOURCE:', source);
+            } catch (err) {
+              console.log('Failed to dump source', err);
+            }
+            throw e;
+          }
+        }
+
+        // Tap the option container directly. Bypass display check to avoid iOS flattening bugs.
+        await UnifiedGestures.waitAndTap(this.typeFilterOption(option), {
+          description: `Activity Type Filter Option: ${option}`,
+          checkForDisplayed: false,
+          delay: 1500,
+          timeout: 4000,
+        });
+
+        await Assertions.expectElementToBeVisible(this.perpsFilterChip, {
+          timeout: 4000,
+          description: 'Wait for perps filter chip to appear (sheet closed)',
+        });
+      },
+      { timeout: 30000, description: 'Selecting type filter option with retry' }
+    );
+  }
+
+  async tapPerpsFilterChip(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
+      description: 'Activity Perps Filter Chip',
+    });
+  }
+
+  async selectPerpsFilterOptionSafe(option: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const label = option === 'deposit' ? 'Deposits' : option;
+        let sheetOpen = true;
+        try {
+          await Assertions.expectElementToBeVisible(Matchers.getElementByText(label), {
+            timeout: 1500,
+            description: 'Check if perps filter sheet is open',
+          });
+        } catch {
+          sheetOpen = false;
+        }
+
+        if (!sheetOpen) {
+          console.log('Perps sheet seems closed, tapping chip to open...');
+          await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
+            description: 'Activity Perps Filter Chip',
+            timeout: 3000,
+          });
+        }
+
+        await UnifiedGestures.waitAndTap(this.perpsFilterOption(option), {
+          description: `Activity Perps Filter Option: ${option}`,
+          checkForDisplayed: false,
+          delay: 1500,
+          timeout: 4000,
+        });
+
+        // Wait for it to close
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      },
+      { timeout: 30000, description: 'Selecting perps filter option with retry' }
+    );
+  }
+
+    async verifyActivityItemLabelAndAmount(
+    label: string,
+    amount: string,
+    rowIndex = 0,
+  ): Promise<void> {
+    const item = this.transactionItem(rowIndex);
+    await Assertions.expectElementToBeVisible(item, { timeout: 15000, description: 'Wait for transaction item' });
+    await Assertions.expectTextDisplayed(label, { timeout: 10000 });
+    await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
+  }
+
   get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
@@ -157,6 +282,23 @@ class ActivitiesView {
       speed: 'slow',
       percentage: 0.5,
     });
+  }
+
+  /**
+   * Taps an activity row via its visible text label.
+   * Note: The ~transaction-item-0 wrapper testID can be flaky under XCUITest 
+   * (accessibility flattening swallows it into StaticText children), so tapping by label text is safer.
+   */
+  async tapOnActivityItemByLabel(label: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await UnifiedGestures.waitAndTap(Matchers.getElementByText(label), {
+          description: `Tap Activity Item By Label: ${label}`,
+          timeout: 10000,
+        });
+      },
+      { timeout: 30000, description: `Tapping activity item by label ${label} with retry` }
+    );
   }
 
   async tapOnTransactionItem(row: number): Promise<void> {
