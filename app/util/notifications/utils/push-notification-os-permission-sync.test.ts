@@ -6,7 +6,7 @@ import { isNotificationsFeatureEnabled } from '../constants';
 import { isPushPermissionGranted } from '../services/NotificationService';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
-import { detectPushNotificationOsPermissionRevocation } from './push-notification-os-permission-sync';
+import { syncPushNotificationOsPermission } from './push-notification-os-permission-sync';
 
 jest.mock('../../analytics/analytics', () => ({
   __esModule: true,
@@ -48,14 +48,14 @@ const setControllerPushEnabled = (value: boolean) => {
   ).isPushEnabled = value;
 };
 
-const LAST_RESULT_KEY = STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT;
+const STORED_STATE_KEY = STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT;
 
-describe('detectPushNotificationOsPermissionRevocation', () => {
-  const getLastResult = () => mmStorage.getLocal(LAST_RESULT_KEY);
+describe('syncPushNotificationOsPermission', () => {
+  const getStoredState = () => mmStorage.getLocal(STORED_STATE_KEY);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mmStorage.saveLocal(LAST_RESULT_KEY, false);
+    mmStorage.saveLocal(STORED_STATE_KEY, false);
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     setControllerPushEnabled(true);
   });
@@ -63,28 +63,52 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
   it('does nothing when the notifications feature is disabled', async () => {
     mockIsNotificationsFeatureEnabled.mockReturnValue(false);
 
-    await detectPushNotificationOsPermissionRevocation();
+    await syncPushNotificationOsPermission();
 
     expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('arms the baseline while push is enabled and OS permission is granted', async () => {
-    mmStorage.saveLocal(LAST_RESULT_KEY, false);
+  it('stores the enabled state and restores the profile trait when push is enabled and OS permission is granted', async () => {
     setControllerPushEnabled(true);
     mockIsPushPermissionGranted.mockResolvedValue(true);
 
-    await detectPushNotificationOsPermissionRevocation();
+    await syncPushNotificationOsPermission();
 
-    expect(getLastResult()).toBe(true);
+    expect(getStoredState()).toBe(true);
     expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: true,
+    });
   });
 
-  it('fires the disabled event on a granted -> revoked transition', async () => {
-    mmStorage.saveLocal(LAST_RESULT_KEY, true);
+  it('does not store the enabled state when push is disabled in-app', async () => {
+    setControllerPushEnabled(false);
+    mockIsPushPermissionGranted.mockResolvedValue(true);
+
+    await syncPushNotificationOsPermission();
+
+    expect(getStoredState()).toBe(false);
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockIdentify).not.toHaveBeenCalled();
+  });
+
+  it('does not store the enabled state when OS permission is not granted', async () => {
+    setControllerPushEnabled(true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
 
-    await detectPushNotificationOsPermissionRevocation();
+    await syncPushNotificationOsPermission();
+
+    expect(getStoredState()).toBe(false);
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockIdentify).not.toHaveBeenCalled();
+  });
+
+  it('fires the disabled event on an OS permission granted -> revoked transition', async () => {
+    mmStorage.saveLocal(STORED_STATE_KEY, true);
+    mockIsPushPermissionGranted.mockResolvedValue(false);
+
+    await syncPushNotificationOsPermission();
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent.mock.calls[0][0]).toEqual(
@@ -96,83 +120,96 @@ describe('detectPushNotificationOsPermissionRevocation', () => {
     expect(mockIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: false,
     });
-    // Baseline flips to false so a subsequent check stays silent.
-    expect(getLastResult()).toBe(false);
+    // Snapshot flips to false so a subsequent check stays silent.
+    expect(getStoredState()).toBe(false);
+  });
+
+  it('does not fire the disabled event on an in-app disable, and clears the stored state', async () => {
+    // Enabled + granted, then the user turns push off in-app (the disable
+    // helper syncs after the controller call).
+    mmStorage.saveLocal(STORED_STATE_KEY, true);
+    setControllerPushEnabled(false);
+    mockIsPushPermissionGranted.mockResolvedValue(true);
+
+    await syncPushNotificationOsPermission();
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockIdentify).not.toHaveBeenCalled();
+    expect(getStoredState()).toBe(false);
+
+    // A later OS-level revocation must not be misreported: the stored state is
+    // already false, so nothing fires.
+    mockIsPushPermissionGranted.mockResolvedValue(false);
+    await syncPushNotificationOsPermission();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('serializes overlapping calls so a revocation fires only once', async () => {
     // Mirrors mount + background->active firing close together: without
     // serialization both runs would read the stored `true` before either
     // persists `false` and emit duplicate events.
-    mmStorage.saveLocal(LAST_RESULT_KEY, true);
+    mmStorage.saveLocal(STORED_STATE_KEY, true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
 
     await Promise.all([
-      detectPushNotificationOsPermissionRevocation(),
-      detectPushNotificationOsPermissionRevocation(),
+      syncPushNotificationOsPermission(),
+      syncPushNotificationOsPermission(),
     ]);
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(getLastResult()).toBe(false);
+    expect(getStoredState()).toBe(false);
   });
 
   it('does not fire again on a second check while still revoked (dedup)', async () => {
-    mmStorage.saveLocal(LAST_RESULT_KEY, true);
+    mmStorage.saveLocal(STORED_STATE_KEY, true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
 
-    await detectPushNotificationOsPermissionRevocation();
-    await detectPushNotificationOsPermissionRevocation();
+    await syncPushNotificationOsPermission();
+    await syncPushNotificationOsPermission();
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fire when there was no prior granted baseline', async () => {
-    mmStorage.saveLocal(LAST_RESULT_KEY, false);
+  it('does not fire when there was no prior stored enabled state', async () => {
+    mmStorage.saveLocal(STORED_STATE_KEY, false);
     mockIsPushPermissionGranted.mockResolvedValue(false);
 
-    await detectPushNotificationOsPermissionRevocation();
+    await syncPushNotificationOsPermission();
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
-    expect(getLastResult()).toBe(false);
+    expect(getStoredState()).toBe(false);
   });
 
-  it('does not arm the baseline when OS permission is granted but push is disabled in-app', async () => {
-    mmStorage.saveLocal(LAST_RESULT_KEY, false);
-    setControllerPushEnabled(false);
-    mockIsPushPermissionGranted.mockResolvedValue(true);
-
-    await detectPushNotificationOsPermissionRevocation();
-
-    expect(getLastResult()).toBe(false);
-    expect(mockTrackEvent).not.toHaveBeenCalled();
-  });
-
-  it('re-arms after permission is granted again, allowing a future revocation to fire', async () => {
-    // Revocation fires and disarms.
-    mmStorage.saveLocal(LAST_RESULT_KEY, true);
+  it('restores the profile trait and re-arms after permission is granted again, allowing a future revocation to fire', async () => {
+    // Revocation fires and clears the stored state.
+    mmStorage.saveLocal(STORED_STATE_KEY, true);
     mockIsPushPermissionGranted.mockResolvedValue(false);
-    await detectPushNotificationOsPermissionRevocation();
+    await syncPushNotificationOsPermission();
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockIdentify).toHaveBeenLastCalledWith({
+      [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: false,
+    });
 
-    // User re-grants permission with push enabled -> baseline re-arms.
+    // User re-grants permission with push enabled -> trait restored.
     mockIsPushPermissionGranted.mockResolvedValue(true);
     setControllerPushEnabled(true);
-    await detectPushNotificationOsPermissionRevocation();
-    expect(getLastResult()).toBe(true);
+    await syncPushNotificationOsPermission();
+    expect(getStoredState()).toBe(true);
+    expect(mockIdentify).toHaveBeenLastCalledWith({
+      [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: true,
+    });
 
     // User revokes again -> event fires a second time.
     mockIsPushPermissionGranted.mockResolvedValue(false);
-    await detectPushNotificationOsPermissionRevocation();
+    await syncPushNotificationOsPermission();
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
 
   it('swallows errors from the permission read', async () => {
-    mmStorage.saveLocal(LAST_RESULT_KEY, true);
+    mmStorage.saveLocal(STORED_STATE_KEY, true);
     mockIsPushPermissionGranted.mockRejectedValue(new Error('boom'));
 
-    await expect(
-      detectPushNotificationOsPermissionRevocation(),
-    ).resolves.toBeUndefined();
+    await expect(syncPushNotificationOsPermission()).resolves.toBeUndefined();
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

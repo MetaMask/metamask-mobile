@@ -17,16 +17,16 @@ import {
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
-import { armPushNotificationOsPermissionBaseline } from '../../../util/notifications/utils/push-notification-os-permission-baseline';
+import { syncPushNotificationOsPermission } from '../../../util/notifications/utils/push-notification-os-permission-sync';
 
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
 
 jest.mock(
-  '../../../util/notifications/utils/push-notification-os-permission-baseline',
+  '../../../util/notifications/utils/push-notification-os-permission-sync',
   () => ({
-    armPushNotificationOsPermissionBaseline: jest.fn(),
+    syncPushNotificationOsPermission: jest.fn(),
   }),
 );
 
@@ -56,9 +56,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   // clearAllMocks wipes implementations set in the jest.mock factory above, so
   // restore the resolved-Promise return each test (the helpers await it).
-  jest
-    .mocked(armPushNotificationOsPermissionBaseline)
-    .mockResolvedValue(undefined);
+  jest.mocked(syncPushNotificationOsPermission).mockResolvedValue(undefined);
 });
 
 describe('helpers - enableNotificationServices()', () => {
@@ -86,9 +84,9 @@ describe('helpers - enableNotificationServices()', () => {
     ).toHaveBeenCalledWith({ registerPushNotifications: false });
   });
 
-  it('arms the push OS-permission baseline after enabling', async () => {
+  it('syncs the push OS-permission state after enabling', async () => {
     await enableNotifications();
-    expect(armPushNotificationOsPermissionBaseline).toHaveBeenCalledTimes(1);
+    expect(syncPushNotificationOsPermission).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -177,6 +175,11 @@ describe('helpers - disableNotificationServices()', () => {
       Engine.context.NotificationServicesController.disableNotificationServices,
     ).toHaveBeenCalled();
   });
+
+  it('syncs the push OS-permission state after disabling', async () => {
+    await disableNotifications();
+    expect(syncPushNotificationOsPermission).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('helpers - checkAccountsPresence()', () => {
@@ -250,9 +253,9 @@ describe('helpers - enablePushNotifications()', () => {
     ).toHaveBeenCalled();
   });
 
-  it('arms the push OS-permission baseline after enabling', async () => {
+  it('syncs the push OS-permission state after enabling', async () => {
     await enablePushNotifications();
-    expect(armPushNotificationOsPermissionBaseline).toHaveBeenCalledTimes(1);
+    expect(syncPushNotificationOsPermission).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -262,6 +265,11 @@ describe('helpers - disablePushNotifications()', () => {
     expect(
       Engine.context.NotificationServicesController.disablePushNotifications,
     ).toHaveBeenCalled();
+  });
+
+  it('syncs the push OS-permission state after disabling', async () => {
+    await disablePushNotifications();
+    expect(syncPushNotificationOsPermission).toHaveBeenCalledTimes(1);
   });
 });
 
