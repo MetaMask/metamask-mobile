@@ -1,5 +1,4 @@
 import type { PredictCategory } from '../types';
-import { PREDICT_WORLD_CUP_FEED_PARAM } from './worldCupTabs';
 
 export type PredictTabKey = PredictCategory;
 
@@ -22,11 +21,6 @@ export const PREDICT_HOT_TAB: PredictTabConfig = {
   labelKey: 'predict.category.hot',
 };
 
-export const PREDICT_WORLD_CUP_TAB: PredictTabConfig = {
-  key: PREDICT_WORLD_CUP_FEED_PARAM,
-  labelKey: 'predict.world_cup.title',
-};
-
 export const PREDICT_WIMBLEDON_TAB: PredictTabConfig = {
   key: 'wimbledon',
   labelKey: 'predict.category.wimbledon',
@@ -35,7 +29,6 @@ export const PREDICT_WIMBLEDON_TAB: PredictTabConfig = {
 export const PREDICT_ALL_TABS: readonly PredictTabConfig[] = [
   ...PREDICT_BASE_TABS,
   PREDICT_HOT_TAB,
-  PREDICT_WORLD_CUP_TAB,
   PREDICT_WIMBLEDON_TAB,
 ];
 

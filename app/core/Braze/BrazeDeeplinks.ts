@@ -3,38 +3,50 @@ import { type EmitterSubscription } from 'react-native';
 import Logger from '../../util/Logger';
 
 /**
- * Retrieve the deep link URL from a Braze push notification that launched the
- * app from a terminated (cold) state.
+ * Report whether a Braze push notification launched the app from a terminated
+ * (cold) state, along with its deep link URL when the payload carries one.
  *
  * Requires native setup:
  * - iOS:     `[[BrazeReactUtils sharedInstance] populateInitialPayloadFromLaunchOptions:launchOptions]`
  * - Android: `BrazeReactUtils.populateInitialPushPayloadFromIntent(intent)`
  */
-export function getBrazeInitialDeeplink(): Promise<string | null> {
+export function getBrazeInitialPush(): Promise<{
+  opened: boolean;
+  deeplink: string | null;
+}> {
   return new Promise((resolve) => {
     try {
       Braze.getInitialPushPayload((payload: PushNotificationEvent | null) => {
-        const url = payload?.url;
-        if (url && typeof url === 'string' && url.length > 0) {
-          Logger.log('[Braze] Initial push deep link:', url);
-          resolve(url);
-        } else {
-          resolve(null);
+        if (!payload) {
+          resolve({ opened: false, deeplink: null });
+          return;
         }
+        if (payload.is_braze_internal || payload.is_silent) {
+          resolve({ opened: false, deeplink: null });
+          return;
+        }
+        const url = payload.url;
+        const deeplink = typeof url === 'string' && url.length > 0 ? url : null;
+        if (deeplink) {
+          Logger.log('[Braze] Initial push deep link:', deeplink);
+        }
+        // A payload without a URL is still a tap that launched the app.
+        resolve({ opened: true, deeplink });
       });
     } catch (error) {
       Logger.error(
         error as Error,
         '[Braze] Failed to get initial push payload',
       );
-      resolve(null);
+      resolve({ opened: false, deeplink: null });
     }
   });
 }
 
 /**
- * Subscribe to Braze push notification tap events and invoke `callback` with
- * the deep link URL when one is present.
+ * Subscribe to Braze push notification tap events. `callback` fires for every
+ * genuine tap, receiving the deep link URL when the payload carries one and
+ * `null` when it does not.
  *
  * On iOS, the native `BrazeDelegate.shouldOpenURL` routes universal links
  * (Branch domains) through Branch for proper resolution, and suppresses all
@@ -45,8 +57,8 @@ export function getBrazeInitialDeeplink(): Promise<string | null> {
  *
  * @returns An EmitterSubscription, or null on error.
  */
-export function subscribeToBrazePushDeeplinks(
-  callback: (deeplink: string) => void,
+export function subscribeToBrazePushOpens(
+  callback: (deeplink: string | null) => void,
 ): EmitterSubscription | null {
   try {
     return Braze.addListener(
@@ -56,15 +68,20 @@ export function subscribeToBrazePushDeeplinks(
           return;
         }
 
+        // Silent and Braze-internal pushes are not user taps, so they must not
+        // reach the callback — an open they did not cause would be attributed
+        // to push.
         if (event.is_braze_internal || event.is_silent) {
           return;
         }
 
         const url = event.url;
-        if (url && typeof url === 'string' && url.length > 0) {
-          Logger.log('[Braze] Push notification deep link:', url);
-          callback(url);
+        const deeplink = typeof url === 'string' && url.length > 0 ? url : null;
+        if (deeplink) {
+          Logger.log('[Braze] Push notification deep link:', deeplink);
         }
+        // Fires for every genuine tap, with or without a deeplink.
+        callback(deeplink);
       },
     );
   } catch (error) {
