@@ -101,6 +101,20 @@ describe('useTransactionCustomAmountAlerts', () => {
     expect(result.current.alertMessage).toBe(MESSAGE_MOCK);
   });
 
+  it('returns content from the first alert', () => {
+    const content = {
+      type: 'View',
+      props: {},
+    } as unknown as import('react').ReactElement;
+    useAlertsMock.mockReturnValue({
+      alerts: [{ ...ALERT_MOCK, content }],
+    } as AlertsContextParams);
+
+    const { result } = runHook();
+
+    expect(result.current.alertContent).toBe(content);
+  });
+
   it('returns no alert message if no title', () => {
     useAlertsMock.mockReturnValue({
       alerts: [

@@ -11,6 +11,8 @@ import {
 } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
@@ -66,6 +68,21 @@ export const AssetDetailsActivityListItem = ({
     Record<string, { address: string; symbol?: string; decimals?: number }[]>
   >;
   const accountImportTime = selectedInternalAccount?.metadata.importTime;
+
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
+  const { actionId } = tx;
+  const bridgeHistoryItem = useMemo(
+    () =>
+      findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: actionId,
+        transactionHash: tx.hash,
+      }),
+    [bridgeHistory, tx.id, actionId, tx.hash],
+  );
+
   const activityItem = useMemo(() => {
     const resolvedChainId = (tx.chainId ?? tokenChainId ?? currentChainId) as
       | Hex
@@ -94,10 +111,12 @@ export const AssetDetailsActivityListItem = ({
       nativeAssetSymbol,
       currentChainId,
       tokenChainId,
+      bridgeHistoryItem,
     });
   }, [
     allTokens,
     assetSymbol,
+    bridgeHistoryItem,
     currentChainId,
     groupEvmAccount?.address,
     networkConfigurations,
@@ -107,6 +126,11 @@ export const AssetDetailsActivityListItem = ({
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {
+      const selectedTx =
+        item.raw?.type === 'localTransaction'
+          ? item.raw.data.primaryTransaction
+          : undefined;
+
       if (isTransactionsRedesignEnabled) {
         const detailsRoute = getActivityDetailsRoute(item);
         if (detailsRoute) {
@@ -115,15 +139,11 @@ export const AssetDetailsActivityListItem = ({
         }
       }
 
-      const selectedTx =
-        item.raw?.type === 'localTransaction'
-          ? item.raw.data.primaryTransaction
-          : undefined;
       if (!selectedTx) return;
 
       const { from, to } = getActivityFromTo(item);
       const value = getActivityValue(item);
-      const actionKey = resolveActivityListItemTitle(item);
+      const actionKey = resolveActivityListItemTitle(item, bridgeHistoryItem);
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.TRANSACTION_DETAILS,
@@ -142,6 +162,7 @@ export const AssetDetailsActivityListItem = ({
       });
     },
     [
+      bridgeHistoryItem,
       currentChainId,
       isTransactionsRedesignEnabled,
       navigation,
@@ -175,6 +196,7 @@ export const AssetDetailsActivityListItem = ({
     <Box twClassName="px-4">
       {shouldShowImportTimeBeforeRow && importTimeRow}
       <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem}
         item={activityItem}
         index={index}
         onPress={handlePress}

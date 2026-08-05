@@ -104,6 +104,14 @@ export interface QrSyncSyncReadyMessage {
   data: QrSyncReadyData[];
 }
 
+/** E2E-only: plaintext SRP sync-ready inject payload (HAS_TEST_OVERRIDES). */
+export interface QrSyncTestSyncReadyPayload {
+  mnemonic: string;
+  isPrimary?: boolean;
+  walletName?: string;
+  accountName?: string;
+}
+
 /** Wire message that marks successful completion of the QR sync flow. */
 export type QrSyncSyncCompletedMessage = QrSyncMessage & {
   type: typeof QrSyncActionTypes.SYNC_COMPLETED;

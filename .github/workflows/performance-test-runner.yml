@@ -10,7 +10,7 @@ on:
       build_type:
         required: true
         type: string
-        description: 'Build type (imported-wallet/onboarding/mm-connect)'
+        description: 'Build type (imported-wallet/onboarding)'
       device_matrix:
         required: true
         type: string
@@ -26,15 +26,11 @@ on:
       branch_name:
         required: true
         type: string
-        description: 'Branch name'
+        description: 'Branch name used for performance observability'
       browserstack_build_name:
         required: true
         type: string
         description: 'Unified BrowserStack build name for all sessions'
-      browserstack_playground_url:
-        required: false
-        type: string
-        description: 'BrowserStack URL for the RN playground APK (mm-connect tests only)'
       sentry_target:
         required: false
         type: string
@@ -44,7 +40,7 @@ on:
         required: false
         type: string
         default: e2e
-        description: 'Deprecated for env; kept for workflow_call compatibility. Use feature_flags_environment for client-config API.'
+        description: 'App build variant used for performance observability'
       feature_flags_environment:
         required: false
         type: string
@@ -81,6 +77,7 @@ jobs:
   run-tests:
     name: Run ${{ inputs.build_type }} Tests on ${{ inputs.platform }} - ${{ matrix.device.name }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -90,12 +87,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Restore node_modules cache
-        id: cache
         uses: actions/cache@v4
         with:
           path: |
             node_modules
-            .yarn/cache
             .yarn/install-state.gz
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
@@ -115,18 +110,9 @@ jobs:
           retry_wait_seconds: 30
           command: yarn --immutable
         ## This installs dependencies and creates the node_modules state file
-      - name: Restore .metamask folder
-        id: restore-metamask
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
       - name: Setup project
-        run: yarn setup:github-ci
+        # BrowserStack performance projects do not use the local Anvil fixture.
+        run: yarn setup:github-ci --node
         working-directory: '.'
 
       - name: BrowserStack Env Setup
@@ -135,41 +121,6 @@ jobs:
           username: ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
-
-      - name: Compute BrowserStack Local Identifier
-        id: bs-local-id
-        if: inputs.build_type == 'mm-connect'
-        run: |
-          # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
-          BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
-          DEVICE_SAFE=$(printf '%s' "${{ matrix.device.name }}" | tr -c 'a-zA-Z0-9-' '_')
-          if [ -z "$BUILD_TYPE_SAFE" ]; then
-            echo "❌ Error: inputs.build_type is empty — cannot build a valid BrowserStack Local identifier"
-            exit 1
-          fi
-          if [ -z "$DEVICE_SAFE" ]; then
-            echo "❌ Error: matrix.device.name is empty — cannot build a valid BrowserStack Local identifier"
-            exit 1
-          fi
-          echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
-
-      - name: Setup BrowserStack Local
-        if: inputs.build_type == 'mm-connect'
-        uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
-        with:
-          local-testing: start
-          local-identifier: ${{ steps.bs-local-id.outputs.value }}
-          # Use same args for all build types. Do not use --include-hosts for mm-connect:
-          # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
-          local-args: '--force-local --verbose'
-
-      - name: Wait for BrowserStack Local
-        if: inputs.build_type == 'mm-connect'
-        run: |
-          echo "Waiting for BrowserStack Local to be ready..."
-          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090
-          sleep 15
-          echo "BrowserStack Local should be ready now"
 
       - name: Set Test Environment
         run: |
@@ -183,6 +134,8 @@ jobs:
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
           FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
+          CI_BUILD_VARIANT="${{ inputs.build_variant }}"
+          BRANCH_NAME="${{ inputs.branch_name }}"
           BROWSERSTACK_GEO_LOCATION="${BROWSERSTACK_GEO_LOCATION:-SE}"
 
           if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
@@ -216,13 +169,28 @@ jobs:
               ;;
           esac
 
+          # Track-only RC observability: distinct Sentry environment + release
+          # version tag. RELEASE_VERSION is derived from release/* branches for
+          # filtering; the mm-mobile-rc-* Sentry release bucket is only used when
+          # CI_BUILD_VARIANT is actually rc (avoids polluting RC releases when a
+          # non-RC perf run happens on a release branch).
+          RELEASE_VERSION=""
+          if [[ "$BRANCH_NAME" =~ ^release/(.+)$ ]]; then
+            RELEASE_VERSION="${BASH_REMATCH[1]}"
+          fi
+          if [[ "$CI_BUILD_VARIANT" == "rc" ]]; then
+            SENTRY_ENVIRONMENT="${SENTRY_ENVIRONMENT}-rc"
+          fi
+
+          SENTRY_RELEASE="mm-mobile-perf-${CI_BUILD_VARIANT}-${{ github.sha }}"
+          if [[ "$CI_BUILD_VARIANT" == "rc" && -n "$RELEASE_VERSION" ]]; then
+            SENTRY_RELEASE="mm-mobile-rc-${RELEASE_VERSION}"
+          fi
+
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_${{ inputs.platform == 'android' && 'ANDROID' || 'IOS' }}_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.browserstack_app_url }}"
-            if [ -n "${{ inputs.browserstack_playground_url }}" ]; then
-              echo "BROWSERSTACK_RN_PLAYGROUND_URL=${{ inputs.browserstack_playground_url }}"
-            fi
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
             echo "BROWSERSTACK_BUILD_NAME=${{ inputs.browserstack_build_name }}"
@@ -237,16 +205,17 @@ jobs:
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
-            echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
+            echo "E2E_PERFORMANCE_SENTRY_RELEASE=$SENTRY_RELEASE"
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
+            echo "E2E_PERFORMANCE_CI_BUILD_VARIANT=$CI_BUILD_VARIANT"
+            echo "E2E_PERFORMANCE_RELEASE_VERSION=$RELEASE_VERSION"
+            echo "E2E_PERFORMANCE_GITHUB_REF_NAME=$BRANCH_NAME"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests
         continue-on-error: true
         env:
-          BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ inputs.build_type == 'mm-connect' && steps.bs-local-id.outputs.value || '' }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
           GREP_TAGS: ${{ inputs.grep_tags }}
         working-directory: '.'
@@ -257,7 +226,6 @@ jobs:
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
           echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
-          echo "BrowserStack Local: $BROWSERSTACK_LOCAL"
           echo "BrowserStack Geo Location: ${BROWSERSTACK_GEO_LOCATION:-SE}"
           if [ -n "$GREP_TAGS" ]; then
             echo "Grep filter: $GREP_TAGS"
@@ -266,8 +234,6 @@ jobs:
           # Select base command based on build_type
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
             BASE_CMD="yarn run-playwright:${{ inputs.platform }}-onboarding-bs"
-          elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
-            BASE_CMD="yarn run-playwright:mm-connect-${{ inputs.platform }}-bs"
           else
             BASE_CMD="yarn run-playwright:${{ inputs.platform }}-bs"
           fi

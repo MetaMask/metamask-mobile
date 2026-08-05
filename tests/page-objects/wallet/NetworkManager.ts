@@ -8,12 +8,12 @@ import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
 } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
-import TestHelpers from '../../helpers';
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EncapsulatedElementType, FrameworkDetector } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import WalletView from './WalletView';
 import TokensFullView from './HomeSections';
 
@@ -403,8 +403,34 @@ class NetworkManager {
         );
       },
       appium: async () => {
-        // iOS: `network-manager-bottom-sheet` may exist while `displayed === false`
-        // even though the Popular tab content is on screen (same as wallet-screen).
+        // Anvil/localhost fixtures often open the sheet on the Custom tab, so
+        // popular-networks-selector-container is not mounted until we switch.
+        await Utilities.waitUntil(
+          async () =>
+            (await Utilities.isElementVisible(
+              this.popularNetworksContainer,
+              500,
+            )) ||
+            (await Utilities.isElementVisible(
+              this.customNetworksContainer,
+              500,
+            )) ||
+            (await Utilities.isElementVisible(this.popularNetworksTab, 500)),
+          {
+            timeout: 15_000,
+            interval: 500,
+          },
+        );
+
+        if (
+          !(await Utilities.isElementVisible(
+            this.popularNetworksContainer,
+            1_000,
+          ))
+        ) {
+          await this.tapPopularNetworksTab();
+        }
+
         await Assertions.expectElementToBeVisible(
           this.popularNetworksContainer,
           {
@@ -412,11 +438,19 @@ class NetworkManager {
             timeout: 15_000,
           },
         );
+        // Android only: on iOS XCUITest finds the BottomSheet testID but reports
+        // displayed=false.
+        if (PlatformDetector.isAndroid()) {
+          await Assertions.expectElementToBeVisible(
+            this.networkManagerBottomSheet,
+            {
+              elemDescription: 'Network Manager Bottom Sheet after open',
+              timeout: 10_000,
+            },
+          );
+        }
       },
     });
-    // Wait for bottom sheet animation to complete
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(1000); // Allow for bottom sheet slide-up animation
   }
 
   /**

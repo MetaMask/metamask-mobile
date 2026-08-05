@@ -26,6 +26,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask.MetaMask'),
 }));
 
 jest.mock('redux-persist-filesystem-storage');
@@ -168,6 +169,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsControllerV2');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
@@ -1107,7 +1109,6 @@ describe('Engine', () => {
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'MoneyAccountUpgradeController' ||
               controllerName === 'DelegationController'),
         )
         .map(([controllerName]) => controllerName);

@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 import { IconName } from '../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../component-library/components/Buttons/ButtonIcon';
 import { ButtonIconSizes } from '../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
@@ -12,7 +13,7 @@ const styles = {
 };
 
 export const useOnboardingHeader = (title: string) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const renderBackButton = useCallback(
     () => (

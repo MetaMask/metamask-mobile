@@ -13,9 +13,8 @@
 
 ## E2E Framework Structure
 
-- **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
-- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature (Detox)
-- **Appium smoke (`tests/smoke-appium/`)** - Playwright + Appium smoke parity with `tests/smoke/` — see [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
+- **Appium smoke (`tests/smoke-appium/`)** — Primary E2E path for new coverage (Playwright + Appium). See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
+- **Legacy Detox smoke (`tests/smoke/`)** — Do not add new coverage here; treat as gone for new work
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
 - **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
@@ -35,9 +34,8 @@
 **Key E2E Directories:**
 
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
-- `tests/smoke/` - Detox smoke tests organized by feature
-- `tests/smoke-appium/` - Appium smoke tests (Playwright); same layout as `tests/smoke/`
-- `tests/regression/` - Regression Test files organized by feature
+- `tests/smoke-appium/` - Appium smoke tests (Playwright); primary path for new specs
+- `tests/smoke/` - Legacy Detox smoke (do not add new coverage)
 - `tests/page-objects/` - Page Object classes following POM pattern
 - `tests/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses
@@ -68,7 +66,7 @@ await withFixtures(
 - ✅ **ALWAYS** import from `tests/framework/index.ts` (not individual files)
 - ✅ **ALWAYS** use modern TypeScript framework methods
 - ❌ **NEVER** use legacy methods marked with `@deprecated`
-- ❌ **NEVER** use `TestHelpers.delay()` - use proper waiting instead
+- ❌ **NEVER** use fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 
 **Page Object Model (REQUIRED):**
 
@@ -76,7 +74,7 @@ await withFixtures(
 - ✅ **ALWAYS** define element selectors in page objects or selector files
 - ✅ **ALWAYS** access UI elements through page object methods
 - ❌ **NEVER** use `element(by.id())` directly in test specs
-- ❌ **NEVER** use raw Detox assertions in test specs
+- ❌ **NEVER** use raw driver assertions or Detox APIs in new specs
 
 **Test Structure Requirements:**
 
@@ -258,8 +256,8 @@ export default new WalletView();
 **❌ PROHIBITED Patterns:**
 
 ```typescript
-// DON'T: Use TestHelpers.delay()
-await TestHelpers.delay(5000);
+// DON'T: Use fixed delays when waiting for UI
+await sleep(5000);
 
 // DON'T: Use deprecated methods
 await Assertions.checkIfVisible(element);
@@ -267,7 +265,7 @@ await Assertions.checkIfVisible(element);
 // DON'T: Use direct element selectors in tests
 element(by.id('send-button')).tap();
 
-// DON'T: Use raw Detox assertions
+// DON'T: Use raw driver assertions or Detox APIs in new specs
 await waitFor(element).toBeVisible();
 
 // DON'T: Missing descriptions
@@ -319,7 +317,7 @@ await Utilities.executeWithRetry(
 
 - [ ] Uses `withFixtures` pattern for test setup
 - [ ] Imports from `tests/framework/index.ts` (not individual files)
-- [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
+- [ ] No fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 - [ ] No deprecated methods (check `@deprecated` tags)
 - [ ] All assertions have descriptive `description` parameters
 - [ ] All gestures have descriptive `description` parameters
@@ -333,9 +331,10 @@ await Utilities.executeWithRetry(
 
 ## Existing tooling
 
-| Tool                 | Type              | Current use          | When to use                                                                                                         | Notes and Limitations                                                                                                                                                                                                                                                                         |
-| -------------------- | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Component View Tests | White box testing | UI integration tests | - When following a full user flow is not needed <br> - When we want to test individual component and view rendering | - Does **not** require builds <br> - Low cost (faster runtime) <br> - Fast feedback loop                                                                                                                                                                                                      |
-| Detox                | Grey box testing  | E2E                  | - When we want to test user flows <br> - Run on PR basis                                                            | - High cost <br> - Low tool (detox) maintenance <br> - JS/TS based test files <br> - Handles deeply nested elements better (easier to find and locate elements) <br> - Uses emulators/simulators <br> - Allows runs with local Builds <br> - Can't be used with real devices (cloud included) |
-| Maestro              | Black box testing | TBD                  | TBD                                                                                                                 | - **Still in experimentation phase (!)** <br> - Struggles with deeply nested elements <br> - YAML based spec files <br> - Allows runs with local builds <br> - Can run on real devices (cloud) but can't be used with real devices                                                            |
-| Appium               | Black box testing | Performance tests    | - When we want to test user flows as a end user <br> - When we want to measure and report performance stats         | - High cost <br> - Struggles with deeply nested <br> - Uses a Cloud provider for real device testing elements <br> - Does not allow runs with local builds                                                                                                                                    |
+| Tool                      | Type              | Current use          | When to use                                                                                                         | Notes and Limitations                                                                                                                                                                                                              |
+| ------------------------- | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component View Tests      | White box testing | UI integration tests | - When following a full user flow is not needed <br> - When we want to test individual component and view rendering | - Does **not** require builds <br> - Low cost (faster runtime) <br> - Fast feedback loop                                                                                                                                           |
+| Appium smoke (Playwright) | Black box testing | **Current E2E**      | - New smoke / user-flow coverage <br> - PR and CI smoke (`tests/smoke-appium/`)                                     | - Uses `main-e2e` builds and Playwright fixture <br> - See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md) <br> - Page objects use `Gestures` / `Assertions` / `Matchers` facades                            |
+| Detox                     | Grey box testing  | Legacy E2E           | - Maintaining existing `tests/smoke/` specs only — **do not add new Detox coverage**                                | - High cost <br> - JS/TS based test files <br> - Uses emulators/simulators <br> - Being phased out in favor of Appium smoke                                                                                                        |
+| Maestro                   | Black box testing | TBD                  | TBD                                                                                                                 | - **Still in experimentation phase (!)** <br> - Struggles with deeply nested elements <br> - YAML based spec files <br> - Allows runs with local builds <br> - Can run on real devices (cloud) but can't be used with real devices |
+| Appium (WDIO / cloud)     | Black box testing | Performance tests    | - When we want to test user flows as an end user <br> - When we want to measure and report performance stats        | - High cost <br> - Struggles with deeply nested elements <br> - Uses a cloud provider for real device testing <br> - Separate from Appium smoke / Playwright path                                                                  |

@@ -1,10 +1,11 @@
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -36,6 +37,7 @@ import {
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
+import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 
 const showPendingToast = ({
   showToast,
@@ -60,12 +62,10 @@ const showPendingToast = ({
     iconName: IconName.Loading,
     hasNoTimeout: false,
     startAccessory: (
-      <Box twClassName="pr-3">
-        <Spinner
-          color={ReactNativeDsIconColor.PrimaryDefault}
-          spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-        />
-      </Box>
+      <Spinner
+        color={ReactNativeDsIconColor.IconDefault}
+        spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+      />
     ),
     ...(trackLabel && onTrack
       ? {
@@ -109,7 +109,6 @@ const showErrorToast = ({
   description,
   retryLabel,
   onRetry,
-  backgroundColor,
   iconColor,
 }: {
   showToast: ToastRef['showToast'];
@@ -117,7 +116,6 @@ const showErrorToast = ({
   description: string;
   retryLabel?: string;
   onRetry?: () => void;
-  backgroundColor: string;
   iconColor: string;
 }) =>
   showToast({
@@ -129,7 +127,6 @@ const showErrorToast = ({
     ],
     iconName: IconName.Error,
     iconColor,
-    backgroundColor,
     hasNoTimeout: false,
     ...(retryLabel && onRetry
       ? {
@@ -146,12 +143,15 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const { deposit } = usePredictDeposit();
   const { claim } = usePredictClaim();
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useAppThemeFromContext();
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
   const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
@@ -202,6 +202,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               navigateToTransactionDetails(navigation, {
                 transactionId,
                 initialTypeFilter: ActivityTypeFilter.Predictions,
+                isTransactionsRedesignEnabled,
+                ...(depositMeta?.chainId
+                  ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
+                  : {}),
               });
             },
           });
@@ -240,7 +244,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -305,7 +308,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
         }
@@ -359,7 +361,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -385,7 +386,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         if (status === 'confirmed') {
           showToast({
             variant: ToastVariants.Icon,
-            iconName: IconName.Check,
+            iconName: IconName.Confirmation,
             iconColor: theme.colors.success.default,
             labelOptions: [
               {
@@ -410,7 +411,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showToast,
             title: strings('predict.order.prediction_failed'),
             description: strings('predict.order.order_failed_generic'),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -421,10 +421,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       bottomSheetEnabled,
       claim,
       deposit,
+      isTransactionsRedesignEnabled,
       navigation,
       normalizedSelectedAddress,
       queryClient,
-      theme.colors.accent04.normal,
       theme.colors.error.default,
       theme.colors.primary.default,
       theme.colors.success.default,

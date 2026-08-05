@@ -2,16 +2,23 @@
 import fs from 'fs';
 import path from 'path';
 import { createLogger } from '../../framework/logger';
-import type { ReportData, MetricsEntry, FailedTestsByTeam } from '../types';
+import type {
+  ReportData,
+  MetricsEntry,
+  FailedTestsByTeam,
+  AppProfilingArtifact,
+} from '../types';
 
 const logger = createLogger({ name: 'JsonReportGenerator' });
 
 /**
- * Generates JSON device reports and failed-tests-by-team report.
+ * Generates JSON device reports, per-scenario app profiling artifacts,
+ * and failed-tests-by-team report.
  */
 export class JsonReportGenerator {
   /**
-   * Generate device-specific JSON files and failed-tests-by-team.json.
+   * Generate device-specific JSON files, per-scenario app profiling files,
+   * and failed-tests-by-team.json.
    * Returns an array of file paths that were written.
    */
   generate(reportData: ReportData, reportsDir: string): string[] {
@@ -24,6 +31,13 @@ export class JsonReportGenerator {
     );
     writtenFiles.push(...deviceFiles);
 
+    // Generate one app-profiling file per scenario (profiling + API calls)
+    const profilingFiles = this.generateAppProfilingReports(
+      reportData.metrics,
+      reportsDir,
+    );
+    writtenFiles.push(...profilingFiles);
+
     // Generate failed-tests-by-team report
     const failedTestsFile = this.generateFailedTestsByTeamReport(
       reportData.failedTestsByTeam,
@@ -31,6 +45,82 @@ export class JsonReportGenerator {
     );
     if (failedTestsFile) {
       writtenFiles.push(failedTestsFile);
+    }
+
+    return writtenFiles;
+  }
+
+  /**
+   * Sanitize a string for use in artifact filenames.
+   */
+  private sanitizeFileSegment(value: string, maxLength: number): string {
+    return value.replace(/[^a-zA-Z0-9]/g, '_').substring(0, maxLength);
+  }
+
+  /**
+   * Write one JSON file per scenario containing app profiling data and API calls.
+   * Files land under `reports/app-profiling/` so CI artifacts include them
+   * alongside the existing HTML/CSV/metrics reports.
+   */
+  private generateAppProfilingReports(
+    metrics: MetricsEntry[],
+    reportsDir: string,
+  ): string[] {
+    const writtenFiles: string[] = [];
+    const profilingDir = path.join(reportsDir, 'app-profiling');
+
+    if (!fs.existsSync(profilingDir)) {
+      fs.mkdirSync(profilingDir, { recursive: true });
+    }
+
+    const usedFileNames = new Map<string, number>();
+
+    metrics.forEach((metric) => {
+      const hasProfiling =
+        metric.profilingData != null || metric.profilingSummary != null;
+      const hasApiCalls =
+        metric.apiCalls != null || metric.apiCallsError != null;
+
+      // Skip scenarios that never received BrowserStack enrichment data
+      if (!hasProfiling && !hasApiCalls) {
+        return;
+      }
+
+      const safeTestName = this.sanitizeFileSegment(metric.testName, 60);
+      const safeDeviceName = this.sanitizeFileSegment(metric.device.name, 40);
+      const projectSuffix = metric.projectName
+        ? `-${this.sanitizeFileSegment(metric.projectName, 40)}`
+        : '';
+
+      let baseName = `app-profiling-${safeTestName}-${safeDeviceName}-${metric.device.osVersion}${projectSuffix}`;
+      const collisionCount = usedFileNames.get(baseName) ?? 0;
+      usedFileNames.set(baseName, collisionCount + 1);
+      if (collisionCount > 0) {
+        baseName = `${baseName}-${collisionCount + 1}`;
+      }
+
+      const profilingPath = path.join(profilingDir, `${baseName}.json`);
+      const artifact: AppProfilingArtifact = {
+        testName: metric.testName,
+        projectName: metric.projectName ?? null,
+        sessionId: metric.sessionId ?? null,
+        device: metric.device,
+        timestamp: metric.timestamp ?? new Date().toISOString(),
+        profilingSummary: metric.profilingSummary ?? null,
+        profilingData: metric.profilingData ?? null,
+        apiCalls: metric.apiCalls ?? null,
+        apiCallsError: metric.apiCallsError ?? null,
+      };
+
+      fs.writeFileSync(profilingPath, JSON.stringify(artifact, null, 2));
+      logger.info(`App profiling report saved: ${profilingPath}`);
+      writtenFiles.push(profilingPath);
+    });
+
+    if (writtenFiles.length > 0) {
+      logger.info(
+        `Wrote ${writtenFiles.length} per-scenario app profiling artifact(s) to ${profilingDir}`,
+      );
     }
 
     return writtenFiles;

@@ -15,6 +15,7 @@ import {
   truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
+  formatProOrderCardTimestamp,
   formatDateSection,
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
@@ -1061,6 +1062,20 @@ describe('formatUtils', () => {
       expect(formatTransactionDate(zeroTimestamp)).toMatch(
         /January 1, 1970 at \d{1,2}:\d{2} (AM|PM)/,
       );
+    });
+  });
+
+  describe('formatProOrderCardTimestamp', () => {
+    it('formats order placement time in Figma pro-card style', () => {
+      // Local timezone-aware: construct from Date parts so the assertion is stable.
+      const date = new Date(2026, 3, 6, 19, 13, 54);
+      expect(formatProOrderCardTimestamp(date.getTime())).toBe(
+        '06 Apr 26 • 19:13:54',
+      );
+    });
+
+    it('returns empty string for invalid timestamps', () => {
+      expect(formatProOrderCardTimestamp(Number.NaN)).toBe('');
     });
   });
 

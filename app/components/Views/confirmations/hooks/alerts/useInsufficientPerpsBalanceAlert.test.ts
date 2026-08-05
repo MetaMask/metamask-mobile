@@ -24,6 +24,8 @@ jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useTokenAmount');
 jest.mock('../pay/useTransactionPayData');
 
+const TRANSACTION_ID_MOCK = 'test-tx-1';
+
 const mockPerpsState = (withdrawableBalance: string | null = '45.31') => ({
   engine: {
     backgroundState: {
@@ -60,6 +62,7 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     jest.clearAllMocks();
 
     useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
       txParams: {
         from: '0x0',
       },
@@ -223,7 +226,7 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert when amount + fees exceed withdrawable balance', () => {
+  it('does not alert for standard withdrawal when amount + fees exceed balance', () => {
     useTokenAmountMock.mockReturnValue({
       amountPrecise: '40',
     } as ReturnType<typeof useTokenAmount>);
@@ -243,7 +246,6 @@ describe('useInsufficientPerpsBalanceAlert', () => {
 
     const { result } = runHook();
 
-    expect(result.current).toHaveLength(1);
-    expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
+    expect(result.current).toStrictEqual([]);
   });
 });

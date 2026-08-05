@@ -13,6 +13,7 @@ import {
   IconColor,
   IconName,
   ListItemSelect,
+  ListItemVariant,
   SegmentedControl,
   SelectButton,
   SelectButtonVariant,
@@ -22,6 +23,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -99,7 +102,7 @@ import type {
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: OrderBookRouteParams }, 'params'>>();
   const { symbol, marketData: routeMarketData } = route.params || {};
@@ -804,6 +807,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <ListItemSelect
               key={value}
               title={formatGroupingLabel(value)}
+              variant={ListItemVariant.OneLine}
               isSelected={currentGrouping === value}
               showSelectedIcon
               onPress={() => handleGroupingSelect(value)}

@@ -132,7 +132,7 @@ function writeBuildEnvJson(buildName) {
     'SOCIAL_API_URL',
     'BAANX_API_URL',
     'RAMP_DEV_BUILD',
-    'BRIDGE_USE_DEV_APIS',
+    'BRIDGE_USE_CUSTOM_BASE_URL',
     'RAMP_INTERNAL_BUILD',
   ];
 

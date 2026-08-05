@@ -27,7 +27,8 @@ export enum BOTTOM_SHEET_NAMES {
   CARD_AUTH_SHEET = 'card_auth_sheet',
   CARD_LINK_SHEET = 'card_link_sheet',
   MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
-  MONEY_EARNINGS_INFO_SHEET = 'money_earnings_info_sheet',
+  MONEY_MONTHLY_EARNINGS_INFO_SHEET = 'money_monthly_earnings_info_sheet',
+  MONEY_LIFETIME_EARNINGS_INFO_SHEET = 'money_lifetime_earnings_info_sheet',
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
@@ -59,10 +60,8 @@ export enum MONEY_SURFACE_TYPES {
 
 export enum COMPONENT_NAMES {
   // — Section Headers —
-  MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
-  MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
+  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
   MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
-  MONEY_CARD_SECTION_HEADER = 'money_card_section_header',
 
   // — Onboarding —
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
@@ -70,7 +69,7 @@ export enum COMPONENT_NAMES {
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 
   // — Earnings —
-  MONEY_ESTIMATED_EARNINGS_SECTION = 'money_estimated_earnings_section',
+  MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
@@ -110,11 +109,13 @@ export enum COMPONENT_NAMES {
   MONEY_MUSD_TOKEN_SECTION = 'money_musd_token_row_section',
   MONEY_BALANCE_CARD = 'money_balance_card',
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',
+  MONEY_BALANCE_PROJECTION = 'money_balance_projection',
   MONEY_HOME_TAB = 'money_home_tab',
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
-  MONEY_FOOTER = 'money_footer',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
   MONEY_TOKEN_LIST_ITEM_CTA = 'money_token_list_item_cta',
+  MONEY_ASSET_OVERVIEW_FOOTER_CTA = 'money_asset_overview_footer_cta',
+  MONEY_ASSET_OVERVIEW_BALANCE_CTA = 'money_asset_overview_balance_cta',
   MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
 
@@ -148,7 +149,8 @@ export enum MONEY_BUTTON_TYPES {
 
 export enum MONEY_TOOLTIP_NAMES {
   MONEY_BALANCE = 'money_balance',
-  ESTIMATED_EARNINGS = 'estimated_earnings',
+  MONTHLY_EARNINGS = 'monthly_earnings',
+  LIFETIME_EARNINGS = 'lifetime_earnings',
   EARN_ON_YOUR_CRYPTO = 'earn_on_your_crypto',
   APY = 'apy',
 }

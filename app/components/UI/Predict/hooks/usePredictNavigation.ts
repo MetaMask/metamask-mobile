@@ -1,4 +1,5 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useCallback } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -17,7 +18,7 @@ interface NavigateToMarketDetailsOptions {
 }
 
 export const usePredictNavigation = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const navigateToBuyPreview = useCallback(
     (

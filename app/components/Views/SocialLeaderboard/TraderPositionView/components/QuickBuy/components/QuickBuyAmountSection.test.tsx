@@ -1,6 +1,37 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
-import QuickBuyAmountSection from './QuickBuyAmountSection';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import QuickBuyAmountSection, {
+  formatAmountDigitsForDisplay,
+} from './QuickBuyAmountSection';
+
+jest.mock('../../../../../../UI/Bridge/utils/currencyUtils', () => ({
+  formatCurrency: jest.fn((amount: number, currency: string) => {
+    if (currency === 'EUR') {
+      return `${amount} €`;
+    }
+    return `$${amount}`;
+  }),
+  getCurrencySymbol: jest.fn((currency: string) => {
+    if (currency === 'EUR') {
+      return '€';
+    }
+    return '$';
+  }),
+}));
+
+describe('formatAmountDigitsForDisplay', () => {
+  it('keeps dot decimals when the currency uses a dot separator', () => {
+    expect(formatAmountDigitsForDisplay('12.5', '.')).toBe('12.5');
+  });
+
+  it('swaps to a locale decimal separator while editing', () => {
+    expect(formatAmountDigitsForDisplay('12.5', ',')).toBe('12,5');
+  });
+
+  it('falls back to 0 for an empty amount', () => {
+    expect(formatAmountDigitsForDisplay('', ',')).toBe('0');
+  });
+});
 
 describe('QuickBuyAmountSection', () => {
   const baseProps = {
@@ -36,5 +67,82 @@ describe('QuickBuyAmountSection', () => {
       screen.queryByTestId('quick-buy-amount-loading-icon'),
     ).not.toBeOnTheScreen();
     expect(screen.queryByText('56.52037 GIGA')).not.toBeOnTheScreen();
+  });
+
+  it('is not pressable when no onAmountAreaPress is provided (control)', () => {
+    render(<QuickBuyAmountSection {...baseProps} />);
+
+    expect(
+      screen.queryByTestId('quick-buy-amount-area-pressable'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens the keypad when the headline is tapped (treatment)', () => {
+    const onAmountAreaPress = jest.fn();
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        onAmountAreaPress={onAmountAreaPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('quick-buy-amount-area-pressable'));
+
+    expect(onAmountAreaPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('places the caret after the amount digits for a prefix currency', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        showCursor
+        fiatAmount="12.5"
+        currency="USD"
+      />,
+    );
+
+    expect(screen.getByText('$')).toBeOnTheScreen();
+    expect(screen.getByText('12.5')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+  });
+
+  it('places the caret before a suffix currency and uses its decimal separator', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        showCursor
+        fiatAmount="12.5"
+        currency="EUR"
+        fiatAmountLabel="12,5 €"
+      />,
+    );
+
+    expect(screen.getByText('12,5')).toBeOnTheScreen();
+    expect(screen.getByText(' €')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+  });
+
+  it('places the caret before the token symbol for unpriced sources', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        showCursor
+        isUnpricedSource
+        sourceCryptoAmount="1.25"
+        sourceSymbol="CAKE"
+      />,
+    );
+
+    expect(screen.getByText('1.25')).toBeOnTheScreen();
+    expect(screen.getByText(' CAKE')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-amount-cursor')).toBeOnTheScreen();
+  });
+
+  it('hides the cursor when showCursor is false', () => {
+    render(<QuickBuyAmountSection {...baseProps} />);
+
+    expect(
+      screen.queryByTestId('quick-buy-amount-cursor'),
+    ).not.toBeOnTheScreen();
   });
 });
