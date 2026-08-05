@@ -10,7 +10,6 @@ import {
 import { Json } from '@metamask/utils';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import PlaywrightAssertions from './PlaywrightAssertions.ts';
-import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -30,11 +29,6 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      // Switch context BEFORE resolving the matcher so its findElement is
-      // minted against UiAutomator2, not the webview automator. Passing a
-      // thunk defers the find until after the switch, avoiding a cross-engine
-      // request-shape error on the confirmation screen post webview sign.
-      await PlaywrightContextHelpers.switchToNativeContext();
       const resolved = typeof elem === 'function' ? elem() : elem;
       return PlaywrightAssertions.expectElementToBeVisible(
         asPlaywrightElement(resolved as EncapsulatedElementType),
@@ -72,6 +66,33 @@ export default class Assertions {
   }
 
   /**
+   * Assert element exists in the hierarchy (may not report as displayed).
+   * Use for BottomSheet / confirmation children under Appium where
+   * isDisplayed=false while the UI is on screen.
+   */
+  static async expectElementToExist(
+    elem:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement
+      | EncapsulatedElementType
+      | (() => EncapsulatedElementType),
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const resolved = typeof elem === 'function' ? elem() : elem;
+      return PlaywrightAssertions.expectElementToExist(
+        asPlaywrightElement(resolved as EncapsulatedElementType),
+        options,
+      );
+    }
+
+    // Detox: existence is already how iOS visibility is asserted.
+    return this.expectElementToBeVisible(elem, options);
+  }
+
+  /**
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
@@ -85,7 +106,6 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      await PlaywrightContextHelpers.switchToNativeContext();
       const resolved = typeof elem === 'function' ? elem() : elem;
       return PlaywrightAssertions.expectElementToNotBeVisible(
         asPlaywrightElement(resolved as EncapsulatedElementType),
@@ -230,7 +250,6 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      await PlaywrightContextHelpers.switchToNativeContext();
       return PlaywrightAssertions.expectElementToHaveLabel(
         asPlaywrightElement(elem),
         label,
@@ -796,7 +815,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if element is disabled
-   * @deprecated Use Utilities.waitForElementToBeEnabled() with negated logic instead
+   * @deprecated Use Utilities.waitForElementToBeDisabled() instead for better retry handling
    */
   static async checkIfDisabled(
     elem: EncapsulatedElementType,

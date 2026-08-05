@@ -5,6 +5,7 @@ import {
 import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import { EncapsulatedElementType } from '../../framework';
 
@@ -61,7 +62,7 @@ class NetworkListModal {
     network: string,
     custom = false,
   ): Promise<EncapsulatedElementType> {
-    if (device.getPlatform() === 'android' || !custom) {
+    if ((await PlatformDetector.isAndroid()) || !custom) {
       return Matchers.getElementByText(network);
     }
 
@@ -81,8 +82,8 @@ class NetworkListModal {
   }
 
   async changeNetworkTo(networkName: string, custom = false): Promise<void> {
-    const elem = this.getCustomNetwork(networkName, custom);
-    await Gestures.waitAndTap(elem);
+    const elem = await this.getCustomNetwork(networkName, custom);
+    await Gestures.waitAndTap(elem as unknown as EncapsulatedElementType);
   }
 
   /**

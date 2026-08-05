@@ -5,14 +5,17 @@ import Matchers from '../../framework/Matchers';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
-import { Assertions, TapOptions, Utilities } from '../../framework';
+import { Assertions, TapOptions, Utilities, sleep } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { getDriver } from '../../framework/PlaywrightUtilities';
+import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -200,12 +203,6 @@ class TestDApp {
     );
   }
 
-  get requestPermissions(): WebElement {
-    return getTestDappWebElementById(
-      TestDappSelectorsWebIDs.REQUEST_PERMISSIONS,
-    );
-  }
-
   get connectButtonText(): WebElement {
     return Matchers.getElementByText(CONNECT_BUTTON_TEXT);
   }
@@ -304,29 +301,49 @@ class TestDApp {
   }
 
   async getConnectedAccounts(): Promise<string> {
-    const webview = Matchers.getWebViewByID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    return this.readTestDappTextContentById(
+      TestDappSelectorsWebIDs.ACCOUNTS_TEXT,
     );
-    const accountsElement = webview.element(by.web.id(`accounts`));
-
-    const accountsText = await accountsElement
-      .runScript('(el) => el.textContent')
-      .catch(() => '');
-
-    return typeof accountsText === 'string' ? accountsText : '';
   }
 
   async getConnectedChainId(): Promise<string> {
-    const webview = Matchers.getWebViewByID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    return this.readTestDappTextContentById(
+      TestDappSelectorsWebIDs.CHAIN_ID_TEXT,
     );
-    const chainIdElement = webview.element(by.web.id(`chainId`));
+  }
 
-    const chainIdText = await chainIdElement
-      .runScript('(el) => el.textContent')
-      .catch(() => '');
-
-    return typeof chainIdText === 'string' ? chainIdText : '';
+  /**
+   * Wait until the test-dapp element has non-empty textContent.
+   * Appium: poll via string-form `driver.execute` (no findElement).
+   */
+  private async readTestDappTextContentById(webId: string): Promise<string> {
+    return Utilities.executeWithRetry(
+      async () => {
+        let text = '';
+        await PlaywrightWebMatchers.withWebViewAction(
+          testDappPageUrl(),
+          async () => {
+            // String script — avoids WDIO function polyfill / WDA serialization.
+            const result = await getDriver().execute(
+              `return (document.getElementById(${JSON.stringify(
+                webId,
+              )})?.textContent || '').trim();`,
+            );
+            text = typeof result === 'string' ? result : '';
+          },
+        );
+        if (!text) {
+          throw new Error(
+            `Test dapp #${webId} text is empty (provider may not have injected yet)`,
+          );
+        }
+        return text;
+      },
+      {
+        timeout: 30000,
+        description: `Poll test dapp #${webId} textContent via JS`,
+      },
+    );
   }
 
   async connect(): Promise<void> {
@@ -456,6 +473,68 @@ class TestDApp {
     });
   }
 
+  async tapDappConnectButton(timeoutMs = 15_000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastClickAt = 0;
+
+    while (Date.now() < deadline) {
+      if (Date.now() - lastClickAt >= 1_000) {
+        lastClickAt = Date.now();
+        await ChromeCdpHelpers.evaluateInWebView(
+          testDappPageUrl(),
+          `(() => {
+            const el = document.getElementById(${JSON.stringify(
+              TestDappSelectorsWebIDs.CONNECT_BUTTON,
+            )});
+            if (!el) return false;
+            el.click();
+            return true;
+          })()`,
+        );
+      }
+
+      try {
+        const connectSheetButton = await PlaywrightMatchers.getElementById(
+          ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
+        );
+        await connectSheetButton.unwrap().waitForDisplayed({ timeout: 500 });
+        return;
+      } catch {
+        // Connect sheet not up yet.
+      }
+
+      await sleep(300);
+    }
+
+    throw new Error(
+      `Timed out waiting for connect sheet after #${TestDappSelectorsWebIDs.CONNECT_BUTTON} click`,
+    );
+  }
+
+  async requestPermissions({
+    accounts,
+  }: { accounts?: string[] } = {}): Promise<void> {
+    const request = JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'wallet_requestPermissions',
+      params: [
+        {
+          eth_accounts: accounts
+            ? {
+                caveats: [
+                  { type: 'restrictReturnedAccounts', value: accounts },
+                ],
+              }
+            : {},
+        },
+      ],
+    });
+    await ChromeCdpHelpers.evaluateInWebView(
+      testDappPageUrl(),
+      `window.ethereum.request(${request})`,
+    );
+  }
+
   async tapApproveButton(): Promise<void> {
     await Gestures.waitAndTap(this.approveButtonText, {
       elemDescription: 'Approve Button',
@@ -529,12 +608,6 @@ class TestDApp {
   async tapRevokeAccountPermission(): Promise<void> {
     await this.tapButton(this.revokeAccountPermission, {
       elemDescription: 'Revoke Account Permission Button',
-    });
-  }
-
-  async tapRequestPermissions(): Promise<void> {
-    await this.tapButton(this.requestPermissions, {
-      elemDescription: 'Request Permissions Button',
     });
   }
 

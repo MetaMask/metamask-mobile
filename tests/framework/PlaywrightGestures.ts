@@ -322,7 +322,11 @@ export default class PlaywrightGestures {
   }
 
   /**
-   * Long press an element
+   * Long press an element via W3C pointer actions.
+   *
+   * Avoid `touchAction` — some WDIO/Appium combinations still route that call
+   * through the legacy `touch/perform` endpoint, which can fail for native
+   * mobile sessions (GET with body).
    */
   @boxedStep
   static async longPress(
@@ -330,20 +334,24 @@ export default class PlaywrightGestures {
     duration = 1000,
   ): Promise<void> {
     await assertResolvedElementId(elem, 'longPress', 'target');
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
-
-    const x = location.x + size.width / 2;
-    const y = location.y + size.height / 2;
+    const x = Math.floor(location.x + size.width / 2);
+    const y = Math.floor(location.y + size.height / 2);
 
     await debugElementAction(logger, 'Long pressing element', elem);
-    await elem
-      .unwrap()
-      .touchAction([
-        { action: 'press', x, y },
-        { action: 'wait', ms: duration },
-        'release',
-      ]);
+    await drv
+      .action('pointer', {
+        parameters: { pointerType: 'touch' },
+      })
+      .move({ x, y })
+      .down()
+      .pause(duration)
+      .up()
+      .perform();
   }
 
   /**
@@ -555,6 +563,79 @@ export default class PlaywrightGestures {
 
     logger.debug(`Backgrounding app for ${seconds}s`);
     await drv.execute('mobile: backgroundApp', { seconds });
+  }
+
+  /**
+   * Tap a single iOS soft-keyboard key by accessibility id (e.g. "Delete", "1").
+   */
+  @boxedStep
+  static async tapIosKeyboardKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const key = await drv.$(`~${keyName}`);
+    await key.waitForExist({ timeout: 5000 });
+    await key.click();
+  }
+
+  /**
+   * Type into the focused iOS soft keyboard by tapping keys.
+   * Supports lowercase letters, digits 0-9, '.', and space only.
+   *
+   * @param options.numberPad - When true, skip QWERTY `~more` switching
+   * (digits are already on the pad). Use for `keyboardType="numeric"` fields.
+   */
+  @boxedStep
+  static async typeViaIosKeyboard(
+    text: string,
+    options?: { numberPad?: boolean },
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    if (options?.numberPad) {
+      for (const ch of text) {
+        await this.tapIosKeyboardKey(ch);
+      }
+      return;
+    }
+
+    await drv
+      .$('//XCUIElementTypeKeyboard')
+      .waitForDisplayed({ timeout: 10000 });
+
+    let onNumbers = false;
+    const ensureLetters = async (): Promise<void> => {
+      if (onNumbers) {
+        await this.tapIosKeyboardKey('more');
+        onNumbers = false;
+      }
+    };
+    const ensureNumbers = async (): Promise<void> => {
+      if (!onNumbers) {
+        await this.tapIosKeyboardKey('more');
+        onNumbers = true;
+      }
+    };
+
+    for (const ch of text) {
+      if (ch === '.' || (ch >= '0' && ch <= '9')) {
+        await ensureNumbers();
+        await this.tapIosKeyboardKey(ch);
+      } else if (ch === ' ') {
+        await ensureLetters();
+        await this.tapIosKeyboardKey('space');
+      } else {
+        const letter = ch.toLowerCase();
+        if (letter < 'a' || letter > 'z') {
+          throw new Error(
+            `typeViaIosKeyboard: unsupported character "${ch}". Only letters, digits, "." and space are supported.`,
+          );
+        }
+        await ensureLetters();
+        await this.tapIosKeyboardKey(letter);
+      }
+    }
   }
 
   /**

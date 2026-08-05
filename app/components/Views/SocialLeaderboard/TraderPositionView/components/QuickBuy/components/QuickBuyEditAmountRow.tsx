@@ -1,6 +1,8 @@
 import {
   Box,
   BoxFlexDirection,
+  FontWeight,
+  Label,
   Text,
   TextColor,
   TextVariant,
@@ -11,8 +13,6 @@ import type {
   QuickBuyEditValidationContext,
 } from '../utils/validateQuickBuyEditAmounts';
 import QuickBuyEditAmountField, {
-  formatBuyEditDisplayValue,
-  formatSellEditDisplayValue,
   getQuickBuyEditFieldErrorMessage,
 } from './QuickBuyEditAmountField';
 
@@ -31,6 +31,11 @@ interface QuickBuyEditAmountRowProps {
   validationContext: QuickBuyEditValidationContext;
   onFieldPress: (index: number) => void;
 }
+
+const FIELD_ROWS = [
+  [0, 1],
+  [2, 3],
+] as const;
 
 const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
   label,
@@ -55,30 +60,30 @@ const QuickBuyEditAmountRow: React.FC<QuickBuyEditAmountRowProps> = ({
 
   return (
     <Box twClassName="gap-2 py-1">
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-        {label}
-      </Text>
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
-        {values.map((value, index) => {
-          const errorKey = errors[index];
-          const displayValue =
-            kind === 'buy'
-              ? formatBuyEditDisplayValue(value, currentCurrency)
-              : formatSellEditDisplayValue(value);
-
-          return (
-            <QuickBuyEditAmountField
-              key={`${kind}-${index}`}
-              displayValue={displayValue}
-              isError={errorKey !== null}
-              isFocused={
-                focusedField?.kind === kind && focusedField.index === index
-              }
-              testID={`quick-buy-edit-${kind}-field-${index}`}
-              onPress={() => onFieldPress(index)}
-            />
-          );
-        })}
+      <Label fontWeight={FontWeight.Medium}>{label}</Label>
+      <Box twClassName="gap-4">
+        {FIELD_ROWS.map((rowIndexes) => (
+          <Box
+            key={`${kind}-row-${rowIndexes[0]}`}
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="gap-4"
+          >
+            {rowIndexes.map((index) => (
+              <QuickBuyEditAmountField
+                key={`${kind}-${index}`}
+                value={values[index] ?? ''}
+                kind={kind}
+                currency={kind === 'buy' ? currentCurrency : undefined}
+                isError={errors[index] !== null}
+                isFocused={
+                  focusedField?.kind === kind && focusedField.index === index
+                }
+                testID={`quick-buy-edit-${kind}-field-${index}`}
+                onPress={() => onFieldPress(index)}
+              />
+            ))}
+          </Box>
+        ))}
       </Box>
       {rowErrorMessage ? (
         <Text

@@ -28,6 +28,24 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const MOCK_TILT_ANIMATION_TEST_ID = 'mock-money-card-tilt-animation';
+const mockTiltAnimationCalls: { isMetalCard: boolean }[] = [];
+
+// Animated Rive thumbnail pulls in redux + device sensors; not exercised here.
+jest.mock('../MoneyCardTiltAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View: RNView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ isMetalCard }: { isMetalCard: boolean }) => {
+      mockTiltAnimationCalls.push({ isMetalCard });
+      return ReactActual.createElement(RNView, {
+        testID: MOCK_TILT_ANIMATION_TEST_ID,
+      });
+    },
+  };
+});
+
 describe('MoneyMetaMaskCard', () => {
   const analyticsProps = {
     analyticsScreen: CardScreens.MONEY_HOME,
@@ -38,6 +56,7 @@ describe('MoneyMetaMaskCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTiltAnimationCalls.length = 0;
   });
 
   it('renders the section title and subtitle', () => {
@@ -529,6 +548,38 @@ describe('MoneyMetaMaskCard', () => {
     });
   });
 
+  describe('mode="loading"', () => {
+    it('renders the MetaMask Card title and a loading spinner', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyMetaMaskCard mode="loading" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LOADING_SPINNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render link, manage, verifying, or upsell content', () => {
+      const { queryByTestId } = render(
+        <MoneyMetaMaskCard mode="loading" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('upsell mode (default)', () => {
     it('renders only the virtual card row regardless of showMetalCard', () => {
       const { getByTestId, queryByTestId } = render(
@@ -564,6 +615,72 @@ describe('MoneyMetaMaskCard', () => {
       expect(
         queryByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('card thumbnail', () => {
+    it('renders the tilt animation thumbnail with the virtual variant in upsell mode', () => {
+      const { getByTestId } = render(
+        <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
+      );
+
+      expect(getByTestId(MOCK_TILT_ANIMATION_TEST_ID)).toBeOnTheScreen();
+      expect(mockTiltAnimationCalls).toEqual([{ isMetalCard: false }]);
+    });
+
+    it('keeps the virtual variant in upsell mode even when showMetalCard is true', () => {
+      render(<MoneyMetaMaskCard onGetNowPress={jest.fn()} showMetalCard />);
+
+      expect(mockTiltAnimationCalls).toEqual([{ isMetalCard: false }]);
+    });
+
+    it('renders the tilt animation thumbnail with the metal variant in manage mode when showMetalCard is true', () => {
+      const { getByTestId } = render(
+        <MoneyMetaMaskCard
+          mode="manage"
+          onGetNowPress={jest.fn()}
+          onManagePress={jest.fn()}
+          cardBalance="$0.00"
+          showMetalCard
+        />,
+      );
+
+      expect(getByTestId(MOCK_TILT_ANIMATION_TEST_ID)).toBeOnTheScreen();
+      expect(mockTiltAnimationCalls).toEqual([{ isMetalCard: true }]);
+    });
+
+    it('renders the tilt animation thumbnail with the virtual variant in manage mode when showMetalCard is false', () => {
+      render(
+        <MoneyMetaMaskCard
+          mode="manage"
+          onGetNowPress={jest.fn()}
+          onManagePress={jest.fn()}
+          cardBalance="$0.00"
+          showMetalCard={false}
+        />,
+      );
+
+      expect(mockTiltAnimationCalls).toEqual([{ isMetalCard: false }]);
+    });
+
+    it('keeps the static card image in link mode and does not render the tilt animation', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MOCK_TILT_ANIMATION_TEST_ID)).toBeNull();
+      expect(mockTiltAnimationCalls).toEqual([]);
+    });
+
+    it('does not render the tilt animation in verifying mode', () => {
+      const { queryByTestId } = render(
+        <MoneyMetaMaskCard mode="verifying" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(queryByTestId(MOCK_TILT_ANIMATION_TEST_ID)).toBeNull();
     });
   });
 

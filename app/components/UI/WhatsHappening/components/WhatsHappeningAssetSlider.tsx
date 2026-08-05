@@ -45,7 +45,7 @@ const WhatsHappeningAssetSlider: React.FC<WhatsHappeningAssetSliderProps> = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('flex-row gap-2 mt-2')}
+      contentContainerStyle={tw.style('flex-row gap-2')}
       nestedScrollEnabled
     >
       {perpsAssets.map((asset, index) => (

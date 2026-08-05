@@ -2,12 +2,15 @@ import {
   Box,
   Text,
   TextColor,
+  TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Pressable } from 'react-native';
-import { getCurrencySymbol } from '../../../../../../UI/Bridge/utils/currencyUtils';
+import {
+  formatCurrency,
+  getCurrencySymbol,
+} from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   getBuyAmountMaxValid,
@@ -15,8 +18,15 @@ import {
   type QuickBuyEditValidationContext,
 } from '../utils/validateQuickBuyEditAmounts';
 
+const ERROR_AMOUNT_CURRENCY_OPTIONS: Intl.NumberFormatOptions = {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+};
+
 interface QuickBuyEditAmountFieldProps {
-  displayValue: string;
+  value: string;
+  kind: 'buy' | 'sell';
+  currency?: string;
   isError: boolean;
   isFocused?: boolean;
   testID?: string;
@@ -24,36 +34,48 @@ interface QuickBuyEditAmountFieldProps {
 }
 
 const QuickBuyEditAmountField: React.FC<QuickBuyEditAmountFieldProps> = ({
-  displayValue,
+  value,
+  kind,
+  currency,
   isError,
   isFocused = false,
   testID,
   onPress,
 }) => {
-  const tw = useTailwind();
+  const displayValue = value || '0';
+  const currencySymbol =
+    kind === 'buy' && currency ? getCurrencySymbol(currency) : null;
 
   return (
     <Box twClassName="min-w-0 flex-1">
       <Pressable accessibilityRole="button" onPress={onPress} testID={testID}>
-        <Box
-          style={tw.style(
-            'items-center justify-center rounded-xl border bg-muted px-4 py-3',
-            isError
-              ? 'border-error-default'
-              : isFocused
-                ? 'border-default'
-                : 'border-muted',
-          )}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            twClassName="text-center"
-            numberOfLines={1}
-          >
-            {displayValue}
-          </Text>
-        </Box>
+        <TextField
+          value={displayValue}
+          isReadOnly
+          isError={isError}
+          pointerEvents="none"
+          startAccessory={
+            currencySymbol ? (
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+                {currencySymbol}
+              </Text>
+            ) : undefined
+          }
+          endAccessory={
+            kind === 'sell' ? (
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+                %
+              </Text>
+            ) : undefined
+          }
+          twClassName={
+            isFocused && !isError ? 'w-full border-default' : 'w-full'
+          }
+          inputProps={{
+            showSoftInputOnFocus: false,
+            caretHidden: true,
+          }}
+        />
       </Pressable>
     </Box>
   );
@@ -67,10 +89,15 @@ export function getQuickBuyEditFieldErrorMessage(
     return null;
   }
 
+  const currency = validationContext?.currency ?? 'USD';
+
   switch (error) {
     case 'buy_above_zero':
       return strings(
         'social_leaderboard.quick_buy.edit_quick_amounts_buy_above_zero',
+        {
+          min: formatCurrency(0, currency, ERROR_AMOUNT_CURRENCY_OPTIONS),
+        },
       );
     case 'buy_below_max': {
       const maxValid = validationContext
@@ -78,10 +105,16 @@ export function getQuickBuyEditFieldErrorMessage(
             validationContext.currency,
             validationContext.usdToCurrentCurrencyRate,
           )
-        : 9_999;
+        : 9_999_999;
       return strings(
         'social_leaderboard.quick_buy.edit_quick_amounts_buy_below_max',
-        { max: maxValid.toLocaleString('en-US') },
+        {
+          max: formatCurrency(
+            maxValid,
+            currency,
+            ERROR_AMOUNT_CURRENCY_OPTIONS,
+          ),
+        },
       );
     }
     case 'sell_above_zero':
@@ -95,23 +128,6 @@ export function getQuickBuyEditFieldErrorMessage(
     default:
       return null;
   }
-}
-
-export function formatBuyEditDisplayValue(
-  value: string,
-  currency: string,
-): string {
-  if (!value) {
-    return `${getCurrencySymbol(currency)}0`;
-  }
-  return `${getCurrencySymbol(currency)}${value}`;
-}
-
-export function formatSellEditDisplayValue(value: string): string {
-  if (!value) {
-    return '0%';
-  }
-  return `${value}%`;
 }
 
 export default QuickBuyEditAmountField;

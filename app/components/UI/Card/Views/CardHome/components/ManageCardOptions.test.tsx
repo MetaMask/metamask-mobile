@@ -41,6 +41,7 @@ const buildCapabilities = (
 const renderComponent = (
   capabilities: CardProviderCapabilities,
   cardDetailsVisible = false,
+  showUnlinkMoneyAccount = false,
 ) =>
   render(
     <ManageCardOptions
@@ -62,7 +63,7 @@ const renderComponent = (
       onViewPin={jest.fn()}
       onToggleFreeze={jest.fn()}
       onManageSpendingLimit={jest.fn()}
-      showUnlinkMoneyAccount={false}
+      showUnlinkMoneyAccount={showUnlinkMoneyAccount}
       onUnlinkMoneyAccount={jest.fn()}
       onOrderMetalCard={jest.fn()}
       isSpendingLimitActive
@@ -96,6 +97,22 @@ describe('ManageCardOptions funding-limit gating', () => {
     expect(
       queryByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
     ).toBeNull();
+  });
+
+  it('hides change asset when the Money Account unlink action is available', () => {
+    const { queryByTestId, getByTestId } = renderComponent(
+      buildCapabilities({ supportsFundingLimits: true }),
+      false,
+      true,
+    );
+
+    expect(queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON)).toBeNull();
+    expect(
+      getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
+    ).toBeOnTheScreen();
   });
 });
 

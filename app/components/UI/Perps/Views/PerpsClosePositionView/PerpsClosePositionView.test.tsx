@@ -85,10 +85,13 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 // Following best practice: "Use mocks only when necessary"
 jest.mock('../../../../Base/Keypad', () => 'Keypad');
 
-jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
-  __esModule: true,
-  default: 'PerpsSlider',
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    Slider: 'Slider',
+  };
+});
 
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple
 jest.mock('../../components/PerpsAmountDisplay');
@@ -1441,7 +1444,7 @@ describe('PerpsClosePositionView', () => {
         { state: STATE_MOCK },
         true,
       );
-      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
       const getConfirmButton = () =>
         getByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -1482,7 +1485,7 @@ describe('PerpsClosePositionView', () => {
         { state: STATE_MOCK },
         true,
       );
-      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
       // Act
       act(() => {
@@ -1521,7 +1524,7 @@ describe('PerpsClosePositionView', () => {
         { state: STATE_MOCK },
         true,
       );
-      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
       // Act
       act(() => {
@@ -1556,7 +1559,7 @@ describe('PerpsClosePositionView', () => {
         { state: STATE_MOCK },
         true,
       );
-      const getSlider = () => UNSAFE_getByType('PerpsSlider' as never);
+      const getSlider = () => UNSAFE_getByType('Slider' as never);
 
       // Act & Assert - isDraggingSlider is already false, so this is a no-op
       expect(() => {

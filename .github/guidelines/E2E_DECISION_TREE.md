@@ -61,7 +61,7 @@ Runs only when all of the following are true:
 
 ## (Exceptional) force Appium iOS smoke tests on PRs
 
-Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). To also run them on a PR, add the `run-appium-ios-tests` label. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
+Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). They also run automatically on a PR when shared smoke infra or Appium specs change (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, `tests/smoke-appium/**`). To force them on any other PR, add the `run-appium-ios-tests` label. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
 
 ## E2E flakiness detection in PRs
 
