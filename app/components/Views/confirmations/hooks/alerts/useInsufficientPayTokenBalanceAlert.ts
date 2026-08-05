@@ -168,14 +168,24 @@ export function useInsufficientPayTokenBalanceAlert({
   // from the same money account balance. The input-only check above may pass
   // while the total (input + fees) still exceeds the available balance.
   // Only checked once quotes have resolved (not during pending keyboard input).
+  // Skip for Max: atomic is cleared so the deposit amount is reduced to leave
+  // room for fees — amount+fees > balance is expected, not an error.
   const isInsufficientForMoneyAccountTotal = useMemo(
     () =>
       isMoneyPaymentOverride &&
+      !isMaxTransaction &&
       !isPostQuote &&
       !isPendingAlert &&
       totals?.total?.usd !== undefined &&
       new BigNumber(totals.total.usd).isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, isMoneyPaymentOverride, isPendingAlert, isPostQuote, totals],
+    [
+      balanceUsd,
+      isMaxTransaction,
+      isMoneyPaymentOverride,
+      isPendingAlert,
+      isPostQuote,
+      totals,
+    ],
   );
 
   // For post-quote flows, we still need to check if the user has enough native
