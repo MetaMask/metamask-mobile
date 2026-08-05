@@ -57,6 +57,9 @@ const COMPACT_NOTATION_DECIMALS = 1;
 /** Hyperliquid's absolute cap on perp price decimals (`MaxPriceDecimals`). */
 const MAX_PRICE_DECIMALS = 6;
 
+/** Gap between adjacent magnitude scales; also the mantissa's upper bound. */
+const SCALE_STEP = 1000;
+
 /**
  * Magnitude scales a ladder price can be shown in, largest first.
  */
@@ -68,11 +71,10 @@ const PRICE_SCALES = [
 ] as const;
 
 /**
- * Most decimals an abbreviated price may carry. Beyond this the suffix stops
- * buying any width back — "61.470K" is longer than "61,470" — so the ladder
- * stays unabbreviated instead.
+ * Most decimals an abbreviated price may carry. Past this the number reads as
+ * noise ("$3.4521K") whatever it saves, so the ladder stays unabbreviated.
  */
-const MAX_ABBREVIATED_PRICE_DECIMALS = 2;
+const MAX_ABBREVIATED_PRICE_DECIMALS = 3;
 
 /** Decimal places kept when rendering the spread as a percentage. */
 const SPREAD_PERCENT_DECIMALS = 3;
@@ -360,12 +362,17 @@ export interface OrderBookPriceFormat {
  * trailing-zero stripping caused: "$0.0021" between "$0.002099" and
  * "$0.002101".
  *
- * Magnitude is the largest K/M/B/T scale the mid price reaches that still shows
- * the grouping step within {@link MAX_ABBREVIATED_PRICE_DECIMALS}. Grouping by
- * 1,000 means the last three digits never change, so "$69,000" spends three
- * characters on padding where "$69K" says the same thing. Grouping by 10 needs
- * two decimals to keep the step visible ("$61.47K"), and grouping by 1 needs
- * three — longer than "$61,470", so that ladder stays unabbreviated.
+ * Magnitude is the one scale that leaves a mantissa in [1, 1000), so the suffix
+ * always states the true magnitude — never a smaller scale, which is how
+ * "$5,000K" (thousand separators inside an abbreviation) used to slip out. The
+ * abbreviation is then kept only when it is no longer than the plain form.
+ * Grouping by 1,000 means the last three digits never change, so "$69,000"
+ * spends three characters on padding where "$69K" says the same thing, and
+ * grouping by 10 needs two decimals to keep the step visible ("$61.47K"). The
+ * same grouping of 1,000 against a $5M mid needs three decimals to stay at M
+ * scale, which still beats "$5,000,000" and so renders "$5.000M"; against a
+ * $61,470 mid it would give "$61.470K", longer than "$61,470", so that ladder
+ * stays unabbreviated.
  *
  * The scale is resolved once from the mid price rather than per row, otherwise
  * levels either side of a boundary would render at different magnitudes.
@@ -386,28 +393,44 @@ export function getOrderBookPriceFormat(
     return null;
   }
 
-  if (typeof midPrice === 'number' && Number.isFinite(midPrice)) {
-    const magnitude = Math.abs(midPrice);
-    for (const scale of PRICE_SCALES) {
-      if (magnitude < scale.divisor) {
-        continue;
-      }
-      const decimals = countDecimalPlaces(grouping / scale.divisor);
-      if (decimals <= MAX_ABBREVIATED_PRICE_DECIMALS) {
-        return { divisor: scale.divisor, suffix: scale.suffix, decimals };
-      }
-    }
-  }
-
   const maxDecimals =
     typeof szDecimals === 'number' && Number.isFinite(szDecimals)
       ? Math.max(0, MAX_PRICE_DECIMALS - szDecimals)
       : MAX_PRICE_DECIMALS;
-  return {
+  const plain: OrderBookPriceFormat = {
     divisor: 1,
     suffix: '',
     decimals: Math.min(countDecimalPlaces(grouping), maxDecimals),
   };
+
+  if (typeof midPrice !== 'number' || !Number.isFinite(midPrice)) {
+    return plain;
+  }
+
+  const magnitude = Math.abs(midPrice);
+  const scale = PRICE_SCALES.find(
+    (candidate) =>
+      magnitude >= candidate.divisor &&
+      magnitude < candidate.divisor * SCALE_STEP,
+  );
+  if (!scale) {
+    return plain;
+  }
+
+  const decimals = countDecimalPlaces(grouping / scale.divisor);
+  if (decimals > MAX_ABBREVIATED_PRICE_DECIMALS) {
+    return plain;
+  }
+
+  const abbreviated: OrderBookPriceFormat = {
+    divisor: scale.divisor,
+    suffix: scale.suffix,
+    decimals,
+  };
+  const isWorthIt =
+    formatOrderBookPrice(midPrice, abbreviated).length <=
+    formatOrderBookPrice(midPrice, plain).length;
+  return isWorthIt ? abbreviated : plain;
 }
 
 /**

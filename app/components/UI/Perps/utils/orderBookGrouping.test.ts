@@ -507,12 +507,45 @@ describe('orderBookGrouping', () => {
       },
     );
 
+    it.each([
+      // [grouping, midPrice] — the default grouping at each of these mids.
+      [1000, 5000000],
+      [1000, 1250000],
+    ])(
+      'never drops to a smaller scale than the mid price warrants (grouping %p, mid %p)',
+      (grouping, midPrice) => {
+        // Falling through from M to K produced "$5,000K": thousand separators
+        // inside an abbreviation, and a suffix understating the magnitude.
+        const format = getOrderBookPriceFormat(grouping, midPrice, 2);
+
+        expect(format?.suffix).toBe('M');
+        expect(formatOrderBookPrice(midPrice, format)).not.toContain(',');
+      },
+    );
+
+    it('spends a third decimal when it keeps the honest scale and still saves width', () => {
+      expect(getOrderBookPriceFormat(1000, 5000000, 2)).toEqual({
+        divisor: 1000000,
+        suffix: 'M',
+        decimals: 3,
+      });
+    });
+
     it('stays unabbreviated when the suffix would cost more width than it saves', () => {
       // "$61.470K" is longer than "$61,470" and no clearer.
       expect(getOrderBookPriceFormat(1, 61470, 5)).toEqual({
         divisor: 1,
         suffix: '',
         decimals: 0,
+      });
+    });
+
+    it('stays unabbreviated when the mantissa would need unreadable precision', () => {
+      // "$3.4521K" saves nothing over "$3,452.1" and reads worse.
+      expect(getOrderBookPriceFormat(0.1, 3452, 4)).toEqual({
+        divisor: 1,
+        suffix: '',
+        decimals: 1,
       });
     });
 
@@ -556,6 +589,16 @@ describe('orderBookGrouping', () => {
           formatOrderBookPrice(price, format),
         ),
       ).toEqual(['$61.47K', '$61.46K', '$61.45K']);
+    });
+
+    it('abbreviates a million-dollar ladder at its true magnitude', () => {
+      const format = getOrderBookPriceFormat(1000, 5000000, 2);
+
+      expect(
+        [5000000, 4999000, 4998000].map((price) =>
+          formatOrderBookPrice(price, format),
+        ),
+      ).toEqual(['$5.000M', '$4.999M', '$4.998M']);
     });
 
     it('renders every level of a PUMP ladder at the same precision', () => {
