@@ -120,6 +120,7 @@ const ManageCardOptions = ({
           />
         )}
         {capabilities?.supportsFundingLimits &&
+          !showUnlinkMoneyAccount &&
           ((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.change_asset')}

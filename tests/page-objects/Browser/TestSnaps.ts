@@ -12,19 +12,23 @@ import {
   SnapUIRendererSelectorIDs,
   SnapUIInputSelectorIDs,
   SnapUIInputSelectorXPaths,
+  snapUiNativeIosXPath,
   snapUISelectorItemAndroidUIAutomator,
   snapUISelectorItemIosXPath,
+  SNAP_UI_DROPDOWN_SHEET_TITLE,
+  snapUIJsxCountAndroidXPath,
+  snapUIJsxCountIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
+import type { TapOptions } from '../../framework/types';
 import WebView, { type WebViewByIdOptions } from '../../framework/WebView';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
-import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
-import Utilities from '../../framework/Utilities';
+import Utilities, { sleep } from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import {
@@ -36,9 +40,11 @@ import {
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { getWindowSize } from '../../framework/DeviceInfoCache';
+import { getDriver } from '../../framework/PlaywrightUtilities';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
-import SolanaTestDApp from './SolanaTestDApp';
+import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 
 export { TEST_SNAPS_URL } from '../../selectors/Browser/TestSnaps.selectors';
 
@@ -84,33 +90,92 @@ class TestSnaps {
   }
 
   get checkboxElement(): EncapsulatedElementType {
-    return Matchers.getElementByID('snap-ui-renderer__checkbox');
+    return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.checkbox);
   }
 
   get dateTimePickerTouchable(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--datetime-touchable',
+    return this.getSnapUiNativeElement(
+      SnapUIRendererSelectorIDs.dateTimeTouchable,
     );
   }
 
   get datePickerTouchable(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--date-touchable',
-    );
+    return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.dateTouchable);
   }
 
   get timePickerTouchable(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--time-touchable',
-    );
+    return this.getSnapUiNativeElement(SnapUIRendererSelectorIDs.timeTouchable);
   }
 
   get dateTimePickerOkButton(): EncapsulatedElementType {
     return Matchers.getElementByText('OK');
   }
 
-  get snapUIRendererScrollView(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier('snap-ui-renderer__scrollview');
+  get snapUIRendererScrollView() {
+    return Matchers.scrollContainer(SnapUIRendererSelectorIDs.scrollView);
+  }
+
+  /** Native Snap UI control — iOS uses name XPath (testID often not tappable). */
+  getSnapUiNativeElement(testID: string): EncapsulatedElementType {
+    return resolve({
+      detoxTestID: testID,
+      androidAppiumTestID: testID,
+      iosAppiumXPath: snapUiNativeIosXPath(testID),
+    });
+  }
+
+  /** Snap UI text input — iOS: first scrollview textfield (index 0). */
+  getSnapUiInput(name: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        element(by.id(`${name}-snap-ui-input`)) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(`${name}-snap-ui-input`, {
+            exact: true,
+          }),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            SnapUIInputSelectorXPaths.textfieldIos,
+            { lastElement: false, index: 0 },
+          ),
+      },
+    });
+  }
+
+  /** JSX Snap counter ("0" / "1"), scoped under the Snap UI scrollview. */
+  jsxCountElement(count: string): EncapsulatedElementType {
+    const scrollViewId = SnapUIRendererSelectorIDs.scrollView;
+    return encapsulated({
+      detox: () =>
+        element(
+          by.text(count).withAncestor(by.id(scrollViewId)),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            snapUIJsxCountAndroidXPath(count),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(snapUIJsxCountIosXPath(count)),
+      },
+    });
+  }
+
+  async tapJsxIncrementButton(): Promise<void> {
+    const button = Matchers.getElementByText(/^Increment$/i);
+    await Gestures.waitAndTap(
+      button,
+      this.snapUiTapOptions({ elemDescription: 'JSX Increment' }),
+    );
+  }
+
+  /** iOS: skip displayed/enabled waits for Snap UI nodes with visible=false. */
+  private snapUiTapOptions(extra: TapOptions = {}): TapOptions {
+    if (PlatformDetector.isIOSAppium()) {
+      return { checkForDisplayed: false, checkEnabled: false, ...extra };
+    }
+    return extra;
   }
 
   private getTestSnapsWebElement(innerID: string) {
@@ -370,8 +435,9 @@ class TestSnaps {
   }
 
   async tapOkButton() {
-    const button = Matchers.getElementByText(/^OK$/i);
-    await Gestures.waitAndTap(button);
+    // Optional "I, " prefix: Snap UI icon accessibility labels (e.g. "I, OK").
+    const button = Matchers.getElementByText(/^(I, )?OK$/i);
+    await Gestures.waitAndTap(button, this.snapUiTapOptions());
   }
 
   async tapApproveButton() {
@@ -394,16 +460,22 @@ class TestSnaps {
   }
 
   async tapSubmitButton() {
-    const button = Matchers.getElementByText('Submit');
-    await Gestures.waitAndTap(button);
+    // Optional "I, " prefix: Snap UI icon accessibility labels (e.g. "I, Submit").
+    const button = Matchers.getElementByText(/^(I, )?Submit$/i);
+    await Gestures.waitAndTap(button, this.snapUiTapOptions());
   }
 
   async dismissAlert() {
     try {
-      await Gestures.tap(Matchers.getElementByText(/^OK$/i));
+      await this.tapOkButton();
     } catch (error) {
+      // Teardown-only helper: specs assert on the alert before dismissing it,
+      // and the alert can close on its own first, so a missing OK button means
+      // there is nothing left to dismiss.
       const message = error instanceof Error ? error.message : String(error);
-      if (!/stale|wasn't found|no such element/i.test(message)) {
+      if (
+        !/stale|wasn't found|no such element|still not displayed/i.test(message)
+      ) {
         throw error;
       }
     }
@@ -421,19 +493,39 @@ class TestSnaps {
   }
 
   async fillInput(name: string, text: string) {
-    const input = Matchers.getElementByID(`${name}-snap-ui-input`);
-    await Gestures.typeText(input, text, { hideKeyboard: true });
+    await Gestures.typeText(this.getSnapUiInput(name), text, {
+      hideKeyboard: !PlatformDetector.isIOSAppium(),
+    });
+    if (PlatformDetector.isIOSAppium()) {
+      await this.dismissSnapUiKeyboard();
+    }
   }
 
-  /**
-   * Dialog Snap custom input. iOS uses textfield selector as testID
-   * is not exposed in page source.
-   */
+  /** iOS: WDA tapOutside fails on Snap UI sheets — tap near the header instead. */
+  private async dismissSnapUiKeyboard(): Promise<void> {
+    const drv = getDriver();
+    if (!drv) {
+      return;
+    }
+    try {
+      const { width, height } = getWindowSize();
+      await drv
+        .action('pointer', { parameters: { pointerType: 'touch' } })
+        .move({ x: Math.floor(width / 2), y: Math.floor(height * 0.18) })
+        .down()
+        .pause(50)
+        .up()
+        .perform();
+    } catch {
+      // already dismissed
+    }
+  }
+
   async fillCustomDialogInput(text: string) {
     const input = resolve({
       detoxTestID: SnapUIInputSelectorIDs.customDialogInput,
       androidAppiumTestID: SnapUIInputSelectorIDs.customDialogInput,
-      iosAppiumXPath: SnapUIInputSelectorXPaths.customDialogInputIos,
+      iosAppiumXPath: SnapUIInputSelectorXPaths.textfieldIos,
     });
 
     await Gestures.typeText(input, text, { hideKeyboard: true });
@@ -443,11 +535,22 @@ class TestSnaps {
     selector: keyof typeof NativeDropdownSelectorWebIDS,
     text: string,
   ): Promise<void> {
-    const dropdown = Matchers.getElementByID(
+    const dropdown = this.getSnapUiNativeElement(
       NativeDropdownSelectorWebIDS[selector],
     );
 
-    await Gestures.tap(dropdown);
+    await Gestures.tap(dropdown, this.snapUiTapOptions());
+    try {
+      await this.waitForSnapUiDropdownOption(text);
+    } catch (firstError) {
+      if (!PlatformDetector.isIOSAppium()) {
+        throw firstError;
+      }
+      // First tap often swallowed while keyboard is up — blur and retry once.
+      await this.dismissSnapUiKeyboard();
+      await Gestures.tap(dropdown, this.snapUiTapOptions());
+      await this.waitForSnapUiDropdownOption(text);
+    }
 
     const selectorItem = encapsulated({
       detox: () =>
@@ -464,81 +567,142 @@ class TestSnaps {
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
             snapUISelectorItemIosXPath(text),
+            { lastElement: true },
           ),
       },
     });
-    await Gestures.tap(selectorItem);
+    await Gestures.tap(selectorItem, this.snapUiTapOptions());
+  }
+
+  /** Wait for dropdown sheet + option (iOS: hierarchy only, not displayed). */
+  private async waitForSnapUiDropdownOption(text: string): Promise<void> {
+    if (PlatformDetector.isAndroidAppium()) {
+      await Assertions.expectTextDisplayed(text, {
+        timeout: 15_000,
+        description: `Snap UI dropdown option "${text}"`,
+      });
+      return;
+    }
+
+    if (!PlatformDetector.isIOSAppium()) {
+      return;
+    }
+
+    const optionXPath = snapUISelectorItemIosXPath(text);
+    const sheetOpenXPath = [
+      `//*[@name="${SnapUIRendererSelectorIDs.selectorItem}"]`,
+      `//*[@label="${SNAP_UI_DROPDOWN_SHEET_TITLE}" or @name="${SNAP_UI_DROPDOWN_SHEET_TITLE}"]`,
+    ].join(' | ');
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const drv = getDriver();
+        if (!drv) {
+          throw new Error('Driver is not available');
+        }
+        const sheetNodes = await drv.$$(sheetOpenXPath);
+        if ((await sheetNodes.length) === 0) {
+          throw new Error('Snap UI dropdown/selector sheet not open yet');
+        }
+        const optionNodes = await drv.$$(optionXPath);
+        if ((await optionNodes.length) === 0) {
+          throw new Error(
+            `Snap UI dropdown option "${text}" not in hierarchy yet`,
+          );
+        }
+      },
+      {
+        timeout: 15_000,
+        description: `Snap UI dropdown option "${text}"`,
+      },
+    );
   }
 
   async selectRadioButton(text: string) {
     const radioButton = encapsulated({
       detox: () =>
         element(
-          by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
+          by
+            .text(text)
+            .withAncestor(by.id(SnapUIRendererSelectorIDs.radioButton)),
         ) as unknown as DetoxElement,
       appium: {
         android: () =>
           PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.resourceIdMatches(".*snap-ui-renderer__radio-button.*").childSelector(new UiSelector().text("${text}"))`,
+            `.resourceIdMatches(".*${SnapUIRendererSelectorIDs.radioButton}.*").childSelector(new UiSelector().text("${text}"))`,
           ),
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
-            `//*[@name="snap-ui-renderer__radio-button" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="snap-ui-renderer__radio-button"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
+            `//*[@name="${SnapUIRendererSelectorIDs.radioButton}" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="${SnapUIRendererSelectorIDs.radioButton}"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
           ),
       },
     });
-    await Gestures.tap(radioButton);
+    await Gestures.tap(radioButton, this.snapUiTapOptions());
   }
 
   async tapCheckbox() {
-    await Gestures.tap(this.checkboxElement);
+    await Gestures.tap(this.checkboxElement, this.snapUiTapOptions());
+  }
+
+  /** Android: swipe Snap UI scrollview so date/time rows enter the hierarchy. */
+  async revealSnapUiDatePickers(): Promise<void> {
+    if (!PlatformDetector.isAndroidAppium()) {
+      return;
+    }
+
+    const scrollView = this.getSnapUiNativeElement(
+      SnapUIRendererSelectorIDs.scrollView,
+    );
+    for (let i = 0; i < 2; i++) {
+      await Gestures.swipe(scrollView, 'up', {
+        speed: 'slow',
+        percentage: 0.45,
+        elemDescription: 'Snap UI scrollview — reveal date/time pickers',
+      });
+    }
+  }
+
+  private async openSnapUiPicker(
+    touchable: EncapsulatedElementType,
+    elemDescription: string,
+    scrollOptions: { startPositionX?: number; startPositionY?: number } = {},
+  ): Promise<void> {
+    await Gestures.scrollToElement(touchable, this.snapUIRendererScrollView, {
+      elemDescription,
+      ...scrollOptions,
+    });
+    await Gestures.waitAndTap(
+      touchable,
+      this.snapUiTapOptions({ checkStability: true, elemDescription }),
+    );
+    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+      elemDescription: `${elemDescription} OK`,
+    });
   }
 
   async selectDateInDateTimePicker() {
-    await Gestures.scrollToElement(
-      this.timePickerTouchable,
-      this.snapUIRendererScrollView,
+    await this.openSnapUiPicker(
+      this.dateTimePickerTouchable,
+      'date-time picker',
       {
         startPositionX: 0,
         startPositionY: 0,
       },
     );
-
-    await Gestures.waitAndTap(this.dateTimePickerTouchable, {
-      checkStability: true,
-      elemDescription: 'open date-time picker',
-    });
-
-    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
-      elemDescription: 'date-time picker OK',
-    });
-
-    // Android date and time picker is a two-step process, so we need to tap OK again
+    // Android date+time is two native steps.
     if (PlatformDetector.isAndroid()) {
       await Gestures.waitAndTap(this.dateTimePickerOkButton);
     }
   }
 
   async selectDateInDatePicker() {
-    await Gestures.waitAndTap(this.datePickerTouchable, {
-      checkStability: true,
-      elemDescription: 'open date picker',
-    });
-
-    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
-      elemDescription: 'date picker OK',
-    });
+    await this.revealSnapUiDatePickers();
+    await this.openSnapUiPicker(this.datePickerTouchable, 'date picker');
   }
 
   async selectTimeInTimePicker() {
-    await Gestures.waitAndTap(this.timePickerTouchable, {
-      checkStability: true,
-      elemDescription: 'open time picker',
-    });
-
-    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
-      elemDescription: 'time picker OK',
-    });
+    await this.revealSnapUiDatePickers();
+    await this.openSnapUiPicker(this.timePickerTouchable, 'time picker');
   }
 
   async expectSnapDialogLinkDisplayed(
@@ -657,9 +821,15 @@ class TestSnaps {
         'network toast dismissed before confirming Solana snap signature',
       timeout: 15_000,
     });
-    // Multichain Solana signing can use SnapDialog/BottomSheetFooter ("Approve") instead of
-    // redesigned `confirm-button` — same as Solana Wallet Standard E2E.
-    await SolanaTestDApp.confirmSignMessage();
+    await this.blurActiveWebViewInput();
+    // Multichain Solana signing can use SnapDialog/BottomSheetFooter instead of
+    // redesigned `confirm-button`.
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+      ),
+      { elemDescription: 'confirm Solana snap signature' },
+    );
   }
 
   async waitForWebSocketUpdate(state: {
@@ -671,9 +841,7 @@ class TestSnaps {
       async () => {
         try {
           await this.tapButton('getWebSocketState');
-
-          // eslint-disable-next-line no-restricted-syntax
-          await TestHelpers.delay(250);
+          await sleep(250);
 
           const text = await WebView.readTextById(
             TestSnapResultSelectorWebIDS.networkAccessResultSpan,

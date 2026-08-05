@@ -10,7 +10,7 @@ const mockUsePredictWithdraw = jest.fn();
 const mockUsePredictAccountState = jest.fn();
 
 jest.mock('./usePredictBalance', () => ({
-  usePredictBalance: () => mockUsePredictBalance(),
+  usePredictBalance: (options: unknown) => mockUsePredictBalance(options),
 }));
 
 jest.mock('./usePredictPositions', () => ({
@@ -116,6 +116,32 @@ describe('usePredictPortfolio', () => {
     expect(result.current.claimablePositionCount).toBe(0);
     expect(result.current.positionsBadgeCount).toBe(0);
     expect(result.current.hasClaimableWinnings).toBe(false);
+  });
+
+  it('propagates disabled state to every portfolio query', () => {
+    renderHook(() => usePredictPortfolio({ enabled: false }));
+
+    expect(mockUsePredictBalance).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUsePredictPositions).toHaveBeenNthCalledWith(1, {
+      claimable: false,
+      enabled: false,
+      livePriceUpdates: true,
+    });
+    expect(mockUsePredictPositions).toHaveBeenNthCalledWith(2, {
+      claimable: true,
+      enabled: false,
+    });
+    expect(mockUsePredictAccountState).toHaveBeenCalledWith({ enabled: false });
+  });
+
+  it('disables live position updates when requested', () => {
+    renderHook(() => usePredictPortfolio({ livePriceUpdates: false }));
+
+    expect(mockUsePredictPositions).toHaveBeenNthCalledWith(1, {
+      claimable: false,
+      enabled: true,
+      livePriceUpdates: false,
+    });
   });
 
   it('returns a usable balance-only portfolio state', () => {

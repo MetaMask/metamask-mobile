@@ -34,7 +34,7 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onSizeChange: jest.fn(),
   balancePercentage: 20,
   onBalancePercentageChange: jest.fn(),
-  availableBalance: '$500.00',
+  availableBalance: '$500 available',
   onAddFundsPress: jest.fn(),
   reduceOnly: false,
   onReduceOnlyChange: jest.fn(),
@@ -156,7 +156,9 @@ jest.mock('../../../components/PerpsBottomSheetTooltip', () => {
 
 const market = { symbol: 'BTC', name: 'Bitcoin' } as PerpsMarketData;
 
-const renderPanel = () => render(<PerpsProOrderFormPanel market={market} />);
+const renderPanel = (
+  props: Partial<React.ComponentProps<typeof PerpsProOrderFormPanel>> = {},
+) => render(<PerpsProOrderFormPanel market={market} {...props} />);
 
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
@@ -177,6 +179,27 @@ describe('PerpsProOrderFormPanel', () => {
     expect(
       screen.getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the book separator on the form when the order book is visible', () => {
+    renderPanel({ isOrderBookCollapsed: false });
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
+    ).toHaveStyle({
+      borderRightWidth: 1,
+      paddingRight: 16,
+    });
+  });
+
+  it('omits the book separator when the order book is collapsed', () => {
+    renderPanel({ isOrderBookCollapsed: true });
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
+    ).not.toHaveStyle({
+      borderRightWidth: 1,
+    });
   });
 
   it('wires direction changes to the hook', () => {
