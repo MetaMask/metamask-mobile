@@ -14,9 +14,11 @@ description: >-
   `event: pull_request` to let the fingerprint itself act as the cross-PR
   deduplication key.
 
-  Each tier is swept once per run conclusion (`success`, then `failure`, then
-  `completed`) so that in-flight and concurrency-cancelled runs cannot consume
-  the candidate window ahead of runs that can actually hold artifacts.
+  Each tier is swept once per run status (`success`, `in_progress`, `failure`,
+  then `completed`) so that one crowded page of recent runs cannot consume the
+  candidate window. A donor only needs to have uploaded its artifacts, not to
+  have finished: the native build publishes the app roughly 25-35 minutes before
+  the run completes, since E2E tests keep the run alive well past that point.
 
 inputs:
   fingerprint:
@@ -258,18 +260,33 @@ runs:
           const seenRunIds = new Set();
           seenRunIds.add(currentRunId);
 
-          // Each tier is swept once per conclusion below, applied server-side via
-          // the `status` filter so that cancelled and still-running runs never
-          // consume a tier's candidate window. On a busy repo the most recent runs
-          // are dominated by in-flight runs and by runs that concurrency cancelled
-          // mid-build, neither of which can hold complete artifacts; without this
-          // filter they crowd genuinely reusable runs out of the window entirely.
+          // Each tier is swept once per run status below, applied server-side via
+          // the `status` filter so that a single crowded page of recent runs can't
+          // consume a tier's candidate window. On a busy repo the newest runs are
+          // dominated by in-flight runs and by runs that concurrency cancelled
+          // mid-build; sweeping per status keeps each category's budget separate.
           //
-          // Successful runs are swept first. Failed runs come next, because a run
-          // can fail on a job unrelated to the native build while still holding
-          // complete artifacts. The final `completed` sweep is a last resort that
-          // picks up cancelled, timed-out and neutral runs, preserving reach.
-          const conclusionSweeps = ['success', 'failure', 'completed'];
+          // Order matters, and it is deliberately not "terminal states first":
+          //
+          //   success     - a fully green run is the most conservative donor.
+          //   in_progress - a run only needs to have *uploaded* its artifacts to be
+          //                 a valid donor; it does not need to have finished. The
+          //                 native build completes roughly 25-35 minutes before the
+          //                 run itself does, because E2E tests keep the run alive
+          //                 long after the `.app` is published. Skipping these runs
+          //                 discarded a complete, verified build for that entire
+          //                 window - measured at 8 of 18 cold-fingerprint rebuilds,
+          //                 one of them with a donor that had been ready 32 minutes.
+          //                 `hasAllArtifacts` below is what makes this safe: a run
+          //                 mid-upload simply fails that check and is skipped.
+          //   failure     - a run can fail on a job unrelated to the native build
+          //                 while still holding complete artifacts.
+          //   completed   - last resort; picks up cancelled, timed-out and neutral
+          //                 runs, preserving reach.
+          //
+          // `queued` is intentionally not swept: such runs cannot have artifacts yet,
+          // so they would only cost API calls.
+          const statusSweeps = ['success', 'in_progress', 'failure', 'completed'];
 
           async function listCandidates(tier, status) {
             try {
@@ -297,8 +314,9 @@ runs:
 
               if (tier.skipHeadBranch && run.head_branch === tier.skipHeadBranch) continue;
 
-              if (run.status !== 'completed') continue;
-
+              // Deliberately no `run.status === 'completed'` gate: artifact
+              // availability, not run completion, is what makes a donor usable, and
+              // `hasAllArtifacts` verifies that below.
               if (!(await hasRunFingerprintStatus(run.head_sha, run.id))) {
                 core.info(`Run ${run.id} has no run-specific ${STATUS_CONTEXT} status matching fingerprint ${TARGET_FINGERPRINT}`);
                 continue;
@@ -314,7 +332,7 @@ runs:
           for (const tier of tiers) {
             core.info(`Searching tier: ${tier.label}`);
 
-            for (const status of conclusionSweeps) {
+            for (const status of statusSweeps) {
               const runs = await listCandidates(tier, status);
               core.info(`  sweep status=${status}: ${runs.length} run(s) returned`);
 
