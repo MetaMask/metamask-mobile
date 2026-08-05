@@ -23,6 +23,7 @@ export interface WC2VerifyContext {
 }
 
 export interface WC2Metadata {
+  /** WalletConnect pairing topic used as the permission-system origin. */
   id: string;
   url: string;
   name: string;
