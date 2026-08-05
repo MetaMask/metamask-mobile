@@ -20,7 +20,7 @@ import {
 import WalletView from '../../page-objects/wallet/WalletView.js';
 
 /* Scenario 4: Imported wallet with +50 accounts */
-test.describe(PerformanceOnboarding, () => {
+test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
   test(
     'Onboarding Import SRP with +50 accounts, SRP 3',
     { tag: '@metamask-onboarding-team' },
