@@ -1,13 +1,6 @@
 import Logger from '../../../../util/Logger';
-import {
-  addWatchlistAlert,
-  fetchSupportedChains,
-  removeWatchlistAlert,
-} from './api';
-import {
-  resetSupportedChainsCacheForTests,
-  syncPriceAlertsWatchlistMirror,
-} from './syncWatchlistMirror';
+import { addWatchlistAlert, removeWatchlistAlert } from './api';
+import { syncPriceAlertsWatchlistMirror } from './syncWatchlistMirror';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -19,7 +12,6 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock('./api', () => ({
   addWatchlistAlert: jest.fn(),
   removeWatchlistAlert: jest.fn(),
-  fetchSupportedChains: jest.fn(),
   assertOkResponse: jest.requireActual('./api').assertOkResponse,
 }));
 
@@ -28,9 +20,6 @@ const mockedAdd = addWatchlistAlert as jest.MockedFunction<
 >;
 const mockedRemove = removeWatchlistAlert as jest.MockedFunction<
   typeof removeWatchlistAlert
->;
-const mockedFetchSupportedChains = fetchSupportedChains as jest.MockedFunction<
-  typeof fetchSupportedChains
 >;
 
 const ETH = 'eip155:1/slip44:60';
@@ -55,16 +44,12 @@ const makeErrorResponse = (status: number, bodyText = 'error') =>
 
 beforeEach(() => {
   jest.clearAllMocks();
-  resetSupportedChainsCacheForTests();
-  mockedFetchSupportedChains.mockResolvedValue(
-    makeOkResponse(['eip155:1', 'eip155:137']),
-  );
   mockedAdd.mockResolvedValue(makeOkResponse(undefined, 201));
   mockedRemove.mockResolvedValue(makeOkResponse(undefined, 204));
 });
 
 describe('syncPriceAlertsWatchlistMirror', () => {
-  it('POSTs newly added assets on supported chains', async () => {
+  it('POSTs newly added assets', async () => {
     await syncPriceAlertsWatchlistMirror([], [ETH, USDC]);
 
     expect(mockedAdd).toHaveBeenCalledTimes(2);
@@ -73,7 +58,7 @@ describe('syncPriceAlertsWatchlistMirror', () => {
     expect(mockedRemove).not.toHaveBeenCalled();
   });
 
-  it('DELETEs removed assets on supported chains', async () => {
+  it('DELETEs removed assets', async () => {
     await syncPriceAlertsWatchlistMirror([ETH, USDC], [ETH]);
 
     expect(mockedRemove).toHaveBeenCalledTimes(1);
@@ -81,28 +66,19 @@ describe('syncPriceAlertsWatchlistMirror', () => {
     expect(mockedAdd).not.toHaveBeenCalled();
   });
 
-  it('skips assets on unsupported chains', async () => {
+  it('always mirrors every net membership change (API decides support)', async () => {
     await syncPriceAlertsWatchlistMirror([], [ETH, BSC_TOKEN]);
 
-    expect(mockedAdd).toHaveBeenCalledTimes(1);
+    expect(mockedAdd).toHaveBeenCalledTimes(2);
     expect(mockedAdd).toHaveBeenCalledWith(ETH);
-    expect(mockedAdd).not.toHaveBeenCalledWith(BSC_TOKEN);
+    expect(mockedAdd).toHaveBeenCalledWith(BSC_TOKEN);
   });
 
   it('no-ops when membership is unchanged (reorder only)', async () => {
     await syncPriceAlertsWatchlistMirror([ETH, USDC], [USDC, ETH]);
 
-    expect(mockedFetchSupportedChains).not.toHaveBeenCalled();
     expect(mockedAdd).not.toHaveBeenCalled();
     expect(mockedRemove).not.toHaveBeenCalled();
-  });
-
-  it('skips all mirrors when supported-chains cannot be loaded', async () => {
-    mockedFetchSupportedChains.mockResolvedValue(makeErrorResponse(500));
-
-    await syncPriceAlertsWatchlistMirror([], [ETH]);
-
-    expect(mockedAdd).not.toHaveBeenCalled();
   });
 
   it('soft-fails POST errors without throwing', async () => {
@@ -123,13 +99,5 @@ describe('syncPriceAlertsWatchlistMirror', () => {
     ).resolves.toBeUndefined();
 
     expect(Logger.error).toHaveBeenCalled();
-  });
-
-  it('caches supported chains across calls', async () => {
-    await syncPriceAlertsWatchlistMirror([], [ETH]);
-    await syncPriceAlertsWatchlistMirror([ETH], [ETH, USDC]);
-
-    expect(mockedFetchSupportedChains).toHaveBeenCalledTimes(1);
-    expect(mockedAdd).toHaveBeenCalledTimes(2);
   });
 });
