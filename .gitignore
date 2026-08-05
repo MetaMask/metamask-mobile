@@ -244,3 +244,8 @@ predict_tsc_summary.txt
 .mm-server
 .mm-daemon.log
 test-artifacts/
+
+# fingerprint reuse proof - reverted in the next commit (see PR #34345)
+.mm-server
+.mm-daemon.log
+test-artifacts/
