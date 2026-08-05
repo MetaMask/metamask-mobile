@@ -1,6 +1,7 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
   type InputMethod,
+  type Order,
   type OrderParams,
   type OrderType,
   type Position,
@@ -147,3 +148,48 @@ export const buildPerpsOrderParams = ({
   ...(stopLossPrice?.trim() ? { stopLossPrice } : {}),
   trackingData,
 });
+
+export interface BuildEditOrderParamsInput {
+  order: Order;
+  newLimitPrice?: string;
+  newSize?: string;
+  trackingData: OrderTrackingData;
+}
+
+/**
+ * Builds controller `OrderParams` for editing an existing limit order.
+ * Unspecified fields are taken from the open order.
+ */
+export const buildEditOrderParamsFromOrder = ({
+  order,
+  newLimitPrice,
+  newSize,
+  trackingData,
+}: BuildEditOrderParamsInput): OrderParams => {
+  const limitPrice = newLimitPrice ?? order.price ?? '';
+  const parsedPrice = Number.parseFloat(limitPrice);
+  const size =
+    newSize ?? order.remainingSize ?? order.originalSize ?? order.size;
+
+  return {
+    symbol: order.symbol,
+    isBuy: order.side === 'buy',
+    size,
+    orderType: 'limit',
+    currentPrice: parsedPrice,
+    priceAtCalculation: parsedPrice,
+    maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps,
+    price: limitPrice,
+    ...(order.reduceOnly ? { reduceOnly: true } : {}),
+    // Preserve attached TP/SL prices on modify so a price-only edit does not
+    // drop children if the venue recreates the parent order. Size editing of
+    // orders with attached TP/SL is blocked separately (children are not resized).
+    ...(order.takeProfitPrice?.trim()
+      ? { takeProfitPrice: order.takeProfitPrice }
+      : {}),
+    ...(order.stopLossPrice?.trim()
+      ? { stopLossPrice: order.stopLossPrice }
+      : {}),
+    trackingData,
+  };
+};

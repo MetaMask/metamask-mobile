@@ -1018,6 +1018,64 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   }
 
   /**
+   * Apply optimistic price and/or size updates to an open order before the
+   * venue confirms the edit. WebSocket delivery reconciles the cache afterward.
+   */
+  public updateOrderOptimistic(
+    orderId: string,
+    edit: { limitPrice?: string; size?: string },
+  ): void {
+    const { limitPrice, size } = edit;
+    if (limitPrice === undefined && size === undefined) {
+      return;
+    }
+
+    const cachedOrders = this.cache.get('orders');
+    if (!cachedOrders) {
+      DevLogger.log(
+        'OrderStreamChannel: Cannot apply optimistic update - no cached orders',
+      );
+      return;
+    }
+
+    const orderIndex = cachedOrders.findIndex(
+      (order) => order.orderId === orderId,
+    );
+    if (orderIndex === -1) {
+      DevLogger.log(
+        `OrderStreamChannel: Cannot apply optimistic update - order not found for ${orderId}`,
+      );
+      return;
+    }
+
+    const updatedOrders = cachedOrders.map((order, index) => {
+      if (index !== orderIndex) {
+        return order;
+      }
+
+      return {
+        ...order,
+        ...(limitPrice !== undefined ? { price: limitPrice } : {}),
+        ...(size !== undefined
+          ? { size, originalSize: size, remainingSize: size }
+          : {}),
+      };
+    });
+
+    DevLogger.log('OrderStreamChannel: Applying optimistic order edit', {
+      orderId,
+      limitPrice,
+      size,
+    });
+
+    this.cache.set('orders', updatedOrders);
+    // Notify UI subscribers only — do NOT call handlePerpsCufOrdersDelivered.
+    // The WS delivery path (:994) ends PerpsEditOrder spans; optimistic paint
+    // must not, or CUF would measure local cache updates instead of venue confirmation.
+    this.notifySubscribers(updatedOrders);
+  }
+
+  /**
    * Pre-warm the channel by creating a persistent subscription
    * This keeps the WebSocket connection alive and caches data continuously
    * @returns Cleanup function to call when leaving Perps environment
