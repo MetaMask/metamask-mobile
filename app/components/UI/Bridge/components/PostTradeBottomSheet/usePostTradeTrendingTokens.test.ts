@@ -184,8 +184,12 @@ describe('usePostTradeTrendingTokens', () => {
       expect(mockGetTrendingTokens).toHaveBeenCalledTimes(2);
     });
 
+    // Destination resolves first; keep showing those tokens while Ethereum
+    // fallback is still in flight (shouldFillWithFallback && isLoading).
+    await waitFor(() => {
+      expect(result.current.tokens).toEqual([lineaToken]);
+    });
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.tokens).toEqual([]);
 
     expect(mockGetTrendingTokens).toHaveBeenNthCalledWith(
       1,
