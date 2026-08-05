@@ -459,7 +459,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         </View>
         {isMoneyEarnCtaActive && !moneyEarnCta?.isLoading && (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="mt-2 text-center"
           >
