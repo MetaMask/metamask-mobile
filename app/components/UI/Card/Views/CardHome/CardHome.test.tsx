@@ -298,6 +298,18 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    region: null,
+    onboardingDocuments: [],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
 const mockResumePendingAction = jest.fn();
 let mockImmersvePendingAction: { type: string } | null = null;
 jest.mock('./hooks/useImmersveCardProvisioning', () => ({
