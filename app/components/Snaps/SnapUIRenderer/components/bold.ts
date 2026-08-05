@@ -12,7 +12,7 @@ export const bold: UIComponentFactory<BoldElement> = ({
   element: 'Text',
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    params,
+    { ...params, textFontWeight: FontWeight.Bold },
   ),
   props: {
     variant: TextVariant.BodyMd,

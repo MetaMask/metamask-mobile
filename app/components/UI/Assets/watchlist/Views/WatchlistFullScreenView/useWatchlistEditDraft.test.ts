@@ -67,6 +67,43 @@ describe('useWatchlistEditDraft', () => {
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
       source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+      asset_id: 'eip155:1/erc20:0xbtc',
+      asset_type: 'erc20',
+    });
+  });
+
+  it('preserves the original (non-lowercased) asset_id casing on removal', () => {
+    const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
+    const checksummed = createToken(
+      'eip155:1/erc20:0xAbCdEf1234567890ABCDEF1234567890aBcDeF12',
+      'Checksummed',
+    );
+    const queryTokens = [checksummed, eth];
+
+    const mockMutate = jest.fn((_assetIds, options) => {
+      options?.onSuccess?.();
+    });
+
+    const { result } = renderHook(() =>
+      useWatchlistEditDraft({
+        queryTokens,
+        updateListMutation: { mutate: mockMutate },
+      }),
+    );
+
+    act(() => {
+      result.current.handleEditPress();
+    });
+    act(() => {
+      result.current.onRemoveFromDraft(String(checksummed.assetId));
+    });
+    act(() => {
+      result.current.handleDonePress();
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      source: WatchlistAnalytics.REMOVE_SOURCE.FULLSCREEN_EDIT,
+      asset_id: 'eip155:1/erc20:0xAbCdEf1234567890ABCDEF1234567890aBcDeF12',
       asset_type: 'erc20',
     });
   });
