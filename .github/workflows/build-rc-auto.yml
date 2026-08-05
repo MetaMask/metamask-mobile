@@ -33,6 +33,7 @@ concurrency:
 
 permissions:
   pull-requests: write
+  contents: read
   actions: write
   id-token: write
 
