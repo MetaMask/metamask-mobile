@@ -129,25 +129,74 @@ async function main() {
     return device ? formatDevice(String(device)) : fallbackPlatform;
   }
 
+  function getCloudProviderKey(test) {
+    const cloudProvider =
+      test?.cloudProvider ||
+      (typeof test?.device === 'object' ? test.device?.provider : null);
+
+    return cloudProvider ? String(cloudProvider).toLowerCase() : 'unknown';
+  }
+
+  function formatCloudProvider(cloudProvider) {
+    const providerKey = getCloudProviderKey({ cloudProvider });
+
+    switch (providerKey) {
+      case 'testmu-standard':
+        return 'TestMu Standard';
+      case 'testmu-hyperexecute':
+        return 'TestMu HE';
+      case 'browserstack':
+        return 'BrowserStack';
+      case 'testmu':
+        return 'TestMu';
+      default:
+        return providerKey === 'unknown'
+          ? 'Unknown'
+          : String(cloudProvider ?? providerKey);
+    }
+  }
+
+  function getProviderAwareTestKey(platform, device, testName, cloudProvider) {
+    return `${platform}|${device}|${getCloudProviderKey({ cloudProvider })}|${testName}`;
+  }
+
+  function getLegacyTestKey(platform, device, testName) {
+    return `${platform}|${device}|${testName}`;
+  }
+
   function getFailedTestKeys() {
     const failedTests = Object.values(failedByTeam).flatMap(
       (teamData) => teamData.tests ?? [],
     );
     const bySessionId = new Map();
-    const byTestIdentity = new Map();
+    const byProviderTestIdentity = new Map();
+    const byLegacyTestIdentity = new Map();
 
     for (const test of failedTests) {
       if (test.sessionId) {
         bySessionId.set(test.sessionId, test);
       }
 
-      byTestIdentity.set(
-        `${test.platform}|${getDeviceKey(test.device)}|${test.testName}`,
-        test,
-      );
+      const providerKey = getCloudProviderKey(test);
+      if (providerKey === 'unknown') {
+        byLegacyTestIdentity.set(
+          getLegacyTestKey(test.platform, getDeviceKey(test.device), test.testName),
+          test,
+        );
+      } else {
+        byProviderTestIdentity.set(
+          getProviderAwareTestKey(
+            test.platform,
+            getDeviceKey(test.device),
+            test.testName,
+            providerKey,
+          ),
+          test,
+        );
+      }
     }
 
-    return { bySessionId, byTestIdentity };
+    return { bySessionId, byProviderTestIdentity, byLegacyTestIdentity };
   }
 
   function getAllTestRuns() {
@@ -162,8 +211,16 @@ async function main() {
         (tests ?? []).map((test) => {
           const failedTest =
             failedTestKeys.bySessionId.get(test.sessionId) ??
-            failedTestKeys.byTestIdentity.get(
-              `${platform}|${deviceKey}|${test.testName}`,
+            failedTestKeys.byProviderTestIdentity.get(
+              getProviderAwareTestKey(
+                platform,
+                deviceKey,
+                test.testName,
+                getCloudProviderKey(test),
+              ),
+            ) ??
+            failedTestKeys.byLegacyTestIdentity.get(
+              getLegacyTestKey(platform, deviceKey, test.testName),
             );
           const qualityGatesFailed = test.qualityGates?.passed === false;
           const failed = Boolean(failedTest) || qualityGatesFailed;
@@ -178,6 +235,8 @@ async function main() {
             testName: test.testName,
             platform,
             device: getDeviceLabel(test.device ?? deviceKey, platform),
+            cloudProvider: getCloudProviderKey(test),
+            provider: formatCloudProvider(getCloudProviderKey(test)),
             duration,
             reason: failed
               ? formatReason(
@@ -212,7 +271,12 @@ async function main() {
     for (const teamData of Object.values(failedByTeam)) {
       for (const test of teamData.tests ?? []) {
         const device = parseDeviceKey(test.device);
-        const key = `${test.platform}|${getDeviceKey(test.device)}|${test.testName}`;
+        const key = getProviderAwareTestKey(
+          test.platform,
+          getDeviceKey(test.device),
+          test.testName,
+          getCloudProviderKey(test),
+        );
 
         let currentArtifact = findMatchingArtifact(currentArtifacts, {
           testName: test.testName,
@@ -339,15 +403,23 @@ async function main() {
         const recording = t.recordingLink
           ? `[📹 Watch](${t.recordingLink})`
           : '—';
-        const key = `${t.platform}|${getDeviceKey(t.device)}|${t.testName}`;
+        const provider = formatCloudProvider(getCloudProviderKey(t));
+        const key = getProviderAwareTestKey(
+          t.platform,
+          getDeviceKey(t.device),
+          t.testName,
+          getCloudProviderKey(t),
+        );
         const profilingSection = profilingByKey.get(key);
 
         md += `#### ${escapeMarkdownTable(t.testName)}\n\n`;
-        md += `| Platform | Device | Reason | Recording |\n`;
-        md += `|----------|--------|--------|-----------|\n`;
+        md += `| Platform | Device | Provider | Reason | Recording |\n`;
+        md += `|----------|--------|----------|--------|-----------|\n`;
         md += `| ${escapeMarkdownTable(t.platform)} | ${escapeMarkdownTable(
           device,
-        )} | ${escapeMarkdownTable(reason)} | ${recording} |\n\n`;
+        )} | ${escapeMarkdownTable(provider)} | ${escapeMarkdownTable(
+          reason,
+        )} | ${recording} |\n\n`;
 
         if (profilingSection) {
           md += `${profilingSection}\n`;
@@ -358,8 +430,8 @@ async function main() {
 
   if (passedTestRuns.length > 0) {
     md += `<details>\n<summary>✅ Passed Tests (${passedTestRuns.length})</summary>\n\n`;
-    md += `| Test | Platform | Device | Duration | Team | Recording |\n`;
-    md += `|------|----------|--------|----------|------|-----------|\n`;
+    md += `| Test | Platform | Device | Provider | Duration | Team | Recording |\n`;
+    md += `|------|----------|--------|----------|----------|------|-----------|\n`;
 
     for (const test of passedTestRuns) {
       const recording = test.recordingLink
@@ -368,9 +440,9 @@ async function main() {
 
       md += `| ${escapeMarkdownTable(test.testName)} | ${
         test.platform
-      } | ${escapeMarkdownTable(test.device)} | ${test.duration} | ${escapeMarkdownTable(
-        test.team,
-      )} | ${recording} |\n`;
+      } | ${escapeMarkdownTable(test.device)} | ${escapeMarkdownTable(
+        test.provider,
+      )} | ${test.duration} | ${escapeMarkdownTable(test.team)} | ${recording} |\n`;
     }
 
     md += `\n</details>\n\n`;

@@ -530,7 +530,7 @@ function createSummary(groupedResults) {
     'imported-wallet': { android: 0, ios: 0 },
   };
 
-  const uniqueFailedTestNames = new Set();
+  const uniqueFailedTestKeys = new Set();
 
   Object.values(testExecutions).forEach(execution => {
     // If test passed at least once, it's considered passed (successful retry)
@@ -541,9 +541,11 @@ function createSummary(groupedResults) {
     // Test failed all executions - count as 1 failure
     if (execution.hasFailed) {
       totalFailedTests++;
-      uniqueFailedTestNames.add(execution.testInfo.testName);
       
       const { testInfo } = execution;
+      uniqueFailedTestKeys.add(
+        `${testInfo.testName}|${testInfo.platform}|${testInfo.device}|${testInfo.cloudProvider}`,
+      );
       const platformKey = testInfo.platform.toLowerCase();
       const scenario = resolveScenarioFromTestFilePath(testInfo.testFilePath);
       
@@ -636,7 +638,7 @@ function createSummary(groupedResults) {
     // Only includes tests that failed ALL retries (if a retry passed, test is not counted as failed)
     failedTestsStats: {
       totalFailedTests,
-      uniqueFailedTests: uniqueFailedTestNames.size,
+      uniqueFailedTests: uniqueFailedTestKeys.size,
       teamsAffected: Object.keys(failedTestsByTeam).length,
       failedTestsByTeam
     },
