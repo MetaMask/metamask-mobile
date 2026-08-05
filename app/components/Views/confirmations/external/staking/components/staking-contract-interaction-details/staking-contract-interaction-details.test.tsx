@@ -19,7 +19,7 @@ describe('StakingContractInteractionDetails', () => {
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
-    expect(getByTestId('staking-contract-network-badge')).toBeOnTheScreen();
+    expect(getByTestId('staking-contract-network-avatar')).toBeOnTheScreen();
   });
 
   it('renders staking claim variant', () => {
