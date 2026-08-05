@@ -389,6 +389,26 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
+    it('submits on the first tap when a pending slider preview is unchanged', async () => {
+      // Arrange
+      const { result } = renderProForm();
+      act(() => {
+        result.current.sizeSlider.onValueChange(100);
+      });
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder.mock.calls[0][0]).toMatchObject({
+        usdAmount: '100',
+      });
+    });
+
     it('blocks submit and shows a toast when validation is invalid', async () => {
       // Arrange
       mockValidation.isValid = false;
