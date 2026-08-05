@@ -88,6 +88,18 @@ describe('PerpsProSizeInput', () => {
     expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
   });
 
+  it('uses the custom keyboard accessory without requesting a native Done key', () => {
+    renderInput();
+
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+      'inputAccessoryViewID',
+    );
+    expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp('returnKeyType');
+    expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp(
+      'onSubmitEditing',
+    );
+  });
+
   it('uses the asset symbol in field and toggle accessibility text', () => {
     renderInput({ denomination: { unit: 'asset', symbol: 'BTC' } });
 

@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef } from 'react';
-import { Keyboard, Platform, type TextInput } from 'react-native';
+import { Platform, type TextInput } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
@@ -116,8 +116,6 @@ const PerpsProSizeInput = ({
             onFocus={onFocus}
             onBlur={onBlur}
             keyboardType="decimal-pad"
-            returnKeyType="done"
-            onSubmitEditing={Keyboard.dismiss}
             inputAccessoryViewID={inputAccessoryViewID}
             placeholder="0.00"
             placeholderTextColor={tw.color('text-muted')}
