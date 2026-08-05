@@ -10244,9 +10244,12 @@
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
-      "title": "You won't get transaction alerts",
-      "description": "Notifications are off. Without them, you can't approve or review transactions from your CLI session.",
-      "turn_on_button": "Turn on notifications"
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "Enable notifications",
+      "preview_title": "Transaction request",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "now"
     },
     "show_otp": {
       "title": "Enter this code",

@@ -32,6 +32,10 @@ export interface NewUserSheetProps {
   yesLabel?: string;
   /** Whether to render the notification preview card. Defaults to true. */
   showPreview?: boolean;
+  /** Optional notification-preview content overrides. */
+  previewTitle?: string;
+  previewMessage?: string;
+  previewTimestamp?: string;
 }
 
 const NewUserSheet: React.FC<NewUserSheetProps> = ({
@@ -44,6 +48,9 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
   body = strings('notifications.push_onboarding.new_user.body'),
   yesLabel = strings('notifications.push_onboarding.new_user.button_yes'),
   showPreview = true,
+  previewTitle,
+  previewMessage,
+  previewTimestamp,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -83,7 +90,11 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
         </Box>
         {showPreview && (
           <Box twClassName="mb-2 px-6">
-            <NotifCard />
+            <NotifCard
+              title={previewTitle}
+              message={previewMessage}
+              timestamp={previewTimestamp}
+            />
           </Box>
         )}
 

@@ -24,7 +24,9 @@ const CliLoginPushNudgeListener = () => {
       title={strings('sdk_connect_v2.push_nudge.title')}
       body={strings('sdk_connect_v2.push_nudge.description')}
       yesLabel={strings('sdk_connect_v2.push_nudge.turn_on_button')}
-      showPreview={false}
+      previewTitle={strings('sdk_connect_v2.push_nudge.preview_title')}
+      previewMessage={strings('sdk_connect_v2.push_nudge.preview_message')}
+      previewTimestamp={strings('sdk_connect_v2.push_nudge.preview_timestamp')}
       testID="cli-login-push-nudge"
     />
   );
