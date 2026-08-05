@@ -9,7 +9,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
@@ -80,7 +79,6 @@ export default function NetworkListBottomSheet({
   displayEvmNetworksOnly?: boolean;
 }) {
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
@@ -140,7 +138,6 @@ export default function NetworkListBottomSheet({
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={() => setOpenNetworkSelector(false)}
-      style={tw.style(surfaceClass)}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
       <HeaderStandard
