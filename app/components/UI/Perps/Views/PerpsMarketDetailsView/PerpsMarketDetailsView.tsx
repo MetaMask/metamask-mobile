@@ -74,6 +74,7 @@ import {
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -358,6 +359,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
+      showPerpsModeFlash(nextMode);
     },
     [setPerpsMode],
   );

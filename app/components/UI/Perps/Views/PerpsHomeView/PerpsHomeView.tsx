@@ -72,6 +72,7 @@ import {
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
 import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
+import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
 import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
@@ -166,9 +167,10 @@ const PerpsHomeView = () => {
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
       // First-time users must still go through onboarding (same as Trade sheet):
-      // routing straight into the Pro market would skip the tutorial otherwise.
-      // The redirect mirrors the Pro branch below so completing the tutorial
-      // doesn't land back on Perps Home while Pro mode is active (TAT-3612).
+      // routing straight into the Pro market would skip the tutorial otherwise,
+      // so no mode-switch flash is shown here. The redirect mirrors the Pro
+      // branch below so completing the tutorial doesn't land back on Perps
+      // Home while Pro mode is active (TAT-3612).
       if (isFirstTimePerpsUser) {
         navigation.navigate(
           Routes.PERPS.TUTORIAL,
@@ -185,6 +187,8 @@ const PerpsHomeView = () => {
         );
         return;
       }
+      // Flash the destination mode on top of the current screen.
+      showPerpsModeFlash(nextMode);
       // Pro lands on the default (BTC) market screen; Lite stays on Perps
       // home. Home is reset out of history (rather than pushed under the
       // market screen) so Perps Home is never reachable while Pro mode is

@@ -20,6 +20,7 @@ import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
+import PerpsModeFlashContainer from '../components/PerpsModeFlashContainer';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
@@ -475,6 +476,10 @@ const PerpsScreenStack = () => {
                 }
               />
             </Stack.Navigator>
+            {/* Lite/Pro mode-switch flash overlay (TAT-3551). Mounted once at the
+              stack root so it can be triggered from any Perps entry point and
+              flashes on top of the active screen. */}
+            <PerpsModeFlashContainer />
           </View>
         </PerpsStreamProvider>
       </PerpsConnectionProvider>
