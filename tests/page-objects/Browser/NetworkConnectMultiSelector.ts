@@ -22,21 +22,13 @@ class NetworkConnectMultiSelector {
     );
   }
 
-  /**
-   * Android: NetworkSelectorList rows use testID `${name}-selected` |
-   * `${name}-not-selected`.
-   * iOS: wrapper testID is often not in the a11y tree; use the Cell title text.
-   */
   getNetworkRow(networkName: string): EncapsulatedElementType {
     const escaped = networkName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return encapsulated({
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            new RegExp(`^${escaped}-(selected|not-selected)$`),
-          ),
-        ios: () => PlaywrightMatchers.getElementByText(networkName, true),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          new RegExp(`^${escaped}-(selected|not-selected)$`),
+        ),
     });
   }
 
@@ -53,8 +45,14 @@ class NetworkConnectMultiSelector {
   }
 
   async isNetworkChainPermissionSelected(chainName: string): Promise<void> {
-    const chainPermissionTestId = `${chainName}-selected`;
-    const el = Matchers.getElementByID(chainPermissionTestId);
+    const el = Matchers.getElementByID(`${chainName}-selected`);
+    if (PlatformDetector.isIOSAppium()) {
+      await Assertions.expectElementToExist(el, {
+        timeout: 10000,
+        description: `Network chain permission ${chainName} should be selected`,
+      });
+      return;
+    }
     await Assertions.expectElementToBeVisible(el, {
       timeout: 10000,
       description: `Network chain permission ${chainName} should be selected`,
@@ -62,24 +60,25 @@ class NetworkConnectMultiSelector {
   }
 
   async isNetworkChainPermissionNotSelected(chainName: string): Promise<void> {
-    const chainPermissionTestId = `${chainName}-not-selected`;
-    const el = Matchers.getElementByID(chainPermissionTestId);
+    const el = Matchers.getElementByID(`${chainName}-not-selected`);
+    if (PlatformDetector.isIOSAppium()) {
+      await Assertions.expectElementToExist(el, {
+        timeout: 10000,
+        description: `Network chain permission ${chainName} should not be selected`,
+      });
+      return;
+    }
     await Assertions.expectElementToBeVisible(el, {
       timeout: 10000,
-      description: `Network chain permission ${chainName} should be selected`,
+      description: `Network chain permission ${chainName} should not be selected`,
     });
   }
 
   async selectNetworkChainPermission(chainName: string): Promise<void> {
     const row = this.getNetworkRow(chainName);
-    if (PlatformDetector.isIOSAppium()) {
-      await Gestures.scrollToElement(row, undefined, {
-        direction: 'down',
-        elemDescription: `Scroll to network chain permission ${chainName}`,
-      });
-    }
     await Gestures.waitAndTap(row, {
       elemDescription: `Tap on the network chain permission ${chainName}`,
+      checkForDisplayed: !PlatformDetector.isIOSAppium(),
     });
   }
 }

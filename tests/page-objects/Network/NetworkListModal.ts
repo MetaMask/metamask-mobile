@@ -7,6 +7,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
+import { NetworkManagerSelectorIDs } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
 import { EncapsulatedElementType } from '../../framework';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
@@ -184,7 +185,11 @@ class NetworkListModal {
   }
 
   async closeNetworkManager(): Promise<void> {
-    await Gestures.waitAndTap(Matchers.getElementByID('button-icon'), {
+    const sheetId = NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET;
+    const closeButton = PlaywrightMatchers.getElementByXPath(
+      `(//*[@resource-id='${sheetId}' or @content-desc='${sheetId}' or @name='${sheetId}' or @label='${sheetId}'])//*[@resource-id='button-icon' or @content-desc='button-icon' or @name='button-icon']`,
+    );
+    await Gestures.waitAndTap(closeButton, {
       elemDescription: 'Close NetworkManager bottom sheet',
     });
   }
