@@ -119,12 +119,20 @@ const readHydratedCache = (queryClient: QueryClient) =>
   );
 
 const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
+  // Reset any leaked client from a prior test that skipped afterEach (J9).
+  if (activeQueryClient) {
+    activeQueryClient.getMutationCache().clear();
+    activeQueryClient.getQueryCache().clear();
+    activeQueryClient.clear();
+    activeQueryClient = null;
+  }
   jest.clearAllMocks();
   mockedRead.mockResolvedValue(initialStorage);
   mockedWrite.mockResolvedValue(undefined);
 };
 
 const baseAfterEach = async () => {
+  jest.restoreAllMocks();
   // Drain any pending batch left over from the test so it cannot fire
   // against the next test's mocks. `flush()` is a no-op when the queue
   // is empty.
