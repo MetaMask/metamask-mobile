@@ -187,10 +187,15 @@ import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const WalletWithMessenger = withMessenger(Wallet, {
+  capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
 
 const styles = StyleSheet.create({
   headerLogo: {
@@ -260,7 +265,7 @@ const WalletTabStackFlow = () => {
     >
       <NativeStack.Screen
         name="WalletView"
-        component={Wallet}
+        component={WalletWithMessenger}
         options={{
           headerShown: false,
           animation: 'none',
