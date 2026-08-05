@@ -143,8 +143,7 @@ function isQuoteForDestinationAssetId(
 ) {
   return (
     destinationAssetId !== undefined &&
-    quote.quote.dest.asset.assetId.toLowerCase() ===
-      destinationAssetId.toLowerCase()
+    quote.quote.dest.asset.assetId === destinationAssetId
   );
 }
 
@@ -156,8 +155,7 @@ function getRecommendedQuoteBySourceAndDestinationAssetId(
   return recommendedQuotes.find((quote): quote is BatchSellRecommendedQuote =>
     Boolean(
       quote &&
-        quote.quote.src.asset.assetId.toLowerCase() ===
-          sourceAssetId.toLowerCase() &&
+        quote.quote.src.asset.assetId === sourceAssetId &&
         isQuoteForDestinationAssetId(quote, destinationAssetId),
     ),
   );
