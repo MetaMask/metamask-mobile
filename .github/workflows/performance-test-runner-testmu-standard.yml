@@ -6,11 +6,11 @@ on:
       platform:
         required: true
         type: string
-        description: 'Platform to test (android/ios)'
+        description: 'Platform to test (android only)'
       build_type:
         required: true
         type: string
-        description: 'Build type (imported-wallet/onboarding/mm-connect)'
+        description: 'Build type (imported-wallet/onboarding)'
       device_matrix:
         required: true
         type: string
@@ -90,6 +90,29 @@ jobs:
       matrix:
         device: ${{ fromJson(inputs.device_matrix) }}
     steps:
+      - name: Validate supported inputs
+        env:
+          TEST_PLATFORM: ${{ inputs.platform }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          if [ "$TEST_PLATFORM" != "android" ]; then
+            echo "::error::TestMu AI Standard runner supports only platform 'android'; received '$TEST_PLATFORM'. iOS is out of scope for this lane."
+            exit 1
+          fi
+
+          case "$BUILD_TYPE" in
+            onboarding|imported-wallet)
+              ;;
+            mm-connect)
+              echo "::error::TestMu AI Standard runner does not support build_type 'mm-connect'. Use the TestMu HyperExecute runner for mm-connect."
+              exit 1
+              ;;
+            *)
+              echo "::error::Unsupported TestMu AI Standard build_type '$BUILD_TYPE'. Supported build types: onboarding, imported-wallet."
+              exit 1
+              ;;
+          esac
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -249,13 +272,22 @@ jobs:
         run: |
           echo "=== [TestMu AI Standard] Running ${{ inputs.build_type }} on ${{ matrix.device.name }} ==="
 
-          if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-onboarding-testmu"
-          elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
-            BASE_CMD="yarn run-playwright:mm-connect-${{ inputs.platform }}-testmu"
-          else
-            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-testmu"
-          fi
+          case "${{ inputs.build_type }}" in
+            onboarding)
+              BASE_CMD="yarn run-playwright:${{ inputs.platform }}-onboarding-testmu"
+              ;;
+            imported-wallet)
+              BASE_CMD="yarn run-playwright:${{ inputs.platform }}-testmu"
+              ;;
+            mm-connect)
+              echo "Error: TestMu AI Standard runner does not support build_type 'mm-connect'. Use the TestMu HyperExecute runner for mm-connect."
+              exit 1
+              ;;
+            *)
+              echo "Error: Unsupported TestMu AI Standard build_type '${{ inputs.build_type }}'. Supported build types: onboarding, imported-wallet."
+              exit 1
+              ;;
+          esac
 
           if [ -n "$GREP_TAGS" ]; then
             $BASE_CMD --grep "$GREP_TAGS" --pass-with-no-tests
