@@ -60,6 +60,9 @@ const newOverrides = [
       'app/selectors/featureFlagController/seedlessTelegramLogin/index.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      'app/constants/bridge.ts',
+      // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
+      'tests/llm-workflow/metamask-provider.ts',
       'app/core/devApiEnv.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
@@ -76,6 +79,8 @@ const newOverrides = [
       'tests/framework/playwrightLogger.ts',
       'tests/framework/PlaywrightUtilities.ts',
       'tests/framework/fixtures/FixtureHelper.ts',
+      'tests/framework/fixtures/playwright/sessionReuse.ts',
+      'tests/framework/fixtures/playwright/sessionReuse.test.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',

@@ -48,6 +48,7 @@ jest.mock('react-native-worklets', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+const mockReset = jest.fn();
 let mockRouteParams: Record<string, unknown> = {
   source: 'main_action_button',
 };
@@ -57,6 +58,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
     canGoBack: mockCanGoBack,
+    reset: mockReset,
   }),
   useRoute: () => ({
     params: mockRouteParams,
@@ -627,13 +629,24 @@ describe('PerpsHomeView', () => {
     // Act - stubbed toggle switches to Pro on press
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - persists the new mode and lands on the default (BTC) market
+    // Assert - persists the new mode and resets onto the default (BTC)
+    // market, discarding Perps Home from history so it stays unreachable
+    // via back navigation while Pro mode is active.
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        expect.objectContaining({
+          name: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'BTC' }),
+          }),
+        }),
+      ],
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MARKET_DETAILS,
-      expect.objectContaining({
-        market: expect.objectContaining({ symbol: 'BTC' }),
-      }),
+      expect.anything(),
     );
   });
 
@@ -649,13 +662,24 @@ describe('PerpsHomeView', () => {
     // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - mode is persisted, but onboarding is not skipped
+    // Assert - mode is persisted, but onboarding is not skipped. The
+    // tutorial redirect still points at the default Pro market (not Perps
+    // Home) so completing onboarding doesn't violate the Pro-mode invariant
+    // (TAT-3612).
     expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+      source: 'perps_home',
+      redirectScreen: Routes.PERPS.MARKET_DETAILS,
+      redirectParams: {
+        market: { symbol: 'BTC' },
+        source: 'perps_home',
+      },
+    });
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MARKET_DETAILS,
       expect.anything(),
     );
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {

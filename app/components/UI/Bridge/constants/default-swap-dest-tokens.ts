@@ -3,10 +3,16 @@ import {
   CaipChainId,
   SolScope,
   TrxScope,
+  XlmScope,
 } from '@metamask/keyring-api';
 import { BridgeToken } from '../types';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
+import {
+  ARC_CAIP_CHAIN_ID,
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_BRIDGE_TOKEN,
+} from '../../../../enablement/assets/arc';
 
 /**
  * Per-chain swap destination configuration.
@@ -26,6 +32,13 @@ interface ChainSwapDestConfig {
    */
   [sourceAddress: Hex | CaipChainId]: BridgeToken;
 }
+
+export const BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN: {
+  [key: Hex | CaipChainId]: BridgeToken;
+} = {
+  [ARC_HEX_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
+  [ARC_CAIP_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
+};
 
 export const DefaultSwapDestTokens: Partial<
   Record<Hex | CaipChainId, ChainSwapDestConfig>
@@ -226,6 +239,18 @@ export const DefaultSwapDestTokens: Partial<
       chainId: TrxScope.Mainnet,
     },
   },
+  [XlmScope.Pubnet]: {
+    '*': {
+      address:
+        'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 7,
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/stellar/pubnet/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN.png',
+      chainId: XlmScope.Pubnet,
+    },
+  },
 };
 
 export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
@@ -294,4 +319,24 @@ export const Bip44TokensForDefaultPairs: Record<CaipAssetType, BridgeToken> = {
     chainId: TrxScope.Mainnet,
     name: 'Tether USD',
   },
+  'stellar:pubnet/slip44:148': {
+    address: 'stellar:pubnet/slip44:148',
+    symbol: 'XLM',
+    decimals: 7,
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/stellar/pubnet/slip44/148.png',
+    chainId: XlmScope.Pubnet,
+    name: 'Stellar',
+  },
+  'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN':
+    {
+      address:
+        'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      symbol: 'USDC',
+      decimals: 7,
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/stellar/pubnet/asset/USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN.png',
+      chainId: XlmScope.Pubnet,
+      name: 'USD Coin',
+    },
 };

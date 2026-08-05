@@ -155,8 +155,8 @@ describe('useBridgeConfirm', () => {
           status: PostTradeStatus.InProgress,
           transactionMetaId: 'tx-meta-id',
           transactionHash: '0xabc',
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
         }),
       });
     });
@@ -236,10 +236,24 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
+      const sourceAmount = mockQuoteWithMetadata.sentAmount;
+      const destAmount = mockQuoteWithMetadata.toTokenAmount;
+      if (!sourceAmount || !destAmount) {
+        throw new Error('Mock quote is missing token amounts');
+      }
+
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.BRIDGE.ROOT,
         expect.objectContaining({
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+          params: expect.objectContaining({
+            submissionParams: expect.objectContaining({
+              postTradeModalParams: expect.objectContaining({
+                sourceAmount: sourceAmount.amount,
+                destAmount: destAmount.amount,
+              }),
+            }),
+          }),
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -337,6 +351,10 @@ describe('useBridgeConfirm', () => {
       mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('logs the error', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderHook();
@@ -365,8 +383,8 @@ describe('useBridgeConfirm', () => {
         screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
         params: expect.objectContaining({
           status: PostTradeStatus.Failed,
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
         }),
       });
     });

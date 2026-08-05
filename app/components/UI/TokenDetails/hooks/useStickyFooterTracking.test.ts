@@ -60,6 +60,28 @@ describe('useStickyFooterTracking', () => {
     );
   });
 
+  it('tracks money deposit CTA type', () => {
+    const { result } = renderHook(() => useStickyFooterTracking());
+
+    act(() => {
+      result.current({
+        ctaType: 'money_deposit',
+        balanceFiatUsd: 150,
+        tokenAddress: '0xabc',
+        chainId: '0x1',
+      });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Token Details CTA Clicked',
+        properties: expect.objectContaining({
+          cta_type: 'money_deposit',
+        }),
+      }),
+    );
+  });
+
   it('includes indicators_active when technical indicators flag is ON', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
