@@ -165,10 +165,12 @@ const mockBtcQuoteWithUnavailableNetworkFee = {
     ...mockActiveQuote.quote,
     feeData: {
       ...mockActiveQuote.quote.feeData,
-      networkFee: {
-        ...(mockActiveQuote.quote.feeData?.network?.[0] ?? {}),
-        normalizedAmount: '0',
-      },
+      network: [
+        {
+          ...(mockActiveQuote.quote.feeData?.network?.[0] ?? {}),
+          normalizedAmount: '0',
+        },
+      ],
     },
   },
 };

@@ -311,7 +311,7 @@ describe('BridgeViewFooter', () => {
           ...mockUseBridgeQuoteData,
           activeQuote: {
             ...mockQuoteWithMetadata,
-            quote: { feeData: { metabridge: { quoteBpsFee: 87.5 } } },
+            quote: { feeData: { metabridge: [{ quoteBpsFee: 87.5 }] } },
           },
         }));
 
@@ -482,12 +482,14 @@ describe('BridgeViewFooter', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              destAsset: {
-                ...mockQuoteWithMetadata.quote.dest.asset,
-                symbol: 'mUSD',
+              dest: {
+                asset: {
+                  ...mockQuoteWithMetadata.quote.dest.asset,
+                  symbol: 'mUSD',
+                },
               },
               feeData: {
-                metabridge: { quoteBpsFee: undefined, baseBpsFee: undefined },
+                metabridge: [{ quoteBpsFee: undefined, baseBpsFee: undefined }],
               },
             },
           },

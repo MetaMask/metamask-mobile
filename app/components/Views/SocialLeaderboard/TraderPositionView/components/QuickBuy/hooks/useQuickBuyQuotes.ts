@@ -52,7 +52,7 @@ import {
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
 
-export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
+export type QuickBuyQuote = QuoteResponse;
 
 export interface QuickBuyQuotesAnalyticsContext {
   /** Wallet address of the trader being copied. */
@@ -607,7 +607,7 @@ export function useQuickBuyQuotes({
 
     const controllerFields: BridgeAppState = {
       ...metadataDeps.bridgeController,
-      quotes: rawQuotes.map(toQuoteResponseV2),
+      quotes: rawQuotes,
       // selectBridgeQuotes destructures quoteRequest as an array at runtime.
       quoteRequest: [{ ...quoteRequestBase, ...quoteRequestPatch }],
       gasFeeEstimatesByChainId: metadataDeps.gasFeeEstimatesByChainId,
