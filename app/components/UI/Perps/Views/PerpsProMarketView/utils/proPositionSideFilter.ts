@@ -10,7 +10,7 @@ export const PRO_POSITION_SIDE_FILTER_OPTIONS: {
 }[] = [
   {
     id: 'all',
-    labelKey: 'perps.pro_positions_panel.side_filter.all_types',
+    labelKey: 'perps.pro_positions_panel.side_filter.all_sides',
   },
   {
     id: 'long',

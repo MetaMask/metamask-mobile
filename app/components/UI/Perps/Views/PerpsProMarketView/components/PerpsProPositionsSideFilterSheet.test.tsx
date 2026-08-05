@@ -10,7 +10,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'perps.market_type.filter_by': 'Filter by',
       'perps.sort.apply': 'Apply',
-      'perps.pro_positions_panel.side_filter.all_types': 'All types',
+      'perps.pro_positions_panel.side_filter.all_sides': 'All sides',
       'perps.pro_positions_panel.side_filter.long': 'Long',
       'perps.pro_positions_panel.side_filter.short': 'Short',
     };
@@ -51,7 +51,7 @@ describe('PerpsProPositionsSideFilterSheet', () => {
     );
 
     expect(screen.getByText('Filter by')).toBeOnTheScreen();
-    expect(screen.getByText('All types')).toBeOnTheScreen();
+    expect(screen.getByText('All sides')).toBeOnTheScreen();
     expect(screen.getByText('Long')).toBeOnTheScreen();
     expect(screen.getByText('Short')).toBeOnTheScreen();
   });
