@@ -13,7 +13,7 @@ import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet.js';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal.js';
 import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector.js';
-import NetworkNonPemittedBottomSheet from '../../../page-objects/Network/NetworkNonPemittedBottomSheet.js';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds.js';
 
 appiumTest.describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   appiumTest.describe.configure({ timeout: 300_000 });
@@ -45,7 +45,9 @@ appiumTest.describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
             await TestDApp.tapDappConnectButton();
             await ConnectedAccountsModal.tapPermissionsSummaryTab();
             await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-            await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();
+            await NetworkConnectMultiSelector.selectNetworkChainPermission(
+              NetworkNonPemittedBottomSheetSelectorsText.ELYSIUM_TESTNET_NETWORK_NAME,
+            );
             await NetworkConnectMultiSelector.tapUpdateButton();
             await ConnectBottomSheet.tapConnectButton();
 

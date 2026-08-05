@@ -14,7 +14,6 @@ import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/comp
 import Browser from '../../../page-objects/Browser/BrowserView.js';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal.js';
 import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector.js';
-import NetworkNonPemittedBottomSheet from '../../../page-objects/Network/NetworkNonPemittedBottomSheet.js';
 import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet.js';
 
@@ -50,8 +49,12 @@ appiumTest.describe(
             await ConnectedAccountsModal.tapPermissionsSummaryTab();
             await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
-            await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
-            await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+            await NetworkConnectMultiSelector.selectNetworkChainPermission(
+              NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
+            );
+            await NetworkConnectMultiSelector.selectNetworkChainPermission(
+              NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
+            );
 
             await NetworkConnectMultiSelector.tapUpdateButton();
 
@@ -127,8 +130,12 @@ appiumTest.describe(
               NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
             );
 
-            await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
-            await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+            await NetworkConnectMultiSelector.selectNetworkChainPermission(
+              NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
+            );
+            await NetworkConnectMultiSelector.selectNetworkChainPermission(
+              NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
+            );
             await NetworkConnectMultiSelector.tapUpdateButton();
 
             await ConnectedAccountsModal.tapPermissionsSummaryTab();

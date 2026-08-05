@@ -5,8 +5,9 @@ import {
   Assertions,
   EncapsulatedElementType,
   encapsulated,
+  PlatformDetector,
+  PlaywrightMatchers,
 } from '../../framework';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class NetworkConnectMultiSelector {
   get updateButton(): EncapsulatedElementType {
@@ -70,7 +71,14 @@ class NetworkConnectMultiSelector {
   }
 
   async selectNetworkChainPermission(chainName: string): Promise<void> {
-    await Gestures.waitAndTap(this.getNetworkRow(chainName), {
+    const row = this.getNetworkRow(chainName);
+    if (PlatformDetector.isIOSAppium()) {
+      await Gestures.scrollToElement(row, undefined, {
+        direction: 'down',
+        elemDescription: `Scroll to network chain permission ${chainName}`,
+      });
+    }
+    await Gestures.waitAndTap(row, {
       elemDescription: `Tap on the network chain permission ${chainName}`,
     });
   }
