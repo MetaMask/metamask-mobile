@@ -3,7 +3,6 @@ import {
   ButtonBase,
   ButtonIcon,
   ButtonIconSize,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -84,59 +83,60 @@ const PerpsProSizeInput = ({
 
   return (
     <Box
-      twClassName="overflow-visible rounded-xl border border-muted bg-muted"
+      twClassName="overflow-visible rounded-2xl border border-muted bg-muted"
       testID={ids.SIZE_CARD}
     >
-      <ButtonBase
-        onPress={focusInput}
-        twClassName="min-h-14 w-full bg-transparent px-3 py-2"
-        contentWrapperProps={{
-          twClassName: 'w-full flex-row items-center justify-between gap-2',
-        }}
-        testID={ids.SIZE_FIELD}
-        accessibilityLabel={label}
-        accessibilityHint={strings('perps.pro_order_form.size_input_hint', {
-          unit: unitLabel,
-        })}
-      >
-        <Box twClassName="min-w-0 flex-1 flex-row items-center">
-          {showUsdPrefix ? (
-            <Text
-              variant={TextVariant.HeadingSm}
-              twClassName="font-semibold"
-              testID={ids.SIZE_PREFIX}
-            >
-              $
-            </Text>
-          ) : null}
-          <Input
-            ref={inputRef}
-            value={value}
-            onChangeText={onChangeText}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            keyboardType="decimal-pad"
-            inputAccessoryViewID={inputAccessoryViewID}
-            placeholder="0.00"
-            placeholderTextColor={tw.color('text-muted')}
-            textVariant={TextVariant.HeadingSm}
-            isStateStylesDisabled
-            twClassName="min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
-            testID={ids.SIZE_INPUT}
-            accessibilityLabel={label}
-            accessibilityHint={strings('perps.pro_order_form.size_input_hint', {
-              unit: unitLabel,
-            })}
-          />
-        </Box>
-        <Box twClassName="flex-row items-center gap-1">
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            testID={ids.SIZE_UNIT_LABEL}
-          >
+      <Box twClassName="relative">
+        <ButtonBase
+          onPress={focusInput}
+          twClassName="h-24 w-full bg-transparent px-4 py-4"
+          contentWrapperProps={{
+            twClassName: 'w-full flex-col items-start',
+          }}
+          testID={ids.SIZE_FIELD}
+          accessibilityLabel={label}
+          accessibilityHint={strings('perps.pro_order_form.size_input_hint', {
+            unit: unitLabel,
+          })}
+        >
+          <Text variant={TextVariant.HeadingSm} testID={ids.SIZE_UNIT_LABEL}>
             {label}
           </Text>
+          <Box twClassName="mt-4 w-full min-w-0 flex-row items-center gap-1 pr-8">
+            {showUsdPrefix ? (
+              <Text
+                variant={TextVariant.HeadingMd}
+                twClassName="font-semibold"
+                testID={ids.SIZE_PREFIX}
+              >
+                $
+              </Text>
+            ) : null}
+            <Input
+              ref={inputRef}
+              value={value}
+              onChangeText={onChangeText}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              keyboardType="decimal-pad"
+              inputAccessoryViewID={inputAccessoryViewID}
+              placeholder="0.00"
+              placeholderTextColor={tw.color('text-muted')}
+              textVariant={TextVariant.HeadingMd}
+              isStateStylesDisabled
+              twClassName="min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
+              testID={ids.SIZE_INPUT}
+              accessibilityLabel={label}
+              accessibilityHint={strings(
+                'perps.pro_order_form.size_input_hint',
+                {
+                  unit: unitLabel,
+                },
+              )}
+            />
+          </Box>
+        </ButtonBase>
+        <Box twClassName="absolute right-3 top-3 z-10">
           <ButtonIcon
             iconName={IconName.SwapHorizontal}
             size={ButtonIconSize.Xs}
@@ -154,9 +154,9 @@ const PerpsProSizeInput = ({
             )}
           />
         </Box>
-      </ButtonBase>
+      </Box>
       <Box
-        twClassName="overflow-visible px-3 pb-4 pt-6"
+        twClassName="h-[72px] justify-center overflow-visible pb-3 pl-6 pr-3 pt-6"
         onTouchCancel={sizeSlider.onDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >
@@ -177,12 +177,13 @@ const PerpsProSizeInput = ({
           )}
         />
       </Box>
+      <Box twClassName="w-full border-t border-muted" />
       <ButtonBase
         onPress={onAddFundsPress}
         isDisabled={!onAddFundsPress}
-        twClassName="h-11 w-full rounded-b-xl border-t border-muted bg-transparent px-3"
+        twClassName="h-14 w-full rounded-b-2xl bg-transparent px-4"
         contentWrapperProps={{
-          twClassName: 'w-full flex-row items-center justify-between',
+          twClassName: 'w-full flex-row items-center justify-start gap-2',
         }}
         testID={ids.ADD_FUNDS_BUTTON}
         accessibilityLabel={availableBalance}
@@ -195,16 +196,11 @@ const PerpsProSizeInput = ({
         >
           {availableBalance}
         </Text>
-        <Box twClassName="flex-row items-center gap-1">
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-            {strings('perps.add_funds')}
-          </Text>
-          <Icon
-            name={IconName.AddCircle}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Box>
+        <Icon
+          name={IconName.AddCircle}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
       </ButtonBase>
     </Box>
   );
