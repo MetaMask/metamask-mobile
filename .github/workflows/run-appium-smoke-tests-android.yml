@@ -65,7 +65,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -73,7 +73,7 @@ jobs:
       platform: android
       test_suite_tag: SmokeAccounts
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
@@ -172,7 +172,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 6
       # Session reuse + soft reload: denser shards; drop toward 25 after one green main.
-      test-timeout-minutes: 30
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -243,7 +243,7 @@ jobs:
       test_suite_tag: SmokeSwap
       split_number: ${{ matrix.split }}
       total_splits: 1
-      test-timeout-minutes: 30
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -291,7 +291,7 @@ jobs:
       test_suite_tag: SmokeMMConnect
       split_number: ${{ matrix.split }}
       total_splits: 1
-      test-timeout-minutes: 35
+      test-timeout-minutes: 25
       android-tag: google_apis
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
@@ -364,7 +364,7 @@ jobs:
       test_suite_tag: SmokeConfirmations
       split_number: ${{ matrix.split }}
       total_splits: 2
-      test-timeout-minutes: 35
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
