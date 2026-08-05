@@ -76,10 +76,9 @@ export const driverFixture = {
 
     try {
       if (reuseEnabled && sharedSession.drv) {
-        const forcedRecreate = consumeSharedSessionRecreate();
+        const forceRecreate = consumeSharedSessionRecreate();
         const alive =
-          !forcedRecreate.requested &&
-          (await isSessionAlive(sharedSession.drv));
+          !forceRecreate && (await isSessionAlive(sharedSession.drv));
         if (alive) {
           drv = sharedSession.drv;
           sessionReused = true;
@@ -88,8 +87,8 @@ export const driverFixture = {
           );
         } else {
           logger.warn(
-            forcedRecreate.requested
-              ? `Shared WebDriver session recreate requested (${forcedRecreate.reason ?? 'unspecified'}); recreating for "${testInfo.title}"`
+            forceRecreate
+              ? `Shared WebDriver session recreate requested; recreating for "${testInfo.title}"`
               : `Shared WebDriver session is unhealthy; recreating for "${testInfo.title}"`,
           );
           try {
@@ -105,7 +104,6 @@ export const driverFixture = {
           drv = await createSession(deviceProvider, sharedSession);
         }
       } else {
-        // Drop any stale recreate request from a prior worker/test when reuse is off.
         consumeSharedSessionRecreate();
         logger.info(
           `${reuseEnabled ? 'Starting' : 'Starting (reuse off)'} WebDriver session for "${testInfo.title}" (project: ${project.name})`,
@@ -204,17 +202,12 @@ export const driverFixture = {
         logger.error('Failed to sync test details:', error);
       }
 
-      // Soft-reload / adb device-health failures can leave a "alive" WebDriver
-      // session pointed at a broken install. Drop reuse so the next test or
-      // Playwright retry recreates instead of cascading MainActivity failures.
       if (
         reuseEnabled &&
         (testStatus === 'failed' || testStatus === 'timedOut') &&
         isDeviceHealthError(testError)
       ) {
-        requestSharedSessionRecreate(
-          testError ?? `device-health failure in "${testInfo.title}"`,
-        );
+        requestSharedSessionRecreate();
         try {
           if (drv) {
             await deviceProvider.cleanupSession?.(drv);

@@ -65,24 +65,29 @@ describe('softReloadAppForFixtures', () => {
   let deviceCommands: SoftReloadDeviceCommands;
   let waitForNextStateRequest: jest.Mock;
   let clearAppData: jest.Mock;
-  let isAppInstalled: jest.Mock;
-  let reinstallApp: jest.Mock;
 
   beforeEach(() => {
     waitForNextStateRequest = jest.fn().mockResolvedValue(undefined);
     clearAppData = jest.fn().mockResolvedValue(undefined);
-    isAppInstalled = jest.fn().mockResolvedValue(true);
-    reinstallApp = jest.fn().mockResolvedValue(undefined);
     fixtureServer = { waitForNextStateRequest };
-    deviceCommands = { clearAppData, isAppInstalled, reinstallApp };
+    deviceCommands = { clearAppData };
     shouldHandleMetroMock.mockReturnValue(false);
     switchToNativeContextMock.mockResolvedValue(true);
     launchAppMock.mockResolvedValue(undefined);
     dismissMetroMock.mockResolvedValue(undefined);
     resetSharedSessionRecreateState();
+    jest.spyOn(global, 'setTimeout').mockImplementation(((
+      fn: TimerHandler,
+    ) => {
+      if (typeof fn === 'function') {
+        (fn as () => void)();
+      }
+      return 0 as unknown as NodeJS.Timeout;
+    }) as typeof setTimeout);
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
     resetSharedSessionRecreateState();
   });
@@ -159,11 +164,9 @@ describe('softReloadAppForFixtures', () => {
     expect(dismissMetroMock).toHaveBeenCalled();
   });
 
-  it('retries clearAppData once after a transient failure then continues', async () => {
+  it('retries clearAppData once then continues', async () => {
     clearAppData
-      .mockRejectedValueOnce(
-        new Error('Command failed: adb shell pm clear io.metamask'),
-      )
+      .mockRejectedValueOnce(new Error('Command failed: adb shell pm clear'))
       .mockResolvedValueOnce(undefined);
 
     await softReloadAppForFixtures({
@@ -172,12 +175,10 @@ describe('softReloadAppForFixtures', () => {
       launchArgs: {},
       fixtureServer,
       drv: {} as WebdriverIO.Browser,
-      clearAppDataRetryDelayMs: 0,
     });
 
     expect(clearAppData).toHaveBeenCalledTimes(2);
-    expect(launchAppMock).toHaveBeenCalledTimes(1);
-    expect(consumeSharedSessionRecreate().requested).toBe(false);
+    expect(consumeSharedSessionRecreate()).toBe(false);
   });
 
   it('requests shared session recreate when clearAppData keeps failing', async () => {
@@ -192,68 +193,10 @@ describe('softReloadAppForFixtures', () => {
         launchArgs: {},
         fixtureServer,
         drv: {} as WebdriverIO.Browser,
-        clearAppDataRetryDelayMs: 0,
       }),
     ).rejects.toThrow(/pm clear/);
 
     expect(clearAppData).toHaveBeenCalledTimes(2);
-    expect(launchAppMock).not.toHaveBeenCalled();
-    expect(consumeSharedSessionRecreate()).toEqual({
-      requested: true,
-      reason: expect.stringMatching(/pm clear/i),
-    });
-  });
-
-  it('reinstalls and retries launch when MainActivity is missing and buildPath is set', async () => {
-    // Package may still appear installed after emulator glitches; MainActivity
-    // missing is enough to justify reinstall when a local build path exists.
-    isAppInstalled.mockResolvedValue(true);
-    launchAppMock
-      .mockRejectedValueOnce(
-        new Error(
-          'Activity class {io.metamask/io.metamask.MainActivity} does not exist.',
-        ),
-      )
-      .mockResolvedValueOnce(undefined);
-
-    const result = await softReloadAppForFixtures({
-      currentDeviceDetails,
-      deviceCommands,
-      launchArgs: {},
-      fixtureServer,
-      drv: {} as WebdriverIO.Browser,
-      buildPath: '/tmp/app-prod-release.apk',
-    });
-
-    expect(reinstallApp).toHaveBeenCalledWith({
-      buildPath: '/tmp/app-prod-release.apk',
-      ignoreMissing: true,
-    });
-    expect(launchAppMock).toHaveBeenCalledTimes(2);
-    expect(result.reinstalledAfterLaunchFailure).toBe(true);
-    expect(consumeSharedSessionRecreate().requested).toBe(false);
-  });
-
-  it('requests shared session recreate when launch fails without recovery', async () => {
-    launchAppMock.mockRejectedValue(
-      new Error(
-        'Activity class {io.metamask/io.metamask.MainActivity} does not exist.',
-      ),
-    );
-
-    await expect(
-      softReloadAppForFixtures({
-        currentDeviceDetails,
-        deviceCommands: { clearAppData },
-        launchArgs: {},
-        fixtureServer,
-        drv: {} as WebdriverIO.Browser,
-      }),
-    ).rejects.toThrow(/MainActivity/);
-
-    expect(consumeSharedSessionRecreate()).toEqual({
-      requested: true,
-      reason: expect.stringMatching(/MainActivity/i),
-    });
+    expect(consumeSharedSessionRecreate()).toBe(true);
   });
 });
