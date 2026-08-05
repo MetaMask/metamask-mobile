@@ -60,7 +60,7 @@ const PerpsProCompactInput = ({
       placeholderTextColor={tw.color(`text-${placeholderColor}`)}
       textVariant={TextVariant.BodySm}
       isStateStylesDisabled
-      twClassName="flex-1 border-0 bg-transparent p-0 font-medium"
+      twClassName="flex-1 border-0 bg-transparent p-0"
       testID={testID}
       accessibilityLabel={label}
     />
@@ -72,8 +72,10 @@ const PerpsProCompactInput = ({
         twClassName="h-12 flex-row items-center border-t border-muted px-3"
         testID={`${testID}-container`}
       >
-        {startAccessory}
-        {input}
+        <Box twClassName="min-w-0 flex-1 flex-row items-center">
+          {startAccessory}
+          {input}
+        </Box>
         {endAccessory}
       </Box>
     );

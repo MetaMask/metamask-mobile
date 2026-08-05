@@ -437,7 +437,6 @@ const PerpsProOrderForm = ({
                 startAccessory={
                   <Text
                     variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
                     twClassName="mr-1"
                     testID={ids.LIMIT_PRICE_PREFIX}
                   >
@@ -445,15 +444,22 @@ const PerpsProOrderForm = ({
                   </Text>
                 }
                 endAccessory={
-                  <ButtonBase
-                    size={ButtonBaseSize.Sm}
-                    onPress={onUseMidPricePress}
-                    isDisabled={!onUseMidPricePress}
-                    twClassName="h-12 bg-transparent px-0"
-                    testID={ids.MID_PRICE_BUTTON}
-                  >
-                    {strings('perps.order.limit_price_modal.mid_price')}
-                  </ButtonBase>
+                  <Box twClassName="h-full shrink-0 justify-center">
+                    <ButtonBase
+                      size={ButtonBaseSize.Sm}
+                      onPress={onUseMidPricePress}
+                      isDisabled={!onUseMidPricePress}
+                      twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+                      contentWrapperProps={{ twClassName: 'justify-end' }}
+                      textProps={{
+                        variant: TextVariant.BodySm,
+                        fontWeight: FontWeight.Medium,
+                      }}
+                      testID={ids.MID_PRICE_BUTTON}
+                    >
+                      {strings('perps.order.limit_price_modal.mid_price')}
+                    </ButtonBase>
+                  </Box>
                 }
               />
             ) : null}
