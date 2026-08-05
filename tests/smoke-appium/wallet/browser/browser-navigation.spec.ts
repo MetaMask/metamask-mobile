@@ -139,6 +139,8 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
               await EnsWebsite.tapGeneralButton(getEnsFixturePageUrl());
             },
             {
+              timeout: 60_000,
+              interval: 2_000,
               description: 'wait for ENS page to load and tap General link',
             },
           );

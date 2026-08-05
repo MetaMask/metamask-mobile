@@ -35,10 +35,19 @@ class EnsWebsite {
           ),
         );
 
+        const generalLink = await PlaywrightMatchers.getElementByAndroidUIAutomator(
+          EnsWebsiteSelectorsText.GENERAL_LINK,
+        );
+        // Android WebView accessibility nodes can report displayed/enabled=false
+        // even when they are tappable, so avoid strict state gates here.
         await PlaywrightGestures.waitAndTap(
-          await PlaywrightMatchers.getElementByAndroidUIAutomator(
-            EnsWebsiteSelectorsText.GENERAL_LINK,
-          ),
+          generalLink,
+          {
+            timeout: 15_000,
+            delay: 0,
+            checkForDisplayed: false,
+            checkForEnabled: false,
+          },
         );
         return;
       }

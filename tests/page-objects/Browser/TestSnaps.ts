@@ -466,14 +466,7 @@ class TestSnaps {
   }
 
   async dismissAlert() {
-    try {
-      await Gestures.tap(Matchers.getElementByText(/^OK$/i));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (!/stale|wasn't found|no such element/i.test(message)) {
-        throw error;
-      }
-    }
+    await this.tapOkButton();
   }
 
   async selectInDropdown(

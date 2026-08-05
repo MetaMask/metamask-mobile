@@ -6,7 +6,7 @@ export const EnsWebsiteSelectorsXPath = {
 export const EnsWebsiteSelectorsText = {
   PAGE_HEADING: '.textContains("vitalik.eth")',
   // WebView links are not always marked clickable in the Android a11y tree.
-  GENERAL_LINK: '.text("General")',
+  GENERAL_LINK: '.textContains("General")',
 } as const;
 
 export type EnsWebsiteSelectorsXPathType = typeof EnsWebsiteSelectorsXPath;
