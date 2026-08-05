@@ -50,6 +50,13 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  * Prefix for the dev-only structured log emitted next to every Data Fetch span
  * boundary. The span itself is only observable in Sentry, so this is the sole
  * way to verify the boundary on a live device (validation recipes grep Metro).
+ *
+ * Every boundary the span can reach is logged, so a missing line means a
+ * missing span rather than an unlogged path:
+ * - `start section=… phase=… loading_at_span_open=…`
+ * - `end section=… success=true content_state=…`
+ * - `end section=… success=false reason=unmounted` (aborted by unmount/disable)
+ * - `skip section=… reason=post_mount_reload`
  */
 const DATA_FETCH_LOG_PREFIX = '[homepage.section.performance] data_fetch';
 
@@ -180,6 +187,9 @@ export const useSectionPerformance = ({
           data: { success: false, reason: 'unmounted', section_id: sectionId },
         });
         fetchStarted.current = false;
+        DevLogger.log(
+          `${DATA_FETCH_LOG_PREFIX} end section=${sectionId} success=false reason=unmounted`,
+        );
       }
     };
   }, [enabled, sectionId]);

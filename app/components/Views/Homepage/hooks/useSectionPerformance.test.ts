@@ -227,7 +227,7 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('opens and closes the data fetch span at mount when the section is already loaded', () => {
+    it('opens the data fetch span at mount when the section is already loaded', () => {
       renderHook(() =>
         useSectionPerformance({ ...defaultConfig, isLoading: false }),
       );
@@ -243,6 +243,13 @@ describe('useSectionPerformance', () => {
           },
         }),
       );
+    });
+
+    it('closes the data fetch span at mount when the section is already loaded', () => {
+      renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: false }),
+      );
+
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.HomepageSectionDataFetch,
@@ -381,9 +388,6 @@ describe('useSectionPerformance', () => {
         loading_at_span_open: false,
         phase: 'enabled',
       });
-      expect(mockDevLoggerLog).toHaveBeenCalledWith(
-        '[homepage.section.performance] data_fetch start section=tokens phase=enabled loading_at_span_open=false',
-      );
     });
 
     it('ends the fetch trace with failure on unmount if still loading', () => {
@@ -429,6 +433,21 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('logs the span open with the enabled phase when a flag opens it after mount', () => {
+      const { rerender } = renderHook(
+        ({ enabled, isLoading }) =>
+          useSectionPerformance({ ...defaultConfig, enabled, isLoading }),
+        { initialProps: { enabled: false, isLoading: true } },
+      );
+
+      rerender({ enabled: false, isLoading: false });
+      rerender({ enabled: true, isLoading: false });
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch start section=tokens phase=enabled loading_at_span_open=false',
+      );
+    });
+
     it('logs the span close with the success and content state', () => {
       const { rerender } = renderHook(
         ({ isLoading }) =>
@@ -440,6 +459,18 @@ describe('useSectionPerformance', () => {
 
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
         '[homepage.section.performance] data_fetch end section=tokens success=true content_state=filled',
+      );
+    });
+
+    it('logs the aborted span close when the section unmounts while still loading', () => {
+      const { unmount } = renderHook(() =>
+        useSectionPerformance({ ...defaultConfig, isLoading: true }),
+      );
+
+      unmount();
+
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        '[homepage.section.performance] data_fetch end section=tokens success=false reason=unmounted',
       );
     });
 
