@@ -1552,7 +1552,6 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    clearRewardsCaches();
     // Reset controller messenger mock
     mockControllerMessenger.call.mockReset();
     mockUsePerpsTrading.mockReturnValue({

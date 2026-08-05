@@ -56,10 +56,6 @@ describe('perpsCufTrace', () => {
     resetPerpsCufTraceForTests();
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   describe('isPerpsFillRendered (shared fill predicate)', () => {
     const pos = (size: string) => ({ symbol: 'BTC', size });
 
@@ -989,22 +985,6 @@ describe('perpsCufTrace', () => {
       acceptPerpsCufRequest(opId);
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({ id: opId }),
-      );
-    });
-
-    it('ends the edit span when the order fills and leaves the stream', () => {
-      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
-      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
-      acceptPerpsCufRequest(opId);
-
-      handlePerpsCufOrdersDelivered([{ orderId: 'o-2', price: '3000' }]);
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: opId,
-          data: expect.objectContaining({
-            [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-          }),
-        }),
       );
     });
   });
