@@ -18,6 +18,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
+
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = PayWithBottomSheetIDs.BOTTOM_SHEET;
 
 export function PayWithBottomSheet() {
@@ -25,7 +26,6 @@ export function PayWithBottomSheet() {
   const navigation = useNavigation<AppNavigationProp>();
   const { sections } = usePayWithSections();
   const transactionMeta = useTransactionMetadataRequest();
-  const surfaceClass = useElevatedSurface();
   useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const title = isWithdraw
@@ -46,7 +46,6 @@ export function PayWithBottomSheet() {
       goBack={handleGoBack}
       testID={PAY_WITH_BOTTOM_SHEET_TEST_ID}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>{title}</Text>
