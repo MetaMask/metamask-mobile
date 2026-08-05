@@ -8,6 +8,11 @@ import {
 import { BridgeToken } from '../types';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
+import {
+  ARC_CAIP_CHAIN_ID,
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_BRIDGE_TOKEN,
+} from '../../../../enablement/assets/arc';
 
 /**
  * Per-chain swap destination configuration.
@@ -27,6 +32,13 @@ interface ChainSwapDestConfig {
    */
   [sourceAddress: Hex | CaipChainId]: BridgeToken;
 }
+
+export const BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN: {
+  [key: Hex | CaipChainId]: BridgeToken;
+} = {
+  [ARC_HEX_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
+  [ARC_CAIP_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
+};
 
 export const DefaultSwapDestTokens: Partial<
   Record<Hex | CaipChainId, ChainSwapDestConfig>

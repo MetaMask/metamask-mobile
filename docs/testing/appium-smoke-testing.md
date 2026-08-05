@@ -147,6 +147,16 @@ IOS_SIMULATOR_UDID="$IOS_SIMULATOR_UDID" \
 yarn appium-smoke:ios
 ```
 
+### API specs (OpenRPC) — excluded from smoke tags
+
+`tests/smoke-appium/api-specs/` is **iOS-only**, colocated under smoke-appium but **not** part of Appium smoke tag suites (`testIgnore` unless `APPIUM_RUN_API_SPECS=1`). Use the dedicated script / workflow:
+
+```bash
+IOS_APP_PATH=build/ci-main-e2e/MetaMask.app yarn test:api-specs
+```
+
+CI entrypoint: `.github/workflows/run-e2e-api-specs.yml` (`api-specs-ios`, currently `if: false`).
+
 **Single spec or tag:**
 
 ```bash
@@ -236,4 +246,4 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smok
 - [E2E testing guidelines](./e2e-testing.md) — POM, cross-framework patterns, Detox vs Appium specs
 - [E2E setup (Detox)](../readme/e2e-testing.md) — Metro, debug builds, smoke
 - [Playwright local emulator](../../tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
-- [Unified E2E architecture](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — `resolve()`, `encapsulated()`
+- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`, `encapsulated()`

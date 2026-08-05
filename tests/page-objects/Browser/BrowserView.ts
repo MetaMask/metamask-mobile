@@ -1,4 +1,3 @@
-import TestHelpers from '../../helpers';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
@@ -405,6 +404,40 @@ class Browser {
   }
 
   /**
+   * Opens the tabs overview (if needed) and selects the tab whose a11y label
+   * matches `{host}, Switch tab` (TabThumbnail). Pass a URL or origin such as
+   * `https://metamask.github.io`.
+   */
+  async selectTabByPartialUrl(url: string): Promise<void> {
+    await this.dismissUrlEditorIfOpen();
+
+    const tabsOverview = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
+    );
+    const alreadyOnOverview = await Utilities.isElementVisible(
+      tabsOverview,
+      2_000,
+    );
+    if (!alreadyOnOverview) {
+      await this.tapOpenAllTabsButton();
+    }
+
+    await Assertions.expectElementToBeVisible(tabsOverview, {
+      timeout: 10_000,
+      description: 'Tabs overview should be visible before selecting a tab',
+    });
+
+    const host = url.replace(/^https?:\/\//, '');
+    await Gestures.waitAndTap(
+      Matchers.getElementByLabel(`${host}, Switch tab`),
+      {
+        elemDescription: `Browser tab matching "${url}"`,
+        timeout: 10_000,
+      },
+    );
+  }
+
+  /**
    * Closes every open in-app browser tab so WebView/Chromedriver only sees the
    * upcoming navigation target (CI emulators can accumulate stale tabs).
    * Always leaves the tabs overview so callers resume on single-tab browser UI.
@@ -559,8 +592,9 @@ class Browser {
    * @returns {Promise<void>}
    */
   async waitForBrowserPageToLoad(): Promise<void> {
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(5000);
+    await Assertions.expectElementToBeVisible(this.browserScreenID, {
+      elemDescription: 'Browser screen',
+    });
   }
 
   async navigateToTestDApp(): Promise<void> {
