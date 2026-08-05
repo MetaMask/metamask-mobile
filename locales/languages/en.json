@@ -10688,7 +10688,6 @@
     "search_placeholder": "Search for any asset to add"
   },
   "asset_spendable_balance": {
-    "balance": "Balance",
     "spendable": "Spendable",
     "base_reserved": "Reserved (locked)",
     "fiat_value": "Value",
