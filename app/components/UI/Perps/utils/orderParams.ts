@@ -153,6 +153,7 @@ export interface BuildEditOrderParamsInput {
   order: Order;
   newLimitPrice?: string;
   newSize?: string;
+  leverage?: number;
   trackingData: OrderTrackingData;
 }
 
@@ -164,6 +165,7 @@ export const buildEditOrderParamsFromOrder = ({
   order,
   newLimitPrice,
   newSize,
+  leverage,
   trackingData,
 }: BuildEditOrderParamsInput): OrderParams => {
   const limitPrice = newLimitPrice ?? order.price ?? '';
@@ -180,10 +182,11 @@ export const buildEditOrderParamsFromOrder = ({
     priceAtCalculation: parsedPrice,
     maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps,
     price: limitPrice,
+    ...(typeof leverage === 'number' && leverage > 0 ? { leverage } : {}),
     ...(order.reduceOnly ? { reduceOnly: true } : {}),
-    // Preserve attached TP/SL prices on modify so a price-only edit does not
-    // drop children if the venue recreates the parent order. Size editing of
-    // orders with attached TP/SL is blocked separately (children are not resized).
+    // Carry TP/SL prices through params for parity with placement flows. The
+    // HyperLiquid modify wire payload does not read these fields today; size
+    // edits on orders with attached TP/SL are blocked separately in the app.
     ...(order.takeProfitPrice?.trim()
       ? { takeProfitPrice: order.takeProfitPrice }
       : {}),

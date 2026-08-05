@@ -693,9 +693,16 @@ export function handlePerpsCufPositionsDelivered(
 function orderPriceMatches(expected: string, actual?: string): boolean {
   const expectedBn = new BigNumber(expected);
   const actualBn = new BigNumber(actual ?? '');
-  return (
-    expectedBn.isFinite() && actualBn.isFinite() && expectedBn.eq(actualBn)
-  );
+  if (!expectedBn.isFinite() || !actualBn.isFinite()) {
+    return false;
+  }
+  if (expectedBn.eq(actualBn)) {
+    return true;
+  }
+  // Venue modify may round the submitted price; treat near-equal values as a
+  // match so ORDER_PRICE_UPDATED CUF does not time out on tick rounding.
+  const maxMagnitude = BigNumber.max(expectedBn.abs(), actualBn.abs(), 1);
+  return expectedBn.minus(actualBn).abs().div(maxMagnitude).lte(1e-8);
 }
 
 /**

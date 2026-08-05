@@ -216,6 +216,22 @@ describe('buildEditOrderParamsFromOrder', () => {
     );
   });
 
+  it('includes effective leverage in edit params when provided', () => {
+    const params = buildEditOrderParamsFromOrder({
+      order,
+      newLimitPrice: '3100',
+      leverage: 5,
+      trackingData: { totalFee: 0, marketPrice: 3100, source: 'test' },
+    });
+
+    expect(params).toEqual(
+      expect.objectContaining({
+        leverage: 5,
+        price: '3100',
+      }),
+    );
+  });
+
   it('preserves attached take-profit and stop-loss prices on edit', () => {
     const params = buildEditOrderParamsFromOrder({
       order: {
