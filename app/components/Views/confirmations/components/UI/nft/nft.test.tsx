@@ -172,6 +172,6 @@ describe('Nft', () => {
     expect(getByText('Simple Collection')).toBeOnTheScreen();
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(getByText('#123')).toBeOnTheScreen();
-    expect(queryByTestId('nft-network-badge')).toBeNull();
+    expect(queryByTestId('nft-network-badge')).not.toBeOnTheScreen();
   });
 });

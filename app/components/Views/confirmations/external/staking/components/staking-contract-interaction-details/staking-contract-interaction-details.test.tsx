@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
 } from '../../../../../../../util/test/confirm-data-helpers';
@@ -8,13 +9,27 @@ import StakingContractInteractionDetails from './staking-contract-interaction-de
 
 describe('StakingContractInteractionDetails', () => {
   it('renders staking deposit variant', () => {
-    const { getByText } = renderWithProvider(
+    const { getByText, getByTestId } = renderWithProvider(
       <StakingContractInteractionDetails />,
       {
         state: stakingDepositConfirmationState,
       },
     );
     expect(getByText('Staking from')).toBeDefined();
+    expect(getByText('Interacting with')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByTestId('staking-contract-network-badge')).toBeOnTheScreen();
+  });
+
+  it('renders staking claim variant', () => {
+    const { getByText } = renderWithProvider(
+      <StakingContractInteractionDetails />,
+      {
+        state: stakingClaimConfirmationState,
+      },
+    );
+    expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();

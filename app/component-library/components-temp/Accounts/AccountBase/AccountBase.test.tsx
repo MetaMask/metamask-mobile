@@ -8,7 +8,7 @@ import {
 import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 
 describe('AccountBase', () => {
-  it('should render AccountBase', () => {
+  it('renders AccountBase with network badge when badgeProps.src is provided', () => {
     render(
       <AccountBase
         accountBalance={0}
@@ -21,6 +21,28 @@ describe('AccountBase', () => {
         avatarAccountType={AvatarAccountType.Maskicon}
       />,
     );
-    expect(screen.getByTestId('account-base')).toBeTruthy();
+
+    expect(screen.getByTestId('account-base')).toBeOnTheScreen();
+    expect(screen.getByTestId('account-base-network-badge')).toBeOnTheScreen();
+  });
+
+  it('renders without network badge when badgeProps.src is missing', () => {
+    render(
+      <AccountBase
+        accountBalance={0}
+        accountNativeCurrency={''}
+        accountNetwork={''}
+        accountName={''}
+        accountBalanceLabel={''}
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        badgeProps={{ name: 'Ethereum' }}
+        avatarAccountType={AvatarAccountType.Maskicon}
+      />,
+    );
+
+    expect(screen.getByTestId('account-base')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('account-base-network-badge'),
+    ).not.toBeOnTheScreen();
   });
 });

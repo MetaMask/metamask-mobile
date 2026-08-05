@@ -9,6 +9,7 @@ import {
   TextVariant,
   FontWeight,
   TextColor,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BigNumber } from 'bignumber.js';
@@ -62,7 +63,7 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
               asset.networkBadgeSource ? (
                 <BadgeNetwork
                   name={asset.name || asset.symbol || 'Token'}
-                  src={asset.networkBadgeSource}
+                  src={asset.networkBadgeSource as ImageOrSvgSrc}
                   testID="token-network-badge"
                 />
               ) : null

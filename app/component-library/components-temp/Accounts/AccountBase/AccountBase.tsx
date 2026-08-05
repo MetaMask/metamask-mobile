@@ -33,7 +33,11 @@ const AccountBase = ({
         position={BadgeWrapperPosition.BottomRight}
         badge={
           badgeProps.src ? (
-            <BadgeNetwork src={badgeProps.src} name={badgeProps.name} />
+            <BadgeNetwork
+              src={badgeProps.src}
+              name={badgeProps.name}
+              testID="account-base-network-badge"
+            />
           ) : null
         }
         style={styles.badgeWrapper}

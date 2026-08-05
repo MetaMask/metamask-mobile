@@ -6,7 +6,11 @@ import {
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { BadgeNetwork, Text } from '@metamask/design-system-react-native';
+import {
+  BadgeNetwork,
+  Text,
+  type ImageOrSvgSrc,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
@@ -69,7 +73,10 @@ const StakingContractInteractionDetails = () => {
       <InfoRowDivider />
       <InfoRow label={strings('confirm.label.network')}>
         <View style={styles.networkContainer}>
-          <BadgeNetwork src={images.ETHEREUM} />
+          <BadgeNetwork
+            src={images.ETHEREUM as ImageOrSvgSrc}
+            testID="staking-contract-network-badge"
+          />
           <Text>{'  '}</Text>
           <Text>{strings('stake.ethereum_mainnet')}</Text>
         </View>

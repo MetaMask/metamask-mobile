@@ -71,7 +71,11 @@ export const AvatarTokenWithNetworkBadge = ({
         position={BadgeWrapperPosition.BottomRight}
         badge={
           networkImage ? (
-            <BadgeNetwork src={networkImage} name={networkName} />
+            <BadgeNetwork
+              src={networkImage}
+              name={networkName}
+              testID="avatar-token-network-badge"
+            />
           ) : null
         }
       >

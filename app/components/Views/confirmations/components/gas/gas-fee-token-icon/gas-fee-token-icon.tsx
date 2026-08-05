@@ -105,7 +105,11 @@ function TokenIconWithNetworkBadge({
         position={BadgeWrapperPosition.BottomRight}
         badge={
           networkImage ? (
-            <BadgeNetwork src={networkImage} name={networkName} />
+            <BadgeNetwork
+              src={networkImage}
+              name={networkName}
+              testID="gas-fee-token-network-badge"
+            />
           ) : null
         }
         style={styles.badgeWrapper}

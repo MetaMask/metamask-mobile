@@ -55,7 +55,10 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
       position={BadgeWrapperPosition.BottomRight}
       badge={
         showNetwork && networkImageSource ? (
-          <BadgeNetwork src={networkImageSource} />
+          <BadgeNetwork
+            src={networkImageSource}
+            testID="token-icon-network-badge"
+          />
         ) : null
       }
     >

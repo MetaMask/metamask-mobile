@@ -10,6 +10,7 @@ import {
   TextVariant,
   FontWeight,
   TextColor,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -48,7 +49,7 @@ export function Nft({ asset, onPress }: NftProps) {
               asset.networkBadgeSource ? (
                 <BadgeNetwork
                   name={asset.name || asset.collectionName || 'NFT'}
-                  src={asset.networkBadgeSource}
+                  src={asset.networkBadgeSource as ImageOrSvgSrc}
                   testID="nft-network-badge"
                 />
               ) : null
