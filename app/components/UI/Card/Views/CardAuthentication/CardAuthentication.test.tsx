@@ -6,11 +6,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useCardAuth } from '../../hooks/useCardAuth';
-import { ToastContext } from '../../../../../component-library/components/Toast';
-import {
-  CardProviderError,
-  CardProviderErrorCode,
-} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 // Mock whenEngineReady to prevent async polling after test teardown
 jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
@@ -185,8 +180,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Network error. Please check your connection and try again.',
       'card.card_authentication.errors.unknown_error':
         'Unknown error, please try again later',
-      'card.card_authentication.errors.money_account_linked_to_different_card':
-        'This wallet is already linked to a different MetaMask Card. Log in with the originally linked card, or unlink it from that card first.',
       'card.card_otp_authentication.confirm_button': 'Confirm',
       'card.card_otp_authentication.back_to_login_button': 'Back to login',
       'card.card_otp_authentication.confirm_code_label': 'Verification code',
@@ -211,18 +204,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-const mockShowToast = jest.fn();
-const mockToastRef = { current: { showToast: mockShowToast } };
-
-const CardAuthenticationWithToast = () => (
-  <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-    <CardAuthentication />
-  </ToastContext.Provider>
-);
-
 function render(location: 'international' | 'us' = 'international') {
   return renderScreen(
-    CardAuthenticationWithToast,
+    CardAuthentication,
     {
       name: Routes.CARD.AUTHENTICATION,
     },
@@ -753,92 +737,6 @@ describe('CardAuthentication Component', () => {
           'Network error. Please check your connection and try again.',
         ),
       ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Money Account linked to a different card (login guardrail)', () => {
-    const conflictError = new CardProviderError(
-      CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
-      'Money Account is already linked to a different card account',
-    );
-    const conflictToastLabel =
-      'This wallet is already linked to a different MetaMask Card. Log in with the originally linked card, or unlink it from that card first.';
-
-    it('shows the conflict toast and does not navigate when login is blocked', async () => {
-      mockSubmitMutateAsync.mockRejectedValue(conflictError);
-      render();
-
-      fireEvent.changeText(
-        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
-        'test@example.com',
-      );
-      fireEvent.changeText(
-        screen.getByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
-        'password123',
-      );
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
-        );
-      });
-
-      await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: [{ label: conflictToastLabel }],
-            hasNoTimeout: false,
-          }),
-        );
-      });
-      expect(mockReset).not.toHaveBeenCalled();
-      // The user is already on the login form — no OTP state to unwind.
-      expect(mockResetToLogin).not.toHaveBeenCalled();
-    });
-
-    it('shows the conflict toast and returns to the login form when blocked at the OTP step', async () => {
-      mockSubmitMutateAsync.mockRejectedValue(conflictError);
-      mockUseCardAuth.mockReturnValue(
-        makeDefaultHookReturn({
-          currentStep: { type: 'otp', destination: '+1555****90' },
-        }),
-      );
-      render();
-
-      await act(async () => {
-        fireEvent.changeText(screen.getByTestId('otp-code-field'), '123456');
-      });
-
-      await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: [{ label: conflictToastLabel }],
-          }),
-        );
-      });
-      expect(mockResetToLogin).toHaveBeenCalledTimes(1);
-      expect(mockReset).not.toHaveBeenCalled();
-    });
-
-    it('does not show the conflict toast for other login errors', async () => {
-      mockSubmitMutateAsync.mockRejectedValue(new Error('invalid credentials'));
-      render();
-
-      fireEvent.changeText(
-        screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
-        'test@example.com',
-      );
-      fireEvent.changeText(
-        screen.getByTestId(CardAuthenticationSelectors.PASSWORD_FIELD),
-        'password123',
-      );
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
-        );
-      });
-
-      expect(mockShowToast).not.toHaveBeenCalled();
-      expect(mockResetToLogin).not.toHaveBeenCalled();
     });
   });
 

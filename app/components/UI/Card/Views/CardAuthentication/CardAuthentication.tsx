@@ -5,13 +5,7 @@ import {
   CommonActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
   Box,
@@ -20,7 +14,6 @@ import {
   Text,
   TextVariant,
   Icon,
-  IconColor,
   IconName,
   IconSize,
   Button,
@@ -59,15 +52,6 @@ import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelect
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboarding';
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
-import {
-  CardProviderError,
-  CardProviderErrorCode,
-} from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 type LocationSelection = CardLocation | 'uk';
 const IMMERSVE_UK_COUNTRY_KEY = 'GB';
@@ -128,7 +112,6 @@ const CardAuthentication = () => {
   const [resendCooldown, setResendCooldown] = useState(60);
   const dispatch = useDispatch();
   const theme = useTheme();
-  const { toastRef } = useContext(ToastContext);
 
   const {
     currentStep,
@@ -227,32 +210,6 @@ const CardAuthentication = () => {
     );
   }, [trackEvent, createEventBuilder, isOtpStep]);
 
-  // Login was refused because this wallet's Money Account is already linked
-  // to a different card account (e.g. from another device). Surfaced as a
-  // toast so the reason is visible even when the form resets.
-  const showLinkedToDifferentCardToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [
-        {
-          label: strings(
-            'card.card_authentication.errors.money_account_linked_to_different_card',
-          ),
-        },
-      ],
-      iconName: ToastIconName.Error,
-      iconColor: theme.colors.error.default,
-      hasNoTimeout: false,
-      startAccessory: (
-        <Icon
-          name={IconName.Error}
-          color={IconColor.ErrorDefault}
-          size={IconSize.Lg}
-        />
-      ),
-    });
-  }, [toastRef, theme.colors.error.default]);
-
   const performLogin = useCallback(
     async (otpCode?: string) => {
       const action = isOtpStep
@@ -324,22 +281,7 @@ const CardAuthentication = () => {
         });
       } catch (err) {
         Logger.log('CardAuthentication::Login failed', err);
-        if (
-          err instanceof CardProviderError &&
-          err.code === CardProviderErrorCode.MoneyAccountLinkedToDifferentCard
-        ) {
-          showLinkedToDifferentCardToast();
-          if (isOtpStep) {
-            // The auth session is dead — OTP retries can't succeed, so take
-            // the user back to the login form.
-            setConfirmCode('');
-            setLatestValueSubmitted(null);
-            setResendCooldown(60);
-            resetToLogin();
-          }
-          return;
-        }
-        // other errors are displayed via the derived `error` variable above
+        // errors are displayed via the derived `error` variable above
       }
     },
     [
@@ -354,8 +296,6 @@ const CardAuthentication = () => {
       trackEvent,
       createEventBuilder,
       postAuthRedirect,
-      showLinkedToDifferentCardToast,
-      resetToLogin,
     ],
   );
 

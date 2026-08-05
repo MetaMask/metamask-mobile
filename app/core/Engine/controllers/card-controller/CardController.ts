@@ -648,38 +648,6 @@ export class CardController extends BaseController<
     if (result.done && result.tokenSet) {
       const { tokenSet } = result;
 
-      // Cross-device guardrail: refuse to complete login when the primary
-      // Money Account is already delegated on-chain to a different card
-      // account (e.g. linked from another device under another card login).
-      // Completing the login would let the user link the same Money Account
-      // to a second card, leaving the SRP with two competing linked cards.
-      Logger.log(
-        'CardController: running Money Account card conflict check (login)',
-        { provider: pid },
-      );
-      const hasConflict = await this.#detectMoneyAccountCardConflict(tokenSet);
-      Logger.log(
-        'CardController: Money Account card conflict check (login) result',
-        { hasConflict },
-      );
-      if (hasConflict) {
-        try {
-          await provider.logout(tokenSet);
-        } catch (logoutError) {
-          Logger.error(logoutError as Error, {
-            tags: { feature: 'card', provider: pid },
-            context: {
-              name: 'CardController',
-              data: { method: 'submitCredentials/conflictLogout' },
-            },
-          });
-        }
-        throw new CardProviderError(
-          CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
-          'Money Account is already linked to a different card account',
-        );
-      }
-
       const stored = await CardTokenStore.set(pid, tokenSet);
       if (!stored) {
         Logger.error(new Error('Token store write failed after auth'), {
@@ -1391,13 +1359,14 @@ export class CardController extends BaseController<
    *
    * Fail-open by design: any error in the check (RPC unreachable, wallet
    * fetch failure) resolves to `false` so a degraded network never blocks
-   * login. Returns `false` immediately when there is no primary Money
+   * linking. Returns `false` immediately when there is no primary Money
    * Account or the provider exposes no Monad delegation config (e.g.
    * Immersve), since the guardrail is then irrelevant.
    *
-   * @param tokens - Auth tokens for the card session being checked. Passed
-   * explicitly because the login path runs this check before tokens are
-   * persisted.
+   * Only the LINK flow enforces this check (product decision): logging in
+   * to a second card is allowed; creating a second link is not.
+   *
+   * @param tokens - Auth tokens for the card session being checked.
    */
   async #detectMoneyAccountCardConflict(
     tokens: CardAuthTokens,
