@@ -181,10 +181,11 @@ Ensure the emulator is running before starting tests.
 
 ## Yarn commands
 
-| Command                     | Description                     |
-| --------------------------- | ------------------------------- |
-| `yarn appium-smoke:ios`     | Full iOS Appium smoke suite     |
-| `yarn appium-smoke:android` | Full Android Appium smoke suite |
+| Command                               | Description                                     |
+| ------------------------------------- | ----------------------------------------------- |
+| `yarn appium-smoke:ios`               | Full iOS Appium smoke suite                     |
+| `yarn appium-smoke:android`           | Full Android Appium smoke suite                 |
+| `yarn appium-smoke:aggregate-timings` | Aggregate phase-timing JSON into a trend report |
 
 Both use `tests/playwright.smoke-appium.config.ts`. Pass standard Playwright flags: `--grep`, file paths, `--debug`, etc.
 
@@ -206,6 +207,34 @@ Helpers:
 - `softReloadAppForFixtures` — `tests/framework/services/appium/softReloadApp.ts`
 - Worker fixtures — `deviceProvider` + `sharedSession` in `tests/framework/fixtures/playwright/`
 
+## Phase timing telemetry
+
+Every Appium smoke test records sibling phase durations (ms) via `PhaseTimer`:
+
+| Phase                                                              | Source                                         |
+| ------------------------------------------------------------------ | ---------------------------------------------- |
+| `servers_start`                                                    | Fixture servers / nodes / mocks                |
+| `app_clear` / `context_reset` / `app_launch` / `fixture_bootstrap` | Soft reload                                    |
+| `login` / `modal_dismissal`                                        | `loginToAppPlaywright`                         |
+| `test_body`                                                        | `withFixtures` callback excluding login/modals |
+| `teardown`                                                         | Fixture cleanup                                |
+
+Artifacts:
+
+| Output                | Path / name                                      |
+| --------------------- | ------------------------------------------------ |
+| Per-suite timing JSON | `tests/test-reports/appium-timings/<suite>.json` |
+| CI artifact           | `appium-timings-<suite>`                         |
+
+Aggregate locally (or after downloading CI artifacts from `main` / a PR run into the timings dir):
+
+```bash
+yarn appium-smoke:aggregate-timings
+yarn appium-smoke:aggregate-timings -- --input /path/to/timings --markdown /tmp/trend.md
+```
+
+The report prints avg/p95 per phase per platform, slowest shard, retry rate per spec, and session-reuse rate. Use timings from `main` CI artifacts as the comparison source once jobs are uploading them.
+
 ## Reports and artifacts
 
 | Output                        | Path                                  |
@@ -213,8 +242,9 @@ Helpers:
 | HTML report                   | `test-reports/appium-smoke-report/`   |
 | JUnit                         | `test-reports/appium-smoke-junit.xml` |
 | Failure videos (when enabled) | `test-reports/appium-smoke-videos/`   |
+| Phase timings                 | `test-reports/appium-timings/`        |
 
-CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smoke-videos-<suite>`.
+CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`.
 
 ## CI
 

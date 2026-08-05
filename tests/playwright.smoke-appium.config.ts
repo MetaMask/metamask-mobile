@@ -71,6 +71,7 @@ export default defineConfig({
     ['html', { open: 'never', outputFolder: htmlReportDir }],
     ['junit', { outputFile: junitReportPath }],
     ['list'],
+    ['./reporters/appium-timing-reporter.mjs'],
     ...(jsonReportPath
       ? ([['json', { outputFile: jsonReportPath }] as const] as const)
       : []),
