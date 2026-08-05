@@ -1,11 +1,4 @@
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
@@ -19,7 +12,6 @@ import {
   TextColor,
   TextField,
   TextVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import Keypad from '../../../../Base/Keypad';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -91,7 +83,6 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   reduceOnly = false,
   isMarketDataReady = true,
 }) => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [orderSize, setOrderSize] = useState(initialOrderSize || '');
   const displaySymbol = getPerpsDisplaySymbol(asset);
   const { minimumOrderAmount } = useMinimumOrderAmount({ asset });
@@ -109,7 +100,6 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   useEffect(() => {
     if (isVisible) {
       setOrderSize(initialOrderSize || '');
-      bottomSheetRef.current?.onOpenBottomSheet();
     }
   }, [initialOrderSize, isVisible]);
 
@@ -226,7 +216,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   }
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+    <BottomSheet onClose={onClose}>
       <BottomSheetHeader onClose={onClose}>
         {strings('perps.order.size_modal.title')}
       </BottomSheetHeader>

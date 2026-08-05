@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  memo,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState, memo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
@@ -21,7 +14,6 @@ import {
   TextColor,
   TextField,
   TextVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -95,8 +87,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   reduceOnly = false,
   isMarketDataReady = true,
 }) => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
@@ -151,7 +141,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
       // previous order's typed keypad value.
       setLimitPrice(initialLimitPrice || '');
       setInputMethod(null); // Reset input method tracking for new session
-      bottomSheetRef.current?.onOpenBottomSheet();
     }
   }, [initialLimitPrice, isVisible]);
 
@@ -433,7 +422,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   if (!isVisible) return null;
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+    <BottomSheet onClose={onClose}>
       <BottomSheetHeader onClose={onClose}>
         {strings('perps.order.limit_price_modal.title')}
       </BottomSheetHeader>
