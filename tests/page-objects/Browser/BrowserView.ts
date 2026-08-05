@@ -29,6 +29,8 @@ interface TransactionParams {
   [key: string]: string | number | boolean;
 }
 
+const URL_AUTOCOMPLETE_RESULT_ID = 'trending-search-footer-url-link';
+
 class Browser {
   get reloadButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
@@ -220,7 +222,10 @@ class Browser {
   /**
    * Navigate via the browser URL bar (preserves `http://` scheme / ENS names).
    */
-  private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
+  private async navigateToUrlViaUrlBarAppium(
+    url: string,
+    skipUrlEditorDismissal = false,
+  ): Promise<void> {
     await this.focusUrlBarAppium();
 
     const input = await asPlaywrightElement(this.urlBarTextInput);
@@ -229,12 +234,19 @@ class Browser {
 
     if (PlatformDetector.isAndroid()) {
       await PlaywrightGestures.submitAndroidUrlBar();
+      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1_000)) {
+        await PlaywrightGestures.waitAndTap(
+          await PlaywrightMatchers.getElementById(URL_AUTOCOMPLETE_RESULT_ID),
+        );
+      }
     } else {
       await PlaywrightGestures.typeText(input, '\n');
     }
 
-    // Dismiss the editor so subsequent reads/taps see the page.
-    await this.dismissUrlEditorIfOpen();
+    if (!skipUrlEditorDismissal) {
+      // Dismiss the editor so subsequent reads/taps see the page.
+      await this.dismissUrlEditorIfOpen();
+    }
   }
 
   /**
@@ -251,9 +263,12 @@ class Browser {
     await sleep(settleMs);
   }
 
-  private async typeUrlAppium(url: string): Promise<void> {
+  private async typeUrlAppium(
+    url: string,
+    skipUrlEditorDismissal = false,
+  ): Promise<void> {
     if (this.requiresUrlBarNavigation(url)) {
-      await this.navigateToUrlViaUrlBarAppium(url);
+      await this.navigateToUrlViaUrlBarAppium(url, skipUrlEditorDismissal);
       return;
     }
     await this.navigateToUrlViaDeeplink(url);
@@ -553,7 +568,7 @@ class Browser {
     }
 
     if (FrameworkDetector.isAppium()) {
-      await this.typeUrlAppium(url);
+      await this.typeUrlAppium(url, options.skipUrlEditorDismissal);
       return;
     }
     await Gestures.replaceText(this.urlInputBoxID, url, {

@@ -133,7 +133,9 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
           // Do not assert the URL bar text: BrowserTab only updates it when
           // unfocused, and even then it shows the origin — not the IPFS path
           // (same class of issue as MCWP-540). Success = page content loads.
-          await Browser.navigateToURL('vitalik.eth');
+          await Browser.navigateToURL('vitalik.eth', {
+            skipUrlEditorDismissal: true,
+          });
           await Utilities.executeWithRetry(
             async () => {
               await EnsWebsite.tapGeneralButton(getEnsFixturePageUrl());
