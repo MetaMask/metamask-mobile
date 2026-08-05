@@ -3,6 +3,7 @@ import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
+  type NavigationState,
   type NavigatorScreenParams,
 } from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
@@ -142,6 +143,56 @@ export const navigateToPerpsHomeTarget = (
     target.screen,
     target.params,
   );
+};
+
+/**
+ * Returns a function that removes `PerpsHomeView` from the Perps stack's
+ * history, leaving every other entry (e.g. the market list) untouched.
+ *
+ * Switching to Pro from a market screen swaps the rendered layout in place —
+ * `PerpsMarketDetailsRouter` keeps the same route — so a Perps Home entry the
+ * user came through stays in history and the back button would reveal the Lite
+ * hub while Pro is active (TAT-3612). Screens that switch mode by navigating
+ * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
+ */
+export const useDropPerpsHomeFromStackHistory = (): (() => void) => {
+  const navigation = useNavigation();
+
+  return useCallback(() => {
+    const state = navigation.getState() as NavigationState | undefined;
+
+    if (!state) {
+      return;
+    }
+
+    const routes = state.routes.filter(
+      (route) => route.name !== Routes.PERPS.PERPS_HOME,
+    );
+
+    // Nothing to drop, or Home is the only entry — resetting to an empty
+    // history would leave the navigator with no screen to render.
+    if (routes.length === state.routes.length || routes.length === 0) {
+      return;
+    }
+
+    // Keep the user on the screen they're looking at: its position shifts when
+    // an earlier route is removed.
+    const focusedKey = state.routes[state.index]?.key;
+    const focusedIndex = routes.findIndex((route) => route.key === focusedKey);
+
+    // Same assertion rationale as `toPerpsNavigatorScreenParams`: route names
+    // are plain `string`s here, so they can't be correlated with the
+    // navigator's param list keys.
+    const reset = navigation.reset as unknown as (
+      state: NavigationState,
+    ) => void;
+
+    reset({
+      ...state,
+      routes,
+      index: focusedIndex >= 0 ? focusedIndex : routes.length - 1,
+    });
+  }, [navigation]);
 };
 
 /**

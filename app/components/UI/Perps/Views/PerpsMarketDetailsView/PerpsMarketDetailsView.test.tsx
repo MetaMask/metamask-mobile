@@ -208,6 +208,8 @@ jest.mock(
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockReset = jest.fn();
+const mockGetState = jest.fn();
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -258,6 +260,8 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
+      getState: mockGetState,
+      reset: mockReset,
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -881,6 +885,14 @@ describe('PerpsMarketDetailsView', () => {
 
     // Reset navigation mocks
     mockCanGoBack.mockReturnValue(true);
+    // Default stack shape for this screen: reached from Perps Home.
+    mockGetState.mockReturnValue({
+      index: 1,
+      routes: [
+        { name: Routes.PERPS.PERPS_HOME, key: 'home-1' },
+        { name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' },
+      ],
+    });
 
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
@@ -1031,6 +1043,30 @@ describe('PerpsMarketDetailsView', () => {
     expect(mockNavigateToHome).not.toHaveBeenCalled();
   });
 
+  it('drops Perps Home from history when flipping to Pro so back does not reveal the Lite hub', () => {
+    enableProModeFlag();
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    // Home → market is the default mocked stack; only the market survives, and
+    // it stays focused.
+    expect(mockReset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        index: 0,
+        routes: [{ name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' }],
+      }),
+    );
+  });
+
   it('flips to Lite and stays on the current market when the active-mode pill is pressed', () => {
     enableProModeFlag();
     mockPerpsModeValue = PerpsMode.Pro;
@@ -1050,6 +1086,8 @@ describe('PerpsMarketDetailsView', () => {
     // Switching mode persists and flashes, but does not leave the market page.
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
     expect(mockNavigateToHome).not.toHaveBeenCalled();
+    // Lite keeps its hub reachable, so history is left untouched.
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('does not show the active-mode pill when the Pro mode flag is disabled', () => {

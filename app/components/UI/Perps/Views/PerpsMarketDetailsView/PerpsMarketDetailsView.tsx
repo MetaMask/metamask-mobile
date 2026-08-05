@@ -75,6 +75,7 @@ import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
 import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
+import { useDropPerpsHomeFromStackHistory } from '../../utils/perpsModeSwitch';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -356,12 +357,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // screen — no navigation either direction.
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
       showPerpsModeFlash(nextMode);
+      // The mode swap happens in place, so a Perps Home entry the user came
+      // through (Home → market → Pro) would still be reachable via back while
+      // Pro is active (TAT-3612).
+      if (nextMode === PerpsMode.Pro) {
+        dropPerpsHomeFromStackHistory();
+      }
     },
-    [setPerpsMode],
+    [setPerpsMode, dropPerpsHomeFromStackHistory],
   );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks

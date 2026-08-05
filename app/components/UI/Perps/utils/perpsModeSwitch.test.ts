@@ -13,6 +13,7 @@ import {
   getPerpsHomeNavigationTarget,
   useGetPerpsHomeNavigationTarget,
   useNavigateToPerpsHome,
+  useDropPerpsHomeFromStackHistory,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
@@ -21,9 +22,15 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
+const mockGetState = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    reset: mockReset,
+    getState: mockGetState,
+  }),
 }));
 
 jest.mock('../selectors/featureFlags', () => ({
@@ -238,6 +245,83 @@ describe('perpsModeSwitch', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: { market: buildDefaultProMarket() },
       });
+    });
+  });
+
+  describe('useDropPerpsHomeFromStackHistory', () => {
+    const buildRoute = (name: string, key: string) => ({ name, key });
+
+    it('removes Perps Home while keeping the rest of the stack and the focused screen', () => {
+      // Arrange - Home → market list → market, focused on the market.
+      mockGetState.mockReturnValue({
+        index: 2,
+        routes: [
+          buildRoute(Routes.PERPS.PERPS_HOME, 'home-1'),
+          buildRoute(Routes.PERPS.MARKET_LIST, 'list-1'),
+          buildRoute(Routes.PERPS.MARKET_DETAILS, 'market-1'),
+        ],
+      });
+
+      const { result } = renderHook(() => useDropPerpsHomeFromStackHistory());
+
+      // Act
+      result.current();
+
+      // Assert - Home is gone and the market stays focused at its new index.
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            buildRoute(Routes.PERPS.MARKET_LIST, 'list-1'),
+            buildRoute(Routes.PERPS.MARKET_DETAILS, 'market-1'),
+          ],
+        }),
+      );
+    });
+
+    it('leaves the stack alone when Perps Home is not in history', () => {
+      // Arrange - Pro entry points never seed Home beneath the market.
+      mockGetState.mockReturnValue({
+        index: 0,
+        routes: [buildRoute(Routes.PERPS.MARKET_DETAILS, 'market-1')],
+      });
+
+      const { result } = renderHook(() => useDropPerpsHomeFromStackHistory());
+
+      // Act
+      result.current();
+
+      // Assert
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('leaves the stack alone when Perps Home is the only entry', () => {
+      // Arrange - dropping it would leave the navigator with nothing to render.
+      mockGetState.mockReturnValue({
+        index: 0,
+        routes: [buildRoute(Routes.PERPS.PERPS_HOME, 'home-1')],
+      });
+
+      const { result } = renderHook(() => useDropPerpsHomeFromStackHistory());
+
+      // Act
+      result.current();
+
+      // Assert
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when the navigator has no state yet', () => {
+      // Arrange
+      mockGetState.mockReturnValue(undefined);
+
+      const { result } = renderHook(() => useDropPerpsHomeFromStackHistory());
+
+      // Act
+      result.current();
+
+      // Assert
+      expect(mockReset).not.toHaveBeenCalled();
     });
   });
 });
