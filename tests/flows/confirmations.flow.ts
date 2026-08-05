@@ -2,6 +2,7 @@ import Assertions from '../framework/Assertions';
 import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
+import { sleep } from '../framework/Utilities';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
 import FooterActions from '../page-objects/Browser/Confirmations/FooterActions';
@@ -9,6 +10,33 @@ import TestDApp from '../page-objects/Browser/TestDApp';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import { dismissPushNotificationExistingUserSheet } from './wallet.flow';
+
+const DAPP_TAP_CONFIRM_ATTEMPTS = 3;
+const CONFIRM_BUTTON_POLL_MS = 12_000;
+
+const tapTestDappButton = async (
+  pageUrl: string,
+  buttonId: string,
+  description: string,
+): Promise<void> => {
+  if (PlatformDetector.isAndroidAppium()) {
+    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+      pageUrl,
+      buttonId,
+    );
+    if (!clicked) {
+      await WebView.tapById(buttonId, {
+        pageUrl,
+        description: `${description} (native fallback after CDP miss)`,
+      });
+    }
+  } else {
+    await WebView.tapById(buttonId, {
+      pageUrl,
+      description,
+    });
+  }
+};
 
 /**
  * Opens the in-app browser, loads the test dapp with the given contract, and
@@ -30,25 +58,21 @@ export const navigateToContractAndTap = async (
   await waitForTestDappToLoad();
 
   const pageUrl = getDappUrl(0);
-  if (PlatformDetector.isAndroidAppium()) {
-    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-      pageUrl,
-      buttonId,
-    );
-    if (!clicked) {
-      await WebView.tapById(buttonId, {
-        pageUrl,
-        description: `${description} (native fallback after CDP miss)`,
-      });
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= DAPP_TAP_CONFIRM_ATTEMPTS; attempt++) {
+    try {
+      await tapTestDappButton(pageUrl, buttonId, description);
+      await FooterActions.waitForConfirmButton(CONFIRM_BUTTON_POLL_MS);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === DAPP_TAP_CONFIRM_ATTEMPTS) {
+        break;
+      }
+      await sleep(1000);
     }
-  } else {
-    await WebView.tapById(buttonId, {
-      pageUrl,
-      description,
-    });
   }
-
-  await FooterActions.waitForConfirmButton();
+  throw lastError;
 };
 
 /**

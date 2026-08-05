@@ -11,8 +11,8 @@ import { keccak256, encodePacked, pad, toHex, type Hex } from 'viem';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 
 /** Forked Aave `supply` can exceed viem's default HTTP timeout on cold Infura fetches. */
-const AAVE_SEED_RPC_TIMEOUT_MS = 120_000;
-const AAVE_SUPPLY_MAX_ATTEMPTS = 2;
+const AAVE_SEED_RPC_TIMEOUT_MS = 180_000;
+const AAVE_SUPPLY_MAX_ATTEMPTS = 3;
 
 /** Lowercase USDC mainnet address — must stay lowercase so the earn selector lookup matches. */
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -162,6 +162,7 @@ async function seedAethUsdcViaDeposit(
         if (attempt === AAVE_SUPPLY_MAX_ATTEMPTS) {
           break;
         }
+        await sleep(2_000);
       }
     }
     throw new Error(
