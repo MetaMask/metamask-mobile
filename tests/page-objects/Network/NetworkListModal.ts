@@ -174,9 +174,15 @@ class NetworkListModal {
 
   async tapNetworkRowMenuButton(networkName: string): Promise<void> {
     const escapedName = networkName.replace(/'/g, "\\'");
-    const menuButton = PlaywrightMatchers.getElementByXPath(
-      `(//*[@text='${escapedName}']/ancestor::*[@clickable='true'][1])//*[@resource-id='button-menu-select-test-id']`,
-    );
+    const rowId = 'list-item-multi-select-button-row';
+    const menuId = 'button-menu-select-test-id';
+    const menuButton = PlatformDetector.isAndroid()
+      ? PlaywrightMatchers.getElementByXPath(
+          `(//*[@text='${escapedName}']/ancestor::*[@resource-id='${rowId}'][1])//*[@resource-id='${menuId}']`,
+        )
+      : PlaywrightMatchers.getElementByXPath(
+          `(//*[@name='${escapedName}' or @label='${escapedName}']/ancestor::*[@name='${rowId}'][1])//*[@name='${menuId}']`,
+        );
     await Gestures.waitAndTap(menuButton, {
       elemDescription: `Network row menu button for ${networkName}`,
     });

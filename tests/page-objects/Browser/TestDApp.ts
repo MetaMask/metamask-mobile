@@ -232,9 +232,15 @@ class TestDApp {
     );
   }
 
-  getNetworkItemByName(networkName: string): WebElement {
+  getNetworkItemByName(
+    networkName: string,
+    { exactMatch = false }: { exactMatch?: boolean } = {},
+  ): WebElement {
+    const textPredicate = exactMatch
+      ? `text()="${networkName}"`
+      : `contains(text(), "${networkName}")`;
     return getTestDappWebElementByXPath(
-      `//div[contains(@class, "network-modal-item-name") and contains(text(), "${networkName}")]`,
+      `//div[contains(@class, "network-modal-item-name") and ${textPredicate}]`,
     );
   }
 
@@ -668,8 +674,8 @@ class TestDApp {
     networkName: string,
     { exactMatch = false }: { exactMatch?: boolean } = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-      // Prefer exactMatch for names that are substrings of others (e.g. Sepolia vs Linea Sepolia).
+    if (FrameworkDetector.isAppium()) {
+      // Honor exactMatch on both platforms (e.g. Sepolia vs Linea Sepolia).
       const networkItem = await PlaywrightMatchers.getElementByText(
         networkName,
         exactMatch,
@@ -686,9 +692,12 @@ class TestDApp {
       return;
     }
 
-    await this.tapButton(this.getNetworkItemByName(networkName), {
-      elemDescription: `tap ${networkName} network`,
-    });
+    await this.tapButton(
+      this.getNetworkItemByName(networkName, { exactMatch }),
+      {
+        elemDescription: `tap ${networkName} network`,
+      },
+    );
   }
 }
 

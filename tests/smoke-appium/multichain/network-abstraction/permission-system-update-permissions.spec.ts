@@ -73,8 +73,8 @@ appiumTest.describe(
       },
     );
 
-    appiumTest.only(
-      'should manage permissions for multiple accounts and networks accurately',
+    appiumTest(
+      'manages permissions for multiple accounts and networks accurately',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
