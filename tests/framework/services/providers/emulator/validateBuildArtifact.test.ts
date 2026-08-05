@@ -69,10 +69,7 @@ describe('validateAndroidApkArtifact', () => {
     const apkPath = writeApk(
       tmpDir,
       'app.apk',
-      Buffer.concat([
-        Buffer.from('not-a-zip'),
-        Buffer.alloc(2_000_000, 0x41),
-      ]),
+      Buffer.concat([Buffer.from('not-a-zip'), Buffer.alloc(2_000_000, 0x41)]),
     );
 
     expect(() => validateAndroidApkArtifact(apkPath)).toThrow(
@@ -83,8 +80,8 @@ describe('validateAndroidApkArtifact', () => {
   it('accepts a smaller APK when minBytes is lowered', () => {
     const apkPath = writeApk(tmpDir, 'app.apk', validApkContents(1024));
 
-    expect(
-      validateAndroidApkArtifact(apkPath, { minBytes: 512 }),
-    ).toBe(path.resolve(apkPath));
+    expect(validateAndroidApkArtifact(apkPath, { minBytes: 512 })).toBe(
+      path.resolve(apkPath),
+    );
   });
 });
