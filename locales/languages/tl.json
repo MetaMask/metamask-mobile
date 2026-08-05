@@ -1546,7 +1546,6 @@
       "positions_empty_long": "Walang mahahabang posisyon.",
       "positions_empty_short": "Walang maiikling posisyon.",
       "orders_empty": "Makikita ang mga bukas na order mo dito.",
-      "orders_empty_filtered": "Walang bukas na {{ticker}} order.",
       "side_filter": {
         "all_sides": "Lahat ng panig",
         "long": "Long",

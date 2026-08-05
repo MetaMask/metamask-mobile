@@ -1546,7 +1546,6 @@
       "positions_empty_long": "Нет длинных позиций.",
       "positions_empty_short": "Нет коротких позиций.",
       "orders_empty": "Здесь будут отображаться ваши открытые ордера.",
-      "orders_empty_filtered": "Нет открытых ордеров по {{ticker}}.",
       "side_filter": {
         "all_sides": "Все стороны",
         "long": "Длинные",

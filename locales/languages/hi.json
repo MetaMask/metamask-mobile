@@ -1546,7 +1546,6 @@
       "positions_empty_long": "कोई लॉन्ग पोज़िशन नहीं।",
       "positions_empty_short": "कोई शॉर्ट पोज़िशन नहीं।",
       "orders_empty": "आपके ओपन ऑर्डर यहाँ दिखेंगे।",
-      "orders_empty_filtered": "कोई ओपन {{ticker}} ऑर्डर नहीं।",
       "side_filter": {
         "all_sides": "सभी साइड्स",
         "long": "लॉन्ग",

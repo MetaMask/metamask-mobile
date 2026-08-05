@@ -1546,7 +1546,6 @@
       "positions_empty_long": "No hay posiciones largas.",
       "positions_empty_short": "No hay posiciones cortas.",
       "orders_empty": "Tus órdenes abiertas aparecerán aquí.",
-      "orders_empty_filtered": "No hay órdenes abiertas de {{ticker}}.",
       "side_filter": {
         "all_sides": "Todos los lados",
         "long": "Posición larga",

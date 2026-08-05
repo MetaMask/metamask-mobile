@@ -1546,7 +1546,6 @@
       "positions_empty_long": "Long pozisyon yok.",
       "positions_empty_short": "Short pozisyon yok.",
       "orders_empty": "Açık emirleriniz burada gösterilecek.",
-      "orders_empty_filtered": "Açık {{ticker}} emri yok.",
       "side_filter": {
         "all_sides": "Tüm yönler",
         "long": "Uzun",
