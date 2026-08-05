@@ -13,7 +13,6 @@ import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import {
   MetaMetricsSwapsEventSource,
   toQuoteResponseV2,
-  validateQuoteResponseV1,
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';

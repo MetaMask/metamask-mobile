@@ -795,12 +795,6 @@ export function useQuickBuyController(
       activeQuote.quote.feeData?.relayer,
     )?.valueInCurrency;
     if (total != null && isNumberValue(total)) return parseFloat(total);
-    const effective = sumAmounts(
-      activeQuote.quote.feeData?.network,
-      activeQuote.quote.feeData?.relayer,
-    )?.valueInCurrency;
-    if (effective != null && isNumberValue(effective))
-      return parseFloat(effective);
     return null;
   }, [activeQuote]);
 
