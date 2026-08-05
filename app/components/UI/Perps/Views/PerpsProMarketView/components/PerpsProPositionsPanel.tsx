@@ -111,9 +111,14 @@ const PerpsProPositionsPanel = ({
     handleEditPositionTpSl,
     handleEditPositionMargin,
     handleCancelOrder,
+    handleEditOrderPrice,
+    handleEditOrderSize,
     handleCloseAllPress,
     cancelingOrderId,
+    editingOrderId,
     isOrderCancelable,
+    isOrderEditable,
+    isOrderSizeEditable,
     isPositionMarginEditable,
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
@@ -286,8 +291,22 @@ const PerpsProPositionsPanel = ({
               testID={getPerpsProOrderRowSelector(order.symbol, index)}
               onPress={onSelectMarket ? handleSelectOrderMarket : undefined}
               onCancel={handleCancelOrder}
+              onEditPrice={handleEditOrderPrice}
+              onEditSize={handleEditOrderSize}
               isCancelDisabled={
-                !isOrderCancelable(order) || cancelingOrderId !== null
+                !isOrderCancelable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
+              }
+              isEditPriceDisabled={
+                !isOrderEditable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
+              }
+              isEditSizeDisabled={
+                !isOrderSizeEditable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
               }
             />
           ))}

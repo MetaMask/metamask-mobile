@@ -520,6 +520,9 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
+  ORDER_EDIT: 'perps-pro-market-order-edit',
+  ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
+  ORDER_SIZE_EDIT: 'perps-pro-market-order-size-edit',
   ORDER_ROW: 'perps-pro-market-order-row',
   ORDER_TYPE: 'perps-pro-market-order-type',
 };
@@ -569,6 +572,9 @@ export const PerpsMarketHeaderSelectorsIDs = {
   BACK_BUTTON: 'perps-market-header-back-button',
   ASSET_ICON: 'perps-market-header-asset-icon',
   ASSET_NAME: 'perps-market-header-asset-name',
+  /** Compact header price shown while scrolling (distinct from summary row). */
+  COMPACT_PRICE: 'perps-market-header-compact-price',
+  COMPACT_PRICE_CHANGE: 'perps-market-header-compact-price-change',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
   MORE_BUTTON: 'perps-market-header-more-button',
@@ -810,6 +816,11 @@ export const PerpsLimitPriceBottomSheetSelectorsIDs = {
   PRESET_BID: 'perps-limit-price-preset-bid',
   PRESET_ASK: 'perps-limit-price-preset-ask',
   PRESET_PERCENT: 'perps-limit-price-preset-',
+};
+
+export const PerpsOrderSizeBottomSheetSelectorsIDs = {
+  SIZE_DISPLAY: 'perps-order-size-display',
+  CONFIRM_BUTTON: 'perps-order-size-confirm-button',
 };
 
 // ========================================

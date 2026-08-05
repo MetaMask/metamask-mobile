@@ -363,6 +363,61 @@ export const isSyntheticOrderCancelable = (order: Order): boolean => {
   return !isSyntheticPlaceholderOrderId(order.orderId);
 };
 
+/**
+ * Whether an open limit order has attached take-profit / stop-loss children
+ * that were set at placement. Size edits do not resize those children, so
+ * size editing is blocked when either is present.
+ */
+export const orderHasAttachedTpSl = (order: Order): boolean => {
+  const takeProfit = order.takeProfitPrice?.trim();
+  const stopLoss = order.stopLossPrice?.trim();
+  return Boolean(takeProfit) || Boolean(stopLoss);
+};
+
+/**
+ * Whether an open limit order can be edited in place (price) in Pro mode.
+ * Trigger/TP-SL rows and partially filled limits are excluded.
+ */
+export const isLimitOrderEditable = (order: Order): boolean => {
+  if (!isSyntheticOrderCancelable(order)) {
+    return false;
+  }
+
+  if (order.status !== 'open' || order.orderType !== 'limit') {
+    return false;
+  }
+
+  if (isTriggerOrder(order)) {
+    return false;
+  }
+
+  const filledSize = parseFloat(order.filledSize ?? '0');
+  if (Number.isFinite(filledSize) && filledSize > 0) {
+    return false;
+  }
+
+  const originalSize = parseFloat(order.originalSize ?? order.size ?? '0');
+  const remainingSize = parseFloat(order.remainingSize ?? order.size ?? '0');
+  if (
+    Number.isFinite(originalSize) &&
+    Number.isFinite(remainingSize) &&
+    remainingSize < originalSize
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Whether an open limit order's size can be edited in place in Pro mode.
+ * Orders with attached TP/SL are excluded: a size change would leave child
+ * trigger orders at the old size (trading-safety gap; TP/SL edit is out of
+ * scope for this flow).
+ */
+export const isLimitOrderSizeEditable = (order: Order): boolean =>
+  isLimitOrderEditable(order) && !orderHasAttachedTpSl(order);
+
 const buildSyntheticTriggerOrder = (
   parentOrder: Order,
   triggerType: 'tp' | 'sl',
