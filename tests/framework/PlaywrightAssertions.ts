@@ -141,6 +141,48 @@ export default class PlaywrightAssertions {
   }
 
   /**
+   * Asserts that a target element eventually exists in the hierarchy.
+   * Prefer this over {@link expectElementToBeVisible} for BottomSheet /
+   * confirmation children that report isDisplayed=false while on screen.
+   */
+  static async expectElementToExist(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description = options.description ?? 'element';
+    const start = Date.now();
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout) {
+          try {
+            if (await el.unwrap().isExisting()) {
+              return true;
+            }
+          } catch {
+            // element not ready yet
+          }
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
+          }
+          await sleep(Math.min(this.POLL_INTERVAL_MS, remaining));
+        }
+        return false;
+      },
+    );
+
+    if (!found) {
+      throw new Error(
+        `Element "${description}" not in hierarchy after ${timeout}ms`,
+      );
+    }
+  }
+
+  /**
    * Waits until an element stays enabled (and on Android, native attrs are not false).
    * Prefer waitForInteractive on waitAndTap for tap flows.
    */

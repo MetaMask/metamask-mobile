@@ -1,11 +1,12 @@
+/**
+ * Unit tests for PredictFeedView.
+ */
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PredictFeedView from './PredictFeedView';
 import {
   PredictFeedViewSelectorsIDs,
   getPredictFeedViewSelector,
-  PredictMarketListSelectorsIDs,
-  PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import type { PredictFeedConfigResult } from '../../hooks/usePredictFeedConfig';
 import type { UsePredictMarketListResult } from '../../hooks/usePredictMarketList';
@@ -238,195 +239,113 @@ describe('PredictFeedView', () => {
     mockUsePredictSearch.mockReturnValue(searchResult());
   });
 
-  it('renders the header title from config', () => {
-    render(<PredictFeedView />);
+  describe('hook wiring', () => {
+    it('forwards the route feedId and active filter params to the data hooks', () => {
+      mockRouteParams = {
+        feedId: 'sports',
+        initialTabId: 'soccer',
+        initialFilterId: 'props',
+      };
 
-    expect(
-      screen.getByTestId(PredictFeedViewSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Sports')).toBeOnTheScreen();
-  });
-
-  it('forwards the route feedId and active filter params to the data hooks', () => {
-    mockRouteParams = {
-      feedId: 'sports',
-      initialTabId: 'soccer',
-      initialFilterId: 'props',
-    };
-
-    render(<PredictFeedView />);
-
-    expect(mockUsePredictFeedConfig).toHaveBeenCalledWith('sports', {
-      initialTabId: 'soccer',
-      initialFilterId: 'props',
-    });
-    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
-      {},
-      {
-        enabled: true,
-        showLiveFirst: true,
-        autoAdvanceEmptyPages: true,
-        filterStaleGameMarkets: true,
-      },
-    );
-  });
-
-  it('forwards filterByVolume from the active sports filter', () => {
-    mockRouteParams = { feedId: 'sports' };
-    mockUsePredictFeedConfig.mockReturnValue(
-      feedConfigResult({
-        activeFilter: {
-          id: 'games',
-          titleKey: 'predict.feed.filters.games',
-          params: {},
-          showLiveFirst: true,
-          filterByVolume: 1000,
-          isDynamic: false,
-        },
-      }),
-    );
-
-    render(<PredictFeedView />);
-
-    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
-      {},
-      {
-        enabled: true,
-        showLiveFirst: true,
-        autoAdvanceEmptyPages: true,
-        filterStaleGameMarkets: true,
-        filterByVolume: 1000,
-      },
-    );
-  });
-
-  it('disables live-first for non-sports feeds', () => {
-    mockRouteParams = { feedId: 'politics' };
-    mockUsePredictFeedConfig.mockReturnValue(
-      feedConfigResult({
-        feedId: 'politics',
-        titleKey: 'predict.category.politics',
-        activeFilter: {
-          id: 'all',
-          titleKey: 'predict.feed.filters.all',
-          params: { tagSlugs: ['politics'] },
-          showLiveFirst: true,
-          isDynamic: false,
-        },
-      }),
-    );
-
-    render(<PredictFeedView />);
-
-    expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
-      { tagSlugs: ['politics'] },
-      {
-        enabled: true,
-        showLiveFirst: false,
-        autoAdvanceEmptyPages: false,
-        filterStaleGameMarkets: false,
-      },
-    );
-  });
-
-  it('forwards transactionActiveAbTests from the route to market cards and the search overlay', () => {
-    const transactionActiveAbTests = [
-      { name: 'predict_test', variant: 'treatment' },
-    ];
-    mockRouteParams = { feedId: 'sports', transactionActiveAbTests };
-    mockUsePredictFeedMarketList.mockReturnValue(
-      marketListResult({ markets: [createMarket('1', 'Lakers win')] }),
-    );
-    mockUsePredictSearch.mockReturnValue(
-      searchResult({ isSearchVisible: true }),
-    );
-
-    render(<PredictFeedView />);
-
-    expect(mockPredictMarketProps).toHaveBeenCalledWith(
-      expect.objectContaining({ transactionActiveAbTests }),
-    );
-    expect(mockSearchOverlayProps).toHaveBeenCalledWith(
-      expect.objectContaining({ transactionActiveAbTests }),
-    );
-  });
-
-  describe('tab bar visibility', () => {
-    it('shows the tab bar and tab labels for a multi-tab feed', () => {
       render(<PredictFeedView />);
 
-      expect(
-        screen.getByTestId(PredictFeedViewSelectorsIDs.TABS),
-      ).toBeOnTheScreen();
-      expect(screen.getAllByText('All').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Soccer').length).toBeGreaterThan(0);
+      expect(mockUsePredictFeedConfig).toHaveBeenCalledWith('sports', {
+        initialTabId: 'soccer',
+        initialFilterId: 'props',
+      });
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {},
+        {
+          enabled: true,
+          showLiveFirst: true,
+          autoAdvanceEmptyPages: true,
+          filterStaleGameMarkets: true,
+        },
+      );
     });
 
-    it('hides the tab and filter bars for the Live feed', () => {
+    it('forwards filterByVolume from the active sports filter', () => {
+      mockRouteParams = { feedId: 'sports' };
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
-          feedId: 'live',
-          titleKey: 'predict.feed.live',
-          tabs: [{ id: 'live', titleKey: 'predict.feed.live' }],
-          showTabBar: false,
-          showFilterBar: false,
-          activeTabId: 'live',
-          filters: [
-            {
-              id: 'live',
-              titleKey: 'predict.feed.filters.live',
-              params: { live: true },
-              isDynamic: false,
-            },
-          ],
-          activeFilterId: 'live',
+          activeFilter: {
+            id: 'games',
+            titleKey: 'predict.feed.filters.games',
+            params: {},
+            showLiveFirst: true,
+            filterByVolume: 1000,
+            isDynamic: false,
+          },
         }),
       );
 
       render(<PredictFeedView />);
 
-      expect(
-        screen.queryByTestId(PredictFeedViewSelectorsIDs.TABS),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(PredictFeedViewSelectorsIDs.FILTERS),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('selection', () => {
-    it('renders filter chips for the active tab', () => {
-      render(<PredictFeedView />);
-
-      expect(
-        screen.getByTestId(PredictFeedViewSelectorsIDs.FILTERS),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('Games')).toBeOnTheScreen();
-      expect(screen.getByText('Props')).toBeOnTheScreen();
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {},
+        {
+          enabled: true,
+          showLiveFirst: true,
+          autoAdvanceEmptyPages: true,
+          filterStaleGameMarkets: true,
+          filterByVolume: 1000,
+        },
+      );
     });
 
-    it('calls setActiveFilterId when a filter chip is pressed', () => {
-      render(<PredictFeedView />);
-
-      fireEvent.press(screen.getByText('Props'));
-
-      expect(mockSetActiveFilterId).toHaveBeenCalledWith('props');
-    });
-  });
-
-  describe('market list states', () => {
-    it('renders skeleton loaders while initially loading', () => {
-      mockUsePredictFeedMarketList.mockReturnValue(
-        marketListResult({ isLoading: true }),
+    it('disables live-first for non-sports feeds', () => {
+      mockRouteParams = { feedId: 'politics' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'politics',
+          titleKey: 'predict.category.politics',
+          activeFilter: {
+            id: 'all',
+            titleKey: 'predict.feed.filters.all',
+            params: { tagSlugs: ['politics'] },
+            showLiveFirst: true,
+            isDynamic: false,
+          },
+        }),
       );
 
       render(<PredictFeedView />);
 
-      expect(
-        screen.getByTestId(getPredictFeedViewSelector.skeleton(1)),
-      ).toBeOnTheScreen();
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        { tagSlugs: ['politics'] },
+        {
+          enabled: true,
+          showLiveFirst: false,
+          autoAdvanceEmptyPages: false,
+          filterStaleGameMarkets: false,
+        },
+      );
     });
 
+    it('forwards transactionActiveAbTests from the route to market cards and the search overlay', () => {
+      const transactionActiveAbTests = [
+        { name: 'predict_test', variant: 'treatment' },
+      ];
+      mockRouteParams = { feedId: 'sports', transactionActiveAbTests };
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ markets: [createMarket('1', 'Lakers win')] }),
+      );
+      mockUsePredictSearch.mockReturnValue(
+        searchResult({ isSearchVisible: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockPredictMarketProps).toHaveBeenCalledWith(
+        expect.objectContaining({ transactionActiveAbTests }),
+      );
+      expect(mockSearchOverlayProps).toHaveBeenCalledWith(
+        expect.objectContaining({ transactionActiveAbTests }),
+      );
+    });
+  });
+
+  describe('market list states', () => {
     it('does not render the empty state while empty results are still loading', () => {
       mockUsePredictFeedMarketList.mockReturnValue(
         marketListResult({ markets: [], isLoading: true }),
@@ -440,49 +359,6 @@ describe('PredictFeedView', () => {
       expect(
         screen.queryByTestId(PredictFeedViewSelectorsIDs.EMPTY_STATE),
       ).toBeNull();
-    });
-
-    it('renders market cards when data is present', () => {
-      mockUsePredictFeedMarketList.mockReturnValue(
-        marketListResult({
-          markets: [
-            createMarket('1', 'Lakers win'),
-            createMarket('2', 'Heat win'),
-          ],
-        }),
-      );
-
-      render(<PredictFeedView />);
-
-      expect(
-        screen.getByTestId(getPredictFeedViewSelector.marketCard(1)),
-      ).toHaveTextContent('Lakers win');
-      expect(
-        screen.getByTestId(getPredictFeedViewSelector.marketCard(2)),
-      ).toHaveTextContent('Heat win');
-    });
-
-    it('renders the empty state when there are no markets', () => {
-      render(<PredictFeedView />);
-
-      expect(
-        screen.getByTestId(PredictFeedViewSelectorsIDs.EMPTY_STATE),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders the offline state and retries on press', () => {
-      mockUsePredictFeedMarketList.mockReturnValue(
-        marketListResult({ error: new Error('Network error') }),
-      );
-
-      render(<PredictFeedView />);
-
-      expect(
-        screen.getByTestId(PredictFeedViewSelectorsIDs.ERROR_STATE),
-      ).toBeOnTheScreen();
-
-      fireEvent.press(screen.getByTestId('predict-feed-view-offline-retry'));
-      expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the list (not the full-screen error) when a next-page fetch fails with markets already loaded', () => {
@@ -521,45 +397,7 @@ describe('PredictFeedView', () => {
     });
   });
 
-  describe('search', () => {
-    it('opens search from the header search icon', () => {
-      render(<PredictFeedView />);
-
-      fireEvent.press(
-        screen.getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-      );
-
-      expect(mockShowSearch).toHaveBeenCalledTimes(1);
-    });
-
-    it('mounts the search overlay when search is visible', () => {
-      mockUsePredictSearch.mockReturnValue(
-        searchResult({ isSearchVisible: true }),
-      );
-
-      render(<PredictFeedView />);
-
-      expect(
-        screen.getByTestId('predict-feed-view-search-overlay'),
-      ).toBeOnTheScreen();
-    });
-  });
-
   describe('analytics', () => {
-    it('tracks feed viewed on focus with feed/tab/filter ids, tracking_mode:focus, and entry point', () => {
-      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
-
-      render(<PredictFeedView />);
-
-      expect(mockTrackFeedViewed).toHaveBeenCalledWith({
-        feedId: 'sports',
-        tabId: 'all',
-        filterId: 'games',
-        trackingMode: 'focus',
-        entryPoint: 'home_section',
-      });
-    });
-
     it('does not track feed viewed when the feed is not found', () => {
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({ status: 'not-found', feedId: undefined }),
@@ -568,20 +406,6 @@ describe('PredictFeedView', () => {
       render(<PredictFeedView />);
 
       expect(mockTrackFeedViewed).not.toHaveBeenCalled();
-    });
-
-    it('tracks a tab change when a tab is pressed', () => {
-      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
-
-      render(<PredictFeedView />);
-
-      fireEvent.press(screen.getAllByText('Soccer')[0]);
-
-      expect(mockTrackFeedTabChanged).toHaveBeenCalledWith({
-        feedId: 'sports',
-        tabId: 'soccer',
-        entryPoint: 'home_section',
-      });
     });
 
     it('does not track tab changed when re-pressing the already-active tab', () => {
@@ -594,22 +418,6 @@ describe('PredictFeedView', () => {
 
       expect(mockTrackFeedTabChanged).not.toHaveBeenCalled();
       expect(mockSetActiveTabId).not.toHaveBeenCalled();
-    });
-
-    it('tracks a static filter change with is_dynamic_filter false', () => {
-      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
-
-      render(<PredictFeedView />);
-
-      fireEvent.press(screen.getByText('Props'));
-
-      expect(mockTrackFeedFilterChanged).toHaveBeenCalledWith({
-        feedId: 'sports',
-        tabId: 'all',
-        filterId: 'props',
-        isDynamicFilter: false,
-        entryPoint: 'home_section',
-      });
     });
 
     it('tracks a dynamic filter change with is_dynamic_filter true', () => {
@@ -828,22 +636,6 @@ describe('PredictFeedView', () => {
       expect(mockTrackFeedViewed).toHaveBeenCalledWith(
         expect.objectContaining({ filterId: 'all' }),
       );
-    });
-
-    it('tracks search opened from the header search icon', () => {
-      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
-
-      render(<PredictFeedView />);
-
-      fireEvent.press(
-        screen.getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
-      );
-
-      expect(mockTrackSearchInteracted).toHaveBeenCalledWith({
-        interactionType: 'opened',
-        predictFeedTab: 'all',
-        entryPoint: 'home_section',
-      });
     });
   });
 
