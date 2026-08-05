@@ -8,6 +8,8 @@ readonly IOS_SIMULATOR_ARTIFACT_NAME="ios-app-${EXPO_DEV_BUILD_NAME}"
 readonly ANDROID_APK_ARTIFACT_NAME="android-apk-${EXPO_DEV_BUILD_NAME}"
 readonly IOS_DEVICE_IPA_ARTIFACT_NAME="ios-ipa-${EXPO_DEV_BUILD_NAME}"
 readonly DEFAULT_GITHUB_REPO="MetaMask/metamask-mobile"
+# Upper bound on producing-run verification calls in find_latest_run_with_artifact.
+readonly MAX_CANDIDATE_RUNS=10
 
 export GH_PAGER=cat
 
@@ -57,16 +59,32 @@ run_has_artifact() {
     | grep -q .
 }
 
+# Artifact metadata carries only `workflow_run.{id,head_branch,head_sha}` — not the
+# producing workflow nor its conclusion — so matching on artifact name and branch alone
+# would also accept artifacts from an in-progress or failed run, or from a direct
+# `build.yml` dispatch that uploaded just one platform of a half-finished matrix. Re-check
+# the producing run so lookups stay restricted to completed, successful expo-dev-build.yml
+# runs (the guarantee the previous `gh run list --status=success` path provided).
+run_is_successful_expo_dev_build() {
+  local run_id="$1"
+  local run_meta
+  run_meta="$(gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}" \
+    --jq '"\(.status)|\(.conclusion)|\(.path)"' 2>/dev/null || true)"
+  [[ "$run_meta" == "completed|success|.github/workflows/${EXPO_DEV_WORKFLOW_FILE}" ]]
+}
+
 # expo-dev-build.yml now only builds when the @expo/fingerprint gate key changed (see
 # resolve-dev-build job), skipping every other push to main. That means the run holding
 # the latest artifact can sit arbitrarily far back in the run history, so walking the N
 # most recent `gh run list` entries (the old approach) would routinely miss it. Query the
-# artifact by its exact name instead — one API call, immune to however many runs were
-# skipped in between — and read the producing run id straight off the artifact metadata.
+# artifact by its exact name instead — immune to however many runs were skipped in between
+# — and read the producing run id straight off the artifact metadata.
 find_latest_run_with_artifact() {
   local artifact_name="$1"
   local branch="$2"
-  local run_id
+  local candidate_run_ids
+  local candidate
+  local checked=0
   local matches
   local api_stderr
   api_stderr="$(mktemp)"
@@ -90,18 +108,30 @@ find_latest_run_with_artifact() {
   # ISO 8601 timestamps are fixed-width, so a plain reverse string sort puts the newest
   # artifact first. LC_ALL=C keeps that true regardless of the caller's locale.
   #
-  # `awk NR==1` rather than `head -1`: head exits after the first line, which can leave
-  # sort writing into a closed pipe (exit 141) and, under the callers' `set -o pipefail`,
-  # abort the whole script once the artifact list outgrows the pipe buffer. awk drains
-  # the stream instead.
-  run_id="$(printf '%s\n' "$matches" | LC_ALL=C sort -r | awk -F'|' 'NR == 1 { print $2 }')"
+  # `awk` rather than `head`: head exits after its last wanted line, which can leave sort
+  # writing into a closed pipe (exit 141) and, under the callers' `set -o pipefail`, abort
+  # the whole script once the artifact list outgrows the pipe buffer. awk drains the
+  # stream instead.
+  candidate_run_ids="$(printf '%s\n' "$matches" | LC_ALL=C sort -r | awk -F'|' '{ print $2 }')"
 
-  if [[ -n "$run_id" && "$run_id" != "null" ]]; then
-    echo "$run_id"
-    return 0
-  fi
+  # Newest first, accept the first candidate whose producing run checks out. In practice
+  # that is the first one; the loop only walks further when a build failed or is still
+  # running, and stops at MAX_CANDIDATE_RUNS so a broken streak can't fan out API calls.
+  while IFS= read -r candidate; do
+    [[ -z "$candidate" || "$candidate" == "null" ]] && continue
+    if (( checked >= MAX_CANDIDATE_RUNS )); then
+      echo -e "${YELLOW}Stopped after checking ${MAX_CANDIDATE_RUNS} candidate runs for \"${artifact_name}\"; pass --run <id> to target a specific run.${NC}" >&2
+      break
+    fi
+    checked=$((checked + 1))
+    if run_is_successful_expo_dev_build "$candidate"; then
+      echo "$candidate"
+      return 0
+    fi
+    echo -e "${YELLOW}Skipping run ${candidate}: not a completed successful \"${EXPO_DEV_WORKFLOW_FILE}\" run.${NC}" >&2
+  done <<< "$candidate_run_ids"
 
-  echo -e "${RED}❌ No live artifact named \"${artifact_name}\" found on branch \"${branch}\"${NC}" >&2
+  echo -e "${RED}❌ No live artifact named \"${artifact_name}\" from a successful \"${EXPO_DEV_WORKFLOW_FILE}\" run found on branch \"${branch}\"${NC}" >&2
   echo -e "${YELLOW}The Expo Dev Build workflow only builds when native code changes; its artifacts may have expired.${NC}" >&2
   echo -e "${YELLOW}Re-run it (Actions > Expo Dev Build > Run workflow, with 'force_build' checked) or pass --run <id>.${NC}" >&2
   echo -e "${YELLOW}Browse recent runs: https://github.com/${GITHUB_REPO}/actions/workflows/${EXPO_DEV_WORKFLOW_FILE}${NC}" >&2
