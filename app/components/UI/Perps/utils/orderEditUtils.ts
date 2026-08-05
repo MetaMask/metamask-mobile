@@ -97,10 +97,12 @@ export const buildOrderEditParams = (
   order: Order,
   field: OrderEditField,
   newValue: string,
+  leverage: number,
   trackingData: OrderTrackingData,
 ): OrderParams =>
   buildEditOrderParamsFromOrder({
     order,
+    leverage,
     ...(field === 'price'
       ? { newLimitPrice: newValue }
       : { newSize: newValue }),
