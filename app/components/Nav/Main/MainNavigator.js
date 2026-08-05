@@ -642,7 +642,6 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
-      unmountOnBlur: true,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
@@ -654,7 +653,6 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
-      unmountOnBlur: true,
     },
     money: {
       tabBarIconKey: TabBarIconKey.Money,
@@ -671,7 +669,6 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
-      unmountOnBlur: true,
     },
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
@@ -691,12 +688,12 @@ const HomeTabs = () => {
       onLeave: () => {
         // End trending session when user switches to another tab
         TrendingFeedSessionManager.getInstance().endSession();
-        // Disable AppState listener to prevent phantom sessions when app backgrounds/foregrounds
-        // while user is on a different tab (since TrendingView stays mounted with unmountOnBlur: false)
+        // Disable AppState listener to prevent phantom sessions when app
+        // backgrounds/foregrounds while user is on a different tab (Explore
+        // stays mounted; Browser/Activity/Rewards use UnmountOnBlur layout).
         TrendingFeedSessionManager.getInstance().disableAppStateListener();
       },
       rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: false,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -708,7 +705,6 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.SETTINGS_VIEW,
-      unmountOnBlur: true,
     },
   };
 
