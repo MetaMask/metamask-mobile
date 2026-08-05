@@ -738,6 +738,44 @@ jobs:
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
+  run-android-onboarding-tests-testmu-standard:
+    name: '[TestMu Standard] Run Android Onboarding Tests'
+    uses: ./.github/workflows/performance-test-runner-testmu-standard.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        upload-reused-apks-to-testmu,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+        check-testmu-credentials,
+      ]
+    if: >-
+      always() && !failure() && !cancelled() &&
+      inputs.enable_testmu_benchmark != false &&
+      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
+      (needs.upload-reused-apks-to-testmu.result == 'skipped' || needs.upload-reused-apks-to-testmu.result == 'success') &&
+      (
+        needs.upload-reused-apks-to-testmu.outputs.without-srp-testmu-url != '' ||
+        needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != ''
+      )
+    with:
+      platform: android
+      build_type: onboarding
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-testmu-url || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
+      app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-version || needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}-Standard
+      lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
   run-ios-onboarding-tests:
     name: Performance Test iOS (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
@@ -775,6 +813,7 @@ jobs:
         run-android-onboarding-tests,
         run-ios-onboarding-tests,
         run-android-onboarding-tests-testmu,
+        run-android-onboarding-tests-testmu-standard,
       ]
     if: always()
     steps:
@@ -891,6 +930,45 @@ jobs:
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
+  run-android-imported-wallet-tests-testmu-standard:
+    name: '[TestMu Standard] Run Android Imported Wallet Tests'
+    uses: ./.github/workflows/performance-test-runner-testmu-standard.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        upload-reused-apks-to-testmu,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+        check-testmu-credentials,
+      ]
+    if: >-
+      always() && !cancelled() &&
+      inputs.enable_testmu_benchmark != false &&
+      needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
+      (needs.upload-reused-apks-to-testmu.result == 'skipped' || needs.upload-reused-apks-to-testmu.result == 'success') &&
+      (
+        needs.upload-reused-apks-to-testmu.outputs.with-srp-testmu-url != '' ||
+        needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != ''
+      )
+    with:
+      platform: android
+      build_type: imported-wallet
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-testmu-url || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
+      app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}-Standard
+      lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -901,7 +979,9 @@ jobs:
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
         run-android-onboarding-tests-testmu,
+        run-android-onboarding-tests-testmu-standard,
         run-android-imported-wallet-tests-testmu,
+        run-android-imported-wallet-tests-testmu-standard,
         wait-for-onboarding-completion,
         determine-branch-name,
       ]
