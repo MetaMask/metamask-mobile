@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import {
   type Position,
   type Order,
@@ -135,15 +136,16 @@ export type PerpsStackParamList = {
         defaultSortOptionId?: SortOptionId;
         defaultSortDirection?: SortDirection;
         fromHome?: boolean;
-        /**
-         * Set when the list was opened from a market screen's header, where it
-         * acts as a market switcher: selecting a market replaces this list
-         * rather than stacking a second market screen on top of it.
-         */
-        fromMarketDetails?: boolean;
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+        animation?: NativeStackNavigationOptions['animation'];
+        /**
+         * When true, selecting a market replaces the underlying MARKET_DETAILS
+         * (and dismisses this list) instead of pushing another details screen.
+         * Used by the header slide-up picker.
+         */
+        replaceOnSelect?: boolean;
       }
     | undefined;
 
@@ -318,10 +320,10 @@ export type PerpsStackParamList = {
         defaultSortOptionId?: SortOptionId;
         defaultSortDirection?: SortDirection;
         fromHome?: boolean;
-        fromMarketDetails?: boolean;
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+        animation?: NativeStackNavigationOptions['animation'];
       }
     | undefined;
   PerpsOrderDetailsView: {

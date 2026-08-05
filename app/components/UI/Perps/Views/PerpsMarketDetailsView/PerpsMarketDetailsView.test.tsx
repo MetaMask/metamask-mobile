@@ -220,6 +220,7 @@ const mockNavigateToActivity = jest.fn();
 const mockNavigateToOrder = jest.fn();
 const mockNavigateToTutorial = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketListFromHeader = jest.fn();
 const mockNavigateBack = jest.fn();
 
 // Mock notification feature flag
@@ -599,6 +600,7 @@ jest.mock('../../hooks', () => ({
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
     navigateToMarketList: mockNavigateToMarketList,
+    navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     navigateBack: mockNavigateBack,
     canGoBack: mockCanGoBack(),
   })),
@@ -831,6 +833,7 @@ describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPerpsModeValue = 'lite';
     jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
 
     mockUsePerpsAccount.mockReturnValue({
@@ -3824,9 +3827,8 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(marketListButton);
 
-      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
         source: 'perp_asset_screen',
-        fromMarketDetails: true,
       });
     });
 

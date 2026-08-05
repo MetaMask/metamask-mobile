@@ -49,6 +49,9 @@ export interface PerpsNavigationHandlers {
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
+  navigateToMarketListFromHeader: (
+    params?: PerpsNavigationParamList['PerpsMarketListView'],
+  ) => void;
   navigateToOrder: (params: PerpsNavigationParamList['PerpsOrder']) => void;
   navigateToTutorial: (
     params?: PerpsNavigationParamList['PerpsTutorial'],
@@ -183,6 +186,25 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const navigateToMarketListFromHeader = useCallback(
+    (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
+      // Push a new MARKET_LIST over MARKET_DETAILS so the common
+      // MARKET_LIST → MARKET_DETAILS stack keeps details beneath the slide-up
+      // picker. navigate() would jump back to the existing list entry and pop
+      // details, breaking Back-to-dismiss behavior.
+      navigation.dispatch(
+        StackActions.push(Routes.PERPS.MARKET_LIST, {
+          ...params,
+          animation: 'slide_from_bottom',
+          // Selecting a market should replace the details beneath this picker
+          // rather than pushing another MARKET_DETAILS on top of the stack.
+          replaceOnSelect: true,
+        }),
+      );
+    },
+    [navigation],
+  );
+
   const { depositWithOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
@@ -290,6 +312,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToMarketDetails,
     navigateToHome,
     navigateToMarketList,
+    navigateToMarketListFromHeader,
     navigateToOrder,
     navigateToTutorial,
     navigateToAdjustMargin,

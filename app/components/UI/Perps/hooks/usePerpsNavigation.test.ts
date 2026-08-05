@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PerpsMode } from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
@@ -13,7 +13,7 @@ import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
 
 jest.mock('@react-navigation/native', () => ({
-  StackActions: jest.requireActual('@react-navigation/native').StackActions,
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 
@@ -310,16 +310,31 @@ describe('usePerpsNavigation', () => {
         routeNames: [Routes.PERPS.MARKET_LIST, Routes.PERPS.MARKET_DETAILS],
       });
       const { result } = renderHook(() => usePerpsNavigation());
-      const params = { source: 'perp_asset_screen', fromMarketDetails: true };
+      const params = { source: 'perp_asset_screen' };
 
       // Act
       result.current.navigateToMarketList(params);
 
       // Assert
       expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'PUSH',
-          payload: { name: Routes.PERPS.MARKET_LIST, params },
+        StackActions.push(Routes.PERPS.MARKET_LIST, params),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('pushes market list from header so details stay beneath the slide-up', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { source: 'perp_asset_screen' };
+
+      result.current.navigateToMarketListFromHeader(params);
+
+      // Must push (not ROOT navigate) so MARKET_LIST → MARKET_DETAILS keeps
+      // details under the picker; navigate() would pop back to the existing list.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push(Routes.PERPS.MARKET_LIST, {
+          ...params,
+          animation: 'slide_from_bottom',
+          replaceOnSelect: true,
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalled();

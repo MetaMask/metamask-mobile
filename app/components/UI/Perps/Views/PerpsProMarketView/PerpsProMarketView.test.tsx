@@ -208,8 +208,8 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     mockUsePerpsEventTracking(options),
 }));
 
-jest.mock('../../hooks/usePerpsProMarketHeaderActions', () => ({
-  usePerpsProMarketHeaderActions: jest.fn(() => ({
+jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
+  usePerpsMarketHeaderActions: jest.fn(() => ({
     perpsMode: mockHeaderPerpsMode,
     isWatchlist: false,
     handleBackPress: mockHandleBackPress,

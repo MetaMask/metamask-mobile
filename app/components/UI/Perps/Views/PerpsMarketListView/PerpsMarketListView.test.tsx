@@ -1099,32 +1099,6 @@ describe('PerpsMarketListView', () => {
       );
     });
 
-    it('replaces itself with the selected market when opened from a market header', () => {
-      // Arrange - the list acts as a market switcher here, so stacking a
-      // second market screen on top of it would create a back-navigation loop.
-      mockUseRoute.mockReturnValue({
-        key: 'PerpsMarketListView-123',
-        name: 'PerpsMarketListView',
-        params: { fromMarketDetails: true },
-      });
-
-      renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-      // Act
-      fireEvent.press(screen.getByTestId('market-row-BTC'));
-
-      // Assert
-      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'REPLACE',
-          payload: expect.objectContaining({
-            name: Routes.PERPS.MARKET_DETAILS,
-            params: expect.objectContaining({ source: 'perp_markets' }),
-          }),
-        }),
-      );
-    });
-
     it('routes watchlist row press through onMarketSelect when provided and watchlist filter is active', () => {
       mockWatchlistFlagEnabled = true;
 
@@ -1568,6 +1542,76 @@ describe('PerpsMarketListView', () => {
               source: 'perp_markets',
               transactionActiveAbTests,
             }),
+          }),
+        }),
+      );
+    });
+
+    it('replaces underlying market details when opened as the header picker', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          animation: 'slide_from_bottom',
+          replaceOnSelect: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+      const stackReducer = mockNavigation.dispatch.mock.calls[0][0] as (state: {
+        key: string;
+        index: number;
+        routeNames: string[];
+        routes: { key: string; name: string; params?: object }[];
+        type: string;
+        stale: boolean;
+      }) => unknown;
+
+      expect(typeof stackReducer).toBe('function');
+      expect(
+        stackReducer({
+          key: 'stack',
+          index: 2,
+          routeNames: [
+            'PerpsMarketListView',
+            'PerpsMarketDetails',
+            'PerpsMarketListView',
+          ],
+          routes: [
+            { key: 'list', name: 'PerpsMarketListView' },
+            {
+              key: 'details-btc',
+              name: 'PerpsMarketDetails',
+              params: { market: mockMarketData[0] },
+            },
+            {
+              key: 'picker',
+              name: 'PerpsMarketListView',
+              params: { replaceOnSelect: true },
+            },
+          ],
+          type: 'stack',
+          stale: false,
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          type: 'RESET',
+          payload: expect.objectContaining({
+            index: 1,
+            routes: [
+              { key: 'list', name: 'PerpsMarketListView' },
+              expect.objectContaining({
+                name: 'PerpsMarketDetails',
+                params: expect.objectContaining({
+                  market: mockMarketData[1],
+                  source: 'perp_markets',
+                }),
+              }),
+            ],
           }),
         }),
       );
