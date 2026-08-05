@@ -863,9 +863,6 @@ function setupMockSelectors(
       return config.selectedAccount;
     if (selectorString.includes('selectCardholderAccounts'))
       return config.cardholderAccounts;
-    if (selectorString.includes('selectEvmTokens')) return [mockPriorityToken];
-    if (selectorString.includes('selectEvmTokenFiatBalances'))
-      return ['1000.00'];
 
     return [];
   });
