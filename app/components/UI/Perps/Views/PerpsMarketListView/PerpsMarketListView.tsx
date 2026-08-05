@@ -306,7 +306,7 @@ const PerpsMarketListView = ({
         // Opened from a market header, the list is a switcher: replace it so
         // the stack reads market → market instead of accumulating a
         // market → list → market → list chain the user has to unwind
-        // (TAT-3728). `replace` animates forward on the native stack, so the
+        // (TAT-3649). `replace` animates forward on the native stack, so the
         // switch still reads as moving ahead.
         //
         // Everywhere else, push instead of navigate so that MARKET_LIST is

@@ -163,7 +163,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       // an existing market-list entry and pops everything above it, so opening
       // the list from a market screen the user reached *through* the list
       // animates backwards — the market → list → market loop reported in
-      // TAT-3728.
+      // TAT-3649.
       if (
         navigation.getState()?.routeNames?.includes(Routes.PERPS.MARKET_LIST)
       ) {
