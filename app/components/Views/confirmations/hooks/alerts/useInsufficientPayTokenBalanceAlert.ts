@@ -47,7 +47,10 @@ export function useInsufficientPayTokenBalanceAlert({
     TransactionType.moneyAccountDeposit,
   ]);
   const { isMaxDeposit } = useConfirmationContext();
-  const isMaxMoneyAccountDeposit = isMoneyAccountDeposit && isMaxDeposit;
+  // Single Max path for all deposit types. `isMaxDeposit` covers the
+  // React-sync gap where controller `isMaxAmount` can lag one frame behind
+  // a money-account Max/prefill (fiat-rounding false positives).
+  const isMaxTransaction = isMax || (isMoneyAccountDeposit && isMaxDeposit);
 
   // In post-quote (withdrawal) flows, payToken is the *destination* token,
   // so payToken.chainId is the destination chain. The source chain (where gas
@@ -89,9 +92,11 @@ export function useInsufficientPayTokenBalanceAlert({
     payToken?.address.toLowerCase() === nativeToken?.address.toLowerCase() &&
     payToken?.chainId === sourceChainId;
 
+  // For Max, treat the spend amount as the available balance so fiat rounding
+  // between a Max snapshot and the live balance cannot false-positive.
   const totalAmountUsd = useMemo(
     () =>
-      isMax
+      isMaxTransaction
         ? new BigNumber(balanceUsd ?? '0')
         : pendingAmountUsd
           ? new BigNumber(pendingAmountUsd)
@@ -101,7 +106,7 @@ export function useInsufficientPayTokenBalanceAlert({
                 (acc, t) => acc.plus(new BigNumber(t.amountUsd)),
                 new BigNumber(0),
               ),
-    [balanceUsd, isMax, pendingAmountUsd, requiredTokens],
+    [balanceUsd, isMaxTransaction, pendingAmountUsd, requiredTokens],
   );
 
   const totalSourceAmountRaw = useMemo(() => {
@@ -126,25 +131,12 @@ export function useInsufficientPayTokenBalanceAlert({
 
   // For post-quote (withdrawal) flows, the source funds come from the withdrawal
   // transaction itself, not from the user's existing balance. Skip input/fees checks.
-  //
-  // For a Max money account deposit, skip the check entirely: the deposit amount
-  // is derived from a balance snapshot and the submitted token amount is clamped
-  // to the actual raw balance, so it can never truly exceed the balance. Fiat
-  // rounding between the snapshot and the live balance used here could otherwise
-  // falsely flag "Insufficient funds".
   const isInsufficientForInput = useMemo(
     () =>
       !isPostQuote &&
       payToken &&
-      !isMaxMoneyAccountDeposit &&
       totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
-    [
-      balanceUsd,
-      isMaxMoneyAccountDeposit,
-      isPostQuote,
-      payToken,
-      totalAmountUsd,
-    ],
+    [balanceUsd, isPostQuote, payToken, totalAmountUsd],
   );
 
   const isInsufficientForFees = useMemo(

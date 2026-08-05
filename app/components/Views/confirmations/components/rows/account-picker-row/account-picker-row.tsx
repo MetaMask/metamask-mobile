@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
+import { useSelector } from 'react-redux';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -17,7 +17,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
 
 import Icon, {
   IconColor,
@@ -27,7 +26,6 @@ import Icon, {
 import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import stylesheet from './account-picker-row.styles';
 
@@ -64,7 +62,6 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
 }: AccountPickerRowContentProps<T>) {
   const { styles } = useStyles(stylesheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
   const accountAvatarType = useSelector(selectAvatarAccountType);
   const accountAvatarVariant = getAvatarAccountVariant(accountAvatarType);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -187,7 +184,6 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
               isFullscreen
               keyboardAvoidingViewEnabled={false}
               onClose={handleSheetClosed}
-              twClassName={surfaceClass}
             >
               <HeaderStandard title={title} onClose={handleModalRequestClose} />
               <View style={styles.searchContainer}>
