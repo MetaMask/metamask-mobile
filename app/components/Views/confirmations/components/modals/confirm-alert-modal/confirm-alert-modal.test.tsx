@@ -56,22 +56,22 @@ describe('ConfirmAlertModal', () => {
 
     expect(
       getByText(strings('alert_system.confirm_modal.title')),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('alert_system.confirm_modal.message')),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('alert_system.confirm_modal.checkbox_label')),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('does not render the review alerts button when there are no field alerts', () => {
@@ -86,7 +86,7 @@ describe('ConfirmAlertModal', () => {
 
     expect(
       queryByTestId(ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('calls onReject when the Cancel button is pressed', async () => {
@@ -154,7 +154,7 @@ describe('ConfirmAlertModal', () => {
     expect(mockShowAlertModal).toHaveBeenCalled();
     expect(
       queryByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the Blockaid alert message and title when onlyBlockaidAlert is true', () => {
@@ -172,16 +172,16 @@ describe('ConfirmAlertModal', () => {
 
     expect(
       getByText(strings('alert_system.confirm_modal.title_blockaid')),
-    ).toBeDefined();
-    expect(getByText(BLOCKAID_ALERT_MOCK.message)).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(getByText(BLOCKAID_ALERT_MOCK.message)).toBeOnTheScreen();
     expect(
       getByText(strings('alert_system.confirm_modal.checkbox_label')),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 });
