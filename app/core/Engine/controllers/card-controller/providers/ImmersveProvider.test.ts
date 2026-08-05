@@ -956,6 +956,7 @@ describe('ImmersveProvider', () => {
         lastFour: '1234',
         holderName: 'John Doe',
         isFreezable: true,
+        regionCode: undefined,
       });
       expect(data.primaryFundingAsset).toStrictEqual({
         symbol: 'USDC',
@@ -973,6 +974,36 @@ describe('ImmersveProvider', () => {
       expect(data.actions).toStrictEqual([
         { type: 'add_funds', enabled: true },
       ]);
+    });
+
+    it('maps regionCode from Immersve card detail onto CardHomeData.card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'GB' }] },
+          cardDetail: { ...activeCardDetail, regionCode: 'GB' },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('GB');
+    });
+
+    it('falls back to LIST regionCode when card detail omits it', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, regionCode: 'AU' }] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card?.regionCode).toBe('AU');
     });
 
     it('swallows non-auth errors and returns empty data', async () => {

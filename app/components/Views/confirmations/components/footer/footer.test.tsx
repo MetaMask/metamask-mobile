@@ -31,6 +31,7 @@ import { emptySignatureControllerMock } from '../../__mocks__/controllers/signat
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
+import { SCAM_QUESTIONNAIRE_FLAG_KEY } from '../../../../product-safety/scam-questionnaire/scam-questionnaire.constants';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -618,11 +619,24 @@ describe('Footer', () => {
         transactionApprovalControllerMock,
         emptySignatureControllerMock,
         { securityAlerts: { alerts: {} } },
+        {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [SCAM_QUESTIONNAIRE_FLAG_KEY]: { name: 'treatment' },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
       );
 
     beforeEach(() => {
       (useAlerts as jest.Mock).mockReturnValue({
         fieldAlerts: [],
+        generalAlerts: [],
         hasDangerAlerts: false,
       });
     });
@@ -689,6 +703,7 @@ describe('Footer', () => {
       const setAlertConfirmed = jest.fn();
       (useAlerts as jest.Mock).mockReturnValue({
         fieldAlerts: [],
+        generalAlerts: [],
         hasDangerAlerts: true,
         hasUnconfirmedDangerAlerts: true,
         setAlertConfirmed,
@@ -708,11 +723,21 @@ describe('Footer', () => {
       });
 
       // Answer all three questions with non-red-flag options → clean pass.
-      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      });
       await act(async () => {
         fireEvent.press(getByTestId('scam-questionnaire-continue'));
       });
@@ -727,6 +752,7 @@ describe('Footer', () => {
     it('skips the danger-alert checkbox modal and submits on the next confirm after the questionnaire is completed', async () => {
       (useAlerts as jest.Mock).mockReturnValue({
         fieldAlerts: [],
+        generalAlerts: [],
         hasDangerAlerts: true,
         hasUnconfirmedDangerAlerts: true,
         setAlertConfirmed: jest.fn(),
@@ -745,11 +771,21 @@ describe('Footer', () => {
         );
       });
 
-      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
-      fireEvent.press(getByTestId('scam-questionnaire-continue'));
-      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      });
       await act(async () => {
         fireEvent.press(getByTestId('scam-questionnaire-continue'));
       });
