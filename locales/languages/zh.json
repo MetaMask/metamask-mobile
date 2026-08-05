@@ -311,7 +311,7 @@
     "warning_text_2": "钱包和",
     "warning_text_3": "账户。",
     "warning_text_4": "您只能使用钱包的私钥助记词恢复它们。MetaMask 无法帮助您恢复。",
-    "warning_proceed": "删除钱包并继续",
+    "warning_proceed": "Remove wallet and proceed",
     "warning_cancel": "取消",
     "step1": "钱包设置",
     "step2": "创建密码",
@@ -349,7 +349,7 @@
   "onboarding_success": {
     "title": "请妥善保管您的私钥助记词！",
     "description": "如果您忘记了密码或无法登录，该私钥助记词可以帮助您重新获得访问权限。",
-    "description_bold": "设置 > 安全与隐私.",
+    "description_bold": "设置>安全和隐私。",
     "description_continued": "您可以妥善保管该助记词，以确保不会失去动用您资金的权限。",
     "learn_more": "了解详情",
     "learn_how": "了解操作方法",
@@ -376,7 +376,7 @@
     "remind_later": "我们稍后会提醒您",
     "remind_later_description": "如果不备份您的私钥助记词，当应用程序被锁定或更换新设备时，您将无法动用您的资金。",
     "remind_later_description2": "您可以备份钱包或者在下方查看您的私钥助记词：",
-    "setting_security_privacy": "“设置”>“安全和隐私”",
+    "setting_security_privacy": "Settings > Security and Privacy",
     "wallet_ready": "您的钱包已经准备就绪！"
   },
   "social_login_ios_user": {
@@ -421,7 +421,7 @@
     "step4": {
       "title": "主选单",
       "content1": "您可以从此选单访问交易历史记录、设置和支持。",
-      "content2": "您可以对账户执行更多操作及访问 MetaMask 设置。"
+      "content2": "You can take more actions with your accounts and access MetaMask settings."
     },
     "step5": {
       "title": "探索浏览器",
@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "类型",
+      "placeholder": "类型",
       "all": "全部类型",
       "tokens": "代币",
       "perps": "永续合约"
+    },
+    "timeframe_filter": {
+      "title": "时间范围",
+      "7d": "7 天",
+      "30d": "30 天"
+    },
+    "sort_filter": {
+      "title": "排序方式",
+      "pnl": "损益",
+      "roi": "损益 %",
+      "win_rate": "胜率"
     },
     "feed": {
       "title": "顶级交易员",
@@ -1266,7 +1279,7 @@
       "get_new_quote": "获取新报价",
       "available_balance": "{{amount}} 可用",
       "toggle_amount_display": "在代币金额与美元金额之间切换",
-      "includes_mm_fee": "包含 {{fee}}% MM 费用",
+      "includes_mm_fee": "包含 {{fee}}% MetaMask 费用",
       "pay_with_no_tokens": "没有可用于支付的代币",
       "receive_with_no_tokens": "暂无可用于收款的代币",
       "pay_with_filter_all": "所有",
@@ -1281,14 +1294,14 @@
       "toast_complete_sell": "已卖出 {{amount}} {{symbol}}，换得 {{counter}}",
       "toast_failed_buy": "无法买入 {{symbol}}",
       "toast_failed_sell": "无法卖出 {{symbol}}",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "确认",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "edit_quick_amounts_title": "编辑默认金额",
+      "edit_quick_amounts_set_buy": "待买入",
+      "edit_quick_amounts_set_sell": "待卖出",
+      "edit_quick_amounts_confirm": "保存",
+      "edit_quick_amounts_buy_above_zero": "买入金额应高于 {{min}}",
+      "edit_quick_amounts_buy_below_max": "买入金额应低于 {{max}}",
+      "edit_quick_amounts_sell_above_zero": "卖出比例应高于 0%",
+      "edit_quick_amounts_sell_below_max": "卖出比例应低于 100%"
     }
   },
   "perps": {
@@ -1358,7 +1371,8 @@
       "add_margin_button": "添加",
       "protect_losses_title": "防止进一步损失",
       "set_stop_loss_subtitle": "设置止损为 {{price}}（{{percent}}）",
-      "set_button": "设置"
+      "set_button": "设置",
+      "success_title": "止损已设置"
     },
     "confirm": "确认",
     "deposit": {
@@ -1510,7 +1524,7 @@
     "pro_order_form": {
       "isolated": "逐仓",
       "choose_order_type": "选择订单类型",
-      "size_usd": "规模（USD）",
+      "size_usd": "Size (USD)",
       "size_percentage": "订单规模百分比",
       "toggle_size_unit": "切换规模单位",
       "available_balance_unavailable": "-- 可用",
@@ -1521,13 +1535,27 @@
     },
     "pro_positions_panel": {
       "positions": "头寸",
-      "positions_with_count": "Positions ({{count}})",
+      "positions_with_count": "仓位（{{count}}）",
       "orders": "订单",
-      "orders_with_count": "Orders ({{count}})",
+      "orders_with_count": "订单（{{count}}）",
       "ticker_only": "仅限 {{ticker}}",
-      "positions_empty": "Your open positions will appear here.",
-      "positions_empty_filtered": "No open {{ticker}} positions.",
-      "orders_empty": "Your open orders will appear here.",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
+      "positions_empty": "您的持仓将显示在此处。",
+      "positions_empty_filtered": "暂无 {{ticker}} 持仓。",
+      "positions_empty_long": "暂无多头持仓。",
+      "positions_empty_short": "暂无空头持仓。",
+      "orders_empty": "您的未平仓订单将显示在此处。",
+      "side_filter": {
+        "all_sides": "全部方向",
+        "long": "做多",
+        "short": "做空"
+      },
+      "sort": {
+        "position_value": "仓位价值",
+        "unrealized_pnl": "未实现盈亏",
+        "funding_rate": "资金费率",
+        "settings_accessibility": "持仓排序"
+      },
       "card": {
         "entry_price": "入场价格",
         "margin": "保证金",
@@ -1536,7 +1564,7 @@
         "liq_price": "清算价格",
         "funding": "资金",
         "isolated": "逐仓",
-        "cross": "Cross",
+        "cross": "全仓",
         "close": "关闭",
         "reverse": "反转",
         "share": "共享"
@@ -1548,10 +1576,6 @@
         "reduce_only": "仅减仓",
         "tp_sl": "止盈/止损",
         "trigger_condition": "触发条件",
-        "take_profit": "止盈",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
         "cancel": "取消"
       }
     },
@@ -1835,7 +1859,8 @@
       "margin_available_to_remove": "可移除的保证金",
       "perps_balance": "永续合约余额",
       "liquidation_price": "清算价格",
-      "liquidation_distance": "清算距离"
+      "liquidation_distance": "清算距离",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "自动平仓",
@@ -2041,11 +2066,18 @@
       },
       "statistics": "概览",
       "stats": "统计数据",
+      "about": "关于",
+      "about_asset": "{{assetName}} 简介",
+      "read_more": "了解更多",
+      "read_more_about": "详细了解 {{assetName}}",
       "24h_high": "24 小时最高价",
       "24h_low": "24 小时最低价",
       "24h_volume": "24 小时交易量",
+      "24h_vol": "24 小时交易量",
       "open_interest": "未平仓合约量",
+      "funding": "资金",
       "funding_rate": "资金费率",
+      "mark_price": "标记价格",
       "oracle_price": "预言机价格",
       "order_book": "订单簿",
       "countdown": "倒计时",
@@ -2547,8 +2579,19 @@
     },
     "market_details": {
       "fullscreen_chart": "全屏图表",
+      "collapse_chart": "收起图表",
+      "expand_chart": "展开图表",
       "market_list": "浏览市场",
-      "perp_pair": "{{ticker}}-{{collateral}} 永续合约"
+      "perp_pair": "{{ticker}}-{{collateral}} 永续合约",
+      "back": "返回",
+      "wallet": "永续合约余额",
+      "add_to_watchlist": "添加到关注列表",
+      "remove_from_watchlist": "从关注列表移除"
+    },
+    "balance_bottom_sheet": {
+      "close_button": "关闭",
+      "history_button": "查看活动",
+      "available": "可用"
     }
   },
   "market_insights": {
@@ -2602,47 +2645,9 @@
       "events_in_total": "共 {{count}} 个事件",
       "events_in_total_overflow": "共 {{count}}+ 个市场",
       "props_pill": "命题投注",
-      "championship_unavailable": "暂无冠军市场可显示。",
-      "mens_world_cup_title": "男子世界杯",
-      "mens_world_cup_events": "{{count}} 场男子世界杯比赛",
-      "mens_world_cup_events_overflow": "{{count}}+ 场男子世界杯比赛",
-      "winner_unavailable": "暂无世界杯市场可显示。"
+      "championship_unavailable": "暂无冠军市场可显示。"
     },
     "world_cup": {
-      "title": "世界杯",
-      "predictions_title": "世界杯预测",
-      "banner_title": "2026 年世界杯",
-      "banner_description": "每场比赛，每时每刻，皆可交易。",
-      "hub_banner_title": "7.5 万美元等您来拿",
-      "hub_banner_description": "预测世界杯淘汰赛，赢取奖金——立即加入",
-      "tabs": {
-        "all": "所有",
-        "props": "命题投注",
-        "live": "进行中",
-        "games": "比赛"
-      },
-      "who_will_win": "谁会赢得世界杯？",
-      "stages": {
-        "group_stage": "小组赛",
-        "round_of_32": "32 强赛",
-        "round_of_16": "16 强赛",
-        "quarterfinals": "四分之一决赛",
-        "semifinals": "半决赛",
-        "third_place": "季军赛",
-        "final": "终场",
-        "group_a": "A 组",
-        "group_b": "B 组",
-        "group_c": "C 组",
-        "group_d": "D 组",
-        "group_e": "E 组",
-        "group_f": "F 组",
-        "group_g": "G 组",
-        "group_h": "H 组",
-        "group_i": "I 组",
-        "group_j": "J 组",
-        "group_k": "K 组",
-        "group_l": "L 组"
-      },
       "market_info": {
         "regulation_time_winner": {
           "title": "常规时间胜者"
@@ -2714,6 +2719,16 @@
     },
     "outcome_groups": {
       "game_lines": "比赛盘口",
+      "map_1": "地图 1",
+      "map_2": "地图 2",
+      "map_3": "地图 3",
+      "map_4": "地图 4",
+      "map_5": "地图 5",
+      "game_1": "比赛 1",
+      "game_2": "比赛 2",
+      "game_3": "比赛 3",
+      "game_4": "比赛 4",
+      "game_5": "比赛 5",
       "halves": "半场",
       "first_half": "上半场",
       "first_set": "第 1 盘",
@@ -2778,7 +2793,27 @@
       "tennis_match_totals": "总局数",
       "tennis_first_set_totals": "第 1 盘总局数",
       "tennis_first_set_winner": "第 1 盘获胜者",
-      "tennis_completed_match": "已结束的比赛"
+      "tennis_completed_match": "已结束的比赛",
+      "child_moneyline": "中奖者",
+      "map_handicap": "让分",
+      "round_handicap_game": "回合数让分",
+      "round_over_under_game": "总回合数",
+      "first_blood_game": "一血",
+      "kill_over_under_game": "总击杀数",
+      "map_participant_win_total": "地图胜场",
+      "cs2_odd_even_total_kills": "总击杀数单双",
+      "cs2_odd_even_total_rounds": "总回合数单双",
+      "lol_both_teams_baron": "双方都拿大龙",
+      "lol_both_teams_dragon": "双方都拿小龙",
+      "lol_both_teams_inhibitors": "双方都破水晶",
+      "lol_odd_even_total_kills": "总击杀数单双",
+      "lol_penta_kill": "任意选手五杀",
+      "lol_quadra_kill": "任意选手四杀",
+      "dota2_both_teams_barracks": "双方都破兵营",
+      "dota2_both_teams_roshan": "双方均击杀肉山",
+      "dota2_game_ends_daytime": "白天结束",
+      "dota2_rampage": "任意选手五杀",
+      "dota2_ultra_kill": "任意选手四杀"
     },
     "sell_position": "卖出仓位",
     "odds": "赔率",
@@ -2824,15 +2859,63 @@
       "live": "进行中",
       "popular_today": "今日热门",
       "tabs": {
+        "all": "所有",
         "basketball": "篮球",
         "tennis": "网球",
         "soccer": "足球",
         "baseball": "棒球",
-        "football": "美式足球"
+        "football": "美式足球",
+        "esports": "电子竞技",
+        "cricket": "板球",
+        "golf": "高尔夫",
+        "combat": "格斗",
+        "hockey": "冰球"
       },
       "filters": {
         "all": "所有",
-        "live": "进行中"
+        "live": "进行中",
+        "games": "比赛",
+        "tournaments": "锦标赛",
+        "fights": "对决",
+        "props": "命题投注",
+        "mls": "美职联",
+        "champions-league": "欧冠",
+        "EPL": "英超",
+        "uel": "欧联杯",
+        "la-liga": "西甲",
+        "serie-a": "意甲",
+        "bundesliga": "德甲",
+        "ligue-1": "法甲",
+        "lib": "南美解放者杯",
+        "mlb": "美职棒",
+        "kbo": "韩职棒",
+        "npb": "日职棒",
+        "cpbl": "中职棒",
+        "awards": "美职棒奖项",
+        "nfl": "美职橄",
+        "nfl-team-futures": "美职橄远期盘口",
+        "nfl-free-agency": "美职橄休赛期",
+        "cfb": "大学体育",
+        "cfl": "加职橄",
+        "nba": "美职篮",
+        "nba-free-agency": "美职篮休赛期",
+        "wnba": "美职女篮",
+        "ncaa": "NCAA",
+        "league-of-legends": "英雄联盟",
+        "counter-strike-2": "反恐精英2",
+        "valorant": "无畏契约",
+        "dota-2": "刀塔2",
+        "rainbow-six-siege": "彩虹六号：围攻",
+        "atp": "ATP",
+        "wta": "WTA",
+        "itf": "ITF",
+        "international-cricket": "国际",
+        "t20-blast": "T20 Blast",
+        "pga-tour": "美巡赛",
+        "liv-golf": "LIV 高尔夫联赛",
+        "ufc": "终极格斗冠军赛",
+        "boxing": "拳击",
+        "nhl": "美职冰"
       }
     },
     "search_placeholder": "搜索预测市场",
@@ -3299,7 +3382,8 @@
       "view_on_portfolio": "在 Portfolio 上查看",
       "view_on_block": "在区块浏览器上查看",
       "token_details": "代币详情",
-      "remove_token": "删除代币"
+      "remove_token": "删除代币",
+      "deactivate_asset": "停用资产"
     }
   },
   "nft_details": {
@@ -3463,7 +3547,7 @@
     "description_content_1_legacy": "MetaMask 希望收集基本的使用数据，以便更好地了解我们的用户如何与移动应用交互。这些数据将用于持续改进我们产品的可用性和用户体验。",
     "description_content_2_legacy": "MetaMask...",
     "action_description_1_legacy": "始终允许您通过“设置”选择退出",
-    "action_description_2_legacy": "发送匿名化点击和页面浏览事件",
+    "action_description_2_legacy": "Send anonymized click and pageview events",
     "action_description_3_legacy": "发送国家、地区、城市数据（不是具体位置）",
     "action_description_4_legacy": "决不收集密钥、地址、交易、余额、哈希或任何个人信息",
     "action_description_5_legacy": "决不收集您的 IP 地址",
@@ -3802,9 +3886,9 @@
     "privacy_mode": "隐私模式",
     "privacy_mode_desc": "网站必须请求查看您的账户信息的访问权限。",
     "nft_opensea_mode": "启用 OpenSea API",
-    "nft_opensea_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。使用 OpenSea 的 API 来获取 NFT 数据。NFT 自动检测依赖于 OpenSea 的 API，当它关闭时将不可用。启用 NFT 自动检测会使您暴露在任何人向您钱包发送的虚假 NFT 中，并可能使攻击者从您的以太坊地址中知道您的 IP 地址。",
+    "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "自动检测 NFT",
-    "nft_autodetect_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。第三方 API（如 OpenSea）被用来检测您钱包中的 NFT。这将使您的账户地址暴露在这些服务中。如果您不希望应用程序从这些服务中获取数据，请禁用该功能。",
+    "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "在测试网络上显示兑换",
     "show_fiat_on_testnets_desc": "选择此项以在测试网络上显示法币兑换.",
     "show_fiat_on_testnets_modal_title": "请小心",
@@ -4021,7 +4105,7 @@
     "manage_sdk_connections_text": "删除与网站和/或MetaMask SDK的连接。",
     "fiat_on_ramp": {
       "title": "买卖加密货币",
-      "description": "地区及其他......",
+      "description": "Region and more...",
       "current_region": "当前地区",
       "reset_region": "重设地区",
       "change_region": "更改地区",
@@ -4095,7 +4179,7 @@
         "quote_tag_most_reliable": "最可靠",
         "quote_unknown_provider": "未知提供商",
         "start_headless_buy": "启动无头购买",
-        "replace_and_start_headless_buy": "替换并开始无感购买",
+        "replace_and_start_headless_buy": "Replace and start headless buy",
         "start_headless_buy_disabled_hint": "输入有效金额以启用",
         "start_headless_buy_pending": "无头会话运行中——开启 BuildQuote",
         "cancel_headless_buy": "取消无头会话",
@@ -5509,6 +5593,11 @@
     "enable_biometrics": "使用生物识别解锁？",
     "enable_device_passcode_ios": "使用设备密码登录？",
     "enable_device_passcode_android": "使用设备 PIN 登录？"
+  },
+  "balance_breakdown": {
+    "allocation": "分配",
+    "hide_balance": "隐藏总余额",
+    "show_balance": "显示总余额"
   },
   "authentication": {
     "auth_prompt_desc": "请进行身份验证以便使用 MetaMask",
@@ -7067,11 +7156,11 @@
     "bluetooth_off": "蓝牙已关闭",
     "bluetooth_off_message": "请打开您的设备的蓝牙",
     "bluetooth_access_blocked": "Ledger需要蓝牙接入，才能与移动设备配对。",
-    "bluetooth_access_blocked_message": "如果您想使用蓝牙对Ledger设备进行配对，请在设置中启用蓝牙，然后重试。",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "MetaMask 需要位置访问许可才能与您的 Ledger 配对。",
-    "location_access_blocked_message": "如果您想使用蓝牙对Ledger设备进行配对，请在设置中启用位置访问权限，然后重试。",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
     "nearbyDevices_access_blocked": "MetaMask 需要附近设备许可才能与您的 Ledger 配对。",
-    "nearbyDevices_access_blocked_message": "如果您想使用蓝牙对 Ledger 设备进行配对，则需要在设置中启用附近设备访问权限，然后重试。",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "扫描设备时出错",
     "bluetooth_scanning_error_message": "请确保设备已解锁，并且以太坊应用程序正在运行",
     "bluetooth_connection_failed": "蓝牙连接失败",
@@ -7265,13 +7354,6 @@
     "your_bonus_tooltip_lifetime_bonus": "累计已领奖励： ",
     "your_bonus_tooltip_lifetime_bonus_desc": "自您参与以来已领取的奖励总额。",
     "learn_more": "了解详情",
-    "empty_state_cta": {
-      "heading": "借出 {{tokenSymbol}} 并赚取",
-      "body": "通过 {{protocol}} 借出您的 {{tokenSymbol}}，",
-      "annually": "每年赚取奖励。",
-      "learn_more": "了解更多。",
-      "earn": "赚取"
-    },
     "service_interruption_banner": {
       "maintenance_message": "我们正在进行系统维护。即将恢复服务！"
     },
@@ -7317,8 +7399,10 @@
       }
     },
     "withdraw": "提取",
+    "withdraw_from_aave": "从 Aave 提现",
     "deposit_more": "存入更多",
     "earning": "收益",
+    "lending_earnings": "借贷收益",
     "withdrawal_time": "提取时间",
     "withdrawing_to": "提取至",
     "network": "网络",
@@ -7491,12 +7575,25 @@
     "token_list_cta": {
       "get_apy": "享 {{apy}}% 年化收益率"
     },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "{{apy}}% 年化收益率",
+        "start_earning": "开始赚取",
+        "current_apy_disclaimer": "当前年化收益率为浮动值，不作保证。"
+      },
+      "balance_cta": {
+        "description_prefix": "将 {{symbol}} 存入您的 Money Account，即可赚取高达 ",
+        "description_suffix": " （每年）。",
+        "earn_apy": "赚取{{apy}}% APY",
+        "earnings_tooltip_accessibility_label": "了解预计收益"
+      }
+    },
     "earnings": {
       "title": "收益",
       "estimated_monthly": "每月",
-      "estimated_lifetime": "Lifetime",
-      "monthly_info_label": "Monthly earnings info",
-      "lifetime_info_label": "Lifetime earnings info"
+      "estimated_lifetime": "累计",
+      "monthly_info_label": "月度收益信息",
+      "lifetime_info_label": "累计收益信息"
     },
     "how_it_works": {
       "title": "如何运行",
@@ -7533,7 +7630,7 @@
       "virtual_card": "虚拟卡",
       "metal_card": "金属卡",
       "cashback": "{{percentage}}% mUSD 返现",
-      "get_now": "Get",
+      "get_now": "获取",
       "link_title": "关联卡",
       "link_subtitle": "使用余额消费，并在消费时赚取奖励。",
       "link_subtitle_no_apy": "使用余额消费，并在消费时赚取奖励。",
@@ -7643,18 +7740,19 @@
     },
     "earnings_tooltip": {
       "monthly": {
-        "title": "Monthly earnings",
-        "body": "The total you've earned on your Money account balance in the last 30 days."
+        "title": "月度收益",
+        "body": "过去 30 天内您通过 Money Account 余额赚取的总收益。"
       },
       "lifetime": {
         "title": "累计收益",
-        "body": "The total you've earned on your Money account balance over time."
+        "body": "您通过 Money Account 余额累计赚取的总收益。"
       }
     },
     "earn_crypto_info_sheet": {
       "title": "用您的加密货币赚取收益",
       "deposit_title": "预计 1 年后余额",
-      "body": "此预测基于年化收益率 (APY) 维持在 {{percentage}}% 且一年内不发生变化的假设。 APY 会随市场波动，并非固定保证。"
+      "body": "此预测假设 {{percentage}}% 的年化收益率在一年内保持不变。年化收益率会浮动，不作保证。收益不作保证。",
+      "go_to_money_account": "前往 Money Account"
     },
     "activity": {
       "title": "活动",
@@ -7670,8 +7768,8 @@
       "filter_purchases": "购买"
     },
     "condensed_cards": {
-      "how_it_works_title": "How your money grows",
-      "musd_title": "Meet mUSD",
+      "how_it_works_title": "资金增长方式",
+      "musd_title": "了解 mUSD",
       "what_you_get_title": "查看您的权益"
     },
     "transaction": {
@@ -8300,6 +8398,8 @@
     "sort_balance": "余额",
     "next": "下一步",
     "explore_tokens": "探索代币",
+    "robinhood_banner_title": "Robinhood Chain 现已上线",
+    "robinhood_banner_subtitle": "探索热门代币",
     "no_tokens_found": "找不到代币",
     "no_tokens_found_description": "我们未找到与此名称匹配的代币。请尝试其他搜索方式。",
     "select_network": "选择网络",
@@ -8896,8 +8996,7 @@
         "country_not_available": "您所在的国家/地区尚未开放卡片注册功能。",
         "account_label": "账户",
         "account_description": "您的 MetaMask 卡将与此账户关联。",
-        "account_exists_toast": "您已拥有一个卡账户。",
-        "card_program_label": "卡计划（测试）"
+        "account_exists_toast": "您已拥有一个卡账户。"
       },
       "confirm_email": {
         "title": "确认您的电子邮件",
@@ -9070,8 +9169,8 @@
         "title": "加入等待列表",
         "load_error": "表单加载出错。请重试。",
         "try_again": "请重试",
-        "success_toast": "You're on the waitlist!",
-        "success_toast_description": "We'll let you know when the card is available in your country."
+        "success_toast": "您已加入候补名单！",
+        "success_toast_description": "当该卡在您所在国家/地区可用时，我们将第一时间告知。"
       },
       "region_selector": {
         "title": "选择您所在的地区"
@@ -9562,6 +9661,8 @@
       "retry_button": "重试",
       "tiers_title": "等级",
       "tier_thresholds": "{{points}} 积分",
+      "maintain_threshold_label": "维持阈值",
+      "maintain_this_tier": "{{points}} 积分才可维持该等级",
       "bps_value": "{{bps}} 个基点",
       "referee_splash_continue": "继续",
       "referee_referred_by": "由 {{code}} 推荐",
@@ -10070,7 +10171,7 @@
     "earn_rewards": {
       "title": "赚取奖励",
       "musd_money_title": "享高达 {{percentage}}% 年化收益率",
-      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
+      "musd_disclaimer_accessibility_label": "mUSD 年化收益率免责声明",
       "musd_subtitle": "Money Account 已上线",
       "card_title": "消费享最高 3% 返现",
       "card_subtitle": "立即获取您的 MetaMask 卡",
@@ -10327,7 +10428,7 @@
     "low_to_high": "从低到高",
     "apply": "应用",
     "search_placeholder": "搜索代币、市场及 URL",
-    "quick_trade": "快捷买卖",
+    "quick_trade": "Quick Buy and Sell",
     "cancel": "取消",
     "perps": "永续合约",
     "rwa_perps_section": "永续合约",
@@ -10524,7 +10625,7 @@
       "related_assets": "相关资产",
       "perpetuals": "永续合约",
       "predictions": "预测",
-      "top_traders": "每周顶尖交易者",
+      "top_traders": "顶级交易员",
       "defi": "DeFi",
       "nfts": "NFT",
       "watchlist": "关注列表",
@@ -10552,6 +10653,7 @@
   "whats_happening": {
     "title": "发生了什么",
     "ai": "人工智能（AI）",
+    "ai_generated": "AI 生成",
     "outdated": "已过期",
     "impact": {
       "bullish": "看涨",
@@ -10582,5 +10684,19 @@
     "empty_add_tokens_cta": "添加 {{count}} 代币",
     "empty_add_tokens_cta_plural": "添加 {{count}} 代币",
     "search_placeholder": "搜索任意资产即可添加"
+  },
+  "asset_spendable_balance": {
+    "spendable": "可用额度",
+    "base_reserved": "已预留（锁定）",
+    "fiat_value": "价值",
+    "total_balance": "总余额"
+  },
+  "asset_activation": {
+    "activate": "激活",
+    "activate_description": "在 {{chainName}} 上激活 {{symbol}} 即可开始。",
+    "inactive": "未激活",
+    "activate_error": "添加此信任线时出错。请重试。",
+    "deactivate_error": "移除此信任线时出错。请重试。",
+    "deactivate_error_non_zero_balance_stellar": "此钱包中仍有 {{balance}} {{symbol}}。您必须先将其全部转出或兑换，然后才能在 Stellar 上停用此资产。"
   }
 }
