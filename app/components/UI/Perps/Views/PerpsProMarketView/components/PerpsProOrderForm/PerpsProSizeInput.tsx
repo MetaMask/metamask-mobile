@@ -129,7 +129,7 @@ const PerpsProSizeInput = ({
               inputAccessoryViewID={inputAccessoryViewID}
               placeholder="0.00"
               placeholderTextColor={tw.color('text-muted')}
-              textVariant={TextVariant.HeadingMd}
+              textVariant={TextVariant.HeadingLg}
               isStateStylesDisabled
               twClassName="h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
               testID={ids.SIZE_INPUT}
@@ -188,9 +188,9 @@ const PerpsProSizeInput = ({
       <ButtonBase
         onPress={onAddFundsPress}
         isDisabled={!onAddFundsPress}
-        twClassName="h-14 w-full rounded-b-2xl bg-transparent px-4"
+        twClassName="h-[46px] w-full rounded-b-2xl bg-transparent px-3"
         contentWrapperProps={{
-          twClassName: 'w-full flex-row items-center justify-start gap-2',
+          twClassName: 'w-full flex-row items-center justify-start gap-1',
         }}
         testID={ids.ADD_FUNDS_BUTTON}
         accessibilityLabel={availableBalance}
