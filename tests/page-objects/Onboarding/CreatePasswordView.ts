@@ -318,13 +318,10 @@ class CreatePasswordView {
     // `aria-checked` (only `checked` / `value`); requesting it floods WARN/ERROR
     // logs and used to abort the whole read when tried first.
     const attributes: Record<string, unknown> = {};
-    const attributeNames: ('checked' | 'value' | 'aria-checked')[] = [
-      'checked',
-      'value',
-    ];
-    if (PlatformDetector.isIOS()) {
-      attributeNames.push('aria-checked');
-    }
+    const attributeNames: ('checked' | 'value' | 'aria-checked')[] =
+      PlatformDetector.isIOS()
+        ? ['checked', 'value', 'aria-checked']
+        : ['checked'];
 
     for (const name of attributeNames) {
       try {
