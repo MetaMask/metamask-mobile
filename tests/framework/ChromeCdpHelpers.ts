@@ -350,6 +350,9 @@ export default class ChromeCdpHelpers {
       `(() => {
         const el = document.getElementById(${JSON.stringify(elementId)});
         if (!el || typeof el.click !== 'function') return false;
+        // Disabled controls ignore HTMLElement.click(); treat as miss.
+        if ('disabled' in el && Boolean(el.disabled)) return false;
+        if (el.getAttribute('aria-disabled') === 'true') return false;
         el.scrollIntoView({ block: 'center', inline: 'center' });
         el.click();
         return true;
@@ -936,6 +939,68 @@ export default class ChromeCdpHelpers {
       );
       return null;
     }
+  }
+
+  /**
+   * Poll until `#elementId` exists and is not disabled / aria-disabled.
+   * Android: CDP. iOS: Appium WebView context.
+   */
+  static async waitForElementEnabledByIdInWebView(
+    dappUrl: string,
+    elementId: string,
+    timeoutMs = 30_000,
+  ): Promise<void> {
+    const isEnabledExpression = `(() => {
+      const el = document.getElementById(${JSON.stringify(elementId)});
+      if (!el) return false;
+      if ('disabled' in el && Boolean(el.disabled)) return false;
+      if (el.getAttribute('aria-disabled') === 'true') return false;
+      return true;
+    })()`;
+
+    const deadline = Date.now() + timeoutMs;
+
+    if (PlatformDetector.isAndroid()) {
+      const enabled = await this.withMetaMaskWebViewSession(
+        dappUrl,
+        async (session) => {
+          while (Date.now() < deadline) {
+            const ready = await session.evaluate<boolean>(isEnabledExpression);
+            if (ready) return true;
+            await new Promise<void>((r) => setTimeout(r, POLL_MS));
+          }
+          return false;
+        },
+      );
+      if (enabled) return;
+      throw new Error(
+        `Timed out after ${timeoutMs}ms waiting for #${elementId} to be enabled`,
+      );
+    }
+
+    try {
+      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      while (Date.now() < deadline) {
+        const ready = (await getDriver().execute(
+          `return (${isEnabledExpression})`,
+        )) as boolean;
+        if (ready) {
+          await PlaywrightContextHelpers.switchToNativeContext();
+          return;
+        }
+        await new Promise<void>((r) => setTimeout(r, POLL_MS));
+      }
+      await PlaywrightContextHelpers.switchToNativeContext();
+    } catch (error) {
+      await PlaywrightContextHelpers.switchToNativeContext().catch(
+        () => undefined,
+      );
+      throw error;
+    }
+
+    throw new Error(
+      `Timed out after ${timeoutMs}ms waiting for #${elementId} to be enabled`,
+    );
   }
 
   /**

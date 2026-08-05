@@ -16,6 +16,7 @@ import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
+import { TestDappSelectorsWebIDs } from '../selectors/Browser/TestDapp.selectors';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
@@ -42,6 +43,16 @@ const tapTestDappButtonAndWaitForConfirm = async (
   description: string,
 ): Promise<void> => {
   const pageUrl = getDappUrl(0);
+
+  // test-dapp enables EIP-5792 Send Calls only after globalConnectionChange;
+  // clicking while disabled is a silent no-op.
+  if (buttonId === TestDappSelectorsWebIDs.SEND_CALLS_BUTTON) {
+    await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
+      pageUrl,
+      buttonId,
+    );
+  }
+
   if (PlatformDetector.isAndroidAppium()) {
     const clicked = await ChromeCdpHelpers.clickByIdInWebView(
       pageUrl,
