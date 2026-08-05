@@ -9,6 +9,11 @@ import {
   stopFailureRecordingAndAttach,
 } from '../../services/appium/ScreenRecording.ts';
 import { isSessionAlive } from '../../services/appium/sessionHealth.ts';
+import {
+  consumeSharedSessionRecreate,
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+} from '../../services/appium/sessionRecovery.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import { FrameworkDetector, TestFramework } from '../../FrameworkDetector.ts';
 import UnifiedGestures from '../../UnifiedGestures.ts';
@@ -71,7 +76,10 @@ export const driverFixture = {
 
     try {
       if (reuseEnabled && sharedSession.drv) {
-        const alive = await isSessionAlive(sharedSession.drv);
+        const forcedRecreate = consumeSharedSessionRecreate();
+        const alive =
+          !forcedRecreate.requested &&
+          (await isSessionAlive(sharedSession.drv));
         if (alive) {
           drv = sharedSession.drv;
           sessionReused = true;
@@ -80,7 +88,9 @@ export const driverFixture = {
           );
         } else {
           logger.warn(
-            `Shared WebDriver session is unhealthy; recreating for "${testInfo.title}"`,
+            forcedRecreate.requested
+              ? `Shared WebDriver session recreate requested (${forcedRecreate.reason ?? 'unspecified'}); recreating for "${testInfo.title}"`
+              : `Shared WebDriver session is unhealthy; recreating for "${testInfo.title}"`,
           );
           try {
             await deviceProvider.cleanupSession?.(sharedSession.drv);
@@ -95,6 +105,8 @@ export const driverFixture = {
           drv = await createSession(deviceProvider, sharedSession);
         }
       } else {
+        // Drop any stale recreate request from a prior worker/test when reuse is off.
+        consumeSharedSessionRecreate();
         logger.info(
           `${reuseEnabled ? 'Starting' : 'Starting (reuse off)'} WebDriver session for "${testInfo.title}" (project: ${project.name})`,
         );
@@ -190,6 +202,31 @@ export const driverFixture = {
         });
       } catch (error) {
         logger.error('Failed to sync test details:', error);
+      }
+
+      // Soft-reload / adb device-health failures can leave a "alive" WebDriver
+      // session pointed at a broken install. Drop reuse so the next test or
+      // Playwright retry recreates instead of cascading MainActivity failures.
+      if (
+        reuseEnabled &&
+        (testStatus === 'failed' || testStatus === 'timedOut') &&
+        isDeviceHealthError(testError)
+      ) {
+        requestSharedSessionRecreate(
+          testError ?? `device-health failure in "${testInfo.title}"`,
+        );
+        try {
+          if (drv) {
+            await deviceProvider.cleanupSession?.(drv);
+          }
+        } catch (error) {
+          logger.error(
+            'Failed to cleanup WebDriver session after device-health failure:',
+            error,
+          );
+        } finally {
+          sharedSession.drv = undefined;
+        }
       }
 
       if (!reuseEnabled) {

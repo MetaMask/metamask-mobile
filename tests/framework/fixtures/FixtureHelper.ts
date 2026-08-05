@@ -77,6 +77,29 @@ const logger = createLogger({
 });
 
 /**
+ * Resolve a local APK / .app path for soft-reload reinstall recovery.
+ * Mirrors smoke-appium config precedence so CI `ANDROID_APK_PATH` / `IOS_APP_PATH`
+ * are picked up without threading Playwright project config into fixtures.
+ */
+function resolveSoftReloadBuildPath(
+  platform: 'android' | 'ios',
+): string | undefined {
+  if (platform === 'android') {
+    return (
+      process.env.ANDROID_APK_PATH?.trim() ||
+      process.env.PREBUILT_ANDROID_APK_PATH?.trim() ||
+      undefined
+    );
+  }
+
+  return (
+    process.env.IOS_APP_PATH?.trim() ||
+    process.env.PREBUILT_IOS_APP_PATH?.trim() ||
+    undefined
+  );
+}
+
+/**
  * Handles the dapps by starting the servers and listening to the ports.
  * @param dapps - The dapps to start.
  * @param dappServer - The dapp server to start.
@@ -691,6 +714,7 @@ export async function withFixtures(
           deviceCommands,
           launchArgs: testArgs,
           fixtureServer,
+          buildPath: resolveSoftReloadBuildPath(currentDeviceDetails.platform),
         });
         if (softReloadResult.attemptedMetroDevLauncherDismissal) {
           didAttemptPlaywrightDevelopmentServerPickerDismissal = true;

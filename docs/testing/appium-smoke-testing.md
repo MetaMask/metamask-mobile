@@ -197,6 +197,7 @@ Local emulator/simulator Appium smoke **reuses one WebDriver session per Playwri
 | Session create                        | Once per worker (happy path). Logs `Reusing WebDriver session sessionId=...` on later tests. |
 | Between tests (`restartDevice: true`) | Soft reload — does **not** create a new Appium session.                                      |
 | Unhealthy session                     | Test-scoped `driver` fixture recreates once (`sessionRecreated=true` annotation).            |
+| Soft-reload device-health failure     | Retries `clearAppData` once; on exhaustion / unrecovered launch failures, marks the shared session for recreate and clears reuse so the next test or Playwright retry does not cascade. Optional reinstall from `ANDROID_APK_PATH` / `IOS_APP_PATH` when launch fails with missing `MainActivity` / cannot-start errors. |
 | BrowserStack                          | Session reuse stays **off** (legacy per-test sessions).                                      |
 | Rollback                              | `APPIUM_SESSION_REUSE=false` restores per-test session delete.                               |
 
@@ -204,6 +205,7 @@ Helpers:
 
 - `isAppiumSessionReuseEnabled` — `tests/framework/fixtures/playwright/sessionReuse.ts`
 - `softReloadAppForFixtures` — `tests/framework/services/appium/softReloadApp.ts`
+- `sessionRecovery` — `tests/framework/services/appium/sessionRecovery.ts` (`isDeviceHealthError`, shared-session recreate requests)
 - Worker fixtures — `deviceProvider` + `sharedSession` in `tests/framework/fixtures/playwright/`
 
 ## Reports and artifacts

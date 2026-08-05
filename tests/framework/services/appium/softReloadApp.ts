@@ -8,8 +8,14 @@ import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
 import { switchToNativeContext } from './sessionHealth.ts';
+import {
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+} from './sessionRecovery.ts';
 
 const logger = createPlaywrightLogger('softReloadApp');
+
+const DEFAULT_CLEAR_APP_DATA_RETRY_DELAY_MS = 1_000;
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
@@ -29,9 +35,15 @@ export interface SoftReloadFixtureServer {
 
 /**
  * Minimal device-command surface for clearing app data before relaunch.
+ * Optional install helpers enable recovery when the package disappears mid-suite.
  */
 export interface SoftReloadDeviceCommands {
   clearAppData(): Promise<void>;
+  isAppInstalled?(): Promise<boolean>;
+  reinstallApp?(options: {
+    buildPath: string;
+    ignoreMissing?: boolean;
+  }): Promise<void>;
 }
 
 export interface SoftReloadAppForFixturesOptions {
@@ -47,6 +59,15 @@ export interface SoftReloadAppForFixturesOptions {
    * WDIO browser used for NATIVE_APP context reset. Defaults to globalThis.driver.
    */
   drv?: WebdriverIO.Browser;
+  /**
+   * Local APK / .app path used to reinstall when launch fails because the package
+   * is missing or MainActivity cannot start. Optional — recovery is skipped when unset.
+   */
+  buildPath?: string;
+  /**
+   * Delay between clearAppData attempts. Defaults to 1000ms; tests may set 0.
+   */
+  clearAppDataRetryDelayMs?: number;
 }
 
 export interface SoftReloadAppForFixturesResult {
@@ -56,6 +77,10 @@ export interface SoftReloadAppForFixturesResult {
   fixtureBootstrapMs: number;
   /** True when the Metro/dev-launcher picker dismissal loop ran during bootstrap. */
   attemptedMetroDevLauncherDismissal: boolean;
+  /** True when clearAppData needed a second attempt. */
+  clearAppDataRetried: boolean;
+  /** True when a device-health launch failure triggered a reinstall + relaunch. */
+  reinstalledAfterLaunchFailure: boolean;
 }
 
 async function measureMs(fn: () => Promise<void>): Promise<number> {
@@ -64,11 +89,145 @@ async function measureMs(fn: () => Promise<void>): Promise<number> {
   return Date.now() - start;
 }
 
+function markSessionForRecreate(error: unknown, fallbackReason: string): void {
+  const message =
+    error instanceof Error && error.message.trim()
+      ? error.message.trim()
+      : fallbackReason;
+  requestSharedSessionRecreate(message);
+}
+
+async function clearAppDataWithRetry(
+  deviceCommands: SoftReloadDeviceCommands,
+  retryDelayMs: number,
+): Promise<{ clearAppDataMs: number; clearAppDataRetried: boolean }> {
+  const startedAt = Date.now();
+  try {
+    await deviceCommands.clearAppData();
+    return {
+      clearAppDataMs: Date.now() - startedAt,
+      clearAppDataRetried: false,
+    };
+  } catch (firstError) {
+    logger.warn(
+      `clearAppData failed; retrying once after ${retryDelayMs}ms:`,
+      firstError,
+    );
+    await sleep(retryDelayMs);
+    try {
+      await deviceCommands.clearAppData();
+      return {
+        clearAppDataMs: Date.now() - startedAt,
+        clearAppDataRetried: true,
+      };
+    } catch (secondError) {
+      markSessionForRecreate(secondError, 'clearAppData failed after retry');
+      throw secondError;
+    }
+  }
+}
+
+/**
+ * Reinstall when launch fails with a device-health error and a local build path
+ * is available. Prefer checking install state when possible, but always reinstall
+ * for missing-activity / cannot-start failures (CI cascade pattern).
+ */
+async function tryRecoverMissingAppLaunch(options: {
+  deviceCommands?: SoftReloadDeviceCommands;
+  buildPath?: string;
+  launchError: unknown;
+}): Promise<boolean> {
+  const { deviceCommands, buildPath, launchError } = options;
+  if (!deviceCommands?.reinstallApp || !buildPath?.trim()) {
+    return false;
+  }
+  if (!isDeviceHealthError(launchError)) {
+    return false;
+  }
+
+  const message =
+    launchError instanceof Error ? launchError.message : String(launchError);
+  const looksLikeMissingActivity =
+    /MainActivity.*does not exist/i.test(message) ||
+    /Cannot start the ['"].*['"] application/i.test(message);
+
+  let shouldReinstall = looksLikeMissingActivity;
+  if (!shouldReinstall && deviceCommands.isAppInstalled) {
+    try {
+      shouldReinstall = !(await deviceCommands.isAppInstalled());
+    } catch (installCheckError) {
+      logger.warn(
+        'isAppInstalled failed during soft-reload recovery; attempting reinstall:',
+        installCheckError,
+      );
+      shouldReinstall = true;
+    }
+  }
+
+  if (!shouldReinstall) {
+    return false;
+  }
+
+  logger.warn(
+    `Soft-reload launch device-health failure; reinstalling from ${buildPath}`,
+  );
+  await deviceCommands.reinstallApp({
+    buildPath: buildPath.trim(),
+    ignoreMissing: true,
+  });
+  return true;
+}
+
+async function waitForBootstrap(options: {
+  appStateRequest: Promise<void>;
+  bootstrapStart: number;
+}): Promise<{
+  attemptedMetroDevLauncherDismissal: boolean;
+  fixtureBootstrapMs: number;
+}> {
+  const { appStateRequest, bootstrapStart } = options;
+  let attemptedMetroDevLauncherDismissal = false;
+
+  if (shouldHandleMetroDevLauncherLocally()) {
+    attemptedMetroDevLauncherDismissal = true;
+    await Promise.all([
+      appStateRequest,
+      (async () => {
+        for (;;) {
+          await dismissDevelopmentServerPickerPlaywright();
+          const bootstrapped = await Promise.race([
+            appStateRequest.then(() => true),
+            sleep(1500).then(() => false),
+          ]);
+          if (bootstrapped) {
+            return;
+          }
+        }
+      })(),
+    ]);
+  } else {
+    await appStateRequest;
+  }
+
+  return {
+    attemptedMetroDevLauncherDismissal,
+    fixtureBootstrapMs: Date.now() - bootstrapStart,
+  };
+}
+
 /**
  * Soft-reload the app on an existing Appium session for fixture re-bootstrap.
  *
  * Extract of the Appium `restartDevice: true` path:
  * clearAppData → NATIVE_APP context reset → launchApp → wait for /state.json.
+ *
+ * Hardening behavior:
+ * - Retry `clearAppData` once for transient adb flakes.
+ * - On exhausted clearAppData / unrecovered launch device-health failures, mark
+ * the shared WebDriver session for recreate so Playwright retries and later
+ * tests do not cascade on a poisoned reused session.
+ * - Optionally reinstall from `buildPath` when launch fails with missing app /
+ * MainActivity device-health errors.
  */
 export async function softReloadAppForFixtures(
   options: SoftReloadAppForFixturesOptions,
@@ -80,11 +239,19 @@ export async function softReloadAppForFixtures(
     fixtureServer,
     bootstrapTimeoutMs = resolveE2EFixtureBootstrapTimeoutMs(),
     drv = globalThis.driver,
+    buildPath,
+    clearAppDataRetryDelayMs = DEFAULT_CLEAR_APP_DATA_RETRY_DELAY_MS,
   } = options;
 
   let clearAppDataMs = 0;
+  let clearAppDataRetried = false;
   if (deviceCommands) {
-    clearAppDataMs = await measureMs(() => deviceCommands.clearAppData());
+    const clearResult = await clearAppDataWithRetry(
+      deviceCommands,
+      clearAppDataRetryDelayMs,
+    );
+    clearAppDataMs = clearResult.clearAppDataMs;
+    clearAppDataRetried = clearResult.clearAppDataRetried;
   }
 
   const contextResetMs = await measureMs(async () => {
@@ -95,51 +262,64 @@ export async function softReloadAppForFixtures(
   });
 
   // Register waiter before launch so we do not miss a fast /state.json request.
-  const appStateRequest =
+  let appStateRequest =
     fixtureServer.waitForNextStateRequest(bootstrapTimeoutMs);
 
   let attemptedMetroDevLauncherDismissal = false;
   let launchAppMs = 0;
   let fixtureBootstrapMs = 0;
+  let reinstalledAfterLaunchFailure = false;
 
   try {
-    launchAppMs = await measureMs(() =>
-      PlaywrightUtilities.launchApp(currentDeviceDetails, { launchArgs }),
-    );
+    try {
+      launchAppMs = await measureMs(() =>
+        PlaywrightUtilities.launchApp(currentDeviceDetails, { launchArgs }),
+      );
+    } catch (launchError) {
+      const recovered = await tryRecoverMissingAppLaunch({
+        deviceCommands,
+        buildPath,
+        launchError,
+      });
+      if (!recovered) {
+        throw launchError;
+      }
 
-    const bootstrapStart = Date.now();
-    if (shouldHandleMetroDevLauncherLocally()) {
-      attemptedMetroDevLauncherDismissal = true;
-      await Promise.all([
-        appStateRequest,
-        (async () => {
-          for (;;) {
-            await dismissDevelopmentServerPickerPlaywright();
-            const bootstrapped = await Promise.race([
-              appStateRequest.then(() => true),
-              sleep(1500).then(() => false),
-            ]);
-            if (bootstrapped) {
-              return;
-            }
-          }
-        })(),
-      ]);
-    } else {
-      await appStateRequest;
+      reinstalledAfterLaunchFailure = true;
+      // Abandon the waiter registered before the failed launch.
+      appStateRequest.catch(() => undefined);
+      appStateRequest =
+        fixtureServer.waitForNextStateRequest(bootstrapTimeoutMs);
+      launchAppMs += await measureMs(() =>
+        PlaywrightUtilities.launchApp(currentDeviceDetails, { launchArgs }),
+      );
     }
-    fixtureBootstrapMs = Date.now() - bootstrapStart;
+
+    const bootstrap = await waitForBootstrap({
+      appStateRequest,
+      bootstrapStart: Date.now(),
+    });
+    attemptedMetroDevLauncherDismissal =
+      bootstrap.attemptedMetroDevLauncherDismissal;
+    fixtureBootstrapMs = bootstrap.fixtureBootstrapMs;
   } catch (error) {
     appStateRequest.catch(() => undefined);
+    if (isDeviceHealthError(error)) {
+      markSessionForRecreate(error, 'soft-reload bootstrap failed');
+    }
     throw error;
   }
 
   logger.info(
-    `Soft reload complete: clearAppData=${clearAppDataMs}ms, ` +
+    `Soft reload complete: clearAppData=${clearAppDataMs}ms` +
+      `${clearAppDataRetried ? ' (retried)' : ''}, ` +
       `contextReset=${contextResetMs}ms, launchApp=${launchAppMs}ms, ` +
       `fixtureBootstrap=${fixtureBootstrapMs}ms` +
       (attemptedMetroDevLauncherDismissal
         ? ', metroDevLauncherDismissal=true'
+        : '') +
+      (reinstalledAfterLaunchFailure
+        ? ', reinstalledAfterLaunchFailure=true'
         : ''),
   );
 
@@ -149,5 +329,7 @@ export async function softReloadAppForFixtures(
     launchAppMs,
     fixtureBootstrapMs,
     attemptedMetroDevLauncherDismissal,
+    clearAppDataRetried,
+    reinstalledAfterLaunchFailure,
   };
 }
