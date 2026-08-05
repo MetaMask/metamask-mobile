@@ -150,13 +150,12 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
           quote: {
             ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.STELLAR,
-          },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '0',
+            feeData: {
+              network: [{ normalizedAmount: '0' }],
+            },
           },
         }),
       ),
@@ -167,13 +166,12 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
           quote: {
             ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.STELLAR,
-          },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '-1',
+            feeData: {
+              network: [{ normalizedAmount: '-1' }],
+            },
           },
         }),
       ),
@@ -184,14 +182,13 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
           quote: {
             ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.STELLAR,
+            feeData: {
+              network: [{ normalizedAmount: undefined }],
+            },
           },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: undefined,
-          } as unknown as NonNullable<ActiveQuote>['totalNetworkFee'],
         }),
       ),
     ).toBe(true);
@@ -201,10 +198,7 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
-          quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.STELLAR,
-          },
+          chainId: formatChainIdToCaip(ChainId.STELLAR),
         }),
       ),
     ).toBe(false);

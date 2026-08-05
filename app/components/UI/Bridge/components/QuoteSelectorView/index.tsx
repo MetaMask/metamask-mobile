@@ -83,8 +83,10 @@ export const QuoteSelectorView = () => {
               isGaslessQuote(quote.quote)
                 ? (sumAmounts(quote.quote.feeData?.txFee)?.valueInCurrency ??
                     '0')
-                : (sumAmounts(quote.quote.feeData?.network)?.valueInCurrency ??
-                    '0'),
+                : (sumAmounts(
+                    quote.quote.feeData?.network,
+                    quote.quote.feeData?.relayer,
+                  )?.valueInCurrency ?? '0'),
             ),
             currency,
           ),

@@ -46,9 +46,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
               : (sumAmounts(
                   quote.quote.feeData.network,
                   quote.quote.feeData.relayer,
-                )?.valueInCurrency ??
-                  sumAmounts(quote.quote.feeData.network)?.valueInCurrency ??
-                  '0'),
+                )?.valueInCurrency ?? '0'),
           ),
           currentCurrency,
         ),

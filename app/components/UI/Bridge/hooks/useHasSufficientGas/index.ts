@@ -50,9 +50,9 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     return true;
   }
 
-  // quote.gasFee.effective.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
   const gasAmount = sumAmounts(
     quote?.quote?.feeData?.network,
+    quote?.quote?.feeData?.relayer,
   )?.normalizedAmount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null && gasAmount !== undefined

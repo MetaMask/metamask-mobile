@@ -15,7 +15,10 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
 import { buildStartPayload } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
@@ -27,7 +30,7 @@ import Engine from '../../../../../core/Engine';
 import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
 
 interface Params {
-  activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
+  activeQuote?: QuoteResponse | null;
   location: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -66,8 +69,9 @@ export const useBridgeConfirm = ({
               location,
               transactionActiveAbTests,
               postTradeModalParams: {
-                sourceAmount: sourceAmount ?? activeQuote.sentAmount?.amount,
-                destAmount: activeQuote.toTokenAmount?.amount,
+                sourceAmount:
+                  sourceAmount ?? activeQuote.quote.src.normalizedAmount,
+                destAmount: activeQuote.quote.dest.normalizedAmount,
                 sourceToken,
                 destToken,
               },
