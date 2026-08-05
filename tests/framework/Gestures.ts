@@ -391,6 +391,7 @@ export default class Gestures {
         description: options.elemDescription,
         hideKeyboard: options.hideKeyboard,
         clearFirst: options.clearFirst,
+        checkForDisplayed: options.checkForDisplayed,
       });
     }
 
