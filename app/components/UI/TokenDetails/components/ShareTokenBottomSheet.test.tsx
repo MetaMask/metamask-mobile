@@ -157,10 +157,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (state: unknown) => unknown) => selector({})),
 }));
 
-jest.mock('../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 jest.mock('../../../../selectors/tokenRatesController', () => ({
   selectTokenMarketData: jest.fn(() => ({})),
 }));
