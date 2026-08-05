@@ -15,6 +15,7 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithNoFeeToken } from '../usePayWithNoFeeToken';
@@ -61,6 +62,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 }));
 jest.mock('../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
+jest.mock('../../../../../UI/Perps/utils/perpsPaymentTokenSelection');
 jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
 jest.mock('../useLastUsedPaymentMethod');
 jest.mock('../usePayWithNoFeeToken');
@@ -1467,7 +1469,7 @@ describe('usePayWithCryptoSection', () => {
       expect(goBackMock).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call onPerpsPaymentTokenChange on perpsDepositAndOrder when the preferred token is already selected', () => {
+    it('does not call onPerpsPaymentTokenChange but still marks selection on perpsDepositAndOrder when the preferred token is already selected', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.perpsDepositAndOrder,
         txParams: {},
@@ -1480,6 +1482,7 @@ describe('usePayWithCryptoSection', () => {
         result.current?.rows[0].onPress?.();
       });
 
+      expect(markPerpsPaymentTokenSelection).toHaveBeenCalled();
       expect(onPerpsPaymentTokenChangeMock).not.toHaveBeenCalled();
       expect(setPayTokenMock).not.toHaveBeenCalled();
       expect(goBackMock).toHaveBeenCalledTimes(1);

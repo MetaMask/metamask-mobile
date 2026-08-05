@@ -162,6 +162,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
 
   const handlePreferredTokenPress = useCallback(() => {
     if (isPreferredTokenSelected) {
+      if (isPerpsDepositAndOrder) {
+        markPerpsPaymentTokenSelection();
+      }
       navigation.goBack();
       return;
     }
@@ -200,6 +203,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
 
   const handleNoFeeTokenPress = useCallback(() => {
     if (isNoFeeTokenSelected) {
+      if (isPerpsDepositAndOrder) {
+        markPerpsPaymentTokenSelection();
+      }
       navigation.goBack();
       return;
     }
