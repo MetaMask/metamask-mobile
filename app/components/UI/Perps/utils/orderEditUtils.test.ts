@@ -47,7 +47,7 @@ describe('orderEditUtils', () => {
 
     const trackingData = { totalFee: 0, marketPrice: 3100, source: 'test' };
     expect(
-      buildOrderEditParams(baseOrder, 'price', '3100', trackingData),
+      buildOrderEditParams(baseOrder, 'price', '3100', 10, trackingData),
     ).toEqual(
       expect.objectContaining({
         price: '3100',
@@ -55,7 +55,7 @@ describe('orderEditUtils', () => {
       }),
     );
     expect(
-      buildOrderEditParams(baseOrder, 'size', '1.5', trackingData),
+      buildOrderEditParams(baseOrder, 'size', '1.5', 10, trackingData),
     ).toEqual(
       expect.objectContaining({
         price: '3000',

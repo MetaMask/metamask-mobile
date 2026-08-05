@@ -467,10 +467,15 @@ class TestSnaps {
 
   async dismissAlert() {
     try {
-      await Gestures.tap(Matchers.getElementByText(/^OK$/i));
+      await this.tapOkButton();
     } catch (error) {
+      // Teardown-only helper: specs assert on the alert before dismissing it,
+      // and the alert can close on its own first, so a missing OK button means
+      // there is nothing left to dismiss.
       const message = error instanceof Error ? error.message : String(error);
-      if (!/stale|wasn't found|no such element/i.test(message)) {
+      if (
+        !/stale|wasn't found|no such element|still not displayed/i.test(message)
+      ) {
         throw error;
       }
     }
