@@ -75,6 +75,25 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
+    it('keeps a zero position size invalid without displaying errors', async () => {
+      // Arrange
+      const params = {
+        ...defaultParams,
+        positionSize: '0',
+      };
+
+      // Act
+      const { result } = renderHook(() => usePerpsOrderValidation(params));
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Assert
+      expect(mockValidateOrder).not.toHaveBeenCalled();
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.isValid).toBe(false);
+    });
+
     it('should pass when protocol validation passes', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
