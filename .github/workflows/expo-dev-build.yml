@@ -108,9 +108,14 @@ jobs:
         uses: actions/github-script@v7
         env:
           GATE_KEY: ${{ steps.gate-key.outputs.gate-key }}
+          # Scoped to the current branch, not hardcoded to main: `yarn install:*:dev`
+          # resolves artifacts per branch, so a marker from another branch must not
+          # authorize skipping here — a manual dispatch on a feature branch would
+          # otherwise reuse main's marker and leave that branch with no artifacts.
+          GATE_BRANCH: ${{ github.ref_name }}
         with:
           script: |
-            const { GATE_KEY } = process.env;
+            const { GATE_KEY, GATE_BRANCH } = process.env;
             const markerName = `expo-dev-build-key-${GATE_KEY}`;
             const requiredArtifacts = [
               'ios-app-main-dev-expo',
@@ -138,11 +143,11 @@ jobs:
             }
 
             const candidates = markers
-              .filter((a) => !a.expired && a.workflow_run && a.workflow_run.head_branch === 'main')
+              .filter((a) => !a.expired && a.workflow_run && a.workflow_run.head_branch === GATE_BRANCH)
               .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             if (candidates.length === 0) {
-              core.info(`No live marker artifact named "${markerName}" found on main.`);
+              core.info(`No live marker artifact named "${markerName}" found on ${GATE_BRANCH}.`);
               setNotFound();
               return;
             }
