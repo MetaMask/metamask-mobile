@@ -44,7 +44,7 @@ import { getWindowSize } from '../../framework/DeviceInfoCache';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
-import SolanaTestDApp from './SolanaTestDApp';
+import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 
 export { TEST_SNAPS_URL } from '../../selectors/Browser/TestSnaps.selectors';
 
@@ -466,15 +466,24 @@ class TestSnaps {
   }
 
   async dismissAlert() {
-    // iOS alert buttons vary (OK / Close / Done); the alert may also
-    // auto-dismiss before we tap. Soft-fail when no dismiss control appears.
-    const dismissLabels = [/^OK$/i, /^Close$/i, /^Done$/i];
-    let lastError: unknown;
-    for (const label of dismissLabels) {
-      try {
-        await Gestures.tap(Matchers.getElementByText(label), {
+    // Teardown-only helper: specs assert on the alert before dismissing it,
+    // and the alert can close on its own first. iOS buttons also vary
+    // (OK / Close / Done), including Snap UI "I, OK" via tapOkButton().
+    const attempts: Array<() => Promise<void>> = [
+      () => this.tapOkButton(),
+      () =>
+        Gestures.tap(Matchers.getElementByText(/^Close$/i), {
           timeout: 3_000,
-        });
+        }),
+      () =>
+        Gestures.tap(Matchers.getElementByText(/^Done$/i), {
+          timeout: 3_000,
+        }),
+    ];
+    let lastError: unknown;
+    for (const attempt of attempts) {
+      try {
+        await attempt();
         return;
       } catch (error) {
         lastError = error;
@@ -841,9 +850,14 @@ class TestSnaps {
       timeout: 15_000,
     });
     await this.blurActiveWebViewInput();
-    // Multichain Solana signing can use SnapDialog/BottomSheetFooter ("Approve") instead of
-    // redesigned `confirm-button` — same as Solana Wallet Standard E2E.
-    await SolanaTestDApp.confirmSignMessage();
+    // Multichain Solana signing can use SnapDialog/BottomSheetFooter instead of
+    // redesigned `confirm-button`.
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
+      ),
+      { elemDescription: 'confirm Solana snap signature' },
+    );
   }
 
   async waitForWebSocketUpdate(state: {
