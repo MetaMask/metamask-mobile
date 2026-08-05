@@ -3,6 +3,7 @@ import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
+import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
@@ -41,9 +42,6 @@ jest.mock('./instance-options/seedless-onboarding-controller', () => ({
 jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
 }));
-jest.mock('./instance-options/network-controller', () => ({
-  getNetworkControllerInstanceOptions: jest.fn(() => 'network-options'),
-}));
 jest.mock('./instance-options/transaction-controller', () => ({
   getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
   setupTransactionControllerListeners: jest.fn(),
@@ -73,7 +71,7 @@ describe('initializeWallet', () => {
         gasFeeController: 'gas-fee-options',
         seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
-        networkController: 'network-options',
+        networkController: getNetworkControllerInstanceOptions(),
         transactionController: 'transaction-options',
       },
     });
