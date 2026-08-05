@@ -163,7 +163,7 @@ import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactions
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
-import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
@@ -576,9 +576,13 @@ const SettingsFlow = () => {
   );
 };
 
-const UnmountOnBlurComponent = (children) => (
-  <UnmountOnBlur>{children}</UnmountOnBlur>
-);
+// Tabs that must not stay mounted while another tab is selected. This replaces
+// the `unmountOnBlur` tab option, which React Navigation removes in v7 — see
+// `withUnmountOnTabBlur` for why the wrapper is scoped to the tab navigator
+// rather than using `useIsFocused`.
+const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
+const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
+const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -817,8 +821,7 @@ const HomeTabs = () => {
               ...options.browser,
               isHidden: true,
             }}
-            component={BrowserFlow}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+            component={BrowserFlowUnmountOnTabBlur}
           />
         </>
 
@@ -840,8 +843,7 @@ const HomeTabs = () => {
           <Tab.Screen
             name={Routes.TRANSACTIONS_VIEW}
             options={options.activity}
-            component={TransactionsHome}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+            component={TransactionsHomeUnmountOnTabBlur}
           />
         )}
 
@@ -849,8 +851,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
-          component={RewardsHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
+          component={RewardsHomeUnmountOnTabBlur}
         />
       </Tab.Navigator>
     </PredictPreviewSheetProvider>
