@@ -3,13 +3,18 @@ import { Text } from 'react-native';
 import { RootState } from '../../reducers';
 import {
   selectedAccountNativeTokenCachedBalanceByChainId,
+  selectedAccountNativeTokenCachedBalanceByChainIdForAddress,
   selectAccountTokensAcrossChains,
+  selectAccountTokensAcrossChainsForAddress,
+  selectNativeTokensAcrossChainsForAddress,
   selectNativeEvmAsset,
   selectStakedEvmAsset,
   selectEvmTokens,
   selectEvmTokensWithZeroBalanceFilter,
   makeSelectAssetByAddressAndChainId,
 } from './evm';
+import { selectAllTokens } from '../tokensController';
+import { TokenI } from '../../components/UI/Tokens/types';
 import { SolScope } from '@metamask/keyring-api';
 import { GetByQuery } from '@testing-library/react-native/build/queries/make-queries';
 import {
@@ -224,6 +229,182 @@ describe('Multichain Selectors', () => {
       const polygonTokens = result['0x89'];
       expect(polygonTokens.length).toBeGreaterThan(0);
       expect(polygonTokens.some((token) => token.symbol === 'POL')).toBe(true);
+    });
+  });
+
+  describe('selectAccountTokensAcrossChains memoization', () => {
+    const POLYGON_NATIVE_TOKEN_ADDRESS =
+      '0x0000000000000000000000000000000000001010';
+
+    // Produces a new root state object with a slice the selector never reads,
+    // standing in for the unrelated dispatches that happen constantly at runtime.
+    const withUnrelatedSliceChange = (nonce: number) =>
+      ({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            GasFeeController: { gasFeeEstimates: { nonce } },
+          },
+        },
+      }) as unknown as RootState;
+
+    const withExtraMainnetToken = () =>
+      ({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [
+                    ...mockState.engine.backgroundState.TokensController
+                      .allTokens['0x1']['0xAddress1'],
+                    {
+                      address: '0xToken2',
+                      symbol: 'TK2',
+                      decimals: 18,
+                      balance: '2000000000000000000',
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      }) as unknown as RootState;
+
+    beforeEach(() => {
+      selectAllTokens.clearCache();
+      selectedAccountNativeTokenCachedBalanceByChainIdForAddress.clearCache();
+      selectNativeTokensAcrossChainsForAddress.clearCache();
+      selectAccountTokensAcrossChainsForAddress.clearCache();
+    });
+
+    it('aggregates native, staked and ERC20 tokens per chain', () => {
+      const result = selectAccountTokensAcrossChains(mockState);
+      const summarize = (tokens: TokenI[]) =>
+        tokens.map((token) => ({
+          address: token.address,
+          name: token.name,
+          symbol: token.symbol,
+          balance: token.balance,
+          balanceFiat: token.balanceFiat,
+          isNative: token.isNative,
+          isStaked: token.isStaked,
+        }));
+
+      expect(Object.keys(result)).toStrictEqual(['0x1', '0x89']);
+      expect(summarize(result['0x1'] as TokenI[])).toStrictEqual([
+        {
+          address: zeroAddress(),
+          name: 'Ethereum',
+          symbol: 'Ethereum',
+          balance: '< 0.00001',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: false,
+        },
+        {
+          address: zeroAddress(),
+          name: 'Staked Ethereum',
+          symbol: 'Ethereum',
+          balance: '< 0.00001',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: true,
+        },
+        {
+          address: '0xToken1',
+          name: undefined,
+          symbol: 'TK1',
+          balance: '1000000000000000000',
+          balanceFiat: '',
+          isNative: false,
+          isStaked: false,
+        },
+      ]);
+      expect(summarize(result['0x89'] as TokenI[])).toStrictEqual([
+        {
+          address: POLYGON_NATIVE_TOKEN_ADDRESS,
+          name: 'POL',
+          symbol: 'POL',
+          balance: '< 0.00001',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: false,
+        },
+        {
+          address: POLYGON_NATIVE_TOKEN_ADDRESS,
+          name: 'Staked Ethereum',
+          symbol: 'POL',
+          balance: '0',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: true,
+        },
+      ]);
+    });
+
+    it('returns the same reference when an unrelated slice changes', () => {
+      const first = selectAccountTokensAcrossChains(mockState);
+      const second = selectAccountTokensAcrossChains(
+        withUnrelatedSliceChange(1),
+      );
+
+      expect(second).toBe(first);
+    });
+
+    it('does not re-run the token aggregation when an unrelated slice changes', () => {
+      selectAccountTokensAcrossChains(mockState);
+      const recomputationsBefore =
+        selectAccountTokensAcrossChainsForAddress.recomputations();
+
+      selectAccountTokensAcrossChains(withUnrelatedSliceChange(1));
+      selectAccountTokensAcrossChains(withUnrelatedSliceChange(2));
+
+      expect(selectAccountTokensAcrossChainsForAddress.recomputations()).toBe(
+        recomputationsBefore,
+      );
+    });
+
+    it('re-runs the token aggregation and surfaces the new token when the token slice changes', () => {
+      const before = selectAccountTokensAcrossChains(mockState);
+      const recomputationsBefore =
+        selectAccountTokensAcrossChainsForAddress.recomputations();
+
+      const after = selectAccountTokensAcrossChains(withExtraMainnetToken());
+
+      expect(selectAccountTokensAcrossChainsForAddress.recomputations()).toBe(
+        recomputationsBefore + 1,
+      );
+      expect(after).not.toBe(before);
+      expect(after['0x1'].some((token) => token.symbol === 'TK2')).toBe(true);
+    });
+
+    it('returns an empty map when no account is selected', () => {
+      const stateWithoutAccount = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: undefined,
+                accounts: {},
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(
+        selectAccountTokensAcrossChains(stateWithoutAccount),
+      ).toStrictEqual({});
     });
   });
 
