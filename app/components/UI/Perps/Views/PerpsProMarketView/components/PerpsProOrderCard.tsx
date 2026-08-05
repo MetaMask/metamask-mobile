@@ -34,8 +34,8 @@ import {
   formatProOrderCardTimestamp,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
-import { isClosingOrder } from '../../../utils/orderDirection';
 import {
+  formatOrderTypeLabel,
   getOrderPositionDirection,
   getValidTriggerPrice,
   inferTriggerConditionKey,
@@ -83,22 +83,6 @@ const formatOptionalPrice = (price?: string): string => {
   return Number.isFinite(parsedPrice) && parsedPrice > 0
     ? formatPerpsFiat(parsedPrice, { ranges: PRICE_RANGES_UNIVERSAL })
     : PERPS_CONSTANTS.FallbackPriceDisplay;
-};
-
-const getOrderTypeLabel = (order: Order): string => {
-  const detailedType = order.detailedOrderType?.toLowerCase() ?? '';
-  if (detailedType.includes('take profit')) {
-    return strings('perps.pro_positions_panel.order_card.take_profit');
-  }
-  if (detailedType.includes('stop')) {
-    return strings('perps.pro_positions_panel.order_card.stop');
-  }
-  if (order.orderType === 'limit') {
-    return isClosingOrder(order)
-      ? strings('perps.pro_positions_panel.order_card.close_limit')
-      : strings('perps.pro_positions_panel.order_card.open_limit');
-  }
-  return strings('perps.order.market');
 };
 
 /**
@@ -220,7 +204,12 @@ const PerpsProOrderCard = ({
                 </Text>
               </Box>
             </Box>
-            <Tag severity={TagSeverity.Neutral}>{getOrderTypeLabel(order)}</Tag>
+            <Tag
+              severity={TagSeverity.Neutral}
+              testID={PerpsProMarketViewSelectorsIDs.ORDER_TYPE}
+            >
+              {formatOrderTypeLabel(order)}
+            </Tag>
           </Box>
         </Pressable>
 

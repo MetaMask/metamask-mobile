@@ -18,7 +18,11 @@ on:
       branch_name:
         required: false
         type: string
-        description: 'Branch name to use for builds (defaults to github.ref_name)'
+        description: 'Branch label used for BrowserStack build names'
+      source_ref:
+        required: false
+        type: string
+        description: 'Exact branch, tag, or commit to use for native app builds'
       build_variant:
         required: false
         type: string
@@ -100,7 +104,7 @@ jobs:
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
       platform: ios
-      source_branch: ${{ inputs.branch_name || github.ref_name }}
+      source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
     secrets: inherit
 
   trigger-ios-without-srp-build:
@@ -111,7 +115,7 @@ jobs:
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}
       platform: ios
-      source_branch: ${{ inputs.branch_name || github.ref_name }}
+      source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
     secrets: inherit
 
   download-and-upload-to-browserstack:

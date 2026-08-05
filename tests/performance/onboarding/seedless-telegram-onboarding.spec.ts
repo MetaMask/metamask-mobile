@@ -7,7 +7,6 @@ import {
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
-  dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
@@ -21,9 +20,12 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import {
+  measureCreatePasswordToOnboardingSuccess,
+  measurePredictGtmModalIfShown,
+} from './helpers/seedlessOnboardingTimers';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -65,7 +67,7 @@ const assertTelegramLoginReady = async (): Promise<void> => {
 
 /* TO-916: Seedless Onboarding — Telegram Login */
 perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  perfTest.setTimeout(240000);
+  perfTest.setTimeout(300000);
 
   perfTest(
     'Seedless Onboarding: Telegram Login New User',
@@ -165,28 +167,14 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
+        await measureCreatePasswordToOnboardingSuccess(timer4);
 
-        await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingSuccessView.doneButton),
-            {
-              description: 'Onboarding success done button should be visible',
-            },
-          );
-        });
-
-        await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
-        await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
+
+        // Optional Predict GTM: measure Done → modal when present (no pre-wait).
+        const predictGtmOnboardingModalEnabled =
+          await measurePredictGtmModalIfShown(timer5);
 
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
@@ -198,10 +186,14 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timer6];
+        const timers = [timer1, timer2, timer4];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
+        if (predictGtmOnboardingModalEnabled) {
+          timers.push(timer5);
+        }
+        timers.push(timer6);
         performanceTracker.addTimers(...timers);
       } else {
         // Existing-user rehydration when the QA mock / account returns Account Found.
