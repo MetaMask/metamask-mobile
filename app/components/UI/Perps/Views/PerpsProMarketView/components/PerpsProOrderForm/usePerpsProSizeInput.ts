@@ -59,7 +59,10 @@ const getAssetFromUsd = (
   szDecimals: number,
 ): string => {
   const finalizedAmount = finalizeNumericTextInput(usdAmount);
-  if (!finalizedAmount || effectivePrice <= 0) {
+  if (!finalizedAmount) {
+    return '';
+  }
+  if (effectivePrice <= 0) {
     return '0';
   }
 
@@ -146,11 +149,12 @@ export const usePerpsProSizeInput = ({
     (nextUsdAmount: string) => {
       if (new BigNumber(nextUsdAmount || 0).eq(new BigNumber(usdAmount || 0))) {
         pendingInternalUsdRef.current = null;
-        return;
+        return false;
       }
 
       pendingInternalUsdRef.current = nextUsdAmount;
       setAmount(nextUsdAmount);
+      return true;
     },
     [setAmount, usdAmount],
   );
@@ -327,7 +331,7 @@ export const usePerpsProSizeInput = ({
     clearSliderPreview();
 
     if (denominationUnit === 'usd') {
-      const canonicalUsdDraft = finalizeNumericTextInput(usdDraft) || '0';
+      const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
       setAssetDraftState({
         value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
         source: 'canonical',
@@ -394,7 +398,7 @@ export const usePerpsProSizeInput = ({
 
   const commitSliderUsdAmount = useCallback(
     (nextUsdAmount: string) => {
-      commitUsdAmount(nextUsdAmount);
+      const didCommitCanonicalAmount = commitUsdAmount(nextUsdAmount);
       setUsdDraft(nextUsdAmount);
       if (canToggleDenomination) {
         setAssetDraftState({
@@ -403,6 +407,7 @@ export const usePerpsProSizeInput = ({
         });
       }
       clearSliderPreview();
+      return didCommitCanonicalAmount;
     },
     [
       canToggleDenomination,
@@ -433,8 +438,7 @@ export const usePerpsProSizeInput = ({
       return false;
     }
 
-    commitSliderUsdAmount(nextUsdAmount);
-    return true;
+    return commitSliderUsdAmount(nextUsdAmount);
   }, [commitSliderUsdAmount]);
 
   const value = useMemo(() => {

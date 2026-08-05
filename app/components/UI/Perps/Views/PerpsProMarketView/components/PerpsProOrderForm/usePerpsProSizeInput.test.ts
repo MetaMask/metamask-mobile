@@ -171,6 +171,36 @@ describe('usePerpsProSizeInput', () => {
     });
   });
 
+  it('keeps the asset draft empty after an external canonical reset', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ effectivePrice: 100 }) },
+    );
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+
+    rerender(createParams({ usdAmount: '', effectivePrice: 100 }));
+
+    expect(result.current.sizeInput.denomination.unit).toBe('asset');
+    expect(result.current.sizeInput.value).toBe('');
+  });
+
+  it('projects an empty USD draft to an empty asset draft', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '', effectivePrice: 100 }),
+      ),
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+
+    expect(result.current.sizeInput.denomination.unit).toBe('asset');
+    expect(result.current.sizeInput.value).toBe('');
+  });
+
   it('does not reconvert an unchanged canonical asset draft on blur', () => {
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
@@ -676,6 +706,22 @@ describe('usePerpsProSizeInput', () => {
 
     expect(didCommit).toBe(true);
     expect(mockSetAmount).toHaveBeenCalledWith('250');
+    expect(result.current.commitPendingSliderPreview()).toBe(false);
+  });
+
+  it('clears an equal slider preview without reporting a canonical commit', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+    act(() => {
+      result.current.sizeSlider.onValueChange(100);
+    });
+
+    let didCommit = true;
+    act(() => {
+      didCommit = result.current.commitPendingSliderPreview();
+    });
+
+    expect(didCommit).toBe(false);
+    expect(mockSetAmount).not.toHaveBeenCalled();
     expect(result.current.commitPendingSliderPreview()).toBe(false);
   });
 });
