@@ -827,6 +827,29 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       ]);
     });
 
+    it('returns no alert when Max deposit total exceeds money account balance', () => {
+      // Max + fees > balance is expected: atomic is cleared so the deposit
+      // amount is reduced to leave room for fees.
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '3.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '3.00' },
+      ]);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        total: { usd: '3.15' },
+      } as TransactionPayTotals);
+
+      const { result } = runHook({}, moneyAccountState);
+
+      expect(result.current).toStrictEqual([]);
+    });
+
     it('returns no alert when total is within money account balance', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
         withdrawableFiatRaw: '5.00',
