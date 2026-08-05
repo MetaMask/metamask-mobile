@@ -995,7 +995,7 @@ jobs:
         with:
           pattern: '*-test-results-*'
           path: ./test-results
-          merge-multiple: true
+          merge-multiple: false
 
       - name: Run aggregation script
         env:

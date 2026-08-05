@@ -164,6 +164,18 @@ function collectAppProfilingArtifacts(searchDirs, outputDir) {
   return copiedCount;
 }
 
+function getCloudProviderFromPath(fullPath) {
+  if (fullPath.includes('testmu-standard-')) {
+    return 'testmu-standard';
+  }
+
+  if (fullPath.includes('testmu-')) {
+    return 'testmu-hyperexecute';
+  }
+
+  return 'browserstack';
+}
+
 /**
  * Extract platform, scenario, and device information from file path
  * @param {string} filePath - Path to the test result file
@@ -184,7 +196,7 @@ function extractPlatformScenarioAndDevice(filePath) {
   const fullPath = filePath.toLowerCase();
   
   // Determine platform and scenario from path patterns
-  const isTestMu = fullPath.includes('testmu-');
+  const cloudProvider = getCloudProviderFromPath(fullPath);
 
   if (fullPath.includes('android-imported-wallet-test-results')) {
     platform = 'android';
@@ -228,8 +240,13 @@ function extractPlatformScenarioAndDevice(filePath) {
 
     // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
     // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
-    // TestMu artifact names include an extra "testmu" segment (6 parts before device).
-    const deviceInfoStart = isTestMu ? 6 : 5;
+    // TestMu HE adds "testmu"; Standard adds "testmu-standard" before platform.
+    let deviceInfoStart = 5;
+    if (cloudProvider === 'testmu-hyperexecute') {
+      deviceInfoStart = 6;
+    } else if (cloudProvider === 'testmu-standard') {
+      deviceInfoStart = 7;
+    }
     
     if (parts.length >= deviceInfoStart + 1) {
       const deviceInfo = parts.slice(deviceInfoStart).join('-');
@@ -255,8 +272,8 @@ function extractPlatformScenarioAndDevice(filePath) {
     console.log(`🔍 Available parts:`, pathParts);
   }
   
-  console.log(`📊 Final extraction: platform="${platformKey}", scenario="${scenarioKey}", device="${deviceKey}", provider="${isTestMu ? 'testmu' : 'browserstack'}"`);
-  return { platform, platformKey, scenario, scenarioKey, deviceKey, cloudProvider: isTestMu ? 'testmu' : 'browserstack' };
+  console.log(`📊 Final extraction: platform="${platformKey}", scenario="${scenarioKey}", device="${deviceKey}", provider="${cloudProvider}"`);
+  return { platform, platformKey, scenario, scenarioKey, deviceKey, cloudProvider };
 }
 
 
@@ -285,6 +302,7 @@ function processTestReport(testReport) {
     apiCallsError: testReport.apiCallsError ?? null,
     // Include quality gates if available
     qualityGates: testReport.qualityGates || null,
+    cloudProvider: testReport.cloudProvider || null,
   };
   
   if (testReport.testFailed) {
@@ -453,8 +471,11 @@ function createSummary(groupedResults) {
           profilingTestCount++;
         }
         
-        // Track test executions by unique key (testName + platform + device)
-        const uniqueKey = `${test.testName}|${platform}|${device}`;
+        // Track test executions by unique key. Provider is part of the identity
+        // so Standard, HyperExecute, and BrowserStack results remain separate.
+        const cloudProvider =
+          test.cloudProvider || test.device?.provider || 'unknown';
+        const uniqueKey = `${test.testName}|${platform}|${device}|${cloudProvider}`;
         
         if (!testExecutions[uniqueKey]) {
           testExecutions[uniqueKey] = {
@@ -467,6 +488,7 @@ function createSummary(groupedResults) {
               platform,
               device,
               team: test.team,
+              cloudProvider,
               sessionId: test.sessionId || null,
               videoURL: test.videoURL || null,
               failureReason: test.failureReason,
@@ -557,6 +579,7 @@ function createSummary(groupedResults) {
           tags: testInfo.tags,
           platform: testInfo.platform,
           device: testInfo.device,
+          cloudProvider: testInfo.cloudProvider,
           scenario,
           sessionId: testInfo.sessionId ?? null,
           recordingLink: testInfo.videoURL ?? null,
@@ -657,6 +680,19 @@ function formatDuration(ms) {
   return `${minutes}m ${seconds}s`;
 }
 
+function formatCloudProvider(cloudProvider) {
+  switch (cloudProvider) {
+    case 'testmu-standard':
+      return 'TestMu Standard';
+    case 'testmu-hyperexecute':
+      return 'TestMu HE';
+    case 'browserstack':
+      return 'BrowserStack';
+    default:
+      return cloudProvider || 'Unknown';
+  }
+}
+
 /**
  * Generate HTML report from aggregated results
  * @param {Object} groupedResults - Grouped test results
@@ -740,6 +776,7 @@ function generateHtmlReport(groupedResults, summary) {
             </div>
           </td>
           <td><span class="platform-badge platform-${test.platform.toLowerCase()}">${test.platform}</span></td>
+          <td class="provider-cell">${formatCloudProvider(test.cloudProvider)}</td>
           <td class="device-cell">${test.device}</td>
           <td class="duration-cell">${formatDuration(test.totalTime || 0)}</td>
           <td class="steps-cell">
@@ -1518,6 +1555,7 @@ function generateHtmlReport(groupedResults, summary) {
             <tr>
               <th>Test Name</th>
               <th>Platform</th>
+              <th>Provider</th>
               <th>Device</th>
               <th>Duration</th>
               <th>Steps</th>
@@ -1636,6 +1674,7 @@ function aggregateReports() {
         let platformKey = 'Unknown';
         let scenarioKey = 'Unknown';
         let deviceKey = 'Unknown Device';
+        let cloudProvider = 'unknown';
         
         // First try to extract from file path (for artifact folder structure)
         const pathExtraction = extractPlatformScenarioAndDevice(filePath);
@@ -1644,10 +1683,15 @@ function aggregateReports() {
           platformKey = pathExtraction.platformKey;
           scenarioKey = pathExtraction.scenarioKey;
           deviceKey = pathExtraction.deviceKey;
+          cloudProvider = pathExtraction.cloudProvider;
         } else {
           // Fallback: extract from JSON content and filename
           if (Array.isArray(reportData) && reportData.length > 0) {
             const firstReport = reportData[0];
+            cloudProvider =
+              firstReport.cloudProvider ||
+              firstReport.device?.provider ||
+              'unknown';
             
             if (firstReport.device) {
               // Determine platform from device name
@@ -1678,7 +1722,9 @@ function aggregateReports() {
           }
         }
         
-        console.log(`📊 Final values: platformKey="${platformKey}", scenarioKey="${scenarioKey}", deviceKey="${deviceKey}"`);
+        console.log(
+          `📊 Final values: platformKey="${platformKey}", scenarioKey="${scenarioKey}", deviceKey="${deviceKey}", provider="${cloudProvider}"`,
+        );
         
         // Initialize structure if it doesn't exist
         console.log(`🔧 Creating keys: platformKey="${platformKey}", deviceKey="${deviceKey}"`);
@@ -1692,13 +1738,18 @@ function aggregateReports() {
         }
         
         // Process the report data
+        const processReportWithContext = (testReport) => ({
+          ...processTestReport(testReport),
+          cloudProvider,
+        });
+
         if (Array.isArray(reportData)) {
           reportData.forEach(testReport => {
-            const cleanedReport = processTestReport(testReport);
+            const cleanedReport = processReportWithContext(testReport);
             groupedResults[platformKey][deviceKey].push(cleanedReport);
           });
         } else {
-          const cleanedReport = processTestReport(reportData);
+          const cleanedReport = processReportWithContext(reportData);
           groupedResults[platformKey][deviceKey].push(cleanedReport);
         }
       } catch (error) {
