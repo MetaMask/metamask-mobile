@@ -13,6 +13,7 @@ import type {
 
 const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/v1/alerts`;
 const PERCENT_ALERTS_URL = `${ALERTS_URL}/percent-change`;
+const WATCHLIST_URL = `${ALERTS_URL}/watchlist`;
 
 export const priceAlertsQueryKey = (assetId: string) =>
   ['priceAlerts', assetId] as const;
@@ -40,6 +41,26 @@ export const fetchSupportedChains = (): Promise<Response> =>
   fetch(`${ALERTS_URL}/supported-chains`, {
     headers: { Accept: 'application/json' },
     credentials: 'omit',
+  });
+
+/**
+ * Mirrors a real-watchlist add into Price Alerts.
+ * Idempotent — `201` whether the asset was already present or newly created.
+ */
+export const addWatchlistAlert = (asset: string): Promise<Response> =>
+  authenticatedFetch(WATCHLIST_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ asset }),
+  });
+
+/**
+ * Mirrors a real-watchlist remove into Price Alerts.
+ * Idempotent — `204` even when the asset was not present (never `404`).
+ */
+export const removeWatchlistAlert = (asset: string): Promise<Response> =>
+  authenticatedFetch(`${WATCHLIST_URL}?asset=${encodeURIComponent(asset)}`, {
+    method: 'DELETE',
   });
 
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>

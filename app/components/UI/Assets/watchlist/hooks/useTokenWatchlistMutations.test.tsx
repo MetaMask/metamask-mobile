@@ -22,8 +22,13 @@ import {
   useTokenWatchlistRemoveItemMutation,
   useTokenWatchlistUpdateListMutation,
 } from './useTokenWatchlistMutations';
+import { syncPriceAlertsWatchlistMirror } from '../../PriceAlerts/syncWatchlistMirror';
 
 const drainBatcher = () => tokenWatchlistBatcher.flush();
+
+const mockedSyncMirror = syncPriceAlertsWatchlistMirror as jest.MockedFunction<
+  typeof syncPriceAlertsWatchlistMirror
+>;
 
 // Override React Query's batch notify function to prevent teardown crashes.
 // The default uses react-native's unstable_batchedUpdates which tries to
@@ -49,6 +54,10 @@ jest.mock('../storage', () => ({
   EMPTY_BLOB: { assets: [], version: 1 },
   readFromTokenWatchList: jest.fn(),
   writeToTokenWatchList: jest.fn(),
+}));
+
+jest.mock('../../PriceAlerts/syncWatchlistMirror', () => ({
+  syncPriceAlertsWatchlistMirror: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockedRead = readFromTokenWatchList as jest.MockedFunction<
@@ -209,6 +218,10 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
       assets: scenario.expectedWrittenAssets,
       version: 1,
     });
+    expect(mockedSyncMirror).toHaveBeenCalledWith(
+      scenario.initialStorage.assets,
+      scenario.expectedWrittenAssets,
+    );
   });
 
   it('optimistically updates the blob cache before the storage write completes', async () => {
