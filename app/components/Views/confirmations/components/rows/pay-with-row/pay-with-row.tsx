@@ -9,7 +9,10 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../../selector
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
@@ -57,14 +60,19 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { isMatchingPayToken } from '../../../utils/transaction-pay';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
 function PayWithRowComponent({
+  automaticPayToken,
   isResultReady,
-}: { isResultReady?: boolean } = {}) {
+}: {
+  automaticPayToken?: SetPayTokenRequest;
+  isResultReady?: boolean;
+} = {}) {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
@@ -96,7 +104,7 @@ function PayWithRowComponent({
     return <PayWithRowMoneyAccount />;
   }
 
-  return <PayWithRowInteractive />;
+  return <PayWithRowInteractive automaticPayToken={automaticPayToken} />;
 }
 
 export const PayWithRow = memo(PayWithRowComponent);
@@ -153,14 +161,19 @@ function PayWithRowLayout({
   );
 }
 
-function PayWithRowInteractive() {
+function PayWithRowInteractive({
+  automaticPayToken,
+}: {
+  automaticPayToken?: SetPayTokenRequest;
+}) {
   const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const fiatPayment = useTransactionPayFiatPayment();
   const accountNoFundsAlert = useAccountNoFundsAlert();
   const hasAccountNoFunds = accountNoFundsAlert.length > 0;
-  const { hasTokens: hasAvailableTokens } = useTransactionPayAvailableTokens();
+  const { availableTokens } = useTransactionPayAvailableTokens();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -200,22 +213,51 @@ function PayWithRowInteractive() {
   const defaultWithdrawToken = requiredTokens?.find(
     (token) => !token.skipIfBalance && !token.allowUnderMinimum,
   );
+  // Controller selection can fail when token metadata or fiat rates are
+  // unavailable. Keep the intended candidate display-only so the row reaches a
+  // terminal state while controller payToken remains authoritative for quotes.
+  const automaticDisplayToken = useMemo(() => {
+    if (!automaticPayToken) {
+      return undefined;
+    }
+
+    const availableToken = availableTokens.find((token) =>
+      isMatchingPayToken(token, automaticPayToken),
+    );
+
+    return availableToken
+      ? {
+          ...availableToken,
+          address: automaticPayToken.address,
+          chainId: automaticPayToken.chainId,
+        }
+      : undefined;
+  }, [automaticPayToken, availableTokens]);
   const displayToken = useMemo(() => {
     if (hasAccountNoFunds) {
       return null;
     }
     if (isWithdraw) {
-      return payToken ?? defaultWithdrawToken ?? null;
+      return payToken ?? defaultWithdrawToken ?? automaticDisplayToken ?? null;
     }
-    return payToken ?? null;
-  }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
+    return payToken ?? automaticDisplayToken ?? null;
+  }, [
+    automaticDisplayToken,
+    defaultWithdrawToken,
+    hasAccountNoFunds,
+    isWithdraw,
+    payToken,
+  ]);
 
+  const displayBalanceUsd = payToken
+    ? accountBalanceUsd
+    : `${automaticDisplayToken?.fiat?.balance ?? 0}`;
   const balanceUsdFormatted = useMemo(
     () =>
       formatFiat(
-        new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
+        new BigNumber(displayBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
       ),
-    [formatFiat, accountBalanceUsd],
+    [displayBalanceUsd, formatFiat],
   );
 
   if (selectedFiatPaymentMethod) {
@@ -230,14 +272,7 @@ function PayWithRowInteractive() {
     );
   }
 
-  if (!displayToken) {
-    // Show skeleton only while tokens exist to auto-select from.
-    // Without available tokens the skeleton never resolves (e.g. perps
-    // deposit with zero balance and no fiat payment method selected).
-    if (!hasAccountNoFunds && hasAvailableTokens) {
-      return <PayWithRowSkeleton />;
-    }
-
+  if (fiatPayment?.selectedPaymentMethodId || !displayToken) {
     return (
       <PayWithRowEmpty
         label={label}

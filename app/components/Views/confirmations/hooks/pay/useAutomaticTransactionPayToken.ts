@@ -210,14 +210,15 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    setPayToken({
+    const didSetPayToken = setPayToken({
       address: automaticToken.address,
       chainId: automaticToken.chainId,
     });
 
-    isUpdated.current = transactionId;
-
-    log('Automatically selected pay token', automaticToken);
+    if (didSetPayToken) {
+      isUpdated.current = transactionId;
+      log('Automatically selected pay token', automaticToken);
+    }
   }, [
     autoSelectFiatPayment,
     automaticToken,
@@ -250,27 +251,35 @@ export function useAutomaticTransactionPayToken({
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
+    if (hasFiatPaymentSelected) {
+      prevAccountKeyRef.current = accountKey;
+      return;
+    }
+
     if (
       disable ||
-      hasFiatPaymentSelected ||
       !from ||
       prevAccountKeyRef.current === accountKey ||
       postQuoteTransactionType
     ) {
       return;
     }
-    prevAccountKeyRef.current = accountKey;
 
     if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
+      prevAccountKeyRef.current = accountKey;
       return;
     }
 
     if (automaticToken) {
-      setPayToken({
+      const didSetPayToken = setPayToken({
         address: automaticToken.address,
         chainId: automaticToken.chainId,
       });
-      log('Re-selected pay token after account change', automaticToken);
+
+      if (didSetPayToken) {
+        prevAccountKeyRef.current = accountKey;
+        log('Re-selected pay token after account change', automaticToken);
+      }
     }
   }, [
     accountOverride,
@@ -285,27 +294,34 @@ export function useAutomaticTransactionPayToken({
 
   // Re-select the pay token when the user switches between global account and
   // money account. Money account deposits are locked to MUSD on MONAD.
-  const previsMoneyPaymentOverrideRef = useRef(false);
+  const previousMoneyPaymentOverrideRef = useRef(false);
   useEffect(() => {
-    const prev = previsMoneyPaymentOverrideRef.current;
-    previsMoneyPaymentOverrideRef.current = !!isMoneyPaymentOverride;
+    const previousOverride = previousMoneyPaymentOverrideRef.current;
 
-    if (
-      disable ||
-      hasFiatPaymentSelected ||
-      !from ||
-      isMoneyPaymentOverride !== true ||
-      isMoneyPaymentOverride === prev
-    ) {
+    if (!isMoneyPaymentOverride) {
+      previousMoneyPaymentOverrideRef.current = false;
+      return;
+    }
+
+    if (hasFiatPaymentSelected) {
+      previousMoneyPaymentOverrideRef.current = true;
+      return;
+    }
+
+    if (disable || !from || isMoneyPaymentOverride === previousOverride) {
       return;
     }
 
     if (automaticToken) {
-      setPayToken({
+      const didSetPayToken = setPayToken({
         address: automaticToken.address,
         chainId: automaticToken.chainId,
       });
-      log('Re-selected pay token after money account change', automaticToken);
+
+      if (didSetPayToken) {
+        previousMoneyPaymentOverrideRef.current = true;
+        log('Re-selected pay token after money account change', automaticToken);
+      }
     }
   }, [
     automaticToken,

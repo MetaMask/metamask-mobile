@@ -11,7 +11,10 @@ import { PayWithRow } from './pay-with-row';
 import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from '../../../hooks/pay/useTransactionPayData';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
@@ -25,6 +28,7 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { AssetType } from '../../../types/token';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/navigation/navUtils');
@@ -54,6 +58,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   useTransactionPayWithdraw: jest.fn(),
 }));
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
+  useTransactionPayFiatPayment: jest.fn(),
   useTransactionPayRequiredTokens: jest.fn(),
 }));
 jest.mock('../../../hooks/alerts/useAccountNoFundsAlert', () => ({
@@ -85,6 +90,8 @@ jest.mock('../../token-icon/', () => ({
 
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
+const AUTOMATIC_ADDRESS_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const AUTOMATIC_CHAIN_ID_MOCK = '0x456';
 
 const STATE_MOCK = {
   engine: {
@@ -92,8 +99,8 @@ const STATE_MOCK = {
   },
 };
 
-function render() {
-  return renderWithProvider(<PayWithRow />, { state: STATE_MOCK });
+function render(props: React.ComponentProps<typeof PayWithRow> = {}) {
+  return renderWithProvider(<PayWithRow {...props} />, { state: STATE_MOCK });
 }
 
 describe('PayWithRow', () => {
@@ -124,6 +131,7 @@ describe('PayWithRow', () => {
     });
 
     useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
 
     jest
       .mocked(useTransactionPaySelectedFiatPaymentMethod)
@@ -183,15 +191,90 @@ describe('PayWithRow', () => {
     );
   });
 
-  it('renders skeleton when no pay token selected but tokens are available', () => {
+  it('renders the automatic token without fiat metadata when controller selection fails', () => {
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: undefined,
       setPayToken: jest.fn(),
     });
+    jest.mocked(useTransactionPayAvailableTokens).mockReturnValue({
+      availableTokens: [
+        {
+          address: AUTOMATIC_ADDRESS_MOCK,
+          chainId: AUTOMATIC_CHAIN_ID_MOCK,
+          symbol: 'AUTO',
+        } as AssetType,
+      ],
+      hasTokens: true,
+    });
 
-    const { getByTestId } = render();
+    const { getByTestId, getByText, queryByTestId } = render({
+      automaticPayToken: {
+        address: AUTOMATIC_ADDRESS_MOCK,
+        chainId: AUTOMATIC_CHAIN_ID_MOCK,
+      },
+    });
 
-    expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
+    expect(queryByTestId('pay-with-row-skeleton')).not.toBeOnTheScreen();
+    expect(
+      getByText(`${AUTOMATIC_ADDRESS_MOCK} ${AUTOMATIC_CHAIN_ID_MOCK}`),
+    ).toBeOnTheScreen();
+    expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^AUTO/);
+    expect(getByTestId('pay-with-balance')).toHaveTextContent('($0)');
+  });
+
+  it('renders empty state when the automatic token has no display metadata', () => {
+    jest.mocked(useTransactionPayToken).mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
+    jest.mocked(useTransactionPayAvailableTokens).mockReturnValue({
+      availableTokens: [
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          symbol: 'OTHER',
+        } as AssetType,
+      ],
+      hasTokens: true,
+    });
+
+    const { getByTestId, queryByTestId } = render({
+      automaticPayToken: {
+        address: AUTOMATIC_ADDRESS_MOCK,
+        chainId: AUTOMATIC_CHAIN_ID_MOCK,
+      },
+    });
+
+    expect(queryByTestId('pay-with-row-skeleton')).not.toBeOnTheScreen();
+    expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+      'Select payment method',
+    );
+  });
+
+  it('renders the controller token instead of the automatic token', () => {
+    jest.mocked(useTransactionPayAvailableTokens).mockReturnValue({
+      availableTokens: [
+        {
+          address: AUTOMATIC_ADDRESS_MOCK,
+          chainId: AUTOMATIC_CHAIN_ID_MOCK,
+          fiat: { balance: 12.34 },
+          symbol: 'AUTO',
+        } as AssetType,
+      ],
+      hasTokens: true,
+    });
+
+    const { getByText, queryByText } = render({
+      automaticPayToken: {
+        address: AUTOMATIC_ADDRESS_MOCK,
+        chainId: AUTOMATIC_CHAIN_ID_MOCK,
+      },
+    });
+
+    expect(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`)).toBeOnTheScreen();
+    expect(
+      queryByText(`${AUTOMATIC_ADDRESS_MOCK} ${AUTOMATIC_CHAIN_ID_MOCK}`),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders empty state when no pay token and no available tokens', () => {
@@ -312,7 +395,7 @@ describe('PayWithRow', () => {
       expect(getByText(`${requiredAddress} ${requiredChainId}`)).toBeDefined();
     });
 
-    it('shows skeleton when no payToken and no required token in withdraw mode', () => {
+    it('shows empty state when no payToken and no required token in withdraw mode', () => {
       jest.mocked(useTransactionPayToken).mockReturnValue({
         payToken: undefined,
         setPayToken: jest.fn(),
@@ -320,8 +403,12 @@ describe('PayWithRow', () => {
 
       useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
 
-      const { getByTestId } = render();
-      expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
+      const { getByTestId, queryByTestId } = render();
+
+      expect(queryByTestId('pay-with-row-skeleton')).not.toBeOnTheScreen();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'Select payment method',
+      );
     });
   });
 
@@ -333,6 +420,38 @@ describe('PayWithRow', () => {
       score: 1,
       icon: 'card-icon',
     } as PaymentMethod;
+
+    it('renders empty state when selected fiat method metadata is unavailable', () => {
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: FIAT_PAYMENT_METHOD_MOCK.id,
+      });
+      jest.mocked(useTransactionPayAvailableTokens).mockReturnValue({
+        availableTokens: [
+          {
+            address: AUTOMATIC_ADDRESS_MOCK,
+            chainId: AUTOMATIC_CHAIN_ID_MOCK,
+            symbol: 'AUTO',
+          } as AssetType,
+        ],
+        hasTokens: true,
+      });
+
+      const { getByTestId, queryByText } = render({
+        automaticPayToken: {
+          address: AUTOMATIC_ADDRESS_MOCK,
+          chainId: AUTOMATIC_CHAIN_ID_MOCK,
+        },
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'Select payment method',
+      );
+      expect(queryByText('AUTO')).not.toBeOnTheScreen();
+    });
 
     it('renders fiat payment method row when selected', () => {
       jest

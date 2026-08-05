@@ -136,7 +136,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
-    useAutomaticTransactionPayToken({
+    const automaticPayToken = useAutomaticTransactionPayToken({
       autoSelectFiatPayment,
       disable: disablePay,
       preferredToken,
@@ -426,7 +426,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
               {disablePay !== true &&
-                (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
+                (hasPaymentOption || hasAccountNoFunds) && (
+                  <PayWithRow automaticPayToken={automaticPayToken} />
+                )}
             </>
           )}
           {stage !== CustomAmountStage.AmountInput && (
@@ -440,7 +442,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
               {disablePay !== true && hasPaymentOption && (
-                <PayWithRow isResultReady />
+                <PayWithRow
+                  automaticPayToken={automaticPayToken}
+                  isResultReady
+                />
               )}
               {!hasAccountNoFunds && (
                 <CustomAmountTotals

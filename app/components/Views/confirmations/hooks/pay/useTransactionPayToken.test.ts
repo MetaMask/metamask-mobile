@@ -17,6 +17,7 @@ import {
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import EngineService from '../../../../../core/EngineService';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -123,6 +124,8 @@ describe('useTransactionPayToken', () => {
     Engine.context.GasFeeController.fetchGasFeeEstimates,
   );
 
+  const flushStateMock = jest.spyOn(EngineService, 'flushState');
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -146,21 +149,37 @@ describe('useTransactionPayToken', () => {
     expect(result.current.isNative).toBe(false);
   });
 
-  it('sets token in state', async () => {
+  it('returns true when token is set in state', async () => {
     const { result } = runHook();
 
-    result.current.setPayToken({
+    const didSetPayToken = result.current.setPayToken({
       address: PAY_TOKEN_MOCK.address,
       chainId: PAY_TOKEN_MOCK.chainId as ChainId,
     });
 
     await flushPromises();
 
+    expect(didSetPayToken).toBe(true);
     expect(updatePaymentTokenMock).toHaveBeenCalledWith({
       transactionId: TRANSACTION_ID_MOCK,
       tokenAddress: PAY_TOKEN_MOCK.address,
       chainId: PAY_TOKEN_MOCK.chainId,
     });
+  });
+
+  it('returns false when the payment token update fails', () => {
+    updatePaymentTokenMock.mockImplementationOnce(() => {
+      throw new Error('Payment token not found');
+    });
+    const { result } = runHook();
+
+    const didSetPayToken = result.current.setPayToken({
+      address: PAY_TOKEN_MOCK.address,
+      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+    });
+
+    expect(didSetPayToken).toBe(false);
+    expect(flushStateMock).not.toHaveBeenCalled();
   });
 
   it('returns isNative true when pay token is native address', () => {
@@ -179,6 +198,24 @@ describe('useTransactionPayToken', () => {
 
     beforeEach(() => {
       updateTransactionMock.mockClear();
+    });
+
+    it('does not update the gas token when the payment token update fails', () => {
+      updatePaymentTokenMock.mockImplementationOnce(() => {
+        throw new Error('Payment token not found');
+      });
+      const { result } = runHook({
+        payToken: PAY_TOKEN_MOCK,
+        type: TransactionType.predictDeposit,
+        requiredTokens: [REQUIRED_TOKEN_MOCK],
+      });
+
+      result.current.setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      expect(updateTransactionMock).not.toHaveBeenCalled();
     });
 
     it('updates transaction with selectedGasFeeToken for predictDeposit when pay token matches required token', async () => {

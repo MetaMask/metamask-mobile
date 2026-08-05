@@ -54,6 +54,7 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
+import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -338,6 +339,9 @@ describe('CustomAmountInfo', () => {
   );
   const setIsConfirmationSubmittingMock = jest.fn();
   const useAccountNoFundsAlertMock = jest.mocked(useAccountNoFundsAlert);
+  const useAutomaticTransactionPayTokenMock = jest.mocked(
+    useAutomaticTransactionPayToken,
+  );
 
   const useRouteMock = jest.mocked(useRoute);
 
@@ -359,6 +363,7 @@ describe('CustomAmountInfo', () => {
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    useAutomaticTransactionPayTokenMock.mockReturnValue(undefined);
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -1923,6 +1928,39 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('PayWithRow visibility for moneyAccountDeposit', () => {
+    it('renders the automatic token when controller selection fails', () => {
+      const automaticToken = {
+        address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
+        chainId: '0x1' as Hex,
+      };
+      useAutomaticTransactionPayTokenMock.mockReturnValue(automaticToken);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            ...automaticToken,
+            fiat: { balance: 42 },
+            symbol: 'AUTO',
+          } as AssetType,
+        ],
+        hasTokens: true,
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(queryByTestId('pay-with-row-skeleton')).not.toBeOnTheScreen();
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^AUTO/);
+    });
+
     it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,

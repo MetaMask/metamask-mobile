@@ -21,7 +21,7 @@ import Logger from '../../../../../util/Logger';
 export function useTransactionPayToken(): {
   isNative?: boolean;
   payToken: TransactionPaymentToken | undefined;
-  setPayToken: (newPayToken: { address: Hex; chainId: Hex }) => void;
+  setPayToken: (newPayToken: { address: Hex; chainId: Hex }) => boolean;
 } {
   const transactionMeta = useTransactionMetadataRequest();
   const { id: transactionId } = transactionMeta || { id: '' };
@@ -59,6 +59,7 @@ export function useTransactionPayToken(): {
         });
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
+        return false;
       }
 
       // perps deposits only use relay, so doesn't need gasFeeToken update
@@ -87,6 +88,7 @@ export function useTransactionPayToken(): {
       }
 
       EngineService.flushState();
+      return true;
     },
     [
       transactionId,
