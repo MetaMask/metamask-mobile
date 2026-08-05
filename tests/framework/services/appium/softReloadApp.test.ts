@@ -76,9 +76,7 @@ describe('softReloadAppForFixtures', () => {
     launchAppMock.mockResolvedValue(undefined);
     dismissMetroMock.mockResolvedValue(undefined);
     resetSharedSessionRecreateState();
-    jest.spyOn(global, 'setTimeout').mockImplementation(((
-      fn: TimerHandler,
-    ) => {
+    jest.spyOn(global, 'setTimeout').mockImplementation(((fn: TimerHandler) => {
       if (typeof fn === 'function') {
         (fn as () => void)();
       }
