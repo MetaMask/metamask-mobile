@@ -343,13 +343,7 @@ jobs:
   upload-reused-apks-to-testmu:
     name: Re-upload Reused Main APKs to TestMu
     runs-on: ubuntu-latest
-    needs:
-      [
-        prepare,
-        resolve-main-browserstack-urls,
-        check-testmu-credentials,
-        upload-reused-apks-to-testmu,
-      ]
+    needs: [prepare, resolve-main-browserstack-urls, check-testmu-credentials]
     if: >-
       inputs.enable_testmu_benchmark == true &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
