@@ -4167,6 +4167,211 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('OrderStreamChannel.updateOrderOptimistic', () => {
+    let mockOrdersSubscribe: jest.Mock;
+    let mockOrdersUnsubscribe: jest.Mock;
+
+    const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
+      orderId: 'order-1',
+      symbol: 'BTC',
+      side: 'buy',
+      orderType: 'limit',
+      size: '1.0',
+      originalSize: '1.0',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1.0',
+      status: 'open',
+      timestamp: Date.now(),
+      detailedOrderType: 'Limit',
+      isTrigger: false,
+      reduceOnly: false,
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      mockOrdersUnsubscribe = jest.fn();
+      mockOrdersSubscribe = jest.fn().mockReturnValue(mockOrdersUnsubscribe);
+      mockEngine.context.PerpsController.subscribeToOrders =
+        mockOrdersSubscribe;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    it('updates limit price in cached order', async () => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      act(() => {
+        orderCallback?.([createMockOrder()]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      callback.mockClear();
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          limitPrice: '51000',
+        });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          price: '51000',
+          size: '1.0',
+          originalSize: '1.0',
+          remainingSize: '1.0',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates size fields in cached order', async () => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      act(() => {
+        orderCallback?.([createMockOrder()]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      callback.mockClear();
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          size: '2.5',
+        });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          price: '50000',
+          size: '2.5',
+          originalSize: '2.5',
+          remainingSize: '2.5',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('does nothing when the order is not cached', async () => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      act(() => {
+        orderCallback?.([createMockOrder()]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      callback.mockClear();
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('missing-order', {
+          limitPrice: '51000',
+        });
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      unsubscribe();
+    });
+
+    it('does nothing when no edit fields are provided', async () => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      act(() => {
+        orderCallback?.([createMockOrder()]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledTimes(1);
+      });
+
+      callback.mockClear();
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {});
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      unsubscribe();
+    });
+  });
+
   describe('clearAllChannels', () => {
     it('disconnects all channels when called', () => {
       // Arrange - spy on disconnect methods
