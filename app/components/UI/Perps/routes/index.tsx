@@ -293,10 +293,11 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.MARKET_LIST}
                 component={PerpsMarketListView}
-                options={{
+                options={({ route }) => ({
                   title: strings('perps.home.markets'),
                   headerShown: false,
-                }}
+                  animation: route.params?.animation ?? 'slide_from_right',
+                })}
                 initialParams={{
                   variant: 'full',
                   title: strings('perps.home.markets'),
