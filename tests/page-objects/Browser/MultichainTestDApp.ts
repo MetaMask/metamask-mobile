@@ -9,9 +9,16 @@ import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { MultichainTestDappViewSelectorsIDs } from '../../selectors/Browser/MultichainTestDapp.selectors.js';
-import MultichainUtilities from '../../helpers/multichain/MultichainUtilities.js';
 import { createLogger } from '../../framework/logger.js';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import {
+  applyNetworkSelection,
+  clearSessionResult,
+  readAllCheckboxStates,
+  readConnectionState,
+  type ConnectionState,
+  MULTICHAIN_TEST_DAPP_BASE_URL,
+} from './MultichainTestDAppNetworkSelection.js';
 
 const logger = createLogger({
   name: 'MultichainTestDApp',
@@ -30,7 +37,7 @@ interface SessionResponse {
 }
 
 const SELECTORS = MultichainTestDappViewSelectorsIDs;
-const BASE_URL = `http://localhost:${MULTICHAIN_DAPP_PORT}`;
+const BASE_URL = MULTICHAIN_TEST_DAPP_BASE_URL;
 const DEFAULT_URL_PARAMS = '?autoMode=true';
 
 /**
@@ -40,37 +47,10 @@ const DEFAULT_URL_PARAMS = '?autoMode=true';
  * settled is silently discarded, so every toggle is verified and retried.
  */
 const CONNECT_TIMEOUT_MS = 30_000;
-const CHECKBOX_SETTLE_TIMEOUT_MS = 10_000;
-const SELECTION_ATTEMPTS = 3;
 const POLL_INTERVAL_MS = 250;
-
-type CheckboxState =
-  | 'checked'
-  | 'unchecked'
-  | 'checked-disabled'
-  | 'unchecked-disabled'
-  | 'missing';
-
-type ConnectionState = 'enabled' | 'disabled' | 'missing' | 'unreadable';
 
 const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
-
-const checkboxIdFor = (chainId: string): string =>
-  `${SELECTORS.NETWORK_CHECKBOX_PREFIX}eip155-${chainId}`;
-
-const ALL_CHAIN_IDS = [
-  MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-  MultichainUtilities.CHAIN_IDS.LINEA_MAINNET,
-  MultichainUtilities.CHAIN_IDS.ARBITRUM_ONE,
-  MultichainUtilities.CHAIN_IDS.AVALANCHE,
-  MultichainUtilities.CHAIN_IDS.OPTIMISM,
-  MultichainUtilities.CHAIN_IDS.POLYGON,
-  MultichainUtilities.CHAIN_IDS.ZKSYNC_ERA,
-  MultichainUtilities.CHAIN_IDS.BASE,
-  MultichainUtilities.CHAIN_IDS.BSC,
-  MultichainUtilities.CHAIN_IDS.LOCALHOST,
-];
 
 class MultichainTestDApp {
   private connected = false;
@@ -120,9 +100,9 @@ class MultichainTestDApp {
     if (!connected)
       throw new Error('createSessionWithNetworks: auto-connect failed');
 
-    await this.applyNetworkSelection(chainIds);
+    await applyNetworkSelection(chainIds);
 
-    await this.clearSessionResult();
+    await clearSessionResult();
     await ChromeCdpHelpers.clickByIdInWebView(
       BASE_URL,
       SELECTORS.CREATE_SESSION_BUTTON,
@@ -144,7 +124,7 @@ class MultichainTestDApp {
     } else {
       logger.warn(
         `no text in #${SELECTORS.SESSION_METHOD_RESULT}0 after 30s; checkboxes: ${JSON.stringify(
-          await this.readAllCheckboxStates(),
+          await readAllCheckboxStates(),
         )}`,
       );
     }
@@ -160,7 +140,7 @@ class MultichainTestDApp {
     let state: ConnectionState = 'unreadable';
 
     while (Date.now() < deadline) {
-      state = await this.readConnectionState();
+      state = await readConnectionState();
       if (state === 'enabled') {
         logger.debug(`dapp connected after ${Date.now() - startedAt}ms`);
         return true;
@@ -175,7 +155,7 @@ class MultichainTestDApp {
   }
 
   async tapGetSessionButton(): Promise<void> {
-    await this.clearSessionResult();
+    await clearSessionResult();
     await ChromeCdpHelpers.clickByIdInWebView(
       BASE_URL,
       SELECTORS.GET_SESSION_BUTTON,
@@ -183,7 +163,7 @@ class MultichainTestDApp {
   }
 
   async tapRevokeSessionButton(): Promise<void> {
-    await this.clearSessionResult();
+    await clearSessionResult();
     await ChromeCdpHelpers.clickByIdInWebView(
       BASE_URL,
       SELECTORS.REVOKE_SESSION_BUTTON,
@@ -400,153 +380,6 @@ class MultichainTestDApp {
         50_000,
       )) !== null
     );
-  }
-
-  private async clearSessionResult(resultIndex = 0): Promise<void> {
-    const elementId = `${SELECTORS.SESSION_METHOD_RESULT}${resultIndex}`;
-    await ChromeCdpHelpers.evaluateInWebView(
-      BASE_URL,
-      `(() => { const el = document.getElementById(${JSON.stringify(elementId)}); if (el) el.textContent = ''; })()`,
-    ).catch(() => undefined);
-  }
-
-  /**
-   * Applies the requested network selection, then re-reads every checkbox and
-   * re-applies if the dapp reset the selection mid-loop (it does that whenever
-   * a `wallet_getSession` response lands).
-   */
-  private async applyNetworkSelection(chainIds: string[]): Promise<void> {
-    const requested = chainIds.join(', ') || 'none';
-
-    for (let attempt = 1; attempt <= SELECTION_ATTEMPTS; attempt++) {
-      for (const chainId of ALL_CHAIN_IDS) {
-        await this.setCheckboxState(chainId, chainIds.includes(chainId));
-      }
-
-      const states = await this.readAllCheckboxStates();
-      const wrong = ALL_CHAIN_IDS.filter(
-        (chainId) =>
-          states[chainId] !==
-          (chainIds.includes(chainId) ? 'checked' : 'unchecked'),
-      );
-
-      if (wrong.length === 0) {
-        logger.debug(
-          `network selection [${requested}] applied on attempt ${attempt}`,
-        );
-        return;
-      }
-
-      logger.warn(
-        `attempt ${attempt}/${SELECTION_ATTEMPTS}: chains [${wrong.join(
-          ', ',
-        )}] do not match request [${requested}]; observed: ${JSON.stringify(states)}`,
-      );
-    }
-
-    throw new Error(
-      `applyNetworkSelection: selection [${requested}] did not stick after ${SELECTION_ATTEMPTS} attempts. Observed: ${JSON.stringify(
-        await this.readAllCheckboxStates(),
-      )}`,
-    );
-  }
-
-  /**
-   * Clicks a network checkbox until it actually reports the desired state.
-   * Clicks land on a disabled input as no-ops, so wait for it to be enabled
-   * before clicking and confirm the state afterwards.
-   */
-  private async setCheckboxState(
-    chainId: string,
-    checked: boolean,
-  ): Promise<boolean> {
-    const webId = checkboxIdFor(chainId);
-    const desired: CheckboxState = checked ? 'checked' : 'unchecked';
-    const deadline = Date.now() + CHECKBOX_SETTLE_TIMEOUT_MS;
-    let state: CheckboxState = 'missing';
-    let clicks = 0;
-
-    while (Date.now() < deadline) {
-      state = await this.readCheckboxState(webId);
-      if (state === desired) return true;
-
-      if (state === 'missing' || state.endsWith('-disabled')) {
-        await wait(POLL_INTERVAL_MS);
-        continue;
-      }
-
-      await ChromeCdpHelpers.clickByIdInWebView(BASE_URL, webId);
-      clicks += 1;
-      await wait(POLL_INTERVAL_MS);
-    }
-
-    logger.warn(
-      `#${webId} stuck at "${state}" (wanted "${desired}") after ${clicks} click(s)`,
-    );
-    return false;
-  }
-
-  private async readConnectionState(): Promise<ConnectionState> {
-    const state = await ChromeCdpHelpers.evaluateInWebView<string>(
-      BASE_URL,
-      `(() => {
-        const el = document.getElementById(${JSON.stringify(SELECTORS.CREATE_SESSION_BUTTON)});
-        if (!el) return 'missing';
-        return el.disabled ? 'disabled' : 'enabled';
-      })()`,
-    );
-    if (state === 'enabled' || state === 'disabled' || state === 'missing') {
-      return state;
-    }
-    return 'unreadable';
-  }
-
-  private async readCheckboxState(webId: string): Promise<CheckboxState> {
-    const states = await this.readCheckboxStates([webId]);
-    return states[webId] ?? 'missing';
-  }
-
-  private async readAllCheckboxStates(): Promise<
-    Record<string, CheckboxState>
-  > {
-    const states = await this.readCheckboxStates(
-      ALL_CHAIN_IDS.map(checkboxIdFor),
-    );
-    const byChainId: Record<string, CheckboxState> = {};
-    for (const chainId of ALL_CHAIN_IDS) {
-      byChainId[chainId] = states[checkboxIdFor(chainId)] ?? 'missing';
-    }
-    return byChainId;
-  }
-
-  private async readCheckboxStates(
-    webIds: string[],
-  ): Promise<Record<string, CheckboxState>> {
-    const raw = await ChromeCdpHelpers.evaluateInWebView<string>(
-      BASE_URL,
-      `(() => {
-        const states = {};
-        for (const id of ${JSON.stringify(webIds)}) {
-          const el = document.getElementById(id);
-          if (!(el instanceof HTMLInputElement)) {
-            states[id] = 'missing';
-            continue;
-          }
-          states[id] =
-            (el.checked ? 'checked' : 'unchecked') +
-            (el.disabled ? '-disabled' : '');
-        }
-        return JSON.stringify(states);
-      })()`,
-    );
-
-    if (!raw) return {};
-    try {
-      return JSON.parse(raw) as Record<string, CheckboxState>;
-    } catch {
-      logger.warn(`could not parse checkbox states: ${raw}`);
-      return {};
-    }
   }
 }
 

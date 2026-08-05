@@ -85,16 +85,16 @@ describe('MoneyCardTiltAnimation', () => {
     ).toBeNull();
   });
 
-  it('renders the digital X-tilt artboard for a virtual card', () => {
+  it('renders the digital tilt artboard for a virtual card', () => {
     render(<MoneyCardTiltAnimation isMetalCard={false} />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Digital ');
+    expect(mockRiveProps.current?.artboardName).toBe('CardTiltDigital');
   });
 
-  it('renders the metal X-tilt artboard for a metal card', () => {
+  it('renders the metal tilt artboard for a metal card', () => {
     render(<MoneyCardTiltAnimation isMetalCard />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('Card Tilt X - Metal');
+    expect(mockRiveProps.current?.artboardName).toBe('CardTiltMetal');
   });
 
   it('renders the static image when the feature flag is disabled', () => {
