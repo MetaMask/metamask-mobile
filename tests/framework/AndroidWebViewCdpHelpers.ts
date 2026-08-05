@@ -161,14 +161,14 @@ class CdpSession {
 }
 
 /**
- * Kill switch for CDP scroll. Default on; set `ANDROID_WEBVIEW_CDP_SCROLL=0`
- * (or `false` / `off`) to force native UiScrollable-only scrolling.
+ * Kill switch for Android WebView CDP actions. Default on; set
+ * `ANDROID_WEBVIEW_CDP=0` (or `false` / `off` / `no`) to force native-only.
  *
  * Dynamic env key — babel `transform-inline-environment-variables` must not
- * bake this at transform time so local/CI can disable CDP scroll at runtime.
+ * bake this at transform time so local/CI can disable CDP at runtime.
  */
-export function isAndroidWebViewCdpScrollEnabled(): boolean {
-  const envKey = 'ANDROID_WEBVIEW_CDP_SCROLL';
+export function isAndroidWebViewCdpEnabled(): boolean {
+  const envKey = 'ANDROID_WEBVIEW_CDP';
   const raw = process.env[envKey]?.trim().toLowerCase();
   if (!raw) {
     return true;
@@ -268,9 +268,43 @@ export function httpEndpointFromWebSocketUrl(
 }
 
 /**
- * Drive MetaMask in-app WebView scrolling via CDP (bypasses Chromedriver).
+ * Drive MetaMask in-app WebView actions via CDP (bypasses Chromedriver).
  */
 export default class AndroidWebViewCdpHelpers {
+  private static async withEvaluate<T>(
+    pageUrl: string,
+    expression: string,
+  ): Promise<T | undefined> {
+    if (!isAndroidWebViewCdpEnabled()) {
+      return undefined;
+    }
+    if (!pageUrl?.trim()) {
+      return undefined;
+    }
+
+    try {
+      const endpoint = await this.resolveCdpHttpEndpoint();
+      const target = await this.waitForCdpTarget(endpoint, pageUrl);
+      if (!target.webSocketDebuggerUrl) {
+        return undefined;
+      }
+
+      const session = await CdpSession.connect(target.webSocketDebuggerUrl);
+      try {
+        return await session.evaluate<T>(expression);
+      } finally {
+        session.close();
+      }
+    } catch (error) {
+      logger.debug(
+        `CDP evaluate failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      return undefined;
+    }
+  }
+
   /**
    * Scroll `#webId` into view via CDP. Returns true when evaluate reports the
    * element existed and scroll ran; false on any discovery/connect/evaluate miss
@@ -280,47 +314,139 @@ export default class AndroidWebViewCdpHelpers {
     webId: string,
     options: { pageUrl: string },
   ): Promise<boolean> {
-    if (!isAndroidWebViewCdpScrollEnabled()) {
-      return false;
-    }
-    if (!options.pageUrl?.trim() || !webId.trim()) {
+    if (!webId.trim()) {
       return false;
     }
 
-    try {
-      const endpoint = await this.resolveCdpHttpEndpoint();
-      const target = await this.waitForCdpTarget(endpoint, options.pageUrl);
-      if (!target.webSocketDebuggerUrl) {
-        return false;
-      }
+    const scrolled = await this.withEvaluate<boolean>(
+      options.pageUrl,
+      `(() => {
+      const el = document.getElementById(${JSON.stringify(webId)});
+      if (!el) return false;
+      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+      return true;
+    })()`,
+    );
+    if (scrolled) {
+      logger.debug(`CDP scrolled #${webId} into view on ${options.pageUrl}`);
+    }
+    return Boolean(scrolled);
+  }
 
-      const session = await CdpSession.connect(target.webSocketDebuggerUrl);
-      try {
-        const scrolled = await session.evaluate<boolean>(
-          `(() => {
-            const el = document.getElementById(${JSON.stringify(webId)});
-            if (!el) return false;
-            el.scrollIntoView({ block: 'center', inline: 'nearest' });
-            return true;
-          })()`,
-        );
-        if (scrolled) {
-          logger.debug(
-            `CDP scrolled #${webId} into view on ${target.url ?? options.pageUrl}`,
-          );
-        }
-        return Boolean(scrolled);
-      } finally {
-        session.close();
+  static async tapElementById(
+    webId: string,
+    options: { pageUrl: string },
+  ): Promise<boolean> {
+    if (!webId.trim()) {
+      return false;
+    }
+
+    const clicked = await this.withEvaluate<boolean>(
+      options.pageUrl,
+      `(() => {
+      const el = document.getElementById(${JSON.stringify(webId)});
+      if (!el || typeof el.click !== 'function') return false;
+      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+      el.click();
+      return true;
+    })()`,
+    );
+    return Boolean(clicked);
+  }
+
+  static async fillElementById(
+    webId: string,
+    value: string,
+    options: { pageUrl: string },
+  ): Promise<boolean> {
+    if (!webId.trim()) {
+      return false;
+    }
+
+    const filled = await this.withEvaluate<boolean>(
+      options.pageUrl,
+      `(() => {
+      const el = document.getElementById(${JSON.stringify(webId)});
+      if (!el) return false;
+      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+      el.focus?.();
+      if ('value' in el) {
+        el.value = '';
+        el.value = ${JSON.stringify(value)};
+      } else {
+        el.textContent = ${JSON.stringify(value)};
       }
-    } catch (error) {
-      logger.debug(
-        `CDP scrollIntoView failed for #${webId}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`,
+    );
+    return Boolean(filled);
+  }
+
+  static async readElementTextById(
+    webId: string,
+    options: { pageUrl: string },
+  ): Promise<string | undefined> {
+    if (!webId.trim()) {
+      return undefined;
+    }
+
+    const text = await this.withEvaluate<string | null>(
+      options.pageUrl,
+      `(() => {
+      const el = document.getElementById(${JSON.stringify(webId)});
+      if (!el) return null;
+      if ('value' in el && typeof el.value === 'string' && el.value.length > 0) {
+        return el.value;
+      }
+      const text = (el.innerText ?? el.textContent ?? '').trim();
+      return text.length > 0 ? text : (el.value ?? null);
+    })()`,
+    );
+    return text == null ? undefined : text;
+  }
+
+  static async selectOptionById(
+    webId: string,
+    optionText: string,
+    options: { pageUrl: string },
+  ): Promise<boolean> {
+    if (!webId.trim() || !optionText.trim()) {
+      return false;
+    }
+
+    const selected = await this.withEvaluate<boolean>(
+      options.pageUrl,
+      `(() => {
+      const el = document.getElementById(${JSON.stringify(webId)});
+      if (!el || !('options' in el) || !el.options) return false;
+      const option = Array.from(el.options).find((opt) =>
+        opt.text.includes(${JSON.stringify(optionText)}),
       );
+      if (!option) return false;
+      el.value = option.value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`,
+    );
+    return Boolean(selected);
+  }
+
+  static async blurActiveElement(pageUrl: string): Promise<boolean> {
+    const blurred = await this.withEvaluate<boolean>(
+      pageUrl,
+      `(() => {
+      const active = document.activeElement;
+      if (active && typeof active.blur === 'function') {
+        active.blur();
+        return true;
+      }
       return false;
-    }
+    })()`,
+    );
+    return Boolean(blurred);
   }
 
   private static async resolveCdpHttpEndpoint(): Promise<string> {

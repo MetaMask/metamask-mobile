@@ -1,7 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { execFileSync } from 'child_process';
 import AndroidWebViewCdpHelpers, {
-  isAndroidWebViewCdpScrollEnabled,
+  isAndroidWebViewCdpEnabled,
   pickMetaMaskWebViewDebuggerUrl,
   urlsReferToSameDapp,
   type RawAppiumWebViewContext,
@@ -76,13 +76,50 @@ jest.mock('ws', () => {
       let value: unknown = false;
       if (msg.method === 'Runtime.evaluate') {
         const expression = msg.params?.expression ?? '';
-        value =
-          expression.includes('getElementById') &&
-          !expression.includes('"missing-id"');
+        if (expression.includes('"missing-id"')) {
+          value =
+            expression.includes('textContent') ||
+            expression.includes('innerText')
+              ? null
+              : false;
+        } else if (expression.includes('activeElement')) {
+          value = true;
+        } else if (
+          expression.includes('options') &&
+          expression.includes('getElementById')
+        ) {
+          value = true;
+        } else if (
+          expression.includes('el.click') ||
+          expression.includes('.click(')
+        ) {
+          value = expression.includes('getElementById');
+        } else if (
+          expression.includes("dispatchEvent(new Event('input'") ||
+          expression.includes('dispatchEvent(new Event("input"')
+        ) {
+          value = expression.includes('getElementById');
+        } else if (
+          expression.includes('innerText') ||
+          expression.includes('textContent')
+        ) {
+          value = expression.includes('getElementById')
+            ? 'hello-from-cdp'
+            : null;
+        } else if (expression.includes('scrollIntoView')) {
+          value = expression.includes('getElementById');
+        } else {
+          value = false;
+        }
       }
       const payload = JSON.stringify({
         id: msg.id,
-        result: { result: { value, type: 'boolean' } },
+        result: {
+          result: {
+            value,
+            type: typeof value === 'string' ? 'string' : 'boolean',
+          },
+        },
       });
       setImmediate(() => {
         this.emit('message', payload);
@@ -107,38 +144,35 @@ jest.mock('ws', () => {
   return { WebSocket: MockWebSocket };
 });
 
-/** Dynamic key — babel inlines static `process.env.ANDROID_WEBVIEW_CDP_SCROLL` / deletes. */
-const CDP_SCROLL_ENV_KEY = 'ANDROID_WEBVIEW_CDP_SCROLL';
+/** Dynamic key — babel inlines static `process.env.ANDROID_WEBVIEW_CDP` / deletes. */
+const CDP_ENV_KEY = 'ANDROID_WEBVIEW_CDP';
 
-function clearCdpScrollEnv(): void {
-  delete process.env[CDP_SCROLL_ENV_KEY];
+function clearCdpEnv(): void {
+  delete process.env[CDP_ENV_KEY];
 }
 
-function setCdpScrollEnv(value: string): void {
-  process.env[CDP_SCROLL_ENV_KEY] = value;
+function setCdpEnv(value: string): void {
+  process.env[CDP_ENV_KEY] = value;
 }
 
-describe('isAndroidWebViewCdpScrollEnabled', () => {
+describe('isAndroidWebViewCdpEnabled', () => {
   afterEach(() => {
-    clearCdpScrollEnv();
+    clearCdpEnv();
   });
 
   it('returns true when env is unset', () => {
-    clearCdpScrollEnv();
-
-    expect(isAndroidWebViewCdpScrollEnabled()).toBe(true);
+    clearCdpEnv();
+    expect(isAndroidWebViewCdpEnabled()).toBe(true);
   });
 
   it('returns false when env is 0', () => {
-    setCdpScrollEnv('0');
-
-    expect(isAndroidWebViewCdpScrollEnabled()).toBe(false);
+    setCdpEnv('0');
+    expect(isAndroidWebViewCdpEnabled()).toBe(false);
   });
 
   it('returns false when env is false', () => {
-    setCdpScrollEnv('false');
-
-    expect(isAndroidWebViewCdpScrollEnabled()).toBe(false);
+    setCdpEnv('false');
+    expect(isAndroidWebViewCdpEnabled()).toBe(false);
   });
 });
 
@@ -231,50 +265,53 @@ describe('pickMetaMaskWebViewDebuggerUrl', () => {
   });
 });
 
-describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
-  const pageUrl = 'https://metamask.github.io/snaps/test-snaps/3.5.2/';
-  const originalFetch = global.fetch;
+const pageUrl = 'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+const originalFetch = global.fetch;
 
-  beforeEach(() => {
-    clearCdpScrollEnv();
-    execFileSyncMock.mockReset();
-    (getDriver as jest.Mock).mockReturnValue({
-      execute: jest.fn().mockResolvedValue([
-        {
-          webviewName: 'WEBVIEW_io.metamask',
-          info: {
+function installCdpHappyPathMocks(): void {
+  clearCdpEnv();
+  execFileSyncMock.mockReset();
+  (getDriver as jest.Mock).mockReturnValue({
+    execute: jest.fn().mockResolvedValue([
+      {
+        webviewName: 'WEBVIEW_io.metamask',
+        info: {
+          webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/mm',
+        },
+      },
+    ]),
+  });
+
+  global.fetch = jest.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.endsWith('/json/version')) {
+      return { ok: true } as Response;
+    }
+    if (url.endsWith('/json/list')) {
+      return {
+        ok: true,
+        json: async () => [
+          {
+            type: 'page',
+            url: pageUrl,
             webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/mm',
           },
-        },
-      ]),
-    });
+        ],
+      } as Response;
+    }
+    return { ok: false } as Response;
+  }) as typeof fetch;
+}
 
-    global.fetch = jest.fn(async (input: RequestInfo | URL) => {
-      const url = String(input);
-      if (url.endsWith('/json/version')) {
-        return { ok: true } as Response;
-      }
-      if (url.endsWith('/json/list')) {
-        return {
-          ok: true,
-          json: async () => [
-            {
-              type: 'page',
-              url: pageUrl,
-              webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/mm',
-            },
-          ],
-        } as Response;
-      }
-      return { ok: false } as Response;
-    }) as typeof fetch;
-  });
+function restoreCdpMocks(): void {
+  global.fetch = originalFetch;
+  clearCdpEnv();
+  jest.clearAllMocks();
+}
 
-  afterEach(() => {
-    global.fetch = originalFetch;
-    clearCdpScrollEnv();
-    jest.clearAllMocks();
-  });
+describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
+  beforeEach(installCdpHappyPathMocks);
+  afterEach(restoreCdpMocks);
 
   it('returns true when CDP evaluate scrolls an existing element', async () => {
     const result = await AndroidWebViewCdpHelpers.scrollElementByIdIntoView(
@@ -294,8 +331,8 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when ANDROID_WEBVIEW_CDP_SCROLL is disabled', async () => {
-    setCdpScrollEnv('0');
+  it('returns false when ANDROID_WEBVIEW_CDP is disabled', async () => {
+    setCdpEnv('0');
 
     const result = await AndroidWebViewCdpHelpers.scrollElementByIdIntoView(
       'connectbip32',
@@ -364,5 +401,147 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('AndroidWebViewCdpHelpers.tapElementById', () => {
+  beforeEach(installCdpHappyPathMocks);
+  afterEach(restoreCdpMocks);
+
+  it('returns true when CDP click succeeds', async () => {
+    const result = await AndroidWebViewCdpHelpers.tapElementById(
+      'connectbip32',
+      { pageUrl },
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns false when element is missing', async () => {
+    const result = await AndroidWebViewCdpHelpers.tapElementById('missing-id', {
+      pageUrl,
+    });
+    expect(result).toBe(false);
+  });
+
+  it('returns false when ANDROID_WEBVIEW_CDP is disabled', async () => {
+    setCdpEnv('0');
+    const result = await AndroidWebViewCdpHelpers.tapElementById(
+      'connectbip32',
+      { pageUrl },
+    );
+    expect(result).toBe(false);
+    expect(getDriver).not.toHaveBeenCalled();
+  });
+});
+
+describe('AndroidWebViewCdpHelpers.fillElementById', () => {
+  beforeEach(installCdpHappyPathMocks);
+  afterEach(restoreCdpMocks);
+
+  it('returns true when CDP fill succeeds', async () => {
+    const result = await AndroidWebViewCdpHelpers.fillElementById(
+      'message',
+      'hi',
+      { pageUrl },
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns false when element is missing', async () => {
+    const result = await AndroidWebViewCdpHelpers.fillElementById(
+      'missing-id',
+      'hi',
+      { pageUrl },
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when ANDROID_WEBVIEW_CDP is disabled', async () => {
+    setCdpEnv('0');
+    const result = await AndroidWebViewCdpHelpers.fillElementById(
+      'message',
+      'hi',
+      { pageUrl },
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('AndroidWebViewCdpHelpers.readElementTextById', () => {
+  beforeEach(installCdpHappyPathMocks);
+  afterEach(restoreCdpMocks);
+
+  it('returns text when CDP read succeeds', async () => {
+    const result = await AndroidWebViewCdpHelpers.readElementTextById(
+      'status',
+      { pageUrl },
+    );
+    expect(result).toBe('hello-from-cdp');
+  });
+
+  it('returns undefined when element is missing', async () => {
+    const result = await AndroidWebViewCdpHelpers.readElementTextById(
+      'missing-id',
+      { pageUrl },
+    );
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when ANDROID_WEBVIEW_CDP is disabled', async () => {
+    setCdpEnv('0');
+    const result = await AndroidWebViewCdpHelpers.readElementTextById(
+      'status',
+      { pageUrl },
+    );
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('AndroidWebViewCdpHelpers.selectOptionById', () => {
+  beforeEach(installCdpHappyPathMocks);
+  afterEach(restoreCdpMocks);
+
+  it('returns true when option is selected', async () => {
+    const result = await AndroidWebViewCdpHelpers.selectOptionById(
+      'chain',
+      'Ethereum',
+      { pageUrl },
+    );
+    expect(result).toBe(true);
+  });
+
+  it('returns false when select is missing', async () => {
+    const result = await AndroidWebViewCdpHelpers.selectOptionById(
+      'missing-id',
+      'Ethereum',
+      { pageUrl },
+    );
+    expect(result).toBe(false);
+  });
+
+  it('returns false when ANDROID_WEBVIEW_CDP is disabled', async () => {
+    setCdpEnv('0');
+    const result = await AndroidWebViewCdpHelpers.selectOptionById(
+      'chain',
+      'Ethereum',
+      { pageUrl },
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('AndroidWebViewCdpHelpers.blurActiveElement', () => {
+  beforeEach(installCdpHappyPathMocks);
+  afterEach(restoreCdpMocks);
+
+  it('returns true when blur evaluate succeeds', async () => {
+    const result = await AndroidWebViewCdpHelpers.blurActiveElement(pageUrl);
+    expect(result).toBe(true);
+  });
+
+  it('returns false when ANDROID_WEBVIEW_CDP is disabled', async () => {
+    setCdpEnv('0');
+    const result = await AndroidWebViewCdpHelpers.blurActiveElement(pageUrl);
+    expect(result).toBe(false);
   });
 });
