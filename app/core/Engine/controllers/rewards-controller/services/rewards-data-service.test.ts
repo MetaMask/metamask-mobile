@@ -1615,26 +1615,35 @@ describe('RewardsDataService', () => {
     });
 
     it('coerces current season to previous when end date equals current time', async () => {
-      const now = new Date();
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockResolvedValue({
-          previous: null,
-          current: {
-            id: '7444682d-9050-43b8-9038-28a6a62d6264',
-            startDate: '2019-09-01T04:00:00.000Z',
-            endDate: now.toISOString(),
-          },
-          next: null,
-        }),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
+      jest.useFakeTimers();
+      const now = new Date('2025-01-01T00:00:00.000Z');
+      jest.setSystemTime(now);
 
-      const result = await service.getDiscoverSeasons();
+      try {
+        const mockResponse = {
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            previous: null,
+            current: {
+              id: '7444682d-9050-43b8-9038-28a6a62d6264',
+              startDate: '2019-09-01T04:00:00.000Z',
+              endDate: now.toISOString(),
+            },
+            next: null,
+          }),
+        } as unknown as Response;
+        mockFetch.mockResolvedValue(mockResponse);
 
-      expect(result.current).toBeNull();
-      expect(result.previous).not.toBeNull();
-      expect(result.previous?.id).toBe('7444682d-9050-43b8-9038-28a6a62d6264');
+        const result = await service.getDiscoverSeasons();
+
+        expect(result.current).toBeNull();
+        expect(result.previous).not.toBeNull();
+        expect(result.previous?.id).toBe(
+          '7444682d-9050-43b8-9038-28a6a62d6264',
+        );
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('does not coerce current season when end date is in the future', async () => {
@@ -1919,17 +1928,13 @@ describe('RewardsDataService', () => {
     });
 
     it('handles timeout correctly', async () => {
-      // Mock fetch that never resolves (simulate timeout)
-      mockFetch.mockImplementation(
-        () =>
-          new Promise((_resolve, reject) => {
-            setTimeout(() => reject(new Error('AbortError')), 100);
-          }),
-      );
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
 
       await expect(
         service.getReferralDetails(mockSubscriptionId),
-      ).rejects.toThrow('AbortError');
+      ).rejects.toThrow('Request timeout after 10000ms');
     });
   });
 
