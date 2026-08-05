@@ -83,12 +83,17 @@ Rules:
 - preparation is side-effect free,
 - explicit confirmation precedes commit,
 - destination/network validation is actionable,
-- successful commit says submitted/processing, not completed,
+- commit requires a completed step-up factor; a rejected/expired step-up blocks commit,
+- payout registration requires a wallet-signed proof-of-control challenge,
+- successful commit says submitted/processing until a confirmed terminal status, never completed early,
+- a lost commit response surfaces as blocked pending manual reconciliation and is never automatically re-submitted,
 - operation reference remains available for support/resume,
 - repeated tap does not create a second withdrawal.
 
 #### Degradation
 
+- an ineligible venue remains browsable read-only; only actions are blocked,
+- a broken identity mapping shows the recovery path, never an empty portfolio,
 - Kalshi read-only surface remains usable when account writes are unavailable,
 - Kalshi kill switch does not change legacy Polymarket,
 - stale prices disable Order commit while browsing remains possible,
@@ -268,7 +273,11 @@ These are launch gates.
 - backend derives Predict User from auth,
 - changing client `userId`, wallet address, email, or external ID cannot impersonate another Venue Account,
 - Funding Wallet policy is enforced independently of person identity,
-- cross-user operation IDs cannot be read or committed.
+- cross-user operation IDs cannot be read or committed,
+- withdrawal, payout registration, key minting, and identity remap reject a bearer-only session (step-up required); expired/replayed step-up factors are rejected,
+- proof-of-control challenges are bound to profile ID + chain + address + expiry and cannot be replayed across profiles or addresses,
+- action eligibility is enforced server-side: a modified client declaring a different venue/geolocation cannot act, while browsing remains available,
+- standing per-user keys cannot execute a withdrawal (`write::transfer` absent); the ephemeral transfer key is revoked after use.
 
 ### Secret storage/logging
 
@@ -277,6 +286,21 @@ These are launch gates.
 - credentials are encrypted at rest and access is scoped,
 - rotation/revocation paths work,
 - no secret files are accepted by source-control checks.
+
+### KYC / Encrypted Passthrough
+
+- PII fields are encrypted on-device before leaving the client; the backend relay carries ciphertext only,
+- a substituted/non-attributable session public key fails closed before encryption,
+- ciphertext is bound to user/endpoint/freshness; replayed or cross-user blobs are rejected,
+- status readback persists only the bounded non-PII projection (`last_step`, `digital_verification_status`, `digital_verification_result`, derived approval),
+- the L2 Socure SDK path does not route through any MetaMask-controlled proxy or logging layer,
+- the consent screen naming Kalshi and Socure precedes any PII collection.
+
+### Recovery
+
+- reinstall + re-authenticate restores access with no user-visible recovery,
+- a changed profile ID drives the re-link flow with an explicit, audited backend remap — never a silent overwrite,
+- remap events produce user-visible alerts and an audit trail.
 
 ### PII
 

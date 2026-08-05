@@ -51,7 +51,14 @@ export interface PredictAccountScope extends PredictUserContext {
   venueId: PredictVenueId;
 }
 
-/** Internal only; stored in PredictSessionService private fields. */
+/**
+ * Internal only; stored in PredictSessionService private fields.
+ * A safe, non-secret operational handle. Per trust-model invariants 1 and 4,
+ * `data` must never contain Venue credentials or API keys, OTPs, PII/KYC
+ * values, bearer tokens, or transfer-authorization material — for a remote
+ * Venue it is at most opaque backend session references. Adapters define a
+ * concrete typed shape; `unknown` is not a license to smuggle secrets.
+ */
 export interface PredictVenueSession {
   venueId: PredictVenueId;
   accountScopeKey: PredictAccountScopeKey;

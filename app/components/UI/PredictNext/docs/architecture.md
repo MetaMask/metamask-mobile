@@ -12,9 +12,11 @@ PredictNext is designed around a canonical prediction-market model and explicit 
 
 Venue-specific complexity lives below that model. Views, hooks, and most service interfaces speak Predict terminology, not Polymarket or Kalshi protocol language. The architecture distinguishes the Predict User, Funding Wallet, and Venue Account; a wallet address is not treated as person identity.
 
+Governing decisions: the contested topology, security, identity, KYC, funding, and recovery decisions are recorded in the Kalshi ADR set (see [README — Governing ADRs](../README.md#governing-adrs)). These docs are non-normative relative to those ADRs and must not contradict them.
+
 Related documents:
 
-- [interface-ledger.md](./interface-ledger.md) — stable interface facts; if another doc disagrees, the ledger wins
+- [interface-ledger.md](./interface-ledger.md) — stable interface facts; if another doc disagrees on code-level interface shapes, the ledger wins (within the bounds set by the ADRs)
 - [services.md](./services.md)
 - [adapters.md](./adapters.md)
 - [hooks.md](./hooks.md)
@@ -30,7 +32,7 @@ Related documents:
 
 The target architecture is implemented through two tracks:
 
-1. **Kalshi-first vertical delivery (active):** build only the modules needed by Setup → Deposit → Balance, then trading/portfolio/withdraw. Kalshi account operations are remote through the owned backend. Legacy Polymarket remains unchanged.
+1. **Kalshi-first vertical delivery (active):** build only the modules needed by Setup → Deposit → Balance, then trading/portfolio/withdraw. Kalshi account operations are remote through the owned backend. Legacy Polymarket remains unchanged. Venue selection defaults from geolocation (US → Kalshi, rest-of-world → Polymarket); an ineligible venue is read-only (browse works, actions blocked), with action eligibility enforced server-side.
 2. **Polymarket strangling (later):** move public reads, portfolio, trading, funding/Claim, live data, and UI capability by capability through the proven seams.
 
 The six-service inventory and three-tier UI are a destination, not a Kalshi launch checklist. Generic remote signing intents, live data, multi-Venue aggregation, full legacy compat, and full UI replacement are deferred until concrete product requirements need them.

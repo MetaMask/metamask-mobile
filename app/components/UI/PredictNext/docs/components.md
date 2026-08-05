@@ -546,7 +546,7 @@ Hooks (called internally by the widget):
 
 Typical responsibilities:
 
-- section tabs for open, resolved, and claimable positions
+- section tabs for open, resolved, and (only for venues with a Claim capability) claimable positions — Kalshi settles automatically and never shows a claimable tab
 - summary header for balance and unrealized P&L
 - empty state for users with no exposure
 
@@ -618,26 +618,36 @@ Route params:
 - `venueId: PredictVenueId`
 - `accountScope?: PredictAccountScope` when portfolio content is shown
 
+Per the venue-selection policy (parent ADR), an ineligible venue is **read-only**: browsing markets and prices always works; only actions (onboarding, trading, funding) are eligibility-blocked. The guard gates actions and account surfaces, never public browsing. Only `venueAvailable === false` (venue/backend outage, kill switch) removes the browse surface.
+
 ```tsx
 export function PredictHome({
   venueId,
   accountScope,
   capabilities,
 }: PredictHomeProps) {
-  const { isEligible } = usePredictGuard({ venueId, accountScope });
-  if (!isEligible) return <UnavailableModal />;
+  const { venueAvailable, canSetup, canTrade } = usePredictGuard({
+    venueId,
+    accountScope,
+  });
+  if (!venueAvailable) return <UnavailableModal />;
 
   return (
     <ScrollView>
       {capabilities.marketData.featured ? (
         <FeaturedCarousel venueId={venueId} />
       ) : null}
+      {/* Browsing works even when the user is ineligible for actions. */}
       <EventFeed venueId={venueId} search={capabilities.marketData.search} />
-      {accountScope ? <PortfolioSection scope={accountScope} /> : null}
+      {accountScope && (canSetup || canTrade) ? (
+        <PortfolioSection scope={accountScope} />
+      ) : null}
     </ScrollView>
   );
 }
 ```
+
+Eligibility for actions is additionally enforced server-side, independent of client geolocation or flags; the client guard is UX, not the control.
 
 ### EventDetails
 

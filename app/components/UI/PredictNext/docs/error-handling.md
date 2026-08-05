@@ -68,39 +68,45 @@ const PREDICT_ERROR_REGISTRY: Record<
 
 Core mappings:
 
-| Code                           | Category      | Recoverable | Default product meaning                           |
-| ------------------------------ | ------------- | ----------- | ------------------------------------------------- |
-| `GEO_BLOCKED`                  | unavailable   | no          | Predict is unavailable in this region             |
-| `FEATURE_DISABLED`             | unavailable   | no          | Venue/product surface is disabled                 |
-| `UNAUTHENTICATED`              | unavailable   | yes         | Authenticate before continuing                    |
-| `ACCOUNT_SCOPE_INVALID`        | action_failed | yes         | Selected user/wallet/Venue context is invalid     |
-| `NETWORK_MISMATCH`             | action_failed | yes         | Switch to the required funding network            |
-| `VENUE_UNAVAILABLE`            | degraded      | yes         | Venue or owned backend is temporarily unavailable |
-| `UNSUPPORTED_VENUE_CAPABILITY` | unavailable   | no          | Product attempted an unsupported capability       |
-| `RATE_LIMITED`                 | degraded      | yes         | Retry after bounded backoff/status guidance       |
-| `INSUFFICIENT_FUNDS`           | action_failed | yes         | Venue Account or Funding Wallet is insufficient   |
-| `ORDER_PREVIEW_EXPIRED`        | action_failed | yes         | Request a new preview                             |
-| `ORDER_REJECTED`               | action_failed | yes         | Venue rejected the Order                          |
-| `ORDER_PLACEMENT_FAILED`       | action_failed | yes         | Order did not complete; reconcile if commit began |
-| `ACCOUNT_SETUP_FAILED`         | action_failed | yes         | Setup step failed                                 |
-| `KYC_REJECTED`                 | unavailable   | no          | Verification was not approved                     |
-| `OTP_INVALID`                  | action_failed | yes         | Venue explicitly guarantees invalid               |
-| `OTP_EXPIRED`                  | action_failed | yes         | Venue explicitly guarantees expired               |
-| `OTP_INVALID_OR_EXPIRED`       | action_failed | yes         | Venue does not distinguish; resend/retry          |
-| `OPERATION_EXPIRED`            | action_failed | yes         | Prepared operation/plan expired                   |
-| `OPERATION_CONFLICT`           | action_failed | no          | Idempotency key reused with different intent      |
-| `UNSUPPORTED_NETWORK`          | action_failed | yes         | Choose a supported funding network                |
-| `INVALID_WITHDRAWAL_ADDRESS`   | action_failed | yes         | Correct destination/network                       |
-| `DEPOSIT_FAILED`               | action_failed | yes         | Deposit failed or requires reconciliation         |
-| `WITHDRAWAL_FAILED`            | action_failed | yes         | Withdraw failed or requires reconciliation        |
-| `CLAIM_FAILED`                 | action_failed | yes         | Claim failed                                      |
-| `SETTLEMENT_FAILED`            | degraded      | yes         | Settlement read/reconciliation unavailable        |
-| `TRANSACTION_REJECTED`         | action_failed | yes         | User rejected wallet confirmation                 |
-| `TRANSACTION_FAILED`           | action_failed | yes         | Wallet transaction failed                         |
-| `LIVE_DATA_DISCONNECTED`       | degraded      | yes         | Poll/cache fallback may remain usable             |
-| `UNKNOWN`                      | degraded      | yes         | Unknown safe fallback; preserve cause internally  |
+| Code                           | Category      | Recoverable | Default product meaning                                                 |
+| ------------------------------ | ------------- | ----------- | ----------------------------------------------------------------------- |
+| `GEO_BLOCKED`                  | unavailable   | no          | Predict is unavailable in this region                                   |
+| `FEATURE_DISABLED`             | unavailable   | no          | Venue/product surface is disabled                                       |
+| `UNAUTHENTICATED`              | unavailable   | yes         | Authenticate before continuing                                          |
+| `ACCOUNT_SCOPE_INVALID`        | action_failed | yes         | Selected user/wallet/Venue context is invalid                           |
+| `NETWORK_MISMATCH`             | action_failed | yes         | Switch to the required funding network                                  |
+| `VENUE_UNAVAILABLE`            | degraded      | yes         | Venue or owned backend is temporarily unavailable                       |
+| `UNSUPPORTED_VENUE_CAPABILITY` | unavailable   | no          | Product attempted an unsupported capability                             |
+| `RATE_LIMITED`                 | degraded      | yes         | Retry after bounded backoff/status guidance                             |
+| `INSUFFICIENT_FUNDS`           | action_failed | yes         | Venue Account or Funding Wallet is insufficient                         |
+| `ORDER_PREVIEW_EXPIRED`        | action_failed | yes         | Request a new preview                                                   |
+| `ORDER_REJECTED`               | action_failed | yes         | Venue rejected the Order                                                |
+| `ORDER_PLACEMENT_FAILED`       | action_failed | yes         | Order did not complete; reconcile if commit began                       |
+| `ACCOUNT_SETUP_FAILED`         | action_failed | yes         | Setup step failed                                                       |
+| `KYC_REJECTED`                 | unavailable   | no          | Verification was not approved                                           |
+| `ACCOUNT_RECOVERY_REQUIRED`    | action_failed | yes         | Identity mapping broken; guided recovery path, never an empty portfolio |
+| `STEP_UP_REQUIRED`             | action_failed | yes         | High-risk operation needs a fresh server-verifiable factor              |
+| `OTP_INVALID`                  | action_failed | yes         | Venue explicitly guarantees invalid                                     |
+| `OTP_EXPIRED`                  | action_failed | yes         | Venue explicitly guarantees expired                                     |
+| `OTP_INVALID_OR_EXPIRED`       | action_failed | yes         | Venue does not distinguish; resend/retry                                |
+| `OPERATION_EXPIRED`            | action_failed | yes         | Prepared operation/plan expired                                         |
+| `OPERATION_CONFLICT`           | action_failed | no          | Idempotency key reused with different intent                            |
+| `UNSUPPORTED_NETWORK`          | action_failed | yes         | Choose a supported funding network                                      |
+| `INVALID_WITHDRAWAL_ADDRESS`   | action_failed | yes         | Correct destination/network                                             |
+| `DEPOSIT_FAILED`               | action_failed | yes         | Deposit failed or requires reconciliation                               |
+| `WITHDRAWAL_FAILED`            | action_failed | yes         | Withdraw failed or requires reconciliation                              |
+| `CLAIM_FAILED`                 | action_failed | yes         | Claim failed                                                            |
+| `SETTLEMENT_FAILED`            | degraded      | yes         | Settlement read/reconciliation unavailable                              |
+| `TRANSACTION_REJECTED`         | action_failed | yes         | User rejected wallet confirmation                                       |
+| `TRANSACTION_FAILED`           | action_failed | yes         | Wallet transaction failed                                               |
+| `LIVE_DATA_DISCONNECTED`       | degraded      | yes         | Poll/cache fallback may remain usable                                   |
+| `UNKNOWN`                      | degraded      | yes         | Unknown safe fallback; preserve cause internally                        |
 
 Default messages are Venue-neutral. Do not hardcode “Polygon” in `NETWORK_MISMATCH` or “Claim” for an automatic-settlement Venue.
+
+`GEO_BLOCKED` and jurisdiction restrictions block **actions**, not browsing: per the venue-selection policy (parent ADR), an ineligible venue remains read-only — markets and prices stay browsable while onboarding, trading, and funding are blocked.
+
+Note on OTP codes: Kalshi returns a combined invalid-or-expired condition; `OTP_INVALID` and `OTP_EXPIRED` exist for venues that guarantee the distinction. Never map a combined venue condition to a specific code.
 
 ## UI Categories
 
@@ -115,18 +121,18 @@ Default messages are Venue-neutral. Do not hardcode “Polygon” in `NETWORK_MI
 
 ## Retry Matrix
 
-| Operation                 | Automatic retry?             | Requirement                                              |
-| ------------------------- | ---------------------------- | -------------------------------------------------------- |
-| Public GET/read           | bounded yes                  | backoff, rate-limit handling, freshness policy           |
-| Account-scoped GET/read   | bounded yes                  | valid authenticated session; refresh once on auth expiry |
-| WebSocket/SSE connect     | yes                          | bounded exponential backoff; polling/cache fallback      |
-| Account Setup step        | only with idempotency        | same operation/key; resume before repeating              |
-| Order preview             | safe to request again        | new preview ID; old preview expires                      |
-| Order submit              | only with idempotency        | same preview ID/key; reconcile operation                 |
-| Funding prepare           | only with idempotency        | avoid duplicate one-time address/preflight               |
-| Wallet transaction submit | wallet infrastructure policy | never silently request a second user signature           |
-| Funding commit/indication | only with idempotency        | same operation/key/transaction hash                      |
-| Withdraw commit           | only with idempotency        | reconcile lost response; do not resubmit fresh           |
+| Operation                 | Automatic retry?             | Requirement                                                                                                |
+| ------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Public GET/read           | bounded yes                  | backoff, rate-limit handling, freshness policy                                                             |
+| Account-scoped GET/read   | bounded yes                  | valid authenticated session; refresh once on auth expiry                                                   |
+| WebSocket/SSE connect     | yes                          | bounded exponential backoff; polling/cache fallback                                                        |
+| Account Setup step        | only with idempotency        | same operation/key; resume before repeating                                                                |
+| Order preview             | safe to request again        | new preview ID; old preview expires                                                                        |
+| Order submit              | only with idempotency        | same preview ID/key; reconcile operation                                                                   |
+| Funding prepare           | only with idempotency        | avoid duplicate one-time address/preflight                                                                 |
+| Wallet transaction submit | wallet infrastructure policy | never silently request a second user signature                                                             |
+| Funding commit/indication | only with idempotency        | same operation/key/transaction hash                                                                        |
+| Withdraw commit           | no                           | lost response blocks retry pending manual reconciliation; never auto-resubmit (see `kalshi-funding-rails`) |
 
 A 429 without `Retry-After` uses bounded exponential backoff owned by the backend adapter. Mobile should not create independent retry storms.
 
@@ -221,13 +227,15 @@ Mobile teardown does not discard the external operation.
 ### Kalshi Withdraw
 
 ```text
-prepare -> user confirms -> commit
-  -> Kalshi returns transfer reference
+prepare -> user confirms + step-up -> commit
+  -> Kalshi returns transfer reference (transfer_id stored durably)
   -> FundingReceipt.status = submitted
   -> UI says submitted/processing
+  -> backend polls Kalshi transfer-status endpoint
+  -> UI shows completed only on a confirmed terminal status
 ```
 
-No transfer-status endpoint means the UI must not display completed. Support uses the operation and Venue references for reconciliation.
+Kalshi has confirmed a transfer-status endpoint for launch (shape unconfirmed); until it reports a terminal status the UI must not display completed. If the commit response is lost, the backend has no `transfer_id` and cannot distinguish “never submitted” from “submitted”: the operation surfaces as blocked pending manual reconciliation and is never automatically re-submitted. Support uses the operation and Venue references for reconciliation.
 
 ### Kalshi OTP
 
@@ -247,7 +255,8 @@ Examples:
 - live channel disconnected but bounded polling works → subtle degraded status,
 - one Venue unavailable in a merged feed → preserve other Venue data and label partial results,
 - cached price is stale → browsing may continue, Order preview/submit remains disabled until fresh backend validation,
-- withdrawal status unavailable → keep submitted operation visible; do not report failure or completion without evidence.
+- withdrawal status unavailable → keep submitted operation visible; do not report failure or completion without evidence,
+- broken profile↔Kalshi identity mapping → explicit “your account needs recovery” state with the re-link path (`kalshi-account-recovery`), never an empty portfolio implying funds are gone.
 
 A local Kalshi credential fallback is never a degraded mode.
 

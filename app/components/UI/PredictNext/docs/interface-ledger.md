@@ -1,6 +1,6 @@
 # PredictNext Interface Ledger
 
-This ledger owns stable interface facts for PredictNext. If another architecture or migration document disagrees with this file, this file wins.
+This ledger owns stable interface facts for PredictNext. If another architecture or migration document disagrees with this file on **code-level interface shapes**, this file wins. Contested topology, security, identity, KYC, funding, and recovery decisions are governed by the Kalshi ADR set (see [README — Governing ADRs](../README.md#governing-adrs)); this ledger must stay consistent with them.
 
 Keep this file code-like. Explanatory documents should link here rather than redefining runtime names, identity/scope types, query descriptors, actions, events, errors, or public exports.
 
@@ -81,6 +81,9 @@ interface PredictVenueStatus {
 
 interface PredictEligibility {
   venueId: PredictVenueId;
+  /** Venue/backend reachable and not kill-switched; false removes the browse surface. */
+  venueAvailable: boolean;
+  /** Jurisdiction/eligibility for actions; browsing is never gated on this. */
   eligible: boolean;
   blockReason?: string;
 }
@@ -832,6 +835,8 @@ enum PredictErrorCode {
   ORDER_PLACEMENT_FAILED = 'ORDER_PLACEMENT_FAILED',
   ACCOUNT_SETUP_FAILED = 'ACCOUNT_SETUP_FAILED',
   KYC_REJECTED = 'KYC_REJECTED',
+  ACCOUNT_RECOVERY_REQUIRED = 'ACCOUNT_RECOVERY_REQUIRED',
+  STEP_UP_REQUIRED = 'STEP_UP_REQUIRED',
   OTP_INVALID = 'OTP_INVALID',
   OTP_EXPIRED = 'OTP_EXPIRED',
   OTP_INVALID_OR_EXPIRED = 'OTP_INVALID_OR_EXPIRED',

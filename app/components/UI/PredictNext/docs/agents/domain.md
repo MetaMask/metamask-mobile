@@ -8,7 +8,8 @@ Predict is a single-context bounded context rooted at `app/components/UI/Predict
 
 - `CONTEXT.md` in this directory — Predict glossary and canonical product language.
 - `docs/interface-ledger.md` in this directory — canonical runtime names, query descriptors, hooks, selectors, Service Events, errors, and public entrypoint exports.
-- `docs/adr/` in this directory — Predict architectural decisions, if present.
+- `docs/adr/` in this directory — Predict-local architectural decisions, if present.
+- The **Kalshi ADR set** in [MetaMask/decisions](https://github.com/MetaMask/decisions) (`decisions/predict/kalshi-*.md`) — governs the contested Kalshi integration decisions (topology, security invariants, identity, KYC, funding, recovery). See the README “Governing ADRs” section for precedence.
 
 If `docs/adr/` does not exist, proceed silently. Do not create it upfront. Create ADRs lazily only when a durable, non-obvious decision is made.
 

@@ -2,9 +2,25 @@
 
 PredictNext is the target prediction-markets module for MetaMask Mobile. It supports Venues with materially different identity, account, funding, order, and settlement models, including legacy Polymarket and remote-first Kalshi.
 
-## Current Delivery Decision
+## Governing ADRs
 
-Kalshi is the active first production slice of PredictNext.
+The contested architecture and delivery decisions for the Kalshi integration are recorded in the Kalshi ADR set in [MetaMask/decisions](https://github.com/MetaMask/decisions) (`decisions/predict/kalshi-*.md`, [PR #241](https://github.com/MetaMask/decisions/pull/241)):
+
+- `kalshi-integration-overview` — topology, Kalshi-first strangler, venue-selection policy
+- `kalshi-security-trust-model` — the four binding security invariants
+- `kalshi-identity` — Canonical Profile ID as the Kalshi `external_user_id`
+- `kalshi-kyc-pii-flow` — Encrypted Passthrough KYC design
+- `kalshi-funding-rails` — Base USDC rails and write-safety semantics
+- `kalshi-account-recovery` — recovery when the identity chain breaks
+- `kalshi-mobile-architecture` — the four contested mobile decisions
+
+Identity platform references for the Canonical Profile ID (cited by the identity ADR): [Authentication API](https://docs.cx.metamask.io/docs/apis/user-services/authentication/) · [Profile Management](https://docs.cx.metamask.io/docs/apis/user-services/authentication/profile-management/) · [Canonical Profile ID](https://docs.cx.metamask.io/docs/apis/user-services/authentication/canonical-profile-id/) (profile pairing, aliasing, election rules).
+
+**Precedence:** the ADRs govern topology, security, identity, KYC, funding, and recovery decisions; these living docs elaborate the detailed design and must not contradict them. The [interface ledger](docs/interface-ledger.md) wins only for code-level interface shapes consistent with the ADRs. The ADRs are currently `Proposed` (in review); where a decision below depends on an open ADR recommendation, it is a working target, not a settled outcome.
+
+## Current Delivery Direction
+
+Kalshi is the active first production slice of PredictNext (per the `kalshi-integration-overview` ADR recommendation, in review).
 
 - Build the minimum venue-neutral modules required by each Kalshi vertical slice.
 - Keep Polymarket on the legacy `Predict/` stack during Kalshi delivery.
@@ -13,6 +29,10 @@ Kalshi is the active first production slice of PredictNext.
 - Port Polymarket through the proven seams capability by capability after Kalshi stabilizes.
 
 The complete seven-phase Polymarket rewrite and full UI replacement are not Kalshi launch prerequisites. See [docs/migration/kalshi-first.md](docs/migration/kalshi-first.md).
+
+### Venue selection and eligibility
+
+Per the parent ADR's venue-selection policy: the client defaults the venue from geolocation (US → Kalshi, rest-of-world → Polymarket on the legacy stack); users may switch venues manually; an ineligible venue is **read-only** — browsing markets and prices works, and only actions (onboarding, trading, funding) are blocked. Eligibility enforcement for actions lives on the backend, independent of client-declared venue, geolocation, or feature flags.
 
 ## Architecture Overview
 

@@ -1,5 +1,7 @@
 # Remote Venue Adapters
 
+> Governed by the Kalshi ADR set (see [README — Governing ADRs](../README.md#governing-adrs)), primarily `kalshi-mobile-architecture`, `kalshi-security-trust-model`, `kalshi-identity`, `kalshi-kyc-pii-flow`, and `kalshi-funding-rails`.
+
 Remote Venue adapters are a first-class deployment shape for PredictNext. They are **required for Kalshi account-scoped operations** because Kalshi ISV onboarding and trading use server-held admin and per-user credentials.
 
 A generic remote signing-intent framework is not a Kalshi launch prerequisite. Build that only when another remote Venue needs on-device signatures for Venue protocol payloads.
@@ -45,9 +47,9 @@ Mobile does not own:
 
 The backend owns:
 
-- deriving the authenticated Predict User from the MetaMask bearer token,
-- mapping that user to a Venue Account,
-- a server-generated stable Kalshi `external_user_id`,
+- deriving the authenticated Predict User from the MetaMask bearer token (Authentication-service JWT carrying the canonical profile ID),
+- mapping that user to a Venue Account (`profile_id ↔ kalshi_user_id`, plus per-user key custody),
+- sending the **Canonical Profile ID verbatim as the Kalshi `external_user_id`** (per the `kalshi-identity` ADR — it identifies but never authorizes; the backend must send the identical server-derived value on `/users/link` and `/users/link/verify`, never a client-echoed one). The backend resolves the **canonical** profile ID — alias chains from [profile pairing](https://docs.cx.metamask.io/docs/apis/user-services/authentication/canonical-profile-id/) resolve server-side, and the legacy pre-pairing `sub` behind the `X-MetaMask-Profile-Pairing` header is never used as the Kalshi identity key,
 - admin and per-user credential lifecycle,
 - Venue request signing,
 - durable Account Setup and Venue Operation records,
@@ -67,6 +69,17 @@ A privileged backend route never trusts a client-supplied:
 - Kalshi `external_user_id`.
 
 The backend derives the authoritative subject from authentication. A wallet address supplied for a Deposit or Withdraw is an operation parameter and must be validated against product policy; it is not authorization.
+
+### Step-up authorization for high-risk operations
+
+Per trust-model invariant 3, a valid bearer session alone is **insufficient** for:
+
+- withdrawal commit,
+- payout-method registration,
+- per-user key minting,
+- identity remapping (recovery re-link).
+
+Each additionally requires a **server-verifiable step-up factor** (fresh re-authentication, a wallet-signed challenge, or OTP — mechanism selected with AppSec). In-app confirmation UI is UX, not a security control: a compromised client renders its own confirmations. Mobile renders and executes the step-up factor; the backend verifies it.
 
 Mobile should use the existing authenticated MetaMask platform client in `app/core/apiClient.ts` rather than a feature-specific unauthenticated fetch wrapper.
 
@@ -170,14 +183,32 @@ Backend owns:
 - opaque Venue status interpretation rules,
 - KYC-provider device/session values when required.
 
-### Sensitive-data rules
+Note: whether email/phone OTP entry transits the relay encrypted or is restructured Kalshi-owned end-to-end is an open question in the `kalshi-kyc-pii-flow` ADR; the step shapes above must not assume plaintext OTP transit through the backend.
 
-- prefer a Kalshi-hosted or tokenized KYC flow if available,
-- otherwise send profile/KYC fields only over the authenticated operation that needs them,
-- never persist raw fields in mobile state or storage,
-- do not retain profile/SSN in the Predict backend beyond approved policy,
+### KYC / PII flow — Encrypted Passthrough
+
+The KYC design is owned by the `kalshi-kyc-pii-flow` ADR: **Encrypted Passthrough**, gated on legal sign-off of the cryptographically-blind posture and on Kalshi delivering a session-key endpoint. A plaintext backend conduit (sending profile/KYC fields through the backend, even transiently and unlogged) is **explicitly rejected** — MetaMask infrastructure must be cryptographically blind to PII (trust-model invariant 2); _access_, not retention, is the forbidden act.
+
+Mobile-side flow:
+
+1. client fetches the Kalshi session public key via backend relay; the key must be attributable to Kalshi (pinning or signed attestation), not merely delivered over our relay,
+2. client collects the KYC form natively and encrypts PII fields on-device to the Kalshi key; the ciphertext is bound to user/endpoint/freshness (replay and cross-user substitution resistance),
+3. client → backend: **ciphertext only**; the backend injects orchestration identifiers derived from the JWT-authenticated profile ID and relays to Kalshi,
+4. Kalshi decrypts server-side; status flows back as non-PII fields only,
+5. if Socure requires L2 step-up (document photo, selfie/liveness): **client → Socure SDK directly** — biometric material never touches MetaMask infrastructure in any form, not even encrypted,
+6. a **consent screen naming Kalshi and Socure** is shown before any PII is collected.
+
+Sensitive-data rules:
+
+- the backend holds no PII decryption key and never decrypts, stores, inspects, or logs plaintext PII,
+- the backend persists only the bounded status projection from Kalshi's user-status endpoint: `last_step`, `digital_verification_status`, `digital_verification_result` (opaque strings, displayed/logged but never branched on) plus derived KYC approval — nothing else from the KYC flow,
+- response-path fields transiting the relay are enumerated; known PII fragments (e.g. `obfuscated_email`) are tolerated only as masked values,
+- PII exists in client memory/form state only during entry and encryption: never in Redux, persisted storage, query keys, analytics, logs, or crash-report breadcrumbs,
+- transient client exposure (screenshots, app switcher, keyboard/autofill, clipboard, accessibility services, crash reporting) follows rules defined with AppSec,
 - redact request/response bodies, errors, analytics, traces, support tooling, and crash reports,
 - tests use synthetic fixtures only.
+
+Fallback if Encrypted Passthrough is not cleared: idOS Relay ETL (recorded in the ADR as the strategic direction). Any requirement that appears to need plaintext PII on MetaMask infrastructure is a stop-and-escalate to privacy/legal, not a design option here.
 
 ## 6. Funding
 
@@ -206,20 +237,29 @@ Rules:
 - repeating prepare/commit with the same idempotency key does not reserve or credit twice,
 - prefunding exposure limits and settlement-failure handling follow the approved commercial/operations policy rather than mobile assumptions.
 
-Base is the recommended first rail if approved. Additional networks are additive capability work, not a foundation requirement.
+**Base USDC only, both directions**, is the launch scope recommended by the `kalshi-funding-rails` ADR (pending sign-off): the only network supported for both deposits and withdrawals, avoiding trap states. Additional networks are additive capability work, not a foundation requirement. `X-Predict-Supported-Networks`, plan validation, and test fixtures assume Base-only at launch.
 
 ### Kalshi Withdraw
 
 ```text
 1. Mobile -> backend prepare(amount, destination, network, idempotency key)
 2. Backend -> canonical Venue operation preview
-3. Mobile -> explicit user confirmation
+3. Mobile -> explicit user confirmation + server-verifiable step-up factor
 4. Mobile -> backend commit(operationId, idempotency key)
-5. Backend -> payout method register/reuse + Kalshi withdrawal
+5. Backend -> payout method register/reuse + Kalshi withdrawal (transfer_id stored durably)
 6. Backend -> receipt(status: submitted, venue reference)
+7. Backend -> reconcile via Kalshi transfer-status endpoint; UI stays
+   submitted/processing until a confirmed terminal status
 ```
 
-Preparing must not withdraw. Because Kalshi has no ISV-safe transfer-status endpoint at launch, the UI must not claim completion. The backend keeps the operation and Venue transfer reference for support reconciliation.
+Rules (per the `kalshi-funding-rails` ADR):
+
+- preparing must not withdraw,
+- **payout methods are the user's own wallets only**, registered via **proof of wallet control**: the backend issues a challenge nonce bound to profile ID + chain + address + expiry, the wallet signs it, and only proven addresses are registrable. A bearer session alone never suffices to register a payout destination,
+- withdrawal commit and payout registration require step-up authorization (§2),
+- Kalshi has confirmed a transfer-status endpoint will be available at launch (shape unconfirmed — likely status-by-`transfer_id`); the backend polls it to reconcile. Until completion is confirmed, the UI reports submitted/processing and never claims completion,
+- **ambiguous lost commit**: if the withdrawal commit response is lost, the backend never received `transfer_id`, and status lookup cannot distinguish “never submitted” from “submitted.” Until Kalshi provides endpoint idempotency or a per-user transfer listing, a lost commit response **blocks retry of that operation pending manual reconciliation** — it must never trigger an automatic re-submit,
+- the backend keeps the operation and Venue transfer reference for support reconciliation.
 
 ## 7. Order Preview and Submission
 
@@ -274,17 +314,20 @@ Do not add this framework to the Kalshi critical path.
 - no blind automatic retry,
 - every prepare and commit has an idempotency key,
 - backend stores the operation before an external irreversible call,
-- lost responses reconcile by operation ID,
+- lost responses reconcile by operation ID where the venue contract makes that safe; where it does not (withdrawal commit — see §6), the operation blocks pending manual reconciliation instead,
 - app teardown stops observation but not the operation,
 - conflicting reuse of an idempotency key fails explicitly,
 - support can trace an operation without access to secrets or PII.
 
 ## 10. Credential Lifecycle
 
-Production backend requirements:
+Production backend requirements (per trust-model invariant 1):
 
 - managed secret/KMS or envelope-encrypted storage,
 - strict admin versus per-user key scopes,
+- **standing per-user keys are minted `read`/`write` only — never `write::transfer`**: the hot-path key store cannot move funds; its compromise is a trading incident, not a theft incident,
+- **withdrawal commits use an ephemeral transfer-scoped key**: minted under step-up authorization, used once, revoked immediately,
+- withdrawals can reach only pre-registered, proof-of-control-verified user wallets (payout allowlist),
 - source-IP allowlisting for production admin calls,
 - private key written atomically before acknowledging key mint,
 - list/revoke/remint recovery when a one-time private-key response is lost,
@@ -343,14 +386,18 @@ Rollback disables Kalshi writes or the entire Kalshi surface. It never moves cre
 
 ## 13. Open Decisions
 
-Before implementation:
+Most formerly open decisions are now owned by the Kalshi ADR set; their live status and open questions are tracked in each ADR's **Open Questions / External Dependencies** section, not here:
 
-1. authenticated Predict User source and multi-wallet policy,
-2. separate versus merged launch surface,
-3. KYC/PII collection and retention design,
-4. Base-only launch approval,
-5. Immediate versus Resting Order scope,
-6. backend owner/SLO/on-call,
-7. Kalshi-supported recovery for lost successful link/verification and one-time key-mint responses,
-8. withdrawal support reconciliation process,
-9. current Kalshi production/demo endpoint and enablement contract.
+- Predict User identity → `kalshi-identity` (Canonical Profile ID recommended; privacy sign-off pending),
+- KYC/PII design → `kalshi-kyc-pii-flow` (Encrypted Passthrough recommended; legal ruling + Kalshi session-key endpoint gating),
+- funding rail scope → `kalshi-funding-rails` (Base-only recommended),
+- withdrawal reconciliation and ambiguous-commit handling → `kalshi-funding-rails`,
+- recovery for lost link/verification and key-mint responses → `kalshi-account-recovery`,
+- backend owner/SLO/on-call → `kalshi-integration-overview`.
+
+Remaining open here:
+
+1. separate versus merged launch surface (product),
+2. Immediate versus Resting Order scope (product),
+3. current Kalshi production/demo endpoint and enablement contract,
+4. step-up factor mechanism selection (with AppSec).

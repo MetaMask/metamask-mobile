@@ -452,7 +452,7 @@ Tabs, scroll position, and other screen presentation state remain static constan
 
 Purpose:
 
-- Gate access based on eligibility, network, feature availability, and account restrictions
+- Gate **actions** based on eligibility, network, feature availability, and account restrictions. Per the venue-selection policy (parent ADR), an ineligible venue is read-only: public browsing is never gated by eligibility — only venue/backend availability can remove the browse surface. Server-side enforcement is the actual control; the guard is UX.
 
 Maps to:
 
@@ -466,12 +466,21 @@ function usePredictGuard(params: {
   venueId: PredictVenueId;
   accountScope?: PredictAccountScope;
 }): {
+  /** Venue/backend reachable and not kill-switched. false removes the surface. */
+  venueAvailable: boolean;
+  /** Jurisdiction/eligibility for actions. Browsing is never gated on this. */
   isEligible: boolean;
+  /** User may begin/resume Account Setup (eligible + venue available). */
+  canSetup: boolean;
+  /** Account Readiness allows trading/funding actions. */
   canTrade: boolean;
+  /** Prompt network switch. Call only when the blocker is network state. */
   ensureNetwork: () => Promise<boolean>;
   blockReason: string | null;
 };
 ```
+
+The booleans are deliberately separate: venue availability, jurisdiction eligibility, setup readiness, and network state are different conditions with different UI treatments. Do not collapse them into one flag, and do not trigger `ensureNetwork()` when the blocker is KYC, jurisdiction, or an outage.
 
 Implementation sketch:
 
@@ -499,15 +508,24 @@ export function usePredictGuard({
     accountScope ? selectPredictReadiness(state, accountScope) : undefined,
   );
 
+  const networkBlocked = readiness?.blockers?.some(
+    (blocker) => blocker.code === 'unsupported_network',
+  );
+
   const ensureNetwork = useCallback(async () => {
-    if (readiness?.canTrade) {
-      return true;
+    if (!networkBlocked) {
+      return true; // only network blockers are resolved by switching networks
     }
     return await ensurePredictSupportedNetwork();
-  }, [readiness?.canTrade]);
+  }, [networkBlocked]);
+
+  const venueAvailable = eligibility.venueAvailable !== false;
+  const isEligible = eligibility.eligible;
 
   return {
-    isEligible: eligibility.eligible,
+    venueAvailable,
+    isEligible,
+    canSetup: venueAvailable && isEligible,
     canTrade: Boolean(readiness?.canTrade),
     ensureNetwork,
     blockReason:
