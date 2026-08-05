@@ -45,8 +45,10 @@ export const useHasSufficientGasEvenIfGasIncludedOrSponsored = ({
     decimals: sourceChainNativeAsset?.decimals,
   });
 
-  // quote.gasFee.total.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
-  const gasAmount = sumAmounts(quote?.quote.feeData?.network)?.normalizedAmount;
+  const gasAmount = sumAmounts(
+    quote?.quote.feeData?.network,
+    quote?.quote.feeData?.relayer,
+  )?.normalizedAmount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null
       ? new BigNumber(gasAmount).toFixed()
