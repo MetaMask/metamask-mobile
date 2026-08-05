@@ -1,4 +1,4 @@
-import { SmokeNetworkExpansion } from '../../../../tags';
+import { SmokeNetworkAbstractions } from '../../../../tags';
 import { loginToApp } from '../../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import Assertions from '../../../../framework/Assertions';
@@ -18,7 +18,7 @@ const ETHEREUM_MAIN_NET_NETWORK_NAME =
   NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME;
 
 describe(
-  SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
+  SmokeNetworkAbstractions('Chain Permission System, non-permitted chain, '),
   () => {
     beforeEach(() => {
       jest.setTimeout(150000);
