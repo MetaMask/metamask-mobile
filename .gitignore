@@ -141,9 +141,6 @@ scripts/reports/
 # PR description files (temporary, not to be committed)
 PR_DESC.md
 
-# Performance test results
-tests/smoke/performance/reports/*-performance-results.json
-
 # appwright
 appwright/report
 playwright-report/*
@@ -237,9 +234,16 @@ release-signoffs.json
 # Build environment validation
 build-env.json
 
+# Kalshi POC
+scripts/kalshi-poc-backend/node_modules
+
 # Local typecheck / validation output
 *.tsccheck.log
 .tsccheck.log
 predict_tsc.log
 predict_tsc_summary.txt
-scripts/kalshi-poc-backend/node_modules
+
+# mm CLI daemon
+.mm-server
+.mm-daemon.log
+test-artifacts/

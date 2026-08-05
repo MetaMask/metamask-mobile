@@ -7,6 +7,8 @@ import {
   PerpsControllerState,
   InitializationState,
   MARKET_SORTING_CONFIG,
+  PerpsMode,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
   PerpsPlatformDependencies,
 } from '@metamask/perps-controller';
 import { perpsControllerInit } from '.';
@@ -44,6 +46,9 @@ jest.mock('@metamask/perps-controller', () => {
     PerpsController: jest.fn(),
     parseCommaSeparatedString: actualUtils.parseCommaSeparatedString,
     MARKET_SORTING_CONFIG: actualConstants.MARKET_SORTING_CONFIG,
+    PerpsMode: actualConstants.PerpsMode,
+    DEFAULT_PRO_LAYOUT_PREFERENCES:
+      actualConstants.DEFAULT_PRO_LAYOUT_PREFERENCES,
   };
 });
 
@@ -154,6 +159,8 @@ describe('perps controller init', () => {
       selectedPaymentToken: null,
       cachedMarketDataByProvider: {},
       cachedUserDataByProvider: {},
+      mode: PerpsMode.Lite,
+      proLayoutPreferences: DEFAULT_PRO_LAYOUT_PREFERENCES,
     };
 
     initRequestMock.persistedState = {

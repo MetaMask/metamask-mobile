@@ -129,10 +129,18 @@ const useWatchlistMutation = <TInput>({
   applyOptimistic,
   toOp,
   invalidateOnSettled = { blob: true, hydrated: true },
+  shouldInvalidateHydrated,
 }: {
   applyOptimistic: (current: readonly string[], input: TInput) => string[];
   toOp: (input: TInput) => WatchlistOp;
   invalidateOnSettled?: InvalidateOnSettledOptions;
+  /**
+   * Optional gate for hydrated invalidation. Used by add to skip refetch when
+   * the added IDs were already removed before the mutation settled (quick
+   * watch→unwatch), which would otherwise race a late getTokens result back
+   * into the list.
+   */
+  shouldInvalidateHydrated?: (input: TInput) => boolean;
 }) => {
   const queryClient = useQueryClient();
 
@@ -182,13 +190,16 @@ const useWatchlistMutation = <TInput>({
         );
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _error, input) => {
       if (invalidateOnSettled.blob !== false) {
         queryClient.invalidateQueries({
           queryKey: tokenWatchlistQueryKeys.blob,
         });
       }
-      if (invalidateOnSettled.hydrated !== false) {
+      const shouldInvalidate =
+        invalidateOnSettled.hydrated !== false &&
+        (shouldInvalidateHydrated?.(input) ?? true);
+      if (shouldInvalidate) {
         queryClient.invalidateQueries({
           queryKey: tokenWatchlistQueryKeys.hydrated,
         });
@@ -202,14 +213,31 @@ const useWatchlistMutation = <TInput>({
  * optimistic cache updates with rollback and enqueues an `add` op into
  * the shared {@link tokenWatchlistBatcher}.
  */
-export const useTokenWatchlistAddItemMutation = () =>
-  useWatchlistMutation<WatchlistAddInput>({
+export const useTokenWatchlistAddItemMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useWatchlistMutation<WatchlistAddInput>({
     applyOptimistic: (current, input) =>
       mergeAssets(current, toStrings(asArray(input))),
     toOp: (input) => ({ kind: 'add', ids: toStrings(asArray(input)) }),
     // Blob is already correct after onMutate; hydrated needs getTokens for metadata.
     invalidateOnSettled: { blob: false, hydrated: true },
+    shouldInvalidateHydrated: (input) => {
+      const blob = queryClient.getQueryData<WatchlistBlob>(
+        tokenWatchlistQueryKeys.blob,
+      );
+      // Cold blob cache: still refetch so newly added metadata can load.
+      if (blob === undefined) {
+        return true;
+      }
+      const addedIds = toStrings(asArray(input));
+      // Skip refetch if every added id was already removed (quick toggle).
+      return addedIds.some((id) =>
+        blob.assets.some((asset) => asset.toLowerCase() === id.toLowerCase()),
+      );
+    },
   });
+};
 
 /**
  * Remove one or more `CaipAssetType` ids from the watchlist. Mirrors

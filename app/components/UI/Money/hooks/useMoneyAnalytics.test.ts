@@ -229,7 +229,7 @@ describe('useMoneyAnalytics', () => {
       result.current.trackScreenViewed();
 
       expect(mockGetQueryState).toHaveBeenCalledWith([
-        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+        MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
         MOCK_MONEY_ACCOUNT_ADDRESS,
       ]);
     });
@@ -493,6 +493,7 @@ describe('useMoneyAnalytics', () => {
       token_position_in_list: 1,
       token_chain_id: '0x1',
       tokens_in_list: 3,
+      token_has_balance: true,
     } as const;
 
     it('fires the MONEY_BUTTON_CLICKED event with token row properties', () => {
@@ -509,6 +510,7 @@ describe('useMoneyAnalytics', () => {
           token_position_in_list: 1,
           token_chain_id: '0x1',
           tokens_in_list: 3,
+          token_has_balance: true,
         }),
       );
     });
@@ -523,6 +525,31 @@ describe('useMoneyAnalytics', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({ redirect_target_type: 'screen' }),
+      );
+    });
+  });
+
+  describe('trackTokenSurfaceClicked', () => {
+    it('fires the MONEY_SURFACE_CLICKED event with the token balance state', () => {
+      const { result } = renderHook(() => useMoneyAnalytics());
+
+      result.current.trackTokenSurfaceClicked({
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: 'USDC',
+        token_position_in_list: 1,
+        token_chain_id: '0x1',
+        tokens_in_list: 3,
+        token_has_balance: false,
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MONEY_SURFACE_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_symbol: 'USDC',
+          token_has_balance: false,
+        }),
       );
     });
   });

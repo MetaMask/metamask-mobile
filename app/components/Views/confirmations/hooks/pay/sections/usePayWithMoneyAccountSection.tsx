@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
@@ -11,10 +12,7 @@ import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagC
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
-import {
-  getTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { getTransactionType } from '../../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
 import {
   PayWithRowConfig,
@@ -30,7 +28,7 @@ const styles = StyleSheet.create({
 });
 
 export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
@@ -50,18 +48,16 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     transactionType && enableMoneyAccountTransactions[transactionType],
   );
 
-  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-
   const handlePress = useCallback(() => {
     if (transactionId) {
       applyMoneyAccountOverride(
         transactionId,
         moneyAccount?.address,
-        isWithdraw,
+        transactionMeta,
       );
     }
     navigation.goBack();
-  }, [isWithdraw, moneyAccount?.address, navigation, transactionId]);
+  }, [moneyAccount?.address, navigation, transactionId, transactionMeta]);
 
   return useMemo(() => {
     if (!isEnabled || !moneyAccount) {

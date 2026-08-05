@@ -75,7 +75,9 @@
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
     "tests/**/*",
-    "scripts/**/*"
+    "scripts/**/*",
+    "tests/llm-workflow/**/*",
+    "mm-client-cli.config.ts"
   ],
   "exclude": [
     "node_modules",

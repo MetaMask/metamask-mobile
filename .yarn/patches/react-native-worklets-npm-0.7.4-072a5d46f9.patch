@@ -19,7 +19,7 @@ index 22388b6b71369d7d9845769e50612cc34890db47..fc70611b5b65b2a8ffc61959526265f1
  #endif // HERMES_ENABLE_DEBUGGER && !defined(HERMES_V1_ENABLED)
 
  #ifndef NDEBUG
-@@ -92,8 +98,8 @@ WorkletHermesRuntime::WorkletHermesRuntime(
+@@ -92,7 +98,7 @@ WorkletHermesRuntime::WorkletHermesRuntime(
 
  WorkletHermesRuntime::~WorkletHermesRuntime() {
  #if HERMES_ENABLE_DEBUGGER && !defined(HERMES_V1_ENABLED)

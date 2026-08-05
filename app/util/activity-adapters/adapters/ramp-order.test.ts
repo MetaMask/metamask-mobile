@@ -46,6 +46,36 @@ describe('mapRampOrder', () => {
     });
   });
 
+  it('keeps human-readable cryptoAmount without token decimals', () => {
+    const order = {
+      ...baseOrder,
+      cryptoAmount: '30',
+      data: {
+        cryptoCurrency: {
+          symbol: 'mUSD',
+          decimals: 6,
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        },
+      },
+    } as FiatOrder;
+
+    expect(mapRampOrder({ order })).toMatchObject({
+      data: {
+        token: {
+          amount: '30',
+          symbol: 'mUSD',
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          direction: 'in',
+        },
+      },
+    });
+    expect(mapRampOrder({ order })?.data).toEqual(
+      expect.objectContaining({
+        token: expect.not.objectContaining({ decimals: expect.anything() }),
+      }),
+    );
+  });
+
   it('maps a sell order to sell using sellTxHash and outgoing token', () => {
     const order = {
       ...baseOrder,
@@ -111,6 +141,27 @@ describe('mapRampOrder', () => {
     expect(
       mapRampOrder({ order: { ...baseOrder, network: 'not-a-chain' } }),
     ).toBeNull();
+  });
+
+  it('falls through an unparseable network name to cryptoCurrency.assetId', () => {
+    const order = {
+      ...baseOrder,
+      network: 'ethereum',
+      data: {
+        cryptoCurrency: {
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+        },
+      },
+    } as FiatOrder;
+
+    expect(mapRampOrder({ order })?.chainId).toBe('eip155:1');
+  });
+
+  it('treats placeholder txHash values as missing and falls back to order id', () => {
+    expect(mapRampOrder({ order: { ...baseOrder, txHash: '0x' } })?.hash).toBe(
+      'order-1',
+    );
   });
 
   it('maps orders with a non-EVM CAIP-2 network', () => {

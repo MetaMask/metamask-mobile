@@ -2,7 +2,7 @@ diff --git a/android/src/main/java/com/segmentanalyticsreactnative/AnalyticsReac
 index 3cf9c4604c86e334d59cb683c1998b0213bbb929..99fc83daf47244d818fbe7e74798d80e4498e837 100644
 --- a/android/src/main/java/com/segmentanalyticsreactnative/AnalyticsReactNativeModule.kt
 +++ b/android/src/main/java/com/segmentanalyticsreactnative/AnalyticsReactNativeModule.kt
-@@ -217,11 +217,10 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
+@@ -217,9 +217,8 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
      }
 
      Log.d(name, "Sending Deeplink data to store: uri=${uri}, referrer=${referrer}")

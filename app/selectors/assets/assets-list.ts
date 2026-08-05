@@ -12,7 +12,7 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -24,14 +24,14 @@ import {
   TRON_SPECIAL_ASSET_SYMBOLS_SET,
   TronSpecialAssetSymbol,
 } from '../../core/Multichain/constants';
-import {
-  ARC_USDC_TOKEN_ADDRESS,
-  NETWORKS_CHAIN_ID,
-} from '../../constants/network';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
-import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
+import {
+  fromWei,
+  hexToBigInt,
+  weiToFiatNumber,
+} from '../../util/number/bigint';
 import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectAccountsByChainId } from '../accountTrackerController';
@@ -60,6 +60,8 @@ import {
   getTokensControllerAllIgnoredTokens,
   getTokensControllerAllTokens,
 } from './assets-migration';
+import { isAssetSupportActivation } from '../stellar/stellar-assets';
+import { filterExcludedAssets } from '../../enablement/assets/networks-customization';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -142,27 +144,6 @@ const getStateForAssetSelector = (state: RootState) => {
 };
 
 /**
- * Removes the Arc USDC ERC-20 (0x3600…) from the per-chain asset map so it
- * never appears as a duplicate of the native token on Arc. The native token
- * (zero address) is kept — it is the source of truth for USDC on Arc.
- */
-function filterArcUsdcErc20Token(
-  assets: AccountGroupAssets,
-): AccountGroupAssets {
-  const arcAssets = assets[NETWORKS_CHAIN_ID.ARC];
-  if (!arcAssets) {
-    return assets;
-  }
-  return {
-    ...assets,
-    [NETWORKS_CHAIN_ID.ARC]: arcAssets.filter(
-      (asset) =>
-        !('address' in asset) || asset?.address !== ARC_USDC_TOKEN_ADDRESS,
-    ),
-  };
-}
-
-/**
  * Invokes the assets-controllers selector; on failure returns {} so the wallet UI
  * does not red-screen during brief AccountTree / internalAccounts mismatch (e.g. after unlock).
  */
@@ -182,9 +163,7 @@ function callSelectAssetsBySelectedAccountGroup(
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) =>
-    filterArcUsdcErc20Token(
-      callSelectAssetsBySelectedAccountGroup(assetsState),
-    ),
+    filterExcludedAssets(callSelectAssetsBySelectedAccountGroup(assetsState)),
 );
 
 /**
@@ -279,7 +258,7 @@ const selectStakedAssets = createDeepEqualSelector(
               currencyRates[nativeCurrency]?.conversionRate;
 
             const fiatBalance = conversionRate
-              ? weiToFiatNumber(hexToBN(stakedBalance), conversionRate)
+              ? weiToFiatNumber(hexToBigInt(stakedBalance), conversionRate)
               : undefined;
 
             const account = Object.values(internalAccounts).find(
@@ -303,7 +282,7 @@ const selectStakedAssets = createDeepEqualSelector(
               accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
-              balance: fromWei(stakedBalance),
+              balance: fromWei(hexToBigInt(stakedBalance)),
               fiat: fiatBalance
                 ? {
                     balance: Number(fiatBalance),
@@ -365,6 +344,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -519,6 +499,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;
@@ -531,6 +512,13 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       );
     },
   );
+
+export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
+  (chainIds: string[]) => (state: RootState) =>
+    selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      chainIds,
+    );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(

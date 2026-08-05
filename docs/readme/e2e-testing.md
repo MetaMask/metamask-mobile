@@ -255,7 +255,6 @@ Flask E2E builds use these key environment variables:
 ```bash
 METAMASK_BUILD_TYPE=flask          # Enables Flask build variant
 METAMASK_ENVIRONMENT=e2e           # Enables E2E-specific configurations
-BRIDGE_USE_DEV_APIS=true          # Enables more snaps funcationality and dev APIs
 ```
 
 **Build Script Architecture:**
@@ -330,23 +329,22 @@ yarn test:e2e:android:flask:run
 
 ### Flask vs Main Build Differences
 
-| Aspect            | Main Build                          | Flask Build                                  |
-| ----------------- | ----------------------------------- | -------------------------------------------- |
-| **Snaps Support** | ❌ Limited                          | ✅ Enabled (with `BRIDGE_USE_DEV_APIS=true`) |
-| **Dev APIs**      | ❌ Limited                          | ✅ Full access                               |
-| **App Icon**      | Standard MetaMask                   | Flask logo                                   |
-| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                          |
-| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                              |
-| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask`        |
+| Aspect            | Main Build                          | Flask Build                           |
+| ----------------- | ----------------------------------- | ------------------------------------- |
+| **Snaps Support** | ❌ Limited                          | ✅ Enabled                            |
+| **Dev APIs**      | ❌ Limited                          | ✅ Full access                        |
+| **App Icon**      | Standard MetaMask                   | Flask logo                            |
+| **Bundle ID**     | `io.metamask`                       | `io.metamask.flask`                   |
+| **E2E Mode**      | `debugE2E`                          | `flaskDebugE2E`                       |
+| **Detox Config**  | `android.emu.main` / `ios.sim.main` | `android.emu.flask` / `ios.sim.flask` |
 
 ### Flask Troubleshooting
 
 **"Installing Snaps is currently disabled" error:**
 
 1. Check if `.js.env` has hardcoded `METAMASK_BUILD_TYPE` or `METAMASK_ENVIRONMENT` - remove them
-2. Verify `BRIDGE_USE_DEV_APIS=true` is set during build
-3. Rebuild the app with `yarn test:e2e:*:flask:build`
-4. Verify Flask build by checking app icon/splash screen
+2. Rebuild the app with `yarn test:e2e:*:flask:build`
+3. Verify Flask build by checking app icon/splash screen
 
 **Metro bundler shows wrong `METAMASK_BUILD_TYPE`:**
 
@@ -397,25 +395,38 @@ yarn test:e2e:android:flask:run
 
 ### API Spec Tests
 
-**Platform**: iOS  
-**Test Location**: `tests/smoke/api-specs/json-rpc-coverage.js`
+**Platform**: iOS Appium only (not Android; not Appium smoke tag suites)
+**Test Location**: `tests/smoke-appium/api-specs/`
+**CI**: [`.github/workflows/run-e2e-api-specs.yml`](../../.github/workflows/run-e2e-api-specs.yml) (`api-specs-ios` job; currently `if: false`)
 
-The API Spec tests use the `@open-rpc/test-coverage` tool to generate tests from our [api-specs](https://github.com/MetaMask/api-specs) OpenRPC Document. These tests are currently executed only on iOS and use the same build as the Detox tests for iOS.
+The API Spec tests use `@open-rpc/test-coverage` against the in-app Test Dapp WebView (`window.ethereum`). Coverage is generated from the MetaMask [api-specs](https://github.com/MetaMask/api-specs) OpenRPC document (`0.10.8`). Specs are excluded from `yarn appium-smoke:*` via Playwright `testIgnore` unless `APPIUM_RUN_API_SPECS=1`.
 
-- **Test Coverage Tool**: The `test-coverage` tool uses `Rules` and `Reporters` to generate and report test results. These are passed as parameters in the test coverage tool call located in [tests/smoke/api-specs/json-rpc-coverage.js](../../tests/smoke/api-specs/json-rpc-coverage.js). For more details on `Rules` and `Reporters`, refer to the [OpenRPC test coverage documentation](https://github.com/open-rpc/test-coverage?tab=readme-ov-file#extending-with-a-rule).
+- **Rules**: JsonSchemaFaker + Examples (unsupported / confirmation methods filtered) and ConfirmationsRejectRule (Cancel → error `4001`). See [`tests/smoke-appium/api-specs/json-rpc-coverage.spec.ts`](../../tests/smoke-appium/api-specs/json-rpc-coverage.spec.ts).
+- **Build**: main-e2e release (`HAS_TEST_OVERRIDES=true`), same as Appium smoke — not Metro debug.
+- Prefer **iOS 18.x** locally for WebView JS; iOS 26.x may fail with `'Runtime' domain was not found`.
 
 #### Commands
 
-1. **Build the App**:
+1. **Build / obtain main-e2e iOS app** (see [Appium smoke testing](../testing/appium-smoke-testing.md)), e.g. `build/ci-main-e2e/MetaMask.app`.
+
+2. **Prepare simulator + Appium** (once):
 
    ```bash
-   yarn test:e2e:ios:debug:build
+   set -a && source .e2e.env && set +a
+   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app node scripts/e2e/prepare-ios-appium-runner.mjs
    ```
 
-2. **Run API Spec Tests**:
+3. **Run API Spec Tests**:
 
    ```bash
-   yarn test:api-specs
+   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app yarn test:api-specs
+   ```
+
+   Equivalent explicit path:
+
+   ```bash
+   APPIUM_RUN_API_SPECS=1 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
+     yarn appium-smoke:ios -- tests/smoke-appium/api-specs
    ```
 
 #### Running Tests Against BrowserStack Devices
@@ -429,13 +440,7 @@ export BROWSERSTACK_USERNAME='your_username'
 export BROWSERSTACK_ACCESS_KEY='your_access_key'
 ```
 
-For **MM Connect** performance tests on BrowserStack, you also need the **BrowserStack Local tunnel** running so the cloud device can reach the local Browser Playground dapp. Start the [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) binary, then set:
-
-```bash
-export BROWSERSTACK_LOCAL='true'
-```
-
-Do **not** set `BROWSERSTACK_LOCAL=true` unless the tunnel is running. Other BrowserStack performance suites (for example onboarding) run **without** local testing unless you intentionally enable it.
+MetaMask Connect browser E2E coverage now runs via Appium smoke (`SmokeMMConnect` / `tests/smoke-appium/mm-connect/`), not the performance BrowserStack suite.
 
 Update the config file with the appropriate BrowserStack app URL. You’ll need a BrowserStack URL first. To get it:
 
@@ -532,7 +537,7 @@ yarn run-playwright:ios
         166 |   }
         167 |
         168 |   static async checkIfNotVisible(elementId) {
-      at Function.withTimeout (tests/helpers.js:165:8)
+      at Function.withTimeout (tests/framework/Assertions.ts:165:8)
       ...
   ```
 

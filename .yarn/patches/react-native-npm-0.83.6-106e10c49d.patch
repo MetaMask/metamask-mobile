@@ -15,7 +15,7 @@ diff --git a/sdks/hermes-engine/hermes-engine.podspec b/sdks/hermes-engine/herme
 index fb99142850803e5afc47fcd1b7d58bef482da9fd..1790ef1b8289a7406249e137e3734604ef63518c 100644
 --- a/sdks/hermes-engine/hermes-engine.podspec
 +++ b/sdks/hermes-engine/hermes-engine.podspec
-@@ -75,8 +75,19 @@ Pod::Spec.new do |spec|
+@@ -75,7 +75,18 @@ Pod::Spec.new do |spec|
          "require.resolve(\"hermes-compiler\", {paths: [\"#{react_native_path}\"]})", __dir__]).strip
        )
 

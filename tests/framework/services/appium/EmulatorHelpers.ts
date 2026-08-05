@@ -17,6 +17,7 @@ const ANDROID_NETWORK_READY_CONSECUTIVE_PINGS = 3;
 const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
+const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
 
@@ -254,6 +255,7 @@ async function trimAndroidSystemForE2e(serial: string): Promise<void> {
     'settings put global device_provisioned 1',
     'settings put secure user_setup_complete 1',
     'settings put global setup_wizard_has_run 1',
+    'settings put global heads_up_notifications_enabled 0',
   ];
   for (const command of setupWizardSettings) {
     await runAdbShell(serial, command);
@@ -514,6 +516,17 @@ export async function ensureAndroidEmulatorReady(
       logger.info(
         `Using configured Android emulator ${serial} — skipping AVD name lookup.`,
       );
+      // Already booted: do not re-run cold-boot stabilize.
+      try {
+        const { stdout } = await execAsync(
+          `adb -s ${serial} shell getprop sys.boot_completed 2>/dev/null`,
+        );
+        if (stdout.trim() === '1') {
+          return serial;
+        }
+      } catch {
+        // Fall through to full boot wait if the property check fails.
+      }
       await waitForEmulatorBoot(serial);
       return serial;
     }
@@ -613,15 +626,17 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   logger.info(`Starting Android emulator: ${avdName}`);
 
   // Appium smoke CI uses AOSP (`default` image) — lighter cold boot than google_apis.
-  // RAM/CPU flags align with Detox CI where noted; cores overridable via env.
+  // Skin overrides AVD profile resolution; cores via env.
   const args = ['-avd', avdName];
   if (isCI) {
     const cores =
       process.env.ANDROID_EMULATOR_CI_CORES?.trim() ||
       ANDROID_EMULATOR_CI_CORES_DEFAULT;
+    const skin =
+      process.env.ANDROID_EMULATOR_CI_SKIN?.trim() || ANDROID_EMULATOR_CI_SKIN;
     args.push(
       '-skin',
-      '1080x2340',
+      skin,
       '-memory',
       '12288',
       '-cores',

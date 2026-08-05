@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   Text,
@@ -32,7 +33,7 @@ import useRegions from '../../hooks/useRegions';
 const CODE_LENGTH = 6;
 
 const ConfirmEmail = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);

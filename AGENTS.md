@@ -92,7 +92,7 @@ app/
 └── styles/               # Global styles
 
 tests/smoke               # Detox Smoke E2E tests
-tests/regression          # Detox Regression E2E tests
+tests/smoke-appium        # Appium Smoke E2E tests
 docs/                     # Documentation
 scripts/                  # Build and automation scripts
 ```
@@ -104,7 +104,7 @@ scripts/                  # Build and automation scripts
 | Guide                                                                                      | Scope                                                                        |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
-| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke/regression — Page Objects, gestures                              |
+| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke — Page Objects, gestures                                         |
 | [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
 | [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
 | [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
@@ -219,7 +219,7 @@ Three test types coexist in this repo:
 
 - **Unit tests** (`*.test.tsx`)
 - **Component view tests** (`*.view.test.tsx`)
-- **E2E tests** (`tests/smoke/`, `tests/regression/`)
+- **E2E tests** (`tests/smoke/`, `tests/smoke-appium/`)
 
 For conventions and skill references for each type, read `tests/AGENTS.md`.
 

@@ -24,7 +24,7 @@ import ToastModal from '../../../page-objects/wallet/ToastModal.js';
  * 3. Time to open About tab content
  * 4. Time to open Outcomes tab content when available
  */
-perfTest.describe(PerformancePredict, () => {
+perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
   perfTest.setTimeout(15 * 60 * 1000);
 
   perfTest(

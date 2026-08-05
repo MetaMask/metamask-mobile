@@ -37,6 +37,11 @@ export default class PlaywrightWebMatchers {
     return this.findElementByWebID(innerID);
   }
 
+  /**
+   * Run `action` in the page's WEBVIEW context, then always restore NATIVE_APP.
+   * Native assertions after WebView interaction rely on this restore — do not
+   * compensate inside Assertions.
+   */
   static async withWebViewAction(
     pageUrl: string,
     action: () => Promise<void>,

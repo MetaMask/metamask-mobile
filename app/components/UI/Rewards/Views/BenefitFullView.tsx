@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -49,7 +50,7 @@ const getBenefitWalletAddress = (url: string): string | undefined => {
 
 const BenefitFullView = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);

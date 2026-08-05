@@ -64,6 +64,38 @@ describe('getCardProviderErrorMessage', () => {
       },
     );
 
+    it('returns the forbidden message with the machine code appended', () => {
+      const error = new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        'Forbidden on createFundingSource',
+        403,
+        'FUNDING_SOURCE_EXISTS',
+      );
+
+      const result = getCardProviderErrorMessage(error);
+
+      expect(mockStrings).toHaveBeenCalledWith(
+        'card.card_authentication.errors.forbidden_error',
+      );
+      expect(result).toBe(
+        'mocked_card.card_authentication.errors.forbidden_error (FUNDING_SOURCE_EXISTS)',
+      );
+    });
+
+    it('returns the forbidden message without a suffix when no code is present', () => {
+      const error = new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        'Forbidden',
+        403,
+      );
+
+      const result = getCardProviderErrorMessage(error);
+
+      expect(result).toBe(
+        'mocked_card.card_authentication.errors.forbidden_error',
+      );
+    });
+
     it('returns original message for AccountDisabled', () => {
       const customMessage = 'Account has been disabled';
       const error = new CardProviderError(

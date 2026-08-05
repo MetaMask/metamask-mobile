@@ -288,18 +288,21 @@ Documented for a future release — **not** fixed in the current implementation.
 
 ### Post-onboarding QR (existing mobile users)
 
-Add Device QR for users who already use mobile is **not** wired end-to-end yet (UI and Phase C trigger).
+Add Device QR for existing mobile users imports secrets, then runs Phase C
+(`provisionFromMetadata`) in the background — same extension layout path as
+new-user onboarding (wallet/account names, pin/hide, groups).
 
 ---
 
 ## What is done vs what is next
 
-| Done                                                                  | Deferred                              |
-| --------------------------------------------------------------------- | ------------------------------------- |
-| Phases A, B, C for **new-user** onboarding happy path                 | Resume layout after app kill          |
-| Extension layout instead of discovery on Onboarding Success (QR only) | Post-onboarding QR for existing users |
-| User-storage reconciliation at end of Phase C (background)            | E2E / device QA for full QR journey   |
-| Unit test coverage for core QR provisioning                           | Phase C failure recovery UX           |
+| Done                                                                  | Deferred                            |
+| --------------------------------------------------------------------- | ----------------------------------- |
+| Phases A, B, C for **new-user** onboarding happy path                 | Resume layout after app kill        |
+| Extension layout instead of discovery on Onboarding Success (QR only) | E2E / device QA for full QR journey |
+| User-storage reconciliation at end of Phase C (background)            | Phase C failure recovery UX         |
+| Unit test coverage for core QR provisioning                           |                                     |
+| Existing-user Add Device Phase C (metadata after secret import)       |                                     |
 
 ---
 

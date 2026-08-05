@@ -6,8 +6,14 @@ import {
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
   selectRecentlyViewedMarkets,
+  selectPerpsMode as selectPerpsModeCore,
+  selectProLayoutPreferences as selectProLayoutPreferencesCore,
+  DEFAULT_PERPS_MODE,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
   InitializationState,
   type PerpsActiveProviderMode,
+  type PerpsMode,
+  type ProLayoutPreferences,
 } from '@metamask/perps-controller';
 
 const selectPerpsControllerState = (state: RootState) =>
@@ -159,6 +165,58 @@ const selectPerpsInitializationState = createSelector(
     InitializationState.Uninitialized,
 );
 
+/**
+ * Current Perps interface mode (Lite ⇄ Pro).
+ *
+ * Wraps the core `selectPerpsMode` from `@metamask/perps-controller` (TAT-3582),
+ * defaulting to `DEFAULT_PERPS_MODE` when controller state is missing/partial
+ * (e.g. before Engine init, rehydration, or minimal E2E fixtures).
+ */
+const selectPerpsMode = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): PerpsMode => {
+    try {
+      return perpsControllerState
+        ? selectPerpsModeCore(perpsControllerState)
+        : DEFAULT_PERPS_MODE;
+    } catch {
+      return DEFAULT_PERPS_MODE;
+    }
+  },
+);
+
+/**
+ * Persisted Pro-mode layout preferences.
+ *
+ * Wraps the core `selectProLayoutPreferences` from `@metamask/perps-controller`,
+ * defaulting to `DEFAULT_PRO_LAYOUT_PREFERENCES` when controller state is
+ * missing/partial (e.g. before Engine init, rehydration, or minimal E2E
+ * fixtures). The core selector already merges over defaults, so the wrapper
+ * only needs to guard the undefined-state path.
+ */
+const selectPerpsProLayoutPreferences = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): ProLayoutPreferences => {
+    try {
+      return perpsControllerState
+        ? selectProLayoutPreferencesCore(perpsControllerState)
+        : DEFAULT_PRO_LAYOUT_PREFERENCES;
+    } catch {
+      return DEFAULT_PRO_LAYOUT_PREFERENCES;
+    }
+  },
+);
+
+/**
+ * Whether the Pro inline chart is expanded. Persisted globally across markets
+ * and app restarts via `PerpsController.proLayoutPreferences.chartExpanded`.
+ * Defaults to `false` (collapsed) per the controller default.
+ */
+const selectPerpsProChartExpanded = createSelector(
+  selectPerpsProLayoutPreferences,
+  (proLayoutPreferences): boolean => proLayoutPreferences.chartExpanded,
+);
+
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
   createSelector(selectPerpsControllerState, (perpsControllerState) => {
@@ -185,4 +243,7 @@ export {
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,
   selectPerpsPayWithToken,
+  selectPerpsMode,
+  selectPerpsProLayoutPreferences,
+  selectPerpsProChartExpanded,
 };

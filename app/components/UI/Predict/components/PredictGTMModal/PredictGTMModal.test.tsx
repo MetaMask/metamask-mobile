@@ -9,6 +9,12 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import {
+  PREDICT_GTM_MODAL_DECLINE,
+  PREDICT_GTM_MODAL_ENGAGE,
+  PREDICT_GTM_WHATS_NEW_MODAL,
+} from '../../constants/eventNames';
+import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
 
 jest.mock('../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../util/theme');
@@ -39,9 +45,11 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
+  addProperties: mockAddProperties,
+  build: mockBuild,
 });
 jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 
@@ -62,6 +70,12 @@ const initialState = {
 describe('PredictGTMModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnThis();
+    mockBuild.mockReturnValue({});
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -71,7 +85,7 @@ describe('PredictGTMModal', () => {
     jest.mocked(StorageWrapper.getItem).mockResolvedValue('false');
   });
 
-  it('renders correctly with all main elements', async () => {
+  it('renders all main elements', async () => {
     const { getByText, getByTestId } = renderWithProvider(<PredictGTMModal />, {
       state: initialState,
     });
@@ -81,39 +95,45 @@ describe('PredictGTMModal', () => {
       expect(getByText('predict.gtm_content.title_description')).toBeTruthy();
       expect(getByText('predict.gtm_content.get_started')).toBeTruthy();
       expect(getByText('predict.gtm_content.not_now')).toBeTruthy();
-      expect(getByTestId('predict-gtm-modal-container')).toBeTruthy();
+      expect(getByTestId(PREDICT_GTM_MODAL_TEST_IDS.CONTAINER)).toBeTruthy();
     });
   });
 
-  it('handles close button press correctly', async () => {
-    const { getByText } = renderWithProvider(<PredictGTMModal />, {
+  it('tracks Whats New Link Clicked with decline action when not now is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<PredictGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      const notNowButton = getByText('predict.gtm_content.not_now');
-      fireEvent.press(notNowButton);
+      fireEvent.press(getByTestId(PREDICT_GTM_MODAL_TEST_IDS.NOT_NOW_BUTTON));
     });
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       PREDICT_GTM_MODAL_SHOWN,
       'true',
     );
-    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      platform: 'ios',
+      deviceModel: 'iPhone 14',
+      feature: PREDICT_GTM_WHATS_NEW_MODAL,
+      action: PREDICT_GTM_MODAL_DECLINE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('handles get started button press correctly', async () => {
-    const { getByText } = renderWithProvider(<PredictGTMModal />, {
+  it('tracks Whats New Link Clicked with engage action when get started is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<PredictGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      const getStartedButton = getByText('predict.gtm_content.get_started');
-      fireEvent.press(getStartedButton);
+      fireEvent.press(
+        getByTestId(PREDICT_GTM_MODAL_TEST_IDS.GET_STARTED_BUTTON),
+      );
     });
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
@@ -121,10 +141,16 @@ describe('PredictGTMModal', () => {
       'true',
       { emitEvent: false },
     );
-    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      platform: 'ios',
+      deviceModel: 'iPhone 14',
+      feature: PREDICT_GTM_WHATS_NEW_MODAL,
+      action: PREDICT_GTM_MODAL_ENGAGE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
@@ -134,13 +160,13 @@ describe('PredictGTMModal', () => {
     });
   });
 
-  it('renders image correctly', async () => {
+  it('renders image', async () => {
     const { getByTestId } = renderWithProvider(<PredictGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      expect(getByTestId('predict-gtm-modal-container')).toBeTruthy();
+      expect(getByTestId(PREDICT_GTM_MODAL_TEST_IDS.CONTAINER)).toBeTruthy();
     });
   });
 });
