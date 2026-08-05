@@ -138,15 +138,24 @@ export const ensureAccountListOpenPlaywright = async (
     }
 
     if (await isWalletHomeReadyOnAppium()) {
+      if (PlatformDetector.isAndroid()) {
+        await dismissAndroidSystemOverlaysPlaywright();
+      }
       await WalletView.tapIdenticon();
-      await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-        {
-          timeout: resolveE2EWaitTimeoutMs(10_000),
-          description: 'Account list should open from wallet home',
-        },
-      );
-      return;
+      try {
+        // Keep each tap attempt short so we can re-tap if wallet chrome is still settling.
+        await Assertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
+          {
+            timeout: 3_000,
+            description: 'Account list should open from wallet home',
+          },
+        );
+        return;
+      } catch {
+        await sleep(250);
+        continue;
+      }
     }
 
     if (PlatformDetector.isAndroid()) {
@@ -942,8 +951,7 @@ export const loginAndOpenAccountList = async (
 
   await loginToAppPlaywright(loginOptions);
 
-  await WalletView.tapIdenticon();
-
+  await ensureAccountListOpenPlaywright();
   await Assertions.expectElementToBeVisible(
     AccountListBottomSheet.accountList,
     {
