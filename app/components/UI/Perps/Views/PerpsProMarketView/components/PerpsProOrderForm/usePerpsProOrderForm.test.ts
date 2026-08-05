@@ -811,6 +811,19 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetLimitPrice).toHaveBeenCalledWith('12.5');
     });
 
+    it('normalizes comma decimal input in the limit price', () => {
+      // Arrange
+      const { result } = renderProForm();
+
+      // Act
+      act(() => {
+        result.current.onLimitPriceChange('0012,5');
+      });
+
+      // Assert
+      expect(mockSetLimitPrice).toHaveBeenCalledWith('12.5');
+    });
+
     it('rejects repeated decimal separators in limit price input', () => {
       // Arrange
       const { result } = renderProForm();

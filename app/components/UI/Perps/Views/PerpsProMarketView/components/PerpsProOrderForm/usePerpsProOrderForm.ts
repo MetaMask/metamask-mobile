@@ -906,7 +906,10 @@ export const usePerpsProOrderForm = ({
       const result = normalizeNumericTextInput(
         value,
         orderForm.limitPrice ?? '',
-        { maxDigits: MAX_PERPS_INPUT_DIGITS },
+        {
+          maxDigits: MAX_PERPS_INPUT_DIGITS,
+          acceptedDecimalSeparators: ['.', ','],
+        },
       );
       if (!result.ok) {
         return;
