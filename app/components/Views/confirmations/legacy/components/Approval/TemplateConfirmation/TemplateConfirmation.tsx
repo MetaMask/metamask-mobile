@@ -85,7 +85,9 @@ const TemplateConfirmation = ({
                     templatedValues.confirmText ??
                     strings('template_confirmation.ok'),
                   size: ButtonSize.Lg,
-                  onPress: templatedValues.onConfirm ?? onConfirm,
+                  onPress: () => {
+                    (templatedValues.onConfirm ?? onConfirm)();
+                  },
                 }
               : undefined
           }
@@ -96,7 +98,9 @@ const TemplateConfirmation = ({
                     templatedValues.cancelText ??
                     strings('template_confirmation.cancel'),
                   size: ButtonSize.Lg,
-                  onPress: templatedValues.onCancel ?? onCancel,
+                  onPress: () => {
+                    (templatedValues.onCancel ?? onCancel)();
+                  },
                 }
               : undefined
           }
