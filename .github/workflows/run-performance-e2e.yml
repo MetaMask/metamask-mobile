@@ -63,6 +63,11 @@ on:
         required: false
         type: string
         default: ''
+      source_ref:
+        description: 'Exact branch, tag, or commit to use for native app builds'
+        required: false
+        type: string
+        default: ''
       enable_testmu_benchmark:
         description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
         required: false
@@ -100,6 +105,11 @@ on:
         description: 'Branch name to use for build names (defaults to auto-detection)'
         required: false
         type: string
+      source_ref:
+        description: 'Exact branch, tag, or commit to use for native app builds'
+        required: false
+        type: string
+        default: ''
       build_variant:
         description: 'BrowserStack build profile (e2e = build-e2e, works on feature branches; rc = build-rc, release branches only; exp = experimental)'
         required: false
@@ -629,6 +639,7 @@ jobs:
       )
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      source_ref: ${{ inputs.source_ref || needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.ensure-fingerprint.outputs.fingerprint }}
       main_branch_only: ${{ inputs.reuse_main_builds }}

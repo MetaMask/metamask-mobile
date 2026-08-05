@@ -278,16 +278,11 @@ async function main() {
           getCloudProviderKey(test),
         );
 
-        let currentArtifact = findMatchingArtifact(currentArtifacts, {
+        const currentArtifact = findMatchingArtifact(currentArtifacts, {
           testName: test.testName,
           device,
+          cloudProvider: getCloudProviderKey(test),
         })?.data;
-
-        if (!currentArtifact && !device.name) {
-          currentArtifact = currentArtifacts.find(
-            ({ data }) => data.testName === test.testName,
-          )?.data;
-        }
 
         try {
           const baseline = findBaselineScenario({
@@ -297,6 +292,7 @@ async function main() {
             currentRunId: runId,
             testName: test.testName,
             device: currentArtifact?.device ?? device,
+            cloudProvider: getCloudProviderKey(test),
             workRoot,
           });
 

@@ -73,6 +73,8 @@ export class TestMuAIConfigBuilder {
 
     logger.info(
       `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, appiumVersion=${appiumVersion}, isRealMobile=true` +
+        // Bracket access prevents Babel from baking this environment variable at transform time.
+        // eslint-disable-next-line dot-notation
         (process.env['TESTMU_DEVICE_EXACT']?.toLowerCase() === 'true'
           ? ' (exact match)'
           : ' (availability regex)'),

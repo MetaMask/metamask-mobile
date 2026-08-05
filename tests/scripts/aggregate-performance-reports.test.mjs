@@ -6,6 +6,7 @@ import test from 'node:test';
 
 import {
   aggregateReports,
+  collectAppProfilingArtifacts,
   extractPlatformScenarioAndDevice,
 } from './aggregate-performance-reports.mjs';
 
@@ -244,6 +245,60 @@ test('aggregateReports counts failed tests separately per cloud provider', () =>
     );
   } finally {
     process.chdir(originalCwd);
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('collectAppProfilingArtifacts preserves provider identity for matching sidecars', () => {
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'aggregate-performance-profiling-'),
+  );
+  const outputDir = path.join(tempDir, 'aggregated-reports');
+  const artifactName = 'app-profiling-Import_wallet-Pixel_7_Pro-13.json';
+  const providers = [
+    ['testmu-standard-results', 'testmu-standard'],
+    ['testmu-results', 'testmu-hyperexecute'],
+    ['browserstack-results', 'browserstack'],
+  ];
+
+  try {
+    for (const [sourceDir] of providers) {
+      writeJson(path.join(tempDir, sourceDir, artifactName), {
+        testName: 'Import wallet',
+        device: {
+          name: 'Pixel 7 Pro',
+          osVersion: '13',
+          provider: sourceDir.startsWith('testmu') ? 'testmu' : 'browserstack',
+        },
+      });
+    }
+
+    assert.equal(
+      collectAppProfilingArtifacts(
+        providers.map(([sourceDir]) => path.join(tempDir, sourceDir)),
+        outputDir,
+      ),
+      3,
+    );
+
+    const collectedProviders = fs
+      .readdirSync(path.join(outputDir, 'app-profiling'))
+      .map((fileName) =>
+        JSON.parse(
+          fs.readFileSync(
+            path.join(outputDir, 'app-profiling', fileName),
+            'utf8',
+          ),
+        ),
+      )
+      .map((artifact) => artifact.cloudProvider)
+      .sort();
+
+    assert.deepEqual(
+      collectedProviders,
+      providers.map(([, provider]) => provider).sort(),
+    );
+  } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });

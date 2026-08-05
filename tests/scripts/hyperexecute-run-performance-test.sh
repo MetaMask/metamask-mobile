@@ -60,12 +60,12 @@ start_tunnel_if_needed
 trap stop_tunnel_if_needed EXIT
 
 PROJECT_ARGS="$(select_project_args)"
-# Do NOT pass --pass-with-no-tests: config grep /@Performance\b/ (and optional
-# GREP_TAGS) can match zero tests in a file; failing is correct vs false-green.
 CMD=(yarn playwright test "$TEST_FILE" $PROJECT_ARGS --config "$CONFIG" --workers="$PLAYWRIGHT_WORKERS")
 
 if [[ -n "$GREP_TAGS" ]]; then
-  CMD+=(--grep "$GREP_TAGS")
+  # Discovery is file-based, so a tag-filtered file may legitimately contain
+  # no selected tests. Unfiltered tasks remain strict.
+  CMD+=(--grep "$GREP_TAGS" --pass-with-no-tests)
 fi
 
 echo "=== HyperExecute running: ${CMD[*]} ==="
