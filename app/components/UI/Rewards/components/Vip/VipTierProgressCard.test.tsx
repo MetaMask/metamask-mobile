@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import VipTierProgressCard, {
@@ -249,7 +249,8 @@ describe('VipTierProgressCard', () => {
 
   it('positions the pointer at the exact clamped progress percent', () => {
     const flattenLeft = (style: unknown): string | undefined =>
-      StyleSheet.flatten(style as object)?.left;
+      (StyleSheet.flatten(style as ViewStyle) as ViewStyle | undefined)
+        ?.left as string | undefined;
 
     const { getByTestId, rerender } = renderWithTheme(
       <VipTierProgressCard {...baseProps} />,
@@ -294,13 +295,15 @@ describe('VipTierProgressCard', () => {
     ): { translateX?: number; textAlign?: string } => {
       const style = StyleSheet.flatten(
         getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER_LABEL)
-          .props.style,
-      );
+          .props.style as TextStyle,
+      ) as TextStyle | undefined;
+      const transform = style?.transform as
+        | { translateX?: number }[]
+        | undefined;
       return {
-        translateX: style.transform?.find(
-          (entry: { translateX?: number }) => entry.translateX !== undefined,
-        )?.translateX,
-        textAlign: style.textAlign,
+        translateX: transform?.find((entry) => entry.translateX !== undefined)
+          ?.translateX,
+        textAlign: style?.textAlign,
       };
     };
 

@@ -40,6 +40,23 @@ const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
 >;
 
+/** `capUsd` echoes the requested holdings so tests can identify the response. */
+const buildAvailableResult = (holdings: string) => ({
+  available: true,
+  multiplier: '1.0889',
+  eligible: true,
+  progressPercent: 44.4,
+  tierNumber: 6,
+  tierName: 'VIP 6',
+  capUsd: holdings,
+  computedAt: '2026-08-04T00:00:00.000Z',
+  localizedText: {
+    title: 'Estimated equity multiplier',
+    eligibleDescription: 'ok',
+    ineligibleDescription: 'no',
+  },
+});
+
 describe('useVipEquityMultiplier', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -118,5 +135,118 @@ describe('useVipEquityMultiplier', () => {
 
     expect(result.current.shouldRender).toBe(false);
     expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
+  });
+
+  it('fetches again for holdings that change while a request is in flight', async () => {
+    const deferred: ((value: unknown) => void)[] = [];
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      (_action, _subscriptionId, holdings: string) =>
+        new Promise((resolve) => {
+          deferred.push(() => resolve(buildAvailableResult(holdings)));
+        }),
+    );
+
+    const { result, rerender } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+
+    mockHoldings.mockReturnValue({ holdingsUsd: '7000000' });
+    rerender();
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(2);
+    expect(Engine.controllerMessenger.call).toHaveBeenLastCalledWith(
+      'RewardsController:getVipEquityMultiplier',
+      'sub-1',
+      '7000000',
+    );
+
+    await act(async () => {
+      deferred.forEach((resolveDeferred) => resolveDeferred(undefined));
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.holdingsUsd).toBe('7000000');
+    expect(result.current.data?.capUsd).toBe('7000000');
+  });
+
+  it('discards a superseded response so state matches the latest holdings', async () => {
+    const resolvers = new Map<string, (value: unknown) => void>();
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      (_action, _subscriptionId, holdings: string) =>
+        new Promise((resolve) => {
+          resolvers.set(holdings, () =>
+            resolve(buildAvailableResult(holdings)),
+          );
+        }),
+    );
+
+    const { result, rerender } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+
+    mockHoldings.mockReturnValue({ holdingsUsd: '7000000' });
+    rerender();
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+
+    // Newest response settles first, stale one arrives afterwards.
+    await act(async () => {
+      resolvers.get('7000000')?.(undefined);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      resolvers.get('5000000')?.(undefined);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.data?.capUsd).toBe('7000000');
+  });
+
+  it('does not issue duplicate requests for unchanged holdings', async () => {
+    let resolveCall: ((value: unknown) => void) | undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = () => resolve(buildAvailableResult('5000000'));
+        }),
+    );
+
+    const { rerender } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+
+    rerender();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCall?.(undefined);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 });

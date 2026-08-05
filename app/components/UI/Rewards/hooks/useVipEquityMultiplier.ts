@@ -35,7 +35,8 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
   const [debouncedHoldings, setDebouncedHoldings] = useState<
     string | undefined
   >(undefined);
-  const isLoadingRef = useRef(false);
+  const requestIdRef = useRef(0);
+  const inFlightHoldingsRef = useRef<string | undefined>(undefined);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -61,16 +62,24 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
       setShouldRender(false);
       return;
     }
-    if (isLoadingRef.current) {
+    // Dedupe re-entrant calls for the same holdings (focus + mount effect).
+    // A different holdings value must supersede instead of being dropped,
+    // otherwise the displayed progress would describe a stale balance.
+    if (inFlightHoldingsRef.current === debouncedHoldings) {
       return;
     }
-    isLoadingRef.current = true;
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    inFlightHoldingsRef.current = debouncedHoldings;
     try {
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getVipEquityMultiplier',
         subscriptionId,
         debouncedHoldings,
       );
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       if (result?.available === true) {
         setData(result);
         setShouldRender(true);
@@ -78,9 +87,13 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
         setShouldRender(false);
       }
     } catch {
-      setShouldRender(false);
+      if (requestId === requestIdRef.current) {
+        setShouldRender(false);
+      }
     } finally {
-      isLoadingRef.current = false;
+      if (requestId === requestIdRef.current) {
+        inFlightHoldingsRef.current = undefined;
+      }
     }
   }, [subscriptionId, isVipProgramEnabled, debouncedHoldings]);
 

@@ -7718,6 +7718,222 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('getVipEquityMultiplier', () => {
+    const mockSubscriptionId = 'sub-equity';
+    const mockHoldingsUsd = '5000000';
+
+    const createMockEquityMultiplier = (overrides = {}) => ({
+      available: true as const,
+      multiplier: '1.0889',
+      eligible: true,
+      progressPercent: 44.444444,
+      capUsd: '10000000',
+      tierNumber: 6,
+      tierName: 'VIP 6',
+      computedAt: '2099-06-30T14:52:00.000Z',
+      localizedText: {
+        title: 'Estimated equity multiplier',
+        eligibleDescription: '1.09x active. Accumulate more mUSD to increase.',
+        ineligibleDescription:
+          'Not active. Accumulate over $1M mUSD to activate.',
+      },
+      ...overrides,
+    });
+
+    const createController = (isVipDisabled = () => false) =>
+      new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled,
+      });
+
+    it('returns the fetched multiplier for the requested holdings', async () => {
+      const payload = createMockEquityMultiplier();
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(payload);
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toEqual(payload);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('returns null without calling the data service when VIP is disabled', async () => {
+      controller = createController(() => true);
+      mockMessenger.call.mockClear();
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('serves a cached payload for repeated identical holdings', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      mockMessenger.call.mockClear();
+      const second = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(second).toEqual(createMockEquityMultiplier());
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('refetches when the holdings amount changes', async () => {
+      controller = createController();
+      mockMessenger.call.mockImplementation(((...args: any[]) =>
+        Promise.resolve(
+          createMockEquityMultiplier({ capUsd: args[2] as string }),
+        )) as any);
+
+      const first = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      const second = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        '7000000',
+      );
+
+      expect(first?.available === true && first.capUsd).toBe(mockHoldingsUsd);
+      expect(second?.available === true && second.capUsd).toBe('7000000');
+    });
+
+    it('refetches once the holdings-keyed cache entry expires', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      // Cache TTL is 5 minutes; advance past it.
+      jest.spyOn(Date, 'now').mockReturnValue(123 + 1000 * 60 * 5 + 1);
+      mockMessenger.call.mockClear();
+
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('dedupes concurrent requests for the same holdings', async () => {
+      controller = createController();
+      let resolveFetch:
+        | ((value: ReturnType<typeof createMockEquityMultiplier>) => void)
+        | undefined;
+      mockMessenger.call.mockImplementation(
+        (() =>
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          })) as any,
+      );
+
+      const first = controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      const second = controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      resolveFetch?.(createMockEquityMultiplier());
+      const [firstResult, secondResult] = await Promise.all([first, second]);
+
+      expect(firstResult).toEqual(secondResult);
+      expect(
+        mockMessenger.call.mock.calls.filter(
+          ([action]) => action === 'RewardsDataService:getVipEquityMultiplier',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not cache an unavailable response payload of null', async () => {
+      controller = createController();
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+      mockMessenger.call.mockClear();
+      mockMessenger.call.mockResolvedValue(null);
+      await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+    });
+
+    it('logs and rethrows when the equity multiplier call fails', async () => {
+      controller = createController();
+      mockLogger.log.mockClear();
+      mockMessenger.call.mockRejectedValue(new Error('Equity API failed'));
+
+      await expect(
+        controller.getVipEquityMultiplier(mockSubscriptionId, mockHoldingsUsd),
+      ).rejects.toThrow('Equity API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get VIP equity multiplier:',
+        'Equity API failed',
+      );
+    });
+
+    it('allows a retry after a failed request', async () => {
+      controller = createController();
+      mockMessenger.call.mockRejectedValueOnce(new Error('transient'));
+
+      await expect(
+        controller.getVipEquityMultiplier(mockSubscriptionId, mockHoldingsUsd),
+      ).rejects.toThrow('transient');
+
+      mockMessenger.call.mockResolvedValue(createMockEquityMultiplier());
+      const retried = await controller.getVipEquityMultiplier(
+        mockSubscriptionId,
+        mockHoldingsUsd,
+      );
+
+      expect(retried).toEqual(createMockEquityMultiplier());
+    });
+  });
+
   describe('getVipRefereeDashboard', () => {
     const mockSubscriptionId = 'sub-referee';
     // Obviously-synthetic fixture — never real VIP codes/figures.
