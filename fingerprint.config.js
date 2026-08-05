@@ -51,6 +51,56 @@ const nativePackages = getNativePackageNames();
 // Accumulates `package.json` content across streamed chunks (see fileHookTransform).
 let packageJsonBuffer = '';
 
+/**
+ * Native project files carrying the marketing version string, which the release
+ * tooling rewrites on every version bump.
+ *
+ * A bump changes nothing but the human-readable version: `versionName` in the
+ * Gradle config and `MARKETING_VERSION` in the Xcode project. Every release bump
+ * on `main` has touched exactly those fields and nothing else, so hashing them
+ * means a bump invalidates every cached native build repo-wide and forces a
+ * rebuild across every open PR, despite the compiled behaviour being identical.
+ *
+ * Build numbers (`versionCode`, `CURRENT_PROJECT_VERSION`) are deliberately left
+ * in the hash. They are not touched by version bumps on `main`, so excluding them
+ * would widen this carve-out past the churn it is meant to remove.
+ */
+const VERSION_STAMPED_NATIVE_FILES = new Set([
+  'android/app/build.gradle',
+  'ios/MetaMask.xcodeproj/project.pbxproj',
+]);
+
+// Placeholder substituted for the marketing version before hashing. Any fixed
+// string works; it only has to be stable across versions.
+const NORMALIZED_VERSION = '0.0.0-fingerprint-normalized';
+
+// Accumulates version-stamped native files across streamed chunks, keyed by path.
+const versionStampedBuffers = new Map();
+
+/**
+ * Replaces the marketing version in a native project file with a fixed
+ * placeholder so that version bumps hash identically.
+ *
+ * Applied to whole file contents rather than per chunk: `project.pbxproj` is far
+ * larger than one chunk, and a declaration split across a chunk boundary would
+ * otherwise escape substitution and reintroduce the churn intermittently.
+ *
+ * @param {string} contents
+ * @returns {string}
+ */
+function normalizeMarketingVersion(contents) {
+  return (
+    contents
+      // Gradle: versionName "8.7.0"
+      .replace(/(versionName\s+")[^"\n]*(")/g, `$1${NORMALIZED_VERSION}$2`)
+      // Xcode: MARKETING_VERSION = 8.7.0;
+      .replace(
+        /(MARKETING_VERSION\s*=\s*)[^;\n]*(;)/g,
+        `$1${NORMALIZED_VERSION}$2`,
+      )
+  );
+}
+
 const config = {
   /**
    * Track files and directories under `extraSources` if they affect native code changes.
@@ -274,6 +324,26 @@ const config = {
    * @type {import('@expo/fingerprint').FileHookTransformFunction}
    */
   fileHookTransform: (source, chunk, isEndOfFile) => {
+    // Normalize the marketing version out of the native project files. This runs
+    // ahead of the autolinking guard below because it does not depend on
+    // autolinking having resolved.
+    if (
+      source.type === 'file' &&
+      VERSION_STAMPED_NATIVE_FILES.has(source.filePath)
+    ) {
+      if (chunk) {
+        versionStampedBuffers.set(
+          source.filePath,
+          (versionStampedBuffers.get(source.filePath) ?? '') + chunk.toString(),
+        );
+      }
+      if (!isEndOfFile) return '';
+
+      const contents = versionStampedBuffers.get(source.filePath) ?? '';
+      versionStampedBuffers.delete(source.filePath);
+      return normalizeMarketingVersion(contents);
+    }
+
     // Fall back to hashing everything if we couldn't resolve native packages.
     if (!nativePackages) return chunk;
 
