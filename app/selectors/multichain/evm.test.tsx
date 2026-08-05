@@ -1426,7 +1426,7 @@ describe('re-renders', () => {
   beforeEach(() => {
     mockRenderCall.mockReset();
     // Clear memoized selectors for each test
-    selectAccountTokensAcrossChains.memoizedResultFunc.clearCache();
+    selectAccountTokensAcrossChainsForAddress.clearCache();
     const MockComponent = () => {
       const selectedAccountTokensChains = useSelector(
         selectAccountTokensAcrossChains,

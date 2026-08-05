@@ -90,14 +90,13 @@ export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress =
  * @param {RootState} state - The root state.
  * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
  */
-export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
-  [(state: RootState) => state, selectSelectedInternalAccountFormattedAddress],
-  (state, selectedAddress): ChainBalances =>
-    selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
-      state,
-      selectedAddress,
-    ),
-);
+export const selectedAccountNativeTokenCachedBalanceByChainId = (
+  state: RootState,
+): ChainBalances =>
+  selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
+    state,
+    selectSelectedInternalAccountFormattedAddress(state),
+  );
 
 /**
  * Selector to get native tokens for the selected account across all chains.
@@ -215,11 +214,11 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
 /**
  * Selector to get native tokens for the selected account across all chains.
  */
-export const selectNativeTokensAcrossChains = createSelector(
-  [(state: RootState) => state, selectSelectedInternalAccountFormattedAddress],
-  (state, selectedAddress) =>
-    selectNativeTokensAcrossChainsForAddress(state, selectedAddress),
-);
+export const selectNativeTokensAcrossChains = (state: RootState) =>
+  selectNativeTokensAcrossChainsForAddress(
+    state,
+    selectSelectedInternalAccountFormattedAddress(state),
+  );
 
 export const selectAccountTokensAcrossChainsForAddress =
   createDeepEqualSelector(
@@ -277,14 +276,11 @@ export const selectAccountTokensAcrossChainsForAddress =
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createSelector(
-  (state: RootState) => state,
-  selectSelectedInternalAccount,
-  (state, selectedAccount) => {
-    const selectedAddress = selectedAccount?.address;
-    return selectAccountTokensAcrossChainsForAddress(state, selectedAddress);
-  },
-);
+export const selectAccountTokensAcrossChains = (state: RootState) =>
+  selectAccountTokensAcrossChainsForAddress(
+    state,
+    selectSelectedInternalAccount(state)?.address,
+  );
 
 export const selectNativeEvmAsset = createDeepEqualSelector(
   selectAccountBalanceByChainId,
