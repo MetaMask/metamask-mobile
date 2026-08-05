@@ -87,6 +87,7 @@ interface HandleSkipBackupParams {
   routeParams: RouteParams;
   isMetricsEnabled: () => boolean;
   track: TrackFunction;
+  successFlow?: ONBOARDING_SUCCESS_FLOW;
 }
 
 /**
@@ -98,6 +99,7 @@ export const handleSkipBackup = async ({
   routeParams,
   isMetricsEnabled,
   track,
+  successFlow,
 }: HandleSkipBackupParams): Promise<void> => {
   track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED, {
     wallet_setup_type: 'new',
@@ -112,10 +114,8 @@ export const handleSkipBackup = async ({
     navigation.dispatch(resetAction);
   } else {
     navigation.navigate('OptinMetrics', {
-      onContinue: () => {
-        navigation.dispatch(resetAction);
-      },
       accountType: AccountType.Metamask,
+      successFlow,
     });
   }
 };

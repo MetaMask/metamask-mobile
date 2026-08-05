@@ -460,6 +460,16 @@ describe('PredictCryptoUpDownMarketCard', () => {
     });
   });
 
+  it('does not navigate when cardPressDisabled is true', () => {
+    renderCard(createMarket(), { cardPressDisabled: true });
+
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.CARD),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('includes transactionActiveAbTests when navigating to the live market details', () => {
     renderCard(createMarket(), { transactionActiveAbTests });
 

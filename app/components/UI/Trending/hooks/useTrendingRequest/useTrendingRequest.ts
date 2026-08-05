@@ -67,6 +67,10 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minLiquidity: 100000,
     minVolume24h: 300000,
   },
+  [NetworkToCaipChainId.MONAD]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
 
   // Tier 3: Growing networks
   [NetworkToCaipChainId.SEI]: {
@@ -80,6 +84,10 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minVolume24h: 25000, // Minimum filter
   },
   [NetworkToCaipChainId.ZKSYNC_ERA]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
+  [NetworkToCaipChainId.ROBINHOOD]: {
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter
   },

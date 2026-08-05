@@ -135,7 +135,7 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
   });
 
-  it('renders the AI pill next to the impact badge', () => {
+  it('does not render the AI pill on the expanded card', () => {
     renderWithProvider(
       <WhatsHappeningExpandedCard
         item={baseItem}
@@ -145,27 +145,9 @@ describe('WhatsHappeningExpandedCard', () => {
         source="homepage"
       />,
     );
-    expect(screen.getByText('AI')).toBeOnTheScreen();
+    expect(screen.queryByText('AI')).toBeNull();
+    expect(screen.queryByText('AI Generated')).toBeNull();
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
-  });
-
-  it('calls onAIDisclaimerPress when the AI pill is pressed', () => {
-    const onAIDisclaimerPress = jest.fn();
-
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={baseItem}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-        source="homepage"
-        onAIDisclaimerPress={onAIDisclaimerPress}
-      />,
-    );
-
-    fireEvent.press(screen.getByTestId('whats-happening-ai-disclaimer-button'));
-
-    expect(onAIDisclaimerPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders Neutral badge when impact is explicitly neutral', () => {
@@ -197,6 +179,49 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.queryByText('Bullish')).toBeNull();
     expect(screen.queryByText('Bearish')).toBeNull();
     expect(screen.queryByText('AI')).toBeNull();
+  });
+
+  it('renders the Outdated badge when the item is outdated', () => {
+    const item = { ...baseItem, isOutdated: true };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        source="deeplink"
+      />,
+    );
+    expect(screen.getByText('Outdated')).toBeOnTheScreen();
+  });
+
+  it('does not render the Outdated badge by default', () => {
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={baseItem}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        source="homepage"
+      />,
+    );
+    expect(screen.queryByText('Outdated')).toBeNull();
+  });
+
+  it('renders the Outdated badge even when impact is undefined', () => {
+    const item = { ...baseItem, impact: undefined, isOutdated: true };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        source="deeplink"
+      />,
+    );
+    expect(screen.getByText('Outdated')).toBeOnTheScreen();
+    expect(screen.queryByText('AI')).toBeNull();
+    expect(screen.queryByText('Bullish')).toBeNull();
   });
 
   it('renders the single Related Assets section header when relatedAssets is non-empty', () => {

@@ -28,6 +28,9 @@ export const PredictEventProperties = {
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
   ORDER_TYPE: 'order_type',
+  TRADE_TYPE: 'trade_type',
+  IMPLEMENTATION_TYPE: 'implementation_type',
+  USD_TRADE_VALUE: 'usd_trade_value',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',
@@ -66,6 +69,14 @@ export const PredictEventProperties = {
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
+
+  // Redesigned home + generic feed IA (PRED-834)
+  FEED_ID: 'feed_id',
+  TAB_ID: 'tab_id',
+  FILTER_ID: 'filter_id',
+  SECTION_ID: 'section_id',
+  IS_DYNAMIC_FILTER: 'is_dynamic_filter',
+  TRACKING_MODE: 'tracking_mode',
 
   // Payment token (buy-with-any-token flow only)
   PAYMENT_TOKEN_ADDRESS: 'payment_token_address',
@@ -128,6 +139,14 @@ export const PredictEventValues = {
     MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
     MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
     MM_PREDICT_CLAIM: 'mm_predict_claim',
+    MM_PREDICT_TRANSACTION_SUBMISSION: 'mm_predict_transaction_submission',
+    MM_PREDICT_WALLET_CREATION: 'mm_predict_wallet_creation',
+  },
+  TRADE_TYPE: {
+    PREDICT: 'predict',
+  },
+  IMPLEMENTATION_TYPE: {
+    NATIVE: 'native',
   },
   CLAIM_FAILURE_REASON: {
     PENDING_RESOLUTION: 'pending_resolution',
@@ -159,7 +178,6 @@ export const PredictEventValues = {
     WITHDRAW: 'withdraw',
   },
   PREDICT_SCREEN: {
-    WORLD_CUP: 'world_cup',
     PREDICT_POSITIONS_SCREEN: 'predict_positions_screen',
   },
   PREDICT_COMPONENT: {
@@ -172,9 +190,15 @@ export const PredictEventValues = {
   ACTION_TYPE: {
     VIEWED: 'viewed',
     CLICKED: 'clicked',
+    SEE_ALL: 'see_all',
+  },
+  SECTION_ID: {
+    LIVE_NOW: 'live_now',
+    CATEGORIES: 'categories',
+    POPULAR_TODAY: 'popular_today',
+    TRENDING: 'trending',
   },
   BANNER_TYPE: {
-    WORLD_CUP: 'world_cup',
     PREDICT_THE_PITCH: 'predict_the_pitch',
   },
   SEARCH_INTERACTION: {
@@ -193,6 +217,7 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  CANCELLED: 'cancelled',
   SWAP_INITIATED: 'swap_initiated',
   SWAP_SUCCESS: 'swap_success',
   SWAP_FAILED: 'swap_failed',

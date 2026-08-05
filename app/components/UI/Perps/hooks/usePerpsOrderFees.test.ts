@@ -130,7 +130,7 @@ describe('usePerpsOrderFees', () => {
           selectorStr.includes('rewards') ||
           selectorStr.includes('Rewards')
         ) {
-          return true; // rewardsEnabled
+          return true; // rewards-related selectors default to enabled
         }
         if (
           selectorStr.includes('address') ||
@@ -148,6 +148,7 @@ describe('usePerpsOrderFees', () => {
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -846,6 +847,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -1550,12 +1552,14 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearRewardsCaches();
     // Reset controller messenger mock
     mockControllerMessenger.call.mockReset();
     mockUsePerpsTrading.mockReturnValue({
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),

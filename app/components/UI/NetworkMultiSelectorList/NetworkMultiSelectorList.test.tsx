@@ -18,6 +18,7 @@ import {
   NetworkMultiSelectorListProps,
   Network,
 } from './NetworkMultiSelectorList.types.ts';
+import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
 jest.mock('@metamask/transaction-controller', () => ({
   CHAIN_IDS: {
@@ -206,7 +207,6 @@ jest.mock('../../../component-library/components/Cells/Cell/index.ts', () => {
     default: MockCell,
     CellVariant: {
       SelectWithMenu: 'SelectWithMenu',
-      MultiSelectWithMenu: 'MultiSelectWithMenu',
     },
   };
 });
@@ -253,46 +253,6 @@ jest.mock('../../../component-library/components-temp/TagColored', () => {
     default: MockTagColored,
     TagColor: { Success: 'Success' },
   };
-});
-
-jest.mock('@shopify/flash-list', () => {
-  /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-  const ReactMock = require('react');
-  const MockFlashList = ReactMock.forwardRef(
-    // eslint-disable-next-line prefer-arrow-callback
-    function MockFlashList(
-      props: {
-        data?: unknown[];
-        renderItem?: (arg: { item: unknown; index: number }) => unknown;
-        keyExtractor?: (item: unknown, index: number) => string;
-        getItemType?: (item: unknown, index: number) => string;
-        onContentSizeChange?: () => void;
-        testID?: string;
-      },
-      ref: unknown,
-    ) {
-      ReactMock.useImperativeHandle(ref, () => ({
-        scrollToOffset: jest.fn(),
-      }));
-
-      ReactMock.useEffect(() => {
-        if (props.onContentSizeChange) {
-          props.onContentSizeChange();
-        }
-      }, [props.data?.length, props.onContentSizeChange]);
-
-      return ReactMock.createElement(
-        'View',
-        { testID: props.testID ?? 'mock-flash-list' },
-        ...(props.data ?? []).map((item: unknown, index: number) => {
-          props.keyExtractor?.(item, index);
-          props.getItemType?.(item, index);
-          return props.renderItem?.({ item, index });
-        }),
-      );
-    },
-  );
-  return { FlashList: MockFlashList, ListRenderItem: jest.fn() };
 });
 
 describe('NetworkMultiSelectorList', () => {
@@ -390,7 +350,11 @@ describe('NetworkMultiSelectorList', () => {
         <NetworkMultiSelectorList {...defaultProps} />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(
+        getByTestId(
+          NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM('eip155:1', true),
+        ),
+      ).toBeTruthy();
     });
 
     it('calls useSelector with selectEvmChainId', () => {
@@ -417,19 +381,19 @@ describe('NetworkMultiSelectorList', () => {
     });
 
     it('renders correctly when networks is empty', () => {
-      const { getByTestId } = render(
+      const { queryAllByTestId } = render(
         <NetworkMultiSelectorList {...defaultProps} networks={[]} />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(queryAllByTestId(/network-list-item/).length).toBe(0);
     });
 
     it('renders correctly when networks is undefined', () => {
-      const { getByTestId } = render(
+      const { queryAllByTestId } = render(
         <NetworkMultiSelectorList {...defaultProps} networks={undefined} />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(queryAllByTestId(/network-list-item/).length).toBe(0);
     });
   });
 
@@ -1125,7 +1089,11 @@ describe('NetworkMultiSelectorList', () => {
       );
 
       expect(getByTestId('additional-networks')).toBeTruthy();
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(
+        getByTestId(
+          NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM('eip155:1', false),
+        ),
+      ).toBeTruthy();
     });
   });
 

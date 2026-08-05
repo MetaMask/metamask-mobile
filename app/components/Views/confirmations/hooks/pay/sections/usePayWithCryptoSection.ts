@@ -1,8 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 
@@ -25,11 +30,9 @@ import {
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,
@@ -60,7 +63,7 @@ export const PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID =
   'pay-with-crypto-section-other-assets-row';
 
 export function usePayWithCryptoSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { preferredPaymentToken } = useParams<PayWithCryptoSectionParams>({});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const transactionMeta = useTransactionMetadataRequest();
@@ -154,6 +157,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       chainId: preferredToken.chainId,
     };
     if (isPerpsDepositAndOrder) {
+      // an explicit row press is a selection even when the pay token
+      // is unchanged (re-selecting the current preferred token).
+      markPerpsPaymentTokenSelection();
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);
@@ -183,6 +189,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       chainId: noFeeToken.chainId,
     };
     if (isPerpsDepositAndOrder) {
+      // explicit row press counts as a selection (see above).
+      markPerpsPaymentTokenSelection();
       onPerpsPaymentTokenChange(target);
     } else if (isPredictDepositAndOrder) {
       onPredictPaymentTokenChange(target);

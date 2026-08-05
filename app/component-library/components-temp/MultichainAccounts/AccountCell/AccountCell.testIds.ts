@@ -1,5 +1,6 @@
 export const AccountCellIds = {
   CONTAINER: 'multichain-account-cell-container',
+  SELECT: 'multichain-account-cell-select',
   AVATAR: 'multichain-account-cell-avatar',
   ADDRESS: 'multichain-account-cell-address',
   COPY_ADDRESS: 'multichain-account-cell-copy-address',

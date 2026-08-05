@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import {
   addEventListener as netInfoAddEventListener,
   type NetInfoState,
@@ -17,6 +18,18 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  watchPerpsCufAnyPositions,
+  clearPendingPerpsCufTraces,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 import Logger from '../../../../util/Logger';
 import {
   PERPS_CONSTANTS,
@@ -233,6 +246,22 @@ class PerpsConnectionManagerClass {
             );
           });
         }, 50);
+      }
+
+      // Abandon pending CUFs on ANY session-identity change — even while
+      // disconnected, since the tracked identity advances below regardless of
+      // isConnected. Pending close/cancel/TP-SL/place ops and stale reconnect
+      // measurements must not survive into the next session and be falsely
+      // ended by that session's first delivery. Same-account soft reconnects
+      // don't reach here, so their pending confirmations are kept; the new
+      // reconnect measurement starts later inside performReconnection.
+      if (
+        hasAccountChanged ||
+        hasPerpsNetworkChanged ||
+        hasProviderChanged ||
+        hasHip3Changed
+      ) {
+        clearPendingPerpsCufTraces();
       }
 
       // Update tracked values
@@ -539,8 +568,52 @@ class PerpsConnectionManagerClass {
 
     if (Device.isIos()) {
       // iOS: Start background timer, schedule with setTimeout, then stop immediately
+      //
+      // `BackgroundTimer.stop()` below ends the background task as soon as the
+      // timer is armed, so iOS suspends the JS thread for the rest of the
+      // background period. A grace period armed *because the app left the
+      // foreground* therefore cannot run its callback on schedule — it can only
+      // run once the app resumes, and it does so ahead of the AppState `active`
+      // event. Disconnecting there tears down a connection the user has just
+      // come back to, and every Perps read taken during the re-initialisation
+      // that follows fails with CLIENT_NOT_INITIALIZED — surfaced to the user as
+      // "<asset> is not a tradable asset" (TAT-3645).
+      //
+      // Checking whether the app is active *at fire time* does not work:
+      // `AppState.currentState` still reads `background` at that instant. So
+      // capture the state at ARM time instead. Armed while backgrounded means
+      // the callback is by definition running on a resume, whatever the lock
+      // lasted, and `resumeFromForeground` owns the connection from here — it
+      // pings and soft-reconnects only if the socket really did die. A grace
+      // period armed while the app is still active (an in-app reference-count
+      // drop) is unaffected: it runs on schedule and disconnects normally.
+      //
+      // Net effect on iOS: a grace period armed by backgrounding never
+      // disconnects. That is not a behaviour regression — the timer never ran
+      // during the background window before this change either, it only ran
+      // late, on resume, which is the bug. Teardown while backgrounded is the
+      // OS's job (it suspends the process and the socket with it), and
+      // `resumeFromForeground` re-validates on the way back.
+      //
+      // Known consequence: iOS also reports `inactive` for transient states
+      // where JS keeps running (control centre, app switcher, an incoming
+      // call). A grace period armed in one of those windows is inert too, so
+      // the socket outlives it. That is a resource nicety rather than a
+      // correctness issue — `resumeFromForeground` still re-validates — and it
+      // is deliberate: distinguishing it would need an elapsed-time threshold,
+      // which is exactly what left a 20-25s blind band in an earlier revision.
+      const armedWhileBackgrounded = AppState.currentState !== 'active';
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
+        if (armedWhileBackgrounded) {
+          DevLogger.log(
+            'PerpsConnectionManager: Ignoring stale grace period timer (armed on background, fired after resume)',
+          );
+          this.gracePeriodTimer = null;
+          this.isInGracePeriod = false;
+          return;
+        }
+
         this.performActualDisconnection().catch((error) => {
           Logger.error(
             ensureError(
@@ -627,6 +700,15 @@ class PerpsConnectionManagerClass {
               streamManager.fills.clearCache();
               streamManager.topOfBook.clearCache();
               streamManager.candles.clearCache();
+              // Hard teardown (streams torn down, caches cleared): abandon any
+              // pending confirmation CUF as `disconnected`, or a later reconnect
+              // delivery would end the stale op as a success with a duration
+              // inflated by the background/disconnect gap. Skipped for a
+              // preserveCaches soft resume above, where the stream continuity
+              // means the confirming delivery is still legitimate. No reconnect
+              // measurement span is armed during disconnect (it is armed later
+              // in performReconnection, after its own clear), so none is lost.
+              clearPendingPerpsCufTraces();
             }
 
             // Reset state before disconnecting to prevent race conditions
@@ -1004,6 +1086,32 @@ class PerpsConnectionManagerClass {
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
 
+    // Abandon any pending confirmation CUF (and any stale reconnect span) from
+    // the previous session BEFORE arming this reconnection's own span. The
+    // streams are being torn down and resubscribed here, so a stale op must not
+    // be ended by the new subscription's first delivery (which would record a
+    // success with a duration inflated by the offline/reconnect gap). This also
+    // covers reconnect paths that do not route through the identity-change or
+    // hard-disconnect clears — notably NetInfo offline->online.
+    clearPendingPerpsCufTraces();
+
+    // Freshness CUF: reconnect start -> first fresh positions delivery. Armed
+    // AFTER the clear above so it is never abandoned by it.
+    const reconnectCufOpId = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+    watchPerpsCufAnyPositions(reconnectCufOpId);
+    endPerpsCufTraceAfter(
+      {
+        id: reconnectCufOpId,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+        },
+      },
+      PERPS_CUF_STREAM_TIMEOUT_MS,
+    );
+
     // Set connecting state immediately to prevent race conditions
     this.isConnecting = true;
 
@@ -1177,6 +1285,17 @@ class PerpsConnectionManagerClass {
 
       // Clear connection timeout on error
       this.clearConnectionTimeout();
+
+      // Reconnect failed: end its CUF span now as a failure rather than leaving
+      // it open for the 30s fallback — otherwise a retry's fresh positions
+      // delivery could end both this stale span and the new reconnect span.
+      endPerpsCufTrace({
+        id: reconnectCufOpId,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+        },
+      });
 
       traceData = {
         success: false,

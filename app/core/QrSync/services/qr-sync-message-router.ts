@@ -1,19 +1,21 @@
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type {
+  QrSyncProvisioningMetadata,
+  QrSyncSecretImportEntry,
   QrSyncError,
-  QrSyncImportPlan,
   QrSyncServiceEvent,
   QrSyncSyncCancelledEvent,
   QrSyncSyncCompletedEvent,
   QrSyncSyncErrorEvent,
   QrSyncSyncReadyEvent,
 } from '../types';
-import { validateAndNormalizeQrSyncReadyMessage } from './qr-sync-validation';
+import { parseQrSyncSyncReadyMessage } from './qr-sync-validation';
 
 export interface QrSyncRoutedMessageResult {
   handled: boolean;
   event: QrSyncServiceEvent;
-  importPlan?: QrSyncImportPlan;
+  pendingSecretImports?: QrSyncSecretImportEntry[];
+  provisioningMetadata?: QrSyncProvisioningMetadata;
 }
 
 const isRecord = (data: unknown): data is Record<string, unknown> =>
@@ -41,7 +43,6 @@ const toInvalidPayloadEvent = (message: string): QrSyncRoutedMessageResult => ({
 /** Routes one decrypted incoming peer message into controller-consumable output. */
 export function routeIncomingQrSyncMessage(
   rawMessage: unknown,
-  currentTimestamp = Date.now(),
 ): QrSyncRoutedMessageResult | undefined {
   if (!isRecord(rawMessage)) {
     return toInvalidPayloadEvent(
@@ -59,24 +60,25 @@ export function routeIncomingQrSyncMessage(
 
   switch (message.type) {
     case QrSyncActionTypes.SYNC_READY: {
-      const normalizedResult = validateAndNormalizeQrSyncReadyMessage(
-        rawMessage,
-        currentTimestamp,
-      );
+      const parseResult = parseQrSyncSyncReadyMessage(rawMessage);
 
-      if (!normalizedResult.valid) {
+      if (!parseResult.valid) {
         return {
           handled: false,
           event: {
             type: QrSyncActionTypes.SYNC_ERROR,
-            data: normalizedResult.error,
+            data: parseResult.error ?? {
+              code: 'UNKNOWN_ERROR',
+              message: 'Unknown error',
+            },
           } satisfies QrSyncSyncErrorEvent,
         };
       }
 
       return {
         handled: true,
-        importPlan: normalizedResult.plan,
+        pendingSecretImports: parseResult.pendingSecretImports,
+        provisioningMetadata: parseResult.provisioningMetadata,
         event: {
           type: QrSyncActionTypes.SYNC_READY,
         } satisfies QrSyncSyncReadyEvent,

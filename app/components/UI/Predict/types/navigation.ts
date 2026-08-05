@@ -2,14 +2,7 @@
  * Predict navigation parameters
  */
 
-/**
- * Nested navigation into the Predict stack root.
- * Kept local to avoid a circular import with NavigationService/types.
- */
-interface PredictNestedNavigationParams {
-  screen?: string;
-  params?: object;
-}
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import {
   PredictActivityItem,
   PredictCategory,
@@ -21,7 +14,6 @@ import {
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import type { PredictWorldCupTabKey } from '../constants/worldCupTabs';
 import type { PredictFeedId } from '../constants/feedConfig';
 
 export type PredictEntryPoint =
@@ -36,9 +28,12 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
   | typeof PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL
+  | typeof PredictEventValues.ENTRY_POINT.REWARDS
+  | typeof PredictEventValues.ENTRY_POINT.GTM_MODAL
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
+  | typeof PredictEventValues.ENTRY_POINT.BUY_PREVIEW
   | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
   | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
@@ -47,7 +42,7 @@ export interface PredictMarketListRouteParams {
   entryPoint?: PredictEntryPoint;
   feedId?: PredictFeedId;
   /**
-   * Legacy top-level Predict feed tab key (hot / world-cup / base tabs).
+   * Legacy top-level Predict feed tab key (hot / base tabs).
    * Consumed by `usePredictTabs`. Not interchangeable with `tabId`.
    */
   tab?: PredictCategory;
@@ -66,7 +61,7 @@ export interface PredictMarketListRouteParams {
  * Generic Predict feed route parameters.
  *
  * Consumed by the config-driven `PredictFeedView` (powers Sports / Politics /
- * Crypto / Live / Trending / Popular Today). Carries stable IDs only — the
+ * Crypto / Live / Trending). Carries stable IDs only — the
  * view resolves them into a render-ready config via `usePredictFeedConfig`.
  * The route registration + deeplink parsing that populates these params lands
  * separately (route + deeplinks ticket); the view reads them via `useRoute`.
@@ -86,24 +81,18 @@ export interface PredictFeedRouteParams {
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
+  providerId?: string;
   series?: PredictSeries;
   seriesId?: string;
   seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
-  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending"). */
   predictFeedTab?: string;
-  /** Screen context the trade originated from (e.g. "world_cup"). */
+  /** Screen context the trade originated from. */
   predictScreen?: string;
   title?: string;
   image?: string;
   isGame?: boolean;
-  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-}
-
-/** Predict World Cup feed parameters */
-export interface PredictWorldCupParams {
-  entryPoint?: string;
-  initialTab?: PredictWorldCupTabKey;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -132,19 +121,11 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
-  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending"). */
   predictFeedTab?: string;
-  /** Screen context the trade originated from (e.g. "world_cup"). */
+  /** Screen context the trade originated from. */
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /**
-   * When true, the beforeRemove listener in PredictBuyPreview will fire
-   * trackBetslipDismissed for swipe/hardware-back dismissals. Only set by
-   * PredictPreviewSheetProvider when disableBottomSheet is active — keeps the
-   * analytics change scoped to the new HomepageDiscoveryTabs flow and avoids
-   * changing event volume for the pre-existing flagless screen-mode path.
-   */
-  trackSwipeDismiss?: boolean;
 }
 
 /** Predict sell preview parameters */
@@ -176,27 +157,38 @@ export type PredictSellPreviewProps =
   | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
   | { mode?: never };
 
-// Declared as a `type` (not `interface`) so it gains an implicit index
-// signature and satisfies React Navigation's `ParamListBase` constraint while
-// `keyof` stays a strict union of route names. The repo's
-// `consistent-type-definitions` rule prefers `interface`, hence the suppression.
+// ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictNavigationParamList = {
-  Predict: PredictNestedNavigationParams | undefined;
+export type PredictModalsNavigationParamList = {
+  PredictUnavailable: undefined;
+  PredictGTMModal: undefined;
+  PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
+  PredictActivityDetail: PredictActivityDetailParams;
+  RedesignedConfirmations: undefined;
+  NoHeaderConfirmations: undefined;
+};
+
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictStackParamList = {
   PredictMarketList: PredictMarketListRouteParams | undefined;
   PredictFeed: PredictFeedRouteParams | undefined;
   PredictMarketDetails: PredictMarketDetailsParams | undefined;
   PredictPositions: PredictPositionsParams | undefined;
-  PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
-  PredictActivityDetail: PredictActivityDetailParams;
-  PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
-  PredictUnavailable: undefined;
-  PredictGTMModal: undefined;
-  PredictModals: PredictNestedNavigationParams | undefined;
   RedesignedConfirmations: undefined;
   NoHeaderConfirmations: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
 };
+
+// Intersection (`&`) requires `type`; `interface` cannot express this.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictNavigationParamList = PredictStackParamList &
+  PredictModalsNavigationParamList & {
+    Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
+    PredictModals:
+      | NavigatorScreenParams<PredictModalsNavigationParamList>
+      | undefined;
+  };

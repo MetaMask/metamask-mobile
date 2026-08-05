@@ -27,8 +27,17 @@ export const transparentModalScreenOptions: NativeStackNavigationOptions = {
   presentation: 'transparentModal',
 };
 
+/**
+ * Native-stack options for the add-device OTP verification bottom sheet.
+ */
+export const addDeviceVerificationCodeScreenOptions: NativeStackNavigationOptions =
+  {
+    ...transparentModalScreenOptions,
+    ...clearNativeStackNavigatorOptions,
+  };
+
 export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
+  animation: 'ios_from_right',
 };
 
 export const fadeNativeOptions: NativeStackNavigationOptions = {

@@ -23,11 +23,14 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RampsService',
   'TransakService',
   'ComplianceService',
+  'QrSyncProvisioningService',
   'SocialService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
+  'MoneyAccountApiDataService',
   'ConfigRegistryApiService',
   'ChompApiService',
+  'SentinelApiService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -89,6 +92,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
+  'DeFiPositionsControllerV2:stateChanged',
   'SeedlessOnboardingController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   'SamplePetnamesController:stateChange',

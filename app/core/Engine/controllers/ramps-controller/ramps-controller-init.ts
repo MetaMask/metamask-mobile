@@ -36,6 +36,12 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const controller = new RampsController({
     messenger: controllerMessenger,
     state: rampsControllerState,
+    // The all-providers widening is driven by the `moneyHeadlessAllProviders`
+    // remote feature flag, which the controller reads itself through the
+    // `RemoteFeatureFlagController:getState` messenger action per quote call.
+    // The widened-path default redirect URL is now derived inside core via
+    // `RampsService:getDefaultRedirectCallbackUrl` (same environment as the
+    // service). Keep that action delegated in the controller messenger.
   });
 
   let orderSubscriptionsRegistered = false;

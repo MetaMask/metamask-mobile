@@ -90,6 +90,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       disabled = false,
       onCurrentWordChange,
       autoFocus: autoFocusProp = true,
+      includeTopMargin = true,
     },
     ref,
   ) => {
@@ -355,7 +356,11 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     }, [trimmedSeedPhraseLength, handleClear, handlePaste]);
 
     return (
-      <Box twClassName="flex-col gap-1 mt-2 mb-6">
+      <Box
+        twClassName={
+          includeTopMargin ? 'flex-col gap-1 mt-2 mb-6' : 'flex-col gap-1 mb-6'
+        }
+      >
         <Box
           backgroundColor={BoxBackgroundColor.BackgroundSection}
           twClassName={`rounded-[10px] min-h-[210px] flex-row flex-wrap w-full px-4 ${!isFirstInput ? 'pt-4 pb-2' : ''}`}

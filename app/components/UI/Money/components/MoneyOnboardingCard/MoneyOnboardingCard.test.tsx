@@ -40,6 +40,11 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../MoneyNextBestActionParallax', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));
@@ -74,12 +79,14 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const mockIsCardholder = jest.fn(() => true);
 const mockCardHomeDataStatus = jest.fn(() => 'success');
+const mockIsCardStateResolved = jest.fn(() => true);
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
 jest.mock('../../../../../selectors/cardController', () => ({
   selectIsCardholder: () => mockIsCardholder(),
   selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
+  selectIsCardStateResolved: () => mockIsCardStateResolved(),
 }));
 
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
@@ -144,11 +151,14 @@ const setupDefaultMocks = ({
     isLinking: false,
   });
   mockIsCardholder.mockReturnValue(isCardholder);
+  mockIsCardStateResolved.mockReturnValue(true);
 };
 
 describe('MoneyOnboardingCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsCardStateResolved.mockReturnValue(true);
+    mockCardHomeDataStatus.mockReturnValue('success');
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,
     });
@@ -165,6 +175,35 @@ describe('MoneyOnboardingCard', () => {
 
     it('returns null when balance is loading', () => {
       setupDefaultMocks({ isBalanceLoading: true });
+
+      const { toJSON } = render(<MoneyOnboardingCard />);
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('renders step 1 while card state is unresolved', () => {
+      setupDefaultMocks({ currentStep: 0, tokenTotal: new BigNumber(0) });
+      mockIsCardStateResolved.mockReturnValue(false);
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
+        strings('money.onboarding.step_1.title_no_apy'),
+      );
+    });
+
+    it('returns null while card state is unresolved and the account is funded', () => {
+      setupDefaultMocks({ currentStep: 0, tokenTotal: new BigNumber(1) });
+      mockIsCardStateResolved.mockReturnValue(false);
+
+      const { toJSON } = render(<MoneyOnboardingCard />);
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('returns null while card state is unresolved at step 2', () => {
+      setupDefaultMocks({ currentStep: 1 });
+      mockIsCardStateResolved.mockReturnValue(false);
 
       const { toJSON } = render(<MoneyOnboardingCard />);
 

@@ -978,7 +978,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes StakeScreens route', () => {
@@ -1063,7 +1063,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Asset screen', () => {
@@ -1176,7 +1176,7 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
 
     it('includes Benefit detail full view route', () => {
@@ -1191,11 +1191,11 @@ describe('MainNavigator', () => {
 
       expect(screen).toBeDefined();
       expect(screen?.options?.headerShown).toBe(false);
-      expect(screen?.options?.animation).toBe('slide_from_right');
+      expect(screen?.options?.animation).toBe('ios_from_right');
     });
   });
 
-  it('includes TopTradersView screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes SocialTradersView screen when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1244,7 +1244,7 @@ describe('MainNavigator', () => {
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('TopTradersView');
+    expect(topTradersScreen?.component.name).toBe('SocialTradersView');
   });
 
   describe('Inner navigator component rendering', () => {

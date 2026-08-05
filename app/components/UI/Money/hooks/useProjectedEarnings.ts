@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { tokenFiatValue } from '../../Earn/hooks/useMusdConversionTokens';
+import { moneySafeTokenFiatCurrency } from '../utils/moneyFormatFiat';
 import {
   calculateProjectedEarnings,
   PROJECTION_YEARS,
@@ -10,6 +11,7 @@ interface ProjectedEarnings {
   eligibleTokens: AssetType[];
   totalAssetsFiat: number;
   projectedAmount: number;
+  currency: string;
 }
 
 export function useProjectedEarnings(
@@ -43,7 +45,13 @@ export function useProjectedEarnings(
     [eligibleTokens, safeApyDecimal],
   );
 
-  return { eligibleTokens, totalAssetsFiat, projectedAmount };
+  // Derived from the same `eligibleTokens` the sums are computed over to prevent drift.
+  const currency = useMemo(
+    () => moneySafeTokenFiatCurrency(eligibleTokens[0]),
+    [eligibleTokens],
+  );
+
+  return { eligibleTokens, totalAssetsFiat, projectedAmount, currency };
 }
 
 export default useProjectedEarnings;

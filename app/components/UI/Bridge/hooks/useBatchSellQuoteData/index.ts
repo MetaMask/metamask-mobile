@@ -200,8 +200,6 @@ function getBatchSellMetamaskFeePercent(
 ) {
   const quoteBpsFee = recommendedQuotes
     .map((recommendedQuote) => {
-      // TODO: remove this once controller types are updated
-      // @ts-expect-error: controller types are not up to date yet
       const fee = recommendedQuote.quote.feeData?.metabridge?.quoteBpsFee;
 
       return fee as number | string | null | undefined;
@@ -494,12 +492,12 @@ export function useBatchSellQuoteData({
             tokenSymbol,
             slippage: getSlippageDisplayValue(slippage),
             receivedAmount: formatTokenAmountWithSymbol(
-              recommendedQuote?.toTokenAmount.amount,
+              recommendedQuote?.toTokenAmount?.amount,
               quoteDestinationTokenSymbol,
             ),
             receivedAmountFiat: formatQuoteDisplayValue({
-              amount: recommendedQuote?.toTokenAmount.amount,
-              valueInCurrency: recommendedQuote?.toTokenAmount.valueInCurrency,
+              amount: recommendedQuote?.toTokenAmount?.amount,
+              valueInCurrency: recommendedQuote?.toTokenAmount?.valueInCurrency,
               symbol: quoteDestinationTokenSymbol,
               currency: currentCurrency,
             }),

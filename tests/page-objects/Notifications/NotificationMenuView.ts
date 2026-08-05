@@ -23,15 +23,13 @@ class NotificationMenuView {
     );
   }
   get scrollViewIdentifier() {
-    return Matchers.getIdentifier(
+    return Matchers.scrollContainer(
       NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
     );
   }
 
   selectNotificationItem(id: string) {
-    return Matchers.getElementByID(
-      NotificationMenuViewSelectorsIDs.ITEM(id),
-    ) as Promise<IndexableNativeElement>;
+    return Matchers.getElementByID(NotificationMenuViewSelectorsIDs.ITEM(id));
   }
 
   async tapOnWalletTab() {

@@ -1,6 +1,7 @@
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import {
+  Authorization,
   AuthorizationList,
   GasFeeToken,
   IsAtomicBatchSupportedRequest,
@@ -12,6 +13,7 @@ import {
   decodeAuthorizationSignature,
 } from '@metamask/transaction-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
+import { recoverAuthorizationAddress } from 'viem/utils';
 import {
   ANY_BENEFICIARY,
   BATCH_DEFAULT_MODE,
@@ -32,7 +34,7 @@ import {
   Delegation,
   encodeRedeemDelegations,
 } from '../../../core/Delegation/delegation';
-import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../../core/Engine/wallet-init/messengers/transaction-controller-messenger';
 import {
   RelaySubmitRequest,
   submitRelayTransaction,
@@ -217,11 +219,14 @@ export class Delegation7702PublishHook {
       },
     };
 
-    if (!delegationAddress) {
-      relayRequest.authorizationList = await this.#buildAuthorizationList(
-        transactionMeta,
-        upgradeContractAddress,
-      );
+    const authorizationList = await this.#resolveAuthorizationList(
+      transactionMeta,
+      upgradeContractAddress,
+      delegationAddress,
+    );
+
+    if (authorizationList?.length) {
+      relayRequest.authorizationList = authorizationList;
     }
 
     log('Relay request', relayRequest);
@@ -414,6 +419,95 @@ export class Delegation7702PublishHook {
     caveatBuilder.addCaveat(limitedCalls, 1);
 
     return caveatBuilder.build();
+  }
+
+  /**
+   * Build the authorization list for the Sentinel / Gas Station request.
+   *
+   * Always retain pre-signed authorizations whose recovered signer is not the
+   * transaction `from` (e.g. Money Account upgrades bundled with an EOA-paid
+   * batch). When `from` itself is not upgraded, also include a freshly signed
+   * EOA authorization — without replacing the foreign entries.
+   */
+  async #resolveAuthorizationList(
+    transactionMeta: TransactionMeta,
+    upgradeContractAddress: Hex | undefined,
+    delegationAddress: Hex | undefined,
+  ): Promise<AuthorizationList | undefined> {
+    const { from, authorizationList: existingAuthorizationList } =
+      transactionMeta.txParams;
+
+    const foreignAuthorizations = await this.#getForeignAuthorizations(
+      existingAuthorizationList,
+      from as Hex,
+    );
+
+    if (!delegationAddress) {
+      const fromAuthorization = await this.#buildAuthorizationList(
+        transactionMeta,
+        upgradeContractAddress,
+      );
+
+      return [...foreignAuthorizations, ...fromAuthorization];
+    }
+
+    return foreignAuthorizations.length ? foreignAuthorizations : undefined;
+  }
+
+  /**
+   * Filter `txParams.authorizationList` to fully signed entries whose recovered
+   * EIP-7702 signer is not the batch payer (`from`).
+   */
+  async #getForeignAuthorizations(
+    authorizationList: AuthorizationList | undefined,
+    from: Hex,
+  ): Promise<AuthorizationList> {
+    if (!authorizationList?.length) {
+      return [];
+    }
+
+    const foreignAuthorizations: AuthorizationList = [];
+
+    for (const authorization of authorizationList) {
+      if (!this.#isAuthorizationSigned(authorization)) {
+        continue;
+      }
+
+      try {
+        const signer = await recoverAuthorizationAddress({
+          authorization: {
+            address: authorization.address,
+            chainId: Number(authorization.chainId),
+            nonce: Number(authorization.nonce),
+            r: authorization.r,
+            s: authorization.s,
+            yParity: Number(authorization.yParity),
+          },
+        });
+
+        if (signer.toLowerCase() !== from.toLowerCase()) {
+          foreignAuthorizations.push(authorization);
+        }
+      } catch (error) {
+        log('Failed to recover authorization signer', { authorization, error });
+      }
+    }
+
+    log('Foreign authorizations', foreignAuthorizations);
+
+    return foreignAuthorizations;
+  }
+
+  #isAuthorizationSigned(
+    authorization: Authorization,
+  ): authorization is Required<Authorization> {
+    return Boolean(
+      authorization.chainId &&
+        authorization.nonce !== undefined &&
+        authorization.r &&
+        authorization.s &&
+        authorization.yParity !== undefined,
+    );
   }
 
   async #buildAuthorizationList(

@@ -10,6 +10,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
@@ -22,11 +23,8 @@ export interface PerpsMarketInlineHeaderProps {
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;
-  onFullscreenPress?: () => void;
-  onCategorySearchPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
-  fullscreenButtonTestID?: string;
   endAccessory?: ReactNode;
 }
 
@@ -36,30 +34,27 @@ export const PerpsMarketInlineHeader = ({
   onBackPress,
   onMorePress,
   onFavoritePress,
-  onFullscreenPress,
-  onCategorySearchPress,
   isFavorite = false,
   testID,
-  fullscreenButtonTestID,
   endAccessory,
 }: PerpsMarketInlineHeaderProps) => {
-  const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
+  const displaySymbol = getPerpsDisplaySymbol(market.symbol);
+  const displayTitle = `${displaySymbol}-${PERPS_COLLATERAL_SYMBOL}`;
 
-  const titleEndAccessory = useMemo(() => {
-    if (!market.maxLeverage) {
-      return undefined;
-    }
+  const leverageBadge = useMemo(
+    () =>
+      market.maxLeverage ? (
+        <PerpsLeverage maxLeverage={market.maxLeverage} />
+      ) : null,
+    [market.maxLeverage],
+  );
 
-    return <PerpsLeverage maxLeverage={market.maxLeverage} />;
-  }, [market.maxLeverage]);
-
-  const description = useMemo(
+  const compactDescription = useMemo(
     () => (
       <LivePriceHeader
         symbol={market.symbol}
         testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
         testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-        throttleMs={1000}
         currentPrice={currentPrice}
       />
     ),
@@ -69,22 +64,16 @@ export const PerpsMarketInlineHeader = ({
   const endButtonIconProps = useMemo(() => {
     const buttons = [];
 
-    if (onFullscreenPress) {
-      buttons.push({
-        iconName: IconName.Expand,
-        onPress: onFullscreenPress,
-        testID:
-          fullscreenButtonTestID ??
-          `${testID ?? 'perps-market-header'}-fullscreen-button`,
-        accessibilityLabel: strings('perps.market_details.fullscreen_chart'),
-      });
-    }
-
     if (onFavoritePress) {
       buttons.push({
         iconName: isFavorite ? IconName.StarFilled : IconName.Star,
         onPress: onFavoritePress,
         testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+        accessibilityLabel: strings(
+          isFavorite
+            ? 'perps.market_details.remove_from_watchlist'
+            : 'perps.market_details.add_to_watchlist',
+        ),
       });
     } else if (onMorePress) {
       buttons.push({
@@ -94,25 +83,8 @@ export const PerpsMarketInlineHeader = ({
       });
     }
 
-    if (onCategorySearchPress) {
-      buttons.push({
-        iconName: IconName.Search,
-        onPress: onCategorySearchPress,
-        testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
-        accessibilityLabel: strings('perps.market_details.category_search'),
-      });
-    }
-
     return buttons.length > 0 ? buttons : undefined;
-  }, [
-    onFullscreenPress,
-    fullscreenButtonTestID,
-    testID,
-    onFavoritePress,
-    isFavorite,
-    onMorePress,
-    onCategorySearchPress,
-  ]);
+  }, [onFavoritePress, isFavorite, onMorePress]);
 
   return (
     <HeaderSubpage
@@ -125,6 +97,7 @@ export const PerpsMarketInlineHeader = ({
             iconName={IconName.ArrowLeft}
             size={ButtonIconSize.Md}
             onPress={onBackPress}
+            accessibilityLabel={strings('perps.market_details.back')}
             testID={PerpsMarketHeaderSelectorsIDs.BACK_BUTTON}
           />
         ) : undefined
@@ -140,8 +113,8 @@ export const PerpsMarketInlineHeader = ({
       }
       title={displayTitle}
       titleProps={{ testID: PerpsMarketHeaderSelectorsIDs.ASSET_NAME }}
-      titleEndAccessory={titleEndAccessory}
-      description={description}
+      titleEndAccessory={leverageBadge}
+      description={compactDescription}
     />
   );
 };

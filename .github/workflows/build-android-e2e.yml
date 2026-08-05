@@ -43,6 +43,13 @@ on:
         required: false
         default: false
         type: boolean
+      reuse-main-builds-only:
+        description: >-
+          When true, only reuse native artifacts from the base branch (main) and skip
+          JS repacking. Fails if no reusable main build is found.
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-android-apks:
@@ -183,11 +190,13 @@ jobs:
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
-          metadata-artifact-name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
           github-token: ${{ github.token }}
+          main-branch-only: ${{ inputs.reuse-main-builds-only }}
+          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
 
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -198,7 +207,7 @@ jobs:
           key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && inputs.include_arm64 == false }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && (inputs.reuse-main-builds-only == true || (steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -300,7 +309,23 @@ jobs:
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
+          if [[ "${{ inputs.reuse-main-builds-only }}" == "true" ]]; then
+            if [[ "${{ steps.force-builds.outputs.force }}" == "true" ]]; then
+              echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+              echo "force-builds override on test-only PR — compiling fresh native build."
+            elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+               && "${{ steps.download-reusable-apk.outcome }}" == "success" \
+               && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Test-only PR: reusing main branch Android artifacts from GitHub Actions (no repack)."
+            elif [[ "${{ steps.apk-cache-restore-main.outputs.cache-hit }}" == "true" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Test-only PR: reusing main branch Android artifacts from Cirrus APK cache (no repack)."
+            else
+              echo "::warning::Test-only PR could not reuse main Android builds yet (GitHub artifacts or main APK cache). Falling back to fresh native build."
+              echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+            fi
+          elif [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
             echo "Namespace APK cache hit; heavy Android setup + Gradle restore will be skipped."
           elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
@@ -514,7 +539,6 @@ jobs:
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
-          BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -559,7 +583,7 @@ jobs:
           echo "Namespace APK cache marker + APKs written to ${CACHE_DIR}."
 
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' && inputs.reuse-main-builds-only != true }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -577,7 +601,6 @@ jobs:
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
           METRO_MAX_WORKERS: '6'
-          BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'
@@ -706,3 +729,23 @@ jobs:
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+
+      # Gradle builds every RN library module inside node_modules
+      # (node_modules/<pkg>/android/build) and CMake writes to
+      # node_modules/<pkg>/android/.cxx — ~4-5 GB of intermediates that used
+      # to balloon the post-job yarn cache save (setup-e2e-env) from ~600 MB
+      # to ~1.5 GB, adding ~1 min of cache download to every Android E2E job.
+      # Main steps all run before post-job steps, so deleting the
+      # intermediates here (after the APKs have been uploaded — they live in
+      # android/app/build, not node_modules) means the post-job save archives
+      # a clean tree. Gradle build reuse is handled by the dedicated Gradle
+      # caches, which are correctly keyed on Gradle config files.
+      - name: Clean native build intermediates from node_modules
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          before=$(du -sm node_modules | cut -f1)
+          find node_modules -type d \( -name build -o -name .cxx \) -path '*/android/*' -prune -exec rm -rf {} + 2>/dev/null || true
+          after=$(du -sm node_modules | cut -f1)
+          echo "node_modules: ${before} MB -> ${after} MB (removed $((before - after)) MB of Gradle/CMake intermediates)"

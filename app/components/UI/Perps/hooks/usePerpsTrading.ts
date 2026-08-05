@@ -8,6 +8,7 @@ import {
   type CancelOrderParams,
   type CancelOrderResult,
   type ClosePositionParams,
+  type EditOrderParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
   type FlipPositionParams,
@@ -35,6 +36,20 @@ import {
   type WithdrawParams,
   type WithdrawResult,
 } from '@metamask/perps-controller';
+import { TraceName } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufRequestAfter,
+  watchPerpsCufOrderAbsent,
+  watchPerpsCufOrderPriceUpdated,
+  acceptPerpsCufRequest,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 
 /**
  * UI-facing params for fetching markets.
@@ -65,7 +80,114 @@ export function usePerpsTrading() {
   const cancelOrder = useCallback(
     async (params: CancelOrderParams): Promise<CancelOrderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.cancelOrder(params);
+      // Confirmation CUF: every cancel UI path funnels through here; the span
+      // ends when the stream no longer lists the order.
+      const cancelCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsCancelOrderToConfirmation,
+      });
+      watchPerpsCufOrderAbsent(cancelCufOpId, params.orderId);
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        cancelCufOpId,
+        () => controllerSettled,
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
+      try {
+        const result = await controller.cancelOrder(params);
+        controllerSettled = true;
+        if (!result?.success) {
+          endPerpsCufTrace({
+            id: cancelCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+        } else {
+          // Only now may a stream absence complete the span as a success — the
+          // controller accepted the cancel. If the order already vanished while
+          // the request was in flight, the render instant was recorded and the
+          // span ends at it here.
+          acceptPerpsCufRequest(cancelCufOpId);
+        }
+        return result;
+      } catch (error) {
+        endPerpsCufTrace({
+          id: cancelCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const editOrder = useCallback(
+    async (
+      params: EditOrderParams & {
+        /**
+         * When true (default if `newOrder.price` is set), arm an
+         * ORDER_PRICE_UPDATED stream watcher. Pass false for size-only edits
+         * that still send an unchanged limit price to the venue.
+         */
+        watchPriceUpdate?: boolean;
+      },
+    ): Promise<OrderResult> => {
+      const { watchPriceUpdate, ...controllerParams } = params;
+      const controller = Engine.context.PerpsController;
+      const editCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsEditOrder,
+      });
+      const expectedPrice = controllerParams.newOrder.price;
+      const shouldWatchPriceUpdate = watchPriceUpdate ?? Boolean(expectedPrice);
+      if (expectedPrice && shouldWatchPriceUpdate) {
+        watchPerpsCufOrderPriceUpdated(
+          editCufOpId,
+          String(controllerParams.orderId),
+          expectedPrice,
+        );
+      }
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        editCufOpId,
+        () => controllerSettled,
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
+      try {
+        const result = await controller.editOrder(controllerParams);
+        controllerSettled = true;
+        if (!result?.success) {
+          endPerpsCufTrace({
+            id: editCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+        } else if (expectedPrice && shouldWatchPriceUpdate) {
+          acceptPerpsCufRequest(editCufOpId);
+        } else {
+          endPerpsCufTrace({
+            id: editCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: true,
+            },
+          });
+        }
+        return result;
+      } catch (error) {
+        endPerpsCufTrace({
+          id: editCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+        throw error;
+      }
     },
     [],
   );
@@ -273,6 +395,7 @@ export function usePerpsTrading() {
   return {
     placeOrder,
     cancelOrder,
+    editOrder,
     closePosition,
     getMarkets,
     getPositions,

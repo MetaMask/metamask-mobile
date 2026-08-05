@@ -1,14 +1,16 @@
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -53,7 +55,7 @@ export function applySlippage(value: bigint): bigint {
 export interface MoneyAccountTxParams {
   params: {
     to: Hex;
-    data: Hex;
+    data?: Hex;
     value: Hex;
   };
   type: TransactionType;
@@ -137,6 +139,22 @@ export function getMoneyAccountDepositAssetAddress(chainId: Hex): Hex {
   return musdAddress;
 }
 
+/**
+ * Resolves the CAIP-19 asset id of the Money Account deposit asset (mUSD) for a
+ * given chain. Pure mapping over `MUSD_TOKEN_ASSET_ID_BY_CHAIN`.
+ *
+ * Money Account is Monad-only today, so an unknown or undefined `chainId` falls
+ * back to the Monad mUSD asset id rather than throwing — the entry-point gate
+ * that consumes this should still resolve against the asset the deposit flow
+ * actually targets.
+ * @param chainId - The chain ID to get the deposit asset id for.
+ * @returns The CAIP-19 asset id of the deposit asset for the given chain ID.
+ */
+export function getMoneyAccountDepositAssetId(chainId?: Hex): CaipAssetType {
+  return (MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId as Hex] ??
+    MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]) as CaipAssetType;
+}
+
 export type MoneyAccountDepositBatchResult = MoneyAccountBatchResult<
   'approveTx' | 'depositTx'
 >;
@@ -157,6 +175,7 @@ export async function buildMoneyAccountDepositBatch({
   accountantAddress,
   lensAddress,
   provider,
+  initialiseWithoutData = false,
 }: {
   amount: bigint;
   chainId: Hex;
@@ -165,6 +184,7 @@ export async function buildMoneyAccountDepositBatch({
   accountantAddress: string;
   lensAddress: string;
   provider: ethers.providers.Provider;
+  initialiseWithoutData?: boolean;
 }): Promise<MoneyAccountDepositBatchResult> {
   const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
@@ -183,8 +203,12 @@ export async function buildMoneyAccountDepositBatch({
           }),
         );
 
-  const approveData = buildApproveData(boringVault, amount);
-  const depositData = buildDepositData(musdAddress, amount, minimumMint);
+  const approveData = initialiseWithoutData
+    ? undefined
+    : buildApproveData(boringVault, amount);
+  const depositData = initialiseWithoutData
+    ? undefined
+    : buildDepositData(musdAddress, amount, minimumMint);
 
   return {
     approveTx: {
@@ -247,9 +271,13 @@ export async function updateMoneyAccountDepositTokenAmount(
     provider,
   });
 
+  const approveData = approveTx.params.data;
+  const depositData = depositTx.params.data;
+  if (!approveData || !depositData) return [];
+
   return [
-    { nestedTransactionIndex: 0, transactionData: approveTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: depositTx.params.data },
+    { nestedTransactionIndex: 0, transactionData: approveData },
+    { nestedTransactionIndex: 1, transactionData: depositData },
   ];
 }
 
@@ -291,9 +319,13 @@ export async function updateMoneyAccountWithdrawTokenAmount(
     provider,
   });
 
+  const withdrawData = withdrawTx.params.data;
+  const transferData = transferTx.params.data;
+  if (!withdrawData || !transferData) return [];
+
   return [
-    { nestedTransactionIndex: 0, transactionData: withdrawTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: transferTx.params.data },
+    { nestedTransactionIndex: 0, transactionData: withdrawData },
+    { nestedTransactionIndex: 1, transactionData: transferData },
   ];
 }
 

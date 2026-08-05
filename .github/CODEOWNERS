@@ -90,12 +90,10 @@ app/components/Views/confirmations/external/staking             @MetaMask/confir
 app/components/Views/confirmations/hooks/useIsExternalAppRequest.ts @MetaMask/confirmations @MetaMask/product-safety
 app/core/Analytics/events/confirmations                         @MetaMask/confirmations
 app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
-app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
 app/core/Engine/controllers/signature-controller                @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller              @MetaMask/confirmations
 app/core/Engine/controllers/transaction-pay-controller          @MetaMask/confirmations
 app/core/Engine/messengers/approval-controller-messenger        @MetaMask/confirmations
-app/core/Engine/messengers/gas-fee-controller-messenger         @MetaMask/confirmations
 app/core/Engine/messengers/signature-controller-messenger       @MetaMask/confirmations
 app/core/Engine/messengers/transaction-controller-messenger     @MetaMask/confirmations
 app/core/Engine/messengers/transaction-pay-controller-messenger @MetaMask/confirmations
@@ -108,6 +106,9 @@ app/selectors/transactionPayController.*                        @MetaMask/confir
 app/util/confirmation/                                          @MetaMask/confirmations
 app/util/transaction-controller/                               @MetaMask/confirmations
 app/util/transactions/                                         @MetaMask/confirmations
+
+# Product Safety Team
+**/product-safety/**                                            @MetaMask/product-safety
 
 # Wallet integrations Team
 app/components/Approvals/WalletConnectApproval/             @MetaMask/wallet-integrations
@@ -142,22 +143,24 @@ app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
 # Engagement Team
+# Braze
 **/*Braze*/ @MetaMask/engagement
 **/*Braze* @MetaMask/engagement
 **/*braze*/ @MetaMask/engagement
 **/*braze* @MetaMask/engagement
-app/components/Views/Notifications @MetaMask/engagement
-app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
+# Notifications — directories (list, details, state, controllers, tests)
 **/Notifications/** @MetaMask/engagement
 **/Notification/** @MetaMask/engagement
 **/notifications/** @MetaMask/engagement
 **/notification/** @MetaMask/engagement
+# Notifications — paths not covered by directory wildcards above
+app/components/Views/Settings/NotificationsSettings/ @MetaMask/engagement
+app/core/NotificationManager.js @MetaMask/engagement
+app/core/NotificationsManager.test.ts @MetaMask/engagement
+# Engagement
 **/Engagement/** @MetaMask/engagement
 **/engagement/** @MetaMask/engagement
-**/*engagement* @MetaMask/engagement
-**/*Engagement* @MetaMask/engagement
-**/*notification* @MetaMask/engagement
-**/*Notification* @MetaMask/engagement
+app/constants/engagement.ts @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -285,6 +288,7 @@ app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux
 app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
 app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
 app/components/Views/Settings                    @MetaMask/mobile-core-ux
+app/components/Views/Settings/NotificationsSettings @MetaMask/mobile-core-ux @MetaMask/engagement
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
@@ -305,13 +309,13 @@ app/components/Views/Homepage/index.ts           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/context/           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/hooks/             @MetaMask/mobile-core-ux
 app/components/Views/Homepage/components/        @MetaMask/mobile-core-ux
-app/selectors/featureFlagController/homepage/    @MetaMask/mobile-core-ux @MetaMask/mobile-platform
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
 
 # Web3auth Team
-app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
+app/core/Engine/wallet-init/instance-options/seedless-onboarding-controller.ts @MetaMask/web3auth
+app/core/Engine/wallet-init/instance-options/seedless-onboarding-controller.test.ts @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/Engine/controllers/qr-sync-controller-init.ts      @MetaMask/web3auth
 app/core/Engine/messengers/qr-sync-controller-messenger     @MetaMask/web3auth
@@ -369,8 +373,6 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
-.github/workflows/run-e2e-regression-tests-android.yml          @MetaMask/qa
-.github/workflows/run-e2e-regression-tests-ios.yml              @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-android.yml               @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
 .github/workflows/run-e2e-smoke-tests-ios.yml                   @MetaMask/qa
@@ -381,22 +383,21 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/flaky-test-report.yml                         @MetaMask/qa
 .github/workflows/performance-test-runner.yml                   @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
-.github/workflows/run-performance-e2e-experimental.yml          @MetaMask/qa
-.github/workflows/run-performance-e2e-release.yml               @MetaMask/qa
+.github/workflows/run-performance-e2e-manual.yml                @MetaMask/qa
 .github/workflows/run-system-tests.yml                          @MetaMask/qa
 .github/scripts/e2e-*.mjs                                       @MetaMask/qa
 .github/scripts/collect-qa-stats.mjs                            @MetaMask/qa
-.github/scripts/generate-regression-slack-summary.mjs           @MetaMask/qa
 
 # Co-owned by Swaps and Money Movement teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
 app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/money-movement
 
-# Wallet Library initialization  
+# Wallet Library initialization
 app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/gas-fee-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform

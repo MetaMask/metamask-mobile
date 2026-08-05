@@ -37,8 +37,8 @@ describe('PredictAnalytics', () => {
   const getDevLoggerMock = () =>
     DevLogger.log as jest.MockedFunction<typeof DevLogger.log>;
 
-  const getTrackedEvent = (): TrackedEvent =>
-    getTrackEventMock().mock.calls[0][0] as TrackedEvent;
+  const getTrackedEvent = (index = 0): TrackedEvent =>
+    getTrackEventMock().mock.calls[index][0] as TrackedEvent;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,6 +115,106 @@ describe('PredictAnalytics', () => {
         amount_usd: 150,
       });
       expect(getDevLoggerMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks Trade Considered after an initiated Predict buy', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.INITIATED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+      });
+
+      const predictTradeEvent = getTrackedEvent();
+      const tradeConsideredEvent = getTrackedEvent(1);
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
+      expect(predictTradeEvent.name).toBe(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION.category,
+      );
+      expect(tradeConsideredEvent.name).toBe(
+        MetaMetricsEvents.TRADE_CONSIDERED.category,
+      );
+      expect(tradeConsideredEvent.properties).toEqual({
+        trade_type: 'predict',
+        implementation_type: 'native',
+      });
+    });
+
+    it('does not track Trade Considered for an initiated Predict sell', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.INITIATED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+      });
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks Trade Completed after Predict Trade Transaction with matching properties', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: 150,
+        sharePrice: 0.63,
+        completionDuration: 1832,
+        orderType: 'FOK',
+        analyticsProperties: {
+          marketId: 'm1',
+          marketTitle: 'Will Team A win?',
+          entryPoint: 'predict_feed',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+          outcome: 'yes',
+        },
+      });
+
+      const predictTradeEvent = getTrackedEvent();
+      const tradeCompletedEvent = getTrackedEvent(1);
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
+      expect(predictTradeEvent.name).toBe(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION.category,
+      );
+      expect(tradeCompletedEvent.name).toBe(
+        MetaMetricsEvents.TRADE_COMPLETED.category,
+      );
+      expect(tradeCompletedEvent.properties).toEqual({
+        ...predictTradeEvent.properties,
+        trade_type: 'predict',
+        implementation_type: 'native',
+      });
+      expect(tradeCompletedEvent.sensitiveProperties).toEqual({
+        ...predictTradeEvent.sensitiveProperties,
+        usd_trade_value: 150,
+      });
+    });
+
+    it('does not track Trade Completed for a succeeded Predict deposit', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: 150,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        },
+      });
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not track Trade Completed without a USD trade value', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+      });
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
     });
 
     it('tracks failed status with completionDuration and failureReason', async () => {
@@ -265,8 +365,8 @@ describe('PredictAnalytics', () => {
         analyticsProperties: {
           marketId: 'test',
           entryPoint: 'predict_feed',
-          predictFeedTab: 'world-cup',
-          predictScreen: 'world_cup',
+          predictFeedTab: 'sports',
+          predictScreen: 'predict_positions_screen',
         },
       });
 
@@ -274,8 +374,8 @@ describe('PredictAnalytics', () => {
 
       expect(event.properties).toMatchObject({
         entry_point: 'predict_feed',
-        predict_feed_tab: 'world-cup',
-        predict_screen: 'world_cup',
+        predict_feed_tab: 'sports',
+        predict_screen: 'predict_positions_screen',
       });
     });
 
@@ -469,8 +569,8 @@ describe('PredictAnalytics', () => {
         marketId: 'm1',
         marketTitle: 'Market title',
         entryPoint: 'predict_feed',
-        predictFeedTab: 'world-cup',
-        predictScreen: 'world_cup',
+        predictFeedTab: 'sports',
+        predictScreen: 'predict_positions_screen',
         marketDetailsViewed: 'about',
       });
 
@@ -478,8 +578,8 @@ describe('PredictAnalytics', () => {
 
       expect(event.properties).toMatchObject({
         entry_point: 'predict_feed',
-        predict_feed_tab: 'world-cup',
-        predict_screen: 'world_cup',
+        predict_feed_tab: 'sports',
+        predict_screen: 'predict_positions_screen',
       });
     });
 
@@ -693,7 +793,7 @@ describe('PredictAnalytics', () => {
       });
     });
 
-    it('tracks feed viewed with session end defaulting to false', () => {
+    it('tracks feed viewed with session fields when provided', () => {
       predictAnalytics.trackFeedViewed({
         sessionId: 's1',
         feedTab: 'trending',
@@ -702,6 +802,7 @@ describe('PredictAnalytics', () => {
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
+        isSessionEnd: false,
         portfolioModuleEnabled: true,
       });
 
@@ -744,7 +845,7 @@ describe('PredictAnalytics', () => {
     it('tracks banner viewed action with action type and banner type', () => {
       predictAnalytics.trackBannerAction({
         actionType: 'viewed',
-        bannerType: 'world_cup',
+        bannerType: 'predict_the_pitch',
       });
 
       const event = getTrackedEvent();
@@ -752,14 +853,14 @@ describe('PredictAnalytics', () => {
       expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
       expect(event.properties).toMatchObject({
         action_type: 'viewed',
-        banner_type: 'world_cup',
+        banner_type: 'predict_the_pitch',
       });
     });
 
     it('tracks banner clicked action with action type and banner type', () => {
       predictAnalytics.trackBannerAction({
         actionType: 'clicked',
-        bannerType: 'world_cup',
+        bannerType: 'predict_the_pitch',
       });
 
       const event = getTrackedEvent();
@@ -767,41 +868,8 @@ describe('PredictAnalytics', () => {
       expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
       expect(event.properties).toMatchObject({
         action_type: 'clicked',
-        banner_type: 'world_cup',
+        banner_type: 'predict_the_pitch',
       });
-    });
-
-    it('tracks category clicked with category name and entry point', () => {
-      predictAnalytics.trackCategoryClicked({
-        categoryName: 'politics',
-        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-      });
-
-      const event = getTrackedEvent();
-
-      expect(event.name).toBe(
-        MetaMetricsEvents.PREDICT_CATEGORY_CLICKED.category,
-      );
-      expect(event.properties).toMatchObject({
-        category_name: 'politics',
-        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-      });
-    });
-
-    it('tracks category clicked without an entry point', () => {
-      predictAnalytics.trackCategoryClicked({
-        categoryName: 'sports',
-      });
-
-      const event = getTrackedEvent();
-
-      expect(event.name).toBe(
-        MetaMetricsEvents.PREDICT_CATEGORY_CLICKED.category,
-      );
-      expect(event.properties).toMatchObject({
-        category_name: 'sports',
-      });
-      expect(event.properties).not.toHaveProperty('entry_point');
     });
 
     it('tracks share action with optional market fields', () => {
@@ -914,6 +982,172 @@ describe('PredictAnalytics', () => {
       expect(event.properties).toEqual({
         interaction_type: 'opened',
         entry_point: 'home_section',
+      });
+    });
+
+    it('tracks generic feed viewed with feed/tab/filter ids and no session fields', () => {
+      predictAnalytics.trackFeedViewed({
+        feedId: 'sports',
+        tabId: 'basketball',
+        filterId: 'live',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const feedEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
+
+      expect(feedEvent.name).toBe(
+        MetaMetricsEvents.PREDICT_FEED_VIEWED.category,
+      );
+      expect(feedEvent.properties).toMatchObject({
+        feed_id: 'sports',
+        tab_id: 'basketball',
+        filter_id: 'live',
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+      // Lightweight one-shot path omits every session-only field.
+      expect(feedEvent.properties).not.toHaveProperty('session_id');
+      expect(feedEvent.properties).not.toHaveProperty('is_session_end');
+      expect(feedEvent.properties).not.toHaveProperty('predict_feed_tab');
+      expect(feedEvent.properties).not.toHaveProperty(
+        'num_feed_pages_viewed_in_session',
+      );
+    });
+
+    it('tracks home viewed with entry point', () => {
+      predictAnalytics.trackHomeViewed({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_HOME_VIEWED.category);
+      expect(event.properties).toEqual({
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+    });
+
+    it('tracks home viewed with no properties when entry point is unknown', () => {
+      predictAnalytics.trackHomeViewed({});
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_HOME_VIEWED.category);
+      expect(event.properties).toEqual({});
+    });
+
+    it('tracks a home section viewed impression', () => {
+      predictAnalytics.trackHomeSectionInteraction({
+        sectionId: PredictEventValues.SECTION_ID.TRENDING,
+        actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_HOME_SECTION_INTERACTION.category,
+      );
+      expect(event.properties).toEqual({
+        section_id: PredictEventValues.SECTION_ID.TRENDING,
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+    });
+
+    it('tracks a home section see-all tap', () => {
+      predictAnalytics.trackHomeSectionInteraction({
+        sectionId: PredictEventValues.SECTION_ID.LIVE_NOW,
+        actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        section_id: PredictEventValues.SECTION_ID.LIVE_NOW,
+        action_type: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      });
+    });
+
+    it('tracks a categories tile tap with category_name and no filter fields', () => {
+      predictAnalytics.trackHomeSectionInteraction({
+        sectionId: PredictEventValues.SECTION_ID.CATEGORIES,
+        actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+        categoryName: 'politics',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_HOME_SECTION_INTERACTION.category,
+      );
+      expect(event.properties).toEqual({
+        section_id: PredictEventValues.SECTION_ID.CATEGORIES,
+        action_type: PredictEventValues.ACTION_TYPE.CLICKED,
+        category_name: 'politics',
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+      expect(event.properties).not.toHaveProperty('filter_id');
+      expect(event.properties).not.toHaveProperty('is_dynamic_filter');
+    });
+
+    it('tracks a dynamic-filter chip tap with filter id and is_dynamic_filter', () => {
+      predictAnalytics.trackHomeSectionInteraction({
+        sectionId: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+        actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+        filterId: 'elections',
+        isDynamicFilter: true,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        section_id: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+        action_type: PredictEventValues.ACTION_TYPE.CLICKED,
+        filter_id: 'elections',
+        is_dynamic_filter: true,
+      });
+    });
+
+    it('tracks a feed tab change', () => {
+      predictAnalytics.trackFeedTabChanged({
+        feedId: 'sports',
+        tabId: 'tennis',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_FEED_TAB_CHANGED.category,
+      );
+      expect(event.properties).toMatchObject({
+        feed_id: 'sports',
+        tab_id: 'tennis',
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+    });
+
+    it('tracks a feed filter change with is_dynamic_filter false for a static filter', () => {
+      predictAnalytics.trackFeedFilterChanged({
+        feedId: 'sports',
+        tabId: 'tennis',
+        filterId: 'live',
+        isDynamicFilter: false,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_FEED_FILTER_CHANGED.category,
+      );
+      expect(event.properties).toMatchObject({
+        feed_id: 'sports',
+        tab_id: 'tennis',
+        filter_id: 'live',
+        is_dynamic_filter: false,
       });
     });
   });

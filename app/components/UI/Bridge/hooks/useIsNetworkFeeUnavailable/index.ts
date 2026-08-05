@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { isBitcoinChainId } from '@metamask/bridge-controller';
+import {
+  isBitcoinChainId,
+  isStellarChainId,
+  isTronChainId,
+} from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 
 type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -10,7 +14,12 @@ export const isQuoteNetworkFeeUnavailable = (
 ): boolean => {
   const sourceChainId = activeQuote?.quote?.srcChainId;
 
-  if (!sourceChainId || !isBitcoinChainId(sourceChainId)) {
+  if (
+    !sourceChainId ||
+    (!isBitcoinChainId(sourceChainId) &&
+      !isTronChainId(sourceChainId) &&
+      !isStellarChainId(sourceChainId))
+  ) {
     return false;
   }
 

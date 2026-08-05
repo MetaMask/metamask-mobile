@@ -1,15 +1,26 @@
 import { useCallback, useRef } from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
-  normalizeProviderCode,
+  RampsEnvironment,
+  RampsOrderStatus,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
+import { getRampsEnvironment } from '../../../../core/Engine/controllers/ramps-controller/ramps-service-init';
 import { REDIRECTION_URL } from '../constants';
-import { generateThemeParameters } from '../utils/depositUtils';
+import {
+  generateThemeParameters,
+  generateWidgetThemeParameters,
+} from '../utils/depositUtils';
+import { selectRampsTransakWidgetUrlProxyEnabled } from '../../../../selectors/featureFlagController/deposit';
 import type {
   AddressFormData,
   BasicInfoFormData,
@@ -18,6 +29,7 @@ import { createCheckoutNavDetails } from '../Views/Checkout';
 import { createV2EnterEmailNavDetails } from '../Views/NativeFlow/EnterEmail';
 import { createKycWebviewNavDetails } from '../Views/NativeFlow/KycWebview';
 import useAnalytics from './useAnalytics';
+import { buildHeadlessOrderFailedProps } from '../utils/headlessOrderFailedProps';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
@@ -38,6 +50,30 @@ import {
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
+import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+
+// The native provider code must match the environment that `refreshOrder` /
+// `getOrderFromCallback` poll (from `getRampsEnvironment()`). Dev/UAT expose
+// `transak-native-staging` (and may also list `transak-native`), so trusting
+// `selectedProvider.id` or a deposit order's `provider` field can pick the
+// production code against a non-prod API and return 400/500.
+function getFallbackNativeProviderCode(): string {
+  return getRampsEnvironment() === RampsEnvironment.Production
+    ? 'transak-native'
+    : 'transak-native-staging';
+}
+
+function resolveNativeProviderCode(provider?: string | null): string {
+  const fallback = getFallbackNativeProviderCode();
+  if (!provider) {
+    return fallback;
+  }
+  const segment = provider.replace(/^\/providers\//, '');
+  if (segment.startsWith('transak-native')) {
+    return fallback;
+  }
+  return segment;
+}
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -144,7 +180,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     },
     [baseRoute, baseRouteParams],
   );
-  const navigation = useNavigation<NavigationProp<RampStackParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const processingOrderIdRef = useRef<string | null>(null);
@@ -164,8 +200,13 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     getUserLimits,
     requestOtt,
     generatePaymentWidgetUrl,
+    createWidgetUrl,
     submitPurposeOfUsageForm,
   } = useTransakController();
+
+  const isTransakWidgetUrlProxyEnabled = useSelector(
+    selectRampsTransakWidgetUrlProxyEnabled,
+  );
 
   const { userRegion } = useRampsUserRegion();
   const { selectedPaymentMethod } = useRampsPaymentMethods();
@@ -190,28 +231,33 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
    * call. No-op without a live session; `quote` (when in scope) seeds amount.
    */
   const emitHeadlessOrderFailed = useCallback(
-    (error: unknown, quote?: TransakBuyQuote) => {
+    (error: unknown, quote?: TransakBuyQuote, providerOrderId?: string) => {
       const session = getSession(headlessSessionId);
       if (!session) {
         return;
       }
-      trackEvent('RAMPS_ORDER_FAILED', {
-        ramp_type: 'HEADLESS',
-        ramp_surface: session.params?.rampSurface,
-        amount_source: Number(quote?.fiatAmount ?? session.params?.amount ?? 0),
-        amount_destination: 0,
-        payment_method_id: selectedPaymentMethod?.id || '',
-        region: regionIsoCode,
-        chain_id: (selectedToken?.chainId as string) || '',
-        currency_destination: selectedToken?.assetId || '',
-        currency_destination_symbol: selectedToken?.symbol || undefined,
-        currency_source: quote?.fiatCurrency || fiatCurrency || '',
-        error_message: parseUserFacingError(
-          error,
-          strings('deposit.buildQuote.unexpectedError'),
-        ),
-        is_authenticated: true,
-      });
+      trackEvent(
+        'RAMPS_ORDER_FAILED',
+        buildHeadlessOrderFailedProps({
+          rampSurface: session.params?.rampSurface,
+          // TRAM-3696: present when the failure occurs after an order exists.
+          providerOrderId,
+          amountSource: Number(
+            quote?.fiatAmount ?? session.params?.amount ?? 0,
+          ),
+          amountDestination: 0,
+          paymentMethodId: selectedPaymentMethod?.id || '',
+          region: regionIsoCode,
+          chainId: (selectedToken?.chainId as string) || '',
+          currencyDestination: selectedToken?.assetId || '',
+          currencyDestinationSymbol: selectedToken?.symbol || undefined,
+          currencySource: quote?.fiatCurrency || fiatCurrency || '',
+          errorMessage: parseUserFacingError(
+            error,
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        }),
+      );
     },
     [
       headlessSessionId,
@@ -322,7 +368,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           baseEntry,
@@ -350,7 +396,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       amount?: number;
     }) => {
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           baseEntry,
@@ -376,7 +422,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       orderId: string;
       shouldUpdate?: boolean;
     }) => {
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: [
           {
@@ -408,7 +454,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         dismissActiveHeadlessFlow();
         return;
       }
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: [
           {
@@ -433,7 +479,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       workFlowRunId: string;
       amount?: number;
     }) => {
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           buildBaseRouteEntry({ amount }),
@@ -488,9 +534,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             throw new Error('Missing order');
           }
 
-          const providerCode = normalizeProviderCode(
-            String(depositOrder.provider ?? 'transak-native'),
-          );
+          const providerCode = resolveNativeProviderCode(depositOrder.provider);
           const rampsOrder = await refreshOrder(
             providerCode,
             depositOrder.providerOrderId,
@@ -536,29 +580,41 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           // type returned by `getParent()`.
           navigation.getParent()?.pop();
 
-          trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-            ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
-            ramp_surface: rampSurface,
-            amount_source: Number(rampsOrder.fiatAmount),
-            amount_destination: Number(rampsOrder.cryptoAmount),
-            exchange_rate: Number(rampsOrder.exchangeRate),
-            gas_fee: rampsOrder.networkFees
-              ? Number(rampsOrder.networkFees)
-              : 0,
-            processing_fee: rampsOrder.partnerFees
-              ? Number(rampsOrder.partnerFees)
-              : 0,
-            total_fee: Number(rampsOrder.totalFeesFiat),
-            payment_method_id: rampsOrder.paymentMethod?.id || '',
-            country: regionIsoCode,
-            region: regionIsoCode,
-            chain_id: rampsOrder.network?.chainId || '',
-            currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-            currency_destination_symbol:
-              rampsOrder.cryptoCurrency?.symbol || '',
-            currency_destination_network: rampsOrder.network?.name || '',
-            currency_source: rampsOrder.fiatCurrency?.symbol || '',
-          });
+          // TRAM-3691: a widget payment that came back terminal-failed must NOT
+          // report as confirmed/placed. Emit the terminal failure instead — the
+          // order is terminal so polling never observes it, and the headless
+          // context set above tags it HEADLESS.
+          if (
+            rampsOrder.status === RampsOrderStatus.Failed ||
+            rampsOrder.status === RampsOrderStatus.IdExpired
+          ) {
+            emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          } else {
+            trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+              ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
+              ramp_surface: rampSurface,
+              provider_order_id: rampsOrder.providerOrderId,
+              amount_source: Number(rampsOrder.fiatAmount),
+              amount_destination: Number(rampsOrder.cryptoAmount),
+              exchange_rate: Number(rampsOrder.exchangeRate),
+              gas_fee: rampsOrder.networkFees
+                ? Number(rampsOrder.networkFees)
+                : 0,
+              processing_fee: rampsOrder.partnerFees
+                ? Number(rampsOrder.partnerFees)
+                : 0,
+              total_fee: Number(rampsOrder.totalFeesFiat),
+              payment_method_id: rampsOrder.paymentMethod?.id || '',
+              country: regionIsoCode,
+              region: regionIsoCode,
+              chain_id: rampsOrder.network?.chainId || '',
+              currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
+              currency_destination_symbol:
+                rampsOrder.cryptoCurrency?.symbol || '',
+              currency_destination_network: rampsOrder.network?.name || '',
+              currency_source: rampsOrder.fiatCurrency?.symbol || '',
+            });
+          }
         } catch (error) {
           processingOrderIdRef.current = null;
           Logger.error(error as Error, {
@@ -567,7 +623,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           });
           // Emit the HEADLESS failure event BEFORE failSession tears the
           // session down (TRAM-3623 §7) so the surface snapshot is available.
-          emitHeadlessOrderFailed(error);
+          // orderId (from the callback URL) is the provider order id (TRAM-3696).
+          emitHeadlessOrderFailed(error, undefined, orderId);
           if (failSession(headlessSessionId, error)) {
             // @ts-expect-error `pop` exists on the parent stack navigator at
             // runtime but is not surfaced on the generic `NavigationProp`
@@ -580,24 +637,18 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
       // Same pattern as unified Buy WebView Checkout: leave the webview
       // immediately; OrderDetails resolves the order via callback params.
-      if (!selectedProvider?.id) {
-        processingOrderIdRef.current = null;
-        Logger.error(
-          new Error('Missing selected provider'),
-          'useTransakRouting: cannot open OrderDetails without provider',
-        );
-        return;
-      }
-
+      // Always resolve to the env-correct native provider — Dev/UAT list
+      // `transak-native-staging` (and may also list `transak-native`), so
+      // selectedProvider can be the production id against a non-prod API.
       const cryptoSymbol = selectedToken?.symbol;
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: [
           {
             name: Routes.RAMP.RAMPS_ORDER_DETAILS,
             params: {
               callbackUrl: url,
-              providerCode: normalizeProviderCode(selectedProvider.id),
+              providerCode: resolveNativeProviderCode(selectedProvider?.id),
               walletAddress: walletAddress || '',
               showCloseButton: true,
               ...(cryptoSymbol ? { cryptocurrency: cryptoSymbol } : {}),
@@ -631,7 +682,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         headlessSessionId,
       });
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [baseEntry, { name: routeName, params: routeParams }],
       });
@@ -647,7 +698,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const navigateToKycProcessingCallback = useCallback(
     ({ amount }: { amount?: number }) => {
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           baseEntry,
@@ -682,7 +733,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         quote,
         amount,
       });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 2,
         routes: [
           buildBaseRouteEntry({ amount }),
@@ -739,8 +790,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   throw new Error('Missing order');
                 }
 
-                const providerCode = normalizeProviderCode(
-                  String(depositOrder.provider ?? 'transak-native'),
+                const providerCode = resolveNativeProviderCode(
+                  depositOrder.provider,
                 );
                 const rampsOrder = await refreshOrder(
                   providerCode,
@@ -774,6 +825,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
                     ramp_type: 'HEADLESS',
                     ramp_surface: rampSurface,
+                    provider_order_id: rampsOrder.providerOrderId,
                     amount_source: Number(rampsOrder.fiatAmount),
                     amount_destination: Number(rampsOrder.cryptoAmount),
                     exchange_rate: Number(rampsOrder.exchangeRate),
@@ -811,18 +863,28 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   shouldUpdate: false,
                 });
               } else {
-                const ottResponse = await requestOtt();
+                let paymentUrl: string;
 
-                if (!ottResponse) {
-                  throw new Error('Failed to get OTT token');
+                if (isTransakWidgetUrlProxyEnabled) {
+                  paymentUrl = await createWidgetUrl(
+                    quote,
+                    walletAddress || '',
+                    generateWidgetThemeParameters(themeAppearance, colors),
+                  );
+                } else {
+                  const ottResponse = await requestOtt();
+
+                  if (!ottResponse) {
+                    throw new Error('Failed to get OTT token');
+                  }
+
+                  paymentUrl = generatePaymentWidgetUrl(
+                    ottResponse.ott,
+                    quote,
+                    walletAddress || '',
+                    generateThemeParameters(themeAppearance, colors),
+                  );
                 }
-
-                const paymentUrl = generatePaymentWidgetUrl(
-                  ottResponse.ott,
-                  quote,
-                  walletAddress || '',
-                  generateThemeParameters(themeAppearance, colors),
-                );
 
                 if (!paymentUrl) {
                   throw new Error('Failed to generate payment URL');
@@ -941,8 +1003,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 : quote.fiatAmount != null
                   ? String(quote.fiatAmount)
                   : undefined;
-            navigation.navigate(
-              ...createV2EnterEmailNavDetails({
+            navigateWithDetails(
+              navigation,
+              createV2EnterEmailNavDetails({
                 headlessSessionId: hid,
                 amount: resolvedAmount,
                 currency: quote.fiatCurrency || fiatCurrency || undefined,
@@ -983,6 +1046,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       transakCreateOrder,
       requestOtt,
       generatePaymentWidgetUrl,
+      createWidgetUrl,
+      isTransakWidgetUrlProxyEnabled,
       checkUserLimits,
       walletAddress,
       themeAppearance,

@@ -115,9 +115,7 @@ const ManualBackupStep2 = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.dispatch(resetAction);
-            },
+            successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
             accountType: AccountType.Metamask,
           });
         }
@@ -444,32 +442,24 @@ const ManualBackupStep2 = ({
         >
           <Box
             justifyContent={BoxJustifyContent.SpaceBetween}
-            twClassName="flex-1 h-full gap-y-4"
+            twClassName="flex-1 gap-y-4"
+            style={{ height: windowHeight - 290 }}
             testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
-            <Box
-              justifyContent={BoxJustifyContent.SpaceBetween}
-              twClassName="flex-1 gap-y-4"
-              style={{ height: windowHeight - 290 }}
+            <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+              {strings('manual_backup_step_2.action')}
+            </Text>
+
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
             >
-              <Text
-                variant={TextVariant.DisplayMd}
-                color={TextColor.TextDefault}
-              >
-                {strings('manual_backup_step_2.action')}
-              </Text>
+              {strings('manual_backup_step_2.info')}
+            </Text>
 
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('manual_backup_step_2.info')}
-              </Text>
-
-              <Box twClassName="flex-1 gap-1">
-                {renderGrid()}
-                {renderMissingWords()}
-              </Box>
+            <Box twClassName="flex-1 gap-1">
+              {renderGrid()}
+              {renderMissingWords()}
             </Box>
           </Box>
         </ActionView>

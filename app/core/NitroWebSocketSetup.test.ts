@@ -47,16 +47,270 @@ jest.mock('react-native-nitro-websockets', () => ({
   }),
 }));
 
-import './NitroWebSocketSetup';
+import {
+  installDevNitroWebSocket,
+  installProductionNitroWebSocket,
+  NitroWebSocketAdapter,
+} from './NitroWebSocketSetup';
 
 const MockNitroWebSocket = jest.mocked(NitroWebSocket);
 
+const originalGlobalWebSocket = global.WebSocket;
+
 describe('NitroWebSocketSetup', () => {
+  beforeAll(() => {
+    installProductionNitroWebSocket();
+  });
+
+  afterAll(() => {
+    global.WebSocket = originalGlobalWebSocket;
+  });
+
   describe('module-level side effects', () => {
-    it('installs NitroWebSocketAdapter as global.WebSocket', () => {
+    it('keeps ws:// sockets (Metro hot reload) on the built-in WebSocket when imported in dev (__DEV__)', () => {
+      // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      const sentinel = jest.fn();
+
+      devGlobal.__DEV__ = true;
+      global.WebSocket = sentinel as unknown as typeof WebSocket;
+      try {
+        jest.isolateModules(() => {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('./NitroWebSocketSetup');
+        });
+
+        new global.WebSocket('ws://localhost:8081/hot');
+
+        expect(sentinel).toHaveBeenCalledWith(
+          'ws://localhost:8081/hot',
+          undefined,
+          undefined,
+        );
+      } finally {
+        devGlobal.__DEV__ = originalDev;
+        global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
+      }
+    });
+
+    it('installs NitroWebSocketAdapter as global.WebSocket when installed explicitly', () => {
       new global.WebSocket('wss://example.com');
 
       expect(MockNitroWebSocket).toHaveBeenCalled();
+    });
+  });
+
+  describe('installDevNitroWebSocket — scheme routing', () => {
+    let MockOriginalWebSocket: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      MockOriginalWebSocket = jest.fn();
+      global.WebSocket = MockOriginalWebSocket as unknown as typeof WebSocket;
+      installDevNitroWebSocket();
+    });
+
+    afterEach(() => {
+      // Restore the adapter installed by the outer beforeAll for later suites.
+      installProductionNitroWebSocket();
+    });
+
+    it('routes ws:// sockets (Metro HMR /hot) to the built-in WebSocket', () => {
+      new global.WebSocket('ws://localhost:8081/hot');
+
+      expect(MockOriginalWebSocket).toHaveBeenCalledWith(
+        'ws://localhost:8081/hot',
+        undefined,
+        undefined,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('forwards the third RN options argument ({ headers }) to the built-in WebSocket', () => {
+      const options = { headers: { Authorization: 'Bearer token' } };
+
+      new (global.WebSocket as unknown as new (
+        url: string,
+        protocols?: string | string[],
+        options?: unknown,
+      ) => WebSocket)('ws://localhost:8099', undefined, options);
+
+      expect(MockOriginalWebSocket).toHaveBeenCalledWith(
+        'ws://localhost:8099',
+        undefined,
+        options,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('routes ws:// sockets to the built-in WebSocket regardless of host (LAN device, emulator)', () => {
+      new global.WebSocket('ws://10.0.2.2:8081/hot');
+
+      expect(MockOriginalWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('routes wss:// application sockets through NitroWebSocket', () => {
+      new global.WebSocket('wss://example.com', 'proto1');
+
+      expect(MockNitroWebSocket).toHaveBeenCalledWith(
+        'wss://example.com',
+        'proto1',
+        undefined,
+      );
+      expect(MockOriginalWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('matches the wss scheme case-insensitively', () => {
+      new global.WebSocket('WSS://example.com');
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+      expect(MockOriginalWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('exposes W3C ready state constants on the routing constructor', () => {
+      expect(global.WebSocket.CONNECTING).toBe(0);
+      expect(global.WebSocket.OPEN).toBe(1);
+      expect(global.WebSocket.CLOSING).toBe(2);
+      expect(global.WebSocket.CLOSED).toBe(3);
+    });
+
+    it('falls back to the Nitro adapter (with a warning) when no built-in WebSocket exists', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {
+        // suppress output
+      });
+      global.WebSocket = undefined as unknown as typeof WebSocket;
+
+      installDevNitroWebSocket();
+      new global.WebSocket('ws://localhost:8081/hot');
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('no built-in WebSocket'),
+      );
+      warnSpy.mockRestore();
+    });
+
+    it('routes the WalletConnect relay to the built-in WebSocket despite the wss scheme', () => {
+      new global.WebSocket(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+      );
+
+      expect(MockOriginalWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('installProductionNitroWebSocket — WalletConnect relay bypass', () => {
+    let MockBuiltInWebSocket: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      MockBuiltInWebSocket = jest.fn();
+      global.WebSocket = MockBuiltInWebSocket as unknown as typeof WebSocket;
+      installProductionNitroWebSocket();
+    });
+
+    it('routes relay.walletconnect.org to the built-in WebSocket', () => {
+      new global.WebSocket(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+      );
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalledWith(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+        undefined,
+        undefined,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('routes relay.walletconnect.com to the built-in WebSocket', () => {
+      new global.WebSocket('wss://relay.walletconnect.com');
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('keeps other wss hosts on the Nitro adapter', () => {
+      new global.WebSocket('wss://api.hyperliquid.xyz/ws');
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+      expect(MockBuiltInWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('matches the relay by hostname, not by substring in the query string', () => {
+      new global.WebSocket(
+        'wss://api.example.com/?next=relay.walletconnect.org',
+      );
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+      expect(MockBuiltInWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('matches the relay when the URL carries an explicit port', () => {
+      new global.WebSocket('wss://relay.walletconnect.org:443/?auth=jwt');
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('is not fooled by userinfo credentials in the URL', () => {
+      new global.WebSocket('wss://user:pass@relay.walletconnect.org/');
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it("pins WalletConnect's exact call shape: (url, [], undefined) reaches the built-in WebSocket", () => {
+      // @walletconnect/jsonrpc-ws-connection constructs sockets as
+      // `new WebSocket(url, [], undefined)` on React Native. The DOM lib
+      // types only declare two constructor params, so cast to the RN shape.
+      const RNWebSocket = global.WebSocket as unknown as new (
+        url: string,
+        protocols?: string | string[],
+        options?: unknown,
+      ) => WebSocket;
+      new RNWebSocket(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+        [],
+        undefined,
+      );
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalledWith(
+        'wss://relay.walletconnect.org/?auth=jwt&projectId=abc',
+        [],
+        undefined,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('routes non-string url inputs (URL object) to the built-in WebSocket', () => {
+      const urlObject = new URL('wss://api.hyperliquid.xyz/ws');
+
+      new global.WebSocket(urlObject as unknown as string);
+
+      expect(MockBuiltInWebSocket).toHaveBeenCalledWith(
+        urlObject,
+        undefined,
+        undefined,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('is idempotent — a second install does not nest another wrapper', () => {
+      const installed = global.WebSocket;
+
+      installProductionNitroWebSocket();
+
+      expect(global.WebSocket).toBe(installed);
+    });
+
+    it('exposes W3C ready state constants on the routing constructor', () => {
+      expect(global.WebSocket.CONNECTING).toBe(0);
+      expect(global.WebSocket.OPEN).toBe(1);
+      expect(global.WebSocket.CLOSING).toBe(2);
+      expect(global.WebSocket.CLOSED).toBe(3);
     });
   });
 

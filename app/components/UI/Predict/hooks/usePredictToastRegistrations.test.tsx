@@ -44,6 +44,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
+      primary: { default: mockTestHexColors.CHART_PRIMARY },
       success: { default: mockTestHexColors.SUCCESS_BRIGHT },
       error: { default: mockTestHexColors.ERROR_BRIGHT },
       accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
@@ -113,10 +114,20 @@ jest.mock('../../../../selectors/networkController', () => ({
 
 let mockBottomSheetEnabled = false;
 let mockProviderMounted = false;
+let mockTransactionsRedesignEnabled = false;
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/activityRedesign',
+  () => ({
+    selectIsTransactionsRedesignEnabled: jest.fn(
+      () => mockTransactionsRedesignEnabled,
+    ),
+  }),
+);
 
 jest.mock('../contexts/PredictPreviewSheetContext', () => ({
   shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
@@ -137,6 +148,7 @@ describe('usePredictToastRegistrations', () => {
 
     mockBottomSheetEnabled = false;
     mockProviderMounted = false;
+    mockTransactionsRedesignEnabled = false;
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -191,6 +203,37 @@ describe('usePredictToastRegistrations', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: 'tx-1',
       });
+    });
+
+    it('tracks to the redesigned details screen when the redesign is enabled', () => {
+      mockTransactionsRedesignEnabled = true;
+      jest
+        .mocked(selectTransactionMetadataById)
+        .mockReturnValue({ chainId: '0x89' } as unknown as ReturnType<
+          typeof selectTransactionMetadataById
+        >);
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-1',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      showToast.mock.calls[0][0].closeButtonOptions.onPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+        chainId: 'eip155:137',
+        txIdentifier: 'tx-1',
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.TRANSACTION_DETAILS,
+        expect.anything(),
+      );
     });
 
     it('shows success toast on confirmed status', () => {
@@ -424,6 +467,43 @@ describe('usePredictToastRegistrations', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows redeemed toast on confirmed status when amount is zero', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'confirmed',
+          amount: 0,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Info',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.title',
+            }),
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.description',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$0.00'),
+            }),
+          ]),
         }),
       );
     });
@@ -950,7 +1030,7 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
-          iconName: 'Check',
+          iconName: 'Confirmation',
           hasNoTimeout: false,
         }),
       );

@@ -22,6 +22,7 @@ export interface CustomAmountProps {
   hasAlert?: boolean;
   isLoading?: boolean;
   onPress?: () => void;
+  showCursor?: boolean;
 }
 
 export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
@@ -32,6 +33,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     hasAlert = false,
     isLoading,
     onPress,
+    showCursor = true,
   } = props;
 
   const { isHeadlessBuyInProgress } = useConfirmationContext();
@@ -51,7 +53,8 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   });
 
   const showLoader = isLoading || (isMaxAmount && isQuotesLoading);
-  const cursorOpacity = useBlinkingCursor(!disabled && !showLoader);
+  const cursorVisible = showCursor && !disabled && !showLoader;
+  const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
     return <CustomAmountSkeleton />;
@@ -69,7 +72,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
       >
         {formattedAmount}
       </Text>
-      {!disabled && (
+      {cursorVisible && (
         <Animated.View
           testID="custom-amount-cursor"
           style={[styles.cursor, { opacity: cursorOpacity }]}

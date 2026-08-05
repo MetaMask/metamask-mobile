@@ -1,10 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
+import { navigateToActivityAfterConfirmation } from '../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { isSignatureRequest } from '../utils/confirm';
@@ -33,7 +35,7 @@ export const useConfirmActions = () => {
     setScannerVisible,
     setSigningConfirmed,
   } = useQRHardwareContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
@@ -76,7 +78,7 @@ export const useConfirmActions = () => {
     });
 
     if (approvalType === ApprovalType.TransactionBatch) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      navigateToActivityAfterConfirmation(navigation);
     } else {
       navigation.goBack();
     }

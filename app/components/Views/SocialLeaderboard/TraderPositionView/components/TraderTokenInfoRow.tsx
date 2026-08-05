@@ -88,7 +88,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            twClassName="shrink leading-none"
           >
             {symbol}
           </Text>
@@ -100,11 +100,13 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             />
           ) : null}
           {canCopyTokenAddress ? (
-            <Icon
-              name={IconName.Copy}
-              size={IconSize.Sm}
-              color={IconColor.PrimaryDefault}
-            />
+            <Box twClassName="translate-y-0.5">
+              <Icon
+                name={IconName.Copy}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
           ) : null}
         </Box>
         {pricePercentChange != null ? (

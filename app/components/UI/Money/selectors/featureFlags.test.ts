@@ -6,13 +6,22 @@ import {
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
+  selectMoneyEarningSectionEnabledFlag,
   selectMoneyDepositMinBalance,
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyCardActivityCashbackMultisendContracts,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
+  selectMoneyCardFlipAnimationEnabledFlag,
+  selectMoneyCardTiltAnimationEnabledFlag,
+  selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
+  selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+  selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
+  selectIsMoneyEarnBannerEnabledFlag,
+  selectIsMoneyTokenListItemCtaEnabledFlag,
+  selectMoneyDepositCtaTokenAddresses,
 } from './featureFlags';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
@@ -209,6 +218,253 @@ describe('selectMoneyEnableMoneyAccountFlag', () => {
   });
 });
 
+describe('selectIsMoneyTokenListItemCtaEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false when Money account feature is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(false);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyTokenListItemCtaEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns remote version-gated CTA flag when Money account feature is enabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyTokenListItemCtaEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('falls back to local CTA flag when remote flag is unavailable', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_TOKEN_LIST_ITEM_CTA = 'true';
+    const state = createState({ _unique: 'token-list-cta-local-flag' });
+
+    const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+});
+
+describe.each([
+  [
+    'selectIsMoneyAssetOverviewFooterCtaEnabledFlag',
+    selectIsMoneyAssetOverviewFooterCtaEnabledFlag,
+    'earnMoneyAssetOverviewFooterCtaEnabled',
+    'MM_MONEY_ASSET_OVERVIEW_FOOTER_CTA_ENABLED',
+  ],
+  [
+    'selectIsMoneyAssetOverviewBalanceCtaEnabledFlag',
+    selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
+    'earnMoneyAssetOverviewBalanceCtaEnabled',
+    'MM_MONEY_ASSET_OVERVIEW_BALANCE_CTA_ENABLED',
+  ],
+])('%s', (_name, selector, remoteFlagName, localFlagName) => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false when Money account feature is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(false);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      [remoteFlagName]: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns remote version-gated flag when Money account feature is enabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      [remoteFlagName]: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('falls back to local flag when remote flag is unavailable', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    process.env[localFlagName] = 'true';
+    const state = createState({ _unique: `${remoteFlagName}-local` });
+
+    const result = selector(state as never);
+
+    expect(result).toBe(true);
+  });
+});
+
+describe('selectIsMoneyEarnBannerEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false when Money account feature is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(false);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyEarnBannerEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns remote version-gated banner flag when Money account feature is enabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyEarnBannerEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote banner flag is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(false);
+    const state = createState({
+      earnMoneyEarnBannerEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls back to local banner flag when remote flag is unavailable', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_EARN_BANNER_ENABLED = 'true';
+    const state = createState({ _unique: 'earn-banner-local-flag' });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is unavailable and local flag is unset', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_EARN_BANNER_ENABLED;
+    const state = createState({ _unique: 'earn-banner-no-local-flag' });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyDepositCtaTokenAddresses', () => {
+  const originalEnv = process.env;
+  const ethUsdcAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('uses remote configured EVM token addresses', () => {
+    const state = createState({
+      earnMoneyDepositCtaTokenAddresses: {
+        '0x1': [ethUsdcAddress],
+      },
+    });
+
+    const result = selectMoneyDepositCtaTokenAddresses(state as never);
+
+    expect(result).toEqual({
+      '0x1': [ethUsdcAddress.toLowerCase()],
+    });
+  });
+
+  it('falls back to local EVM token addresses when remote config is absent', () => {
+    process.env.MM_MONEY_DEPOSIT_CTA_TOKEN_ADDRESSES = JSON.stringify({
+      '0x1': [ethUsdcAddress],
+    });
+    const state = createState({
+      _unique: 'token-list-cta-local-addresses-v2',
+    });
+
+    const result = selectMoneyDepositCtaTokenAddresses(state as never);
+
+    expect(result).toEqual({
+      '0x1': [ethUsdcAddress.toLowerCase()],
+    });
+  });
+
+  it('returns an empty map when neither configuration source is set', () => {
+    const state = createState({
+      _unique: 'token-list-cta-addresses-v2-unset',
+    });
+
+    const result = selectMoneyDepositCtaTokenAddresses(state as never);
+
+    expect(result).toEqual({});
+  });
+});
+
 describe('selectMoneyHubEnabledFlag', () => {
   const originalEnv = process.env;
 
@@ -265,6 +521,59 @@ describe('selectMoneyHubEnabledFlag', () => {
     const result = selectMoneyHubEnabledFlag(state as never);
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyEarningSectionEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyEarningSectionEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+    const state = createState({
+      earnMoneyEarningSectionEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(false);
+  });
+
+  it('falls back to the local environment flag when remote flag is unavailable', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_EARNING_SECTION_ENABLED = 'true';
+    const state = createState({ _unique: 'earning-section-local-flag' });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(true);
+  });
+
+  it('returns false when remote and local flags are unavailable', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_EARNING_SECTION_ENABLED;
+    const state = createState({ _unique: 'earning-section-no-local-flag' });
+
+    expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(false);
   });
 });
 
@@ -554,6 +863,261 @@ describe('selectMoneyFirstTimeDepositAnimationEnabledFlag', () => {
   });
 });
 
+describe('selectMoneyCardFlipAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyCardFlipAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyCardFlipAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to true when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED;
+
+    const state = createState({
+      _unique: 'card-flip-default-on',
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when env var is set to false and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED = 'false';
+
+    const state = createState({
+      _unique: 'card-flip-env-false',
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('remote flag takes precedence over env var', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      earnMoneyCardFlipAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardFlipAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyCardTiltAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyCardTiltAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardTiltAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyCardTiltAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardTiltAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to true when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED;
+
+    const state = createState({
+      _unique: 'card-tilt-default-on',
+    });
+
+    const result = selectMoneyCardTiltAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when env var is set to false and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED = 'false';
+
+    const state = createState({
+      _unique: 'card-tilt-env-false',
+    });
+
+    const result = selectMoneyCardTiltAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('remote flag takes precedence over env var', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      earnMoneyCardTiltAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardTiltAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyParallaxAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyParallaxAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyParallaxAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to false when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED;
+
+    const state = createState({
+      _unique: 'parallax-default-off',
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when env var is set to true and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      _unique: 'parallax-env-true',
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('remote flag takes precedence over env var', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      earnMoneyParallaxAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
 describe('selectMoneyVaultApyRemoteConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -826,8 +1390,8 @@ describe('selectMoneyNoFeeDepositTokens', () => {
     expect(result['0x38']).toEqual(
       expect.arrayContaining(['USDC', 'aUSDC', 'aUSDT', 'USDT']),
     );
-    expect(result['0xe708']).toEqual(['MUSD']);
-    expect(result['0x8f']).toEqual(['USDC', 'MUSD']);
+    expect(result['0xe708']).toEqual(['mUSD']);
+    expect(result['0x8f']).toEqual(['mUSD', 'USDC']);
   });
 
   it('lists Monad mUSD even though no route emits a Monad mUSD -> Monad mUSD deposit', () => {
@@ -837,7 +1401,7 @@ describe('selectMoneyNoFeeDepositTokens', () => {
 
     const result = selectMoneyNoFeeDepositTokens(state as never);
 
-    expect(result['0x8f']).toContain('MUSD');
+    expect(result['0x8f']).toContain('mUSD');
   });
 
   it('deduplicates symbols within a chain', () => {

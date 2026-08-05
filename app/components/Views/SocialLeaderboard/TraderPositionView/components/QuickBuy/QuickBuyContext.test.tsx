@@ -16,6 +16,15 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
+  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
+    buyAmounts: [10, 50, 100, 250],
+    sellPercentages: [25, 50, 75, 100],
+    savePreferences: jest.fn(),
+    isLoaded: true,
+  })),
+}));
+
 const mockTarget: QuickBuyTarget = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
   tokenSymbol: 'PEPE',
@@ -92,6 +101,7 @@ const buildController = (
     description: 'bridge.price_impact_info_description',
   },
   isPriceImpactError: false,
+  isPresetAddFundsMode: false,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: false,
@@ -100,6 +110,8 @@ const buildController = (
   handleClose: jest.fn(),
   handleSliderChange: jest.fn(),
   handleSliderDragEnd: jest.fn(),
+  handleQuickAmountPress: jest.fn(),
+  usdToCurrentCurrencyRate: undefined,
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),
@@ -205,6 +217,27 @@ describe('QuickBuyProvider — handleBuy', () => {
     expect(setActiveScreen).not.toHaveBeenCalled();
     expect(handleConfirm).not.toHaveBeenCalled();
   });
+
+  it('calls handleConfirm when isPriceImpactError=true but isPresetAddFundsMode=true', async () => {
+    const handleConfirm = jest.fn().mockResolvedValue(undefined);
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({
+        isPriceImpactError: true,
+        isPresetAddFundsMode: true,
+        handleConfirm,
+      }),
+    );
+
+    const setActiveScreen = jest.fn();
+    const ctx = renderProvider(featuresWithModal, setActiveScreen);
+
+    await act(async () => {
+      await ctx.current.handleBuy();
+    });
+
+    expect(handleConfirm).toHaveBeenCalledTimes(1);
+    expect(setActiveScreen).not.toHaveBeenCalled();
+  });
 });
 
 describe('QuickBuyProvider — isConfirmDisabled', () => {
@@ -236,6 +269,19 @@ describe('QuickBuyProvider — isConfirmDisabled', () => {
     );
 
     const ctx = renderProvider(featuresWithModal);
+    expect(ctx.current.isConfirmDisabled).toBe(false);
+  });
+
+  it('is false when isPresetAddFundsMode=true even with a price impact error', () => {
+    (useQuickBuyController as jest.Mock).mockReturnValue(
+      buildController({
+        isConfirmDisabled: false,
+        isPriceImpactError: true,
+        isPresetAddFundsMode: true,
+      }),
+    );
+
+    const ctx = renderProvider(featuresWithoutModal);
     expect(ctx.current.isConfirmDisabled).toBe(false);
   });
 

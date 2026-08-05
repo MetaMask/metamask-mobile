@@ -7,6 +7,11 @@ import {
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import ReduxService from '../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
+import {
+  parsePerpsUtmFromPath,
+  setPerpsUtmAttribution,
+} from '../../../../components/UI/Perps/utils/perpsAnalyticsAttribution';
+import { getPerpsHomeNavigationTarget } from '../../../../components/UI/Perps/utils/perpsModeSwitch';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
@@ -130,10 +135,16 @@ const perpsScreenTarget = (
 });
 
 /**
- * Build the Perps home (`PerpsHomeView`) target.
+ * Build the Perps home target. While Pro mode is active this resolves to
+ * the default Pro market instead of `PerpsHomeView`, which must never be
+ * shown while Pro mode is on (TAT-3612).
  */
-const perpsHomeTarget = (): DeeplinkIntent['target'] =>
-  perpsScreenTarget(Routes.PERPS.PERPS_HOME, {});
+const perpsHomeTarget = (): DeeplinkIntent['target'] => {
+  const { screen, params } = getPerpsHomeNavigationTarget(
+    ReduxService.store.getState(),
+  );
+  return perpsScreenTarget(screen, params);
+};
 
 /**
  * Resolve the navigation target for a perps deeplink.
@@ -265,14 +276,30 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     perpsPath,
   );
 
+  // Propagate UTM params into controller attribution context.
+  try {
+    setPerpsUtmAttribution(parsePerpsUtmFromPath(perpsPath));
+    // Attribution is best-effort: Engine/controller may be unavailable during
+    // early deeplink handling; never block navigation if UTM write fails.
+  } catch (attributionError) {
+    DevLogger.log(
+      '[handlePerpsUrl] Failed to set attribution context:',
+      attributionError,
+    );
+  }
+
   try {
     await executeDeeplinkIntent(createPerpsDeeplinkIntent({ perpsPath }));
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
     // Fallback to markets list on error
+    const { screen, params } = getPerpsHomeNavigationTarget(
+      ReduxService.store.getState(),
+      { source: 'deeplink' },
+    );
     NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-      params: { source: 'deeplink' },
+      screen,
+      params,
     });
   }
 };

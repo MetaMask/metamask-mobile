@@ -24,7 +24,7 @@ import {
 } from './constants';
 import {
   getKnownTokenMetadata,
-  getLocalTransactionFees,
+  getLocalActivityFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
   isUnlimitedApprovalAmount,
@@ -38,6 +38,14 @@ const EVM_NATIVE_DECIMALS = 18;
 
 const PREDICT_COLLATERAL_DECIMALS = 6;
 const PREDICT_COLLATERAL_SYMBOL = 'USDC';
+
+const PERPS_COLLATERAL_DECIMALS = 6;
+const PERPS_COLLATERAL_SYMBOL = 'USDC';
+const PERPS_DEPOSIT_TYPES: TransactionType[] = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+];
+const PERPS_WITHDRAW_TYPES: TransactionType[] = [TransactionType.perpsWithdraw];
 const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
 
 // Converts local TransactionController groups into activity items
@@ -60,12 +68,13 @@ export function mapLocalTransaction(
   const nativeSymbol =
     transactionGroup.nativeAssetSymbol ?? nativeAsset?.symbol;
 
-  // Base network (gas) fee in the chain's native token, derived from the tx
-  // receipt. Spread into `data` for types that surface fees in the UI.
-  const fees = getLocalTransactionFees(
+  // Native network fee (from receipt) plus optional ERC-20 gas-token fee when
+  // `selectedGasFeeToken` is set. Spread into `data` for types that surface fees.
+  const fees = getLocalActivityFees(
     transactionGroup,
     nativeAsset,
     nativeSymbol,
+    environment,
   );
 
   const getNativeToken = (
@@ -254,6 +263,91 @@ export function mapLocalTransaction(
   const from = initialTransaction.txParams.from ?? '';
   const to = initialTransaction.txParams.to ?? '';
   const methodId = initialTransaction.txParams.data?.slice(0, 10);
+
+  const getLendingWithdrawalDestinationToken = () => {
+    const fromAddress = from.toLowerCase();
+    const receivedTokenLog = (initialTransaction.txReceipt?.logs ?? []).find(
+      ({ topics: [eventTopic, , logTo] = [] }) => {
+        const toAddress = logTo
+          ? `0x${logTo.slice(-40)}`.toLowerCase()
+          : undefined;
+
+        return (
+          eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
+          toAddress === fromAddress
+        );
+      },
+    );
+
+    return receivedTokenLog
+      ? getContractToken({
+          amount: BigInt(String(receivedTokenLog.data)).toString(),
+          transaction: initialTransaction,
+          direction: 'in',
+          contractAddress: receivedTokenLog.address,
+        })
+      : undefined;
+  };
+
+  const getLendingDepositSourceToken = () => {
+    const suppliedTokenBalanceChange =
+      initialTransaction.simulationData?.tokenBalanceChanges?.find(
+        ({ isDecrease, standard }) => isDecrease && standard === 'erc20',
+      );
+
+    if (suppliedTokenBalanceChange) {
+      return getContractToken({
+        amount: BigInt(suppliedTokenBalanceChange.difference).toString(),
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: suppliedTokenBalanceChange.address,
+      });
+    }
+
+    const fromAddress = from.toLowerCase();
+    const poolAddress = to.toLowerCase();
+    const logs = initialTransaction.txReceipt?.logs ?? [];
+    const isUserOutgoingTransfer = (
+      eventTopic: string | undefined,
+      logFrom: string | undefined,
+    ): boolean => {
+      const senderAddress = logFrom
+        ? `0x${logFrom.slice(-40)}`.toLowerCase()
+        : undefined;
+      return (
+        eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
+        senderAddress === fromAddress
+      );
+    };
+    const sentTokenLog =
+      logs.find(({ topics: [eventTopic, logFrom, logTo] = [] }) => {
+        const recipientAddress = logTo
+          ? `0x${logTo.slice(-40)}`.toLowerCase()
+          : undefined;
+        return (
+          isUserOutgoingTransfer(eventTopic, logFrom) &&
+          recipientAddress === poolAddress
+        );
+      }) ??
+      logs.find(({ topics: [eventTopic, logFrom] = [] }) =>
+        isUserOutgoingTransfer(eventTopic, logFrom),
+      );
+
+    if (sentTokenLog) {
+      return getContractToken({
+        amount: BigInt(String(sentTokenLog.data)).toString(),
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: sentTokenLog.address,
+      });
+    }
+
+    return getContractToken({
+      transaction: initialTransaction,
+      direction: 'out',
+      contractAddress: initialTransaction.txParams.to,
+    });
+  };
   const getDirectWrappedTokenActivity = (): ActivityListItem | undefined => {
     if (!methodId) {
       return undefined;
@@ -429,6 +523,98 @@ export function mapLocalTransaction(
     return predictFundsActivity;
   }
 
+  /**
+   * Perps deposits/withdrawals submitted from this device. The Activity list
+   * never shows these — the HyperLiquid feed's copy wins the hash dedup, and
+   * the list drops local perps groups outright. This is for the details screen,
+   * which resolves by `TransactionMeta.id` before the feed catches up (the
+   * funding toast's "Track"), so the row lands on the Perps funding template
+   * rather than a generic contract interaction.
+   *
+   * Checks the transaction and its nested calls, plus `originalType` since the
+   * confirmation flow can rewrite `type` — mirroring
+   * `isPerpsWalletTransactionGroup` in the Activity list.
+   */
+  const getPerpsFundsActivity = (): ActivityListItem | undefined => {
+    const isType = (
+      candidate:
+        | { type?: TransactionType; originalType?: TransactionType }
+        | undefined,
+      types: TransactionType[],
+    ) =>
+      Boolean(
+        candidate &&
+          ((candidate.type && types.includes(candidate.type)) ||
+            (candidate.originalType && types.includes(candidate.originalType))),
+      );
+
+    const metas = [initialTransaction, primaryTransaction];
+    const nested = initialTransaction.nestedTransactions ?? [];
+    const isDeposit =
+      metas.some((meta) => isType(meta, PERPS_DEPOSIT_TYPES)) ||
+      nested.some((call) => isType(call, PERPS_DEPOSIT_TYPES));
+    const isWithdraw =
+      !isDeposit &&
+      (metas.some((meta) => isType(meta, PERPS_WITHDRAW_TYPES)) ||
+        nested.some((call) => isType(call, PERPS_WITHDRAW_TYPES)));
+
+    if (!isDeposit && !isWithdraw) {
+      return undefined;
+    }
+
+    // The collateral moves via ERC-20 transfer(address,uint256) — from the
+    // nested call in a batch, otherwise from the transaction's own params.
+    const fundsCall =
+      nested.find((call) =>
+        isType(call, isDeposit ? PERPS_DEPOSIT_TYPES : PERPS_WITHDRAW_TYPES),
+      ) ?? initialTransaction.txParams;
+    const contractAddress = fundsCall.to;
+    const data = fundsCall.data;
+
+    let amount: string | undefined;
+    if (
+      data &&
+      data.toLowerCase().startsWith(ERC20_TRANSFER_SELECTOR) &&
+      data.length >= 138
+    ) {
+      try {
+        amount = BigInt(`0x${data.slice(74, 138)}`).toString();
+      } catch {
+        amount = undefined;
+      }
+    }
+
+    const tokenMetadata = contractAddress
+      ? getKnownTokenMetadata(chainId, contractAddress, environment)
+      : undefined;
+    const assetId = contractAddress
+      ? environment.toAssetId(contractAddress, chainId)
+      : undefined;
+
+    const token: TokenAmount = {
+      direction: isDeposit ? 'in' : 'out',
+      symbol: tokenMetadata?.symbol ?? PERPS_COLLATERAL_SYMBOL,
+      decimals: tokenMetadata?.decimals ?? PERPS_COLLATERAL_DECIMALS,
+      ...(assetId ? { assetId } : {}),
+      ...(amount ? { amount } : {}),
+    };
+
+    return {
+      type: isDeposit ? 'perpsAddFunds' : 'perpsWithdraw',
+      chainId,
+      status,
+      timestamp,
+      hash,
+      raw: { type: 'localTransaction', data: transactionGroup },
+      data: { token },
+    };
+  };
+
+  const perpsFundsActivity = getPerpsFundsActivity();
+  if (perpsFundsActivity) {
+    return perpsFundsActivity;
+  }
+
   const getSmartAccountUpgradeActivity = (): ActivityListItem | undefined => {
     // EIP-7702: a transaction carrying an authorization list is the one that
     // delegates (upgrades) the EOA to a smart account. This is the canonical
@@ -441,7 +627,10 @@ export function mapLocalTransaction(
     }
     // No asset moves in an upgrade — the only ETH movement is gas, so the row
     // shows the gas paid as a native-asset amount (rendered like any other tx).
-    const gasAmount = fees?.find((fee) => fee.type === 'base')?.amount;
+    // Gasless upgrades may only carry a `gasToken` fee (no native `base`).
+    const gasAmount =
+      fees?.find((fee) => fee.type === 'base')?.amount ??
+      fees?.find((fee) => fee.type === 'gasToken')?.amount;
     return {
       type: 'smartAccountUpgrade',
       chainId,
@@ -463,7 +652,12 @@ export function mapLocalTransaction(
     return smartAccountUpgradeActivity;
   }
 
-  switch (initialTransaction.type) {
+  const initialTransactionType =
+    initialTransaction.type === TransactionType.retry
+      ? (initialTransaction.originalType ?? initialTransaction.type)
+      : initialTransaction.type;
+
+  switch (initialTransactionType) {
     case TransactionType.simpleSend: {
       return {
         type: 'send',
@@ -631,15 +825,19 @@ export function mapLocalTransaction(
     case TransactionType.swapApproval:
     case TransactionType.tokenMethodApprove:
     case TransactionType.tokenMethodSetApprovalForAll: {
+      const approvalToken = getApprovalToken();
+      // ERC-20 `approve(spender, 0)` is a spending-cap revoke.
+      const isRevoke = approvalToken?.amount === '0';
+
       return {
-        type: 'approveSpendingCap',
+        type: isRevoke ? 'revokeSpendingCap' : 'approveSpendingCap',
         chainId,
         status,
         timestamp,
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getApprovalToken(),
+          token: approvalToken,
           ...(fees ? { fees } : {}),
         },
       };
@@ -669,18 +867,28 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          sourceToken: getContractToken({
-            transaction: initialTransaction,
-            direction: 'out',
-            contractAddress: initialTransaction.txParams.to,
-          }),
+          sourceToken: getLendingDepositSourceToken(),
+          ...(fees ? { fees } : {}),
+        },
+      };
+
+    case TransactionType.lendingWithdraw:
+      return {
+        type: 'lendingWithdrawal',
+        chainId,
+        status,
+        timestamp,
+        hash,
+        raw: { type: 'localTransaction', data: transactionGroup },
+        data: {
+          destinationToken: getLendingWithdrawalDestinationToken(),
           ...(fees ? { fees } : {}),
         },
       };
 
     case TransactionType.stakingDeposit:
       return {
-        type: 'deposit',
+        type: 'stake',
         chainId,
         status,
         timestamp,
@@ -756,6 +964,22 @@ export function mapLocalTransaction(
       };
     }
 
+    case TransactionType.deployContract: {
+      return {
+        type: 'contractDeployment',
+        chainId,
+        status,
+        timestamp,
+        hash,
+        raw: { type: 'localTransaction', data: transactionGroup },
+        data: {
+          from,
+          to,
+          ...(fees ? { fees } : {}),
+        },
+      };
+    }
+
     default: {
       const isSupplyContractInteraction =
         initialTransaction.type === TransactionType.contractInteraction &&
@@ -793,28 +1017,6 @@ export function mapLocalTransaction(
       }
 
       if (isWithdrawContractInteraction) {
-        const fromAddress = from.toLowerCase();
-        const receivedTokenLog = (
-          initialTransaction.txReceipt?.logs ?? []
-        ).find(({ topics: [eventTopic, , logTo] = [] }) => {
-          const toAddress = logTo
-            ? `0x${logTo.slice(-40)}`.toLowerCase()
-            : undefined;
-
-          return (
-            eventTopic?.toLowerCase() ===
-              environment.tokenTransferLogTopicHash && toAddress === fromAddress
-          );
-        });
-        const destinationToken = receivedTokenLog
-          ? getContractToken({
-              amount: BigInt(String(receivedTokenLog.data)).toString(),
-              transaction: initialTransaction,
-              direction: 'in',
-              contractAddress: receivedTokenLog.address,
-            })
-          : undefined;
-
         return {
           type: 'lendingWithdrawal',
           chainId,
@@ -823,7 +1025,7 @@ export function mapLocalTransaction(
           hash,
           raw: { type: 'localTransaction', data: transactionGroup },
           data: {
-            destinationToken,
+            destinationToken: getLendingWithdrawalDestinationToken(),
             ...(fees ? { fees } : {}),
           },
         };

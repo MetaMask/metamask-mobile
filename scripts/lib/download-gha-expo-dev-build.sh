@@ -30,7 +30,7 @@ resolve_github_repo() {
 }
 
 require_gh() {
-  require_cmd gh "Install with: brew install gh (then run: gh auth login)"
+  require_cmd gh "Install with: brew install gh (macOS) / winget install GitHub.cli (Windows), then run: gh auth login"
 
   if ! gh auth status &> /dev/null; then
     echo -e "${RED}❌ gh is not authenticated${NC}"
@@ -124,18 +124,19 @@ print_artifact_summary() {
   local artifact_meta
   local expired
   local artifact_size_bytes
+  local artifact_digest
   local artifact_size_mb
 
   artifact_meta="$(gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
     --paginate \
-    --jq ".artifacts[] | select(.name==\"${artifact_name}\") | \"\(.expired)|\(.size_in_bytes)\"" 2>/dev/null | head -1 || true)"
+    --jq ".artifacts[] | select(.name==\"${artifact_name}\") | \"\(.expired)|\(.size_in_bytes)|\(.digest // \"\")\"" 2>/dev/null | head -1 || true)"
 
   if [[ -z "$artifact_meta" ]]; then
     echo -e "${RED}❌ Artifact '${artifact_name}' not found in run ${run_id}${NC}" >&2
     return 1
   fi
 
-  IFS='|' read -r expired artifact_size_bytes <<< "$artifact_meta"
+  IFS='|' read -r expired artifact_size_bytes artifact_digest <<< "$artifact_meta"
 
   if [[ "$expired" == "true" ]]; then
     echo -e "${RED}❌ Artifact '${artifact_name}' has expired for run ${run_id}${NC}" >&2
@@ -145,7 +146,81 @@ print_artifact_summary() {
 
   artifact_size_mb=$((artifact_size_bytes / 1024 / 1024))
   echo -e "${GREEN}✓ Artifact '${artifact_name}' size: ${artifact_size_mb}MB${NC}"
+  if [[ -n "$artifact_digest" ]]; then
+    echo -e "${GREEN}✓ Artifact digest: ${artifact_digest}${NC}"
+  fi
   echo -e "${BLUE}🔗 https://github.com/${GITHUB_REPO}/actions/runs/${run_id}${NC}"
+}
+
+# Sidecar stores the GitHub Actions archive digest (sha256:...), not a hash of the
+# extracted .apk/.app/.ipa — those do not match the API digest.
+artifact_digest_cache_path() {
+  local artifact_name="$1"
+  echo "${BUILD_DIR}/gh-expo-dev-build/${artifact_name}.digest"
+}
+
+fetch_artifact_digest() {
+  local run_id="$1"
+  local artifact_name="$2"
+  gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
+    --paginate \
+    --jq ".artifacts[] | select(.expired == false and .name == \"${artifact_name}\") | .digest // empty" \
+    2>/dev/null | head -1 || true
+}
+
+read_cached_artifact_digest() {
+  local artifact_name="$1"
+  local cache_path
+  cache_path="$(artifact_digest_cache_path "$artifact_name")"
+  if [[ -f "$cache_path" ]]; then
+    tr -d '[:space:]' < "$cache_path"
+  fi
+}
+
+write_cached_artifact_digest() {
+  local artifact_name="$1"
+  local digest="$2"
+  local cache_path
+  cache_path="$(artifact_digest_cache_path "$artifact_name")"
+
+  if [[ -z "$digest" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$cache_path")"
+  printf '%s\n' "$digest" > "$cache_path"
+}
+
+# Returns 0 when download can be skipped (digest match + local installable present).
+should_skip_artifact_download() {
+  local run_id="$1"
+  local artifact_name="$2"
+  local stable_path="$3"
+  local force_download="$4"
+  local remote_digest
+  local cached_digest
+
+  if [[ "$force_download" == true ]]; then
+    return 1
+  fi
+
+  if [[ ! -e "$stable_path" ]]; then
+    return 1
+  fi
+
+  remote_digest="$(fetch_artifact_digest "$run_id" "$artifact_name")"
+  if [[ -z "$remote_digest" ]]; then
+    return 1
+  fi
+
+  cached_digest="$(read_cached_artifact_digest "$artifact_name")"
+  if [[ -z "$cached_digest" || "$cached_digest" != "$remote_digest" ]]; then
+    return 1
+  fi
+
+  echo -e "${GREEN}✓ Skipping download (digest match): ${remote_digest}${NC}" >&2
+  echo -e "${GREEN}✓ Using local: ${stable_path}${NC}" >&2
+  return 0
 }
 
 download_artifact_from_run() {
