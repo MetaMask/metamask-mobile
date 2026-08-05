@@ -2,8 +2,6 @@
  * Component View tests for the Account Already Exists screen.
  *
  * Replaces former Appium seedless existing-user specs:
- * - tests/smoke-appium/seedless/apple-login-existing-user.spec.ts (removed)
- * - tests/smoke-appium/seedless/google-login-existing-user.spec.ts (removed)
  *
  * CV owns Account Already Exists UI and Login / different-method navigation.
  * OAuth → AccountAlreadyExists routing remains covered by

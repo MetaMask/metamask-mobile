@@ -15,7 +15,6 @@ import Routes from '../../../constants/navigation/Routes';
  * former google-login-add-srp Appium smoke removed. Successful vault import
  * remains on SmokeAccounts import-srp.
  *
- * Run: yarn jest -c jest.config.view.js ImportNewSecretRecoveryPhrase.view.test.tsx --runInBand
  */
 
 function renderImportNewSRP() {
