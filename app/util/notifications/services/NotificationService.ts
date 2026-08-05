@@ -9,6 +9,7 @@ import notifee, {
 import { Linking, Alert as NativeAlert, Platform } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { store } from '../../../store';
+import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import Logger from '../../../util/Logger';
 import {
   ChannelId,
@@ -339,6 +340,7 @@ const getPushPermissionStatusFromAuthorizationStatus = (
 
 export async function requestPushPermissions() {
   const result = await NotificationService.getAllPermissions(true);
+  store.dispatch(markPushNotificationOsPromptRequested());
   return result.permission === 'authorized';
 }
 

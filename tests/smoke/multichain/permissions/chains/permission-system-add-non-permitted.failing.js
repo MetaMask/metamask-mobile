@@ -1,8 +1,7 @@
-import { SmokeNetworkExpansion } from '../../../../tags';
+import { SmokeNetworkAbstractions } from '../../../../tags';
 import { loginToApp } from '../../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import Assertions from '../../../../framework/Assertions';
-import TestHelpers from '../../../../helpers';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
@@ -19,12 +18,8 @@ const ETHEREUM_MAIN_NET_NETWORK_NAME =
   NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME;
 
 describe(
-  SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
+  SmokeNetworkAbstractions('Chain Permission System, non-permitted chain, '),
   () => {
-    beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-    });
-
     beforeEach(() => {
       jest.setTimeout(150000);
     });

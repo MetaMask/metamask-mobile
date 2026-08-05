@@ -1,12 +1,18 @@
 import React from 'react';
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
-// design-system-react-native TextVariant is not aligned with the mobile
-// component-library TextVariant, so use the local Text component.
-import Text, {
+import { useSelector } from 'react-redux';
+import {
+  Box,
+  BoxFlexDirection,
+  FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+
 import { strings } from '../../../../locales/i18n';
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
 
 export const SpendableBalanceSectionTestIds = {
   CONTAINER: 'spendable-balance-section',
@@ -44,6 +50,7 @@ export const SpendableBalanceSection = ({
   const totalDisplay = `${totalBalance} ${symbol}`;
   const spendableDisplay = `${spendableBalance} ${symbol}`;
   const reservedDisplay = `${minimumReserveBalance} ${symbol}`;
+  const privacyMode = useSelector(selectPrivacyMode);
 
   return (
     <Box
@@ -51,69 +58,82 @@ export const SpendableBalanceSection = ({
       flexDirection={BoxFlexDirection.Column}
       twClassName="px-4 py-4 gap-3"
     >
-      <Text variant={TextVariant.HeadingMD}>
+      <Text variant={TextVariant.HeadingMd}>
         {strings('asset_overview.your_balance')}
       </Text>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('asset_spendable_balance.total_balance')}
           </Text>
-          <Text
-            variant={TextVariant.BodyMDMedium}
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
             testID={SpendableBalanceSectionTestIds.TOTAL}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
           >
             {totalDisplay}
-          </Text>
+          </SensitiveText>
         </Box>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('asset_spendable_balance.fiat_value')}
           </Text>
-          <Text
-            variant={TextVariant.BodyMD}
+          <SensitiveText
+            variant={TextVariant.BodyMd}
             testID={SpendableBalanceSectionTestIds.FIAT}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
           >
             {fiatValue ?? '—'}
-          </Text>
+          </SensitiveText>
         </Box>
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('asset_spendable_balance.spendable')}
           </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Success}
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            color={TextColor.SuccessDefault}
             testID={SpendableBalanceSectionTestIds.SPENDABLE}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
           >
             {spendableDisplay}
-          </Text>
+          </SensitiveText>
         </Box>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
-            variant={TextVariant.BodySMMedium}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
             {strings('asset_spendable_balance.base_reserved')}
           </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Success}
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            color={TextColor.SuccessDefault}
             testID={SpendableBalanceSectionTestIds.RESERVED}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
           >
             {reservedDisplay}
-          </Text>
+          </SensitiveText>
         </Box>
       </Box>
     </Box>
