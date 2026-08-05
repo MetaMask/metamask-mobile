@@ -21,11 +21,10 @@ export function getBridgeDestinationTxHash(
 }
 
 /**
- * The transaction the block-explorer sheet needs to resolve both legs. It
- * re-derives bridge history itself, so it takes `initialTransaction` — the same
- * one {@link getBridgeHistoryItem} looks up with, so the two cannot resolve to
- * different history items. Returns an empty object for rows backed only by the
- * indexer, which carry no local transaction for the sheet to work from.
+ * The transaction the block-explorer sheet resolves both legs from. Uses
+ * `initialTransaction`, matching {@link getBridgeHistoryItem}, so the two can't
+ * land on different history items. Empty for indexer-only rows, which have no
+ * local transaction.
  */
 export function getBridgeExplorerSheetTx(
   item: Extract<ActivityListItem, { type: 'bridge' }>,

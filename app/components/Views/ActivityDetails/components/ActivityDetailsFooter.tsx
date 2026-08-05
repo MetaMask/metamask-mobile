@@ -90,15 +90,10 @@ export function ActivityDetailsBlockExplorerButton({
 }
 
 /**
- * Explorer CTA for bridge transactions.
- *
- * A cross-chain bridge lives on two networks, so it gets one button that opens
- * the block-explorer sheet to pick a leg — the same sheet the Bridge details
- * screen uses, which derives both explorers (name, network badge, URL) from the
- * transaction. Two identically-labelled buttons are indistinguishable, so they
- * are only the fallback for rows the sheet cannot serve: indexer-only rows carry
- * no local transaction for it to resolve history from. Same-chain rows get a
- * single button straight to the webview.
+ * Explorer CTA for bridge transactions. A cross-chain bridge gets one button
+ * opening the block-explorer sheet to pick a leg; same-chain rows go straight
+ * to the webview. The per-leg buttons are only a fallback for indexer-only
+ * rows, which have no local transaction for the sheet to resolve history from.
  */
 export function ActivityDetailsBridgeExplorerButtons({
   sourceChainId,

@@ -130,8 +130,6 @@ describe('ActivityDetailsFooter components', () => {
           />,
         );
 
-        // Two identically-labelled buttons are indistinguishable — the sheet
-        // is what lets the user pick a leg (TMCU regression from #34224).
         expect(queryByTestId(`${BLOCK_EXPLORER_BUTTON}-source`)).toBeNull();
         expect(queryByTestId(`${BLOCK_EXPLORER_BUTTON}-dest`)).toBeNull();
 
@@ -145,8 +143,6 @@ describe('ActivityDetailsFooter components', () => {
     );
 
     it('falls back to a button per leg when no transaction can back the sheet', () => {
-      // Indexer-only rows carry no local transaction, so the sheet has nothing
-      // to resolve bridge history from.
       useExplorerMock.mockImplementation((chainId, hash) =>
         hash ? { url: `u-${chainId}`, title: `t-${chainId}` } : undefined,
       );
