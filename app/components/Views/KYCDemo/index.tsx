@@ -40,6 +40,8 @@ const SUMSUB_STATUS_LABEL: Record<string, string> = {
   fetchingToken: 'Fetching access token...',
   launching: 'Launching SumSub SDK...',
   inProgress: 'Verification in progress...',
+  vendorProcessing:
+    'Your KYC has already been submitted and is being processed by the vendor.',
   complete: 'Complete',
   failed: 'Failed',
 };
