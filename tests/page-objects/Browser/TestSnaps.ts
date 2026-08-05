@@ -469,7 +469,7 @@ class TestSnaps {
     // Teardown-only helper: specs assert on the alert before dismissing it,
     // and the alert can close on its own first. iOS buttons also vary
     // (OK / Close / Done), including Snap UI "I, OK" via tapOkButton().
-    const attempts: Array<() => Promise<void>> = [
+    const attempts: (() => Promise<void>)[] = [
       () => this.tapOkButton(),
       () =>
         Gestures.tap(Matchers.getElementByText(/^Close$/i), {
