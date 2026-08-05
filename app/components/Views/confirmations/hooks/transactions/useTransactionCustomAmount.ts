@@ -200,25 +200,6 @@ export function useTransactionCustomAmount({
     quotesLastUpdated,
   ]);
 
-  const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
-  useEffect(() => {
-    // Skip if the user has manually typed on the keypad — a transient
-    // hasPrefilled toggle (from tokenKey changes) must not overwrite
-    // their input. The ref resets when the pay token genuinely changes.
-    if (userHasEditedRef.current) {
-      prevHasPrefilled.current = depositPrefill.hasPrefilled;
-      return;
-    }
-    if (depositPrefill.hasPrefilled) {
-      amountChangeTimeRef.current = Date.now();
-      setAmountFiat(depositPrefill.prefillAmount ?? '0');
-    } else if (prevHasPrefilled.current) {
-      setAmountFiat('0');
-    }
-    prevHasPrefilled.current = depositPrefill.hasPrefilled;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [depositPrefill.hasPrefilled]);
-
   // Gating mirrors useFiatBuyLimitAlert so the keypad cap and the limit alert agree.
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const fiatPaymentMethodId =
@@ -490,6 +471,41 @@ export function useTransactionCustomAmount({
       setConfirmationMetric,
     ],
   );
+
+  const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
+  useEffect(() => {
+    // Skip if the user has manually typed on the keypad — a transient
+    // hasPrefilled toggle (from tokenKey changes) must not overwrite
+    // their input. The ref resets when the pay token genuinely changes.
+    if (userHasEditedRef.current) {
+      prevHasPrefilled.current = depositPrefill.hasPrefilled;
+      return;
+    }
+    if (depositPrefill.hasPrefilled) {
+      amountChangeTimeRef.current = Date.now();
+      // Uncapped percentage prefills go through the same Max/percentage path
+      // as the keypad buttons so money-account Max gets isMaxAmount,
+      // isMaxDeposit, and depositMaxHumanRef — matching other Max deposits.
+      // Limit-capped amounts are not a true Max and must use the literal value.
+      if (
+        depositPrefill.percentage !== undefined &&
+        !depositPrefill.isLimitCapped
+      ) {
+        updatePendingAmountPercentage(depositPrefill.percentage);
+      } else {
+        setAmountFiat(depositPrefill.prefillAmount ?? '0');
+      }
+    } else if (prevHasPrefilled.current) {
+      setAmountFiat('0');
+      depositMaxHumanRef.current = null;
+      setIsMaxDeposit(false);
+      if (isMaxAmount) {
+        setIsMax(false);
+      }
+    }
+    prevHasPrefilled.current = depositPrefill.hasPrefilled;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositPrefill.hasPrefilled]);
 
   useEffect(() => {
     if (
