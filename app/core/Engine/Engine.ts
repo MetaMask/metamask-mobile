@@ -34,7 +34,6 @@ import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
-import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import {
   renderFromTokenMinimalUnit,
@@ -44,10 +43,6 @@ import {
   hexToBN,
   renderFromWei,
 } from '../../util/number';
-import {
-  buildAssetsBalanceUpdateFromPush,
-  type BalanceUpdatedPushPayload,
-} from './utils/buildAssetsBalanceUpdateFromPush';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
@@ -375,6 +370,11 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
+        // core#9717: AssetsController resolves multicall3 addresses through
+        // ConfigRegistryController:getNetworkConfigByCaip2ChainId, so the
+        // registry must be registered before it.
+        ConfigRegistryController: configRegistryControllerInit,
+        ConfigRegistryApiService: configRegistryApiServiceInit,
         // AssetsController must be initialized before ClientController so it
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
@@ -384,8 +384,6 @@ export class Engine {
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
-        ConfigRegistryController: configRegistryControllerInit,
-        ConfigRegistryApiService: configRegistryApiServiceInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
@@ -774,57 +772,6 @@ export class Engine {
         } catch (error) {
           console.error(
             'Error handling BridgeStatusController:destinationTransactionCompleted event:',
-            error,
-          );
-        }
-      },
-    );
-
-    // Forward real-time websocket balance pushes into the AssetsController.
-    // When `assetsUnifyState` is enabled the UI reads balances from
-    // `AssetsController.assetsBalance`. Both `AccountActivityService` and the
-    // controller's internal `BackendWebsocketDataSource` open a separate
-    // websocket subscription to the same account-activity channel, but the
-    // backend routes each notification to a single subscriptionId, so the data
-    // source's subscription is starved and `assetsBalance` is not refreshed
-    // until the 30s poll. `AccountActivityService` reliably receives the push,
-    // so we bridge it into the controller's own public merge entrypoint.
-    this.controllerMessenger.subscribe(
-      'AccountActivityService:balanceUpdated',
-      (payload: BalanceUpdatedPushPayload) => {
-        try {
-          if (!selectIsAssetsUnifyStateEnabled(store.getState())) {
-            return;
-          }
-          const account = this.context.AccountsController.getAccountByAddress(
-            payload.address,
-          );
-          const accountId = account?.id;
-          if (!accountId) {
-            return;
-          }
-
-          const response = buildAssetsBalanceUpdateFromPush(payload, accountId);
-          if (!response) {
-            return;
-          }
-
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          Promise.resolve(
-            (
-              this.context.AssetsController as unknown as {
-                handleAssetsUpdate: (
-                  response: unknown,
-                  sourceId: string,
-                ) => Promise<void>;
-              }
-            ).handleAssetsUpdate(response, 'BackendWebsocketDataSource'),
-          ).catch(() => {
-            // Best-effort real-time refresh; the periodic poll remains a fallback.
-          });
-        } catch (error) {
-          console.error(
-            'Error forwarding AccountActivityService:balanceUpdated to AssetsController:',
             error,
           );
         }

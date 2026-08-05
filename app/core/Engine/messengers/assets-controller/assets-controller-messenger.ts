@@ -28,16 +28,19 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'NetworkController:networkRemoved',
   // RpcDataSource + StakedBalanceDataSource
   'NetworkController:stateChange',
-  // Snap + WS + tx + preferences
-  'BackendWebSocketService:connectionStateChanged',
+  // Snap + tx + preferences
   'AccountsController:accountBalancesUpdated',
   'PermissionController:stateChange',
   'SnapController:snapInstalled',
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
-  // Real-time post-tx balances (AccountActivityService WS path)
+  // core#9517: AccountActivityDataSource is the highest-priority balance
+  // source. `balanceUpdated` carries real-time balances; `statusChanged`
+  // drives chain-claiming so polling sources skip chains covered by the
+  // websocket.
   'AccountActivityService:balanceUpdated',
+  'AccountActivityService:statusChanged',
   // AccountsApiDataSource: re-evaluate Accounts API vs RPC when remote flags change
   'RemoteFeatureFlagController:stateChange',
 ] as const;
@@ -68,11 +71,9 @@ export function getAssetsControllerMessenger(
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'AccountsController:getSelectedAccount',
-      'BackendWebSocketService:subscribe',
-      'BackendWebSocketService:getConnectionInfo',
-      'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-      'BackendWebSocketService:addChannelCallback',
-      'BackendWebSocketService:removeChannelCallback',
+      // core#9717: MulticallClient resolves multicall3 addresses from the
+      // config registry, falling back to its bundled defaults.
+      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'SnapController:handleRequest',
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',
