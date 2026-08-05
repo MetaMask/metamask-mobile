@@ -466,13 +466,37 @@ class TestSnaps {
   }
 
   async dismissAlert() {
-    try {
-      await Gestures.tap(Matchers.getElementByText(/^OK$/i));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (!/stale|wasn't found|no such element/i.test(message)) {
+    // iOS alert buttons vary (OK / Close / Done); the alert may also
+    // auto-dismiss before we tap. Soft-fail when no dismiss control appears.
+    const dismissLabels = [/^OK$/i, /^Close$/i, /^Done$/i];
+    let lastError: unknown;
+    for (const label of dismissLabels) {
+      try {
+        await Gestures.tap(Matchers.getElementByText(label), {
+          timeout: 3_000,
+        });
+        return;
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message : String(error);
+        if (
+          /stale|wasn't found|no such element|still not displayed|timed out/i.test(
+            message,
+          )
+        ) {
+          continue;
+        }
         throw error;
       }
+    }
+    const message =
+      lastError instanceof Error ? lastError.message : String(lastError ?? '');
+    if (
+      !/stale|wasn't found|no such element|still not displayed|timed out/i.test(
+        message,
+      )
+    ) {
+      throw lastError;
     }
   }
 
