@@ -7,6 +7,7 @@ import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
 import { resolveAndroidAdbUdidForDevice } from './android/resolveAndroidAdbUdid';
 import { getIosSimulatorUdid } from '../../appium/EmulatorHelpers';
+import { validateAndroidApkArtifact } from './validateBuildArtifact';
 
 const execFileAsync = promisify(execFile);
 
@@ -116,7 +117,9 @@ export async function reinstallLocalAndroidBuildArtifact({
   adbSerial: string;
   logger: Pick<Logger, 'debug' | 'info' | 'warn'>;
 }): Promise<void> {
-  const absApk = path.resolve(buildPath);
+  // Fail fast on a corrupt/truncated CI artifact instead of letting the device
+  // report INSTALL_PARSE_FAILED_NOT_APK after the uninstall already ran.
+  const absApk = validateAndroidApkArtifact(buildPath);
 
   try {
     const { stdout, stderr } = await execFileAsync(

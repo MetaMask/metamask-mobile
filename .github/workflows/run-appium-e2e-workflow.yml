@@ -168,6 +168,39 @@ jobs:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
 
+      # Artifact transfers have produced truncated APKs that only fail later on
+      # the device with INSTALL_PARSE_FAILED_NOT_APK. Verify, then re-download once.
+      - name: Verify Android APK integrity
+        if: ${{ inputs.platform == 'android' }}
+        id: verify-android-apk
+        continue-on-error: true
+        shell: bash
+        run: |
+          bash scripts/e2e/verify-android-apk.sh \
+            "${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}"
+
+      - name: Re-download Android build artifacts (corrupt APK retry)
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            steps.verify-android-apk.outcome != 'success'
+          }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
+
+      - name: Verify Android APK integrity (after retry)
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            steps.verify-android-apk.outcome != 'success'
+          }}
+        shell: bash
+        run: |
+          bash scripts/e2e/verify-android-apk.sh \
+            "${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}"
+
       - name: Download iOS build artifacts (Namespace)
         if: ${{ inputs.platform == 'ios' && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
