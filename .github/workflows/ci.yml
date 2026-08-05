@@ -5,7 +5,15 @@ run-name: >-
 
 on:
   push:
-    branches: [main]
+    # main: primary branch. stable: infrequent (only on release merges), but a
+    # full run here helps trace whether downstream failures (e.g. stable-sync
+    # PRs) come from the merge itself or predate it. release/* branches never
+    # push-trigger this workflow (primary smoke/Smart E2E) — cherry-pick PRs
+    # into release/* use Smart E2E selection instead (see smart-e2e-selection
+    # job below). Other release-specific workflows (RC builds, attribution
+    # check, changelog) have their own `push: branches: [release/*]` triggers
+    # and are unaffected by this.
+    branches: [main, stable]
   pull_request:
     types:
       - opened
@@ -1165,6 +1173,11 @@ jobs:
 
   smart-e2e-selection:
     name: 'Smart E2E Selection'
+    # Runs AI-powered E2E tag selection for PRs targeting main or release/*
+    # (cherry-pick PRs). Skipped for stable-target PRs — get_requirements sets
+    # run_smart_e2e_selection=false there, so downstream E2E jobs fall back to
+    # the full ["ALL"] suite instead. Main and release/* targets both use the
+    # AI-selected performance tags below.
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
@@ -1218,6 +1231,8 @@ jobs:
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
     # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
+    # Note: stable-target PRs skip smart-e2e-selection entirely (see job above), so
+    # its result is 'skipped' there and this job only runs via the run-performance-tests label.
     # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
@@ -1412,9 +1427,9 @@ jobs:
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
-    # BITRISE/NAMESPACE-SHADOW: always skipped on shadow runs. Appium Android is pinned to
-    # runner_provider=current (Cirrus) below until Namespace parity is ready, and it cannot
-    # download namespace-built APKs (they live in Namespace's artifact store, not GitHub's).
+    # Appium Android smoke runs on PRs and full main/stable push/schedule runs.
+    # It is pinned to runner_provider=current (Cirrus) until Namespace parity
+    # is ready and is always skipped on Bitrise/Namespace shadow runs.
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
@@ -1443,17 +1458,21 @@ jobs:
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
-    # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests, or change page-objects/selectors/locators/framework
-    # (same smart-selected tags as other E2E jobs).
+    # Appium migration policy: iOS smoke runs after main/stable pushes and on
+    # scheduled main runs. Main-target PRs preserve the existing opt-in/infra
+    # exception; release/* and stable-target PRs run Appium Android smoke only.
     if: >-
       ${{
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
         (
           (
+            (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stable') &&
+            github.event_name == 'push'
+          ) ||
+          (
             github.ref == 'refs/heads/main' &&
-            (github.event_name == 'push' || github.event_name == 'schedule')
+            github.event_name == 'schedule'
           ) ||
           (
             github.event_name == 'pull_request' &&

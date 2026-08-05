@@ -19,7 +19,8 @@ jobs:
        github.event.label.name == 'pr-not-ready-for-e2e' ||
        github.event.label.name == 'force-builds' ||
        github.event.label.name == 'run-performance-tests' ||
-       github.event.label.name == 'run-appium-ios-tests')
+       (github.event.label.name == 'run-appium-ios-tests' &&
+        github.event.pull_request.base.ref == 'main'))
     runs-on: ubuntu-latest
     permissions:
       actions: write

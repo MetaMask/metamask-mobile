@@ -34,6 +34,7 @@ const ignorableOnly =
 
 const flags = computeE2EPlatformFlags({
   githubEventName: process.env.GITHUB_EVENT_NAME || '',
+  prBaseRef: process.env.PR_BASE_REF || '',
   isFork: readBool(process.env.IS_FORK),
   shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
   allChangesCount,
@@ -51,17 +52,18 @@ const flags = computeE2EPlatformFlags({
 let runAppiumIos = false;
 if (
   process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+  process.env.PR_BASE_REF === 'main' &&
   !readBool(process.env.IS_FORK)
 ) {
   if (readBool(process.env.RUN_APPIUM_IOS_LABEL)) {
     runAppiumIos = true;
     console.log(
-      "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
+      "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on main-target PR",
     );
   } else if (readInt(process.env.E2E_SMOKE_INFRA_COUNT) > 0) {
     runAppiumIos = true;
     console.log(
-      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework)',
+      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes on main-target PR (page-objects/selectors/locators/framework)',
     );
   }
 }
@@ -85,6 +87,15 @@ if (
 }
 
 console.log(flags.message);
+if (
+  process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+  process.env.PR_BASE_REF === 'stable' &&
+  !flags.runSmartE2ESelection
+) {
+  console.log(
+    "-> run_smart_e2e_selection=false — PR targets 'stable'; downstream E2E jobs use the ALL fallback",
+  );
+}
 
 const outputLines = [
   `android_final=${flags.android}`,

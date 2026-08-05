@@ -16,10 +16,12 @@ flowchart TD
     GR -->|PR has Android-only changes| Android[Android Build + Tests needed]
     GR -->|PR has iOS-only changes| iOS[iOS Build + Test needed]
     GR -->|PR other files changed| Both[Both Build + Tests needed]
-    GR -->|Scheduled and Push to main | Full[Run all E2E Suites for Both]
+    GR -->|Scheduled, or Push to main/stable | Full[Run all E2E Suites for Both]
 
-    Android & iOS & Both --> LABEL{{PR label: skip-smart-e2e-selection ?}}
-    LABEL -->|yes| AllTags[Run all E2E needed]
+    Android & iOS & Both --> STABLE{{PR targets stable ?}}
+    STABLE -->|yes| AllTags[Run all E2E needed]
+    STABLE -->|no| LABEL{{PR label: skip-smart-e2e-selection ?}}
+    LABEL -->|yes| AllTags
     LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
     AI --> CONF{{Confidence >= 85% ?}}
     CONF -->|yes| SelectedTags[Run selected E2E suites]
@@ -50,18 +52,34 @@ To save infra resources while waiting for static analysis findings and potential
 
 Runs only when all of the following are true:
 
+- Event is `pull_request` (never on `push` or `schedule` — those use the full smoke E2E suite)
 - Not a fork
 - No hard E2E skip signal (label `skip-e2e`)
 - No `skip-smart-e2e-selection` label
+- PR does **not** target `stable` (see [Release branches](#release-branches) below)
+
+## Performance E2E policy
+
+- PRs targeting `main` or `release/*` use Smart E2E-selected performance tags. `[]` skips performance; selected tags run the matching tests; AI failure falls back to all performance tests.
+- Stable-target PRs do not run Smart E2E, so performance only runs when forced with `run-performance-tests`.
+- Pushes to `main` and `release/*` do not run performance tests.
+- The full performance suite runs from `main` every three hours (Monday-Saturday).
+- Release performance can still be launched manually from [`run-performance-e2e-release.yml`](../workflows/run-performance-e2e-release.yml).
 
 ## (Exceptional) skip builds and all E2E tests
 
 - Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of infra issues.
 - Using this label should be exceptional in case of CI friction and urgencies. Verify new changes and regressions manually before merging.
 
-## (Exceptional) force Appium iOS smoke tests on PRs
+## Appium smoke platform policy
 
-Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). To also run them on a PR, add the `run-appium-ios-tests` label. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
+During the Appium smoke migration, platforms are split by event:
+
+- Pull requests run Appium Android smoke when Android E2E is required. Smart E2E controls its selected tags for `main`/`release/*` targets; stable-target PRs use `ALL`.
+- Main-target PRs preserve the existing Appium iOS exception: add `run-appium-ios-tests`, or change shared smoke infrastructure (`page-objects`, `selectors`, `locators`, or `framework`). Release/* and stable-target PRs remain Appium Android-only.
+- Pushes to `main` and `stable` run both Appium Android and Appium iOS smoke.
+- Scheduled main runs also run both Appium platforms.
+- Appium-based fixture validation remains a separate PR check; it is schema validation, not the Appium iOS smoke suite.
 
 ## E2E flakiness detection in PRs
 
@@ -73,7 +91,20 @@ Flakiness detection is applied to modified E2E test files in PRs:
 
 ## Release branches
 
-PRs to release branches (cherry-picks from main to release/\* branches and PRs to stable branch) are exempt from the following:
+`release/*` and `stable` branches are handled differently depending on whether the branch is the PR **target** or the **push destination**:
 
-- Label `pr-not-ready-for-e2e` is not applied
-- Smart AI E2E selection is skipped - all E2E suites are run (if changes are not ignorable-only, e.g. only docs)
+| | `release/*` | `stable` |
+| --- | --- | --- |
+| PRs targeting it (e.g. cherry-picks) | Smart E2E selection runs normally — AI picks which smoke suites to run | Smart E2E selection is **skipped**; the full (`ALL`) E2E smoke suite always runs instead |
+| PR performance tests | Smart E2E selects relevant performance tags, same as a main-target PR; `run-performance-tests` can force all | Not triggered automatically (Smart E2E doesn't run, so there is no AI performance signal); `run-performance-tests` can still force all |
+| Appium smoke on PRs | Android only, using Smart-selected tags when Android E2E is required | Android only, using `ALL` tags when Android E2E is required |
+| `pr-not-ready-for-e2e` auto-label | Not applied | Not applied |
+| Push to the branch | **`ci.yml` does not run** (no primary smoke E2E / Smart E2E) — cherry-pick PRs into `release/*` are the only place Smart E2E runs for this branch | **Full primary `ci.yml` run**, same E2E coverage as a `main` push, including both Appium platforms (infrequent — only on release merges; useful for tracing whether stable-sync failures come from the merge or predate it) |
+
+Smart E2E selection eligibility (`run_smart_e2e_selection`) is computed once in `get-requirements.yml` from the PR's base ref, so `stable`-target PRs never invoke the `smart-e2e-selection` job at all — downstream E2E jobs fall back to their existing `["ALL"]` tag set instead.
+
+**Note:** "`ci.yml` does not run" on `release/*` pushes refers only to the primary smoke/Smart E2E pipeline. Performance E2E also does not run on release pushes. Other release-specific workflows still trigger and are unaffected by this policy:
+
+- [`check-attributions.yml`](../workflows/check-attributions.yml) — attribution check (`yarn test:attribution-check`).
+- [`build-rc-auto.yml`](../workflows/build-rc-auto.yml) — builds the RC iOS/Android apps for the release branch.
+- [`update-release-changelog.yml`](../workflows/update-release-changelog.yml) — refreshes the release changelog PR.

@@ -45,7 +45,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Force Appium iOS Smoke Tests
 
-- **run-appium-ios-tests**: Also runs Appium iOS smoke tests on a PR (normally they run only on `main` push/schedule). Uses the same Smart E2E Selection tags as Detox/Appium Android — it does not bypass path filters, build gates, or AI tag selection. Remove `pr-not-ready-for-e2e` when the PR is ready for E2E validation. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **run-appium-ios-tests**: Also runs Appium iOS smoke tests on a PR targeting `main` (normally PRs run Appium Android only). Uses the same Smart E2E Selection tags as Detox/Appium Android — it does not bypass path filters, build gates, or AI tag selection. Remove `pr-not-ready-for-e2e` when the PR is ready for E2E validation. Adding or removing this label re-triggers CI. Not honored on fork PRs or PRs targeting `release/*`/`stable`.
 
 ### Block merge if any is present
 

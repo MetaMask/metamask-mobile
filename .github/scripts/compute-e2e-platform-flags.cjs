@@ -9,6 +9,7 @@
 function computeE2EPlatformFlags(input) {
   const {
     githubEventName,
+    prBaseRef = '',
     isFork,
     shouldSkipE2E,
     allChangesCount,
@@ -41,7 +42,10 @@ function computeE2EPlatformFlags(input) {
     e2eWorkflowsCount === 0;
 
   if (githubEventName === 'schedule' || githubEventName === 'push') {
-    message = 'E2E for both platforms (scheduled or push to main)';
+    // Push only fires for main and stable (ci.yml `on.push.branches`); release/*
+    // branches never push-trigger CI. Treat stable pushes the same as main —
+    // infrequent, but a full run helps trace stable-sync failures.
+    message = 'E2E for both platforms (scheduled, or push to main/stable)';
     android = true;
     ios = true;
   } else if (githubEventName === 'merge_group') {
@@ -86,11 +90,18 @@ function computeE2EPlatformFlags(input) {
 
   const e2eNeeded = android || ios;
 
+  // stable is a long-lived branch merged from release/* only (never cherry-picked
+  // into directly in the normal flow); PRs targeting it should get the full E2E
+  // suite via the existing ALL fallback rather than AI-selected tags. release/*
+  // targets (cherry-pick PRs) still use Smart E2E selection normally.
+  const isStableTarget = prBaseRef === 'stable';
+
   const runSmartE2ESelection =
     githubEventName === 'pull_request' &&
     e2eNeeded &&
     !isFork &&
-    !shouldSkipE2E;
+    !shouldSkipE2E &&
+    !isStableTarget;
 
   return {
     android,

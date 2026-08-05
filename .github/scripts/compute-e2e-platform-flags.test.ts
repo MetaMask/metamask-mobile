@@ -67,4 +67,89 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result.nativeBuildNeeded).toBe(true);
   });
+
+  it('skips E2E for a hard skip signal (label or commit tag)', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      shouldSkipE2E: true,
+    });
+
+    expect(result.e2eNeeded).toBe(false);
+    expect(result.runSmartE2ESelection).toBe(false);
+    expect(result.message).toContain('skip signal');
+  });
+
+  describe('branch-aware Smart E2E eligibility', () => {
+    it('runs Smart E2E selection for PRs targeting main', () => {
+      const result = computeE2EPlatformFlags({
+        ...baseInput,
+        prBaseRef: 'main',
+      });
+
+      expect(result.runSmartE2ESelection).toBe(true);
+    });
+
+    it('runs Smart E2E selection for cherry-pick PRs targeting release/*', () => {
+      const result = computeE2EPlatformFlags({
+        ...baseInput,
+        prBaseRef: 'release/7.50.0',
+      });
+
+      expect(result.runSmartE2ESelection).toBe(true);
+    });
+
+    it('skips Smart E2E selection for PRs targeting stable, but still requires E2E', () => {
+      const result = computeE2EPlatformFlags({
+        ...baseInput,
+        prBaseRef: 'stable',
+      });
+
+      expect(result.runSmartE2ESelection).toBe(false);
+      expect(result.e2eNeeded).toBe(true);
+      expect(result.android).toBe(true);
+      expect(result.ios).toBe(true);
+    });
+
+    it('does not run Smart E2E selection outside of pull_request events, regardless of ref', () => {
+      const pushResult = computeE2EPlatformFlags({
+        ...baseInput,
+        githubEventName: 'push',
+        prBaseRef: '',
+      });
+      const scheduleResult = computeE2EPlatformFlags({
+        ...baseInput,
+        githubEventName: 'schedule',
+        prBaseRef: '',
+      });
+
+      expect(pushResult.runSmartE2ESelection).toBe(false);
+      expect(scheduleResult.runSmartE2ESelection).toBe(false);
+    });
+  });
+
+  describe('push events (main and stable share the same E2E coverage)', () => {
+    it('runs E2E for both platforms on push, independent of prBaseRef', () => {
+      const result = computeE2EPlatformFlags({
+        ...baseInput,
+        githubEventName: 'push',
+        prBaseRef: '',
+      });
+
+      expect(result.android).toBe(true);
+      expect(result.ios).toBe(true);
+      expect(result.e2eNeeded).toBe(true);
+      expect(result.message).toContain('push to main/stable');
+    });
+
+    it('runs E2E for both platforms on the scheduled overnight run', () => {
+      const result = computeE2EPlatformFlags({
+        ...baseInput,
+        githubEventName: 'schedule',
+        prBaseRef: '',
+      });
+
+      expect(result.android).toBe(true);
+      expect(result.ios).toBe(true);
+    });
+  });
 });
