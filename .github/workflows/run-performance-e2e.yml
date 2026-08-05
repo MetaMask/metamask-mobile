@@ -63,11 +63,6 @@ on:
         required: false
         type: string
         default: ''
-      source_ref:
-        description: 'Exact branch, tag, or commit to use for native app builds'
-        required: false
-        type: string
-        default: ''
       enable_testmu_benchmark:
         description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
         required: false
