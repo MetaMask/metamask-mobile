@@ -4,8 +4,11 @@ import { MatcherOptions } from './types';
 import { getDriver } from './PlaywrightUtilities';
 import { ChainablePromiseElement } from 'webdriverio';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { toIosPredicateMatchPattern } from './toIosPredicateMatchPattern.ts';
 
 const logger = createPlaywrightLogger('PlaywrightMatchers');
+
+export { toIosPredicateMatchPattern } from './toIosPredicateMatchPattern.ts';
 
 /**
  * PlaywrightMatchers - Element selectors that return Playwright-like wrapped
@@ -74,9 +77,13 @@ export default class PlaywrightMatchers {
       // Android resource IDs are package-qualified (e.g. io.metamask:id/browser-tab-1).
       // Detox by.id(RegExp) matches the suffix; UiAutomator resourceIdMatches needs .*…*.
       const androidPattern = `.*${escaped}.*`;
+      // iOS NSPredicate MATCHES is a full-string match — prefix patterns like
+      // /^multichain-account-cell-menu-/ must allow a suffix or they never hit
+      // `…-Account 1`.
+      const iosPattern = toIosPredicateMatchPattern(escaped);
       const locator = isAndroid
         ? `android=new UiSelector().resourceIdMatches("${androidPattern}")`
-        : `-ios predicate string:name MATCHES "${escaped}"`;
+        : `-ios predicate string:name MATCHES "${iosPattern}"`;
 
       const drv = getDriver();
       if (!drv) throw new Error('Driver is not available');
@@ -137,10 +144,11 @@ export default class PlaywrightMatchers {
         : this.escapeRegexPattern(text);
       // RegExp flags are not in .source — embed (?i) for Appium/Java/ICU engines.
       const pattern = text.ignoreCase ? `(?i)${escaped}` : escaped;
+      const iosPattern = toIosPredicateMatchPattern(pattern);
       this.logFind('text pattern', pattern);
       const locator = isAndroid
         ? `android=new UiSelector().textMatches("${pattern}")`
-        : `-ios predicate string:label MATCHES "${pattern}" OR name MATCHES "${pattern}"`;
+        : `-ios predicate string:label MATCHES "${iosPattern}" OR name MATCHES "${iosPattern}"`;
 
       const drv = getDriver();
       if (!drv) throw new Error('Driver is not available');

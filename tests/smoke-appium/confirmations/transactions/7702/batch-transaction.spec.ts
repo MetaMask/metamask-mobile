@@ -11,6 +11,7 @@ import {
   LOCAL_CHAIN_CAIP,
   navigateToTestDappAndTap,
   openSmartAccountSwitchForSelectedAccount,
+  SMART_ACCOUNT_UPGRADED_ACTIVITY,
   SMART_ACCOUNT_UPGRADING_ACTIVITY,
   switchToLocalNetworkFromNetworkManager,
 } from '../../../../flows/confirmations.flow.js';
@@ -165,9 +166,13 @@ appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
           );
           await TabBarComponent.tapActivity();
           await ActivitiesView.filterByNetwork(LOCAL_CHAIN_CAIP);
-          // Upgrade tx may not mine locally — assert pending until Anvil broadcast is fixed.
+          // Activity redesign: sendCalls batches that carry an EIP-7702
+          // authorizationList map to smartAccountUpgrade (not contractInteraction).
+          // Detox asserted legacy "Smart contract interaction" without redesign.
+          // Do not assert "Confirmed" — Local RPC often leaves 7702 rows pending
+          // (same as the upgrade case).
           await assertSmartAccountUpgradeActivity(
-            SMART_ACCOUNT_UPGRADING_ACTIVITY,
+            SMART_ACCOUNT_UPGRADED_ACTIVITY,
           );
         },
       );
