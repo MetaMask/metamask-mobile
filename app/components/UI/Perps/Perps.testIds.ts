@@ -521,6 +521,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
   ORDER_ROW: 'perps-pro-market-order-row',
+  ORDER_TYPE: 'perps-pro-market-order-type',
 };
 
 // Helper for dynamic Pro position row test IDs
@@ -568,6 +569,9 @@ export const PerpsMarketHeaderSelectorsIDs = {
   BACK_BUTTON: 'perps-market-header-back-button',
   ASSET_ICON: 'perps-market-header-asset-icon',
   ASSET_NAME: 'perps-market-header-asset-name',
+  /** Compact header price shown while scrolling (distinct from summary row). */
+  COMPACT_PRICE: 'perps-market-header-compact-price',
+  COMPACT_PRICE_CHANGE: 'perps-market-header-compact-price-change',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
   MORE_BUTTON: 'perps-market-header-more-button',
@@ -837,6 +841,14 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-order-type-bottom-sheet-close',
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
+} as const;
+
+export const PerpsLeverageBottomSheetSelectorsIDs = {
+  SLIDER: 'perps-leverage-slider',
+  SLIDER_INCOMING: 'perps-leverage-slider-incoming',
+  SLIDER_INCOMING_WRAP: 'perps-leverage-slider-incoming-wrap',
+  HELP_TEXT: 'perps-leverage-help-text',
+  QUICK_SELECT: 'leverage-quick-select',
 } as const;
 
 export const PerpsAdjustMarginActionSheetSelectorsIDs = {

@@ -221,10 +221,18 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         ]);
       });
 
-      it('returns no alert when the deposit is a Max deposit', () => {
+      it('returns no alert when isMaxDeposit is true (same Max path as isMax)', () => {
         useConfirmationContextMock.mockReturnValue({
           isMaxDeposit: true,
         } as ReturnType<typeof useConfirmationContext>);
+
+        const { result } = runHook();
+
+        expect(result.current).toStrictEqual([]);
+      });
+
+      it('returns no alert when isMax is true for a money account deposit', () => {
+        useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
         const { result } = runHook();
 

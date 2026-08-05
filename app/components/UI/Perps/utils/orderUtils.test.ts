@@ -3,9 +3,12 @@ import {
   inferTriggerConditionKey,
   isOrderAssociatedWithFullPosition,
   isSyntheticOrderCancelable,
+  isLimitOrderEditable,
+  isLimitOrderSizeEditable,
   isSyntheticPlaceholderOrderId,
   shouldDisplayOrderInMarketDetailsOrders,
   formatOrderLabel,
+  formatOrderTypeLabel,
   resolveOrderDisplayPriceAndLabel,
   getOrderLabelDirection,
   getOrderPositionDirection,
@@ -206,6 +209,55 @@ describe('orderUtils', () => {
       };
 
       expect(formatOrderLabel(order)).toBe('Market close short');
+    });
+  });
+
+  describe('formatOrderTypeLabel', () => {
+    it('returns detailed order type when available', () => {
+      const order: Order = {
+        orderId: '1',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'market',
+        detailedOrderType: 'Stop Market',
+        size: '1',
+        originalSize: '1',
+        price: '50000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+        reduceOnly: true,
+        isTrigger: true,
+      };
+
+      expect(formatOrderTypeLabel(order)).toBe('Stop market');
+    });
+
+    it('falls back to translated limit or market when detailed type is absent', () => {
+      const limitOrder: Order = {
+        orderId: '1',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '1',
+        originalSize: '1',
+        price: '50000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+        reduceOnly: false,
+        isTrigger: false,
+      };
+
+      const marketOrder: Order = {
+        ...limitOrder,
+        orderType: 'market',
+      };
+
+      expect(formatOrderTypeLabel(limitOrder)).toBe('Limit');
+      expect(formatOrderTypeLabel(marketOrder)).toBe('Market');
     });
   });
 
@@ -989,6 +1041,107 @@ describe('orderUtils', () => {
       } as Order;
 
       expect(isSyntheticOrderCancelable(syntheticOrder)).toBe(true);
+    });
+  });
+
+  describe('isLimitOrderEditable', () => {
+    const editableLimit: Order = {
+      orderId: 'limit-1',
+      symbol: 'BTC',
+      side: 'buy',
+      size: '1',
+      originalSize: '1',
+      filledSize: '0',
+      remainingSize: '1',
+      price: '50000',
+      orderType: 'limit',
+      status: 'open',
+      timestamp: Date.now(),
+      reduceOnly: false,
+      isTrigger: false,
+    };
+
+    it('allows editing open non-trigger limit orders with no fills', () => {
+      expect(isLimitOrderEditable(editableLimit)).toBe(true);
+    });
+
+    it('rejects trigger orders', () => {
+      expect(
+        isLimitOrderEditable({
+          ...editableLimit,
+          isTrigger: true,
+          detailedOrderType: 'Stop Limit',
+        }),
+      ).toBe(false);
+    });
+
+    it('rejects partially filled orders', () => {
+      expect(
+        isLimitOrderEditable({
+          ...editableLimit,
+          filledSize: '0.5',
+          remainingSize: '0.5',
+        }),
+      ).toBe(false);
+    });
+
+    it('rejects market orders', () => {
+      expect(
+        isLimitOrderEditable({
+          ...editableLimit,
+          orderType: 'market',
+        }),
+      ).toBe(false);
+    });
+
+    it('allows price editing when the order has attached TP/SL', () => {
+      expect(
+        isLimitOrderEditable({
+          ...editableLimit,
+          takeProfitPrice: '60000',
+          stopLossPrice: '40000',
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('isLimitOrderSizeEditable', () => {
+    const editableLimit: Order = {
+      orderId: 'limit-1',
+      symbol: 'BTC',
+      side: 'buy',
+      size: '1',
+      originalSize: '1',
+      filledSize: '0',
+      remainingSize: '1',
+      price: '50000',
+      orderType: 'limit',
+      status: 'open',
+      timestamp: Date.now(),
+      reduceOnly: false,
+      isTrigger: false,
+    };
+
+    it('allows size editing for open limits without attached TP/SL', () => {
+      expect(isLimitOrderSizeEditable(editableLimit)).toBe(true);
+    });
+
+    it('rejects size editing when the order has attached take profit', () => {
+      expect(
+        isLimitOrderSizeEditable({
+          ...editableLimit,
+          takeProfitPrice: '60000',
+        }),
+      ).toBe(false);
+    });
+
+    it('rejects size editing when the order has attached stop loss', () => {
+      expect(
+        isLimitOrderSizeEditable({
+          ...editableLimit,
+          stopLossPrice: '40000',
+        }),
+      ).toBe(false);
     });
   });
 
