@@ -21,6 +21,8 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';

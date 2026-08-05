@@ -2,7 +2,6 @@ import { ConfirmationFooterSelectorIDs } from '../../../../app/components/Views/
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Assertions from '../../../framework/Assertions';
-import TestHelpers from '../../../helpers';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
 import { EncapsulatedElementType } from '../../../framework/EncapsulatedElement';
 import { FrameworkDetector } from '../../../framework/FrameworkDetector';

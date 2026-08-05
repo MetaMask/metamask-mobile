@@ -30,7 +30,7 @@ export function perpsDepositFlags(): Record<string, unknown> {
   return {
     ...getBaseFlags(),
     // Scenario-specific overrides can be added here if they differ from the RC base
-    perpsPerpTradingEnabled: { enabled: true },
+    perpsPerpTradingEnabled: { enabled: true, minimumVersion: '0.0.0' },
   };
 }
 
@@ -41,7 +41,7 @@ export function perpsDepositFlags(): Record<string, unknown> {
 export function predictDepositFlags(): Record<string, unknown> {
   return {
     ...getBaseFlags(),
-    predictTradingEnabled: { enabled: true },
+    predictTradingEnabled: { enabled: true, minimumVersion: '0.0.0' },
   };
 }
 
@@ -52,7 +52,7 @@ export function predictDepositFlags(): Record<string, unknown> {
 export function moneyAccountDepositFlags(): Record<string, unknown> {
   return {
     ...getBaseFlags(),
-    moneyEnableMoneyAccount: { enabled: true },
-    moneyHomeScreenEnabled: { enabled: true },
+    moneyEnableMoneyAccount: { enabled: true, minimumVersion: '0.0.0' },
+    moneyHomeScreenEnabled: { enabled: true, minimumVersion: '0.0.0' },
   };
 }
