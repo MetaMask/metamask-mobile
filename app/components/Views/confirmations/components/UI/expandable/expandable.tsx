@@ -3,6 +3,7 @@ import { HeaderStandard } from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import BottomModal from '../bottom-modal';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
@@ -30,7 +31,8 @@ const Expandable = ({
   isCompact,
   copyText,
 }: ExpandableProps) => {
-  const { styles } = useStyles(styleSheet, { isCompact });
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(styleSheet, { isCompact, isPureBlack });
   const [expanded, setExpanded] = useState(false);
 
   return (

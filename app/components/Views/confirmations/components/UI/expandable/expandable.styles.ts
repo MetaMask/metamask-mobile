@@ -1,20 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../../../util/theme/themeUtils';
+import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isCompact: boolean | undefined };
+  vars: { isCompact: boolean | undefined; isPureBlack: boolean };
 }) => {
   const { theme, vars } = params;
-  const { isCompact } = vars;
+  const { isCompact, isPureBlack } = vars;
   const { colors } = theme;
-  const isPureBlackDark =
-    isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
 
   return StyleSheet.create({
     container: {
@@ -27,12 +21,14 @@ const styleSheet = (params: {
       padding: isCompact ? 0 : 16,
       marginBottom: isCompact ? 0 : 8,
     },
-    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
-    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens / bg-elevated.
+    // Drop usePureBlack() and the isPureBlack var. Use: backgroundColor: theme.colors.background.default
     modalContent: {
-      backgroundColor: getElevatedSurfaceColor(theme),
-      borderWidth: isPureBlackDark ? 1 : 0,
-      borderColor: isPureBlackDark ? colors.border.muted : undefined,
+      backgroundColor: isPureBlack
+        ? theme.colors.background.section
+        : theme.colors.background.default,
+      borderWidth: isPureBlack ? 1 : 0,
+      borderColor: isPureBlack ? colors.border.muted : undefined,
       paddingBottom: 34,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,

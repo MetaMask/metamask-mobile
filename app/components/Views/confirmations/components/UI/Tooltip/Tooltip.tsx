@@ -8,6 +8,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';
 
@@ -38,7 +39,8 @@ export const TooltipModal = ({
   title,
   tooltipTestId = 'tooltip-modal',
 }: TooltipModalProps) => {
-  const { styles } = useStyles(styleSheet, { title: title ?? '' });
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(styleSheet, { isPureBlack });
 
   return (
     <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
@@ -76,7 +78,7 @@ const Tooltip = ({
   iconStyle,
 }: TooltipProps) => {
   const [open, setOpen] = useState(false);
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isPureBlack: false });
 
   const handlePress = () => {
     if (disabled) return;

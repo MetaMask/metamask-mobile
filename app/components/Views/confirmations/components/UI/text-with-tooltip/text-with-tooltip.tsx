@@ -10,6 +10,7 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { TextProps } from '../../../../../../component-library/components/Texts/Text/Text.types';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import BottomModal from '../bottom-modal';
 import styleSheet from './text-with-tooltip.styles';
 interface TextWithTooltipProps {
@@ -32,7 +33,8 @@ const TextWithTooltip = ({
   tooltipTestId,
 }: TextWithTooltipProps) => {
   const [isTooltipVisible, setTooltipVisible] = useState(false);
-  const { styles } = useStyles(styleSheet, {});
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(styleSheet, { isPureBlack });
 
   return (
     <View>

@@ -25,6 +25,7 @@ import Logger from '../../../../../../../../../util/Logger';
 import { shortenString } from '../../../../../../../../../util/notifications/methods/common';
 import { isNumberValue } from '../../../../../../../../../util/number';
 import { useTheme } from '../../../../../../../../../util/theme';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { calcTokenAmount } from '../../../../../../../../../util/transactions';
 
 import { useGetTokenStandardAndDetails } from '../../../../../../hooks/useGetTokenStandardAndDetails';
@@ -100,8 +101,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
   const theme = useTheme();
+  const isPureBlack = usePureBlack();
 
-  const styles = styleSheet(theme);
+  const styles = styleSheet(theme, isPureBlack);
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId),
