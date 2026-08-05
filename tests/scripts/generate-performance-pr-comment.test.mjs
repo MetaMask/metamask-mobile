@@ -114,3 +114,96 @@ test('PR comment matches failed runs by cloud provider when test identity otherw
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
 });
+
+test('PR comment matches provider-less legacy failed runs by test identity fallback', () => {
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'generate-performance-pr-comment-'),
+  );
+  const summaryPath = path.join(tempDir, 'summary.json');
+  const outputPath = path.join(tempDir, 'performance-pr-comment.md');
+  const testName = 'Legacy import wallet without provider metadata';
+
+  try {
+    writeJson(summaryPath, {
+      uniqueTests: 1,
+      platformDevices: {
+        Android: ['Google Pixel 7 Pro+13'],
+        iOS: [],
+      },
+      buildType: 'RC',
+      branch: 'feature/provider-less-legacy',
+      commit: 'abcdef123456',
+      failedTestsStats: {
+        uniqueFailedTests: 1,
+        failedTestsByTeam: {
+          'Wallet Framework': {
+            team: { teamId: 'Wallet Framework' },
+            tests: [
+              {
+                testName,
+                platform: 'Android',
+                device: 'Google Pixel 7 Pro+13',
+                failureReason: 'failed',
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    writeJson(path.join(tempDir, 'performance-results.json'), {
+      Android: {
+        'Google Pixel 7 Pro+13': [
+          {
+            testName,
+            totalTime: 12,
+            team: { teamId: 'Wallet Framework' },
+          },
+        ],
+      },
+    });
+
+    const result = spawnSync(
+      process.execPath,
+      [
+        path.join(
+          process.cwd(),
+          'tests',
+          'scripts',
+          'generate-performance-pr-comment.mjs',
+        ),
+        summaryPath,
+        outputPath,
+      ],
+      {
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          SKIP_APP_PROFILING_ENRICHMENT: 'true',
+        },
+        encoding: 'utf8',
+      },
+    );
+
+    assert.equal(
+      result.status,
+      0,
+      `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+    );
+
+    const comment = fs.readFileSync(outputPath, 'utf8');
+
+    assert.match(comment, /### ❌ Failed Tests \(1\)/);
+    assert.match(
+      comment,
+      /\| Android \| Google Pixel 7 Pro \(v13\) \| Unknown \| Test error \|/,
+    );
+    assert.doesNotMatch(comment, /<summary>✅ Passed Tests/);
+    assert.doesNotMatch(
+      comment,
+      /\| Legacy import wallet without provider metadata \| Android \| Google Pixel 7 Pro \(v13\) \| Unknown \| 12\.00s \| Wallet Framework \|/,
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
