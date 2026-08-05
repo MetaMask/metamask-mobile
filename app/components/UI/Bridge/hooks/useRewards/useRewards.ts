@@ -239,7 +239,7 @@ export const useRewards = ({
       const usdPricePerToken = getUsdPricePerToken(
         metabridgeFee?.usd || '0',
         feeAsset.amount,
-        metabridgeFee?.asset?.decimals || 0,
+        activeQuote.quote.feeData?.metabridge?.[0]?.asset?.decimals ?? 0,
       );
 
       const feeAssetWithUsdPrice: EstimateAssetDto = {
