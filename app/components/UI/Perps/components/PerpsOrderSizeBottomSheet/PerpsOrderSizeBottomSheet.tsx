@@ -22,6 +22,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import Keypad from '../../../../Base/Keypad';
+import { Skeleton } from '../../../../../component-library';
 import {
   DECIMAL_PRECISION_CONFIG,
   getPerpsDisplaySymbol,
@@ -283,7 +284,9 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
             onChange={handleKeypadChange}
             decimals={szDecimals}
           />
-        ) : null}
+        ) : (
+          <Skeleton height={240} width="100%" />
+        )}
       </Box>
 
       <BottomSheetFooter

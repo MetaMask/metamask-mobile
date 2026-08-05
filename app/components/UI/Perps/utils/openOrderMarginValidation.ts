@@ -46,7 +46,7 @@ export const getIncrementalMarginInsufficientBalanceError = ({
   if (additionalMarginRequired > availableBalance) {
     return strings('perps.order.validation.insufficient_balance', {
       required: additionalMarginRequired.toFixed(2),
-      available: availableBalance.toString(),
+      available: availableBalance.toFixed(2),
     });
   }
 
