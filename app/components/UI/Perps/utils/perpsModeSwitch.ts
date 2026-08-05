@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
-import type { NavigatorScreenParams } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigatorScreenParams,
+} from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsMode } from '../selectors/perpsController';
@@ -138,5 +141,39 @@ export const navigateToPerpsHomeTarget = (
   (navigation.navigate as unknown as (screen: string, params?: object) => void)(
     target.screen,
     target.params,
+  );
+};
+
+/**
+ * Returns a function that jumps into the Perps stack at its Pro-aware "home"
+ * screen, entering through `Routes.PERPS.ROOT`.
+ *
+ * For call sites outside the Perps stack — other navigators (Activity details,
+ * the in-app browser, transaction confirmations) and the Perps modal stack —
+ * which cannot reach `Routes.PERPS.PERPS_HOME` directly. Screens already inside
+ * the stack should use `usePerpsNavigation().navigateToHome` instead.
+ */
+export const useNavigateToPerpsHome = (): ((
+  extraParams?: Record<string, unknown>,
+) => void) => {
+  const navigation = useNavigation();
+  const getTarget = useGetPerpsHomeNavigationTarget();
+
+  return useCallback(
+    (extraParams?: Record<string, unknown>) => {
+      // Same assertion rationale as `navigateToPerpsHomeTarget`: the nested
+      // screen name is resolved at runtime, so `navigate()`'s overloads can't
+      // correlate it with its params.
+      const navigate = navigation.navigate as unknown as (
+        screen: string,
+        params: NavigatorScreenParams<PerpsStackParamList>,
+      ) => void;
+
+      navigate(
+        Routes.PERPS.ROOT,
+        toPerpsNavigatorScreenParams(getTarget(extraParams)),
+      );
+    },
+    [navigation, getTarget],
   );
 };

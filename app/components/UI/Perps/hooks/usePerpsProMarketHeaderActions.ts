@@ -11,7 +11,6 @@ import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import { showPerpsModeFlash } from '../utils/perpsModeFlash';
 
 export interface UsePerpsProMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
@@ -83,6 +82,7 @@ export const usePerpsProMarketHeaderActions = ({
 
     navigateToMarketList({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      fromMarketDetails: true,
     });
   }, [symbol, track, navigateToMarketList]);
 
@@ -106,7 +106,6 @@ export const usePerpsProMarketHeaderActions = ({
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
-      showPerpsModeFlash(nextMode);
     },
     [setPerpsMode],
   );

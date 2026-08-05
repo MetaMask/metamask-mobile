@@ -11,6 +11,7 @@ import {
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -1084,11 +1085,38 @@ describe('PerpsMarketListView', () => {
       expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
       expect(mockNavigation.dispatch).toHaveBeenCalledWith(
         expect.objectContaining({
+          type: 'PUSH',
           payload: expect.objectContaining({
             params: expect.objectContaining({
               market: watchlistMarket,
               source: 'perp_markets',
             }),
+          }),
+        }),
+      );
+    });
+
+    it('replaces itself with the selected market when opened from a market header', () => {
+      // Arrange - the list acts as a market switcher here, so stacking a
+      // second market screen on top of it would create a back-navigation loop.
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: { fromMarketDetails: true },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Act
+      fireEvent.press(screen.getByTestId('market-row-BTC'));
+
+      // Assert
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'REPLACE',
+          payload: expect.objectContaining({
+            name: Routes.PERPS.MARKET_DETAILS,
+            params: expect.objectContaining({ source: 'perp_markets' }),
           }),
         }),
       );

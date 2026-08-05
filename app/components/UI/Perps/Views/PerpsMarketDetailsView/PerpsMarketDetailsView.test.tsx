@@ -3788,6 +3788,7 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(mockNavigateToMarketList).toHaveBeenCalledWith({
         source: 'perp_asset_screen',
+        fromMarketDetails: true,
       });
     });
 

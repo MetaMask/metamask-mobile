@@ -120,6 +120,9 @@ const PerpsProMarketView = () => {
   const routeMarket = route.params?.market;
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  // Set by entry points that already carry a trade intent (e.g. spot token
+  // details Long/Short), so the inline form opens on the right side.
+  const initialDirection = route.params?.direction;
 
   // Some navigation sources (e.g. Recent Activity, deep links) pass minimal
   // market data without `maxLeverage` — fetch the full markets list to
@@ -347,6 +350,7 @@ const PerpsProMarketView = () => {
           <PerpsOrderProvider
             key={market.symbol}
             initialAsset={market.symbol}
+            initialDirection={initialDirection}
             initialType="market"
           >
             <PerpsProMarketLayout

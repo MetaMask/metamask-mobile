@@ -105,6 +105,7 @@ const PerpsMarketListView = ({
   const defaultSortOptionId = route.params?.defaultSortOptionId;
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const fromMarketDetails = route.params?.fromMarketDetails ?? false;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isRecentlyViewedEnabled = useSelector(
@@ -293,20 +294,36 @@ const PerpsMarketListView = ({
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ALL_MARKETS;
         }
 
-        // Use push instead of navigate so that MARKET_LIST is always beneath
-        // MARKET_DETAILS in the stack. navigate() can jump to an existing
-        // MARKET_DETAILS entry (e.g. one opened from PerpsHome via the watchlist
-        // component's ROOT-based navigation), which would skip MARKET_LIST on
-        // back and land the user on PERPS_HOME instead.
+        const marketDetailsParams = {
+          market,
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          source_section,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
+        };
+
+        // Opened from a market header, the list is a switcher: replace it so
+        // the stack reads market → market instead of accumulating a
+        // market → list → market → list chain the user has to unwind
+        // (TAT-3728). `replace` animates forward on the native stack, so the
+        // switch still reads as moving ahead.
+        //
+        // Everywhere else, push instead of navigate so that MARKET_LIST is
+        // always beneath MARKET_DETAILS in the stack. navigate() can jump to an
+        // existing MARKET_DETAILS entry (e.g. one opened from PerpsHome via the
+        // watchlist component's ROOT-based navigation), which would skip
+        // MARKET_LIST on back and land the user on PERPS_HOME instead.
         navigation.dispatch(
-          StackActions.push(Routes.PERPS.MARKET_DETAILS, {
-            market,
-            source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-            source_section,
-            ...(transactionActiveAbTests?.length
-              ? { transactionActiveAbTests }
-              : {}),
-          }),
+          fromMarketDetails
+            ? StackActions.replace(
+                Routes.PERPS.MARKET_DETAILS,
+                marketDetailsParams,
+              )
+            : StackActions.push(
+                Routes.PERPS.MARKET_DETAILS,
+                marketDetailsParams,
+              ),
         );
       }
     },
@@ -314,6 +331,7 @@ const PerpsMarketListView = ({
       onMarketSelect,
       navigation,
       transactionActiveAbTests,
+      fromMarketDetails,
       searchQuery,
       showFavoritesOnly,
       marketTypeFilter,

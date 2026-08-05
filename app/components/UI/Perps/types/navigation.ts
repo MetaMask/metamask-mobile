@@ -135,6 +135,12 @@ export type PerpsStackParamList = {
         defaultSortOptionId?: SortOptionId;
         defaultSortDirection?: SortDirection;
         fromHome?: boolean;
+        /**
+         * Set when the list was opened from a market screen's header, where it
+         * acts as a market switcher: selecting a market replaces this list
+         * rather than stacking a second market screen on top of it.
+         */
+        fromMarketDetails?: boolean;
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -144,6 +150,12 @@ export type PerpsStackParamList = {
   PerpsMarketDetails: {
     /** Full market when available; Partial is accepted for trade-details deep entries. */
     market: PerpsMarketData | Partial<PerpsMarketData>;
+    /**
+     * Preselects a side in Pro mode's inline order form. Set by entry points
+     * that already express a trade intent, e.g. the spot token details
+     * Long/Short buttons. Ignored by the Lite market screen.
+     */
+    direction?: 'long' | 'short';
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
@@ -306,6 +318,7 @@ export type PerpsStackParamList = {
         defaultSortOptionId?: SortOptionId;
         defaultSortDirection?: SortDirection;
         fromHome?: boolean;
+        fromMarketDetails?: boolean;
         button_clicked?: string;
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];

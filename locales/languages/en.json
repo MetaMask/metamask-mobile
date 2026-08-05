@@ -1310,8 +1310,6 @@
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
-      "lite_transition_title": "Lite Mode",
-      "pro_transition_title": "Pro Mode",
       "active_pill_accessibility_label": "Currently {{mode}} mode",
       "active_pill_accessibility_hint": "Switches to {{mode}} mode"
     },

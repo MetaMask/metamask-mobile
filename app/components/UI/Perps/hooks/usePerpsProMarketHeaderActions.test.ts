@@ -44,11 +44,6 @@ jest.mock('./usePerpsWatchlistActions', () => ({
   })),
 }));
 
-const mockShowPerpsModeFlash = jest.fn();
-jest.mock('../utils/perpsModeFlash', () => ({
-  showPerpsModeFlash: (...args: unknown[]) => mockShowPerpsModeFlash(...args),
-}));
-
 let mockIsWatchlist = false;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -100,6 +95,7 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      fromMarketDetails: true,
     });
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
@@ -165,7 +161,7 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
   });
 
-  it('switches mode and flashes the mode transition', () => {
+  it('switches mode without any intermediate transition state', () => {
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
@@ -175,7 +171,6 @@ describe('usePerpsProMarketHeaderActions', () => {
     });
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
-    expect(mockShowPerpsModeFlash).toHaveBeenCalledWith(PerpsMode.Lite);
   });
 
   it('exposes the current mode and watchlist state', () => {

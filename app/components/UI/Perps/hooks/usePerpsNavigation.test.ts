@@ -13,6 +13,7 @@ import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
 
 jest.mock('@react-navigation/native', () => ({
+  StackActions: jest.requireActual('@react-navigation/native').StackActions,
   useNavigation: jest.fn(),
 }));
 
@@ -54,6 +55,8 @@ describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
   const mockCanGoBack = jest.fn();
   const mockGoBack = jest.fn();
+  const mockDispatch = jest.fn();
+  const mockGetState = jest.fn();
   const mockUseNavigation = useNavigation as jest.MockedFunction<
     typeof useNavigation
   >;
@@ -97,10 +100,15 @@ describe('usePerpsNavigation', () => {
     mockUsePerpsEventTracking.mockReturnValue({
       track: mockTrack,
     });
+    // Default to a navigator that doesn't own the Perps screens, so
+    // navigateToMarketList takes the cross-stack `navigate(PERPS.ROOT)` path.
+    mockGetState.mockReturnValue({ routeNames: [] });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
+      dispatch: mockDispatch,
+      getState: mockGetState,
     } as Partial<ReturnType<typeof useNavigation>> as ReturnType<
       typeof useNavigation
     >);
@@ -271,7 +279,7 @@ describe('usePerpsNavigation', () => {
       );
     });
 
-    it('navigates to market list without params', () => {
+    it('navigates to market list through the Perps root from outside the stack', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 
       result.current.navigateToMarketList();
@@ -280,9 +288,10 @@ describe('usePerpsNavigation', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params: undefined,
       });
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('navigates to market list with params', () => {
+    it('navigates to market list with params from outside the stack', () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const params = { source: 'test', variant: 'full' as const };
 
@@ -292,6 +301,28 @@ describe('usePerpsNavigation', () => {
         screen: Routes.PERPS.MARKET_LIST,
         params,
       });
+    });
+
+    it('pushes the market list when already inside the Perps stack', () => {
+      // Arrange - navigate() would pop back to an existing market list entry,
+      // animating backwards when the user reached this screen through it.
+      mockGetState.mockReturnValue({
+        routeNames: [Routes.PERPS.MARKET_LIST, Routes.PERPS.MARKET_DETAILS],
+      });
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = { source: 'perp_asset_screen', fromMarketDetails: true };
+
+      // Act
+      result.current.navigateToMarketList(params);
+
+      // Assert
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'PUSH',
+          payload: { name: Routes.PERPS.MARKET_LIST, params },
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates to order screen with direction and asset', async () => {

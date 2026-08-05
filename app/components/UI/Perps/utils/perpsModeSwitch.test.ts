@@ -12,11 +12,18 @@ import {
   useIsPerpsProModeActive,
   getPerpsHomeNavigationTarget,
   useGetPerpsHomeNavigationTarget,
+  useNavigateToPerpsHome,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('../selectors/featureFlags', () => ({
@@ -189,6 +196,48 @@ describe('perpsModeSwitch', () => {
       rerender(undefined);
 
       expect(result.current).toBe(firstReference);
+    });
+  });
+
+  describe('useNavigateToPerpsHome', () => {
+    it('enters the Perps stack at Perps Home when Pro mode is inactive', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPerpsProModeEnabledFlag) return false;
+        if (selector === selectPerpsMode) return PerpsMode.Lite;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNavigateToPerpsHome());
+
+      // Act
+      result.current({ source: 'activity_details' });
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'activity_details' },
+      });
+    });
+
+    it('enters the Perps stack at the default Pro market when Pro mode is active', () => {
+      // Arrange - Perps Home must never be shown while Pro mode is active.
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPerpsProModeEnabledFlag) return true;
+        if (selector === selectPerpsMode) return PerpsMode.Pro;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNavigateToPerpsHome());
+
+      // Act
+      result.current();
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market: buildDefaultProMarket() },
+      });
     });
   });
 });

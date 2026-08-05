@@ -1028,12 +1028,3 @@ export const PerpsModeToggleSelectorsIDs = {
   LITE_SEGMENT: 'perps-mode-toggle-lite',
   PRO_SEGMENT: 'perps-mode-toggle-pro',
 } as const;
-
-// ========================================
-// PERPS MODE FLASH SELECTORS
-// ========================================
-
-export const PerpsModeFlashSelectorsIDs = {
-  CONTAINER: 'perps-mode-flash',
-  TITLE: 'perps-mode-flash-title',
-} as const;
