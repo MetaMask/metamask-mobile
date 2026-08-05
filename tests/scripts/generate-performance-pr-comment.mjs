@@ -30,6 +30,7 @@ import {
   findMatchingArtifact,
   findBaselineScenario,
   buildEmbeddedProfilingSection,
+  buildApiCallsDetails,
   COMMENT_MARKER as APP_PROFILING_MARKER,
 } from './diff-app-profiling.mjs';
 
@@ -37,6 +38,54 @@ const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
 const OUTPUT_FILE = process.argv[3] || 'performance-pr-comment.md';
 const DEFAULT_BASELINE_BRANCH = 'main';
 const DEFAULT_WORKFLOW = 'run-performance-e2e.yml';
+
+function escapeMarkdownTable(value) {
+  return String(value ?? '—')
+    .replaceAll('|', '\\|')
+    .replaceAll('\n', ' ');
+}
+
+/**
+ * Render the Passed Tests section with a per-scenario summary table row block
+ * and a collapsed API calls list when network logs were captured.
+ * @param {Array<{
+ *   testName: string,
+ *   platform: string,
+ *   device: string,
+ *   duration: string,
+ *   team: string,
+ *   recordingLink?: string|null,
+ *   apiCalls?: Array<{ url?: string }>|null,
+ * }>} passedTestRuns
+ * @returns {string}
+ */
+function buildPassedTestsSection(passedTestRuns) {
+  if (!Array.isArray(passedTestRuns) || passedTestRuns.length === 0) {
+    return '';
+  }
+
+  let md = `<details>\n<summary>✅ Passed Tests (${passedTestRuns.length})</summary>\n\n`;
+
+  for (const test of passedTestRuns) {
+    const recording = test.recordingLink
+      ? `[📹 Watch](${test.recordingLink})`
+      : '—';
+
+    md += `#### ${escapeMarkdownTable(test.testName)}\n\n`;
+    md += `| Platform | Device | Duration | Team | Recording |\n`;
+    md += `|----------|--------|----------|------|-----------|\n`;
+    md += `| ${escapeMarkdownTable(test.platform)} | ${escapeMarkdownTable(
+      test.device,
+    )} | ${escapeMarkdownTable(test.duration)} | ${escapeMarkdownTable(
+      test.team,
+    )} | ${recording} |\n`;
+    md += buildApiCallsDetails(test.apiCalls);
+    md += `\n`;
+  }
+
+  md += `</details>\n\n`;
+  return md;
+}
 
 async function main() {
   if (!fs.existsSync(SUMMARY_FILE)) {
@@ -99,12 +148,6 @@ async function main() {
       default:
         return reason ?? 'Unknown';
     }
-  }
-
-  function escapeMarkdownTable(value) {
-    return String(value ?? '—')
-      .replaceAll('|', '\\|')
-      .replaceAll('\n', ' ');
   }
 
   function getDeviceKey(device) {
@@ -178,6 +221,7 @@ async function main() {
             testName: test.testName,
             platform,
             device: getDeviceLabel(test.device ?? deviceKey, platform),
+            deviceKey,
             duration,
             reason: failed
               ? formatReason(
@@ -189,6 +233,7 @@ async function main() {
               : '—',
             team: test.team?.teamId ?? 'Unknown Team',
             recordingLink: test.videoURL ?? failedTest?.recordingLink,
+            apiCalls: test.apiCalls ?? null,
           };
         }),
       ),
@@ -356,25 +401,29 @@ async function main() {
     }
   }
 
-  if (passedTestRuns.length > 0) {
-    md += `<details>\n<summary>✅ Passed Tests (${passedTestRuns.length})</summary>\n\n`;
-    md += `| Test | Platform | Device | Duration | Team | Recording |\n`;
-    md += `|------|----------|--------|----------|------|-----------|\n`;
-
-    for (const test of passedTestRuns) {
-      const recording = test.recordingLink
-        ? `[📹 Watch](${test.recordingLink})`
-        : '—';
-
-      md += `| ${escapeMarkdownTable(test.testName)} | ${
-        test.platform
-      } | ${escapeMarkdownTable(test.device)} | ${test.duration} | ${escapeMarkdownTable(
-        test.team,
-      )} | ${recording} |\n`;
+  // Prefer apiCalls from performance-results; fall back to app-profiling sidecars.
+  const profilingArtifacts = findProfilingArtifacts(reportsDir);
+  const passedWithApiCalls = passedTestRuns.map((test) => {
+    if (Array.isArray(test.apiCalls) && test.apiCalls.length > 0) {
+      return test;
     }
 
-    md += `\n</details>\n\n`;
-  }
+    const device = parseDeviceKey(test.deviceKey || test.device);
+    const artifact =
+      findMatchingArtifact(profilingArtifacts, {
+        testName: test.testName,
+        device,
+      })?.data ??
+      profilingArtifacts.find(({ data }) => data.testName === test.testName)
+        ?.data;
+
+    return {
+      ...test,
+      apiCalls: artifact?.apiCalls ?? test.apiCalls ?? null,
+    };
+  });
+
+  md += buildPassedTestsSection(passedWithApiCalls);
 
   // Footer
   md += `---\n`;
@@ -393,7 +442,13 @@ async function main() {
   console.log(`✅ PR comment written to ${OUTPUT_FILE}`);
 }
 
-main().catch((error) => {
-  console.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
-  process.exit(1);
-});
+export { buildPassedTestsSection, escapeMarkdownTable };
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    console.error(
+      `❌ ${error instanceof Error ? error.message : String(error)}`,
+    );
+    process.exit(1);
+  });
+}
