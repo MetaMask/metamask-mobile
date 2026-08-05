@@ -20,6 +20,7 @@ const CONNECT_TIMEOUT_MS = 30_000;
 const CLICK_TIMEOUT_MS = 15_000;
 const POLL_MS = 300;
 const RECONNECT_LOG_INTERVAL_MS = 5_000;
+const CONNECT_PROBE_TIMEOUT_MS = 10_000;
 
 const { header, walletSelectionModal, signMessage } = dataTestIds.testPage;
 
@@ -39,6 +40,20 @@ interface ReloadDiagnostics {
   /** Changes only when the document is replaced, so it proves a reload happened. */
   timeOrigin: number | null;
   navigationType: string | null;
+}
+
+interface ConnectProbeResult {
+  state:
+    | 'pending'
+    | 'resolved'
+    | 'rejected'
+    | 'wallet-not-found'
+    | 'evaluation-failed';
+  walletName?: string;
+  featureNames?: string[];
+  accountCount?: number;
+  accountChains?: string[][];
+  error?: string;
 }
 
 class BitcoinTestDapp {
@@ -123,6 +138,97 @@ class BitcoinTestDapp {
     logger.info(
       `[BitcoinTestDapp.reload] ${label}: ${JSON.stringify(diagnostics)}`,
     );
+  }
+
+  /**
+   * Diagnoses whether MetaMask's Bitcoin provider can still connect after the
+   * dapp's automatic reconnect has stalled. The probe is only run on timeout.
+   */
+  private async runConnectProbe(
+    timeoutMs = CONNECT_PROBE_TIMEOUT_MS,
+  ): Promise<ConnectProbeResult> {
+    const started = await this.evaluate<ConnectProbeResult>(`(() => {
+      const resultKey = '__metamaskBitcoinConnectProbe';
+      const found = [];
+      const register = (...wallets) => {
+        for (const wallet of wallets) found.push(wallet);
+      };
+      window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', {
+        detail: { register },
+        bubbles: false,
+        cancelable: false,
+        composed: false,
+      }));
+
+      const wallet = found.find(
+        (candidate) => candidate && candidate.features && candidate.features['bitcoin:connect'],
+      );
+      if (!wallet) {
+        return { state: 'wallet-not-found' };
+      }
+
+      const baseResult = {
+        state: 'pending',
+        walletName: String(wallet.name),
+        featureNames: Object.keys(wallet.features),
+      };
+      window[resultKey] = baseResult;
+
+      try {
+        Promise.resolve(
+          wallet.features['bitcoin:connect'].connect({ purposes: ['payment'] }),
+        ).then(
+          (output) => {
+            const accounts = output && Array.isArray(output.accounts)
+              ? output.accounts
+              : [];
+            window[resultKey] = {
+              ...baseResult,
+              state: 'resolved',
+              accountCount: accounts.length,
+              accountChains: accounts.map((account) =>
+                Array.isArray(account.chains) ? account.chains.map(String) : []
+              ),
+            };
+          },
+          (error) => {
+            window[resultKey] = {
+              ...baseResult,
+              state: 'rejected',
+              error: String(error && error.message ? error.message : error),
+            };
+          },
+        );
+      } catch (error) {
+        window[resultKey] = {
+          ...baseResult,
+          state: 'rejected',
+          error: String(error && error.message ? error.message : error),
+        };
+      }
+
+      return baseResult;
+    })()`);
+
+    if (!started) {
+      return { state: 'evaluation-failed' };
+    }
+    if (started.state !== 'pending') {
+      return started;
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const result = await this.evaluate<ConnectProbeResult>(
+        `window.__metamaskBitcoinConnectProbe || null`,
+      );
+      if (result?.state && result.state !== 'pending') {
+        return result;
+      }
+      await wait(POLL_MS);
+    }
+
+    return started;
   }
 
   async setupAndNavigate(): Promise<void> {
@@ -255,8 +361,12 @@ class BitcoinTestDapp {
       `reconnect-timeout elapsedMs=${timeoutMs} connectTapCount=${connectTapCount}`,
       diagnostics,
     );
+    const connectProbe = await this.runConnectProbe();
+    logger.info(
+      `[BitcoinTestDapp.reload] reconnect-timeout-connect-probe: ${JSON.stringify(connectProbe)}`,
+    );
     throw new Error(
-      `Timed out waiting for reconnect: expected "Connected", got "${actual}" diagnostics=${JSON.stringify(diagnostics)}`,
+      `Timed out waiting for reconnect: expected "Connected", got "${actual}" diagnostics=${JSON.stringify(diagnostics)} connectProbe=${JSON.stringify(connectProbe)}`,
     );
   }
 
