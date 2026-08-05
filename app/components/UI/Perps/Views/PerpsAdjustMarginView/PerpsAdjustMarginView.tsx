@@ -1,18 +1,30 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import { useStyles } from '../../../../../component-library/hooks';
 import {
+  Box,
+  BottomSheetFooter,
   Button,
   ButtonSize,
   ButtonVariant,
   Text,
   TextColor,
   TextVariant,
+  Slider,
+  KeyValueRow,
+  KeyValueRowVariant,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  HelpText,
+  HelpTextSeverity,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import {
   type Position,
@@ -21,16 +33,6 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import styleSheet from './PerpsAdjustMarginView.styles';
-import { useTheme } from '../../../../../util/theme';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { PerpsAdjustMarginViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -39,7 +41,6 @@ import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsSlider from '../../components/PerpsSlider';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
@@ -48,19 +49,21 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 interface AdjustMarginRouteParams {
   position: Position;
   mode: 'add' | 'remove';
 }
 
+const floorUsd = (value: number) => Math.floor(value * 100) / 100;
+
 const PerpsAdjustMarginView: React.FC = () => {
+  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: AdjustMarginRouteParams }, 'params'>>();
   const { position: routePosition, mode } = route.params || {};
-  const { styles } = useStyles(styleSheet, {});
-  const { colors } = useTheme();
 
   const [marginAmountString, setMarginAmountString] = useState('0');
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -120,6 +123,32 @@ const PerpsAdjustMarginView: React.FC = () => {
     inputAmount: marginAmount,
   });
 
+  const flooredMaxAmount = floorUsd(maxAmount);
+
+  const sliderPercentage = useMemo(() => {
+    if (flooredMaxAmount <= 0) {
+      return 0;
+    }
+    return Math.min(100, (marginAmount / flooredMaxAmount) * 100);
+  }, [flooredMaxAmount, marginAmount]);
+
+  const validationErrors = useMemo(() => {
+    // Skip under keypad so messages don't flicker while typing
+    if (isInputFocused) {
+      return [];
+    }
+    if (marginAmount > flooredMaxAmount && marginAmount > 0) {
+      return [
+        isAddMode
+          ? strings('perps.adjust_margin.exceeds_available')
+          : strings('perps.errors.marginValidation.exceedsMaxRemovable'),
+      ];
+    }
+    return [];
+  }, [isInputFocused, marginAmount, flooredMaxAmount, isAddMode]);
+
+  const amountHasError = validationErrors.length > 0;
+
   // Add performance measurement for this view
   usePerpsMeasurement({
     traceName: TraceName.PerpsAdjustMarginView,
@@ -138,19 +167,26 @@ const PerpsAdjustMarginView: React.FC = () => {
     },
   });
 
-  const handleSliderChange = useCallback((value: number) => {
-    // Floor to 2 decimal places to match Hyperliquid behavior
-    const flooredValue = Math.floor(value * 100) / 100;
-    setMarginAmountString(flooredValue.toFixed(2));
+  const handleSliderChange = useCallback(
+    (percentage: number) => {
+      const amount = (flooredMaxAmount * percentage) / 100;
+      setMarginAmountString(floorUsd(amount).toFixed(2));
+    },
+    [flooredMaxAmount],
+  );
+
+  const handleSliderGrip = useCallback(() => {
+    playImpact(ImpactMoment.SliderGrip);
+  }, []);
+
+  const handleSliderMark = useCallback(() => {
+    playImpact(ImpactMoment.SliderTick);
   }, []);
 
   const handleMaxPress = useCallback(() => {
-    // Floor maxAmount to 2 decimal places
-    const flooredMax = Math.floor(maxAmount * 100) / 100;
-    setMarginAmountString(flooredMax.toFixed(2));
-  }, [maxAmount]);
+    setMarginAmountString(flooredMaxAmount.toFixed(2));
+  }, [flooredMaxAmount]);
 
-  // Keypad handlers
   const handleAmountPress = useCallback(() => {
     setIsInputFocused(true);
   }, []);
@@ -159,14 +195,13 @@ const PerpsAdjustMarginView: React.FC = () => {
     ({ value }: { value: string }) => {
       const numValue = parseFloat(value) || 0;
       // Clamp to maxAmount for remove mode to prevent invalid submissions
-      const flooredMax = Math.floor(maxAmount * 100) / 100;
-      if (!isAddMode && numValue > flooredMax) {
-        setMarginAmountString(flooredMax.toFixed(2));
+      if (!isAddMode && numValue > flooredMaxAmount) {
+        setMarginAmountString(flooredMaxAmount.toFixed(2));
       } else {
         setMarginAmountString(value || '0');
       }
     },
-    [isAddMode, maxAmount],
+    [isAddMode, flooredMaxAmount],
   );
 
   const handleDonePress = useCallback(() => {
@@ -175,15 +210,12 @@ const PerpsAdjustMarginView: React.FC = () => {
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      // Floor the percentage result
-      const amount = maxAmount * percentage;
-      const flooredAmount = Math.floor(amount * 100) / 100;
-      setMarginAmountString(flooredAmount.toFixed(2));
+      const amount = flooredMaxAmount * percentage;
+      setMarginAmountString(floorUsd(amount).toFixed(2));
     },
-    [maxAmount],
+    [flooredMaxAmount],
   );
 
-  // Tooltip handlers
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey) => {
       setSelectedTooltip(contentKey);
@@ -195,7 +227,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     setSelectedTooltip(null);
   }, []);
 
-  // Helper to format liquidation distance with fallback when liquidation price is unavailable
   const formatLiquidationDistance = useCallback(
     (distance: number, liquidationPrice: number): string => {
       if (liquidationPrice === 0) {
@@ -210,8 +241,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     if (marginAmount <= 0 || !position) return;
 
     // Prevent submission if amount exceeds max removable (extra safety for remove mode)
-    const flooredMax = Math.floor(maxAmount * 100) / 100;
-    if (!isAddMode && marginAmount > flooredMax) {
+    if (!isAddMode && marginAmount > flooredMaxAmount) {
       return;
     }
 
@@ -230,22 +260,44 @@ const PerpsAdjustMarginView: React.FC = () => {
     marginAmount,
     position,
     isAddMode,
-    maxAmount,
+    flooredMaxAmount,
     newLiquidationPrice,
     newLiquidationDistance,
     handleAddMargin,
     handleRemoveMargin,
   ]);
 
+  const buttonLabel = isAddMode
+    ? strings('perps.adjust_margin.add_margin')
+    : strings('perps.adjust_margin.reduce_margin');
+
+  const isConfirmDisabled =
+    marginAmount <= 0 ||
+    isAdjusting ||
+    marginAmount > flooredMaxAmount ||
+    Boolean(validationErrors.length);
+
+  const confirmButtonProps = useMemo(
+    () => ({
+      children: buttonLabel,
+      onPress: handleConfirm,
+      size: ButtonSize.Lg,
+      isDisabled: isConfirmDisabled,
+      isLoading: isAdjusting,
+      testID: PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON,
+    }),
+    [buttonLabel, handleConfirm, isConfirmDisabled, isAdjusting],
+  );
+
   // Show error if no position found (either from route or live data)
   if ((!routePosition && !position) || !mode) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
+      <SafeAreaView style={tw.style('flex-1 bg-default')}>
+        <Box twClassName="flex-1 items-center justify-center p-6">
           <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.errors.position_not_found')}
           </Text>
-        </View>
+        </Box>
       </SafeAreaView>
     );
   }
@@ -253,13 +305,6 @@ const PerpsAdjustMarginView: React.FC = () => {
   const title = isAddMode
     ? strings('perps.adjust_margin.add_title')
     : strings('perps.adjust_margin.remove_title');
-
-  const buttonLabel = isAddMode
-    ? strings('perps.adjust_margin.add_margin')
-    : strings('perps.adjust_margin.reduce_margin');
-
-  // Floor maxAmount for display and comparison
-  const flooredMaxAmount = Math.floor(maxAmount * 100) / 100;
 
   // Use submitted estimate during exit animation, otherwise use live calculated values.
   const submittedEstimate = submittedEstimateRef.current;
@@ -269,237 +314,157 @@ const PerpsAdjustMarginView: React.FC = () => {
     submittedEstimate?.distance ?? newLiquidationDistance;
   const showTransition = marginAmount > 0 || submittedEstimate !== null;
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          onPress={() => navigation.goBack()}
-          iconColor={IconColor.Default}
-          size={ButtonIconSizes.Md}
-        />
-        <Text variant={TextVariant.HeadingMd} style={styles.headerTitle}>
-          {title}
+  const renderTransitionValue = (
+    currentDisplay: string,
+    nextDisplay: string,
+    testID: string,
+  ) =>
+    showTransition ? (
+      <Box twClassName="flex-row items-center gap-2">
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {currentDisplay}
         </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+          accessibilityLabel="ArrowRight"
+        />
+        <Text variant={TextVariant.BodyMd} testID={testID}>
+          {nextDisplay}
+        </Text>
+      </Box>
+    ) : (
+      <Text variant={TextVariant.BodyMd} testID={testID}>
+        {currentDisplay}
+      </Text>
+    );
 
-      <View style={styles.contentContainer}>
-        {/* Amount Display */}
-        <View style={styles.amountSection}>
-          <PerpsAmountDisplay
-            amount={marginAmountString}
-            onPress={handleAmountPress}
-            isActive={isInputFocused}
-            hasError={false}
-            isLoading={isLoading}
-          />
-        </View>
+  const Summary = (
+    <Box twClassName="pt-4 pb-4 gap-1">
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.adjust_margin.margin_in_position')}
+        value={formatPerpsFiat(currentMargin, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        })}
+      />
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={
+          isAddMode
+            ? strings('perps.adjust_margin.margin_available_to_add')
+            : strings('perps.adjust_margin.margin_available_to_remove')
+        }
+        value={formatPerpsFiat(flooredMaxAmount, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        })}
+        valueTextProps={{
+          testID: PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE,
+        }}
+      />
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.adjust_margin.liquidation_price')}
+        keyEndButtonIconProps={{
+          iconName: IconName.Info,
+          onPress: () => handleTooltipPress('liquidation_price'),
+        }}
+        value={renderTransitionValue(
+          formatPerpsFiat(currentLiquidationPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          formatPerpsFiat(displayNewLiquidationPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          }),
+          PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        )}
+      />
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.adjust_margin.liquidation_distance')}
+        keyEndButtonIconProps={{
+          iconName: IconName.Info,
+          onPress: () => handleTooltipPress('liquidation_distance'),
+        }}
+        value={renderTransitionValue(
+          formatLiquidationDistance(
+            currentLiquidationDistance,
+            currentLiquidationPrice,
+          ),
+          formatLiquidationDistance(
+            displayNewLiquidationDistance,
+            displayNewLiquidationPrice,
+          ),
+          PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        )}
+      />
+    </Box>
+  );
 
-        {/* Slider - Hide when keypad is active */}
+  return (
+    <SafeAreaView style={tw.style('flex-1 bg-default')} edges={['bottom']}>
+      <HeaderStandard
+        includesTopInset
+        title={title}
+        onBack={() => navigation.goBack()}
+      />
+
+      <ScrollView
+        style={tw.style('flex-1')}
+        alwaysBounceVertical={false}
+        contentContainerStyle={tw.style(isInputFocused ? 'pb-[100px]' : 'pb-5')}
+        showsVerticalScrollIndicator={false}
+      >
+        <PerpsAmountDisplay
+          amount={marginAmountString}
+          onPress={handleAmountPress}
+          isActive={isInputFocused}
+          hasError={amountHasError}
+          isLoading={isLoading}
+          showMaxAmount={false}
+        />
+
         {!isInputFocused && (
-          <View style={styles.sliderSection}>
-            <PerpsSlider
-              value={marginAmount}
+          <Box twClassName="px-4 py-4">
+            <Slider
+              value={sliderPercentage}
               onValueChange={handleSliderChange}
               minimumValue={0}
-              maximumValue={flooredMaxAmount}
-              step={0.01}
-              showPercentageLabels
-              disabled={false}
+              maximumValue={100}
+              step={1}
+              showRangeLabels
+              showRangeDots
+              isDisabled={isAdjusting}
+              onGrip={handleSliderGrip}
+              onMark={handleSliderMark}
+              testID={PerpsAdjustMarginViewSelectorsIDs.SLIDER}
             />
-          </View>
+          </Box>
         )}
 
-        {/* Info Section - Always visible */}
-        <View style={styles.infoSection}>
-          {/* First row: Current margin */}
-          <View style={styles.infoRow}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
+        <Box twClassName="items-center justify-start px-4 my-4 min-h-10">
+          {validationErrors.map((error, index) => (
+            <HelpText
+              key={`error-${index}`}
+              severity={HelpTextSeverity.Danger}
+              twClassName="w-full justify-center text-center"
             >
-              {strings('perps.adjust_margin.margin_in_position')}
-            </Text>
-            <Text variant={TextVariant.BodyMd}>
-              {formatPerpsFiat(currentMargin, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
-            </Text>
-          </View>
+              {error}
+            </HelpText>
+          ))}
+        </Box>
+      </ScrollView>
 
-          {/* Second row: Margin available to add/remove */}
-          <View style={styles.infoRow}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {isAddMode
-                ? strings('perps.adjust_margin.margin_available_to_add')
-                : strings('perps.adjust_margin.margin_available_to_remove')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              testID={PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE}
-            >
-              {formatPerpsFiat(flooredMaxAmount, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
-            </Text>
-          </View>
-
-          {/* Third row: Liquidation price with transition */}
-          <View style={styles.infoRow}>
-            <View style={styles.labelWithIcon}>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.adjust_margin.liquidation_price')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('liquidation_price')}
-                style={styles.infoIcon}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
-              </TouchableOpacity>
-            </View>
-            {showTransition ? (
-              <View style={styles.changeContainer}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {formatPerpsFiat(currentLiquidationPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })}
-                </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Sm}
-                  color={colors.icon.alternative}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  testID={
-                    PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE
-                  }
-                >
-                  {formatPerpsFiat(displayNewLiquidationPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })}
-                </Text>
-              </View>
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                testID={
-                  PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE
-                }
-              >
-                {formatPerpsFiat(currentLiquidationPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })}
-              </Text>
-            )}
-          </View>
-
-          {/* Fourth row: Liquidation distance with transition */}
-          <View style={styles.infoRow}>
-            <View style={styles.labelWithIcon}>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.adjust_margin.liquidation_distance')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('liquidation_distance')}
-                style={styles.infoIcon}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
-              </TouchableOpacity>
-            </View>
-            {showTransition ? (
-              <View style={styles.changeContainer}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {formatLiquidationDistance(
-                    currentLiquidationDistance,
-                    currentLiquidationPrice,
-                  )}
-                </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Sm}
-                  color={colors.icon.alternative}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  testID={
-                    PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
-                  }
-                >
-                  {formatLiquidationDistance(
-                    displayNewLiquidationDistance,
-                    displayNewLiquidationPrice,
-                  )}
-                </Text>
-              </View>
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                testID={
-                  PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
-                }
-              >
-                {formatLiquidationDistance(
-                  currentLiquidationDistance,
-                  currentLiquidationPrice,
-                )}
-              </Text>
-            )}
-          </View>
-        </View>
-      </View>
-
-      {/* Footer - Shows either Add Margin button or Keypad */}
-      {!isInputFocused ? (
-        <View style={styles.footer}>
-          <Button
-            testID={PerpsAdjustMarginViewSelectorsIDs.CONFIRM_BUTTON}
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleConfirm}
-            isDisabled={
-              marginAmount <= 0 ||
-              isAdjusting ||
-              (!isAddMode && marginAmount > flooredMaxAmount)
-            }
-            isLoading={isAdjusting}
-          >
-            {buttonLabel}
-          </Button>
-        </View>
-      ) : (
-        <View style={styles.keypadFooter}>
-          <View style={styles.percentageButtonsContainer}>
+      {isInputFocused && (
+        <Box twClassName="pt-4">
+          {Summary}
+          <Box twClassName="flex-row justify-between px-4 mb-3 gap-2">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.25)}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               25%
             </Button>
@@ -507,7 +472,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={() => handlePercentagePress(0.5)}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               50%
             </Button>
@@ -515,7 +480,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleMaxPress}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               {strings('perps.deposit.max_button')}
             </Button>
@@ -524,23 +489,30 @@ const PerpsAdjustMarginView: React.FC = () => {
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={handleDonePress}
-              style={styles.percentageButton}
+              twClassName="flex-1"
             >
               {strings('perps.deposit.done_button')}
             </Button>
-          </View>
+          </Box>
 
-          <Keypad
-            value={marginAmountString}
-            onChange={handleKeypadChange}
-            currency="USD"
-            decimals={2}
-            style={styles.keypad}
-          />
-        </View>
+          <Box twClassName="px-4">
+            <Keypad
+              value={marginAmountString}
+              onChange={handleKeypadChange}
+              currency="USD"
+              decimals={2}
+            />
+          </Box>
+        </Box>
       )}
 
-      {/* Tooltip Bottom Sheet */}
+      <Box twClassName="w-full pb-4">
+        {!isInputFocused && Summary}
+        {!isInputFocused && (
+          <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
+        )}
+      </Box>
+
       {selectedTooltip && (
         <PerpsBottomSheetTooltip
           isVisible
