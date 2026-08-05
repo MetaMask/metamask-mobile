@@ -50,6 +50,10 @@ import { PayWithModal } from '../../../Views/confirmations/components/modals/pay
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  buildDefaultProMarket,
+  useIsPerpsProModeActive,
+} from '../utils/perpsModeSwitch';
 
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -242,6 +246,12 @@ const PerpsScreenStack = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  // While Pro mode is active, `PerpsHomeView` must never be the landing
+  // screen (TAT-3612): default straight to the Pro market instead.
+  const isProModeActive = useIsPerpsProModeActive();
+  const initialRouteName = isProModeActive
+    ? Routes.PERPS.MARKET_DETAILS
+    : Routes.PERPS.PERPS_HOME;
 
   if (!isBasicFunctionalityEnabled) {
     return (
@@ -260,7 +270,7 @@ const PerpsScreenStack = () => {
         <PerpsStreamProvider>
           <PerpsStreamBridge />
           <View style={styles.container}>
-            <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_HOME}>
+            <Stack.Navigator initialRouteName={initialRouteName}>
               {/* Redirect to wallet perps tab */}
               <Stack.Screen
                 name={Routes.PERPS.PERPS_TAB}
@@ -283,10 +293,11 @@ const PerpsScreenStack = () => {
               <Stack.Screen
                 name={Routes.PERPS.MARKET_LIST}
                 component={PerpsMarketListView}
-                options={{
+                options={({ route }) => ({
                   title: strings('perps.home.markets'),
                   headerShown: false,
-                }}
+                  animation: route.params?.animation ?? 'slide_from_right',
+                })}
                 initialParams={{
                   variant: 'full',
                   title: strings('perps.home.markets'),
@@ -312,6 +323,13 @@ const PerpsScreenStack = () => {
                   title: strings('perps.market.details.title'),
                   headerShown: false,
                 }}
+                initialParams={
+                  isProModeActive
+                    ? {
+                        market: buildDefaultProMarket(),
+                      }
+                    : undefined
+                }
               />
               <Stack.Screen
                 name={Routes.PERPS.POSITIONS}

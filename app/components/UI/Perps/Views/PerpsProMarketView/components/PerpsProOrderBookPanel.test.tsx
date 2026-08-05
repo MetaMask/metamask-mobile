@@ -58,7 +58,9 @@ const mockOrderBook: OrderBookData = {
   spread: '100',
   spreadPercentage: '0.2',
   midPrice: '50050',
-  lastUpdated: Date.now(),
+  // Fixed epoch (2023-11-14T22:13:20.000Z) — no test asserts on this value,
+  // but a pinned constant keeps the fixture deterministic across runs.
+  lastUpdated: 1700000000000,
   maxTotal: '3.5',
 };
 
@@ -150,32 +152,16 @@ describe('PerpsProOrderBookPanel', () => {
     expect(mockReconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('cycles the view mode when the toggle is pressed', () => {
+  it('hides the buy/sell view-toggle button (ladder only shows ~5 rows/side today)', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
       { state: { engine: { backgroundState } } },
     );
 
-    const toggle = getByTestId(`${testID}-view-toggle`);
-    expect(toggle).toHaveAccessibilityValue({ text: 'Bids and asks' });
-
-    // default → buy (asks hidden)
-    fireEvent.press(toggle);
-    expect(queryByTestId(`${testID}-ask-row-0`)).not.toBeOnTheScreen();
-    expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
-    expect(toggle).toHaveAccessibilityValue({ text: 'Bids only' });
-
-    // buy → sell (bids hidden)
-    fireEvent.press(toggle);
-    expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
-    expect(queryByTestId(`${testID}-bid-row-0`)).not.toBeOnTheScreen();
-    expect(toggle).toHaveAccessibilityValue({ text: 'Asks only' });
-
-    // sell → default (both sides)
-    fireEvent.press(toggle);
+    expect(queryByTestId(`${testID}-view-toggle`)).not.toBeOnTheScreen();
+    // Both sides still render by default with the toggle hidden.
     expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
     expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
-    expect(toggle).toHaveAccessibilityValue({ text: 'Bids and asks' });
   });
 
   it('shows a ladder skeleton while the aggregated book is loading', () => {
@@ -208,6 +194,37 @@ describe('PerpsProOrderBookPanel', () => {
     expect(getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
     expect(queryByTestId(`${testID}-ask-row-0`)).not.toBeOnTheScreen();
     expect(queryByTestId(`${testID}-reconnect`)).not.toBeOnTheScreen();
+  });
+
+  it('makes ladder rows interactive and reports the tapped price via onSelectPrice', () => {
+    const onSelectPrice = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onSelectPrice={onSelectPrice}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+    expect(onSelectPrice).toHaveBeenCalledWith('50000');
+
+    fireEvent.press(getByTestId(`${testID}-ask-row-0`));
+    // Asks render farthest-to-closest, so ask-row-0 is the deepest ask (50200).
+    expect(onSelectPrice).toHaveBeenLastCalledWith('50200');
+  });
+
+  it('renders static, non-interactive rows when onSelectPrice is omitted', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-bid-row-0`)).not.toHaveProp(
+      'accessibilityRole',
+      'button',
+    );
   });
 
   it('invokes onCollapse when the collapse button is pressed', () => {

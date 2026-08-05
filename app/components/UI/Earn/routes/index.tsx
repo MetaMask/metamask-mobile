@@ -69,7 +69,7 @@ const EarnModalStack = () => (
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, presentation: 'card' }}
     />
   </ModalStack.Navigator>
 );

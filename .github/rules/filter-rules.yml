@@ -97,6 +97,7 @@ e2e_relevant_workflows:
   - '.github/workflows/build-android-e2e.yml'
   - '.github/workflows/build-ios-e2e.yml'
   - '.github/workflows/run-e2e-*.yml'
+  - '.github/workflows/run-appium-*.yml'
   - '.github/workflows/update-e2e-fixtures.yml'
   - '.github/workflows/build.yml'
   - '.github/scripts/e2e-*.mjs'
@@ -128,13 +129,21 @@ ios_or_ignorable:
   - *config_files
   - *ci_files
 
-# Shared smoke test infrastructure whose changes can break Appium iOS smoke tests.
-# This only enables Appium iOS for main-target PRs.
+# Shared smoke/Appium infrastructure whose changes can break Appium iOS smoke
+# tests. These paths only enable Appium iOS for main-target PRs; Appium Android
+# already runs whenever Android E2E builds succeed.
 e2e_smoke_infra:
   - 'tests/page-objects/**'
   - 'tests/selectors/**'
   - 'tests/locators/**'
   - 'tests/framework/**'
+  - 'tests/smoke-appium/**'
 
 all_changes:
   - '**'
+
+# Spec files used for flakiness detection (run changed specs twice).
+# Kept separate from all_changes so only this short list is passed through
+# workflow outputs/env vars — the full list overflows ARG_MAX on large PRs.
+e2e_spec_files:
+  - '**/*.spec.{ts,js}'

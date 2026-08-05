@@ -46,7 +46,7 @@ const flags = computeE2EPlatformFlags({
   iosCount: readInt(process.env.IOS_COUNT),
   androidOrIgnorableCount: readInt(process.env.ANDROID_OR_IGNORABLE_COUNT),
   iosOrIgnorableCount: readInt(process.env.IOS_OR_IGNORABLE_COUNT),
-  allChangesFiles: process.env.ALL_CHANGES_FILES || '',
+  changedSpecFiles: process.env.CHANGED_SPEC_FILES || '',
 });
 
 let runAppiumIos = false;
@@ -63,7 +63,7 @@ if (
   } else if (readInt(process.env.E2E_SMOKE_INFRA_COUNT) > 0) {
     runAppiumIos = true;
     console.log(
-      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes on main-target PR (page-objects/selectors/locators/framework)',
+      '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework/smoke-appium)',
     );
   }
 }
@@ -106,8 +106,8 @@ const outputLines = [
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
   `run_appium_ios=${runAppiumIos}`,
-  `changed_files<<GH_EOF`,
-  flags.changedFiles,
+  `changed_spec_files<<GH_EOF`,
+  flags.changedSpecFiles,
   'GH_EOF',
 ];
 

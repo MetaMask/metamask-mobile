@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -23,6 +23,10 @@ import {
   type TransactionActiveAbTestEntry,
 } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
+import {
+  navigateToPerpsHomeTarget,
+  useGetPerpsHomeNavigationTarget,
+} from '../utils/perpsModeSwitch';
 
 /**
  * Navigation handler result interface
@@ -43,6 +47,9 @@ export interface PerpsNavigationHandlers {
   ) => void;
   navigateToHome: (source?: string) => void;
   navigateToMarketList: (
+    params?: PerpsNavigationParamList['PerpsMarketListView'],
+  ) => void;
+  navigateToMarketListFromHeader: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
   ) => void;
   navigateToOrder: (params: PerpsNavigationParamList['PerpsOrder']) => void;
@@ -143,13 +150,14 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
   const navigateToHome = useCallback(
     (source?: string) => {
-      navigation.navigate(Routes.PERPS.PERPS_HOME, {
-        source,
-      });
+      const target = getPerpsHomeNavigationTarget({ source });
+      navigateToPerpsHomeTarget(navigation, target);
     },
-    [navigation],
+    [navigation, getPerpsHomeNavigationTarget],
   );
 
   const navigateToMarketList = useCallback(
@@ -161,6 +169,25 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         screen: Routes.PERPS.MARKET_LIST,
         params,
       });
+    },
+    [navigation],
+  );
+
+  const navigateToMarketListFromHeader = useCallback(
+    (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
+      // Push a new MARKET_LIST over MARKET_DETAILS so the common
+      // MARKET_LIST → MARKET_DETAILS stack keeps details beneath the slide-up
+      // picker. navigate() would jump back to the existing list entry and pop
+      // details, breaking Back-to-dismiss behavior.
+      navigation.dispatch(
+        StackActions.push(Routes.PERPS.MARKET_LIST, {
+          ...params,
+          animation: 'slide_from_bottom',
+          // Selecting a market should replace the details beneath this picker
+          // rather than pushing another MARKET_DETAILS on top of the stack.
+          replaceOnSelect: true,
+        }),
+      );
     },
     [navigation],
   );
@@ -272,6 +299,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     navigateToMarketDetails,
     navigateToHome,
     navigateToMarketList,
+    navigateToMarketListFromHeader,
     navigateToOrder,
     navigateToTutorial,
     navigateToAdjustMargin,

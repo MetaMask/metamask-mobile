@@ -1,4 +1,5 @@
 export const TestDappSelectorsWebIDs = {
+  ACCOUNTS_TEXT: 'accounts',
   CHAIN_ID_TEXT: 'chainId',
   TEST_DAPP_FOX_LOGO: 'mm-logo',
   TEST_DAPP_HEADING_TITLE: 'logo-text',

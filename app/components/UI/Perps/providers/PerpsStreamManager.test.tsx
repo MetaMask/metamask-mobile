@@ -4167,6 +4167,118 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('OrderStreamChannel.updateOrderOptimistic', () => {
+    let mockOrdersSubscribe: jest.Mock;
+    let mockOrdersUnsubscribe: jest.Mock;
+    let orderCallback: ((orders: Order[]) => void) | null = null;
+
+    const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
+      orderId: 'order-1',
+      symbol: 'BTC',
+      side: 'buy',
+      orderType: 'limit',
+      size: '1.0',
+      originalSize: '1.0',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1.0',
+      status: 'open',
+      timestamp: Date.now(),
+      detailedOrderType: 'Limit',
+      isTrigger: false,
+      reduceOnly: false,
+      ...overrides,
+    });
+
+    const seedCachedOrder = async (subscriber: jest.Mock) => {
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback: subscriber,
+        throttleMs: 0,
+      });
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+      act(() => {
+        orderCallback?.([createMockOrder()]);
+      });
+      await waitFor(() => {
+        expect(subscriber).toHaveBeenCalledTimes(1);
+      });
+      subscriber.mockClear();
+      return unsubscribe;
+    };
+
+    beforeEach(() => {
+      orderCallback = null;
+      mockOrdersUnsubscribe = jest.fn();
+      mockOrdersSubscribe = jest
+        .fn()
+        .mockImplementation(
+          (params: { callback: (orders: Order[]) => void }) => {
+            orderCallback = params.callback;
+            return mockOrdersUnsubscribe;
+          },
+        );
+      mockEngine.context.PerpsController.subscribeToOrders =
+        mockOrdersSubscribe;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    it.each([
+      [
+        'limit price',
+        { limitPrice: '51000' },
+        {
+          orderId: 'order-1',
+          price: '51000',
+          size: '1.0',
+          originalSize: '1.0',
+          remainingSize: '1.0',
+        },
+      ],
+      [
+        'size',
+        { size: '2.5' },
+        {
+          orderId: 'order-1',
+          price: '50000',
+          size: '2.5',
+          originalSize: '2.5',
+          remainingSize: '2.5',
+        },
+      ],
+    ])('updates %s in cached order', async (_label, edit, expected) => {
+      const subscriber = jest.fn();
+      const unsubscribe = await seedCachedOrder(subscriber);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', edit);
+      });
+
+      expect(subscriber).toHaveBeenCalledWith([
+        expect.objectContaining(expected),
+      ]);
+      unsubscribe();
+    });
+
+    it('skips subscriber notification for no-op edits', async () => {
+      const subscriber = jest.fn();
+      const unsubscribe = await seedCachedOrder(subscriber);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('missing-order', {
+          limitPrice: '51000',
+        });
+        testStreamManager.orders.updateOrderOptimistic('order-1', {});
+      });
+
+      expect(subscriber).not.toHaveBeenCalled();
+      unsubscribe();
+    });
+  });
+
   describe('clearAllChannels', () => {
     it('disconnects all channels when called', () => {
       // Arrange - spy on disconnect methods

@@ -76,7 +76,7 @@ Runs only when all of the following are true:
 During the Appium smoke migration, platforms are split by event:
 
 - Pull requests run Appium Android smoke when Android E2E is required. Smart E2E controls its selected tags for `main`/`release/*` targets; stable-target PRs use `ALL`.
-- Main-target PRs preserve the existing Appium iOS exception: add `run-appium-ios-tests`, or change shared smoke infrastructure (`page-objects`, `selectors`, `locators`, or `framework`). Release/* and stable-target PRs remain Appium Android-only.
+- Main-target PRs preserve the existing Appium iOS exception: add `run-appium-ios-tests`, or change shared smoke/Appium infrastructure (`tests/page-objects/**`, `tests/selectors/**`, `tests/locators/**`, `tests/framework/**`, or `tests/smoke-appium/**`). Release/* and stable-target PRs remain Appium Android-only.
 - Pushes to `main` and `stable` run both Appium Android and Appium iOS smoke.
 - Scheduled main runs also run both Appium platforms.
 - Appium-based fixture validation remains a separate PR check; it is schema validation, not the Appium iOS smoke suite.

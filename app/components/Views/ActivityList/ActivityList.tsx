@@ -1,5 +1,8 @@
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -89,7 +92,6 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
@@ -862,10 +864,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        // Non-EVM swaps/bridges submitted from this device carry a
-        // bridge-history entry. Cross-chain bridges keep their dedicated
-        // bridge-status screen, mirroring hasDedicatedDetailScreen for local
-        // EVM bridges; same-chain swaps fall through to the shared detail flows.
+        // Bridges route to the redesigned details screen (BridgeDetails
+        // template); the legacy bridge-status screen below is the flag-off
+        // fallback.
+        if (isTransactionsRedesignEnabled) {
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
+        }
+
+        // Flag off: non-EVM cross-chain bridges keep the bridge-status screen.
         if (raw.type === 'keyringTransaction') {
           const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
             item.hash,
@@ -879,14 +889,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               multiChainTx: raw.data,
               bridgeTxHistoryItem: keyringBridgeHistoryItem,
             });
-            return;
-          }
-        }
-
-        if (isTransactionsRedesignEnabled) {
-          const detailsRoute = getActivityDetailsRoute(item);
-          if (detailsRoute) {
-            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
             return;
           }
         }

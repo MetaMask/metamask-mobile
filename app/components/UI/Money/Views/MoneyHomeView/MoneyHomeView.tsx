@@ -56,9 +56,13 @@ import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
   selectIsCardholder,
+  selectIsCardStateResolved,
 } from '../../../../../selectors/cardController';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEarningSectionEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -152,6 +156,7 @@ const MoneyHomeView = () => {
         refetchBalance(),
         refetchInterest(),
         refreshMusdFiatRate(),
+        Engine.context.CardController.fetchCardHomeData({ force: true }),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -198,8 +203,12 @@ const MoneyHomeView = () => {
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyEarningSectionEnabled = useSelector(
+    selectMoneyEarningSectionEnabledFlag,
+  );
   const isMoneyAccountGeoEligible = useSelector(
     selectIsMoneyAccountGeoEligible,
   );
@@ -225,6 +234,7 @@ const MoneyHomeView = () => {
     isMoneyAccountVisible,
     hasMoneyAccountBaseRequirements,
     hasMoneyAccountRequirements,
+    isCardStateResolved,
   });
 
   let displayState: MoneyBalanceDisplayState;
@@ -518,6 +528,7 @@ const MoneyHomeView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -551,6 +562,7 @@ const MoneyHomeView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: tokenCount,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({
@@ -580,6 +592,7 @@ const MoneyHomeView = () => {
           token_position_in_list: tokenIndex + 1,
           token_chain_id: token.chainId ?? '',
           tokens_in_list: tokenCount,
+          token_has_balance: new BigNumber(token.balance).gt(0),
         });
 
         await initiateDeposit({
@@ -728,7 +741,7 @@ const MoneyHomeView = () => {
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
-  if (hasBalanceValue && isFunded) {
+  if (isMoneyEarningSectionEnabled && hasBalanceValue && isFunded) {
     contentSections.push({
       key: 'earnings',
       node: (

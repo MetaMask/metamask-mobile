@@ -21,7 +21,7 @@ function computeE2EPlatformFlags(input) {
     iosCount,
     androidOrIgnorableCount,
     iosOrIgnorableCount,
-    allChangesFiles = '',
+    changedSpecFiles = '',
   } = input;
 
   let android = false;
@@ -62,7 +62,7 @@ function computeE2EPlatformFlags(input) {
     android = true;
     ios = true;
     nativeBuildNeeded = false;
-    changed = allChangesFiles;
+    changed = changedSpecFiles;
   } else if (
     androidCount > 0 &&
     iosCount === 0 &&
@@ -71,7 +71,7 @@ function computeE2EPlatformFlags(input) {
   ) {
     message = 'E2E Android only';
     android = true;
-    changed = allChangesFiles;
+    changed = changedSpecFiles;
   } else if (
     iosCount > 0 &&
     androidCount === 0 &&
@@ -80,12 +80,12 @@ function computeE2EPlatformFlags(input) {
   ) {
     message = 'E2E iOS only';
     ios = true;
-    changed = allChangesFiles;
+    changed = changedSpecFiles;
   } else {
     message = 'E2E for both platforms';
     android = true;
     ios = true;
-    changed = allChangesFiles;
+    changed = changedSpecFiles;
   }
 
   const e2eNeeded = android || ios;
@@ -110,7 +110,7 @@ function computeE2EPlatformFlags(input) {
     nativeBuildNeeded: e2eNeeded ? nativeBuildNeeded : false,
     runSmartE2ESelection,
     message,
-    changedFiles: changed,
+    changedSpecFiles: changed,
   };
 }
 

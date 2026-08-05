@@ -1,5 +1,4 @@
 import type {
-  ParamListBase,
   NavigationProp,
   NavigationState,
   NavigatorScreenParams,
@@ -977,7 +976,6 @@ export type RootStackParamList = {
   PredictFeed: PredictNavigationParamList['PredictFeed'];
   PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
   PredictPositions: PredictNavigationParamList['PredictPositions'];
-  PredictWorldCup: PredictNavigationParamList['PredictWorldCup'];
   PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
   PredictModals:
     | NavigatorScreenParams<PredictModalsNavigationParamList>
@@ -1174,27 +1172,23 @@ export type RootStackParamList = {
   FeatureFlagOverride: undefined;
 };
 
-// NOTE: The global ReactNavigation.RootParamList is intentionally kept LOOSE
-// (extends ParamListBase) during the incremental migration to strict navigation
-// typing. This keeps untyped `useNavigation()` call sites compiling while we
-// migrate them, feature-by-feature, to `useNavigation<AppNavigationProp>()`.
-// Once every call site is migrated and `RootStackParamList` is complete, this
-// should be flipped to `extends RootStackParamList` to enforce strict route
-// names globally.
+// Registers `RootStackParamList` as React Navigation's global root param list,
+// so bare `useNavigation()` / `useRoute()` are checked against the app's real
+// route names and params. Adding a screen means adding it to
+// `RootStackParamList`, otherwise navigating to it will not compile.
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
-    interface RootParamList extends ParamListBase {}
+    interface RootParamList extends RootStackParamList {}
   }
 }
 
 /**
  * Strict navigation prop for the app's root stack.
  *
- * Opt in via `useNavigation<AppNavigationProp>()` to get route-name and param
- * type checking + autocomplete against `RootStackParamList`. This deliberately
- * references `RootStackParamList` directly (not the loose global) so callers get
- * strict checking even while the global remains permissive during migration.
+ * Equivalent to bare `useNavigation()`, which is keyed to the same param list
+ * through the `ReactNavigation.RootParamList` declaration above. Use this
+ * explicitly when a component needs to name the type (e.g. props, helpers).
  *
  * `getState()` is widened to allow `undefined` (navigator not yet mounted) and
  * uses the unparameterized `NavigationState` to match @react-navigation/core.
@@ -1212,9 +1206,8 @@ export type AppNavigationProp = Omit<
  * Mirrors {@link AppNavigationProp}'s `getState()` override, which accounts for
  * `getState()` potentially returning undefined when the navigator is not mounted.
  *
- * Note: still keyed to the loose global `RootParamList` during Phase 4. Prefer
- * {@link AppNavigationProp} for strict route/param checking unless you need
- * stack-only APIs.
+ * Keyed to the same route names and params as {@link AppNavigationProp}; prefer
+ * that type unless you need the stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
   NativeStackNavigationProp<ReactNavigation.RootParamList>,
