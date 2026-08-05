@@ -97,8 +97,6 @@ const EarnTokenSelector = ({
       );
     }
 
-    // `AssetLogo` (not a bare `AvatarToken`) so tokens whose `TokensController`
-    // entry carries no `image` still render an icon from the CDN fallback.
     return (
       <AssetLogo asset={tokenToRender as TokenI} size={AvatarTokenSize.Md} />
     );

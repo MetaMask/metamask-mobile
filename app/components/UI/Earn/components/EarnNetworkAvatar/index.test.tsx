@@ -90,8 +90,6 @@ describe('EarnNetworkAvatar', () => {
   });
 
   it('falls back to the CDN icon when the token carries no image', () => {
-    // Tokens added without icon metadata have an empty `image`; a bare
-    // `AvatarToken` rendered them as a letter placeholder.
     const { UNSAFE_getByType } = renderWithProvider(
       <EarnNetworkAvatar token={{ ...mockNonNativeToken, image: '' }} />,
     );

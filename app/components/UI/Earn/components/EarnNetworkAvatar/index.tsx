@@ -26,8 +26,6 @@ export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
     );
   }
 
-  // `AssetLogo` (not a bare `AvatarToken`) so tokens whose `TokensController`
-  // entry carries no `image` still render an icon from the CDN fallback.
   return (
     <AssetLogo
       asset={token}
