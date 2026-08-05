@@ -1,6 +1,7 @@
 // third party dependencies
 import { View } from 'react-native';
 import { HeaderStandard, Text } from '@metamask/design-system-react-native';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -82,7 +83,8 @@ const NetworkManager = () => {
 
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
-  const { styles } = useStyles(createStyles, { colors });
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(createStyles, { isPureBlack });
   const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 

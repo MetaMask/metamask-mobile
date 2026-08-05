@@ -12,6 +12,11 @@ jest.mock('../../../util/theme/pureBlackPreview', () => ({
   },
 }));
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
+  usePureBlack: () => mockIsPureBlackEnabled,
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     colors: {},
@@ -60,7 +65,7 @@ describe('SelectComponent styles', () => {
 
   it('uses default background without pure black border', () => {
     const theme = createTheme(AppThemeKey.dark);
-    const styles = createStyles(theme);
+    const styles = createStyles(theme, false);
 
     expect(styles.modalView.backgroundColor).toBe(
       theme.colors.background.default,
@@ -69,13 +74,13 @@ describe('SelectComponent styles', () => {
     expect(styles.modalView.borderColor).toBeUndefined();
   });
 
-  it('uses alternative background and muted border in pure black dark mode', () => {
+  it('uses section background and muted border in pure black dark mode', () => {
     mockIsPureBlackEnabled = true;
     const theme = createTheme(AppThemeKey.dark);
-    const styles = createStyles(theme);
+    const styles = createStyles(theme, true);
 
     expect(styles.modalView.backgroundColor).toBe(
-      theme.colors.background.alternative,
+      theme.colors.background.section,
     );
     expect(styles.modalView.borderWidth).toBe(1);
     expect(styles.modalView.borderColor).toBe(theme.colors.border.muted);
@@ -84,7 +89,7 @@ describe('SelectComponent styles', () => {
   it('keeps default background in pure black light mode', () => {
     mockIsPureBlackEnabled = true;
     const theme = createTheme(AppThemeKey.light);
-    const styles = createStyles(theme);
+    const styles = createStyles(theme, false);
 
     expect(styles.modalView.backgroundColor).toBe(
       theme.colors.background.default,

@@ -11,9 +11,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
-import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import { Box } from '@metamask/design-system-react-native';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import CustomNetwork from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { strings } from '../../../../locales/i18n';
@@ -83,8 +83,8 @@ const NetworkMultiSelector = ({
   openRpcModal,
 }: NetworkMultiSelectorProps) => {
   const insets = useSafeAreaInsets();
-  const theme = useTheme();
-  const { styles } = useStyles(stylesheet, { theme });
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(stylesheet, { isPureBlack });
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 

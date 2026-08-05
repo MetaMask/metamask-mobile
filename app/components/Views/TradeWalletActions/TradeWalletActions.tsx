@@ -39,10 +39,6 @@ import {
   usePureBlack,
   useTailwind,
 } from '@metamask/design-system-twrnc-preset';
-import {
-  getElevatedSurfaceColor,
-  useElevatedSurface,
-} from '../../../util/theme/themeUtils';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import {
   useSafeAreaFrame,
@@ -129,10 +125,10 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const isPureBlack = usePureBlack();
   const theme = useTheme();
   const { colors } = theme;
+  const surfaceClass = isPureBlack ? 'bg-section' : 'bg-default';
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -391,7 +387,9 @@ function TradeWalletActions() {
     [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
-  const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
+  const elevatedSurfaceColor = isPureBlack
+    ? colors.background.section
+    : colors.background.default;
   const layout = buttonLayout as NonNullable<
     TradeWalletActionsParams['buttonLayout']
   >;
