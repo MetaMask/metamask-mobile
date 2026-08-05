@@ -16,6 +16,7 @@ import {
 } from '../../framework';
 import { safeGetBodyText } from '../MockServerE2E.ts';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers.ts';
+import { buildV2GeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
@@ -600,8 +601,7 @@ export const mockPerpsGeolocation = async (
   mockServer: Mockttp,
   region: RampsRegion,
 ): Promise<void> => {
-  const locationCode = getRegionLocationCode(region);
-  const [country, subdivision] = locationCode.split('-');
+  const v2Response = buildV2GeolocationResponse(region);
 
   await mockServer
     .forGet('/proxy')
@@ -614,15 +614,13 @@ export const mockPerpsGeolocation = async (
     .asPriority(1000)
     .thenCallback(() => {
       logger.info(
-        `[Perps E2E Mock] Intercepted geolocation request → ${locationCode}`,
+        `[Perps E2E Mock] Intercepted geolocation request → ${getRegionLocationCode(
+          region,
+        )}`,
       );
       return {
         statusCode: 200,
-        body: JSON.stringify({
-          country,
-          region: subdivision ?? null,
-          timezone: null,
-        }),
+        body: JSON.stringify(v2Response),
         headers: { 'Content-Type': 'application/json' },
       };
     });
