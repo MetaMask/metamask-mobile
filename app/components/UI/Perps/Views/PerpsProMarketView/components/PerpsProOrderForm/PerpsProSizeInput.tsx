@@ -3,6 +3,7 @@ import {
   ButtonBase,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -89,7 +90,7 @@ const PerpsProSizeInput = ({
       <Box twClassName="relative">
         <ButtonBase
           onPress={focusInput}
-          twClassName="h-24 w-full bg-transparent px-4 py-4"
+          twClassName="h-[78px] w-full bg-transparent p-0"
           contentWrapperProps={{
             twClassName: 'w-full flex-col items-start',
           }}
@@ -99,13 +100,19 @@ const PerpsProSizeInput = ({
             unit: unitLabel,
           })}
         >
-          <Text variant={TextVariant.HeadingSm} testID={ids.SIZE_UNIT_LABEL}>
-            {label}
-          </Text>
-          <Box twClassName="mt-4 w-full min-w-0 flex-row items-center gap-1 pr-8">
+          <Box twClassName="h-[46px] w-full justify-center px-3 py-3">
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              testID={ids.SIZE_UNIT_LABEL}
+            >
+              {label}
+            </Text>
+          </Box>
+          <Box twClassName="h-8 w-full min-w-0 flex-row items-center gap-0.5 px-3 pr-8">
             {showUsdPrefix ? (
               <Text
-                variant={TextVariant.HeadingMd}
+                variant={TextVariant.BodyLg}
                 twClassName="font-semibold"
                 testID={ids.SIZE_PREFIX}
               >
@@ -124,7 +131,7 @@ const PerpsProSizeInput = ({
               placeholderTextColor={tw.color('text-muted')}
               textVariant={TextVariant.HeadingMd}
               isStateStylesDisabled
-              twClassName="min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
+              twClassName="h-8 min-w-0 flex-1 border-0 bg-transparent p-0 font-semibold"
               testID={ids.SIZE_INPUT}
               accessibilityLabel={label}
               accessibilityHint={strings(
@@ -156,7 +163,7 @@ const PerpsProSizeInput = ({
         </Box>
       </Box>
       <Box
-        twClassName="h-[72px] justify-center overflow-visible pb-3 pl-6 pr-3 pt-6"
+        twClassName="overflow-visible px-3 pb-4 pt-6"
         onTouchCancel={sizeSlider.onDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >
