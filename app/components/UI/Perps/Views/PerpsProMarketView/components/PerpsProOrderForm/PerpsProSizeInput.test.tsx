@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { TextVariant } from '@metamask/design-system-react-native';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsProSizeInput, {
   type PerpsProSizeInputProps,
@@ -121,6 +122,10 @@ describe('PerpsProSizeInput', () => {
       'twClassName',
       expect.stringContaining('h-8'),
     );
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+      'textVariant',
+      TextVariant.HeadingLg,
+    );
   });
 
   it('keeps the compact slider section visible with Figma spacing', () => {
@@ -130,6 +135,16 @@ describe('PerpsProSizeInput', () => {
       overflow: 'visible',
       paddingTop: 24,
       paddingBottom: 16,
+      paddingLeft: 12,
+      paddingRight: 12,
+    });
+  });
+
+  it('uses the Figma footer row height and horizontal padding', () => {
+    renderInput();
+
+    expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toHaveStyle({
+      height: 46,
       paddingLeft: 12,
       paddingRight: 12,
     });
