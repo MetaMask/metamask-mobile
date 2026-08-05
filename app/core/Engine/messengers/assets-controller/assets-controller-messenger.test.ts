@@ -149,7 +149,7 @@ describe('getAssetsControllerMessenger', () => {
     );
   });
 
-  it('delegates BackendWebsocketDataSource WebSocket actions', () => {
+  it('delegates AccountActivityService statusChanged event', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
@@ -157,12 +157,8 @@ describe('getAssetsControllerMessenger', () => {
 
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        actions: expect.arrayContaining([
-          'BackendWebSocketService:subscribe',
-          'BackendWebSocketService:getConnectionInfo',
-          'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-          'BackendWebSocketService:addChannelCallback',
-          'BackendWebSocketService:removeChannelCallback',
+        events: expect.arrayContaining([
+          'AccountActivityService:statusChanged',
         ]),
       }),
     );
