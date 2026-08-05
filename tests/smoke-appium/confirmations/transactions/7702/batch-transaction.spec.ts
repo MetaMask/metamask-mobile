@@ -166,11 +166,7 @@ appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
           );
           await TabBarComponent.tapActivity();
           await ActivitiesView.filterByNetwork(LOCAL_CHAIN_CAIP);
-          // Activity redesign: sendCalls batches that carry an EIP-7702
-          // authorizationList map to smartAccountUpgrade (not contractInteraction).
-          // Detox asserted legacy "Smart contract interaction" without redesign.
-          // Do not assert "Confirmed" — Local RPC often leaves 7702 rows pending
-          // (same as the upgrade case).
+
           await assertSmartAccountUpgradeActivity(
             SMART_ACCOUNT_UPGRADED_ACTIVITY,
           );
