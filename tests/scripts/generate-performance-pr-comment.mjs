@@ -87,6 +87,31 @@ function buildPassedTestsSection(passedTestRuns) {
   return md;
 }
 
+/**
+ * Resolve apiCalls for a passed test from performance-results first, then
+ * device-matched app-profiling artifacts. Only fall back to testName-only
+ * when the device name is missing (same rule as failed-test enrichment).
+ */
+function resolvePassedTestApiCalls(test, profilingArtifacts) {
+  if (Array.isArray(test.apiCalls) && test.apiCalls.length > 0) {
+    return test.apiCalls;
+  }
+
+  const device = parseDeviceKey(test.deviceKey || test.device);
+  let artifact = findMatchingArtifact(profilingArtifacts, {
+    testName: test.testName,
+    device,
+  })?.data;
+
+  if (!artifact && !device.name) {
+    artifact = profilingArtifacts.find(
+      ({ data }) => data.testName === test.testName,
+    )?.data;
+  }
+
+  return artifact?.apiCalls ?? test.apiCalls ?? null;
+}
+
 async function main() {
   if (!fs.existsSync(SUMMARY_FILE)) {
     console.log(
@@ -401,27 +426,13 @@ async function main() {
     }
   }
 
-  // Prefer apiCalls from performance-results; fall back to app-profiling sidecars.
+  // Prefer apiCalls from performance-results; fall back to device-matched
+  // app-profiling sidecars (no cross-device testName fallback when device is known).
   const profilingArtifacts = findProfilingArtifacts(reportsDir);
-  const passedWithApiCalls = passedTestRuns.map((test) => {
-    if (Array.isArray(test.apiCalls) && test.apiCalls.length > 0) {
-      return test;
-    }
-
-    const device = parseDeviceKey(test.deviceKey || test.device);
-    const artifact =
-      findMatchingArtifact(profilingArtifacts, {
-        testName: test.testName,
-        device,
-      })?.data ??
-      profilingArtifacts.find(({ data }) => data.testName === test.testName)
-        ?.data;
-
-    return {
-      ...test,
-      apiCalls: artifact?.apiCalls ?? test.apiCalls ?? null,
-    };
-  });
+  const passedWithApiCalls = passedTestRuns.map((test) => ({
+    ...test,
+    apiCalls: resolvePassedTestApiCalls(test, profilingArtifacts),
+  }));
 
   md += buildPassedTestsSection(passedWithApiCalls);
 
@@ -442,7 +453,11 @@ async function main() {
   console.log(`✅ PR comment written to ${OUTPUT_FILE}`);
 }
 
-export { buildPassedTestsSection, escapeMarkdownTable };
+export {
+  buildPassedTestsSection,
+  escapeMarkdownTable,
+  resolvePassedTestApiCalls,
+};
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) => {
