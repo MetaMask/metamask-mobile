@@ -297,10 +297,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     );
 
     const isAwaitingPrefillResult =
-      !hasAccountNoFunds &&
-      !skipDepositPrefill &&
-      (isDepositPrefillLoading ||
-        (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
+      !hasAccountNoFunds && !skipDepositPrefill && isDepositPrefillLoading;
 
     const { helpText, hasBlockingError } = useTransactionCustomAmountAlerts({
       isInputChanged,
@@ -456,14 +453,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
 
+      const hasQuotes = Boolean(quotes?.length);
       const hasObservedLoading =
         quoteHandoff.kind === 'loading' && isQuotesLoading;
       const hasObservedCompletedQuote =
         quotesLastUpdated !== undefined &&
         (quoteHandoff.kind === 'completed'
           ? quotesLastUpdated >= quoteHandoff.quotesLastUpdated
-          : quoteHandoff.quotesLastUpdated === undefined ||
-            quotesLastUpdated > quoteHandoff.quotesLastUpdated);
+          : hasQuotes &&
+            (quoteHandoff.quotesLastUpdated === undefined ||
+              quotesLastUpdated > quoteHandoff.quotesLastUpdated));
 
       // Loading can finish before Redux ever sees isLoading:true. In that case
       // neither hasObservedLoading nor a strictly-newer timestamp fires, so
@@ -491,7 +490,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         setQuoteHandoff(undefined);
         setIsAmountUpdating(false);
       }
-    }, [isQuotesLoading, quoteHandoff, quotesLastUpdated, transactionId]);
+    }, [
+      isQuotesLoading,
+      quoteHandoff,
+      quotes,
+      quotesLastUpdated,
+      transactionId,
+    ]);
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {

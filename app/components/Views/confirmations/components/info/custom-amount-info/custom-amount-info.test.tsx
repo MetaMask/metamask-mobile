@@ -958,6 +958,18 @@ describe('CustomAmountInfo', () => {
         }),
       );
 
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
       expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
       expect(
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
@@ -1059,6 +1071,15 @@ describe('CustomAmountInfo', () => {
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
       useTransactionPayQuotesLastUpdatedMock.mockReturnValue(3);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
       view.rerender(
         createCustomAmountInfo({
           transactionType: TransactionType.moneyAccountDeposit,
@@ -2573,6 +2594,39 @@ describe('CustomAmountInfo', () => {
 
       expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
       expect(onAmountSubmitMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not keep totals skeleton after same-chain deposit prefill commit', async () => {
+      // Same-chain deposits often never set a source amount. After prefill
+      // commits and the keyboard closes, totals and Confirm must clear.
+      useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: true,
+        hasPrefetchedQuote: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: true,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageNoop,
+        updateTokenAmount: jest.fn(),
+      });
+
+      const view = render();
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(view.queryByTestId('bridge-fee-row-skeleton')).toBeNull();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
     });
 
     it('does not auto-submit while the keyboard is visible', () => {
