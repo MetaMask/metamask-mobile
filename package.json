@@ -183,19 +183,7 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/bridge-controller": {
-      "type": "breaking",
-      "previewVersion": "78.1.0-preview-426400357"
-    },
-    "@metamask/bridge-status-controller": {
-      "type": "breaking",
-      "previewVersion": "74.6.2-preview-426400357"
-    }
-  },
   "resolutions": {
-    "@metamask/bridge-controller": "npm:@metamask-previews/bridge-controller@78.1.0-preview-426400357",
-    "@metamask/bridge-status-controller": "npm:@metamask-previews/bridge-status-controller@74.6.2-preview-426400357",
     "@metamask/network-controller": "34.0.0",
     "@metamask/seedless-onboarding-controller": "10.1.1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
@@ -276,8 +264,8 @@
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.14.2",
     "@metamask/bitcoin-wallet-standard": "^1.0.0",
-    "@metamask/bridge-controller": "^78.0.1",
-    "@metamask/bridge-status-controller": "^74.6.0",
+    "@metamask/bridge-controller": "^79.0.1",
+    "@metamask/bridge-status-controller": "^75.0.0",
     "@metamask/chain-agnostic-permission": "^1.7.0",
     "@metamask/chomp-api-service": "^4.0.0",
     "@metamask/client-controller": "^1.0.1",
