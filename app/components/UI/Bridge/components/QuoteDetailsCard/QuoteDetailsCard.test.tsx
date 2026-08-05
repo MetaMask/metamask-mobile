@@ -66,10 +66,12 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
       quote: {
         ...mockQuotes[0].quote,
         feeData: {
-          metabridge: {
-            amount: '1000000', // Non-zero fee to show disclaimer
-            asset: mockQuotes[0].quote.feeData.metabridge[0].asset,
-          },
+          metabridge: [
+            {
+              amount: '1000000', // Non-zero fee to show disclaimer
+              asset: mockQuotes[0].quote.feeData.metabridge[0].asset,
+            },
+          ],
         },
       },
     },

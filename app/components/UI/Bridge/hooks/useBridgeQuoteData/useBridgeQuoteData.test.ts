@@ -1339,9 +1339,12 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          srcAsset: {
-            ...mockQuoteWithMetadata.quote.src.asset,
-            address: '0x1111111111111111111111111111111111111111',
+          src: {
+            asset: {
+              ...mockQuoteWithMetadata.quote.src.asset,
+              assetId:
+                'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+            },
           },
         },
       };
@@ -1383,14 +1386,15 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          srcAsset: {
-            address: '11111111111111111111111111111112',
-            assetId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112' as const,
-            decimals: 9,
-            symbol: 'SOL',
-            chainId: bridgeController.ChainId.SOLANA,
-            name: 'SOL',
+          src: {
+            asset: {
+              assetId:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112' as const,
+              decimals: 9,
+              symbol: 'SOL',
+              chainId: bridgeController.ChainId.SOLANA,
+              name: 'SOL',
+            },
           },
         },
       };

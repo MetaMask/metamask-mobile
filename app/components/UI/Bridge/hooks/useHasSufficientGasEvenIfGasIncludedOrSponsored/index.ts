@@ -17,7 +17,7 @@ interface Props {
 }
 
 /**
- * @returns null if the gas token balance is not available, true if the gas token balance is sufficient, false if the gas token balance is insufficientb
+ * @returns null if the gas token balance is not available, true if the gas token balance is sufficient, false if the gas token balance is insufficient
  * NOTE: THIS IS FOR GASLESS COUNTER METRICS PURPOSES ONLY. It intentionally calculates balance insufficiency irrespective of gasless or sponsored quotes.
  * This is intentionally the same calculation logic as useHasSufficientGas, but disentangled from the gasless or sponsored logic.
  * Separating the logic inside of useHasSufficientGas would also work and would cleaner but is too risky just for the sake of gasless counter metrics.
