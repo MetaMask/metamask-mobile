@@ -70,6 +70,7 @@ import {
   type DelegationChallengeResponse,
   emptyCardHomeData,
   isCardAuthTokenError,
+  CardProviderIds,
 } from '../provider-types';
 import AppConstants from '../../../../AppConstants';
 
@@ -234,7 +235,7 @@ function mapAllowanceToFundingStatus(
 }
 
 export class BaanxProvider implements ICardProvider {
-  readonly id = 'baanx' as const;
+  readonly id = CardProviderIds.Baanx;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'email_password',
