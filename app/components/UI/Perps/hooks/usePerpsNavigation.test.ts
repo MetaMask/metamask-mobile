@@ -309,6 +309,7 @@ describe('usePerpsNavigation', () => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
+          replaceOnSelect: true,
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalled();

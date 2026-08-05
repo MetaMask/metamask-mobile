@@ -140,6 +140,12 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        /**
+         * When true, selecting a market replaces the underlying MARKET_DETAILS
+         * (and dismisses this list) instead of pushing another details screen.
+         * Used by the header slide-up picker.
+         */
+        replaceOnSelect?: boolean;
       }
     | undefined;
 

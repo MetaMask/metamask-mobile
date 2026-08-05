@@ -183,6 +183,9 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
         StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
+          // Selecting a market should replace the details beneath this picker
+          // rather than pushing another MARKET_DETAILS on top of the stack.
+          replaceOnSelect: true,
         }),
       );
     },
