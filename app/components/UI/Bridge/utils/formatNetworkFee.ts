@@ -15,7 +15,7 @@ export const formatNetworkFee = (
 
   const fee = isGaslessQuote(quote.quote)
     ? sumAmounts(quote.quote?.feeData?.txFee)
-    : sumAmounts(quote.quote?.feeData?.network, quote.quote?.feeData?.relayer);
+    : sumAmounts(quote.quote?.feeData?.network);
 
   if (
     !fee?.valueInCurrency ||
@@ -23,10 +23,6 @@ export const formatNetworkFee = (
     Number.isNaN(Number(fee.normalizedAmount))
   )
     return '-';
-
-  if (isGaslessQuote(quote.quote)) {
-    return formatFiat(new BigNumber(fee.valueInCurrency), currency);
-  }
 
   return formatFiat(new BigNumber(fee.valueInCurrency), currency);
 };
