@@ -27,7 +27,7 @@ import WalletView from '../../page-objects/wallet/WalletView.js';
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
 /* Scenario 4: Imported wallet with +50 accounts */
-test.describe(PerformanceOnboarding, () => {
+test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
   test(
     'Onboarding Import SRP with +50 accounts, SRP 3',
     { tag: '@metamask-onboarding-team' },
