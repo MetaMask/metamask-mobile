@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { Transaction } from '@metamask/keyring-api';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Button,
@@ -88,21 +90,32 @@ export function ActivityDetailsBlockExplorerButton({
 }
 
 /**
- * Multi-explorer CTA for cross-chain (bridge) transactions: renders a separate
- * "view on explorer" button per leg when source and destination differ.
- * Falls back to a single button otherwise. Provided for per-type templates.
+ * Explorer CTA for bridge transactions.
+ *
+ * A cross-chain bridge lives on two networks, so it gets one button that opens
+ * the block-explorer sheet to pick a leg — the same sheet the Bridge details
+ * screen uses, which derives both explorers (name, network badge, URL) from the
+ * transaction. Two identically-labelled buttons are indistinguishable, so they
+ * are only the fallback for rows the sheet cannot serve: indexer-only rows carry
+ * no local transaction for it to resolve history from. Same-chain rows get a
+ * single button straight to the webview.
  */
 export function ActivityDetailsBridgeExplorerButtons({
   sourceChainId,
   sourceHash,
   destChainId,
   destHash,
+  evmTxMeta,
+  multiChainTx,
 }: {
   sourceChainId: string | undefined;
   sourceHash: string | undefined;
   destChainId: string | undefined;
   destHash: string | undefined;
+  evmTxMeta?: TransactionMeta;
+  multiChainTx?: Transaction;
 }) {
+  const navigation = useNavigation<AppNavigationProp>();
   const sourceLink = useActivityBlockExplorer(sourceChainId, sourceHash);
   const destLink = useActivityBlockExplorer(destChainId, destHash);
   const openWebview = useOpenWebview();
@@ -112,8 +125,29 @@ export function ActivityDetailsBridgeExplorerButtons({
     destChainId !== undefined &&
     destChainId !== sourceChainId;
 
+  const openExplorerSheet = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+      params: { evmTxMeta, multiChainTx },
+    });
+  }, [navigation, evmTxMeta, multiChainTx]);
+
   if (!sourceLink && !destLink) {
     return null;
+  }
+
+  if (isCrossChain && (evmTxMeta || multiChainTx)) {
+    return (
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        twClassName="w-full"
+        onPress={openExplorerSheet}
+        testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
+      >
+        {strings('activity_details.view_on_block_explorer')}
+      </Button>
+    );
   }
 
   if (!isCrossChain) {
