@@ -1709,6 +1709,7 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        hasPrefetchedQuote: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: false,
         isInputChanged: false,
