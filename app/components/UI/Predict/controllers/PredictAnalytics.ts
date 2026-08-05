@@ -345,6 +345,25 @@ export class PredictAnalytics {
     );
 
     if (
+      status === PredictTradeStatus.INITIATED &&
+      analyticsProperties.transactionType ===
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
+    ) {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TRADE_CONSIDERED,
+        )
+          .addProperties({
+            [PredictEventProperties.TRADE_TYPE]:
+              PredictEventValues.TRADE_TYPE.PREDICT,
+            [PredictEventProperties.IMPLEMENTATION_TYPE]:
+              PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+          })
+          .build(),
+      );
+    }
+
+    if (
       status === PredictTradeStatus.SUCCEEDED &&
       amountUsd !== undefined &&
       (analyticsProperties.transactionType ===
