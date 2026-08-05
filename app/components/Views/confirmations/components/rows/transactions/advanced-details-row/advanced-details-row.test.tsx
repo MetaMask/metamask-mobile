@@ -12,6 +12,7 @@ import {
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import AdvancedDetailsRow from './advanced-details-row';
+import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 
 jest.mock('../../../../../../UI/Name', () => ({
   __esModule: true,
@@ -60,7 +61,7 @@ describe('AdvancedDetailsRow', () => {
 
   // We can't easily test interactions in this case because our mocks are simple string replacements
   // Testing the basic rendering is still valuable
-  it('should set up the component with correct props', () => {
+  it('sets up the component with correct props', () => {
     (useEditNonce as jest.Mock).mockReturnValue({
       ...mockUseEditNonce,
       userSelectedNonce: 42,
@@ -119,26 +120,30 @@ describe('AdvancedDetailsRow', () => {
         },
       });
 
-      const { getByText } = renderWithProvider(
+      const { getByText, getByTestId } = renderWithProvider(
         <AdvancedDetailsRow />,
         { state: stxEnabledState },
         false,
       );
 
       fireEvent.press(getByText('Advanced details'));
-      fireEvent.press(getByText('42'));
+      fireEvent.press(
+        getByTestId(ConfirmationRowComponentIDs.ADVANCED_DETAILS_NONCE_BUTTON),
+      );
       expect(mockSetShowNonceModal).toHaveBeenCalledTimes(0);
     });
 
     it('nonce is editable if STX is not enabled', () => {
-      const { getByText } = renderWithProvider(
+      const { getByText, getByTestId } = renderWithProvider(
         <AdvancedDetailsRow />,
         { state: generateContractInteractionState },
         false,
       );
       fireEvent.press(getByText('Advanced details'));
 
-      fireEvent.press(getByText('42'));
+      fireEvent.press(
+        getByTestId(ConfirmationRowComponentIDs.ADVANCED_DETAILS_NONCE_BUTTON),
+      );
       expect(mockSetShowNonceModal).toHaveBeenCalledTimes(1);
       expect(mockSetShowNonceModal).toHaveBeenCalledWith(true);
     });

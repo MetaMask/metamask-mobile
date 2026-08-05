@@ -6,19 +6,13 @@ import ConfirmAlertModal, {
 } from './confirm-alert-modal';
 import { Severity } from '../../../types/alerts';
 import { AlertKeys } from '../../../constants/alerts';
+import { ConfirmAlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
+import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));
 
-const CHECKBOX_LABEL =
-  'I have acknowledged the alert and still want to proceed';
-const CONFIRM_MODAL_MESSAGE_LABEL =
-  'We suggest you reject this request. If you continue, you might put your assets at risk.';
-const CONFIRM_MODAL_TITLE_LABEL = 'High risk request';
-const CONFIRM_BTN = 'Confirm';
-const CANCEL_BTN = 'Cancel';
-const REVIEW_ALERTS_LABEL = 'Review all alerts';
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
 const ALERT_MOCK = {
@@ -56,48 +50,75 @@ describe('ConfirmAlertModal', () => {
   });
 
   it('renders the ConfirmAlertModal correctly', () => {
-    const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
-    expect(getByText(CONFIRM_MODAL_TITLE_LABEL)).toBeDefined();
-    expect(getByText(CONFIRM_MODAL_MESSAGE_LABEL)).toBeDefined();
-    expect(getByText(REVIEW_ALERTS_LABEL)).toBeDefined();
-    expect(getByText(CHECKBOX_LABEL)).toBeDefined();
-    expect(getByText(CANCEL_BTN)).toBeDefined();
-    expect(getByText(CONFIRM_BTN)).toBeDefined();
+    const { getByText, getByTestId } = render(
+      <ConfirmAlertModal {...baseProps} />,
+    );
+
+    expect(
+      getByText(strings('alert_system.confirm_modal.title')),
+    ).toBeDefined();
+    expect(
+      getByText(strings('alert_system.confirm_modal.message')),
+    ).toBeDefined();
+    expect(
+      getByTestId(ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON),
+    ).toBeDefined();
+    expect(
+      getByText(strings('alert_system.confirm_modal.checkbox_label')),
+    ).toBeDefined();
+    expect(
+      getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON),
+    ).toBeDefined();
+    expect(
+      getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON),
+    ).toBeDefined();
   });
 
-  it('does not render the "Review all alerts" link when there are no field alerts', () => {
+  it('does not render the review alerts button when there are no field alerts', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
       hasUnconfirmedFieldDangerAlerts: false,
       alertModalVisible: false,
       generalAlerts: [],
     });
-    const { queryByText } = render(<ConfirmAlertModal {...baseProps} />);
-    expect(queryByText(REVIEW_ALERTS_LABEL)).toBeNull();
+
+    const { queryByTestId } = render(<ConfirmAlertModal {...baseProps} />);
+
+    expect(
+      queryByTestId(ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON),
+    ).toBeNull();
   });
 
   it('calls onReject when the Cancel button is pressed', async () => {
-    const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
+    const { getByTestId } = render(<ConfirmAlertModal {...baseProps} />);
+
     await act(async () => {
-      fireEvent.press(getByText(CANCEL_BTN));
+      fireEvent.press(
+        getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON),
+      );
     });
+
     expect(mockOnReject).toHaveBeenCalled();
   });
 
   it('calls onConfirm when the Confirm button is pressed and checkbox is checked', async () => {
-    const { getByText, getByTestId } = render(
-      <ConfirmAlertModal {...baseProps} />,
-    );
+    const { getByTestId } = render(<ConfirmAlertModal {...baseProps} />);
+
     await act(async () => {
-      fireEvent.press(getByTestId('confirm-alert-checkbox'));
+      fireEvent.press(
+        getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CHECKBOX),
+      );
     });
     await act(async () => {
-      fireEvent.press(getByText(CONFIRM_BTN));
+      fireEvent.press(
+        getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON),
+      );
     });
+
     expect(mockOnConfirm).toHaveBeenCalled();
   });
 
-  it('calls showAlertModal when the "Review all alerts" link is pressed', async () => {
+  it('calls showAlertModal when the review alerts button is pressed', async () => {
     const mockShowAlertModal = jest.fn();
     (useAlerts as jest.Mock).mockReturnValue({
       showAlertModal: mockShowAlertModal,
@@ -106,10 +127,15 @@ describe('ConfirmAlertModal', () => {
       alertModalVisible: false,
       generalAlerts: [],
     });
-    const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
+
+    const { getByTestId } = render(<ConfirmAlertModal {...baseProps} />);
+
     await act(async () => {
-      fireEvent.press(getByText(REVIEW_ALERTS_LABEL));
+      fireEvent.press(
+        getByTestId(ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON),
+      );
     });
+
     expect(mockShowAlertModal).toHaveBeenCalled();
   });
 
@@ -122,9 +148,13 @@ describe('ConfirmAlertModal', () => {
       alertModalVisible: false,
       generalAlerts: [],
     });
-    const { queryByText } = render(<ConfirmAlertModal {...baseProps} />);
+
+    const { queryByTestId } = render(<ConfirmAlertModal {...baseProps} />);
+
     expect(mockShowAlertModal).toHaveBeenCalled();
-    expect(queryByText(CONFIRM_MODAL_TITLE_LABEL)).toBeNull();
+    expect(
+      queryByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL),
+    ).toBeNull();
   });
 
   it('renders the Blockaid alert message and title when onlyBlockaidAlert is true', () => {
@@ -135,11 +165,23 @@ describe('ConfirmAlertModal', () => {
       alertModalVisible: true,
       generalAlerts: [BLOCKAID_ALERT_MOCK],
     });
-    const { getByText } = render(<ConfirmAlertModal {...baseProps} />);
-    expect(getByText('Your assets may be at risk')).toBeDefined();
+
+    const { getByText, getByTestId } = render(
+      <ConfirmAlertModal {...baseProps} />,
+    );
+
+    expect(
+      getByText(strings('alert_system.confirm_modal.title_blockaid')),
+    ).toBeDefined();
     expect(getByText(BLOCKAID_ALERT_MOCK.message)).toBeDefined();
-    expect(getByText(CHECKBOX_LABEL)).toBeDefined();
-    expect(getByText(CANCEL_BTN)).toBeDefined();
-    expect(getByText(CONFIRM_BTN)).toBeDefined();
+    expect(
+      getByText(strings('alert_system.confirm_modal.checkbox_label')),
+    ).toBeDefined();
+    expect(
+      getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON),
+    ).toBeDefined();
+    expect(
+      getByTestId(ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON),
+    ).toBeDefined();
   });
 });

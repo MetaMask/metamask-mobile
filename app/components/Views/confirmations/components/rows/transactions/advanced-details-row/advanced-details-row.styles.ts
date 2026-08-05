@@ -1,24 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../../util/theme/models';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { isNonceChangeDisabled: boolean };
-}) => {
-  const {
-    theme,
-    vars: { isNonceChangeDisabled },
-  } = params;
-
-  return StyleSheet.create({
-    nonceText: isNonceChangeDisabled
-      ? {
-          color: theme.colors.text.default,
-        }
-      : {
-          textDecorationLine: 'underline',
-          color: theme.colors.primary.default,
-        },
+const styleSheet = () =>
+  StyleSheet.create({
     infoRowOverride: {
       paddingBottom: 4,
       paddingHorizontal: 8,
@@ -37,6 +20,5 @@ const styleSheet = (params: {
       borderRadius: 4,
     },
   });
-};
 
 export default styleSheet;
