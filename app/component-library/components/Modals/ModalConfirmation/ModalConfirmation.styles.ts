@@ -1,10 +1,6 @@
 // Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { AppThemeKey, Theme } from '../../../../util/theme/models';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../util/theme/themeUtils';
+import { Theme } from '../../../../util/theme/models';
 
 /**
  * Style sheet function for ModalConfirmation component.
@@ -14,16 +10,21 @@ import {
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isPureBlack: boolean };
+}) => {
+  const { theme, vars } = params;
   const { colors } = theme;
+  const { isPureBlack } = vars;
 
   return StyleSheet.create({
     screen: { justifyContent: 'center' },
     modal: {
-      // Pure Black: use elevated surface color and add a subtle border
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
+      backgroundColor: isPureBlack
+        ? theme.colors.background.section
+        : theme.colors.background.default,
+      ...(isPureBlack
         ? {
             borderWidth: 1,
             borderColor: colors.border.muted,

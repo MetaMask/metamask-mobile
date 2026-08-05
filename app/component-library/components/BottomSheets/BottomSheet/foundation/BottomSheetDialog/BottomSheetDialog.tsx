@@ -27,6 +27,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 // External dependencies.
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -69,11 +70,13 @@ const BottomSheetDialog = forwardRef<
     const { y: frameY, height: screenHeight } = useSafeAreaFrame();
 
     const maxSheetHeight = screenHeight - screenTopPadding;
+    const isPureBlack = usePureBlack();
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
       style,
       isFullscreen,
+      isPureBlack,
     });
     // X and Y values start on top left of the DIALOG
     // currentYOffset will be used to animate the Y position of the Dialog
