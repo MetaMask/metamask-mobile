@@ -77,11 +77,7 @@ describe('GasFeeTokenIcon', () => {
 
   it('renders token icon without network badge when network image is missing', () => {
     const tokenAddress = '0xTokenAddress' as Hex;
-    mockUseNetworkInfo.mockReturnValue({
-      networkImage: undefined,
-      networkNativeCurrency: 'ETH',
-      networkName: 'Ethereum',
-    });
+    mockUseNetworkInfo.mockReturnValue({});
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <GasFeeTokenIcon tokenAddress={tokenAddress} />,
