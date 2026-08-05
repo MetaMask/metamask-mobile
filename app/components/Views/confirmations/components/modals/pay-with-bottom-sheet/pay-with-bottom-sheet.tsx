@@ -18,7 +18,6 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
-
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = PayWithBottomSheetIDs.BOTTOM_SHEET;
 
 export function PayWithBottomSheet() {
