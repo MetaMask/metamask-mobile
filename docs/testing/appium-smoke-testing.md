@@ -246,4 +246,4 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smok
 - [E2E testing guidelines](./e2e-testing.md) — POM, cross-framework patterns, Detox vs Appium specs
 - [E2E setup (Detox)](../readme/e2e-testing.md) — Metro, debug builds, smoke
 - [Playwright local emulator](../../tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
-- [Unified E2E architecture](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — `resolve()`, `encapsulated()`
+- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`, `encapsulated()`

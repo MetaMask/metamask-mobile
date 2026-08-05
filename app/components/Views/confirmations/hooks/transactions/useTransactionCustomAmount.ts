@@ -10,7 +10,10 @@ import {
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getTokenAddress,
+  setMoneyAccountDepositMaxAtomic,
+} from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
@@ -119,6 +122,9 @@ export function useTransactionCustomAmount({
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
+  ]);
+  const isPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.predictWithdraw,
   ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -343,8 +349,12 @@ export function useTransactionCustomAmount({
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isMaxAmount = value;
       });
+
+      if (isMoneyAccountDeposit) {
+        setMoneyAccountDepositMaxAtomic(transactionId, value);
+      }
     },
-    [transactionId],
+    [isMoneyAccountDeposit, transactionId],
   );
 
   const updatePendingAmount = useCallback(
@@ -422,17 +432,18 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
-      // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
-      // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
-      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
-      // amount through as token.amountRaw.
+      // Do NOT set isMaxAmount=true for perps, predict, or money-account
+      // withdraw. TPC's calculatePostQuoteSourceAmounts substitutes
+      // `token.balanceRaw` when isMaxAmount is true: wrong for perps/predict
+      // (wallet USDC vs typed HyperLiquid/Polymarket balance) and wrong for
+      // money account (on-chain mUSD only vs mUSD + vmUSD fiat total).
+      // Keeping isMaxAmount false routes the typed amount through as
+      // token.amountRaw.
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&
-        !isMoneyAccountWithdraw &&
-        !isMoneyAccountDeposit;
+        !isPredictWithdraw &&
+        !isMoneyAccountWithdraw;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -467,6 +478,7 @@ export function useTransactionCustomAmount({
       balanceUsd,
       isMaxAmount,
       isPerpsWithdraw,
+      isPredictWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
       payToken?.balanceRaw,
@@ -590,7 +602,14 @@ function useTokenBalance(tokenUsdRate: number | undefined) {
   }
 
   if (paymentOverride === PaymentOverride.MoneyAccount) {
-    return withdrawableFiatRaw ? parseFloat(withdrawableFiatRaw) : 0;
+    if (!withdrawableFiatRaw) {
+      return 0;
+    }
+    // ROUND_DOWN to cents before Max/percentage math so we never set an
+    // amount above the spendable withdrawable balance after display rounding.
+    return new BigNumber(withdrawableFiatRaw)
+      .decimalPlaces(2, BigNumber.ROUND_DOWN)
+      .toNumber();
   }
 
   return payTokenBalanceUsd;
