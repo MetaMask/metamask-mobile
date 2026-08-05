@@ -1741,7 +1741,11 @@
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
       "pay_with_token_required": "Token selection required",
       "select_token_to_pay_with": "Please select a token to pay with before placing your order",
-      "initializing": "Initializing order..."
+      "initializing": "Initializing order...",
+      "updating_your_order": "Updating your order",
+      "order_updated": "Order updated",
+      "order_update_failed": "Failed to update order",
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
     },
     "slippage": {
       "config_title": "Set slippage",

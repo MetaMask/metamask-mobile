@@ -22,9 +22,9 @@ const mockGetSnapshot = jest.fn(() => null as Order[] | null);
 const mockRunGatedEligibleAction = jest.fn(
   (_source: string, action: () => void) => action(),
 );
-const mockSubmittingToast = jest.fn(() => ({ type: 'submitting' }));
-const mockConfirmedToast = jest.fn(() => ({ type: 'confirmed' }));
-const mockFailedToast = jest.fn(() => ({ type: 'failed' }));
+const mockEditSubmittingToast = jest.fn(() => ({ type: 'edit-submitting' }));
+const mockEditConfirmedToast = jest.fn(() => ({ type: 'edit-confirmed' }));
+const mockEditFailedToast = jest.fn(() => ({ type: 'edit-failed' }));
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
@@ -66,10 +66,10 @@ jest.mock('./usePerpsToasts', () => ({
     showToast: mockShowToast,
     PerpsToastOptions: {
       orderManagement: {
-        shared: { submitting: mockSubmittingToast },
         limit: {
-          confirmed: mockConfirmedToast,
-          creationFailed: mockFailedToast,
+          editSubmitting: mockEditSubmittingToast,
+          editConfirmed: mockEditConfirmedToast,
+          editFailed: mockEditFailedToast,
         },
       },
     },
@@ -249,9 +249,9 @@ describe('usePerpsProOrderEdit', () => {
           }),
         }),
       );
-      expect(mockSubmittingToast).toHaveBeenCalled();
-      expect(mockConfirmedToast).toHaveBeenCalled();
-      expect(mockFailedToast).not.toHaveBeenCalled();
+      expect(mockEditSubmittingToast).toHaveBeenCalled();
+      expect(mockEditConfirmedToast).toHaveBeenCalled();
+      expect(mockEditFailedToast).not.toHaveBeenCalled();
     },
   );
 
@@ -278,8 +278,8 @@ describe('usePerpsProOrderEdit', () => {
         order.orderId,
         field === 'price' ? { limitPrice: order.price } : { size: '1' },
       );
-      expect(mockFailedToast).toHaveBeenCalled();
-      expect(mockConfirmedToast).not.toHaveBeenCalled();
+      expect(mockEditFailedToast).toHaveBeenCalled();
+      expect(mockEditConfirmedToast).not.toHaveBeenCalled();
     },
   );
 
@@ -306,8 +306,8 @@ describe('usePerpsProOrderEdit', () => {
         order.orderId,
         field === 'price' ? { limitPrice: order.price } : { size: '1' },
       );
-      expect(mockFailedToast).toHaveBeenCalled();
-      expect(mockConfirmedToast).not.toHaveBeenCalled();
+      expect(mockEditFailedToast).toHaveBeenCalled();
+      expect(mockEditConfirmedToast).not.toHaveBeenCalled();
     },
   );
 

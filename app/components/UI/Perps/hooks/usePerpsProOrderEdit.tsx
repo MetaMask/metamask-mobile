@@ -12,12 +12,10 @@ import {
   buildOrderEditParams,
   buildOrderOptimisticEdit,
   getOrderEditConfirmedSize,
-  getOrderEditMarketPrice,
   getOrderEditPreviousValue,
   hasOrderEditValueChanged,
   type OrderEditField,
 } from '../utils/orderEditUtils';
-import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
   getOrderPositionDirection,
   isLimitOrderEditable,
@@ -213,19 +211,22 @@ export const usePerpsProOrderEdit = ({
       closeEditSheet();
       setEditingOrderId(orderToEdit.orderId);
       stream.orders.updateOrderOptimistic(orderToEdit.orderId, optimisticEdit);
-      showToast(PerpsToastOptions.orderManagement.shared.submitting());
+      showToast(PerpsToastOptions.orderManagement.limit.editSubmitting());
 
       try {
         const result = await editOrder({
           orderId: orderToEdit.orderId,
-          newOrder: buildOrderEditParams(orderToEdit, field, newValue, {
-            totalFee: 0,
-            marketPrice: getOrderEditMarketPrice(orderToEdit, field, newValue),
-            source: PRO_MARKET_SOURCE,
-            ...toPerpsEntryAttribution({
+          newOrder: buildOrderEditParams(
+            orderToEdit,
+            field,
+            newValue,
+            editingOrderLeverage,
+            {
+              totalFee: 0,
+              marketPrice: 0,
               source: PRO_MARKET_SOURCE,
-            }),
-          }),
+            },
+          ),
           // Size-only edits still send price (venue needs it) but the price
           // does not change — skip the ORDER_PRICE_UPDATED watcher so CUF
           // does not end on an unrelated orders refresh.
@@ -234,7 +235,7 @@ export const usePerpsProOrderEdit = ({
 
         if (result.success) {
           showToast(
-            PerpsToastOptions.orderManagement.limit.confirmed(
+            PerpsToastOptions.orderManagement.limit.editConfirmed(
               orderDirection,
               getOrderEditConfirmedSize(orderToEdit, field, newValue),
               orderToEdit.symbol,
@@ -248,9 +249,7 @@ export const usePerpsProOrderEdit = ({
             );
           }
           showToast(
-            PerpsToastOptions.orderManagement.limit.creationFailed(
-              result.error,
-            ),
+            PerpsToastOptions.orderManagement.limit.editFailed(result.error),
           );
         }
       } catch {
@@ -260,7 +259,7 @@ export const usePerpsProOrderEdit = ({
             buildOrderOptimisticEdit(field, previousValue),
           );
         }
-        showToast(PerpsToastOptions.orderManagement.limit.creationFailed());
+        showToast(PerpsToastOptions.orderManagement.limit.editFailed());
       } finally {
         setEditingOrderId(null);
         isSubmittingEditRef.current = false;
