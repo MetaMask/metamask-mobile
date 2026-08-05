@@ -52,7 +52,7 @@ describe('PriceChart.context', () => {
         </PriceChartProvider>,
       );
 
-      expect(getByText('chart')).toBeTruthy();
+      expect(getByText('chart')).toBeOnTheScreen();
     });
 
     it('keeps the context value reference stable across re-renders with unchanged state', () => {
@@ -81,7 +81,7 @@ describe('PriceChart.context', () => {
 
       fireEvent.press(getByTestId(TOGGLE_TEST_ID));
 
-      expect(getByText('touched')).toBeTruthy();
+      expect(getByText('touched')).toBeOnTheScreen();
       const latestValue = renderedValues[renderedValues.length - 1];
       expect(latestValue.isChartBeingTouched).toBe(true);
       expect(latestValue).not.toBe(renderedValues[0]);
