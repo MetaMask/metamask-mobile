@@ -728,3 +728,23 @@ jobs:
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+
+      # Gradle builds every RN library module inside node_modules
+      # (node_modules/<pkg>/android/build) and CMake writes to
+      # node_modules/<pkg>/android/.cxx — ~4-5 GB of intermediates that used
+      # to balloon the post-job yarn cache save (setup-e2e-env) from ~600 MB
+      # to ~1.5 GB, adding ~1 min of cache download to every Android E2E job.
+      # Main steps all run before post-job steps, so deleting the
+      # intermediates here (after the APKs have been uploaded — they live in
+      # android/app/build, not node_modules) means the post-job save archives
+      # a clean tree. Gradle build reuse is handled by the dedicated Gradle
+      # caches, which are correctly keyed on Gradle config files.
+      - name: Clean native build intermediates from node_modules
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          before=$(du -sm node_modules | cut -f1)
+          find node_modules -type d \( -name build -o -name .cxx \) -path '*/android/*' -prune -exec rm -rf {} + 2>/dev/null || true
+          after=$(du -sm node_modules | cut -f1)
+          echo "node_modules: ${before} MB -> ${after} MB (removed $((before - after)) MB of Gradle/CMake intermediates)"

@@ -14,7 +14,6 @@ import {
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
 import {
-  PaymentOverride,
   TransactionPayQuote,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
@@ -27,25 +26,13 @@ jest.mock('../pay/useTransactionPayData');
 
 const TRANSACTION_ID_MOCK = 'test-tx-1';
 
-const mockPerpsState = (
-  withdrawableBalance: string | null = '45.31',
-  isMoneyAccountWithdraw = false,
-) => ({
+const mockPerpsState = (withdrawableBalance: string | null = '45.31') => ({
   engine: {
     backgroundState: {
       PerpsController: {
         accountState:
           withdrawableBalance !== null ? { withdrawableBalance } : null,
       },
-      ...(isMoneyAccountWithdraw && {
-        TransactionPayController: {
-          transactionData: {
-            [TRANSACTION_ID_MOCK]: {
-              paymentOverride: PaymentOverride.MoneyAccount,
-            },
-          },
-        },
-      }),
     },
   },
 });
@@ -53,15 +40,13 @@ const mockPerpsState = (
 function runHook({
   pendingAmount,
   withdrawableBalance = '45.31',
-  isMoneyAccountWithdraw = false,
 }: {
   pendingAmount?: string;
   withdrawableBalance?: string | null;
-  isMoneyAccountWithdraw?: boolean;
 } = {}) {
   return renderHookWithProvider(
     () => useInsufficientPerpsBalanceAlert({ pendingAmount }),
-    { state: mockPerpsState(withdrawableBalance, isMoneyAccountWithdraw) },
+    { state: mockPerpsState(withdrawableBalance) },
   );
 }
 
@@ -239,30 +224,6 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
-  });
-
-  it('returns alert when amount + fees exceed withdrawable balance for money account withdrawal', () => {
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: '40',
-    } as ReturnType<typeof useTokenAmount>);
-
-    jest
-      .mocked(useTransactionPayQuotes)
-      .mockReturnValue([{} as TransactionPayQuote<Json>]);
-
-    useTransactionPayTotalsMock.mockReturnValue({
-      fees: {
-        provider: { usd: '5' },
-        sourceNetwork: { estimate: { usd: '1' } },
-        targetNetwork: { usd: '0' },
-        metaMask: { usd: '0' },
-      },
-    } as unknown as TransactionPayTotals);
-
-    const { result } = runHook({ isMoneyAccountWithdraw: true });
-
-    expect(result.current).toHaveLength(1);
-    expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
   });
 
   it('does not alert for standard withdrawal when amount + fees exceed balance', () => {

@@ -864,10 +864,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        // Non-EVM swaps/bridges submitted from this device carry a
-        // bridge-history entry. Cross-chain bridges keep their dedicated
-        // bridge-status screen, mirroring hasDedicatedDetailScreen for local
-        // EVM bridges; same-chain swaps fall through to the shared detail flows.
+        // Bridges route to the redesigned details screen (BridgeDetails
+        // template); the legacy bridge-status screen below is the flag-off
+        // fallback.
+        if (isTransactionsRedesignEnabled) {
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
+        }
+
+        // Flag off: non-EVM cross-chain bridges keep the bridge-status screen.
         if (raw.type === 'keyringTransaction') {
           const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
             item.hash,
@@ -881,14 +889,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               multiChainTx: raw.data,
               bridgeTxHistoryItem: keyringBridgeHistoryItem,
             });
-            return;
-          }
-        }
-
-        if (isTransactionsRedesignEnabled) {
-          const detailsRoute = getActivityDetailsRoute(item);
-          if (detailsRoute) {
-            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
             return;
           }
         }

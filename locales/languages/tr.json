@@ -311,7 +311,7 @@
     "warning_text_2": "geçerli cüzdan ve hesaplarınız",
     "warning_text_3": "kaldırılacak.",
     "warning_text_4": "Onları sadece cüzdanınızın Gizli Kurtarma İfadesi ile kurtarabilirsiniz. MetaMask onu kurtarmanıza yardımcı olamaz.",
-    "warning_proceed": "Cüzdanı kaldır ve ilerle",
+    "warning_proceed": "Remove wallet and proceed",
     "warning_cancel": "İptal",
     "step1": "Cüzdan kurulumu",
     "step2": "Şifre oluştur",
@@ -421,7 +421,7 @@
     "step4": {
       "title": "Ana menü",
       "content1": "Bu menüden işlem geçmişi, ayarlar ve destek kısımlarına erişim sağlayabilirsiniz.",
-      "content2": "Hesaplarınızla daha fazla işlem yapabilir ve MetaMask ayarlarına erişim sağlayabilirsiniz."
+      "content2": "You can take more actions with your accounts and access MetaMask settings."
     },
     "step5": {
       "title": "Tarayıcıyı keşfet",
@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "Bu snap'i kaldırmak istediğinizi onaylamak için",
+      "placeholder": "Bu snap'i kaldırmak istediğinizi onaylamak için",
       "all": "Tüm türler",
       "tokens": "Token'lar",
       "perps": "Perps"
+    },
+    "timeframe_filter": {
+      "title": "Zaman dilimi",
+      "7d": "7G",
+      "30d": "30D"
+    },
+    "sort_filter": {
+      "title": "Şuna göre sırala",
+      "pnl": "K&Z",
+      "roi": "K&Z %",
+      "win_rate": "Kazanma oranı"
     },
     "feed": {
       "title": "En iyi yatırımcılar",
@@ -1266,7 +1279,7 @@
       "get_new_quote": "Yeni teklif al",
       "available_balance": "{{amount}} kullanılabilir",
       "toggle_amount_display": "Token ve dolar tutarı arasında geçiş yapın",
-      "includes_mm_fee": "%{{fee}} MM ücreti dahildir",
+      "includes_mm_fee": "%{{fee}} MetaMask ücreti dahildir",
       "pay_with_no_tokens": "Ödeme yapılabilecek token yok",
       "receive_with_no_tokens": "Alınabilecek token yok",
       "pay_with_filter_all": "Tümü",
@@ -1281,14 +1294,14 @@
       "toast_complete_sell": "{{counter}} karşılığında {{amount}} {{symbol}} satıldı",
       "toast_failed_buy": "{{symbol}} alınamadı",
       "toast_failed_sell": "{{symbol}} satılamadı",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "Onayla",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "edit_quick_amounts_title": "Varsayılan miktarları düzenle",
+      "edit_quick_amounts_set_buy": "Alınacak",
+      "edit_quick_amounts_set_sell": "Satılacak",
+      "edit_quick_amounts_confirm": "Kaydet",
+      "edit_quick_amounts_buy_above_zero": "Alış miktarı {{min}} üzerinde olmalıdır",
+      "edit_quick_amounts_buy_below_max": "Alış miktarı {{max}} altında olmalıdır",
+      "edit_quick_amounts_sell_above_zero": "Satış miktarı %0 üzerinde olmalıdır",
+      "edit_quick_amounts_sell_below_max": "Satış miktarı %100 altında olmalıdır"
     }
   },
   "perps": {
@@ -1358,7 +1371,8 @@
       "add_margin_button": "Ekle",
       "protect_losses_title": "Daha fazla zarara karşı korunun",
       "set_stop_loss_subtitle": "Zararda durdur emrini {{price}} ({{percent}}) seviyesine ayarlayın",
-      "set_button": "Ayarla"
+      "set_button": "Ayarla",
+      "success_title": "Zararda durdur ayarlandı"
     },
     "confirm": "Onayla",
     "deposit": {
@@ -1510,7 +1524,7 @@
     "pro_order_form": {
       "isolated": "İzole",
       "choose_order_type": "Emir türü seçin",
-      "size_usd": "USD cinsinden Büyüklüğü",
+      "size_usd": "Size (USD)",
       "size_percentage": "Emir büyüklüğü yüzdesi",
       "toggle_size_unit": "Büyüklük birimini değiştir",
       "available_balance": "{{amount}} kullanılabilir",
@@ -1522,13 +1536,27 @@
     },
     "pro_positions_panel": {
       "positions": "Pozisyonlar",
-      "positions_with_count": "Positions ({{count}})",
+      "positions_with_count": "Pozisyonlar ({{count}})",
       "orders": "Emirler",
-      "orders_with_count": "Orders ({{count}})",
+      "orders_with_count": "Emirler ({{count}})",
       "ticker_only": "Yalnızca {{ticker}}",
-      "positions_empty": "Your open positions will appear here.",
-      "positions_empty_filtered": "No open {{ticker}} positions.",
-      "orders_empty": "Your open orders will appear here.",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
+      "positions_empty": "Açık pozisyonlarınız burada gösterilecek.",
+      "positions_empty_filtered": "Açık {{ticker}} pozisyonu yok.",
+      "positions_empty_long": "Long pozisyon yok.",
+      "positions_empty_short": "Short pozisyon yok.",
+      "orders_empty": "Açık emirleriniz burada gösterilecek.",
+      "side_filter": {
+        "all_sides": "Tüm yönler",
+        "long": "Uzun",
+        "short": "Kısa"
+      },
+      "sort": {
+        "position_value": "Pozisyon değeri",
+        "unrealized_pnl": "Gerçekleşmemiş K&Z",
+        "funding_rate": "Fonlama oranı",
+        "settings_accessibility": "Pozisyonları sırala"
+      },
       "card": {
         "entry_price": "Giriş fiyatı",
         "margin": "Marj",
@@ -1537,7 +1565,7 @@
         "liq_price": "Lik. fiyatı",
         "funding": "Fonlama",
         "isolated": "İzole",
-        "cross": "Cross",
+        "cross": "Çapraz",
         "close": "Kapat",
         "reverse": "Tersine Çevir",
         "share": "Paylaş"
@@ -1549,10 +1577,6 @@
         "reduce_only": "Yalnızca azalt",
         "tp_sl": "KA / ZD",
         "trigger_condition": "Tetikleme koşulu",
-        "take_profit": "Kazancı al",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
         "cancel": "İptal"
       }
     },
@@ -1836,7 +1860,8 @@
       "margin_available_to_remove": "Kaldırılabilir marj",
       "perps_balance": "Perps bakiyesi",
       "liquidation_price": "Likidasyon fiyatı",
-      "liquidation_distance": "Likidasyon mesafesi"
+      "liquidation_distance": "Likidasyon mesafesi",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "Otomatik kapat",
@@ -2042,11 +2067,18 @@
       },
       "statistics": "Genel Bakış",
       "stats": "İstatistikler",
+      "about": "Hakkında",
+      "about_asset": "{{assetName}} Hakkında",
+      "read_more": "Daha fazlasını oku",
+      "read_more_about": "{{assetName}} hakkında daha fazlasını oku",
       "24h_high": "24 saatlik en yüksek",
       "24h_low": "24 saatlik en düşük",
       "24h_volume": "24 saatlik hacim",
+      "24h_vol": "24 saatlik hacim",
       "open_interest": "Açık faiz",
+      "funding": "Fonlama",
       "funding_rate": "Fonlama oranı",
+      "mark_price": "İşaret fiyatı",
       "oracle_price": "Oracle fiyatı",
       "order_book": "Emir defteri",
       "countdown": "Geri sayım",
@@ -2548,8 +2580,19 @@
     },
     "market_details": {
       "fullscreen_chart": "Tam ekran grafik",
+      "collapse_chart": "Grafiği küçült",
+      "expand_chart": "Grafiği genişlet",
       "market_list": "Piyasalara göz at",
-      "perp_pair": "{{ticker}}-{{collateral}} perp"
+      "perp_pair": "{{ticker}}-{{collateral}} perp",
+      "back": "Geri",
+      "wallet": "Perps bakiyesi",
+      "add_to_watchlist": "İzleme listesine ekle",
+      "remove_from_watchlist": "İzleme listesinden kaldır"
+    },
+    "balance_bottom_sheet": {
+      "close_button": "Kapat",
+      "history_button": "Aktiviteyi görüntüle",
+      "available": "Kullanılabilir"
     }
   },
   "market_insights": {
@@ -2603,47 +2646,9 @@
       "events_in_total": "Toplam {{count}} etkinlik",
       "events_in_total_overflow": "Toplamda +{{count}} piyasa",
       "props_pill": "Özel Bahisler",
-      "championship_unavailable": "Henüz gösterilecek şampiyonluk piyasası yok.",
-      "mens_world_cup_title": "Erkekler Dünya Kupası",
-      "mens_world_cup_events": "{{count}} erkekler dünya kupası etkinlikleri",
-      "mens_world_cup_events_overflow": "+{{count}} erkekler dünya kupası etkinlikleri",
-      "winner_unavailable": "Henüz gösterilecek Dünya Kupası piyasası yok."
+      "championship_unavailable": "Henüz gösterilecek şampiyonluk piyasası yok."
     },
     "world_cup": {
-      "title": "Dünya Kupası",
-      "predictions_title": "Dünya Kupası tahminleri",
-      "banner_title": "Dünya Kupası 2026",
-      "banner_description": "Her maçta, her an işlem yapın.",
-      "hub_banner_title": "$75.000 ödül sizi bekliyor",
-      "hub_banner_description": "Dünya Kupası eleme turlarını tahmin edin, kazanın; hemen katılın",
-      "tabs": {
-        "all": "Tümü",
-        "props": "Özel Bahisler",
-        "live": "Canlı",
-        "games": "Oyunlar"
-      },
-      "who_will_win": "Dünya Kupasını kim kazanacak?",
-      "stages": {
-        "group_stage": "Grup Aşaması",
-        "round_of_32": "Son 32 Tur",
-        "round_of_16": "Son 16 Tur",
-        "quarterfinals": "Çeyrek finaller",
-        "semifinals": "Yarı finaller",
-        "third_place": "Üçüncülük",
-        "final": "Final",
-        "group_a": "Grup A",
-        "group_b": "Grup B",
-        "group_c": "Grup C",
-        "group_d": "Grup D",
-        "group_e": "Grup E",
-        "group_f": "Grup F",
-        "group_g": "Grup G",
-        "group_h": "Grup H",
-        "group_i": "Grup I",
-        "group_j": "Grup J",
-        "group_k": "Grup K",
-        "group_l": "Grup L"
-      },
       "market_info": {
         "regulation_time_winner": {
           "title": "Normal süre kazananı"
@@ -2709,6 +2714,16 @@
     },
     "outcome_groups": {
       "game_lines": "Maç Bülteni",
+      "map_1": "Harita 1",
+      "map_2": "Harita 2",
+      "map_3": "Harita 3",
+      "map_4": "Harita 4",
+      "map_5": "Harita 5",
+      "game_1": "Oyun 1",
+      "game_2": "Oyun 2",
+      "game_3": "Oyun 3",
+      "game_4": "Oyun 4",
+      "game_5": "Oyun 5",
       "halves": "Yarılar",
       "first_half": "1. Yarı",
       "first_set": "1. Set",
@@ -2773,7 +2788,27 @@
       "tennis_match_totals": "Toplam Oyun",
       "tennis_first_set_totals": "1. Set Toplam Oyun",
       "tennis_first_set_winner": "1. Set Kazananı",
-      "tennis_completed_match": "Tamamlanan Maç"
+      "tennis_completed_match": "Tamamlanan Maç",
+      "child_moneyline": "Kazanan",
+      "map_handicap": "Handikap",
+      "round_handicap_game": "Tur Handikabı",
+      "round_over_under_game": "Toplam Tur",
+      "first_blood_game": "İlk Kan",
+      "kill_over_under_game": "Toplam Skor",
+      "map_participant_win_total": "Kazanılan Haritalar",
+      "cs2_odd_even_total_kills": "Toplam Skor Tek/Çift",
+      "cs2_odd_even_total_rounds": "Toplam Tur Tek/Çift",
+      "lol_both_teams_baron": "Her İki Takım da Baron Nashor Keser",
+      "lol_both_teams_dragon": "Her Takım da Ejderha Keser",
+      "lol_both_teams_inhibitors": "Her İki Takım da İnhibitör Yıkar",
+      "lol_odd_even_total_kills": "Toplam Skor Tek/Çift",
+      "lol_penta_kill": "Herhangi Bir Oyuncu Oyuncu Beşte Beş Yapar",
+      "lol_quadra_kill": "Herhangi Bir Oyuncu Dörtte Dört Yapar",
+      "dota2_both_teams_barracks": "Her İki Takım da Kışla Yıkar",
+      "dota2_both_teams_roshan": "Her İki Takım da Roshan Keser",
+      "dota2_game_ends_daytime": "Gündüz Sona Erer",
+      "dota2_rampage": "Herhangi Bir Oyuncu Rampage Atar",
+      "dota2_ultra_kill": "Herhangi Bir Oyuncu Ultra Kill Atar"
     },
     "sell_position": "Sat pozisyonu",
     "odds": "Oranlar",
@@ -2819,15 +2854,63 @@
       "live": "Canlı",
       "popular_today": "Bugün popüler",
       "tabs": {
+        "all": "Tümü",
         "basketball": "Basketbol",
         "tennis": "Tenis",
         "soccer": "Futbol",
         "baseball": "Beysbol",
-        "football": "Amerikan Futbolu"
+        "football": "Amerikan Futbolu",
+        "esports": "E-spor",
+        "cricket": "Kriket",
+        "golf": "Golf",
+        "combat": "Dövüş Sporları",
+        "hockey": "Hokey"
       },
       "filters": {
         "all": "Tümü",
-        "live": "Canlı"
+        "live": "Canlı",
+        "games": "Oyunlar",
+        "tournaments": "Turnuvalar",
+        "fights": "Dövüşler",
+        "props": "Özel Bahisler",
+        "mls": "MLS",
+        "champions-league": "UCL",
+        "EPL": "EPL",
+        "uel": "Avrupa Ligi",
+        "la-liga": "La Liga",
+        "serie-a": "Serie A",
+        "bundesliga": "Bundesliga",
+        "ligue-1": "Ligue 1",
+        "lib": "Copa Libertadores",
+        "mlb": "MLB",
+        "kbo": "KBO",
+        "npb": "NPB",
+        "cpbl": "CPBL",
+        "awards": "MLB Ödülleri",
+        "nfl": "NFL",
+        "nfl-team-futures": "NFL Vadeli Bahisler",
+        "nfl-free-agency": "NFL Sezon Arası",
+        "cfb": "Kolej",
+        "cfl": "CFL",
+        "nba": "NBA",
+        "nba-free-agency": "NBA Sezon Arası",
+        "wnba": "WNBA",
+        "ncaa": "NCAA",
+        "league-of-legends": "LoL",
+        "counter-strike-2": "CS2",
+        "valorant": "Valorant",
+        "dota-2": "Dota 2",
+        "rainbow-six-siege": "R6 Siege",
+        "atp": "ATP",
+        "wta": "WTA",
+        "itf": "ITF",
+        "international-cricket": "Uluslararası",
+        "t20-blast": "T20 Blast",
+        "pga-tour": "PGA Tour",
+        "liv-golf": "LIV",
+        "ufc": "UFC",
+        "boxing": "Boks",
+        "nhl": "NHL"
       }
     },
     "search_placeholder": "Tahmin piyasalarında ara",
@@ -3294,7 +3377,8 @@
       "view_on_portfolio": "Portfolio'da görüntüle",
       "view_on_block": "Blok gezgininde görüntüle",
       "token_details": "Token bilgileri",
-      "remove_token": "Token'i kaldır"
+      "remove_token": "Token'i kaldır",
+      "deactivate_asset": "Varlığı Devre Dışı Bırak"
     }
   },
   "nft_details": {
@@ -3458,7 +3542,7 @@
     "description_content_1_legacy": "MetaMask olarak kullanıcılarımızın mobil uygulama ile nasıl etkileşimde bulunduğunu daha iyi anlamak amacıyla temel kullanım verileri toplamak isteriz. Bu veriler ürünümüze ilişkin kullanılabilirliği ve kullanıcı deneyimini devamlı iyileştirmek amacıyla kullanılacaktır.",
     "description_content_2_legacy": "MetaMask...",
     "action_description_1_legacy": "Her zaman Ayarlar kısmından vazgeçebilmenize izin verir",
-    "action_description_2_legacy": "İsimsiz tıklama ve sayfa görüntüleme etkinlikleri gönderir",
+    "action_description_2_legacy": "Send anonymized click and pageview events",
     "action_description_3_legacy": "Ülke, bölge, şehir (belirli bir konum değil) verileri gönderir",
     "action_description_4_legacy": "Hiçbir zaman anahtar, adres, işlem, bakiye, hash veya kişisel bilgi toplamaz",
     "action_description_5_legacy": "Hiçbir zaman IP adresinizi almaz",
@@ -3797,9 +3881,9 @@
     "privacy_mode": "Gizli mod",
     "privacy_mode_desc": "Web siteleri, hesap bilgilerinizi görüntülemek için erişim istemelidir.",
     "nft_opensea_mode": "OpenSea API'yi etkinleştir",
-    "nft_opensea_desc": "NFT medya ve verilerinin görüntülenmesi IP adresini merkezi olan sunuculara ifşa edebilir. NFT verilerini almak için OpenSea'nin API'sini kullanın. NFT otomatik algılama OpenSea'nin API'sine güvenilir ve kapatıldığında kullanılamaz. NFT otomatik algılamanın etkinleştirilmesi cüzdanınıza herkes tarafından sahte NFT'lerin gönderilmesine maruz bırakabilir ve bir saldırganın sizin Ethereum adresinizden IP adresinizi öğrenmesine izin verebilir.",
+    "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "NFT'leri otomatik algıla",
-    "nft_autodetect_desc": "NFT medya ve verilerinin gösterimi IP adresinizi merkezi sunuculara ifşa edebilir. Cüzdanınızdaki NFT'leri algılamak için üçüncü taraf API'ler (OpenSea gibi) kullanılır. Bu da, hesap adresinizi bu hizmetlere maruz bırakır. Uygulamanın bu hizmetlerden veri çekmesini istemiyorsanız bunu devre dışı bırakın.",
+    "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Test ağlarında dönüşümü göster",
     "show_fiat_on_testnets_desc": "Test ağlarındaki fiat para dönüşümünü göstermek için bunu seçin.",
     "show_fiat_on_testnets_modal_title": "Dikkatli olun",
@@ -4015,8 +4099,8 @@
     "manage_sdk_connections_title": "Bağlantıları yönet",
     "manage_sdk_connections_text": "Sitelere ve/veya MetaMask SDK bağlantılarını kaldırın.",
     "fiat_on_ramp": {
-      "title": "Kripto al ve sat",
-      "description": "Bölge ve daha fazlası...",
+      "title": "Kripto alın ve satın",
+      "description": "Region and more...",
       "current_region": "Mevcut bölge",
       "reset_region": "Bölgeyi sıfırla",
       "change_region": "Bölgeyi değiştir",
@@ -4090,7 +4174,7 @@
         "quote_tag_most_reliable": "En güvenilir",
         "quote_unknown_provider": "Bilinmeyen sağlayıcı",
         "start_headless_buy": "Arayüzsüz satın almayı başlat",
-        "replace_and_start_headless_buy": "Değiştirin ve arayüzsüz satın almayı başlatın",
+        "replace_and_start_headless_buy": "Replace and start headless buy",
         "start_headless_buy_disabled_hint": "Etkinleştirmek için geçerli bir tutar girin",
         "start_headless_buy_pending": "Arayüzsüz oturum aktif - BuildQuote'u aç",
         "cancel_headless_buy": "Arayüzsüz oturumu iptal et",
@@ -5504,6 +5588,11 @@
     "enable_biometrics": "Biyometri ile kilidi aç?",
     "enable_device_passcode_ios": "Cihaz parolası ile kilidi aç?",
     "enable_device_passcode_android": "Cihazın PIN kodu ile kilidi aç?"
+  },
+  "balance_breakdown": {
+    "allocation": "Dağılım",
+    "hide_balance": "Toplam bakiyeyi gizle",
+    "show_balance": "Toplam bakiyeyi göster"
   },
   "authentication": {
     "auth_prompt_desc": "MetaMask'ı kullanabilmek için lütfen doğrulama yapın",
@@ -7062,11 +7151,11 @@
     "bluetooth_off": "Bluetooth kapalı",
     "bluetooth_off_message": "Lütfen cihazınızda Bluetooth özelliğini açın",
     "bluetooth_access_blocked": "Ledger, mobil cihazınızla eşleşmek için Bluetooth erişimine ihtiyaç duyuyor.",
-    "bluetooth_access_blocked_message": "Bluetooth kullanarak Ledger cihazını eşleştirmek istiyorsanız Ayarlar kısmında Bluetooth'u etkinleştirip tekrar deneyin.",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "MetaMask, ledger'ınızla eşleştirmek için konum erişimi iznine ihtiyaç duyuyor.",
-    "location_access_blocked_message": "Bluetooth kullanarak Ledger cihazınızı eşleştirmek istiyorsanız Ayarlar kısmında konum erişimini etkinleştirip tekrar denemeniz gerekecek.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
     "nearbyDevices_access_blocked": "MetaMask, Ledger'ınızla eşleştirmek için yakındaki cihazlar iznine ihtiyaç duyuyor.",
-    "nearbyDevices_access_blocked_message": "Bluetooth kullanarak Ledger cihazınızı eşleştirmek istiyorsanız Ayarlar kısmında yakındaki cihazlar erişimini etkinleştirip tekrar denemeniz gerekli.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Cihaz taranırken hata",
     "bluetooth_scanning_error_message": "Lütfen cihazınızın kilidinin açık olduğundan ve Ethereum uygulamasının çalıştığından emin olun",
     "bluetooth_connection_failed": "Bluetooth bağlantısı başarısız oldu",
@@ -7260,13 +7349,6 @@
     "your_bonus_tooltip_lifetime_bonus": "Alınan toplam bonus: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "Başladığınızdan bu yana alınan toplam bonus.",
     "learn_more": "Daha fazla bilgi edin",
-    "empty_state_cta": {
-      "heading": "{{tokenSymbol}} borç verin ve kazanın",
-      "body": "{{protocol}} ile {{tokenSymbol}} token'ınızı borç verin ve",
-      "annually": "yıllık olarak kazanın.",
-      "learn_more": "Daha fazla bilgi edinin.",
-      "earn": "Kazan"
-    },
     "service_interruption_banner": {
       "maintenance_message": "Bakım çalışması nedeniyle kapalıyız. Kısa sürede tekrar burada olacağız!"
     },
@@ -7312,8 +7394,10 @@
       }
     },
     "withdraw": "Çek",
+    "withdraw_from_aave": "Aave'den çek",
     "deposit_more": "Daha fazla para yatır",
     "earning": "Kazanç",
+    "lending_earnings": "Borç Verme Kazancı",
     "withdrawal_time": "Para çekme zamanı",
     "withdrawing_to": "Şuraya çek:",
     "network": "Ağ",
@@ -7486,12 +7570,25 @@
     "token_list_cta": {
       "get_apy": "%{{apy}} APY kazan"
     },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "%{{apy}} Yıllık Bileşik Getiri",
+        "start_earning": "Kazanmaya başlayın",
+        "current_apy_disclaimer": "Mevcut APY değişkendir ve garanti edilmez."
+      },
+      "balance_cta": {
+        "description_prefix": "Money account hesabınıza {{symbol}} ekleyin ve kazanın: ",
+        "description_suffix": " tutara kadar kazanın.",
+        "earn_apy": "%{{apy}} APY kazan",
+        "earnings_tooltip_accessibility_label": "Öngörülen kazançlar hakkında bilgi"
+      }
+    },
     "earnings": {
       "title": "Kazançlar",
       "estimated_monthly": "Aylık",
-      "estimated_lifetime": "Lifetime",
-      "monthly_info_label": "Monthly earnings info",
-      "lifetime_info_label": "Lifetime earnings info"
+      "estimated_lifetime": "Toplam",
+      "monthly_info_label": "Aylık kazanç bilgisi",
+      "lifetime_info_label": "Toplam kazanç bilgisi"
     },
     "how_it_works": {
       "title": "Nasıl çalışır?",
@@ -7528,7 +7625,7 @@
       "virtual_card": "Sanal kart",
       "metal_card": "Metal kart",
       "cashback": "%{{percentage}} mUSD iadesi",
-      "get_now": "Get",
+      "get_now": "Al",
       "link_title": "Kartı bağla",
       "link_subtitle": "Bakiyenizi harcayın ve satın alma işlemlerinden para kazanın.",
       "link_subtitle_no_apy": "Bakiyenizi harcayın ve satın alma işlemlerinden para kazanın.",
@@ -7638,18 +7735,19 @@
     },
     "earnings_tooltip": {
       "monthly": {
-        "title": "Monthly earnings",
-        "body": "The total you've earned on your Money account balance in the last 30 days."
+        "title": "Aylık kazançlar",
+        "body": "Money account bakiyenizde son 30 gün içinde kazandığınız toplam."
       },
       "lifetime": {
         "title": "Toplam kazançlar",
-        "body": "The total you've earned on your Money account balance over time."
+        "body": "Money account bakiyenizde zaman içinde kazandığınız toplam."
       }
     },
     "earn_crypto_info_sheet": {
       "title": "Kriptonuzdan kazanç sağlayın",
       "deposit_title": "Öngörülen 1 yıllık bakiye",
-      "body": "Projeksiyon, %{{percentage}} Yıllık Yüzde Getirinin (APY) bir yıl boyunca değişmeden kaldığı varsayımına dayanmaktadır. APY değişkendir ve garanti edilmez."
+      "body": "Tahmin, %{{percentage}} Yıllık Yüzde Getirinin (APY) bir yıl boyunca değişmeden kalacağı varsayımına dayanır. APY değişkendir ve garanti edilmez. Getiri garantisi yoktur.",
+      "go_to_money_account": "Money account hesabına git"
     },
     "activity": {
       "title": "Aktivite",
@@ -7665,8 +7763,8 @@
       "filter_purchases": "Satın Alma İşlemleri"
     },
     "condensed_cards": {
-      "how_it_works_title": "How your money grows",
-      "musd_title": "Meet mUSD",
+      "how_it_works_title": "Paranız nasıl artar",
+      "musd_title": "mUSD ile tanış",
       "what_you_get_title": "Faydalarınızı keşfedin"
     },
     "transaction": {
@@ -8295,6 +8393,8 @@
     "sort_balance": "Bakiye",
     "next": "Sonraki",
     "explore_tokens": "Tokenları keşfedin",
+    "robinhood_banner_title": "Robinhood Chain burada",
+    "robinhood_banner_subtitle": "Trend tokenları keşfet",
     "no_tokens_found": "Token bulunamadı",
     "no_tokens_found_description": "Bu isimde token bulamadık. Farklı bir arama yapmayı deneyin.",
     "select_network": "Ağ seç",
@@ -8891,8 +8991,7 @@
         "country_not_available": "Kartla kaydolma henüz ülkenizde kullanılamıyor.",
         "account_label": "Hesap",
         "account_description": "MetaMask Card'ınız bu hesapla ilişkilendirilecektir.",
-        "account_exists_toast": "Zaten bir kart hesabınız var.",
-        "card_program_label": "Kart programı (test aşamasında)"
+        "account_exists_toast": "Zaten bir kart hesabınız var."
       },
       "confirm_email": {
         "title": "E-postanızı onaylayın",
@@ -9065,8 +9164,8 @@
         "title": "Bekleme listesine katılın",
         "load_error": "Form yüklenirken bir şeyler ters gitti. Lütfen tekrar deneyin.",
         "try_again": "Tekrar dene",
-        "success_toast": "You're on the waitlist!",
-        "success_toast_description": "We'll let you know when the card is available in your country."
+        "success_toast": "İzleme listesindesiniz!",
+        "success_toast_description": "Kart ülkenizde kullanılabilir olduğunda sizi bilgilendireceğiz."
       },
       "region_selector": {
         "title": "Bölgeni Seç"
@@ -9557,6 +9656,8 @@
       "retry_button": "Tekrar Dene",
       "tiers_title": "Aşamalar",
       "tier_thresholds": "{{points}} puan",
+      "maintain_threshold_label": "Sürdürme eşiği",
+      "maintain_this_tier": "Bu aşamayı sürdürmek için {{points}} puan kaldı",
       "bps_value": "{{bps}} bps",
       "referee_splash_continue": "Devam et",
       "referee_referred_by": "Öneren {{code}}",
@@ -10065,7 +10166,7 @@
     "earn_rewards": {
       "title": "Ödül kazan",
       "musd_money_title": "%{{percentage}} orana varan APY kazanın",
-      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
+      "musd_disclaimer_accessibility_label": "mUSD APY sorumluluk reddi",
       "musd_subtitle": "Money account hesapları burada",
       "card_title": "Harcamalarda %3'e varan iade",
       "card_subtitle": "MetaMask Card'ınızı hemen alın",
@@ -10322,7 +10423,7 @@
     "low_to_high": "Düşükten yükseğe",
     "apply": "Uygula",
     "search_placeholder": "Token, piyasa ve URL arayın",
-    "quick_trade": "Hızlı Al ve Sat",
+    "quick_trade": "Quick Buy and Sell",
     "cancel": "İptal",
     "perps": "Sürekli Vadeli",
     "rwa_perps_section": "Sürekli Vadeli",
@@ -10519,7 +10620,7 @@
       "related_assets": "İlgili Varlıklar",
       "perpetuals": "Sürekli Vadeli İşlemler",
       "predictions": "Tahminler",
-      "top_traders": "Haftanın en iyi yatırımcıları",
+      "top_traders": "En iyi yatırımcılar",
       "defi": "DeFi",
       "nfts": "NFT'ler",
       "watchlist": "İzleme Listesi",
@@ -10547,6 +10648,7 @@
   "whats_happening": {
     "title": "Neler oluyor",
     "ai": "Yapay Zeka",
+    "ai_generated": "Yapay Zeka ile Oluşturulmuştur",
     "outdated": "Güncel değil",
     "impact": {
       "bullish": "Boğa",
@@ -10577,5 +10679,19 @@
     "empty_add_tokens_cta": "{{count}} token ekle",
     "empty_add_tokens_cta_plural": "{{count}} token ekle",
     "search_placeholder": "Eklemek istediğiniz varlığı arayın"
+  },
+  "asset_spendable_balance": {
+    "spendable": "Harcanabilir",
+    "base_reserved": "Ayrılmış (kilitli)",
+    "fiat_value": "Değer",
+    "total_balance": "Toplam bakiye"
+  },
+  "asset_activation": {
+    "activate": "Etkinleştir",
+    "activate_description": "Başlamak için {{chainName}} üzerinde {{symbol}} etkinleştirin.",
+    "inactive": "Etkin değil",
+    "activate_error": "Bu trustline eklenirken bir şeyler ters gitti. Tekrar deneyin.",
+    "deactivate_error": "Bu trustline kaldırılırken bir şeyler ters gitti. Tekrar deneyin.",
+    "deactivate_error_non_zero_balance_stellar": "Bu cüzdanda halen {{balance}} {{symbol}} varlığınız bulunuyor. Stellar üzerinde bu varlığı devre dışı bırakmadan önce tamamını göndermeli veya takas etmelisiniz."
   }
 }

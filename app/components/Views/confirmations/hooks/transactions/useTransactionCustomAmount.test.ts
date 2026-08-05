@@ -1598,6 +1598,86 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
+  describe('money account deposit atomic toggle', () => {
+    const depositTransactionMeta = {
+      type: TransactionType.moneyAccountDeposit,
+      batchId: '0xtestbatchid' as Hex,
+    };
+
+    it('sets atomic to false when Max is pressed on moneyAccountDeposit', async () => {
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return Object.hasOwn(cfg, 'atomic');
+      });
+      expect(atomicCall).toBeDefined();
+      const config: Record<string, unknown> = {};
+      atomicCall?.[1](config);
+      expect(config.atomic).toBe(false);
+    });
+
+    it('clears atomic when Max is unset via non-100% selection', async () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = { atomic: false };
+        call[1](cfg);
+        return cfg.atomic === undefined;
+      });
+      expect(atomicCall).toBeDefined();
+    });
+
+    it('clears atomic when Max is unset via manual amount input', async () => {
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('5');
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = { atomic: false };
+        call[1](cfg);
+        return cfg.atomic === undefined;
+      });
+      expect(atomicCall).toBeDefined();
+    });
+
+    it('does not flip atomic when Max is pressed on non-deposit types', async () => {
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      const atomicCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return Object.hasOwn(cfg, 'atomic');
+      });
+      expect(atomicCall).toBeUndefined();
+    });
+  });
+
   it('resets isMax to false when updating amount while isMaxAmount is true', async () => {
     useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
@@ -1704,12 +1784,14 @@ describe('useTransactionCustomAmount', () => {
       });
     });
 
-    it('prefills stablecoin with 100% of balance', async () => {
+    it('prefills stablecoin with 100% of balance via Max path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '500',
+          balanceRaw: '500000000',
+          decimals: 6,
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
@@ -1723,9 +1805,24 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+
+      // 100% prefill must set isMaxAmount like pressing Max, so the
+      // insufficient-funds alert can skip a Max money account deposit.
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeDefined();
+
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: '100%',
+        },
+      });
     });
 
-    it('prefills non-stablecoin with 50% of balance', async () => {
+    it('prefills non-stablecoin with 50% of balance via percentage path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1744,9 +1841,21 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: '50%',
+        },
+      });
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
     });
 
-    it('caps at deposit limit when balance exceeds it', async () => {
+    it('caps at deposit limit when balance exceeds it without Max flags', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1765,6 +1874,13 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('100000');
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
     });
 
     it('does not prefill when flag is disabled', async () => {

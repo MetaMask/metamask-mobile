@@ -6,10 +6,7 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import {
-  dismissOnboardingInterestQuestionnaire,
-  dismissPushNotificationExistingUserSheet,
-} from '../../flows/wallet.flow';
+import { dismissPushNotificationExistingUserSheet } from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -22,6 +19,7 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -127,17 +125,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
+        await measureCreatePasswordToOnboardingSuccess(timer4);
 
-        await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingSuccessView.doneButton),
-            {
-              description: 'Onboarding success done button should be visible',
-            },
-          );
-        });
-
-        await dismissOnboardingInterestQuestionnaire();
         await timer5.measure(async () => {
           await OnboardingSuccessView.tapDone();
           await dismissPushNotificationExistingUserSheet();
