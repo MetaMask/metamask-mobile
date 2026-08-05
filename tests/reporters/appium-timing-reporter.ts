@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 /**
  * Collects Appium phase-timing attachments into a suite JSON artifact.
@@ -9,64 +8,63 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
+import type {
+  FullConfig,
+  FullResult,
+  Reporter,
+  Suite,
+  TestCase,
+  TestResult,
+} from '@playwright/test/reporter';
+import { PHASE_TIMINGS_ATTACHMENT_NAME } from '../framework/telemetry/PhaseTimer.ts';
 
 const testsRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const ATTACHMENT_NAME = 'appium-phase-timings';
 
-/** @typedef {import('@playwright/test/reporter').FullConfig} FullConfig */
-/** @typedef {import('@playwright/test/reporter').FullResult} FullResult */
-/** @typedef {import('@playwright/test/reporter').Suite} Suite */
-/** @typedef {import('@playwright/test/reporter').TestCase} TestCase */
-/** @typedef {import('@playwright/test/reporter').TestResult} TestResult */
+interface PhaseTimingEntry {
+  phases: Record<string, number>;
+  meta: Record<string, unknown>;
+  outcome: string;
+  retry: number;
+  durationMs: number;
+  title: string;
+  file: string;
+  projectName?: string;
+}
 
-/**
- * @typedef {object} PhaseTimingEntry
- * @property {Record<string, number>} phases
- * @property {Record<string, unknown>} meta
- * @property {string} outcome
- * @property {number} retry
- * @property {number} durationMs
- * @property {string} title
- * @property {string} file
- * @property {string} [projectName]
- */
+export default class AppiumTimingReporter implements Reporter {
+  #entries: PhaseTimingEntry[] = [];
+  #outputPath: string | undefined;
 
-export default class AppiumTimingReporter {
-  /** @type {PhaseTimingEntry[]} */
-  #entries = [];
-
-  /** @type {string | undefined} */
-  #outputPath;
-
-  /** @param {FullConfig} _config @param {Suite} _suite */
-  onBegin(_config, _suite) {
+  onBegin(_config: FullConfig, _suite: Suite): void {
     const suiteName = process.env.APPIUM_SMOKE_SUITE_NAME?.trim() || 'local';
     const outDir = join(testsRoot, 'test-reports', 'appium-timings');
     mkdirSync(outDir, { recursive: true });
     this.#outputPath = join(outDir, `${suiteName}.json`);
   }
 
-  /**
-   * @param {TestCase} test
-   * @param {TestResult} result
-   */
-  onTestEnd(test, result) {
-    const attachment = result.attachments.find((a) => a.name === ATTACHMENT_NAME);
+  onTestEnd(test: TestCase, result: TestResult): void {
+    const attachment = result.attachments.find(
+      (a) => a.name === PHASE_TIMINGS_ATTACHMENT_NAME,
+    );
     if (!attachment) {
       return;
     }
 
-    /** @type {{ phases?: Record<string, number>, meta?: Record<string, unknown> } | null} */
-    let parsed = null;
+    let parsed: {
+      phases?: Record<string, number>;
+      meta?: Record<string, unknown>;
+    } | null = null;
     try {
       if (attachment.body) {
         const text =
           typeof attachment.body === 'string'
             ? attachment.body
             : Buffer.from(attachment.body).toString('utf8');
-        parsed = JSON.parse(text);
+        parsed = JSON.parse(text) as {
+          phases?: Record<string, number>;
+          meta?: Record<string, unknown>;
+        };
       } else if (attachment.path) {
-        // Path-based attachments are uncommon for this payload; skip quietly.
         return;
       }
     } catch {
@@ -93,8 +91,7 @@ export default class AppiumTimingReporter {
     });
   }
 
-  /** @param {FullResult} result */
-  onEnd(result) {
+  onEnd(result: FullResult): void {
     if (!this.#outputPath) {
       return;
     }
@@ -110,6 +107,10 @@ export default class AppiumTimingReporter {
       tests: this.#entries,
     };
 
-    writeFileSync(this.#outputPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+    writeFileSync(
+      this.#outputPath,
+      `${JSON.stringify(payload, null, 2)}\n`,
+      'utf8',
+    );
   }
 }

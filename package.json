@@ -150,7 +150,7 @@
     "appium-smoke:android": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project android-smoke",
     "appium-smoke:mmconnect:android": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project android-smoke --grep SmokeMMConnect",
     "appium-smoke:ios": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project ios-smoke",
-    "appium-smoke:aggregate-timings": "node .github/scripts/aggregate-appium-timings.mjs",
+    "appium-smoke:aggregate-timings": "yarn tsx .github/scripts/aggregate-appium-timings.ts",
     "capture-visual-baselines:android": "CAPTURE_BASELINES=true AI_VISUAL_TESTING_ENABLED=true yarn playwright test --project system-android-login-emu --config tests/playwright.system-emulator.config.ts",
     "capture-visual-baselines:ios": "CAPTURE_BASELINES=true AI_VISUAL_TESTING_ENABLED=true yarn playwright test --project system-ios-login-sim --config tests/playwright.system-emulator.config.ts",
     "test:depcheck": "yarn depcheck",

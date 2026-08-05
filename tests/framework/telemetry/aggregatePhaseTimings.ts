@@ -1,34 +1,13 @@
-#!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 /**
- * Aggregate Appium phase-timing JSON artifacts.
- *
- * Usage:
- *   yarn appium-smoke:aggregate-timings
- *   node .github/scripts/aggregate-appium-timings.mjs [--input <dir>] [--markdown <path>]
+ * Pure helpers for aggregating Appium phase-timing JSON artifacts.
  */
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
-const DEFAULT_INPUT_DIR = join(
-  repoRoot,
-  'tests/test-reports/appium-timings',
-);
+export const DEFAULT_INPUT_DIR = 'tests/test-reports/appium-timings';
 
-/**
- * @param {number[]} values
- * @returns {number | null}
- */
-export function average(values) {
+export function average(values: number[]): number | null {
   if (!values.length) {
     return null;
   }
@@ -36,12 +15,10 @@ export function average(values) {
   return sum / values.length;
 }
 
-/**
- * @param {number[]} values
- * @param {number} percentile 0-100
- * @returns {number | null}
- */
-export function percentile(values, percentileValue) {
+export function percentile(
+  values: number[],
+  percentileValue: number,
+): number | null {
   if (!values.length) {
     return null;
   }
@@ -53,20 +30,12 @@ export function percentile(values, percentileValue) {
   return sorted[index];
 }
 
-/**
- * @param {unknown} value
- * @returns {value is object}
- */
-function isObject(value) {
+function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-/**
- * Collect timing suite JSON files from a directory (non-recursive + one level).
- * @param {string} inputPath
- * @returns {string[]}
- */
-export function collectTimingFiles(inputPath) {
+/** Collect timing suite JSON files from a directory (non-recursive + one level). */
+export function collectTimingFiles(inputPath: string): string[] {
   const resolved = resolve(inputPath);
   if (!existsSync(resolved)) {
     return [];
@@ -75,8 +44,7 @@ export function collectTimingFiles(inputPath) {
   if (stats.isFile()) {
     return resolved.endsWith('.json') ? [resolved] : [];
   }
-  /** @type {string[]} */
-  const files = [];
+  const files: string[] = [];
   for (const name of readdirSync(resolved)) {
     const full = join(resolved, name);
     const st = statSync(full);
@@ -93,57 +61,77 @@ export function collectTimingFiles(inputPath) {
   return files.sort();
 }
 
-/**
- * @typedef {object} TimingTestEntry
- * @property {Record<string, number>} [phases]
- * @property {Record<string, unknown>} [meta]
- * @property {string} [outcome]
- * @property {number} [retry]
- * @property {string} [title]
- * @property {string} [file]
- */
+export interface TimingTestEntry {
+  phases?: Record<string, number>;
+  meta?: Record<string, unknown>;
+  outcome?: string;
+  retry?: number;
+  title?: string;
+  file?: string;
+}
 
-/**
- * @typedef {object} TimingSuiteFile
- * @property {string} [suite]
- * @property {TimingTestEntry[]} [tests]
- * @property {string} [sourcePath]
- */
+export interface TimingSuiteFile {
+  suite?: string;
+  tests?: TimingTestEntry[];
+  sourcePath?: string;
+}
 
-/**
- * @param {string} filePath
- * @returns {TimingSuiteFile | null}
- */
-export function loadTimingFile(filePath) {
+export function loadTimingFile(filePath: string): TimingSuiteFile | null {
   try {
-    const raw = JSON.parse(readFileSync(filePath, 'utf8'));
+    const raw: unknown = JSON.parse(readFileSync(filePath, 'utf8'));
     if (!isObject(raw) || !Array.isArray(raw.tests)) {
       return null;
     }
-    return { ...raw, sourcePath: filePath };
+    return { ...(raw as TimingSuiteFile), sourcePath: filePath };
   } catch {
     return null;
   }
 }
 
-/**
- * @param {TimingSuiteFile[]} suites
- */
-export function aggregateTimingSuites(suites) {
-  /** @type {Map<string, number[]>} */
-  const phaseByPlatform = new Map();
-  /** @type {Map<string, { attempts: number, retries: number }>} */
-  const retryBySpec = new Map();
-  /** @type {{ suite: string, platform: string, totalMs: number, sourcePath?: string }[]} */
-  const shardTotals = [];
+export interface AggregateTimingReport {
+  schemaVersion: 1;
+  generatedAt: string;
+  testCount: number;
+  suiteCount: number;
+  phases: Record<
+    string,
+    Record<string, { avg: number | null; p95: number | null; samples: number }>
+  >;
+  slowestShard: {
+    suite: string;
+    platform: string;
+    totalMs: number;
+    sourcePath?: string;
+  } | null;
+  retryRatePerSpec: Record<
+    string,
+    { attempts: number; retries: number; retryRate: number }
+  >;
+  sessionReuse: {
+    known: number;
+    reused: number;
+    rate: number | null;
+  };
+}
+
+export function aggregateTimingSuites(
+  suites: TimingSuiteFile[],
+): AggregateTimingReport {
+  const phaseByPlatform = new Map<string, number[]>();
+  const retryBySpec = new Map<string, { attempts: number; retries: number }>();
+  const shardTotals: {
+    suite: string;
+    platform: string;
+    totalMs: number;
+    sourcePath?: string;
+  }[] = [];
   let sessionReuseTrue = 0;
   let sessionReuseKnown = 0;
   let testCount = 0;
 
   for (const suite of suites) {
     const suiteName = suite.suite || 'unknown';
-    /** @type {Map<string, number>} */
-    const totalsByPlatform = new Map();
+    const totalsByPlatform = new Map<string, number>();
 
     for (const test of suite.tests ?? []) {
       testCount += 1;
@@ -174,11 +162,9 @@ export function aggregateTimingSuites(suites) {
         retries: 0,
       };
       retryStats.attempts += 1;
-      if ((test.retry ?? 0) > 0 || test.outcome === 'timedOut') {
-        // Count Playwright retry attempts (retry index > 0).
-        if ((test.retry ?? 0) > 0) {
-          retryStats.retries += 1;
-        }
+      // Playwright retry index > 0 means this result is a retry attempt.
+      if ((test.retry ?? 0) > 0) {
+        retryStats.retries += 1;
       }
       retryBySpec.set(specKey, retryStats);
 
@@ -200,8 +186,7 @@ export function aggregateTimingSuites(suites) {
     }
   }
 
-  /** @type {Record<string, Record<string, { avg: number | null, p95: number | null, samples: number }>>} */
-  const phases = {};
+  const phases: AggregateTimingReport['phases'] = {};
   for (const [key, values] of phaseByPlatform.entries()) {
     const [platform, phase] = key.split('::');
     if (!phases[platform]) {
@@ -219,8 +204,7 @@ export function aggregateTimingSuites(suites) {
       ? null
       : [...shardTotals].sort((a, b) => b.totalMs - a.totalMs)[0];
 
-  /** @type {Record<string, { attempts: number, retries: number, retryRate: number }>} */
-  const retryRatePerSpec = {};
+  const retryRatePerSpec: AggregateTimingReport['retryRatePerSpec'] = {};
   for (const [spec, stats] of retryBySpec.entries()) {
     retryRatePerSpec[spec] = {
       attempts: stats.attempts,
@@ -246,11 +230,7 @@ export function aggregateTimingSuites(suites) {
   };
 }
 
-/**
- * @param {ReturnType<typeof aggregateTimingSuites>} report
- * @returns {string}
- */
-export function formatTrendMarkdown(report) {
+export function formatTrendMarkdown(report: AggregateTimingReport): string {
   const lines = [
     '# Appium phase timing trend',
     '',
@@ -306,14 +286,13 @@ export function formatTrendMarkdown(report) {
   return `${lines.join('\n')}\n`;
 }
 
-/**
- * @param {string[]} argv
- */
-export function parseArgs(argv) {
-  /** @type {{ input: string, markdown: string | null }} */
+export function parseArgs(
+  argv: string[],
+  defaultInput: string = DEFAULT_INPUT_DIR,
+): { input: string; markdown: string | null } {
   const opts = {
-    input: DEFAULT_INPUT_DIR,
-    markdown: null,
+    input: defaultInput,
+    markdown: null as string | null,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -326,37 +305,4 @@ export function parseArgs(argv) {
     }
   }
   return opts;
-}
-
-function main() {
-  const opts = parseArgs(process.argv.slice(2));
-  const files = collectTimingFiles(opts.input);
-  const suites = files
-    .map((f) => loadTimingFile(f))
-    .filter((s) => s !== null);
-
-  if (suites.length === 0) {
-    console.error(
-      `No Appium timing JSON found under ${opts.input}. Run smoke tests first or pass --input.`,
-    );
-    process.exitCode = 1;
-    return;
-  }
-
-  const report = aggregateTimingSuites(suites);
-  const markdown = formatTrendMarkdown(report);
-  process.stdout.write(markdown);
-
-  if (opts.markdown) {
-    mkdirSync(dirname(opts.markdown), { recursive: true });
-    writeFileSync(opts.markdown, markdown, 'utf8');
-  }
-}
-
-const isDirectRun =
-  process.argv[1] &&
-  resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-
-if (isDirectRun) {
-  main();
 }
