@@ -194,7 +194,7 @@
     "napi-postinstall": "npm:npm-empty-package@1.0.0",
     "axios": "^1.18.0",
     "lodash": "4.18.1",
-    "redux-persist-filesystem-storage/react-native-blob-util": "^0.19.9",
+    "redux-persist-filesystem-storage/react-native-blob-util": "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch",
     "@segment/sovran-react-native/react-native-get-random-values": "^2.0.0",
     "@ethersproject/providers/ws": "^7.5.10",
     "ganache/secp256k1": "^4.0.4",
