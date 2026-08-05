@@ -214,6 +214,7 @@ export const usePerpsProSizeInput = ({
       maxDigits,
       maxDecimalPlaces:
         denominationUnit === 'usd' ? 2 : getDecimalPlaces(szDecimals),
+      acceptedDecimalSeparators: ['.', ','],
     }),
     [denominationUnit, maxDigits, szDecimals],
   );

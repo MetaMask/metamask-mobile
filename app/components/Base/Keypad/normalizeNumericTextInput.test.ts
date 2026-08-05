@@ -103,6 +103,29 @@ describe('normalizeNumericTextInput', () => {
 
     expect(result).toEqual({ value: '0,5', ok: true });
   });
+
+  it('normalizes an accepted decimal alias to the canonical separator', () => {
+    const previousValue = '';
+
+    const result = normalizeNumericTextInput('00,5', previousValue, {
+      acceptedDecimalSeparators: ['.', ','],
+    });
+
+    expect(result).toEqual({ value: '0.5', ok: true });
+  });
+
+  it.each(['1,2,3', '1,2.3'])(
+    'rejects repeated or mixed accepted decimal separators in %s',
+    (text) => {
+      const previousValue = '1.2';
+
+      const result = normalizeNumericTextInput(text, previousValue, {
+        acceptedDecimalSeparators: ['.', ','],
+      });
+
+      expect(result).toEqual({ value: previousValue, ok: false });
+    },
+  );
 });
 
 describe('finalizeNumericTextInput', () => {

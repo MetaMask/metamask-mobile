@@ -5,8 +5,10 @@ export interface NormalizeNumericTextInputOptions {
   maxDigits?: number;
   /** Maximum number of digits after the decimal separator. */
   maxDecimalPlaces?: number;
-  /** Single-character separator accepted by the input. */
+  /** Canonical single-character separator used in the normalized output. */
   decimalSeparator?: string;
+  /** Single-character separators accepted from the native input. */
+  acceptedDecimalSeparators?: readonly string[];
 }
 
 export interface NormalizeNumericTextInputResult {
@@ -27,19 +29,25 @@ const areNormalizeOptionsValid = ({
   maxDigits,
   maxDecimalPlaces,
   decimalSeparator,
+  acceptedDecimalSeparators,
 }: {
   maxDigits: number;
   maxDecimalPlaces?: number;
   decimalSeparator: string;
+  acceptedDecimalSeparators: readonly string[];
 }): boolean =>
   decimalSeparator.length === 1 &&
   !/\d/.test(decimalSeparator) &&
+  acceptedDecimalSeparators.length > 0 &&
+  acceptedDecimalSeparators.every(
+    (separator) => separator.length === 1 && !/\d/.test(separator),
+  ) &&
   isNonNegativeInteger(maxDigits) &&
   (maxDecimalPlaces === undefined || isNonNegativeInteger(maxDecimalPlaces));
 
 const parseNumericTextParts = (
   text: string,
-  decimalSeparator: string,
+  acceptedDecimalSeparators: readonly string[],
 ): ParsedNumericTextParts | null => {
   let integerPart = '';
   let fractionalPart = '';
@@ -55,7 +63,7 @@ const parseNumericTextParts = (
       continue;
     }
 
-    if (character === decimalSeparator) {
+    if (acceptedDecimalSeparators.includes(character)) {
       if (hasDecimalSeparator) {
         return null;
       }
@@ -125,6 +133,7 @@ export const normalizeNumericTextInput = (
     maxDigits = DEFAULT_MAX_NUMERIC_INPUT_DIGITS,
     maxDecimalPlaces,
     decimalSeparator = '.',
+    acceptedDecimalSeparators = [decimalSeparator],
   }: NormalizeNumericTextInputOptions = {},
 ): NormalizeNumericTextInputResult => {
   if (
@@ -132,6 +141,7 @@ export const normalizeNumericTextInput = (
       maxDigits,
       maxDecimalPlaces,
       decimalSeparator,
+      acceptedDecimalSeparators,
     })
   ) {
     return { value: previousValue, ok: false };
@@ -141,7 +151,7 @@ export const normalizeNumericTextInput = (
     return { value: '', ok: true };
   }
 
-  const parsed = parseNumericTextParts(text, decimalSeparator);
+  const parsed = parseNumericTextParts(text, acceptedDecimalSeparators);
   if (!parsed) {
     return { value: previousValue, ok: false };
   }

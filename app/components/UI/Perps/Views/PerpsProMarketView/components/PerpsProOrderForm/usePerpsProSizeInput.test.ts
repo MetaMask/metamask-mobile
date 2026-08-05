@@ -58,6 +58,18 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenCalledWith('0.5');
   });
 
+  it('normalizes comma decimal input before committing USD', () => {
+    const params = createParams();
+    const { result } = renderHook(() => usePerpsProSizeInput(params));
+
+    act(() => {
+      result.current.sizeInput.onChange('00,5');
+    });
+
+    expect(result.current.sizeInput.value).toBe('0.5');
+    expect(mockSetAmount).toHaveBeenCalledWith('0.5');
+  });
+
   it('rejects USD input beyond two decimal places', () => {
     const params = createParams();
     const { result } = renderHook(() => usePerpsProSizeInput(params));
