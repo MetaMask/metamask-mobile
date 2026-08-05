@@ -87,9 +87,7 @@ export function buildRelayQuoteMock(
         for (const item of step.items) {
           if (item.data) {
             item.data.from = params.recipient ?? DEFAULT_FIXTURE_ACCOUNT;
-            if (params.srcChainId === params.dstChainId) {
-              item.data.chainId = params.srcChainId;
-            }
+            item.data.chainId = params.srcChainId;
           }
         }
       }
@@ -120,6 +118,7 @@ export function buildRelayQuoteMock(
 export async function mockRelayQuoteWith(mockServer: Mockttp, quote: unknown) {
   await mockServer
     .forPost('/proxy')
+    .asPriority(1001)
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
@@ -137,6 +136,7 @@ export async function mockRelayQuoteWith(mockServer: Mockttp, quote: unknown) {
 
   await mockServer
     .forPost(/intents\.(uat-)?api\.cx\.metamask\.io\/relay\/quote/)
+    .asPriority(1001)
     .thenCallback(() => ({
       statusCode: 200,
       json: quote,
@@ -149,6 +149,7 @@ export async function mockRelayQuoteWith(mockServer: Mockttp, quote: unknown) {
 export async function mockRelayStatusSuccess(mockServer: Mockttp) {
   await mockServer
     .forGet('/proxy')
+    .asPriority(1001)
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
@@ -166,6 +167,7 @@ export async function mockRelayStatusSuccess(mockServer: Mockttp) {
 
   await mockServer
     .forGet(/intents\.(uat-)?api\.cx\.metamask\.io\/relay\/intents\/status/)
+    .asPriority(1001)
     .thenCallback(() => ({
       statusCode: 200,
       json: RELAY_STATUS_MOCK,

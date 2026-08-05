@@ -47,20 +47,22 @@ import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
-export const PAY_WITH_CRYPTO_SECTION_TEST_ID = 'pay-with-section-crypto';
+export const PAY_WITH_CRYPTO_SECTION_TEST_ID =
+  PayWithBottomSheetIDs.CRYPTO_SECTION;
 export const PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID =
-  'pay-with-crypto-section-preferred-token-row';
+  PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW;
 export const PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID =
-  'pay-with-crypto-section-selected-token-row';
+  PayWithBottomSheetIDs.CRYPTO_SELECTED_TOKEN_ROW;
 export const PAY_WITH_CRYPTO_NO_FEE_TOKEN_ROW_TEST_ID =
-  'pay-with-crypto-section-no-fee-token-row';
+  PayWithBottomSheetIDs.CRYPTO_NO_FEE_TOKEN_ROW;
 export const PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID =
-  'pay-with-crypto-section-other-assets-row';
+  PayWithBottomSheetIDs.CRYPTO_OTHER_ASSETS_ROW;
 
 export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const navigation = useNavigation<AppNavigationProp>();

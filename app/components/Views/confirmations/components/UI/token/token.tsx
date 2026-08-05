@@ -56,7 +56,15 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
       }
       onPress={handlePress}
     >
-      <Box twClassName="flex-row items-center px-4 flex-1 min-w-0">
+      <Box
+        twClassName="flex-row items-center px-4 flex-1 min-w-0"
+        {...(asset.chainId
+          ? {
+              testID: getAssetTestId(`${asset.chainId}-${asset.symbol}`),
+              accessible: true,
+            }
+          : {})}
+      >
         <Box twClassName="h-12 justify-center">
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}

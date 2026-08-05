@@ -69,6 +69,18 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
+  get activityButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
+    );
+  }
+
+  async tapActivityButton(): Promise<void> {
+    await Gestures.waitAndTap(this.activityButton, {
+      elemDescription: 'Wallet Activity button',
+    });
+  }
+
   private isAndroidAppium(): boolean {
     return FrameworkDetector.isAppium() && !PlatformDetector.isIOS();
   }

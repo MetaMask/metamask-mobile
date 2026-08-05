@@ -1,6 +1,7 @@
 import { ConfirmationFooterSelectorIDs } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
 import { encapsulatedAction } from '../../../framework/encapsulatedAction';
 import { EncapsulatedElementType } from '../../../framework/EncapsulatedElement';
@@ -42,6 +43,18 @@ class FooterActions {
           checkForEnabled: true,
         });
       },
+    });
+  }
+
+  /**
+   * Taps Confirm and waits for the confirmation footer to unmount, signalling
+   * the confirmation has been processed.
+   */
+  async tapConfirmAndExpectConfirmationUnmount(timeout = 25000): Promise<void> {
+    await this.tapConfirmButton();
+    await Assertions.expectElementToNotBeVisible(this.confirmButton, {
+      timeout,
+      description: 'Wait for confirmation to process',
     });
   }
 

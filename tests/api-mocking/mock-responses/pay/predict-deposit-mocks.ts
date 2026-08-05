@@ -1,18 +1,20 @@
 import type { Mockttp } from 'mockttp';
 import {
-  PERPS_ARBITRUM_MOCKS,
-  mockPerpsGeolocation,
-} from '../perps-arbitrum-mocks';
-import { RampsRegions, RampsRegionsEnum } from '../../../framework/Constants';
-import {
   buildRelayQuoteMock,
   mockRelayQuoteWith,
   mockRelayStatusSuccess,
-} from './relay-mocks';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
-import { USDC_MAINNET } from '../../../constants/musd-mainnet';
-import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
-import { mockMoneyAccountApis } from './money-account-deposit-mocks';
+} from './relay-mocks.js';
+import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.js';
+import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder.js';
+import {
+  POLYMARKET_USDC_BALANCE_MOCKS,
+  POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
+} from '../polymarket/polymarket-mocks.js';
+import { USDC_MAINNET } from '../../../constants/musd-mainnet.js';
+import { mockMoneyAccountApis } from './money-account-deposit-mocks.js';
+
+export const POLYGON_USDC =
+  '0x2791bca1f2de4661ed88a30c99a7a9449aa84174' as const;
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
@@ -45,15 +47,13 @@ const MAINNET_SPOT_PRICES = {
   },
 };
 
-export async function PERPS_DEPOSIT_MOCKS(mockServer: Mockttp) {
-  await mockHyperLiquidConnection(mockServer);
-  await mockHyperLiquidLedger(mockServer);
-  await PERPS_ARBITRUM_MOCKS(mockServer);
-  await mockPerpsGeolocation(mockServer, RampsRegions[RampsRegionsEnum.FRANCE]);
+export async function PREDICT_DEPOSIT_MOCKS(mockServer: Mockttp) {
+  await mockPredictGeoEligible(mockServer);
+  await POLYMARKET_USDC_BALANCE_MOCKS(mockServer);
+  await POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS(mockServer);
   await mockMainnetTokenApi(mockServer);
-  await mockMainnetRpc(mockServer);
-  await mockArbitrumRpc(mockServer);
-  await mockArbitrumSentinel(mockServer);
+  await mockPolygonRpc(mockServer);
+  await mockPolygonSentinel(mockServer);
   await mockSentinelNetworks(mockServer);
   await mockRelaySubmissionStatus(mockServer);
   await mockPriceApis(mockServer);
@@ -69,9 +69,9 @@ export async function PERPS_DEPOSIT_MOCKS(mockServer: Mockttp) {
       symbol: 'USDC',
       decimals: 6,
     },
-    dstChainId: 42161,
+    dstChainId: 137,
     dstToken: {
-      address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      address: POLYGON_USDC,
       symbol: 'USDC',
       decimals: 6,
     },
@@ -86,13 +86,20 @@ export async function PERPS_DEPOSIT_MOCKS(mockServer: Mockttp) {
   await mockRelayStatusSuccess(mockServer);
 }
 
-async function mockMainnetRpc(mockServer: Mockttp) {
+/**
+ * Mocks the Polygon RPC for sending raw transactions and fetching receipts.
+ */
+async function mockPolygonRpc(mockServer: Mockttp) {
   await mockServer
     .forPost('/proxy')
     .asPriority(1001)
     .matching(async (request) => {
       const url = new URL(request.url).searchParams.get('url');
-      if (!url?.includes('mainnet.infura.io')) return false;
+      if (
+        !url?.includes('polygon-rpc.com') &&
+        !url?.includes('polygon-mainnet.infura.io')
+      )
+        return false;
 
       try {
         const bodyText = await request.body.getText();
@@ -151,76 +158,12 @@ async function mockMainnetRpc(mockServer: Mockttp) {
     });
 }
 
-async function mockArbitrumRpc(mockServer: Mockttp) {
+/**
+ * Mocks the Polygon TX Sentinel for relay transactions.
+ */
+async function mockPolygonSentinel(mockServer: Mockttp) {
   await mockServer
-    .forPost('/proxy')
-    .asPriority(1001)
-    .matching(async (request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      if (!url?.includes('https://arb1.arbitrum.io/rpc')) return false;
-
-      try {
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        const method = body.method as string | undefined;
-        return (
-          method === 'eth_sendRawTransaction' ||
-          method === 'eth_sendTransaction' ||
-          method === 'eth_getTransactionReceipt'
-        );
-      } catch {
-        return false;
-      }
-    })
-    .thenCallback(async (request) => {
-      const body = (await request.body.getJson()) as Record<string, unknown>;
-      const method = body?.method as string;
-
-      let result: unknown = '0x';
-      const mockHash =
-        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
-
-      if (method === 'eth_getTransactionReceipt') {
-        const requestedHash = (body?.params as string[])?.[0] ?? mockHash;
-        result = {
-          transactionHash: requestedHash,
-          transactionIndex: '0x0',
-          blockNumber: '0x1234568',
-          blockHash:
-            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-          from: '0x0000000000000000000000000000000000000000',
-          to: '0x0000000000000000000000000000000000000000',
-          cumulativeGasUsed: '0x94670',
-          gasUsed: '0x94670',
-          contractAddress: null,
-          logs: [],
-          status: '0x1',
-          logsBloom:
-            '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-        };
-      } else if (
-        method === 'eth_sendRawTransaction' ||
-        method === 'eth_sendTransaction'
-      ) {
-        result = mockHash;
-      }
-
-      return {
-        statusCode: 200,
-        json: {
-          id: body?.id ?? 1,
-          jsonrpc: '2.0',
-          result,
-        },
-      };
-    });
-}
-
-async function mockArbitrumSentinel(mockServer: Mockttp) {
-  // The relay deposit is submitted on the SOURCE chain (Mainnet, chainId 1),
-  // so sentinel calls target tx-sentinel-ethereum-mainnet, not arbitrum.
-  await mockServer
-    .forPost('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/')
+    .forPost('https://tx-sentinel-polygon-mainnet.api.cx.metamask.io/')
     .asPriority(1001)
     .thenCallback(async (request) => {
       const body = (await request.body.getJson()) as Record<string, unknown>;
@@ -231,7 +174,7 @@ async function mockArbitrumSentinel(mockServer: Mockttp) {
           json: {
             jsonrpc: '2.0',
             id: body.id ?? 1,
-            result: { uuid: 'mocked-uuid-1234' },
+            result: { uuid: 'mocked-predict-uuid-1234' },
           },
         };
       }
@@ -248,7 +191,7 @@ async function mockArbitrumSentinel(mockServer: Mockttp) {
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
-        url?.includes('tx-sentinel-ethereum-mainnet.api.cx.metamask.io'),
+        url?.includes('tx-sentinel-polygon-mainnet.api.cx.metamask.io'),
       );
     })
     .thenCallback(async (request) => {
@@ -260,7 +203,7 @@ async function mockArbitrumSentinel(mockServer: Mockttp) {
           json: {
             jsonrpc: '2.0',
             id: body.id ?? 1,
-            result: { uuid: 'mocked-uuid-1234' },
+            result: { uuid: 'mocked-predict-uuid-1234' },
           },
         };
       }
@@ -299,7 +242,7 @@ async function mockArbitrumSentinel(mockServer: Mockttp) {
                 baseFeePerGas: 1770290302,
               })),
               blockNumber: '0x53afbb',
-              id: 'mocked-uuid-1234',
+              id: 'mocked-predict-uuid-1234',
             },
             id: body.id,
           },
@@ -313,6 +256,128 @@ async function mockArbitrumSentinel(mockServer: Mockttp) {
     });
 }
 
+/**
+ * Mocks the tx-sentinel networks endpoint, enabling Polygon (137) relay transactions.
+ */
+async function mockSentinelNetworks(mockServer: Mockttp) {
+  const withPolygonRelay = {
+    ...TX_SENTINEL_NETWORKS_MAP,
+    '137': {
+      ...TX_SENTINEL_NETWORKS_MAP['137'],
+      relayTransactions: true,
+    },
+  };
+
+  const handler = () => ({
+    statusCode: 200,
+    json: withPolygonRelay,
+  });
+
+  // Direct URL match (non-proxied requests).
+  await mockServer
+    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
+    .asPriority(1001)
+    .thenCallback(handler);
+
+  // Proxied variant — the fetch shim routes all requests through /proxy?url=...
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url') || '';
+      return url.includes(
+        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
+      );
+    })
+    .thenCallback(handler);
+}
+
+/**
+ * Mocks the relay submission status to return VALIDATED for the expected uuid.
+ */
+async function mockRelaySubmissionStatus(mockServer: Mockttp) {
+  const handler = () => ({
+    statusCode: 200,
+    json: {
+      transactions: [
+        {
+          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          status: 'VALIDATED',
+        },
+      ],
+    },
+  });
+
+  await mockServer
+    .forGet(
+      'https://tx-sentinel-polygon-mainnet.api.cx.metamask.io/smart-transactions/mocked-predict-uuid-1234',
+    )
+    .asPriority(1001)
+    .thenCallback(handler);
+
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url') || '';
+      return url.includes(
+        'tx-sentinel-polygon-mainnet.api.cx.metamask.io/smart-transactions/mocked-predict-uuid-1234',
+      );
+    })
+    .thenCallback(handler);
+}
+
+/**
+ * Mocks Polymarket geo-eligibility, required for predict access.
+ */
+async function mockPredictGeoEligible(mockServer: Mockttp) {
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url') || '';
+      return Boolean(url.includes('polymarket.com/api/geoblock'));
+    })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        blocked: false,
+        country: 'PT',
+      },
+    }));
+
+  await mockServer
+    .forGet(/^https:\/\/polymarket\.com\/api\/geoblock(\?.*)?$/)
+    .asPriority(1001)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        blocked: false,
+        country: 'PT',
+      },
+    }));
+}
+
+/**
+ * Mocks the Polymarket activity endpoint.
+ */
+async function mockPredictActivity(mockServer: Mockttp) {
+  await mockServer
+    .forGet('/proxy')
+    .asPriority(1001)
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url') || '';
+      return Boolean(url.includes('data-api.polymarket.com/activity'));
+    })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: [],
+    }));
+}
+
+/**
+ * Mocks the price API for Polygon native token and USDC.
+ */
 async function mockPriceApis(mockServer: Mockttp) {
   await mockServer
     .forGet('/proxy')
@@ -334,10 +399,10 @@ async function mockPriceApis(mockServer: Mockttp) {
           statusCode: 200,
           json: {
             ...MAINNET_SPOT_PRICES,
-            'eip155:42161/slip44:60': {
-              id: 'eip155:42161/slip44:60',
-              price: isUsd ? 3000.0 : 1.0,
-              usd: 3000.0,
+            'eip155:137/slip44:60': {
+              id: 'eip155:137/slip44:60',
+              price: isUsd ? 1.0 : 1.0,
+              usd: 1.0,
               eth: 1.0,
               marketCap: 1,
               pricePercentChange1h: 0,
@@ -348,11 +413,11 @@ async function mockPriceApis(mockServer: Mockttp) {
               pricePercentChange200d: 0,
               pricePercentChange1y: 0,
             },
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831': {
-              id: 'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-              price: isUsd ? 1.0 : 1 / 3000.0,
+            'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
+              id: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+              price: isUsd ? 1.0 : 1.0,
               usd: 1.0,
-              eth: 1 / 3000.0,
+              eth: 1.0,
               marketCap: 1,
               pricePercentChange1h: 0,
               pricePercentChange1d: 0,
@@ -379,7 +444,7 @@ async function mockPriceApis(mockServer: Mockttp) {
             eth: {
               name: 'Ether',
               ticker: 'eth',
-              value: 1 / 3000.0,
+              value: 1,
               currencyType: 'crypto',
             },
           },
@@ -390,7 +455,7 @@ async function mockPriceApis(mockServer: Mockttp) {
         return {
           statusCode: 200,
           json: {
-            ETH: { USD: 3000 },
+            ETH: { USD: 1 },
             USDC: { USD: 1 },
             USD: { USD: 1 },
           },
@@ -401,7 +466,7 @@ async function mockPriceApis(mockServer: Mockttp) {
         return {
           statusCode: 200,
           json: {
-            USD: 3000,
+            USD: 1,
           },
         };
       }
@@ -418,10 +483,10 @@ async function mockPriceApis(mockServer: Mockttp) {
         statusCode: 200,
         json: {
           ...MAINNET_SPOT_PRICES,
-          'eip155:42161/slip44:60': {
-            id: 'eip155:42161/slip44:60',
-            price: isUsd ? 3000.0 : 1.0,
-            usd: 3000.0,
+          'eip155:137/slip44:60': {
+            id: 'eip155:137/slip44:60',
+            price: isUsd ? 1.0 : 1.0,
+            usd: 1.0,
             eth: 1.0,
             marketCap: 1,
             pricePercentChange1h: 0,
@@ -432,11 +497,11 @@ async function mockPriceApis(mockServer: Mockttp) {
             pricePercentChange200d: 0,
             pricePercentChange1y: 0,
           },
-          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831': {
-            id: 'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-            price: isUsd ? 1.0 : 1 / 3000.0,
+          'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
+            id: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+            price: isUsd ? 1.0 : 1.0,
             usd: 1.0,
-            eth: 1 / 3000.0,
+            eth: 1.0,
             marketCap: 1,
             pricePercentChange1h: 0,
             pricePercentChange1d: 0,
@@ -462,12 +527,7 @@ async function mockPriceApis(mockServer: Mockttp) {
           value: 1,
           currencyType: 'fiat',
         },
-        eth: {
-          name: 'Ether',
-          ticker: 'eth',
-          value: 1 / 3000.0,
-          currencyType: 'crypto',
-        },
+        eth: { name: 'Ether', ticker: 'eth', value: 1, currencyType: 'crypto' },
       },
     }));
 
@@ -477,7 +537,7 @@ async function mockPriceApis(mockServer: Mockttp) {
     .thenCallback(() => ({
       statusCode: 200,
       json: {
-        ETH: { USD: 3000 },
+        ETH: { USD: 1 },
         USDC: { USD: 1 },
         USD: { USD: 1 },
       },
@@ -489,25 +549,14 @@ async function mockPriceApis(mockServer: Mockttp) {
     .thenCallback(() => ({
       statusCode: 200,
       json: {
-        USD: 3000,
+        USD: 1,
       },
     }));
 }
 
-async function mockPredictActivity(mockServer: Mockttp) {
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(url.includes('data-api.polymarket.com/activity'));
-    })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: [],
-    }));
-}
-
+/**
+ * Mocks the accounts API transaction endpoint to return a predict deposit transaction.
+ */
 async function mockAccountsApiTransactions(mockServer: Mockttp) {
   const handler = () => ({
     statusCode: 200,
@@ -522,7 +571,7 @@ async function mockAccountsApiTransactions(mockServer: Mockttp) {
         {
           hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
           timestamp: new Date().toISOString(),
-          chainId: 42161,
+          chainId: 137,
           blockNumber: 1234568,
           blockHash:
             '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
@@ -537,14 +586,14 @@ async function mockAccountsApiTransactions(mockServer: Mockttp) {
           from: DEFAULT_FIXTURE_ACCOUNT,
           isError: false,
           transactionType: 'deposit',
-          transactionCategory: 'perps',
+          transactionCategory: 'predict',
           valueTransfers: [
             {
               from: DEFAULT_FIXTURE_ACCOUNT,
               to: DEFAULT_FIXTURE_ACCOUNT,
               amount: '50000000',
               decimal: 6,
-              contractAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              contractAddress: POLYGON_USDC,
               symbol: 'USDC',
               name: 'USD Coin',
               transferType: 'ERC20',
@@ -557,7 +606,7 @@ async function mockAccountsApiTransactions(mockServer: Mockttp) {
 
   await mockServer
     .forGet('/proxy')
-    .asPriority(1001) // Higher priority than the generic accounts.api mock in perps-arbitrum-mocks
+    .asPriority(1001)
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url') || '';
       return Boolean(
@@ -578,16 +627,13 @@ async function mockAccountsApiTransactions(mockServer: Mockttp) {
 }
 
 /**
- * Mocks the Accounts API v2/activeNetworks endpoint with a valid
- * `{ activeNetworks: [...] }` shape. The shared PERPS_ARBITRUM_MOCKS
- * accounts-api catch-all returns `{ data: [], included: [] }`, which fails
- * the activity screen's struct validation and leaves it loading forever.
+ * Mocks the accounts API active networks endpoint.
  */
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {
   const handler = () => ({
     statusCode: 200,
     json: {
-      activeNetworks: [`eip155:42161:${DEFAULT_FIXTURE_ACCOUNT}`],
+      activeNetworks: [`eip155:137:${DEFAULT_FIXTURE_ACCOUNT}`],
     },
   });
 
@@ -608,112 +654,6 @@ async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {
     )
     .asPriority(1001)
     .thenCallback(handler);
-}
-
-async function mockSentinelNetworks(mockServer: Mockttp) {
-  const withArbitrumRelay = {
-    ...TX_SENTINEL_NETWORKS_MAP,
-    '42161': {
-      ...TX_SENTINEL_NETWORKS_MAP['42161'],
-      relayTransactions: true,
-    },
-  };
-
-  const handler = () => ({
-    statusCode: 200,
-    json: withArbitrumRelay,
-  });
-
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(1001)
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
-      );
-    })
-    .thenCallback(handler);
-}
-
-async function mockRelaySubmissionStatus(mockServer: Mockttp) {
-  const handler = () => ({
-    statusCode: 200,
-    json: {
-      transactions: [
-        {
-          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          status: 'VALIDATED',
-        },
-      ],
-    },
-  });
-
-  await mockServer
-    .forGet(
-      'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/smart-transactions/mocked-uuid-1234',
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/smart-transactions/mocked-uuid-1234',
-      );
-    })
-    .thenCallback(handler);
-}
-
-async function mockHyperLiquidConnection(mockServer: Mockttp) {
-  await mockServer
-    .forAnyWebSocket()
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || request.url;
-      return url.includes('api.hyperliquid.xyz/ws');
-    })
-    .thenPassivelyListen();
-}
-
-async function mockHyperLiquidLedger(mockServer: Mockttp) {
-  await mockServer
-    .forPost('/proxy')
-    .asPriority(1002) // Higher than generic /info mock
-    .matching(async (request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      if (!url.includes('api.hyperliquid.xyz/info')) return false;
-
-      try {
-        const bodyText = await request.body.getText();
-        const body = bodyText ? JSON.parse(bodyText) : {};
-        return body.type === 'userNonFundingLedgerUpdates';
-      } catch {
-        return false;
-      }
-    })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: [
-        {
-          hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-          time: Date.now(),
-          delta: {
-            type: 'deposit',
-            usdc: '80',
-            coin: 'USDC',
-          },
-        },
-      ],
-    }));
 }
 
 /**

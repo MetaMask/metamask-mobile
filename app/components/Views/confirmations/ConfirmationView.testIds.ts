@@ -122,3 +122,19 @@ export const TransactionPayComponentIDs = {
   PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
   KEYBOARD_CONTAINER: 'custom-amount-input',
 };
+
+export const PayWithBottomSheetIDs = {
+  BOTTOM_SHEET: 'pay-with-bottom-sheet',
+  CRYPTO_SECTION: 'pay-with-section-crypto',
+  CRYPTO_PREFERRED_TOKEN_ROW: 'pay-with-crypto-section-preferred-token-row',
+  CRYPTO_SELECTED_TOKEN_ROW: 'pay-with-crypto-section-selected-token-row',
+  CRYPTO_NO_FEE_TOKEN_ROW: 'pay-with-crypto-section-no-fee-token-row',
+  CRYPTO_OTHER_ASSETS_ROW: 'pay-with-crypto-section-other-assets-row',
+  MONEY_ACCOUNT_SECTION: 'pay-with-section-money-account',
+  MONEY_ACCOUNT_ROW: 'pay-with-money-account-row',
+  PERPS_SECTION: 'pay-with-section-perps',
+  PERPS_BALANCE_ROW: 'pay-with-perps-section-balance-row',
+  PREDICT_SECTION: 'pay-with-section-predict',
+  PREDICT_BALANCE_ROW: 'pay-with-predict-section-balance-row',
+  BANK_CARD_SECTION: 'pay-with-section-bank-card',
+};

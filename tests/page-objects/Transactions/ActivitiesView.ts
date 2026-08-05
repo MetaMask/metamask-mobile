@@ -46,6 +46,12 @@ class ActivitiesView {
     );
   }
 
+  get typeFilterSheet(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
+    );
+  }
+
   perpsFilterOption(option: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
@@ -64,9 +70,11 @@ class ActivitiesView {
         const label =
           option === 'perps'
             ? 'Perps'
-            : option === 'deposit'
-              ? 'Deposits'
-              : option;
+            : option === 'predictions'
+              ? 'Predictions'
+              : option === 'deposit'
+                ? 'Deposits'
+                : option;
         let sheetOpen = true;
         try {
           await Assertions.expectElementToBeVisible(
@@ -95,9 +103,9 @@ class ActivitiesView {
           timeout: 4000,
         });
 
-        await Assertions.expectElementToBeVisible(this.perpsFilterChip, {
+        await Assertions.expectElementToNotBeVisible(this.typeFilterSheet, {
           timeout: 4000,
-          description: 'Wait for perps filter chip to appear (sheet closed)',
+          description: 'Wait for type filter sheet to close after selection',
         });
       },
       {
