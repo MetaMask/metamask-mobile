@@ -641,21 +641,35 @@ function groupApiCallsByEndpoint(apiCalls) {
     .sort((a, b) => b.count - a.count || a.url.localeCompare(b.url));
 }
 
+/** Max unique endpoints listed in a PR comment to keep body size bounded. */
+const MAX_API_CALL_ENDPOINTS_IN_COMMENT = 40;
+
 /**
  * Collapsed markdown details listing unique endpoints with call counts.
  * @param {Array<{ url?: string }>|null|undefined} apiCalls
+ * @param {{ maxEndpoints?: number }} [options]
  * @returns {string}
  */
-function buildApiCallsDetails(apiCalls) {
+function buildApiCallsDetails(
+  apiCalls,
+  { maxEndpoints = MAX_API_CALL_ENDPOINTS_IN_COMMENT } = {},
+) {
   const grouped = groupApiCallsByEndpoint(apiCalls);
   if (grouped.length === 0) {
     return '';
   }
 
   const totalCalls = grouped.reduce((sum, item) => sum + item.count, 0);
+  const visible = grouped.slice(0, maxEndpoints);
+  const hiddenCount = grouped.length - visible.length;
   let md = `\n<details>\n<summary>API calls (${totalCalls})</summary>\n\n`;
-  for (const { url, count } of grouped) {
+  for (const { url, count } of visible) {
     md += `- ${url} -> ${count}\n`;
+  }
+  if (hiddenCount > 0) {
+    md += `\n_…and ${hiddenCount} more unique endpoint${
+      hiddenCount === 1 ? '' : 's'
+    } (see app-profiling artifact for full list)._\n`;
   }
   md += `\n</details>\n`;
   return md;

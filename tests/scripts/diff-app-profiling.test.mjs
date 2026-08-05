@@ -291,6 +291,21 @@ test('buildApiCallsDetails returns empty string without apiCalls data', () => {
   assert.equal(buildApiCallsDetails([]), '');
 });
 
+test('buildApiCallsDetails truncates long unique endpoint lists', () => {
+  const apiCalls = Array.from({ length: 45 }, (_, index) => ({
+    url: `https://api.example.com/endpoint-${String(index).padStart(2, '0')}`,
+  }));
+
+  const md = buildApiCallsDetails(apiCalls, { maxEndpoints: 40 });
+
+  assert.match(md, /API calls \(45\)/);
+  assert.match(md, /https:\/\/api\.example\.com\/endpoint-00 -> 1/);
+  assert.match(md, /https:\/\/api\.example\.com\/endpoint-39 -> 1/);
+  assert.match(md, /…and 5 more unique endpoints/);
+  assert.equal(md.includes('endpoint-40'), false);
+  assert.equal(md.includes('endpoint-44'), false);
+});
+
 test('buildEmbeddedProfilingSection returns compact summary and collapsed table', () => {
   const md = buildEmbeddedProfilingSection({
     currentRunId: '111',
