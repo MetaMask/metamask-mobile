@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useRef } from 'react';
-import { Keyboard, Platform, Pressable, type TextInput } from 'react-native';
+import { Platform, Pressable, type TextInput } from 'react-native';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -53,8 +53,6 @@ const PerpsProCompactInput = ({
       value={value}
       onChangeText={onChangeText}
       keyboardType="decimal-pad"
-      returnKeyType="done"
-      onSubmitEditing={Keyboard.dismiss}
       onFocus={onFocus}
       onBlur={onBlur}
       inputAccessoryViewID={inputAccessoryViewID}

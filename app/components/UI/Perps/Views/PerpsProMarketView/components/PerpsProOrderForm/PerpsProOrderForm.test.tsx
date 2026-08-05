@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
+import { Keyboard } from 'react-native';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -217,6 +218,20 @@ describe('PerpsProOrderForm', () => {
           .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
           .map((accessory) => accessory.props.nativeID),
       ).toEqual([sizeAccessoryID, limitPriceAccessoryID]);
+    });
+
+    it('dismisses the keyboard from the custom minimize control', () => {
+      const dismissSpy = jest
+        .spyOn(Keyboard, 'dismiss')
+        .mockImplementation(jest.fn());
+      renderForm();
+
+      fireEvent.press(
+        screen.getByTestId(`${ids.KEYBOARD_CLOSE}-${ids.SIZE_INPUT}`),
+      );
+
+      expect(dismissSpy).toHaveBeenCalledTimes(1);
+      dismissSpy.mockRestore();
     });
   });
 
