@@ -219,6 +219,60 @@ export function startRampsBuyCufChildTrace({
   return opId;
 }
 
+export interface StartRampsBuyQuoteFetchTraceOptions {
+  tags?: Record<string, TraceValue>;
+  startTime?: number;
+  data?: Record<string, TraceValue>;
+}
+
+/**
+ * Start the Buy Quote Fetch CUF (TRAM-3780).
+ *
+ * Always fires (standalone CUF). When a Buy E2E parent is open, nests under it
+ * via `parentContext`. A newer quote fetch supersedes any still-open one.
+ */
+export function startRampsBuyQuoteFetchTrace({
+  tags,
+  startTime,
+  data,
+}: StartRampsBuyQuoteFetchTraceOptions = {}): string {
+  endOpenRampsBuyCufChildrenByName(TraceName.RampBuyQuoteFetch, {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+    [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+  });
+
+  const opId = nextCufOpId(TraceName.RampBuyQuoteFetch);
+  const startTags = buildRampsBuyCufStartTags(tags);
+  const parentContext = resolveParentContext();
+  pendingChildMeta.set(opId, { [CUF_META.NAME]: TraceName.RampBuyQuoteFetch });
+  trace({
+    name: TraceName.RampBuyQuoteFetch,
+    id: opId,
+    op: TraceOperation.RampOperation,
+    parentContext,
+    forceTransaction: !parentContext,
+    startTime,
+    data: withStartSpanAttributes(startTags, data),
+    tags: startTags,
+  });
+  return opId;
+}
+
+export interface EndRampsBuyQuoteFetchTraceOptions {
+  id: string;
+  data?: Record<string, TraceValue>;
+  timestamp?: number;
+}
+
+/** End a Buy Quote Fetch CUF by op id. Idempotent. */
+export function endRampsBuyQuoteFetchTrace({
+  id,
+  data,
+  timestamp,
+}: EndRampsBuyQuoteFetchTraceOptions): void {
+  endRampsBuyCufChildTrace({ id, data, timestamp });
+}
+
 export interface EndRampsBuyCufChildTraceOptions {
   id: string;
   data?: Record<string, TraceValue>;
