@@ -1577,7 +1577,10 @@
         "reduce_only": "Reduce only",
         "tp_sl": "TP / SL",
         "trigger_condition": "Trigger condition",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "edit_price": "Edit limit price",
+        "edit_size": "Edit size"
       }
     },
     "order": {
@@ -1660,6 +1663,11 @@
         "off": "OFF",
         "take_profit_helper": "Close position when price reaches this level",
         "stop_loss_helper": "Limit losses by closing position at this price"
+      },
+      "size_modal": {
+        "title": "Edit size",
+        "set": "Set",
+        "order_value": "Order value: {{value}}"
       },
       "limit_price_modal": {
         "title": "Set limit price",

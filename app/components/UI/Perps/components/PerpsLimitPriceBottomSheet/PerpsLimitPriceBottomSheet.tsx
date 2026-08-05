@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  memo,
+} from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
@@ -30,11 +37,16 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
-import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
+import {
+  usePerpsLiveAccount,
+  usePerpsLivePrices,
+  usePerpsTopOfBook,
+} from '../../hooks/stream';
 import {
   LIMIT_PRICE_CONFIG,
   MAX_PERPS_INPUT_DIGITS,
 } from '../../constants/perpsConfig';
+import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
 import { isPriceOutsideDeviationBand } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -49,6 +61,14 @@ interface PerpsLimitPriceBottomSheetProps {
   currentPrice?: number;
   direction?: 'long' | 'short';
   isClosingPosition?: boolean;
+  /** When set (open-order price edit), enable incremental margin validation. */
+  restingOrderSize?: string;
+  /** Effective asset leverage for open-order margin validation. */
+  leverage?: number;
+  /** Skip margin validation for reduce-only close orders. */
+  reduceOnly?: boolean;
+  /** When false during open-order edit, hold confirm until market leverage is ready. */
+  isMarketDataReady?: boolean;
 }
 
 /**
@@ -70,6 +90,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   currentPrice: passedCurrentPrice = 0,
   direction = 'long',
   isClosingPosition = false,
+  restingOrderSize,
+  leverage = PERPS_CONSTANTS.DefaultMaxLeverage,
+  reduceOnly = false,
+  isMarketDataReady = true,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -81,6 +105,13 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   // MetaMetrics tracking
   const { track } = usePerpsEventTracking();
+
+  const isOpenOrderPriceEdit = restingOrderSize !== undefined;
+  const { account, isInitialLoading: isAccountLoading } = usePerpsLiveAccount({
+    enabled: isVisible && isOpenOrderPriceEdit,
+  });
+  const isAccountReady = !isAccountLoading && account !== null;
+  const spendableBalance = Number.parseFloat(account?.spendableBalance ?? '0');
 
   // Get real-time price data with 1000ms throttle for limit price bottom sheet
   // Only subscribe when visible
@@ -115,10 +146,14 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   useEffect(() => {
     if (isVisible) {
+      // Re-seed from props whenever visibility or the target order's price
+      // changes — otherwise switching edit targets while mounted keeps the
+      // previous order's typed keypad value.
+      setLimitPrice(initialLimitPrice || '');
       setInputMethod(null); // Reset input method tracking for new session
       bottomSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible]);
+  }, [initialLimitPrice, isVisible]);
 
   const handleConfirm = () => {
     // Remove any formatting (commas, dollar signs) before passing the value
@@ -333,14 +368,62 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     [applyLimitPrice, calculatePriceForPercentage],
   );
 
+  const marginError = useMemo(() => {
+    if (!isOpenOrderPriceEdit || !isAccountReady || !isMarketDataReady) {
+      return '';
+    }
+
+    const parsedEditedPrice = parseFloat(limitPrice.replace(/[$,]/g, ''));
+    const parsedInitialPrice = parseFloat(
+      (initialLimitPrice ?? '').replace(/[$,]/g, ''),
+    );
+    const parsedSize = parseFloat((restingOrderSize ?? '').replace(/,/g, ''));
+    if (
+      !Number.isFinite(parsedEditedPrice) ||
+      parsedEditedPrice <= 0 ||
+      !Number.isFinite(parsedSize) ||
+      parsedSize <= 0
+    ) {
+      return '';
+    }
+
+    const editedNotionalUsd = parsedSize * parsedEditedPrice;
+    const currentNotionalUsd =
+      Number.isFinite(parsedInitialPrice) && parsedInitialPrice > 0
+        ? parsedSize * parsedInitialPrice
+        : 0;
+
+    return getIncrementalMarginInsufficientBalanceError({
+      editedNotionalUsd,
+      currentNotionalUsd,
+      spendableBalance,
+      leverage,
+      reduceOnly,
+    });
+  }, [
+    initialLimitPrice,
+    isAccountReady,
+    isMarketDataReady,
+    isOpenOrderPriceEdit,
+    leverage,
+    limitPrice,
+    reduceOnly,
+    restingOrderSize,
+    spendableBalance,
+  ]);
+
   const isConfirmDisabled =
     !limitPrice ||
     limitPrice === '' ||
     limitPrice === '0' ||
     parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0 ||
-    exceedsMaxDeviation;
+    exceedsMaxDeviation ||
+    (isOpenOrderPriceEdit && (!isAccountReady || !isMarketDataReady)) ||
+    Boolean(marginError);
 
-  const hasInputError = Boolean(exceedsMaxDeviation || limitPriceWarning);
+  const hasInputError = Boolean(
+    exceedsMaxDeviation || limitPriceWarning || marginError,
+  );
   const formattedLimitPrice = formatLimitPriceValue(limitPrice);
   const isLong = direction === 'long';
   const percentagePresets = isLong
@@ -380,7 +463,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           <HelpText severity={HelpTextSeverity.Danger} showIcon>
             {exceedsMaxDeviation
               ? strings('perps.order.limit_price_modal.limit_price_too_far')
-              : limitPriceWarning}
+              : marginError || limitPriceWarning}
           </HelpText>
         ) : (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -482,6 +565,12 @@ export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
     prevProps.isVisible === nextProps.isVisible &&
     prevProps.asset === nextProps.asset &&
     prevProps.limitPrice === nextProps.limitPrice &&
-    prevProps.direction === nextProps.direction
+    prevProps.direction === nextProps.direction &&
+    prevProps.restingOrderSize === nextProps.restingOrderSize &&
+    prevProps.leverage === nextProps.leverage &&
+    prevProps.reduceOnly === nextProps.reduceOnly &&
+    prevProps.isMarketDataReady === nextProps.isMarketDataReady &&
+    prevProps.onConfirm === nextProps.onConfirm &&
+    prevProps.onClose === nextProps.onClose
   );
 });

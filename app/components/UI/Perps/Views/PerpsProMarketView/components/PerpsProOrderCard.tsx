@@ -7,7 +7,9 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
   IconName,
+  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Tag,
@@ -49,24 +51,35 @@ interface PerpsProOrderCardProps {
   /** Switches the Pro screen to this order's market. */
   onPress?: (order: Order) => void;
   onCancel?: (order: Order) => void;
+  onEditPrice?: (order: Order) => void;
+  onEditSize?: (order: Order) => void;
   isCancelDisabled?: boolean;
+  isEditPriceDisabled?: boolean;
+  isEditSizeDisabled?: boolean;
 }
 
 interface KeyValueItemProps {
   label: string;
   value: string;
   isHidden?: boolean;
+  onValuePress?: () => void;
+  isValuePressDisabled?: boolean;
+  valuePressTestID?: string;
+  valuePressAccessibilityLabel?: string;
+  showEditIcon?: boolean;
 }
 
 const KeyValueItem = ({
   label,
   value,
   isHidden = false,
-}: KeyValueItemProps) => (
-  <Box>
-    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-      {label}
-    </Text>
+  onValuePress,
+  isValuePressDisabled = false,
+  valuePressTestID,
+  valuePressAccessibilityLabel,
+  showEditIcon = false,
+}: KeyValueItemProps) => {
+  const valueContent = (
     <SensitiveText
       variant={TextVariant.BodyXs}
       fontWeight={FontWeight.Medium}
@@ -75,8 +88,43 @@ const KeyValueItem = ({
     >
       {value}
     </SensitiveText>
-  </Box>
-);
+  );
+
+  return (
+    <Box>
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        {label}
+      </Text>
+      {onValuePress ? (
+        <Pressable
+          onPress={onValuePress}
+          disabled={isValuePressDisabled}
+          testID={valuePressTestID}
+          accessibilityRole="button"
+          accessibilityLabel={valuePressAccessibilityLabel}
+          accessibilityState={{ disabled: isValuePressDisabled }}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            // Long values (e.g. "205.02 CASHCAT") can wrap to two lines in
+            // this narrow column; flex-wrap keeps the edit icon within the
+            // column bounds (dropping to its own line) instead of
+            // overflowing into the neighboring column.
+            twClassName="flex-wrap gap-1"
+          >
+            {valueContent}
+            {showEditIcon ? (
+              <Icon name={IconName.Edit} size={IconSize.Sm} />
+            ) : null}
+          </Box>
+        </Pressable>
+      ) : (
+        valueContent
+      )}
+    </Box>
+  );
+};
 
 const formatOptionalPrice = (price?: string): string => {
   const parsedPrice = Number.parseFloat(price ?? '');
@@ -86,14 +134,19 @@ const formatOptionalPrice = (price?: string): string => {
 };
 
 /**
- * Read-only summary of an open perps order in the Pro market view.
+ * Summary of an open perps order in the Pro market view with cancel and
+ * in-place limit price and size edit actions when the venue allows.
  */
 const PerpsProOrderCard = ({
   order,
   testID,
   onPress,
   onCancel,
+  onEditPrice,
+  onEditSize,
   isCancelDisabled = false,
+  isEditPriceDisabled = false,
+  isEditSizeDisabled = false,
 }: PerpsProOrderCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const displaySymbol = getPerpsDisplaySymbol(order.symbol);
@@ -102,6 +155,8 @@ const PerpsProOrderCard = ({
   const size = formatPositionSize(order.originalSize);
   const { priceValue } = resolveOrderDisplayPriceAndLabel(order);
   const validTriggerPrice = getValidTriggerPrice(order);
+  const canEditPrice = Boolean(onEditPrice) && !isEditPriceDisabled;
+  const canEditSize = Boolean(onEditSize) && !isEditSizeDisabled;
   const orderValue =
     priceValue === null
       ? PERPS_CONSTANTS.FallbackPriceDisplay
@@ -139,8 +194,20 @@ const PerpsProOrderCard = ({
 
   const handlePress = onPress ? () => onPress(order) : undefined;
 
+  const handleEditPricePress = () => {
+    if (canEditPrice) {
+      onEditPrice?.(order);
+    }
+  };
+
+  const handleEditSizePress = () => {
+    if (canEditSize) {
+      onEditSize?.(order);
+    }
+  };
+
   return (
-    // The card owns a cancel button, so this wrapper stays out of the
+    // The card owns cancel/edit buttons, so this wrapper stays out of the
     // accessibility tree to avoid collapsing it into a single element. The
     // header below repeats the handler as the labelled, screen-reader-reachable
     // entry point for the same action.
@@ -223,6 +290,15 @@ const PerpsProOrderCard = ({
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.order_card.size')}
                 value={`${size} ${displaySymbol}`}
+                onValuePress={canEditSize ? handleEditSizePress : undefined}
+                isValuePressDisabled={!canEditSize}
+                valuePressTestID={
+                  PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT
+                }
+                valuePressAccessibilityLabel={strings(
+                  'perps.pro_positions_panel.order_card.edit_size',
+                )}
+                showEditIcon={canEditSize}
               />
               <KeyValueItem
                 label={strings(
@@ -254,6 +330,15 @@ const PerpsProOrderCard = ({
                 label={strings('perps.pro_positions_panel.order_card.price')}
                 value={price}
                 isHidden={privacyMode}
+                onValuePress={canEditPrice ? handleEditPricePress : undefined}
+                isValuePressDisabled={!canEditPrice}
+                valuePressTestID={
+                  PerpsProMarketViewSelectorsIDs.ORDER_PRICE_EDIT
+                }
+                valuePressAccessibilityLabel={strings(
+                  'perps.pro_positions_panel.order_card.edit_price',
+                )}
+                showEditIcon={canEditPrice}
               />
               <KeyValueItem
                 label={strings(
@@ -266,13 +351,25 @@ const PerpsProOrderCard = ({
           </Box>
         </Box>
 
-        <Box twClassName="px-2">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 px-2">
+          {onEditPrice && !isEditPriceDisabled ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              startIconName={IconName.Edit}
+              twClassName="flex-1 border-muted bg-background-default"
+              onPress={handleEditPricePress}
+              testID={PerpsProMarketViewSelectorsIDs.ORDER_EDIT}
+            >
+              {strings('perps.pro_positions_panel.order_card.edit')}
+            </Button>
+          ) : null}
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             isDanger
             startIconName={IconName.Close}
-            twClassName="w-full border-muted bg-background-default"
+            twClassName="flex-1 border-muted bg-background-default"
             onPress={() => onCancel?.(order)}
             isDisabled={isCancelDisabled}
             testID={PerpsProMarketViewSelectorsIDs.ORDER_CANCEL}

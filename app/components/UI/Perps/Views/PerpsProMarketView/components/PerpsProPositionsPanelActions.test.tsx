@@ -25,6 +25,7 @@ jest.mock('react-redux', () => ({
 const mockNavigate = jest.fn();
 const mockNavigateToClosePosition = jest.fn();
 const mockCancelOrder = jest.fn();
+const mockEditOrder = jest.fn();
 const mockShowToast = jest.fn();
 const mockGate = jest.fn((callback: () => void | Promise<void>) => callback());
 
@@ -50,15 +51,42 @@ jest.mock('../../../hooks/usePerpsNavigation', () => ({
 jest.mock('../../../hooks/usePerpsTrading', () => ({
   usePerpsTrading: () => ({
     cancelOrder: mockCancelOrder,
+    editOrder: mockEditOrder,
   }),
 }));
 
 const mockHandleUpdateTPSL = jest.fn();
+const mockUpdateOrderOptimistic = jest.fn();
+
+jest.mock('../../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: () => ({
+    orders: {
+      updateOrderOptimistic: mockUpdateOrderOptimistic,
+      getSnapshot: jest.fn(() => null),
+    },
+    positions: {
+      getSnapshot: jest.fn(() => null),
+      subscribe: jest.fn(() => jest.fn()),
+    },
+  }),
+}));
+
+jest.mock('../../../hooks/usePerpsSelector', () => ({
+  usePerpsSelector: () => undefined,
+}));
 
 jest.mock('../../../hooks/usePerpsTPSLUpdate', () => ({
   usePerpsTPSLUpdate: () => ({
     handleUpdateTPSL: mockHandleUpdateTPSL,
     isUpdating: false,
+  }),
+}));
+
+jest.mock('../../../hooks/usePerpsMarketData', () => ({
+  usePerpsMarketData: () => ({
+    marketData: { szDecimals: 3 },
+    isLoading: false,
+    error: null,
   }),
 }));
 
@@ -69,9 +97,14 @@ jest.mock('../../../hooks/usePerpsToasts', () => ({
     PerpsToastOptions: {
       orderManagement: {
         shared: {
+          submitting: jest.fn(() => ({ title: 'submitting' })),
           cancellationInProgress: jest.fn(() => ({ title: 'canceling' })),
           cancellationSuccess: jest.fn(() => ({ title: 'success' })),
           cancellationFailed: { title: 'failed' },
+        },
+        limit: {
+          confirmed: jest.fn(() => ({ title: 'confirmed' })),
+          creationFailed: jest.fn(() => ({ title: 'edit-failed' })),
         },
       },
     },
@@ -115,6 +148,52 @@ jest.mock('../../../components/PerpsBottomSheetTooltip', () => {
   };
 });
 
+jest.mock(
+  '../../../components/PerpsLimitPriceBottomSheet/PerpsLimitPriceBottomSheet',
+  () => {
+    const { View, Pressable, Text } = jest.requireActual('react-native');
+    return function PerpsLimitPriceBottomSheet({
+      onConfirm,
+    }: {
+      onConfirm: (price: string) => void;
+    }) {
+      return (
+        <View testID="perps-limit-price-bottom-sheet">
+          <Pressable
+            testID="perps-limit-price-confirm"
+            onPress={() => onConfirm('170')}
+          >
+            <Text>Confirm</Text>
+          </Pressable>
+        </View>
+      );
+    };
+  },
+);
+
+jest.mock(
+  '../../../components/PerpsOrderSizeBottomSheet/PerpsOrderSizeBottomSheet',
+  () => {
+    const { View, Pressable, Text } = jest.requireActual('react-native');
+    return function PerpsOrderSizeBottomSheet({
+      onConfirm,
+    }: {
+      onConfirm: (size: string) => void;
+    }) {
+      return (
+        <View testID="perps-order-size-bottom-sheet">
+          <Pressable
+            testID="perps-order-size-confirm"
+            onPress={() => onConfirm('2')}
+          >
+            <Text>Confirm</Text>
+          </Pressable>
+        </View>
+      );
+    };
+  },
+);
+
 const position: Position = {
   symbol: 'ETH',
   size: '1.5',
@@ -142,7 +221,7 @@ const order: Order = {
   price: '160.71',
   orderType: 'limit',
   status: 'open',
-  timestamp: Date.now(),
+  timestamp: 1_711_756_800_000, // 2024-03-30T00:00:00.000Z — fixed for determinism
   reduceOnly: false,
   isTrigger: false,
 };
@@ -167,9 +246,10 @@ describe('usePerpsProPositionsPanelActions', () => {
     jest.clearAllMocks();
     (useSelector as jest.Mock).mockReturnValue(true);
     mockCancelOrder.mockResolvedValue({ success: true });
+    mockEditOrder.mockResolvedValue({ success: true });
   });
 
-  it('navigates to close position with existing flow attribution', () => {
+  it('navigates to close position with existing flow attribution', async () => {
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
       | undefined;
@@ -182,7 +262,9 @@ describe('usePerpsProPositionsPanelActions', () => {
       />,
     );
 
-    actions?.handleClosePosition(position);
+    await act(async () => {
+      actions?.handleClosePosition(position);
+    });
 
     expect(mockGate).toHaveBeenCalled();
     expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
@@ -219,7 +301,7 @@ describe('usePerpsProPositionsPanelActions', () => {
     });
   });
 
-  it('navigates to share PnL with derived mark price', () => {
+  it('navigates to share PnL with derived mark price', async () => {
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
       | undefined;
@@ -232,7 +314,9 @@ describe('usePerpsProPositionsPanelActions', () => {
       />,
     );
 
-    actions?.handleSharePosition(position);
+    await act(async () => {
+      actions?.handleSharePosition(position);
+    });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PNL_HERO_CARD, {
       position,
@@ -269,6 +353,118 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(mockShowToast).toHaveBeenCalled();
   });
 
+  it('edits an order price through the limit price sheet', async () => {
+    let resolveEdit!: (value: { success: boolean }) => void;
+    mockEditOrder.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveEdit = resolve;
+        }),
+    );
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      actions?.handleEditOrderPrice(order);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('perps-limit-price-bottom-sheet'),
+      ).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('perps-limit-price-confirm'));
+    });
+
+    expect(screen.queryByTestId('perps-limit-price-bottom-sheet')).toBeNull();
+    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(order.orderId, {
+      limitPrice: '170',
+    });
+    expect(mockEditOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: order.orderId,
+        newOrder: expect.objectContaining({
+          symbol: order.symbol,
+          price: '170',
+          orderType: 'limit',
+        }),
+      }),
+    );
+
+    await act(async () => {
+      resolveEdit({ success: true });
+    });
+
+    expect(mockShowToast).toHaveBeenCalled();
+  });
+
+  it('edits an order size through the size bottom sheet', async () => {
+    let resolveEdit!: (value: { success: boolean }) => void;
+    mockEditOrder.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveEdit = resolve;
+        }),
+    );
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      actions?.handleEditOrderSize(order);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('perps-order-size-bottom-sheet'),
+      ).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('perps-order-size-confirm'));
+    });
+
+    expect(screen.queryByTestId('perps-order-size-bottom-sheet')).toBeNull();
+    expect(mockUpdateOrderOptimistic).toHaveBeenCalledWith(order.orderId, {
+      size: '2',
+    });
+    expect(mockEditOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderId: order.orderId,
+        newOrder: expect.objectContaining({
+          symbol: order.symbol,
+          size: '2',
+          orderType: 'limit',
+        }),
+      }),
+    );
+
+    await act(async () => {
+      resolveEdit({ success: true });
+    });
+
+    expect(mockShowToast).toHaveBeenCalled();
+  });
+
   it('renders close-all sheet when handler is invoked', async () => {
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
@@ -296,6 +492,13 @@ describe('usePerpsProPositionsPanelActions', () => {
 });
 
 describe('PerpsProPositionsPanel action callbacks', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useSelector as jest.Mock).mockReturnValue(true);
+    mockCancelOrder.mockResolvedValue({ success: true });
+    mockEditOrder.mockResolvedValue({ success: true });
+  });
+
   it('invokes position action callbacks from card controls', () => {
     const onClose = jest.fn();
     const onReverse = jest.fn();
@@ -431,6 +634,42 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     );
 
     expect(onCancel).toHaveBeenCalledWith(order);
+  });
+
+  it('invokes edit price callback from order card edit button', () => {
+    const onEditPrice = jest.fn();
+
+    render(<PerpsProOrderCard order={order} onEditPrice={onEditPrice} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_EDIT),
+    );
+
+    expect(onEditPrice).toHaveBeenCalledWith(order);
+  });
+
+  it('invokes edit price callback from order card price control', () => {
+    const onEditPrice = jest.fn();
+
+    render(<PerpsProOrderCard order={order} onEditPrice={onEditPrice} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_PRICE_EDIT),
+    );
+
+    expect(onEditPrice).toHaveBeenCalledWith(order);
+  });
+
+  it('invokes edit size callback from order card size control', () => {
+    const onEditSize = jest.fn();
+
+    render(<PerpsProOrderCard order={order} onEditSize={onEditSize} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT),
+    );
+
+    expect(onEditSize).toHaveBeenCalledWith(order);
   });
 
   it('invokes close-all callback from positions summary header', () => {
