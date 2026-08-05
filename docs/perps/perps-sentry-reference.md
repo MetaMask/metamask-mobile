@@ -153,7 +153,7 @@ setMeasurement(
 **How it works:**
 
 - `startPerpsCufTrace({ name, tags })` at the gesture mints a **unique per-operation id** and registers pending metadata (keyed by op id, not trace name — so overlapping same-flow ops each get their own span).
-- The starting surface arms a stream matcher (`watchPerpsCufOrderAbsent` / `watchPerpsCufPositionClosed` / `watchPerpsCufTpSlChanged` / `watchPerpsCufLimitRendered` / `watchPerpsCufAnyPositions`).
+- The starting surface arms a stream matcher (`watchPerpsCufOrderAbsent` / `watchPerpsCufOrderPriceUpdated` / `watchPerpsCufPositionClosed` / `watchPerpsCufTpSlChanged` / `watchPerpsCufLimitRendered` / `watchPerpsCufAnyPositions`).
 - The stream dispatchers (`handlePerpsCufPositionsDelivered` / `handlePerpsCufOrdersDelivered`, called from `PerpsStreamManager`) end the matching op via `endPerpsCufTrace` when its watched condition renders; a 30s fallback (`endPerpsCufTraceAfter` / `endPerpsCufRequestAfter`) no-ops if it already ended.
 - **Request-acceptance gate:** cancel/close/TP-SL arm at the gesture but only complete as a success after the controller accepts the request (`acceptPerpsCufRequest`), so a coincidental stream change during a failed request is never recorded as success.
 - **Teardown:** `clearPendingPerpsCufTraces()` (called from the `PerpsConnectionManager` session-change handler) abandons pending confirmations as `disconnected` on an account/network/provider/HIP-3 switch, preserving the reconnect span.
@@ -162,7 +162,7 @@ setMeasurement(
 
 ## Event Catalog
 
-### User-Perceived CUF Spans (11 events, TAT-3509)
+### User-Perceived CUF Spans (12 events, TAT-3509)
 
 **Purpose:** Measure the full tap/open → live-data experience (not just screen paint) at MSO boundaries, each tagged for per-context p75. Op: `perps.operation`; differentiated by `span.description` (the TraceName).
 
@@ -175,6 +175,7 @@ setMeasurement(
 | `PerpsPlaceLimitOrderToOrderRendered` | Limit submit → order rests in orders stream OR fills into a position            | `perpsCufTrace` (`watchPerpsCufLimitRendered`)  |
 | `PerpsClosePositionToConfirmation`    | Close submit → position size reduced/absent (gated on acceptance)               | `perpsCufTrace` (`watchPerpsCufPositionClosed`) |
 | `PerpsCancelOrderToConfirmation`      | Cancel submit → order absent from orders stream (gated on acceptance)           | `perpsCufTrace` (`watchPerpsCufOrderAbsent`)    |
+| `PerpsEditOrder` (price edit)         | Edit submit → resting order's `price` updates in orders stream (gated on acceptance; size-only edits skip the price watcher) | `perpsCufTrace` (`watchPerpsCufOrderPriceUpdated`; `orderPriceMatches` tolerates venue tick rounding) |
 | `PerpsUpdateTPSLToConfirmation`       | TP/SL submit → position's TP/SL value changed (gated on acceptance)             | `perpsCufTrace` (`watchPerpsCufTpSlChanged`)    |
 | `PerpsWebSocketFirstPrice`            | Price channel connect → first price delivery                                    | direct `trace()` in `PerpsStreamManager`        |
 | `PerpsWebSocketFirstOrderBook`        | Top-of-book connect → first order-book delivery                                 | direct `trace()` in `PerpsStreamManager`        |
@@ -222,7 +223,7 @@ setMeasurement(
 | TraceName            | Operation                 | Tags                                                                | Data Attributes                                                   |
 | -------------------- | ------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `PerpsPlaceOrder`    | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet, **payment_token** | isBuy, orderPrice, success, orderId, payment_token                |
-| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet                    | isBuy, orderPrice, success, orderId                               |
+| `PerpsEditOrder`     | `PerpsOrderSubmission`    | provider, orderType, market, leverage, isTestnet                    | isBuy, orderPrice, success, orderId. Price edits arm `watchPerpsCufOrderPriceUpdated`; `leverage` is threaded from position → trade config → market max. |
 | `PerpsCancelOrder`   | `PerpsOrderSubmission`    | provider, market, isTestnet, **isBatch** (batch ops only)           | orderId, success, **coinCount** (batch), **successCount** (batch) |
 | `PerpsClosePosition` | `PerpsPositionManagement` | provider, coin, closeSize, isTestnet, **isBatch** (batch)           | success, filledSize, **closeAll** (batch), **coinCount** (batch)  |
 | `PerpsUpdateTPSL`    | `PerpsPositionManagement` | provider, market, isTestnet                                         | takeProfitPrice, stopLossPrice, success                           |
