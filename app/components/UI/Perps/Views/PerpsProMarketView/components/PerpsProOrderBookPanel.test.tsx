@@ -259,6 +259,58 @@ describe('PerpsProOrderBookPanel', () => {
     expect(mockSaveGrouping).toHaveBeenCalledWith(100);
   });
 
+  it('abbreviates large size values instead of printing every digit', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    // totalNotional 174800 for the deepest bid.
+    expect(getByTestId(`${testID}-bid-row-1-value`)).toHaveTextContent(
+      '$174.8K',
+    );
+  });
+
+  it('renders every low-priced level at one precision so none collapse', () => {
+    // PUMP-style ladder: magnitude formatting stripped trailing zeros, so
+    // "0.0021" rendered two digits shorter than its neighbours.
+    const pumpOrderBook: OrderBookData = {
+      ...mockOrderBook,
+      midPrice: '0.0021',
+      bids: [
+        { ...mockOrderBook.bids[0], price: '0.002099' },
+        { ...mockOrderBook.bids[1], price: '0.0021' },
+      ],
+      asks: [
+        { ...mockOrderBook.asks[0], price: '0.002101' },
+        { ...mockOrderBook.asks[1], price: '0.002102' },
+      ],
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: pumpOrderBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="PUMP"
+        marketPrice={0.0021}
+        szDecimals={0}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-bid-row-0-price`)).toHaveTextContent(
+      '$0.002099',
+    );
+    expect(getByTestId(`${testID}-bid-row-1-price`)).toHaveTextContent(
+      '$0.002100',
+    );
+  });
+
   it('resets grouping to the new market preference when symbol changes', () => {
     mockSavedGroupingBySymbol.ETH = 1;
 

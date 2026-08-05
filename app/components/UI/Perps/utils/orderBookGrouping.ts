@@ -3,6 +3,7 @@ import {
   type OrderBookLevel,
 } from '@metamask/perps-controller';
 import {
+  type FiatRangeConfig,
   formatPerpsFiat,
   formatPositionSize,
   formatLargeNumber,
@@ -39,9 +40,22 @@ export type OrderBookListCurrency = 'base' | 'usd';
 /** Metric shown in the value column: per-level size or cumulative total. */
 export type OrderBookListMetric = 'size' | 'total';
 
-/** Compact-notation thresholds for USD amounts. */
-const USD_COMPACT_MILLIONS_THRESHOLD = 1_000_000;
-const USD_COMPACT_THOUSANDS_THRESHOLD = 10_000;
+/**
+ * Size/total values switch to compact K/M/B/T notation at or above this
+ * amount. The value column is only 62px wide, so anything with more than four
+ * digits has to be abbreviated — low-priced assets (PUMP, PEPE) otherwise
+ * render 7-10 digit sizes that overflow or shrink the price column.
+ */
+const COMPACT_NOTATION_THRESHOLD = 1_000;
+
+/**
+ * Decimals kept on compacted values ("$2.1K", "604.9K", "$1.2M"). Fixed
+ * rather than magnitude-dependent so the right-aligned column stays aligned.
+ */
+const COMPACT_NOTATION_DECIMALS = 1;
+
+/** Hyperliquid's absolute cap on perp price decimals (`MaxPriceDecimals`). */
+const MAX_PRICE_DECIMALS = 6;
 
 /** Decimal places kept when rendering the spread as a percentage. */
 const SPREAD_PERCENT_DECIMALS = 3;
@@ -273,11 +287,10 @@ function formatUsd(value: number): string {
   if (!Number.isFinite(value)) {
     return ORDER_BOOK_FALLBACK_DISPLAY;
   }
-  if (value >= USD_COMPACT_MILLIONS_THRESHOLD) {
-    return `$${formatLargeNumber(value, { decimals: 1 })}`;
-  }
-  if (value >= USD_COMPACT_THOUSANDS_THRESHOLD) {
-    return `$${formatLargeNumber(value, { decimals: 0 })}`;
+  if (Math.abs(value) >= COMPACT_NOTATION_THRESHOLD) {
+    return `$${formatLargeNumber(value, {
+      decimals: COMPACT_NOTATION_DECIMALS,
+    })}`;
   }
   return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
 }
@@ -286,11 +299,105 @@ function formatBase(value: number, szDecimals?: number): string {
   if (!Number.isFinite(value)) {
     return ORDER_BOOK_FALLBACK_DISPLAY;
   }
+  if (Math.abs(value) >= COMPACT_NOTATION_THRESHOLD) {
+    return formatLargeNumber(value, { decimals: COMPACT_NOTATION_DECIMALS });
+  }
   return formatPositionSize(value, szDecimals);
 }
 
 /**
+ * Exact decimal-place count for a number, via its exponential form so values
+ * like 1e-7 and 0.002 are read off the mantissa/exponent instead of a
+ * `Math.log10` result that can land just under an integer boundary.
+ */
+function countDecimalPlaces(value: number): number {
+  const [mantissa, exponent] = Math.abs(value).toExponential().split('e');
+  const mantissaDecimals = (mantissa.split('.')[1] ?? '').length;
+  return Math.max(0, mantissaDecimals - Number(exponent));
+}
+
+/**
+ * Decimal places every price in the ladder should render with.
+ *
+ * The rule: **match the active grouping increment**, capped at Hyperliquid's
+ * price precision for the asset (`6 - szDecimals`). The grouping is the price
+ * step actually being displayed, so it is the only precision that carries
+ * information — showing fewer decimals collapses neighbouring levels into one
+ * identical string (every PEPE level rendered as "$0.00001"), and showing more
+ * only adds noise. Applying one count to all rows also keeps the column from
+ * wobbling, which is what trailing-zero stripping caused ("$0.002097" above
+ * "$0.0021").
+ *
+ * @param grouping - Active price grouping increment, or null when unknown.
+ * @param szDecimals - Asset base-size precision from Hyperliquid metadata.
+ * @returns Fixed decimal count, or null to fall back to magnitude-based rules.
+ */
+export function getOrderBookPriceDecimals(
+  grouping: number | null,
+  szDecimals?: number,
+): number | null {
+  if (grouping === null || !Number.isFinite(grouping) || grouping <= 0) {
+    return null;
+  }
+  const maxDecimals =
+    typeof szDecimals === 'number' && Number.isFinite(szDecimals)
+      ? Math.max(0, MAX_PRICE_DECIMALS - szDecimals)
+      : MAX_PRICE_DECIMALS;
+  return Math.min(countDecimalPlaces(grouping), maxDecimals);
+}
+
+/**
+ * Range configs are rebuilt per decimal count, so cache them — the ladder
+ * reformats every price on each live tick.
+ */
+const fixedDecimalRanges = new Map<number, FiatRangeConfig[]>();
+
+function getFixedDecimalRanges(decimals: number): FiatRangeConfig[] {
+  const cached = fixedDecimalRanges.get(decimals);
+  if (cached) {
+    return cached;
+  }
+  const ranges: FiatRangeConfig[] = [
+    {
+      condition: () => true,
+      minimumDecimals: decimals,
+      maximumDecimals: decimals,
+      // 0 disables the "<$x" small-value substitution, which would otherwise
+      // mask genuine sub-cent ladder prices.
+      threshold: 0,
+    },
+  ];
+  fixedDecimalRanges.set(decimals, ranges);
+  return ranges;
+}
+
+/**
+ * Format a ladder price at the fixed precision from `getOrderBookPriceDecimals`.
+ * Falls back to magnitude-based formatting when precision is unknown.
+ */
+export function formatOrderBookPrice(
+  price: string | number,
+  priceDecimals: number | null,
+): string {
+  const value = typeof price === 'number' ? price : Number.parseFloat(price);
+  if (!Number.isFinite(value)) {
+    return ORDER_BOOK_FALLBACK_DISPLAY;
+  }
+  if (priceDecimals === null) {
+    return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
+  }
+  return formatPerpsFiat(value, {
+    ranges: getFixedDecimalRanges(priceDecimals),
+    stripTrailingZeros: false,
+  });
+}
+
+/**
  * Format the value shown in the metric column based on currency + metric.
+ *
+ * Anything at or above 1,000 is abbreviated to one decimal ("$2.1K", "1.2M")
+ * in both denominations; below that, USD uses fiat rules and base sizes use
+ * the asset's `szDecimals`.
  */
 export function formatColumnValue(
   level: OrderBookLevel,

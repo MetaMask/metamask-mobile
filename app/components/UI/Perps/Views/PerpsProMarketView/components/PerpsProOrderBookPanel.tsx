@@ -40,9 +40,11 @@ import {
   calculateAggregationParams,
   calculateGroupingOptions,
   formatColumnValue,
+  formatOrderBookPrice,
   formatSpreadPercent,
   getDepthRatio,
   getDepthWidth,
+  getOrderBookPriceDecimals,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
@@ -73,6 +75,14 @@ export interface PerpsProOrderBookPanelProps {
   onCollapse?: () => void;
 }
 
+/**
+ * Price and value share the row equally (Figma: two 62px columns with an 8px
+ * gutter). Fixed halves plus single-line text are what keep the two from
+ * running into each other once either side grows.
+ */
+const COLUMN_CLASS = 'relative z-10 flex-1';
+const VALUE_COLUMN_CLASS = `${COLUMN_CLASS} text-right`;
+
 interface OrderBookRowProps {
   level: OrderBookLevel;
   side: 'bid' | 'ask';
@@ -81,6 +91,7 @@ interface OrderBookRowProps {
   maxTotal: number;
   depthBarColor: string;
   szDecimals?: number;
+  priceDecimals: number | null;
   onSelectPrice?: (price: string) => void;
   testID: string;
 }
@@ -93,6 +104,7 @@ const OrderBookRow = ({
   maxTotal,
   depthBarColor,
   szDecimals,
+  priceDecimals,
   onSelectPrice,
   testID,
 }: OrderBookRowProps) => {
@@ -113,6 +125,8 @@ const OrderBookRow = ({
     width: `${depthWidthSv.value}%`,
   }));
 
+  const priceLabel = formatOrderBookPrice(level.price, priceDecimals);
+
   const content = (
     <>
       <Animated.View
@@ -130,16 +144,18 @@ const OrderBookRow = ({
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
         color={sideColor}
-        twClassName="relative z-10"
+        numberOfLines={1}
+        twClassName={COLUMN_CLASS}
         testID={`${testID}-price`}
       >
-        {formatPerpsFiat(level.price, { ranges: PRICE_RANGES_UNIVERSAL })}
+        {priceLabel}
       </Text>
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}
         color={sideColor}
-        twClassName="relative z-10"
+        numberOfLines={1}
+        twClassName={VALUE_COLUMN_CLASS}
         testID={`${testID}-value`}
       >
         {formatColumnValue(level, currency, metric, szDecimals)}
@@ -153,9 +169,7 @@ const OrderBookRow = ({
         onPress={() => onSelectPrice(level.price)}
         accessibilityRole="button"
         accessibilityLabel={strings('perps.order_book.use_price', {
-          price: formatPerpsFiat(level.price, {
-            ranges: PRICE_RANGES_UNIVERSAL,
-          }),
+          price: priceLabel,
         })}
         testID={testID}
         style={styles.interactiveRow}
@@ -163,8 +177,7 @@ const OrderBookRow = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="relative h-full"
+          twClassName="relative h-full gap-2"
         >
           {content}
         </Box>
@@ -176,8 +189,7 @@ const OrderBookRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="relative h-8"
+      twClassName="relative h-8 gap-2"
       testID={testID}
     >
       {content}
@@ -453,6 +465,14 @@ const PerpsProOrderBookPanel = ({
     return calculateAggregationParams(currentGrouping, midPriceValue);
   }, [currentGrouping, midPriceValue]);
 
+  // One decimal count for the whole ladder, derived from the grouping step —
+  // see `getOrderBookPriceDecimals` for why magnitude-based formatting is not
+  // usable here.
+  const priceDecimals = useMemo(
+    () => getOrderBookPriceDecimals(currentGrouping, szDecimals),
+    [currentGrouping, szDecimals],
+  );
+
   // Server-aggregated book on its own dedicated socket (does not disturb raw).
   const {
     orderBook: aggregatedOrderBook,
@@ -608,15 +628,13 @@ const PerpsProOrderBookPanel = ({
       </Box>
 
       {/* Column headers */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="pb-1"
-      >
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 pb-1">
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
+          twClassName="flex-1"
         >
           {strings('perps.order_book.price')}
         </Text>
@@ -624,6 +642,8 @@ const PerpsProOrderBookPanel = ({
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
+          numberOfLines={1}
+          twClassName="flex-1 text-right"
         >
           {`${metricLabel} (${unitLabel})`}
         </Text>
@@ -675,6 +695,7 @@ const PerpsProOrderBookPanel = ({
                   maxTotal={grouped.maxTotal}
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
+                  priceDecimals={priceDecimals}
                   onSelectPrice={onSelectPrice}
                   testID={`${testID}-ask-row-${index}`}
                 />
@@ -682,17 +703,20 @@ const PerpsProOrderBookPanel = ({
             </Box>
           )}
 
+          {/* The label keeps its intrinsic width and the value takes whatever
+              is left, so the spread figures never get squeezed by the label. */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="h-8"
+            twClassName="h-8 gap-2"
             testID={`${testID}-spread`}
           >
             <Text
               variant={TextVariant.BodyXs}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
+              numberOfLines={1}
+              twClassName="shrink-0"
             >
               {strings('perps.order_book.spread')}
             </Text>
@@ -701,6 +725,8 @@ const PerpsProOrderBookPanel = ({
                 variant={TextVariant.BodyXs}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="flex-1 text-right"
               >
                 {spreadDisplay}
               </Text>
@@ -720,6 +746,7 @@ const PerpsProOrderBookPanel = ({
                   maxTotal={grouped.maxTotal}
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
+                  priceDecimals={priceDecimals}
                   onSelectPrice={onSelectPrice}
                   testID={`${testID}-bid-row-${index}`}
                 />

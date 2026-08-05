@@ -9,6 +9,8 @@ import {
   getDepthWidth,
   formatSpreadPercent,
   formatColumnValue,
+  formatOrderBookPrice,
+  getOrderBookPriceDecimals,
 } from './orderBookGrouping';
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
 import type { OrderBookData } from '@metamask/perps-controller';
@@ -411,6 +413,127 @@ describe('orderBookGrouping', () => {
           'total',
         ),
       ).toContain('300');
+    });
+  });
+
+  describe('formatColumnValue compact notation', () => {
+    const level = (overrides: Partial<OrderBookLevel>): OrderBookLevel => ({
+      price: '1',
+      size: '1',
+      total: '1',
+      notional: '1',
+      totalNotional: '1',
+      ...overrides,
+    });
+
+    it.each([
+      ['95', '$95'],
+      ['999.4', '$999.4'],
+      // Reported case: 2097 used to render as "$2,097".
+      ['2097', '$2.1K'],
+      ['121000', '$121.0K'],
+      ['604930', '$604.9K'],
+      ['1234567', '$1.2M'],
+      ['2500000000', '$2.5B'],
+    ])('abbreviates USD size %s as %s', (notional, expected) => {
+      expect(formatColumnValue(level({ notional }), 'usd', 'size')).toBe(
+        expected,
+      );
+    });
+
+    it.each([
+      // Low-priced assets (PUMP, PEPE) trade in millions of base units.
+      ['2097000', '2.1M'],
+      ['604930000', '604.9M'],
+    ])('abbreviates base size %s as %s', (size, expected) => {
+      expect(formatColumnValue(level({ size }), 'base', 'size', 0)).toBe(
+        expected,
+      );
+    });
+
+    it('leaves sub-threshold base sizes at the asset precision', () => {
+      expect(formatColumnValue(level({ size: '1.5' }), 'base', 'size', 4)).toBe(
+        '1.5',
+      );
+      expect(formatColumnValue(level({ size: '999' }), 'base', 'size', 4)).toBe(
+        '999',
+      );
+    });
+
+    it('abbreviates the cumulative total the same way as per-level size', () => {
+      expect(
+        formatColumnValue(level({ totalNotional: '2097' }), 'usd', 'total'),
+      ).toBe('$2.1K');
+    });
+  });
+
+  describe('getOrderBookPriceDecimals', () => {
+    it.each([
+      // [grouping, szDecimals, expected]
+      [10, 5, 0],
+      [1, 5, 0],
+      [0.01, 2, 2],
+      [0.002, 0, 3],
+      [0.000001, 0, 6],
+    ])(
+      'matches the grouping step (grouping %p, szDecimals %p)',
+      (grouping, szDecimals, expected) => {
+        expect(getOrderBookPriceDecimals(grouping, szDecimals)).toBe(expected);
+      },
+    );
+
+    it('caps at the asset price precision Hyperliquid allows (6 - szDecimals)', () => {
+      expect(getOrderBookPriceDecimals(0.0000001, 0)).toBe(6);
+      expect(getOrderBookPriceDecimals(0.001, 5)).toBe(1);
+    });
+
+    it('caps at 6 decimals when szDecimals is unknown', () => {
+      expect(getOrderBookPriceDecimals(0.0000001)).toBe(6);
+    });
+
+    it.each([[null], [0], [-1], [Number.NaN]])(
+      'returns null for unusable grouping %p',
+      (grouping) => {
+        expect(getOrderBookPriceDecimals(grouping, 0)).toBeNull();
+      },
+    );
+  });
+
+  describe('formatOrderBookPrice', () => {
+    it('renders every level of a PUMP ladder at the same precision', () => {
+      const decimals = getOrderBookPriceDecimals(0.000001, 0);
+
+      // Trailing-zero stripping previously produced "$0.0021" between
+      // "$0.002099" and "$0.002101", so the column never lined up.
+      expect(
+        ['0.002099', '0.0021', '0.002101'].map((price) =>
+          formatOrderBookPrice(price, decimals),
+        ),
+      ).toEqual(['$0.002099', '$0.002100', '$0.002101']);
+    });
+
+    it('keeps neighbouring low-priced levels distinguishable', () => {
+      const decimals = getOrderBookPriceDecimals(0.000001, 0);
+      const prices = ['0.0098', '0.009801', '0.009802'].map((price) =>
+        formatOrderBookPrice(price, decimals),
+      );
+
+      // Magnitude-based formatting collapsed all three into one string.
+      expect(new Set(prices).size).toBe(3);
+    });
+
+    it('drops decimals entirely for coarse groupings', () => {
+      const decimals = getOrderBookPriceDecimals(10, 5);
+
+      expect(formatOrderBookPrice('61470', decimals)).toBe('$61,470');
+    });
+
+    it('falls back to magnitude-based formatting when precision is unknown', () => {
+      expect(formatOrderBookPrice('0.002097', null)).toBe('$0.002097');
+    });
+
+    it('returns the fallback display for unparseable prices', () => {
+      expect(formatOrderBookPrice('not-a-number', 2)).toBe('—');
     });
   });
 });
