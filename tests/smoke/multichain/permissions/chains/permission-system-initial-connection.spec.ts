@@ -1,4 +1,4 @@
-import { SmokeNetworkExpansion } from '../../../../tags';
+import { SmokeNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../page-objects/Browser/BrowserView';
 import TestDApp from '../../../../page-objects/Browser/TestDApp';
 import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
@@ -12,7 +12,7 @@ import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/Netw
 import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../framework/Constants';
 
-describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
+describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
