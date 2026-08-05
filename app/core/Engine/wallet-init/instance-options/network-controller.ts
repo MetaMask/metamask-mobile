@@ -28,6 +28,10 @@ export function getNetworkControllerInstanceOptions(): WalletOptions['instanceOp
       [ChainId['base-mainnet']]:
         getFailoverUrlsForInfuraNetwork('base-mainnet'),
       [ChainId['bsc-mainnet']]: getFailoverUrlsForInfuraNetwork('bsc-mainnet'),
+      [ChainId['zksync-mainnet']]:
+        getFailoverUrlsForInfuraNetwork('zksync-mainnet'),
+      [ChainId['megaeth-mainnet']]:
+        getFailoverUrlsForInfuraNetwork('megaeth-mainnet'),
       [ChainId['sei-mainnet']]: getFailoverUrlsForInfuraNetwork('sei-mainnet'),
       [ChainId['monad-mainnet']]:
         getFailoverUrlsForInfuraNetwork('monad-mainnet'),
