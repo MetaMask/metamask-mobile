@@ -52,6 +52,17 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   setIsMaxDeposit: noop,
 });
 
+export interface PayTokenSelectionContextParams {
+  isPayTokenSelectionFailed: boolean;
+  setIsPayTokenSelectionFailed: (isPayTokenSelectionFailed: boolean) => void;
+}
+
+const PayTokenSelectionContext =
+  React.createContext<PayTokenSelectionContextParams>({
+    isPayTokenSelectionFailed: false,
+    setIsPayTokenSelectionFailed: noop,
+  });
+
 interface ConfirmationContextProviderProps {
   children: React.ReactNode;
 }
@@ -71,6 +82,9 @@ export const ConfirmationContextProvider: React.FC<
   >();
 
   const [isHeadlessBuyInProgress, setIsHeadlessBuyInProgress] = useState(false);
+
+  const [isPayTokenSelectionFailed, setIsPayTokenSelectionFailed] =
+    useState(false);
 
   const [isTransactionDataUpdating, setIsTransactionDataUpdating] =
     useState<boolean>(false);
@@ -127,12 +141,25 @@ export const ConfirmationContextProvider: React.FC<
     ],
   );
 
+  const payTokenSelectionContextValue = useMemo(
+    () => ({
+      isPayTokenSelectionFailed,
+      setIsPayTokenSelectionFailed,
+    }),
+    [isPayTokenSelectionFailed],
+  );
+
   return (
-    <ConfirmationContext.Provider value={contextValue}>
-      {children}
-    </ConfirmationContext.Provider>
+    <PayTokenSelectionContext.Provider value={payTokenSelectionContextValue}>
+      <ConfirmationContext.Provider value={contextValue}>
+        {children}
+      </ConfirmationContext.Provider>
+    </PayTokenSelectionContext.Provider>
   );
 };
+
+export const usePayTokenSelectionContext = () =>
+  useContext(PayTokenSelectionContext);
 
 export const useConfirmationContext = () => {
   const context = useContext(ConfirmationContext);

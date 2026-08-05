@@ -55,6 +55,7 @@ const DEFAULT_OPTIONS: HookOptions = {
   isAddMusdIntent: false,
   isDepositPrefillEnabled: false,
   isDepositPrefillLoading: false,
+  isPayTokenUnavailable: false,
   skipDepositPrefill: false,
   hasAccountNoFunds: false,
 };
@@ -132,6 +133,27 @@ describe('useCustomAmountStage', () => {
       const { result } = runDerived();
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
+    });
+
+    it('derives NoQuote when a required pay token is unavailable', () => {
+      setupState({ isQuotesLoading: true, amountRaw: undefined });
+
+      const { result } = runDerived({ isPayTokenUnavailable: true });
+
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
+    });
+
+    it('derives NoQuote after selection fails during prefill loading', () => {
+      setupState({ isQuotesLoading: true, amountRaw: undefined });
+
+      const { result } = runDerived({
+        amountFiat: '0',
+        isDepositPrefillEnabled: true,
+        isDepositPrefillLoading: true,
+        isPayTokenUnavailable: true,
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
     });
 
     it('derives ShowTotals once quotes are present', () => {
@@ -305,6 +327,28 @@ describe('useCustomAmountStage', () => {
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
+    });
+
+    it('keeps the Loading override while pay token selection is pending', () => {
+      setupState({ isQuotesLoading: true, amountRaw: undefined });
+      const { result } = runHook();
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.Loading);
+    });
+
+    it('leaves the Loading override when a required pay token is unavailable', () => {
+      setupState({ isQuotesLoading: true, amountRaw: undefined });
+      const { result } = runHook({ isPayTokenUnavailable: true });
+
+      act(() => {
+        result.current.setStage(CustomAmountStage.Loading);
+      });
+
+      expect(result.current.stage).toBe(CustomAmountStage.NoQuote);
     });
 
     it('leaves the Loading override once the quote fetch takes over', () => {

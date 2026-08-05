@@ -41,6 +41,7 @@ import { selectLastWithdrawTokenByType } from '../../../../../selectors/transact
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
+import { usePayTokenSelectionContext } from '../../context/confirmation-context';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -53,6 +54,7 @@ jest.mock('./useWithdrawTokenFilter');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('./useIsFiatPaymentAvailable');
 jest.mock('./useMMPayFiatConfig');
+jest.mock('../../context/confirmation-context');
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectLastWithdrawTokenByType: jest.fn(),
@@ -145,10 +147,15 @@ describe('useAutomaticTransactionPayToken', () => {
   const setPayTokenMock: jest.MockedFn<
     ReturnType<typeof useTransactionPayToken>['setPayToken']
   > = jest.fn();
+  const setIsPayTokenSelectionFailedMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
     setPayTokenMock.mockReturnValue(true);
+    jest.mocked(usePayTokenSelectionContext).mockReturnValue({
+      isPayTokenSelectionFailed: false,
+      setIsPayTokenSelectionFailed: setIsPayTokenSelectionFailedMock,
+    });
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -247,6 +254,8 @@ describe('useAutomaticTransactionPayToken', () => {
     setPayTokenMock.mockReturnValueOnce(false);
     const { rerender } = runHook();
 
+    expect(setIsPayTokenSelectionFailedMock).toHaveBeenLastCalledWith(true);
+
     rerender(undefined);
 
     expect(setPayTokenMock).toHaveBeenCalledTimes(1);
@@ -267,6 +276,7 @@ describe('useAutomaticTransactionPayToken', () => {
       address: TOKEN_ADDRESS_3_MOCK,
       chainId: CHAIN_ID_2_MOCK,
     });
+    expect(setIsPayTokenSelectionFailedMock).toHaveBeenLastCalledWith(false);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [

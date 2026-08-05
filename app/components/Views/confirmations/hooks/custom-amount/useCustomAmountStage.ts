@@ -31,6 +31,7 @@ export enum CustomAmountStage {
  * @param options.isAddMusdIntent - Whether this is an add-mUSD deposit.
  * @param options.isDepositPrefillEnabled - Whether deposit prefill is enabled.
  * @param options.isDepositPrefillLoading - Whether a deposit prefill is loading.
+ * @param options.isPayTokenUnavailable - Whether a required crypto payment token failed to resolve.
  * @param options.skipDepositPrefill - Whether deposit prefill is skipped.
  * @returns The current stage and a setter to override it.
  */
@@ -42,6 +43,7 @@ export function useCustomAmountStage({
   isAddMusdIntent,
   isDepositPrefillEnabled,
   isDepositPrefillLoading,
+  isPayTokenUnavailable,
   skipDepositPrefill,
 }: {
   amountFiat: string;
@@ -51,6 +53,7 @@ export function useCustomAmountStage({
   isAddMusdIntent: boolean;
   isDepositPrefillEnabled: boolean;
   isDepositPrefillLoading: boolean;
+  isPayTokenUnavailable: boolean;
   skipDepositPrefill: boolean;
 }): {
   stage: CustomAmountStage;
@@ -111,7 +114,12 @@ export function useCustomAmountStage({
       // required-token amount may never resolve. There is nothing to await once
       // the amount is committed, so settle on the arm frame itself — the settle
       // branch below is never re-entered when no reactive input changes.
-      if (isNoOpRecommit || disablePay || hasPrefetchedQuote) {
+      if (
+        isNoOpRecommit ||
+        disablePay ||
+        hasPrefetchedQuote ||
+        isPayTokenUnavailable
+      ) {
         setStage(null);
       }
       return;
@@ -125,7 +133,10 @@ export function useCustomAmountStage({
       (loadingBaselineRef.current === undefined ||
         quotesLastUpdated > loadingBaselineRef.current);
 
-    if (hasAmount && (hasFreshQuote || isQuotesLoading)) {
+    if (
+      (hasAmount && (hasFreshQuote || isQuotesLoading)) ||
+      isPayTokenUnavailable
+    ) {
       setStage(null);
     }
   }, [
@@ -135,12 +146,16 @@ export function useCustomAmountStage({
     hasAmount,
     hasPrefetchedQuote,
     hasQuotes,
+    isPayTokenUnavailable,
     isQuotesLoading,
     quotesLastUpdated,
   ]);
 
   const isAwaitingPrefillResult =
-    !hasAccountNoFunds && !skipDepositPrefill && isDepositPrefillLoading;
+    !isPayTokenUnavailable &&
+    !hasAccountNoFunds &&
+    !skipDepositPrefill &&
+    isDepositPrefillLoading;
 
   // `disablePay` flows never fetch quotes, so totals (a plain `TotalRow`) show
   // as soon as the override clears — they must never fall through to `NoQuote`.
@@ -167,7 +182,12 @@ export function useCustomAmountStage({
   // Derive from reactive inputs. Stay in Loading while quotes fetch or a
   // prefill preload resolves; otherwise show totals when quotes exist, or fall
   // through to NoQuote when a settled fetch produced none.
-  if ((isQuotesLoading && !hasPrefetchedQuote) || isAwaitingPrefillResult) {
+  const isQuoteImpossible = isPayTokenUnavailable;
+
+  if (
+    (isQuotesLoading && !hasPrefetchedQuote && !isQuoteImpossible) ||
+    isAwaitingPrefillResult
+  ) {
     return { setStage, stage: CustomAmountStage.Loading };
   }
 

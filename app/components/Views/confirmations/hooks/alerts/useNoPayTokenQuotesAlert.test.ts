@@ -26,11 +26,13 @@ import {
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
 import { TransactionType } from '@metamask/transaction-controller';
+import { usePayTokenSelectionContext } from '../../context/confirmation-context';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayWithdraw');
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../../context/confirmation-context');
 
 const STATE_MOCK = merge(
   {},
@@ -64,6 +66,9 @@ describe('useNoPayTokenQuotesAlert', () => {
     useTransactionPayRequiredTokens,
   );
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
+  const usePayTokenSelectionContextMock = jest.mocked(
+    usePayTokenSelectionContext,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -86,6 +91,10 @@ describe('useNoPayTokenQuotesAlert', () => {
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
     jest.mocked(useTransactionPayQuoteError).mockReturnValue(undefined);
+    usePayTokenSelectionContextMock.mockReturnValue({
+      isPayTokenSelectionFailed: false,
+      setIsPayTokenSelectionFailed: jest.fn(),
+    });
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -295,12 +304,21 @@ describe('useNoPayTokenQuotesAlert', () => {
       });
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
       jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
+      usePayTokenSelectionContextMock.mockReturnValue({
+        isPayTokenSelectionFailed: false,
+        setIsPayTokenSelectionFailed: jest.fn(),
+      });
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
       } as never);
     });
 
-    it('returns alert for moneyAccountDeposit with no quotes and positive required amount', () => {
+    it('returns alert for moneyAccountDeposit after pay token selection fails', () => {
+      usePayTokenSelectionContextMock.mockReturnValue({
+        isPayTokenSelectionFailed: true,
+        setIsPayTokenSelectionFailed: jest.fn(),
+      });
+
       const { result } = runHook();
 
       expect(result.current).toEqual([
@@ -343,15 +361,25 @@ describe('useNoPayTokenQuotesAlert', () => {
       expect(result.current).toStrictEqual([]);
     });
 
-    it('returns no alert for moneyAccountDeposit while quotes are loading', () => {
+    it('returns alert for moneyAccountDeposit failure while loading is stale', () => {
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
       } as never);
       useIsTransactionPayLoadingMock.mockReturnValue(true);
+      usePayTokenSelectionContextMock.mockReturnValue({
+        isPayTokenSelectionFailed: true,
+        setIsPayTokenSelectionFailed: jest.fn(),
+      });
 
       const { result } = runHook();
 
-      expect(result.current).toStrictEqual([]);
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
     });
   });
 
@@ -463,11 +491,47 @@ describe('useNoPayTokenQuotesAlert', () => {
       } as never);
     });
 
-    it('returns alert for perps deposit when no payment token is set', () => {
+    it('returns alert for perps deposit after pay token selection fails', () => {
+      usePayTokenSelectionContextMock.mockReturnValue({
+        isPayTokenSelectionFailed: true,
+        setIsPayTokenSelectionFailed: jest.fn(),
+      });
+
       const { result } = runHook();
 
       expect(result.current).toEqual([BLOCKING_ALERT]);
     });
+
+    it('returns alert after pay token selection fails before the required amount resolves', () => {
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: undefined,
+          skipIfBalance: false,
+        } as unknown as TransactionPayRequiredToken,
+      ]);
+      usePayTokenSelectionContextMock.mockReturnValue({
+        isPayTokenSelectionFailed: true,
+        setIsPayTokenSelectionFailed: jest.fn(),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([BLOCKING_ALERT]);
+    });
+
+    it.each([true, false])(
+      'returns no alerts while pay token selection is pending and loading is %s',
+      (isLoading) => {
+        useIsTransactionPayLoadingMock.mockReturnValue(isLoading);
+
+        const { result } = runHook();
+
+        expect(result.current).toStrictEqual([]);
+      },
+    );
 
     it('returns no alerts when a fiat payment method is selected', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({

@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import {
   ConfirmationContextProvider,
   useConfirmationContext,
+  usePayTokenSelectionContext,
 } from './confirmation-context';
 
 describe('ConfirmationContext', () => {
@@ -75,6 +76,24 @@ describe('ConfirmationContext', () => {
     });
 
     expect(result.current.isHeadlessBuyInProgress).toBe(false);
+  });
+
+  it('updates pay token selection failure state', () => {
+    const { result } = renderHook(() => usePayTokenSelectionContext(), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.setIsPayTokenSelectionFailed(true);
+    });
+
+    expect(result.current.isPayTokenSelectionFailed).toBe(true);
+
+    act(() => {
+      result.current.setIsPayTokenSelectionFailed(false);
+    });
+
+    expect(result.current.isPayTokenSelectionFailed).toBe(false);
   });
 
   it('updates isTransactionDataUpdating state when calling setIsTransactionDataUpdating', () => {

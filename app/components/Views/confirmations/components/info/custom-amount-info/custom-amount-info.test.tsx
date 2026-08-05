@@ -14,7 +14,10 @@ import { transactionApprovalControllerMock } from '../../../__mocks__/controller
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
-import { useConfirmationContext } from '../../../context/confirmation-context';
+import {
+  useConfirmationContext,
+  usePayTokenSelectionContext,
+} from '../../../context/confirmation-context';
 import { Alert, Severity } from '../../../types/alerts';
 import { AlertKeys } from '../../../constants/alerts';
 import {
@@ -284,6 +287,9 @@ function render(
 describe('CustomAmountInfo', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useConfirmationContextMock = jest.mocked(useConfirmationContext);
+  const usePayTokenSelectionContextMock = jest.mocked(
+    usePayTokenSelectionContext,
+  );
   const useAlertsMock = jest.mocked(useAlerts);
   const useAccountTokensMock = jest.mocked(useAccountTokens);
   const useConfirmActionsMock = jest.mocked(useConfirmActions);
@@ -419,6 +425,10 @@ describe('CustomAmountInfo', () => {
       isMaxDeposit: false,
       setIsMaxDeposit: noop,
     } as ReturnType<typeof useConfirmationContext>);
+    usePayTokenSelectionContextMock.mockReturnValue({
+      isPayTokenSelectionFailed: false,
+      setIsPayTokenSelectionFailed: noop,
+    });
 
     useAlertsMock.mockReturnValue({
       alerts: [] as Alert[],
@@ -2547,6 +2557,44 @@ describe('CustomAmountInfo', () => {
       const { queryByTestId, getByTestId } = render();
 
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+    });
+
+    it('stops prefill loading after pay token selection fails', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        hasPrefetchedQuote: false,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: true,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: () => false,
+        updateTokenAmount: jest.fn(),
+      });
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+      usePayTokenSelectionContextMock.mockReturnValue({
+        isPayTokenSelectionFailed: true,
+        setIsPayTokenSelectionFailed: noop,
+      });
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(queryByTestId('custom-amount-skeleton')).not.toBeOnTheScreen();
       expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
     });
 

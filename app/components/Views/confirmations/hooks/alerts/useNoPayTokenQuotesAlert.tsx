@@ -22,6 +22,7 @@ import {
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
+import { usePayTokenSelectionContext } from '../../context/confirmation-context';
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
@@ -34,6 +35,7 @@ export function useNoPayTokenQuotesAlert() {
   const transactionMeta = useTransactionMetadataRequest();
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const quoteError = useTransactionPayQuoteError();
+  const { isPayTokenSelectionFailed } = usePayTokenSelectionContext();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -70,6 +72,7 @@ export function useNoPayTokenQuotesAlert() {
 
   const shouldShowQuoteRequiredNoQuotesAlert =
     hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES) &&
+    Boolean(payToken) &&
     !isQuotesLoading &&
     !quotes?.length &&
     hasPositiveRequiredAmount;
@@ -90,13 +93,16 @@ export function useNoPayTokenQuotesAlert() {
     !isPostQuote;
 
   // Pay-type deposits and conversions must have a payment token set on the
-  // controller (or a fiat payment method selected) before confirming. Blocks
-  // the timing races where auto-selection never completed, so no quotes were
-  // fetched and the transaction previously submitted directly without funds.
+  // controller (or a fiat payment method selected) before confirming. Once an
+  // actual selection attempt fails, a stale loading flag cannot make progress,
+  // so surface the terminal alert even while that flag remains set.
+  const isPayTokenRequired =
+    hasTransactionType(transactionMeta, PAY_TOKEN_REQUIRED_TRANSACTION_TYPES) ||
+    hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES);
   const shouldShowPayTokenNotSelectedAlert =
-    hasTransactionType(transactionMeta, PAY_TOKEN_REQUIRED_TRANSACTION_TYPES) &&
-    !isQuotesLoading &&
-    hasPositiveRequiredAmount &&
+    isPayTokenRequired &&
+    isPayTokenSelectionFailed &&
+    !quotes?.length &&
     !payToken &&
     !hasSelectedFiatPaymentMethod;
 

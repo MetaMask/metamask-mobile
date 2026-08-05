@@ -72,13 +72,20 @@ import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
-import { useConfirmationContext } from '../../../context/confirmation-context';
+import {
+  useConfirmationContext,
+  usePayTokenSelectionContext,
+} from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { CustomAmountBuy } from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
+import {
+  PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
+  QUOTE_REQUIRED_TRANSACTION_TYPES,
+} from '../../../constants/confirmations';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -150,6 +157,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       useFiatFunnelMetricsAdapter();
 
     const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
+    const { headlessBuyError } = useConfirmationContext();
+    const { isPayTokenSelectionFailed } = usePayTokenSelectionContext();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
 
@@ -184,6 +193,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
+    const isPayTokenRequired =
+      hasTransactionType(
+        transactionMeta,
+        PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
+      ) ||
+      hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES);
+    const isPayTokenUnavailable =
+      isPayTokenRequired &&
+      isPayTokenSelectionFailed &&
+      !payToken &&
+      !selectedFiatPaymentMethodId;
 
     const { stage, setStage } = useCustomAmountStage({
       amountFiat,
@@ -193,6 +213,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isAddMusdIntent,
       isDepositPrefillEnabled,
       isDepositPrefillLoading,
+      isPayTokenUnavailable,
       skipDepositPrefill,
     });
 
@@ -369,8 +390,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       stage === CustomAmountStage.Loading &&
       (isAmountUpdatePending || !isMoneyAccountDeposit || !isQuotesLoading);
 
-    const { headlessBuyError } = useConfirmationContext();
-
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
@@ -381,6 +400,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               stage !== CustomAmountStage.Loading && Boolean(alertMessage)
             }
             isLoading={
+              !isPayTokenUnavailable &&
               !hasAccountNoFunds &&
               !skipDepositPrefill &&
               (isPrefillPending || isDepositPrefillLoading)

@@ -45,6 +45,7 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { usePayTokenSelectionContext } from '../../context/confirmation-context';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -166,10 +167,23 @@ export function useAutomaticTransactionPayToken({
   );
 
   const automaticToken = useMemo(() => selectBestToken(), [selectBestToken]);
+  const { setIsPayTokenSelectionFailed } = usePayTokenSelectionContext();
 
   const { paymentMethods } = useRampsPaymentMethods();
   const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
   const isFiatEnabled = useIsFiatPaymentAvailable();
+
+  useEffect(() => {
+    if (disable || payToken || hasFiatPaymentSelected || !automaticToken) {
+      setIsPayTokenSelectionFailed(false);
+    }
+  }, [
+    automaticToken,
+    disable,
+    hasFiatPaymentSelected,
+    payToken,
+    setIsPayTokenSelectionFailed,
+  ]);
 
   useEffect(() => {
     if (
@@ -183,6 +197,7 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (autoSelectFiatPayment || tokens.length === 0) {
+      setIsPayTokenSelectionFailed(false);
       if (!isFiatEnabled || paymentMethods.length === 0) {
         return;
       }
@@ -215,6 +230,8 @@ export function useAutomaticTransactionPayToken({
       chainId: automaticToken.chainId,
     });
 
+    setIsPayTokenSelectionFailed(!didSetPayToken);
+
     if (didSetPayToken) {
       isUpdated.current = transactionId;
       log('Automatically selected pay token', automaticToken);
@@ -229,6 +246,7 @@ export function useAutomaticTransactionPayToken({
     payToken,
     paymentMethods,
     requiredTokens,
+    setIsPayTokenSelectionFailed,
     setPayToken,
     tokens,
     transactionId,
@@ -276,6 +294,8 @@ export function useAutomaticTransactionPayToken({
         chainId: automaticToken.chainId,
       });
 
+      setIsPayTokenSelectionFailed(!didSetPayToken);
+
       if (didSetPayToken) {
         prevAccountKeyRef.current = accountKey;
         log('Re-selected pay token after account change', automaticToken);
@@ -289,6 +309,7 @@ export function useAutomaticTransactionPayToken({
     from,
     hasFiatPaymentSelected,
     postQuoteTransactionType,
+    setIsPayTokenSelectionFailed,
     setPayToken,
   ]);
 
@@ -318,6 +339,8 @@ export function useAutomaticTransactionPayToken({
         chainId: automaticToken.chainId,
       });
 
+      setIsPayTokenSelectionFailed(!didSetPayToken);
+
       if (didSetPayToken) {
         previousMoneyPaymentOverrideRef.current = true;
         log('Re-selected pay token after money account change', automaticToken);
@@ -328,6 +351,7 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
+    setIsPayTokenSelectionFailed,
     setPayToken,
     isMoneyPaymentOverride,
   ]);
