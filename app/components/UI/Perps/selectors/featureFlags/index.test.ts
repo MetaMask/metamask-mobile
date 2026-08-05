@@ -2085,6 +2085,75 @@ describe('Perps Feature Flag Selectors', () => {
       );
       expect(result).toBe(false);
     });
+
+    describe('local env var fallback when no valid remote flag', () => {
+      // Fresh state per assertion to avoid reselect caching across cases.
+      const createEmptyFlagsState = () => ({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      afterEach(() => {
+        delete process.env.MM_PERPS_PRO_MODE_ENABLED;
+      });
+
+      it('returns false when neither the remote flag nor the local env var is set', () => {
+        delete process.env.MM_PERPS_PRO_MODE_ENABLED;
+
+        const result = selectPerpsProModeEnabledFlag(createEmptyFlagsState());
+
+        expect(result).toBe(false);
+      });
+
+      it('returns true when the local env var is explicitly true', () => {
+        process.env.MM_PERPS_PRO_MODE_ENABLED = 'true';
+
+        const result = selectPerpsProModeEnabledFlag(createEmptyFlagsState());
+
+        expect(result).toBe(true);
+      });
+
+      it('returns false when the local env var is explicitly false', () => {
+        process.env.MM_PERPS_PRO_MODE_ENABLED = 'false';
+
+        const result = selectPerpsProModeEnabledFlag(createEmptyFlagsState());
+
+        expect(result).toBe(false);
+      });
+
+      it('prefers a valid remote flag over the local env var', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_PRO_MODE_ENABLED = 'true';
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsProModeEnabledFlag(
+          stateWithDisabledRemoteFlag,
+        );
+
+        expect(result).toBe(false);
+      });
+    });
   });
 
   describe('selectPerpsRecentlyAddedEnabledFlag', () => {
