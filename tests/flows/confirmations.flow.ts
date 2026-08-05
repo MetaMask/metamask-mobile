@@ -5,30 +5,42 @@ import { PlatformDetector } from '../framework/PlatformLocator';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
 import FooterActions from '../page-objects/Browser/Confirmations/FooterActions';
+import RowComponents from '../page-objects/Browser/Confirmations/RowComponents';
 import TestDApp from '../page-objects/Browser/TestDApp';
+import NetworkListModal from '../page-objects/Network/NetworkListModal';
+import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
+import SmartAccount from '../page-objects/MultichainAccounts/SmartAccount';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import NetworkManager from '../page-objects/wallet/NetworkManager';
+import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
+import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
+import WalletView from '../page-objects/wallet/WalletView';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
-import { dismissPushNotificationExistingUserSheet } from './wallet.flow';
+import {
+  dismissPushNotificationExistingUserSheet,
+  waitForWalletHomePlaywright,
+} from './wallet.flow';
+
+const LOCAL_CHAIN_NAME = 'Local RPC';
+const LOCAL_CHAIN_CAIP = 'eip155:1337';
+const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
+const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
+
+export {
+  LOCAL_CHAIN_CAIP,
+  SMART_ACCOUNT_UPGRADED_ACTIVITY,
+  SMART_ACCOUNT_UPGRADING_ACTIVITY,
+};
 
 /**
- * Opens the in-app browser, loads the test dapp with the given contract, and
- * taps a WebView button that should open a confirmation sheet.
- *
- * Android Appium prefers CDP trusted click (avoids UiAutomator taps that miss
- * the DOM handler). Falls back to native WebView tap only when CDP cannot
- * click — never both when CDP already succeeded (prevents double-submit).
+ * Android Appium: CDP click first (UiAutomator often misses WebView handlers).
+ * Never fall back after a successful CDP click — that double-submits.
  */
-export const navigateToContractAndTap = async (
-  contractAddress: string,
+const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
   description: string,
 ): Promise<void> => {
-  await navigateToBrowserView();
-  await TestDApp.navigateToTestDappWithContract({
-    contractAddress,
-  });
-  await waitForTestDappToLoad();
-
   const pageUrl = getDappUrl(0);
   if (PlatformDetector.isAndroidAppium()) {
     const clicked = await ChromeCdpHelpers.clickByIdInWebView(
@@ -51,20 +63,35 @@ export const navigateToContractAndTap = async (
   await FooterActions.waitForConfirmButton();
 };
 
-/**
- * Confirms the open confirmation, dismisses post-confirm push opt-in if shown,
- * closes the browser, and asserts the Activity row for the submitted tx.
- */
+export const navigateToContractAndTap = async (
+  contractAddress: string,
+  buttonId: string,
+  description: string,
+): Promise<void> => {
+  await navigateToBrowserView();
+  await TestDApp.navigateToTestDappWithContract({
+    contractAddress,
+  });
+  await waitForTestDappToLoad();
+  await tapTestDappButtonAndWaitForConfirm(buttonId, description);
+};
+
+export const navigateToTestDappAndTap = async (
+  buttonId: string,
+  description: string,
+): Promise<void> => {
+  await navigateToBrowserView();
+  await Browser.navigateToTestDApp();
+  await waitForTestDappToLoad();
+  await tapTestDappButtonAndWaitForConfirm(buttonId, description);
+};
+
 export const confirmCloseAndAssertActivity = async (
-  activityLabel: string,
+  activityLabel?: string,
 ): Promise<void> => {
   await FooterActions.tapConfirmButton();
-  // Gate on confirm leaving the hierarchy — browser container can still
-  // "exist" while the confirmation sheet is open.
+  // Browser can still "exist" while the confirmation sheet is open.
   await FooterActions.waitForConfirmButtonGone();
-
-  // Push opt-in ("Never miss a move") can appear after confirm and
-  // block leaving the browser / reaching Activity.
   await dismissPushNotificationExistingUserSheet();
 
   await Assertions.expectElementToExist(Browser.browserScreenID, {
@@ -78,10 +105,89 @@ export const confirmCloseAndAssertActivity = async (
     },
   );
   await TabBarComponent.tapActivity();
-  await Assertions.expectTextDisplayed(activityLabel, {
-    description: `Activity row "${activityLabel}"`,
-  });
+  if (activityLabel) {
+    await Assertions.expectTextDisplayed(activityLabel, {
+      description: `Activity row "${activityLabel}"`,
+    });
+  }
   await Assertions.expectTextDisplayed('Confirmed', {
     description: 'Activity status Confirmed',
+  });
+};
+
+export const switchToLocalNetworkFromNetworkManager =
+  async (): Promise<void> => {
+    await NetworkManager.navigateToTokensFullView();
+    await NetworkManager.openNetworkManager();
+    await NetworkListModal.tapOnCustomTab();
+    await NetworkListModal.changeNetworkTo(LOCAL_CHAIN_NAME);
+    await NetworkManager.navigateBackFromTokensFullView();
+  };
+
+/**
+ * Opens Account 1 details and toggles Local RPC smart-account (EIP-7702 upgrade).
+ * Appium: name-based ellipsis — index-0 can "succeed" without opening details.
+ */
+export const openSmartAccountSwitchForSelectedAccount =
+  async (): Promise<void> => {
+    await WalletView.tapIdenticon();
+    await AccountListBottomSheet.waitForAccountListVisible();
+    await AccountListBottomSheet.tapAccountEllipsisForAccountNameV2(
+      'Account 1',
+    );
+
+    await Assertions.expectElementToExist(AccountDetails.container, {
+      description: 'Account details after tapping account ellipsis',
+      timeout: 15_000,
+    });
+
+    await SwitchAccountModal.tapSmartAccountLink();
+    await Assertions.expectTextDisplayed('Use smart account', {
+      description: 'Smart account network toggle screen',
+      timeout: 15_000,
+    });
+    await SmartAccount.tapSmartAccountSwitchForNetwork(LOCAL_CHAIN_NAME);
+    await FooterActions.waitForConfirmButton();
+  };
+
+/**
+ * After upgrade confirm: Smart Account → Account Details → wallet → Activity,
+ * filtered to Local RPC (redesign "All networks" chip).
+ */
+export const dismissSmartAccountScreensAndOpenFilteredActivity =
+  async (): Promise<void> => {
+    await FooterActions.tapConfirmButton();
+    await FooterActions.waitForConfirmButtonGone();
+    await dismissPushNotificationExistingUserSheet();
+
+    await SwitchAccountModal.tapSmartAccountBackButton();
+    await AccountDetails.tapBackButton();
+    await AccountListBottomSheet.waitForAccountListVisible(10_000);
+    await AccountListBottomSheet.tapAccountByNameV2('Account 1');
+    await waitForWalletHomePlaywright();
+
+    await TabBarComponent.tapActivity();
+    await ActivitiesView.filterByNetwork(LOCAL_CHAIN_CAIP);
+  };
+
+export const assertSmartAccountUpgradeActivity = async (
+  activityTitle: string,
+  timeoutMs = 30_000,
+): Promise<void> => {
+  await Assertions.expectTextDisplayed(activityTitle, {
+    description: `Activity row "${activityTitle}"`,
+    timeout: timeoutMs,
+  });
+};
+
+export const assertUpgradeConfirmationRows = async (): Promise<void> => {
+  await Assertions.expectElementToExist(RowComponents.AccountNetwork, {
+    description: 'Account Network',
+  });
+  await Assertions.expectElementToExist(RowComponents.GasFeesDetails, {
+    description: 'Gas Fees Details',
+  });
+  await Assertions.expectElementToExist(RowComponents.AdvancedDetails, {
+    description: 'Advanced Details',
   });
 };

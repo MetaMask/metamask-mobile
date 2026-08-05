@@ -23,6 +23,7 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   createLogger,
   encapsulatedAction,
+  getDriver,
   LogLevel,
   PlaywrightGestures,
   sleep,
@@ -583,13 +584,15 @@ class AccountListBottomSheet {
       throw new Error(`No account row found for "${accountName}"`);
     }
 
-    await PlaywrightGestures.scrollIntoView(
-      accountCells[accountCells.length - 1],
-    );
+    const accountCell = accountCells[accountCells.length - 1];
+    await PlaywrightGestures.scrollIntoView(accountCell);
 
-    const addressXpath = PlatformDetector.isAndroid()
-      ? `//*[@resource-id='${AccountCellIds.ADDRESS}']`
-      : `//*[@name='${AccountCellIds.ADDRESS}']`;
+    if (PlatformDetector.isIOS()) {
+      await this.tapAccountEllipsisAlignedToRowIos(accountCell, accountName);
+      return;
+    }
+
+    const addressXpath = `//*[@resource-id='${AccountCellIds.ADDRESS}']`;
     const addressElements = await Matchers.getAllElementsByXPath(addressXpath);
 
     let menuIndex = -1;
@@ -606,7 +609,66 @@ class AccountListBottomSheet {
       );
     }
 
-    await this.tapAccountEllipsisButtonV2(menuIndex);
+    await this.tapAccountEllipsisButtonV2(menuIndex, { shouldWait: true });
+  }
+
+  // TODO: Add testId for this element.
+  private async tapAccountEllipsisAlignedToRowIos(
+    accountCell: PlaywrightElement,
+    accountName: string,
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) {
+      throw new Error('Driver is not available');
+    }
+
+    const rowLocation = await accountCell.unwrap().getLocation();
+    const rowSize = await accountCell.unwrap().getSize();
+    const rowCenterY = rowLocation.y + rowSize.height / 2;
+
+    const menuElements = await Matchers.getAllElementsByXPath(
+      `//*[@name='${AccountCellIds.MENU}']`,
+    );
+    if (menuElements.length === 0) {
+      throw new Error(
+        `No ellipsis menu buttons found while targeting "${accountName}"`,
+      );
+    }
+
+    let bestMenu = menuElements[0];
+    let bestDelta = Number.POSITIVE_INFINITY;
+    for (const menu of menuElements) {
+      const menuLocation = await menu.unwrap().getLocation();
+      const menuSize = await menu.unwrap().getSize();
+      const menuCenterY = menuLocation.y + menuSize.height / 2;
+      const delta = Math.abs(menuCenterY - rowCenterY);
+      if (delta < bestDelta) {
+        bestDelta = delta;
+        bestMenu = menu;
+      }
+    }
+
+    // Guard against matching a distant/off-screen menu.
+    if (bestDelta > Math.max(rowSize.height, 48)) {
+      throw new Error(
+        `Could not align ellipsis menu to "${accountName}" (Δy=${Math.round(bestDelta)})`,
+      );
+    }
+
+    const menuLocation = await bestMenu.unwrap().getLocation();
+    const menuSize = await bestMenu.unwrap().getSize();
+    const x = Math.floor(menuLocation.x + menuSize.width / 2);
+    const y = Math.floor(menuLocation.y + menuSize.height / 2);
+
+    await drv
+      .action('pointer', {
+        parameters: { pointerType: 'touch' },
+      })
+      .move({ x, y })
+      .down()
+      .pause(80)
+      .up()
+      .perform();
   }
 
   async expectAccountVisibleByNameV2(
