@@ -21,26 +21,69 @@ describe('handleWhatsHappeningUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to WhatsHappeningDetailView from a deeplink source', () => {
-    handleWhatsHappeningUrl();
+  describe('without an id', () => {
+    it('opens the detail view on the first card', () => {
+      handleWhatsHappeningUrl();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
-      source: WhatsHappeningSource.Deeplink,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+        source: WhatsHappeningSource.Deeplink,
+        initialIndex: 0,
+      });
+    });
+
+    it('does not pass an outdatedItemId', () => {
+      handleWhatsHappeningUrl();
+
+      const [, params] = mockNavigate.mock.calls[0];
+      expect(params).not.toHaveProperty('outdatedItemId');
+    });
+
+    it('falls back to wallet home on navigation errors', () => {
+      mockNavigate.mockImplementationOnce(() => {
+        throw new Error('Navigation error');
+      });
+
+      handleWhatsHappeningUrl();
+
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET.HOME);
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[handleWhatsHappeningUrl] Failed to handle deeplink:',
+        expect.any(Error),
+      );
     });
   });
 
-  it('falls back to wallet home on navigation errors', () => {
-    mockNavigate.mockImplementationOnce(() => {
-      throw new Error('Navigation error');
+  describe('with an id', () => {
+    const id = 'a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+
+    it('opens the detail view with the outdatedItemId param', () => {
+      handleWhatsHappeningUrl({ id });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
+        source: WhatsHappeningSource.Deeplink,
+        initialIndex: 0,
+        outdatedItemId: id,
+      });
     });
 
-    handleWhatsHappeningUrl();
+    it('does not navigate to the Explore/Trending view', () => {
+      handleWhatsHappeningUrl({ id });
 
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET.HOME);
-    expect(DevLogger.log).toHaveBeenCalledWith(
-      '[handleWhatsHappeningUrl] Failed to handle deeplink:',
-      expect.any(Error),
-    );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
+
+    it('falls back to wallet home on navigation errors', () => {
+      mockNavigate.mockImplementationOnce(() => {
+        throw new Error('Navigation error');
+      });
+
+      handleWhatsHappeningUrl({ id });
+
+      expect(mockNavigate).toHaveBeenLastCalledWith(Routes.WALLET.HOME);
+    });
   });
 });

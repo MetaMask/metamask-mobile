@@ -15,13 +15,6 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native-stack', () => ({
-  createNativeStackNavigator: jest.fn(() => ({
-    Navigator: ({ children }: { children: React.ReactNode }) => children,
-    Screen: ({ children }: { children: React.ReactNode }) => children,
-  })),
-}));
-
 jest.mock('./useSendActions', () => ({
   useSendActions: () => ({
     handleCancelPress: mockHandleCancelPress,
@@ -31,33 +24,6 @@ jest.mock('./useSendActions', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: () => ({}),
-  }),
-}));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  return {
-    Box: (props: { testID?: string; children?: React.ReactNode }) => (
-      <View testID={props.testID}>{props.children}</View>
-    ),
-    Text: (props: { testID?: string; children?: React.ReactNode }) => (
-      <Text testID={props.testID}>{props.children}</Text>
-    ),
-    ButtonIcon: (props: { testID?: string; onPress?: () => void }) => (
-      <TouchableOpacity testID={props.testID} onPress={props.onPress} />
-    ),
-    ButtonIconSize: { Md: 'md' },
-    IconName: { Close: 'Close', ArrowLeft: 'ArrowLeft' },
-    TextVariant: { BodyMd: 'body-md', BodySm: 'body-sm' },
-    TextColor: { TextAlternative: 'text-alternative' },
-    FontWeight: { Bold: 'bold' },
-    BoxAlignItems: { Center: 'center' },
-  };
-});
 
 describe('useSendNavbar', () => {
   const mockParentNavigate = jest.fn();

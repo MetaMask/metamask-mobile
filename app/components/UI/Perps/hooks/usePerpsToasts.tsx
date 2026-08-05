@@ -1,21 +1,26 @@
 import {
-  IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Text,
   TextVariant,
   Spinner,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import {
   playNotification,
   NotificationMoment,
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
@@ -24,6 +29,9 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { store } from '../../../../store';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
 import {
   ActivityTypeFilter,
@@ -105,6 +113,12 @@ export interface PerpsToastOptionsConfig {
         assetSymbol?: string,
       ) => PerpsToastOptions;
       cancellationFailed: PerpsToastOptions;
+      cancelAllSuccess: (count: number) => PerpsToastOptions;
+      cancelAllPartialSuccess: (
+        successCount: number,
+        totalCount: number,
+      ) => PerpsToastOptions;
+      cancelAllFailed: (error?: string) => PerpsToastOptions;
     };
     limit: {
       submitted: (
@@ -118,6 +132,13 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
+      editSubmitting: () => PerpsToastOptions;
+      editConfirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      editFailed: (error?: string) => PerpsToastOptions;
     };
   };
   positionManagement: {
@@ -155,6 +176,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          fullPositionCloseFailed: PerpsToastOptions;
         };
         partial: {
           partialPositionCloseSubmitted: (
@@ -162,6 +184,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          partialPositionCloseFailed: PerpsToastOptions;
           switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
@@ -232,31 +255,21 @@ const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
   hasNoTimeout: false,
 };
 
-const toastStyles = StyleSheet.create({
-  spinnerContainer: {
-    paddingRight: 12,
-    alignContent: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
 const usePerpsToasts = (): {
   showToast: (config: PerpsToastOptions) => void;
   PerpsToastOptions: PerpsToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const perpsBaseToastOptions: Record<string, PerpsToastOptions> = useMemo(
     () => ({
       success: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
-        iconColor: theme.colors.accent03.dark,
-        backgroundColor: theme.colors.accent03.normal,
+        iconName: IconName.Confirmation,
+        iconColor: IconColor.Success,
         hapticsType: NotificationMoment.Success,
       },
       // Intentional duplication for now to avoid coupling with success options.
@@ -264,44 +277,34 @@ const usePerpsToasts = (): {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
-        iconColor: theme.colors.accent04.dark,
-        backgroundColor: theme.colors.accent04.normal,
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
-          <View style={toastStyles.spinnerContainer}>
-            <Spinner
-              color={ReactNativeDsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
-            />
-          </View>
+          <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
         ),
       },
       info: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Info,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.background.alternative,
+        iconColor: IconColor.Default,
         hapticsType: NotificationMoment.Warning,
       },
       error: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
-        iconColor: theme.colors.accent01.dark,
-        backgroundColor: theme.colors.accent01.light,
+        iconColor: IconColor.Error,
         hapticsType: NotificationMoment.Error,
       },
       warning: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
-        iconColor: theme.colors.warning.default,
-        backgroundColor: theme.colors.warning.muted,
+        iconColor: IconColor.Warning,
         hapticsType: NotificationMoment.Warning,
       },
     }),
-    [theme],
+    [],
   );
 
   const navigationHandlers = useMemo(
@@ -315,10 +318,17 @@ const usePerpsToasts = (): {
         perpsFilter?: PerpsActivityFilter,
       ) => {
         toastRef?.current?.closeToast();
+        const state = store.getState();
+        const depositMeta = selectTransactionMetadataById(state, transactionId);
         navigateToTransactionDetails(navigation, {
           transactionId,
           initialTypeFilter: ActivityTypeFilter.Perps,
           ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
+          isTransactionsRedesignEnabled:
+            selectIsTransactionsRedesignEnabled(state),
+          ...(depositMeta?.chainId
+            ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
+            : {}),
         });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
@@ -435,14 +445,14 @@ const usePerpsToasts = (): {
             closeButtonOptions: {
               label: (
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
                   style={{ color: theme.colors.error.default }}
                 >
                   {strings('perps.deposit.cancel_trade')}
                 </Text>
               ),
               variant: ButtonVariants.Secondary,
-              style: { backgroundColor: theme.colors.background.muted },
               onPress: () => {
                 /* no-op */
               },
@@ -452,8 +462,7 @@ const usePerpsToasts = (): {
             ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
             variant: ToastVariants.Icon,
             iconName: IconName.Warning,
-            iconColor: theme.colors.error.default,
-            backgroundColor: theme.colors.error.muted,
+            iconColor: IconColor.Error,
             hapticsType: NotificationMoment.Warning,
             labelOptions: getPerpsToastLabels(
               strings('perps.deposit.trade_canceled'),
@@ -512,8 +521,7 @@ const usePerpsToasts = (): {
           withdrawalStartFailed: (onRetry: () => void) => ({
             ...perpsBaseToastOptions.error,
             iconName: IconName.Error,
-            iconColor: theme.colors.error.default,
-            backgroundColor: theme.colors.accent04.normal,
+            iconColor: IconColor.Error,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.toast_error_title'),
               strings('perps.withdrawal.toast_start_error_description'),
@@ -612,6 +620,40 @@ const usePerpsToasts = (): {
                 error,
                 fallbackMessage: strings(
                   'perps.order.your_funds_have_been_returned_to_you',
+                ),
+              }),
+            ),
+          }),
+          editSubmitting: () => ({
+            ...perpsBaseToastOptions.inProgress,
+            hasNoTimeout: true,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.updating_your_order'),
+            ),
+          }),
+          editConfirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_updated'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          editFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_update_failed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.order_update_failed_subtitle',
                 ),
               }),
             ),
@@ -717,6 +759,33 @@ const usePerpsToasts = (): {
               strings('perps.order.order_still_active'),
             ),
           },
+          cancelAllSuccess: (count: number) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.success_title'),
+              strings('perps.cancel_all_modal.success_message', { count }),
+            ),
+          }),
+          cancelAllPartialSuccess: (
+            successCount: number,
+            totalCount: number,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.success_title'),
+              strings('perps.cancel_all_modal.partial_success', {
+                successCount,
+                totalCount,
+              }),
+            ),
+          }),
+          cancelAllFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.error_title'),
+              error || 'Unknown error',
+            ),
+          }),
         },
       },
       positionManagement: {
@@ -874,7 +943,11 @@ const usePerpsToasts = (): {
                 amount: string,
                 assetSymbol: string,
               ) => ({
-                ...perpsBaseToastOptions.inProgress,
+                // Limit closes rest until filled and get no follow-up toast, so
+                // this is terminal. Use success (green tick) — matching the
+                // partial close and the open limit "Order placed" toast —
+                // instead of an in-progress spinner that never resolves.
+                ...perpsBaseToastOptions.success,
                 labelOptions: getPerpsToastLabels(
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {
@@ -884,6 +957,13 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              fullPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.failed_to_place_close_order'),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
             },
             partial: {
               partialPositionCloseSubmitted: (
@@ -901,6 +981,15 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              partialPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.failed_to_place_partial_close_order',
+                  ),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
               switchToMarketOrderMissingLimitPrice: {
                 ...perpsBaseToastOptions.info,
                 labelOptions: getPerpsToastLabels(
@@ -1026,7 +1115,7 @@ const usePerpsToasts = (): {
         limitReached: {
           ...perpsBaseToastOptions.info,
           labelOptions: getPerpsToastLabels(
-            strings('perps.watchlist.limit_reached', { limit: 10 }),
+            strings('perps.watchlist.limit_reached', { limit: 100 }),
           ),
         },
       },
@@ -1039,10 +1128,7 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.success,
       perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
-      theme.colors.accent04.normal,
-      theme.colors.background.muted,
       theme.colors.error.default,
-      theme.colors.error.muted,
       theme.colors.success.default,
       toastRef,
     ],

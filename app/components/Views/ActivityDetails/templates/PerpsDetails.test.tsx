@@ -1,5 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import type { TransactionMeta } from '@metamask/transaction-controller';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   FillType,
@@ -65,6 +67,72 @@ function perpsItem(
   } as ActivityListItem;
 }
 
+const PAY_METADATA = {
+  chainId: '0x1',
+  networkFeeFiat: '1.23',
+  bridgeFeeFiat: '0.09',
+  totalFiat: '1001.24',
+} as const;
+
+/** State where the deposit's local transaction carries MetaMask Pay fees. */
+function stateWithPayTransaction(hash: string) {
+  return {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: 'perps-deposit-tx',
+              chainId: '0xa4b1',
+              hash,
+              metamaskPay: PAY_METADATA,
+            } as unknown as TransactionMeta,
+          ],
+        },
+      },
+    },
+  };
+}
+
+/**
+ * A deposit that only exists locally — the state the funding toast's "Track"
+ * opens into, before the HyperLiquid feed returns the row.
+ */
+function localPerpsFundsItem(
+  type: 'perpsAddFunds' | 'perpsWithdraw' = 'perpsAddFunds',
+  status: ActivityListItem['status'] = 'success',
+): ActivityListItem {
+  return {
+    type,
+    chainId: 'eip155:42161',
+    status,
+    timestamp: 1_765_361_640_000,
+    hash: '0xperpsdeposit',
+    raw: {
+      type: 'localTransaction',
+      data: {
+        primaryTransaction: {
+          id: 'perps-deposit-tx',
+          chainId: '0xa4b1',
+          metamaskPay: PAY_METADATA,
+        },
+        initialTransaction: { id: 'perps-deposit-tx', chainId: '0xa4b1' },
+        transactions: [],
+      },
+    },
+    data: {
+      token: {
+        amount: '100000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: type === 'perpsAddFunds' ? 'in' : 'out',
+      },
+    },
+  } as unknown as ActivityListItem;
+}
+
 describe('PerpsDetails', () => {
   it('renders trade rows and trade-again CTA', () => {
     const transaction: PerpsTransaction = {
@@ -96,6 +164,10 @@ describe('PerpsDetails', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
+    ).toHaveTextContent('Confirmed');
   });
 
   it('renders canceled order rows and try-again CTA', () => {
@@ -182,6 +254,58 @@ describe('PerpsDetails', () => {
     expect(getByText('$0.005')).toBeOnTheScreen();
   });
 
+  it('shows a filled order as "Filled" in the status row, not "Confirmed"', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-filled',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Market short',
+      order: {
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'market',
+        size: '10',
+        limitPrice: '90000',
+        filled: '100%',
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    const statusPill = getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL);
+    expect(statusPill).toHaveTextContent('Filled');
+    expect(statusPill).not.toHaveTextContent('Confirmed');
+  });
+
+  it('labels a rejected order "Rejected" in the status row (not "Failed")', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-rejected',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Market short',
+      order: {
+        text: PerpsOrderTransactionStatus.Rejected,
+        statusType: PerpsOrderTransactionStatusType.Canceled,
+        type: 'market',
+        size: '10',
+        limitPrice: '90000',
+        filled: '0%',
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction, 'failed')} />,
+    );
+
+    const statusPill = getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL);
+    expect(statusPill).toHaveTextContent('Rejected');
+    expect(statusPill).not.toHaveTextContent('Failed');
+  });
+
   it('renders funds movement metadata and best-effort steps', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -210,5 +334,97 @@ describe('PerpsDetails', () => {
     expect(getByText('Add funds')).toBeOnTheScreen();
     expect(getByText('Fund again')).toBeOnTheScreen();
     expect(queryByText('View on block explorer')).toBeNull();
+  });
+
+  describe('MetaMask Pay fees', () => {
+    const fundsTransaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'wallet-deposit-1',
+      type: 'deposit',
+      category: 'deposit',
+      title: 'Account funded',
+      asset: 'USDC',
+      depositWithdrawal: {
+        amount: '+$1,000',
+        amountNumber: 1000,
+        isPositive: true,
+        asset: 'USDC',
+        txHash: '0xperpsdeposit',
+        status: 'completed',
+        type: 'deposit',
+      },
+    };
+
+    function feedItem(): ActivityListItem {
+      return {
+        ...perpsItem('perpsAddFunds', fundsTransaction),
+        hash: '0xperpsdeposit',
+      } as ActivityListItem;
+    }
+
+    it('shows the fee rows on a feed-backed deposit, resolved from its local transaction', () => {
+      // The HyperLiquid row carries no `metamaskPay`; only its hash ties it to
+      // the local transaction that does.
+      const { getByText } = renderWithProvider(
+        <PerpsDetails item={feedItem()} />,
+        {
+          state: stateWithPayTransaction('0xperpsdeposit'),
+        },
+      );
+
+      expect(getByText('Transaction fee')).toBeOnTheScreen();
+      expect(getByText('$1.23')).toBeOnTheScreen();
+      expect(getByText('Bridge fee')).toBeOnTheScreen();
+      expect(getByText('$0.09')).toBeOnTheScreen();
+      expect(getByText('Total amount')).toBeOnTheScreen();
+      expect(getByText('$1,001.24')).toBeOnTheScreen();
+      // The steps still render below the fees.
+      expect(getByText('Steps (4 completed)')).toBeOnTheScreen();
+    });
+
+    it('omits the fee rows when no local transaction backs the feed row', () => {
+      const { queryByText, getByText } = renderWithProvider(
+        <PerpsDetails item={feedItem()} />,
+      );
+
+      expect(queryByText('Transaction fee')).toBeNull();
+      expect(queryByText('Total amount')).toBeNull();
+      expect(getByText('Steps (4 completed)')).toBeOnTheScreen();
+    });
+
+    it('renders the funding screen with fees for a local-only deposit', () => {
+      // What "Track" opens: the feed has not returned the row yet, so the local
+      // transaction is all there is. It must still be the Perps funding screen.
+      const { getByText } = renderWithProvider(
+        <PerpsDetails item={localPerpsFundsItem()} />,
+      );
+
+      expect(getByText('Transaction fee')).toBeOnTheScreen();
+      expect(getByText('$1.23')).toBeOnTheScreen();
+      expect(getByText('Bridge fee')).toBeOnTheScreen();
+      expect(getByText('Total amount')).toBeOnTheScreen();
+      expect(getByText('Steps (4 completed)')).toBeOnTheScreen();
+      expect(getByText('Add funds')).toBeOnTheScreen();
+      expect(getByText('Fund again')).toBeOnTheScreen();
+    });
+
+    it('shows a local-only deposit still in flight as pending steps', () => {
+      const { getByText } = renderWithProvider(
+        <PerpsDetails item={localPerpsFundsItem('perpsAddFunds', 'pending')} />,
+      );
+
+      expect(getByText('Steps (1 completed, 3 pending)')).toBeOnTheScreen();
+    });
+
+    it('omits the fee rows for a local-only withdrawal', () => {
+      // Withdrawals relabel these rows and have no redesigned copy yet.
+      const { queryByText, getByText } = renderWithProvider(
+        <PerpsDetails item={localPerpsFundsItem('perpsWithdraw')} />,
+      );
+
+      expect(queryByText('Transaction fee')).toBeNull();
+      expect(queryByText('Total amount')).toBeNull();
+      expect(getByText('Initiate withdrawal')).toBeOnTheScreen();
+    });
   });
 });

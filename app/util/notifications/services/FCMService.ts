@@ -1,19 +1,16 @@
-import {
-  type INotification,
-  processNotification,
-  type UnprocessedRawNotification,
-  toRawAPINotification,
-  OnChainRawNotification,
-} from '@metamask/notification-services-controller/notification-services';
+import { toPushAnalyticsPayload } from '@metamask/notification-services-controller/push-services';
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import { NativeModules, Platform } from 'react-native';
-import Logger from '../../../util/Logger';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
-import type { JsonValue } from '../../../core/Analytics/MetaMetrics.types';
+import { toFcmDataStringRecord } from '../utils/fcm-data';
+import {
+  extractPushNotificationData,
+  extractPushNotificationDeeplink,
+} from '../pushNotificationDeeplink';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -30,62 +27,26 @@ async function getInitialNotification() {
   return remoteMessage;
 }
 
-function analyticsTrackPushClickEvent(
+async function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    const extractData = () => {
-      try {
-        // On Chain Raw Notification Shape
-        if (remoteMessage?.data?.data) {
-          const rawData: OnChainRawNotification | null = JSON.parse(
-            remoteMessage.data.data?.toString() ?? null,
-          );
-          return {
-            kind: [
-              rawData?.payload.data.kind,
-              rawData?.type,
-              rawData?.notification_type,
-              'on-chain',
-            ].find((kind) => Boolean(kind)),
-            rawData,
-          };
+    const data = toFcmDataStringRecord(
+      extractPushNotificationData(remoteMessage?.data),
+    );
+    const payload = toPushAnalyticsPayload(data);
+
+    const properties = payload
+      ? {
+          ...payload,
         }
+      : { ...(data?.deeplink && { deeplink: data.deeplink }) };
 
-        // Generic Platform Notification
-        if (remoteMessage?.data?.metadata) {
-          interface PlatformNotificationMetadata {
-            kind?: string;
-            [otherProps: string]: JsonValue;
-          }
-          const rawData: PlatformNotificationMetadata | null = JSON.parse(
-            remoteMessage.data.metadata?.toString() ?? null,
-          );
-
-          return {
-            kind: [rawData?.kind, rawData?.type, 'platform']
-              .filter((x): x is string => typeof x === 'string')
-              .find((kind) => Boolean(kind)),
-            rawData,
-          };
-        }
-      } catch {
-        return null;
-      }
-    };
-
-    const remoteMessageParsedData = extractData();
-
-    // Always send a push notification click event, but properties are optional
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
       )
-        .addProperties({
-          deeplink: remoteMessage?.data?.deeplink?.toString(),
-          notification_type: remoteMessageParsedData?.kind,
-          data: remoteMessageParsedData?.rawData,
-        })
+        .addProperties(properties)
         .build(),
     );
   } catch {
@@ -94,6 +55,33 @@ function analyticsTrackPushClickEvent(
 }
 
 type UnsubscribeFunc = () => void;
+
+const ANDROID_NOTIFICATION_OPENED_EVENT = 'metamask.notification_opened';
+
+/**
+ * A notification tap, and what the payload carried with it. `opened` is true
+ * even when there is no deeplink — on-chain activity notifications commonly
+ * have no CTA link.
+ */
+export interface PushTapResult {
+  opened: boolean;
+  deeplink: string | null;
+  notificationType?: string;
+  notificationSubtype?: string;
+}
+
+export function toPushTapResult(data: unknown, opened: boolean): PushTapResult {
+  const normalizedData = toFcmDataStringRecord(
+    extractPushNotificationData(data),
+  );
+  const payload = toPushAnalyticsPayload(normalizedData);
+  return {
+    opened,
+    deeplink: extractPushNotificationDeeplink(data) ?? null,
+    notificationType: payload?.notification_type,
+    notificationSubtype: payload?.notification_subtype,
+  };
+}
 
 /**
  * Utility to check if devices have enabled push notifications
@@ -123,50 +111,6 @@ async function registerForRemoteMessages() {
     }
   } catch (error) {
     // Do Nothing - silently fail
-  }
-}
-
-/**
- * Processes and handles a remote firebase message.
- * Currently firebase messages only support wallet notifications (from our notification services).
- * @param payload - Firebase Remote Message Payload.
- * @param handler - Callback handler for callers to handle a notification
- * @returns - void
- */
-async function processAndHandleNotification(
-  payload: FirebaseMessagingTypes.RemoteMessage,
-  handler: (notification: INotification) => void | Promise<void>,
-  platformHandler?: (
-    rawPayload: FirebaseMessagingTypes.RemoteMessage,
-  ) => void | Promise<void>,
-) {
-  try {
-    const payloadData = payload?.data?.data
-      ? String(payload?.data?.data)
-      : undefined;
-    const data: UnprocessedRawNotification | undefined = payloadData
-      ? JSON.parse(payloadData)
-      : undefined;
-
-    if (!data) {
-      await platformHandler?.(payload);
-      return;
-    }
-
-    // If we are able to handle a remote push notification
-    // Then we do not want to render the original server notification but custom content
-    // Prevents duplicate notifications
-    delete payload.notification;
-
-    const notificationData = toRawAPINotification(data);
-    const notification = processNotification(notificationData);
-    await handler(notification);
-  } catch (error) {
-    // Do Nothing, cannot parse a bad notification
-    Logger.log('Unable to send push notification:', {
-      notification: payload?.data?.data,
-      error,
-    });
   }
 }
 
@@ -209,15 +153,12 @@ class FCMService {
   };
 
   /**
-   * Listener for when push notifications are received.
-   * Subscribed to both foreground and background messages
-
-   * @param handler - handler used for displaying push notifications. Must be provided.
+   * Listener for foreground push notifications.
+   * Background/killed state is handled natively by the OS from the FCM notification payload.
    * @returns unsubscribe handler
    */
   listenToPushNotificationsReceived = async (
-    handler: (notification: INotification) => void | Promise<void>,
-    platformHandler?: (
+    handler: (
       rawPayload: FirebaseMessagingTypes.RemoteMessage,
     ) => void | Promise<void>,
   ): Promise<UnsubscribeFunc | null> => {
@@ -227,7 +168,7 @@ class FCMService {
       // IOS - requires isHeadless injection and app modification to ship a minimal app when headless (https://rnfirebase.io/messaging/usage#background-application-state).
       // Android - will cause double notifications if a remote message contains both `notification` + `data` payloads
       // Firebase will still send push notifications in background + app kill as there is a `notification` payload in the remote message
-      await this.#registerForegroundMessages(handler, platformHandler);
+      await this.#registerForegroundMessages(handler);
       return this.#hasRegisteredForeground;
     } catch {
       return null;
@@ -241,8 +182,7 @@ class FCMService {
    */
   #hasRegisteredForeground: UnsubscribeFunc | null = null;
   #registerForegroundMessages = async (
-    handler: (notification: INotification) => void | Promise<void>,
-    platformHandler?: (
+    handler: (
       rawPayload: FirebaseMessagingTypes.RemoteMessage,
     ) => void | Promise<void>,
   ) => {
@@ -255,9 +195,19 @@ class FCMService {
     }
 
     try {
-      this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
-        processAndHandleNotification(payload, handler, platformHandler);
-      });
+      const unsubscribeOnMessage = messaging().onMessage(handler);
+
+      const unsubscribeForegroundMessages = () => {
+        try {
+          unsubscribeOnMessage();
+        } finally {
+          if (this.#hasRegisteredForeground === unsubscribeForegroundMessages) {
+            this.#hasRegisteredForeground = null;
+          }
+        }
+      };
+
+      this.#hasRegisteredForeground = unsubscribeForegroundMessages;
     } catch {
       // Do nothing
     }
@@ -272,30 +222,46 @@ class FCMService {
     this.#hasRegisteredForeground = null;
   };
 
-  onClickPushNotificationWhenAppClosed = async () => {
+  /**
+   * @returns `opened` — whether a notification tap launched the app, which is
+   * true even when the payload carries no deeplink (common for on-chain
+   * activity notifications) — and the deeplink when one is present.
+   */
+  onClickPushNotificationWhenAppClosed = async (): Promise<PushTapResult> => {
     try {
       const remoteMessage = await getInitialNotification();
-      analyticsTrackPushClickEvent(remoteMessage);
-      const deeplink = remoteMessage?.data?.deeplink?.toString();
-      return deeplink;
+      await analyticsTrackPushClickEvent(remoteMessage);
+      return toPushTapResult(remoteMessage?.data, Boolean(remoteMessage));
     } catch {
-      return null;
+      return { opened: false, deeplink: null };
     }
   };
 
   onClickPushNotificationWhenAppSuspended = (
-    deeplinkCallback: (deeplink?: string) => void,
+    tapCallback: (tap: PushTapResult) => void,
   ) => {
     try {
-      messaging().onNotificationOpenedApp((remoteMessage) => {
+      const handleOpenedNotification = async (
+        remoteMessage?: FirebaseMessagingTypes.RemoteMessage,
+      ) => {
         try {
-          analyticsTrackPushClickEvent(remoteMessage);
-          const deeplink = remoteMessage?.data?.deeplink?.toString();
-          deeplinkCallback(deeplink);
+          await analyticsTrackPushClickEvent(remoteMessage);
+          tapCallback(
+            toPushTapResult(remoteMessage?.data, Boolean(remoteMessage)),
+          );
         } catch {
           // Do nothing
         }
-      });
+      };
+
+      if (Platform.OS === 'android') {
+        DeviceEventEmitter.addListener(
+          ANDROID_NOTIFICATION_OPENED_EVENT,
+          handleOpenedNotification,
+        );
+      } else {
+        messaging().onNotificationOpenedApp(handleOpenedNotification);
+      }
     } catch {
       // Do nothing
     }

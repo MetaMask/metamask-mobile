@@ -27,9 +27,12 @@ import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 import {
   loginForPredictTests,
+  remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
+import ToastModal from '../../page-objects/wallet/ToastModal.js';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -42,12 +45,13 @@ const positionDetails = {
   name: 'Spurs vs. Pelicans',
   cashOutValue: '$30.75',
   initialBalance: '$28.16',
-  newBalance: '$58.66',
+  newBalance: '$57.44',
 };
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
+    ...remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
@@ -60,15 +64,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
       minimumVersion: '0.0.0',
     },
     carouselBanners: false,
-    predictExtendedSportsMarkets: {
-      versions: {
-        '7.82.0': {
-          enabled: false,
-          leagues: [],
-          enabledSportsMarketTypes: [],
-        },
-      },
-    },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -125,11 +120,17 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
           await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out');
 
+          // Top toast covers the market-details back control until it auto-dismisses.
+          await ToastModal.waitForToastToDismiss();
           await PredictDetailsPage.tapBackButton();
+          // Wait for wallet home before scrolling — Android scrollIntoView
+          // fails with getElementRect(elementId=undefined) if wallet-scroll-view
+          // is not yet in the hierarchy after market-details pop.
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await WalletView.scrollAndTapPredictionsSection();
           await WalletView.tapOnAvailableBalance();
           await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-            description: 'Predictions balance should be updated to $58.66',
+            description: 'Predictions balance should be updated to $57.44',
           });
 
           await PredictMarketList.tapBackButton();

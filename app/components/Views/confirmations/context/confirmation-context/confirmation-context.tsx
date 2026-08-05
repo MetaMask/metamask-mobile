@@ -8,6 +8,9 @@ import React, {
 } from 'react';
 
 export interface ConfirmationContextParams {
+  mmPayRequestInProgressNavHandler: React.MutableRefObject<
+    (() => void) | false
+  >;
   headlessBuyError: string | undefined;
   isFooterVisible?: boolean;
   isConfirmationSubmitting: boolean;
@@ -15,17 +18,23 @@ export interface ConfirmationContextParams {
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
+  // Whether the user selected the maximum amount for a money account deposit.
+  // Shared so the insufficient-funds alert can skip a Max deposit that only
+  // marginally exceeds the balance due to fiat rounding.
+  isMaxDeposit: boolean;
   setHeadlessBuyError: (error: string | undefined) => void;
   setIsConfirmationSubmitting: (isConfirmationSubmitting: boolean) => void;
   setIsFooterVisible: (isFooterVisible: boolean) => void;
   setIsHeadlessBuyInProgress: (isHeadlessBuyInProgress: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
   setIsTransactionDataUpdating: (isTransactionDataUpdating: boolean) => void;
+  setIsMaxDeposit: (isMaxDeposit: boolean) => void;
 }
 
 // This context is used to share the valuable information between the components
 // that are used to render the confirmation
 const ConfirmationContext = React.createContext<ConfirmationContextParams>({
+  mmPayRequestInProgressNavHandler: { current: false },
   headlessBuyError: undefined,
   isFooterVisible: true,
   isConfirmationSubmitting: false,
@@ -33,12 +42,14 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
+  isMaxDeposit: false,
   setHeadlessBuyError: noop,
   setIsConfirmationSubmitting: noop,
   setIsFooterVisible: noop,
   setIsHeadlessBuyInProgress: noop,
   setIsTransactionDataUpdating: noop,
   setIsTransactionValueUpdating: noop,
+  setIsMaxDeposit: noop,
 });
 
 interface ConfirmationContextProviderProps {
@@ -48,6 +59,8 @@ interface ConfirmationContextProviderProps {
 export const ConfirmationContextProvider: React.FC<
   ConfirmationContextProviderProps
 > = ({ children }) => {
+  const mmPayRequestInProgressNavHandler = useRef<(() => void) | false>(false);
+
   const [isTransactionValueUpdating, setIsTransactionValueUpdating] =
     useState(false);
 
@@ -62,6 +75,8 @@ export const ConfirmationContextProvider: React.FC<
   const [isTransactionDataUpdating, setIsTransactionDataUpdating] =
     useState<boolean>(false);
 
+  const [isMaxDeposit, setIsMaxDeposit] = useState<boolean>(false);
+
   const isConfirmationSubmittingRef = useRef(false);
   const [isConfirmationSubmitting, setIsConfirmationSubmittingState] =
     useState<boolean>(false);
@@ -75,6 +90,7 @@ export const ConfirmationContextProvider: React.FC<
 
   const contextValue = useMemo(
     () => ({
+      mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,
@@ -82,14 +98,17 @@ export const ConfirmationContextProvider: React.FC<
       isTransactionValueUpdating,
       isConfirmationSubmitting,
       isConfirmationSubmittingRef,
+      isMaxDeposit,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
       setIsConfirmationSubmitting,
+      setIsMaxDeposit,
     }),
     [
+      mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,
@@ -97,12 +116,14 @@ export const ConfirmationContextProvider: React.FC<
       isTransactionValueUpdating,
       isConfirmationSubmitting,
       isConfirmationSubmittingRef,
+      isMaxDeposit,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
       setIsConfirmationSubmitting,
+      setIsMaxDeposit,
     ],
   );
 

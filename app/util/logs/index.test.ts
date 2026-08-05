@@ -140,6 +140,7 @@ describe('logs :: generateStateLogs', () => {
           PhishingController: { whitelist: [] },
           AssetsContractController: { assets: [] },
           DeFiPositionsController: { positions: [] },
+          DeFiPositionsControllerV2: { positions: [] },
           PredictController: { predictions: [] },
           KeyringController: {
             vault: 'vault mock',
@@ -157,6 +158,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes('DeFiPositionsController')).toBe(false);
+    expect(logs.includes('DeFiPositionsControllerV2')).toBe(false);
     expect(logs.includes('PredictController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
@@ -785,7 +787,7 @@ describe('logs :: downloadStateLogs', () => {
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: '/mock/path/state-logs-v1.0.0-(100).json',
+      url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
       filename: 'state-logs-v1.0.0-(100).json',
       type: 'application/json',
       failOnCancel: false,
@@ -822,7 +824,7 @@ describe('logs :: downloadStateLogs', () => {
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: '/mock/path/state-logs-v1.0.0-(100).json',
+      url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
       filename: 'state-logs-v1.0.0-(100).json',
       type: 'application/json',
       failOnCancel: false,

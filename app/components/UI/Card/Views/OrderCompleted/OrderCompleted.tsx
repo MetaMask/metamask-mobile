@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -31,7 +32,7 @@ export interface OrderCompletedParams {
 
 const OrderCompleted: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
   const { fromUpgrade } = useParams<OrderCompletedParams>();

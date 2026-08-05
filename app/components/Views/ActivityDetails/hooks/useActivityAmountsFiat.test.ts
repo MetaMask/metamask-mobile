@@ -1,9 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useActivityAmountsFiat } from './useActivityAmountsFiat';
-import type {
-  ActivityFee,
-  ActivityListItem,
+import {
+  GAS_FEE_SPONSORED,
+  type ActivityFee,
+  type ActivityListItem,
 } from '../../../../util/activity-adapters';
 
 jest.mock('react-redux', () => ({
@@ -101,6 +102,29 @@ describe('useActivityAmountsFiat', () => {
     expect(result.current.totalFiat).toBe('$9');
   });
 
+  it('excludes the un-sent token value from the total for a cancelled send', () => {
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: 2,
+      contractExchangeRates: {
+        [tokenAddress]: {
+          price: 3,
+        },
+      },
+      multichainAssetRates: {},
+    });
+
+    const { result } = renderHook(() =>
+      useActivityAmountsFiat({
+        ...activityWithTokenAndFees,
+        status: 'cancelled',
+      }),
+    );
+
+    // Total is fees only ($2 + $1); the never-sent $6 token value is excluded.
+    expect(result.current.totalFiat).toBe('$3');
+  });
+
   it('labels a non-native resource fee by its resource and excludes it from fiat/total', () => {
     const tronFees: ActivityFee[] = [
       {
@@ -179,6 +203,39 @@ describe('useActivityAmountsFiat', () => {
       { label: 'Bridge fee', value: '0.5' },
     ]);
     expect(result.current.totalFiat).toBeUndefined();
+  });
+
+  it('renders sponsored gas as Paid by MetaMask and excludes it from the fiat total', () => {
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: 2,
+      contractExchangeRates: {
+        [tokenAddress]: {
+          price: 3,
+        },
+      },
+      multichainAssetRates: {},
+    });
+
+    const sponsoredFee = { type: GAS_FEE_SPONSORED };
+    const { result } = renderHook(() =>
+      useActivityAmountsFiat({
+        ...activityWithTokenAndFees,
+        data: {
+          ...activityWithTokenAndFees.data,
+          fees: [sponsoredFee],
+        },
+      }),
+    );
+
+    expect(result.current.feeRows).toStrictEqual([
+      {
+        label: 'Network fee',
+        value: 'Paid by MetaMask',
+        fee: sponsoredFee,
+      },
+    ]);
+    expect(result.current.totalFiat).toBe('$6');
   });
 
   it('hides zero token and fee amounts instead of rendering fiat zeroes', () => {
@@ -317,6 +374,55 @@ describe('useActivityAmountsFiat', () => {
     );
 
     // 2 SOL * multichain rate 4 -> $8
+    expect(result.current.totalFiat).toBe('$8');
+  });
+
+  it('prices a gasToken fee via token market rates and includes it in the total', () => {
+    const gasTokenAddress = '0x00000000000000000000000000000000000000aa';
+    const gasTokenFee: ActivityFee = {
+      type: 'gasToken',
+      amount: '1000000',
+      decimals: 6,
+      symbol: 'USDT',
+      assetId: `eip155:1/erc20:${gasTokenAddress}`,
+    };
+    const activity: ActivityListItem = {
+      ...activityWithTokenAndFees,
+      data: {
+        from: '0xfrom',
+        to: '0xto',
+        token: {
+          amount: '1000000',
+          assetId: `eip155:1/erc20:${tokenAddress}`,
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+        fees: [gasTokenFee],
+      },
+    };
+
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: 2,
+      contractExchangeRates: {
+        [tokenAddress]: { price: 3 },
+        [gasTokenAddress]: { price: 1 },
+      },
+      multichainAssetRates: {},
+    });
+
+    const { result } = renderHook(() => useActivityAmountsFiat(activity));
+
+    // Gas fee: 1 USDT * conversionRate 2 * marketRate 1 -> $2
+    expect(result.current.feeRows).toStrictEqual([
+      {
+        label: 'Gas fee',
+        value: '$2',
+        fee: gasTokenFee,
+      },
+    ]);
+    // Token $6 + gas-token fee $2
     expect(result.current.totalFiat).toBe('$8');
   });
 });

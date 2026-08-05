@@ -1,8 +1,9 @@
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
-import type {
-  ActivityListItem,
-  TokenAmount,
+import {
+  isFailedOrCancelledTransfer,
+  type ActivityListItem,
+  type TokenAmount,
 } from '../../../../util/activity-adapters';
 import {
   ActivityDetailRow,
@@ -90,6 +91,9 @@ function ActivityDetailsTotalRowContent({
 }
 
 function getDefaultTotalToken(item: ActivityListItem) {
+  if (isFailedOrCancelledTransfer(item)) {
+    return undefined;
+  }
   return 'token' in item.data
     ? (item.data.token as TokenAmount | undefined)
     : undefined;

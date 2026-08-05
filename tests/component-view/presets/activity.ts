@@ -6,10 +6,15 @@ import {
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import type { PredictActivity } from '../../../app/components/UI/Predict/types';
 
 export const ACTIVITY_CV_ACCOUNT = '0x0000000000000000000000000000000000000001';
 
-const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
+export const ACTIVITY_CV_RECIPIENT =
+  '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
+
+/** Mainnet USDC — used for ERC-20 send/receive Activity CV fixtures. */
+export const ACTIVITY_CV_USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 export const buildConfirmedLocalSendTransaction = (): TransactionMeta =>
   ({
@@ -28,6 +33,291 @@ export const buildConfirmedLocalSendTransaction = (): TransactionMeta =>
     txReceipt: { status: '0x1' },
   }) as unknown as TransactionMeta;
 
+/** Confirmed ERC-20 USDC send (1 USDC) for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalUsdcSendTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-usdc-send',
+    hash: '0xactivitycvconfirmedusdcsend',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_783_000,
+    type: TransactionType.tokenMethodTransfer,
+    transferInformation: {
+      amount: '1000000',
+      contractAddress: ACTIVITY_CV_USDC,
+      decimals: 6,
+      symbol: 'USDC',
+    },
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0x0',
+      nonce: '0x2',
+      data: `0xa9059cbb000000000000000000000000${ACTIVITY_CV_RECIPIENT.slice(
+        2,
+      ).toLowerCase()}00000000000000000000000000000000000000000000000000000000000f4240`,
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+const buildApproveCalldata = (spender: string, amount: bigint): string =>
+  `0x095ea7b3${spender.slice(2).toLowerCase().padStart(64, '0')}${amount
+    .toString(16)
+    .padStart(64, '0')}`;
+
+/** ERC-20 `increaseAllowance(spender, amount)` — selector `0x39509351`. */
+const buildIncreaseAllowanceCalldata = (
+  spender: string,
+  amount: bigint,
+): string =>
+  `0x39509351${spender.slice(2).toLowerCase().padStart(64, '0')}${amount
+    .toString(16)
+    .padStart(64, '0')}`;
+
+/** Confirmed USDC approve (100 USDC) for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalUsdcApproveTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-usdc-approve',
+    hash: '0xactivitycvconfirmedusdcapprove',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_785_000,
+    type: TransactionType.tokenMethodApprove,
+    transferInformation: {
+      contractAddress: ACTIVITY_CV_USDC,
+      decimals: 6,
+      symbol: 'USDC',
+    },
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0x0',
+      nonce: '0x4',
+      data: buildApproveCalldata(ACTIVITY_CV_RECIPIENT, 100_000_000n),
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+/** Confirmed USDC increaseAllowance (100 USDC) for ActivityScreen CV. */
+export const buildConfirmedLocalUsdcIncreaseAllowanceTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-usdc-increase-allowance',
+      hash: '0xactivitycvconfirmedusdcincrease',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_786_000,
+      type: TransactionType.tokenMethodIncreaseAllowance,
+      transferInformation: {
+        contractAddress: ACTIVITY_CV_USDC,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDC,
+        value: '0x0',
+        nonce: '0x5',
+        data: buildIncreaseAllowanceCalldata(
+          ACTIVITY_CV_RECIPIENT,
+          100_000_000n,
+        ),
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+const MAX_UINT256 = 2n ** 256n - 1n;
+
+/** Confirmed unlimited USDC approve for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalUsdcUnlimitedApproveTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-usdc-unlimited-approve',
+      hash: '0xactivitycvconfirmedusdcunlimited',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_787_000,
+      type: TransactionType.tokenMethodApprove,
+      transferInformation: {
+        contractAddress: ACTIVITY_CV_USDC,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDC,
+        value: '0x0',
+        nonce: '0x6',
+        data: buildApproveCalldata(ACTIVITY_CV_RECIPIENT, MAX_UINT256),
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Confirmed USDC revoke (`approve(spender, 0)`) for ActivityScreen CV. */
+export const buildConfirmedLocalUsdcRevokeTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-usdc-revoke',
+    hash: '0xactivitycvconfirmedusdcrevoke',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_788_000,
+    type: TransactionType.tokenMethodApprove,
+    transferInformation: {
+      contractAddress: ACTIVITY_CV_USDC,
+      decimals: 6,
+      symbol: 'USDC',
+    },
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0x0',
+      nonce: '0x7',
+      data: buildApproveCalldata(ACTIVITY_CV_RECIPIENT, 0n),
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+/** Mainnet NFT collection used for ActivityScreen mint CV. */
+export const ACTIVITY_CV_NFT_CONTRACT =
+  '0x239fd4b0c4db49fa8660e65b97619d43d0e0a79d';
+
+export const ACTIVITY_CV_NFT_COLLECTION_NAME = 'CryptoPunks';
+
+/**
+ * Confirmed zero-value contract interaction for ActivityScreen transaction-row CV.
+ * Uses a non-wrap method id so it stays `contractInteraction` (no token amount).
+ */
+export const buildConfirmedLocalContractInteractionTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-contract-interaction',
+      hash: '0xactivitycvconfirmedcontract',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_786_000,
+      type: TransactionType.contractInteraction,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_RECIPIENT,
+        value: '0x0',
+        nonce: '0x5',
+        data: '0xabcdef12',
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Confirmed cross-token bridge (ETH → USDC) for ActivityScreen transaction-row CV. */
+export const buildConfirmedLocalBridgeTransaction = (): TransactionMeta =>
+  ({
+    id: 'activity-cv-confirmed-bridge',
+    hash: '0xactivitycvconfirmedbridge',
+    chainId: '0x1',
+    status: TransactionStatus.confirmed,
+    time: 1_716_367_784_000,
+    type: TransactionType.bridge,
+    txParams: {
+      from: ACTIVITY_CV_ACCOUNT,
+      to: ACTIVITY_CV_USDC,
+      value: '0xde0b6b3a7640000',
+      nonce: '0x3',
+    },
+    txReceipt: { status: '0x1' },
+  }) as unknown as TransactionMeta;
+
+/**
+ * BridgeStatusController.txHistory for
+ * {@link buildConfirmedLocalBridgeTransaction} (ETH → USDC, both amounts).
+ */
+export const activityCvBridgeHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-bridge',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: 59144,
+    srcAsset: {
+      symbol: 'ETH',
+      decimals: 18,
+      assetId: 'eip155:1/slip44:60',
+    },
+    destAsset: {
+      symbol: 'USDC',
+      decimals: 6,
+      assetId: `eip155:59144/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`,
+    },
+    srcTokenAmount: '1000000000000000000',
+    destTokenAmount: '1000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvconfirmedbridge',
+    },
+    destChain: {
+      chainId: 59144,
+      txHash: '0xactivitycvbridgedest',
+    },
+  },
+  startTime: 1_716_367_784_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
+
+/**
+ * Cross-chain swap (ETH Ethereum → USDC Linea). Maps as `swap` ("Swapped").
+ */
+export const buildConfirmedLocalCrossChainSwapTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-cross-chain-swap',
+      hash: '0xactivitycvcrosschainswap',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_789_000,
+      type: TransactionType.swap,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x8',
+      },
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Quote for {@link buildConfirmedLocalCrossChainSwapTransaction}. */
+export const activityCvCrossChainSwapBridgeHistoryEntry = {
+  txMetaId: 'activity-cv-confirmed-cross-chain-swap',
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: {
+    srcChainId: 1,
+    destChainId: 59144,
+    srcAsset: {
+      symbol: 'ETH',
+      decimals: 18,
+      assetId: 'eip155:1/slip44:60',
+    },
+    destAsset: {
+      symbol: 'USDC',
+      decimals: 6,
+      assetId: `eip155:59144/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`,
+    },
+    srcTokenAmount: '1000000000000000000',
+    destTokenAmount: '1000000',
+  },
+  status: {
+    srcChain: {
+      chainId: 1,
+      txHash: '0xactivitycvcrosschainswap',
+    },
+    destChain: {
+      chainId: 59144,
+      txHash: '0xactivitycvcrosschainswapdest',
+    },
+  },
+  startTime: 1_716_367_789_000,
+  estimatedProcessingTimeInSeconds: 0,
+  slippagePercentage: 0,
+};
+
 export const buildPendingLocalSendTransaction = (): TransactionMeta =>
   ({
     id: 'activity-cv-pending-send',
@@ -43,6 +333,140 @@ export const buildPendingLocalSendTransaction = (): TransactionMeta =>
       nonce: '0x1',
     },
   }) as unknown as TransactionMeta;
+
+/** Market question used as subtitle on Predict trade/claim Activity CV rows. */
+export const ACTIVITY_CV_PREDICT_MARKET_TITLE =
+  'Will Spain win the 2026 FIFA World Cup?';
+
+const ACTIVITY_CV_PREDICT_MARKET_ICON = 'https://example.com/spain.png';
+
+/** ERC-20 `transfer(to, amount)` calldata for Predict deposit/withdraw batches. */
+const buildErc20TransferCalldata = (to: string, amount: bigint): string =>
+  `0xa9059cbb${to.slice(2).toLowerCase().padStart(64, '0')}${amount
+    .toString(16)
+    .padStart(64, '0')}`;
+
+/** 4,000 USDC (6 decimals) — funded / withdrawal CV fixtures. */
+const ACTIVITY_CV_PREDICT_USDC_AMOUNT = 4_000_000_000n;
+
+/**
+ * Confirmed Predict deposit batch → `predictionsAddFunds` under Predictions filter.
+ */
+export const buildConfirmedLocalPredictDepositTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-predict-deposit',
+      hash: '0xactivitycvpredictdeposit',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_790_000,
+      type: TransactionType.batch,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0x0',
+        nonce: '0x9',
+      },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictDeposit,
+          to: ACTIVITY_CV_USDC,
+          data: buildErc20TransferCalldata(
+            ACTIVITY_CV_RECIPIENT,
+            ACTIVITY_CV_PREDICT_USDC_AMOUNT,
+          ),
+        },
+      ],
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed Predict withdraw batch → `predictionsWithdrawFunds` under Predictions filter.
+ */
+export const buildConfirmedLocalPredictWithdrawTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-predict-withdraw',
+      hash: '0xactivitycvpredictwithdraw',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_791_000,
+      type: TransactionType.batch,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0x0',
+        nonce: '0xa',
+      },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictWithdraw,
+          to: ACTIVITY_CV_USDC,
+          data: buildErc20TransferCalldata(
+            ACTIVITY_CV_ACCOUNT,
+            ACTIVITY_CV_PREDICT_USDC_AMOUNT,
+          ),
+        },
+      ],
+      txReceipt: { status: '0x1' },
+    }) as unknown as TransactionMeta;
+
+/** Provider feed buy → `predictionPlaced` (negative primary, market subtitle). */
+export const buildPredictBuyActivity = (): PredictActivity => ({
+  id: 'activity-cv-predict-buy',
+  providerId: 'polymarket',
+  title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+  outcome: 'Yes',
+  entry: {
+    type: 'buy',
+    timestamp: 1_716_367_792,
+    marketId: 'm-cv-1',
+    outcomeId: 'o-cv-1',
+    outcomeTokenId: 1,
+    amount: 3,
+    price: 0.42,
+  },
+});
+
+/** Provider feed sell → `predictionCashedOut` (positive primary, market subtitle). */
+export const buildPredictSellActivity = (): PredictActivity => ({
+  id: 'activity-cv-predict-sell',
+  providerId: 'polymarket',
+  title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+  outcome: 'Yes',
+  entry: {
+    type: 'sell',
+    timestamp: 1_716_367_793,
+    marketId: 'm-cv-1',
+    outcomeId: 'o-cv-1',
+    outcomeTokenId: 1,
+    amount: 75,
+    price: 0.6,
+  },
+});
+
+/** Provider feed claim → `predictionClaimWinnings` (positive primary, market subtitle). */
+export const buildPredictClaimActivity = (): PredictActivity => ({
+  id: 'activity-cv-predict-claim',
+  providerId: 'polymarket',
+  title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
+  icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+  entry: {
+    type: 'claimWinnings',
+    timestamp: 1_716_367_794,
+    amount: 250,
+  },
+});
+
+/** Remote flag shape that enables PredictActivitySource on ActivityScreen CV. */
+export const activityPredictTradingEnabledFlag = {
+  predictTradingEnabled: {
+    enabled: true,
+    minimumVersion: '0.0.0',
+  },
+} as const;
 
 const enabledMainnetNetworkMap = {
   eip155: {
@@ -109,6 +533,10 @@ export const initialStateActivity = () =>
           },
           TokenBalancesController: {
             tokenBalances: {},
+          },
+          NftController: {
+            allNfts: {},
+            allNftContracts: {},
           },
           TokensController: {
             allTokens: {

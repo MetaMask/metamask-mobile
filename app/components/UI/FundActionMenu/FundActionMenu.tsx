@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import { selectEvmChainId } from '../../../selectors/networkController';
@@ -31,12 +32,10 @@ import type {
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-  const surfaceClass = useElevatedSurface();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
@@ -170,7 +169,6 @@ const FundActionMenu = () => {
       ref={sheetRef}
       goBack={navigation.goBack}
       testID="fund-action-menu-bottom-sheet"
-      twClassName={surfaceClass}
     >
       <Box twClassName="py-4">
         {actionConfigs.map(

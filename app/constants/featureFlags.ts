@@ -6,10 +6,10 @@ import type { Json } from '@metamask/utils';
  * in app/selectors/featureFlagController/
  */
 export enum FeatureFlagNames {
-  rewardsEnabled = 'rewardsEnabled',
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
+  defiControllerV2 = 'defiControllerV2',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
   complianceEnabled = 'complianceEnabled',
@@ -32,6 +32,7 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
 > = {
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
+  [FeatureFlagNames.defiControllerV2]: { enabled: false },
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,

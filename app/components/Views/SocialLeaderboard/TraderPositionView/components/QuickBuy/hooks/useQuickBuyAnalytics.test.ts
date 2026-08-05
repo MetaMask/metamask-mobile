@@ -13,41 +13,53 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-jest.mock('../analytics', () => ({
-  QuickBuyEventProperties: {
-    TRADER_ADDRESS: 'trader_address',
-    CAIP19: 'caip19',
-    DISMISS_STAGE: 'dismiss_stage',
-    AMOUNT_USD: 'amount_usd',
-    AMOUNT_SELECTION_METHOD: 'amount_selection_method',
-    PAY_WITH_TOKEN: 'pay_with_token',
-    RECEIVE_TOKEN: 'receive_token',
-    INTERACTION_TYPE: 'interaction_type',
-    QUOTE_INDEX: 'quote_index',
-    QUOTE_COUNT: 'quote_count',
-    PREVIOUS_PAY_WITH_TOKEN: 'previous_pay_with_token',
-    PREVIOUS_RECEIVE_TOKEN: 'previous_receive_token',
-    SLIPPAGE: 'slippage',
-    PREVIOUS_SLIPPAGE: 'previous_slippage',
-  },
-  QuickBuyEventValues: {
-    DISMISS_STAGE: {
-      TOKEN_DETAIL: 'token_detail',
-      AMOUNT_SELECTION: 'amount_selection',
-      CONFIRMATION: 'confirmation',
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    QuickBuyEventProperties: {
+      ...actual.QuickBuyEventProperties,
+      TRADER_ADDRESS: 'trader_address',
+      CAIP19: 'caip19',
+      DISMISS_STAGE: 'dismiss_stage',
+      AMOUNT_USD: 'amount_usd',
+      AMOUNT_SELECTION_METHOD: 'amount_selection_method',
+      PAY_WITH_TOKEN: 'pay_with_token',
+      PRESET_VALUE: 'preset_value',
+      SLIDER_PERCENT: 'slider_percent',
+      RECEIVE_TOKEN: 'receive_token',
+      INTERACTION_TYPE: 'interaction_type',
+      QUOTE_INDEX: 'quote_index',
+      QUOTE_COUNT: 'quote_count',
+      PREVIOUS_PAY_WITH_TOKEN: 'previous_pay_with_token',
+      PREVIOUS_RECEIVE_TOKEN: 'previous_receive_token',
+      SLIPPAGE: 'slippage',
+      PREVIOUS_SLIPPAGE: 'previous_slippage',
     },
-    AMOUNT_SELECTION_METHOD: {
-      CUSTOM_INPUT: 'custom_input',
-      SLIDER: 'slider',
+    QuickBuyEventValues: {
+      DISMISS_STAGE: {
+        TOKEN_DETAIL: 'token_detail',
+        AMOUNT_SELECTION: 'amount_selection',
+        CONFIRMATION: 'confirmation',
+      },
+      AMOUNT_SELECTION_METHOD: {
+        CUSTOM_INPUT: 'custom_input',
+        SLIDER: 'slider',
+        PRESET: 'preset',
+      },
+      INTERACTION_TYPE: {
+        QUOTE_SELECTED: 'quote_selected',
+        PAY_WITH_SELECTED: 'pay_with_selected',
+        RECEIVE_TOKEN_SELECTED: 'receive_token_selected',
+        SLIPPAGE_CHANGED: 'slippage_changed',
+      },
+      TRADE_TYPE: {
+        BUY: 'buy',
+        SELL: 'sell',
+      },
     },
-    INTERACTION_TYPE: {
-      QUOTE_SELECTED: 'quote_selected',
-      PAY_WITH_SELECTED: 'pay_with_selected',
-      RECEIVE_TOKEN_SELECTED: 'receive_token_selected',
-      SLIPPAGE_CHANGED: 'slippage_changed',
-    },
-  },
-}));
+  };
+});
 
 jest.mock('../../../../analytics', () => ({
   useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
@@ -126,7 +138,31 @@ describe('useQuickBuyAnalytics', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
-        expect.objectContaining({ slider_percent: 25 }),
+        expect.objectContaining({
+          [QuickBuyEventProperties.SLIDER_PERCENT]: 25,
+        }),
+      );
+    });
+
+    it('includes preset_value when provided', () => {
+      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+
+      act(() => {
+        result.current.trackAmountSelected(
+          50,
+          QuickBuyEventValues.AMOUNT_SELECTION_METHOD.PRESET,
+          'USDC',
+          undefined,
+          undefined,
+          50,
+        );
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.PRESET_VALUE]: 50,
+        }),
       );
     });
 
@@ -141,7 +177,7 @@ describe('useQuickBuyAnalytics', () => {
       });
 
       const call = mockTrack.mock.calls[0][1];
-      expect(call).not.toHaveProperty('slider_percent');
+      expect(call).not.toHaveProperty(QuickBuyEventProperties.SLIDER_PERCENT);
     });
 
     it('is a no-op when traderAddress is empty', () => {
@@ -262,6 +298,53 @@ describe('useQuickBuyAnalytics', () => {
           [QuickBuyEventProperties.PREVIOUS_SLIPPAGE]: '0.5',
         }),
       );
+    });
+
+    it('includes trade_type when tradeMode is provided', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, undefined, 'buy'),
+      );
+
+      act(() => {
+        result.current.trackQuoteSelected(0, 1);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_INTERACTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.TRADE_TYPE]:
+            QuickBuyEventValues.TRADE_TYPE.BUY,
+        }),
+      );
+    });
+
+    it('includes trade_type as sell when tradeMode is sell', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, undefined, 'sell'),
+      );
+
+      act(() => {
+        result.current.trackPayWithSelected('USDC', 'ETH');
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_INTERACTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.TRADE_TYPE]:
+            QuickBuyEventValues.TRADE_TYPE.SELL,
+        }),
+      );
+    });
+
+    it('does not include trade_type when tradeMode is not provided', () => {
+      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+
+      act(() => {
+        result.current.trackQuoteSelected(0, 1);
+      });
+
+      const call = mockTrack.mock.calls[0][1];
+      expect(call).not.toHaveProperty(QuickBuyEventProperties.TRADE_TYPE);
     });
 
     it('is a no-op when traderAddress is empty', () => {
@@ -397,6 +480,75 @@ describe('useQuickBuyAnalytics', () => {
       unmount();
 
       expect(mockBridgeControllerResetState).toHaveBeenCalled();
+    });
+
+    it('does not fire DISMISSED or reset bridge when shared analytics props update', () => {
+      const { rerender } = renderHook(
+        ({ context }) => useQuickBuyAnalytics(TRADER, CAIP19, context),
+        {
+          initialProps: {
+            context: {
+              source: 'profile_position' as const,
+              marketCap: 1_000_000,
+              tokenPriceFiat: 1.5,
+            },
+          },
+        },
+      );
+
+      mockTrack.mockClear();
+      mockDispatch.mockClear();
+      mockResetBridgeState.mockClear();
+      mockBridgeControllerResetState.mockClear();
+
+      rerender({
+        context: {
+          source: 'profile_position',
+          marketCap: 2_000_000,
+          tokenPriceFiat: 1.75,
+        },
+      });
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED,
+        expect.anything(),
+      );
+      expect(mockResetBridgeState).not.toHaveBeenCalled();
+      expect(mockBridgeControllerResetState).not.toHaveBeenCalled();
+    });
+
+    it('includes latest shared analytics props in DISMISSED on unmount after context updates', () => {
+      const { rerender, unmount } = renderHook(
+        ({ context }) => useQuickBuyAnalytics(TRADER, CAIP19, context),
+        {
+          initialProps: {
+            context: {
+              source: 'profile_position' as const,
+              marketCap: 1_000_000,
+              originalEntryPoint: 'leaderboard' as const,
+            },
+          },
+        },
+      );
+
+      rerender({
+        context: {
+          source: 'profile_position',
+          marketCap: 2_000_000,
+          originalEntryPoint: 'leaderboard',
+        },
+      });
+
+      mockTrack.mockClear();
+      unmount();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED,
+        expect.objectContaining({
+          market_cap: 2_000_000,
+          original_entry_point: 'leaderboard',
+        }),
+      );
     });
   });
 });

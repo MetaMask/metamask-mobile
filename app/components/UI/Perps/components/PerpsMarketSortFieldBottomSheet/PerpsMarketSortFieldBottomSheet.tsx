@@ -9,6 +9,7 @@ import {
   IconName,
   IconSize,
   ListItemSelect,
+  ListItemVariant,
   Text,
   TextColor,
   TextVariant,
@@ -20,7 +21,6 @@ import {
   type SortOptionId,
   type SortDirection,
 } from '@metamask/perps-controller';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 /**
  * PerpsMarketSortFieldBottomSheet Component
@@ -54,7 +54,6 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   testID,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
 
   useEffect(() => {
     if (isVisible) {
@@ -91,12 +90,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      twClassName={surfaceClass}
-      testID={testID}
-    >
+    <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
       <BottomSheetHeader onClose={handleClose}>
         {strings('perps.sort.sort_by')}
       </BottomSheetHeader>
@@ -106,6 +100,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
           <ListItemSelect
             key={option.id}
             title={strings(option.labelKey)}
+            variant={ListItemVariant.OneLine}
             isSelected={isSelected}
             showSelectedIcon={false}
             onPress={() => handleOptionPress(option.id)}

@@ -140,6 +140,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       WarningDefault: 'warning',
     },
     IconName: {
+      Activity: 'Activity',
       ArrowDown: 'ArrowDown',
       ArrowRight: 'ArrowRight',
       ArrowUp: 'ArrowUp',
@@ -197,6 +198,9 @@ jest.mock('../../../../../locales/i18n', () => ({
     }
     if (key === 'rewards.vip.progress_to_next_tier' && params) {
       return `${params.pointsRemaining} points to next tier`;
+    }
+    if (key === 'rewards.vip.maintain_this_tier' && params) {
+      return `${params.points} points to maintain this tier`;
     }
     const translations: Record<string, string> = {
       'rewards.vip.swaps_label': 'Swaps',
@@ -316,6 +320,7 @@ const defaultDashboard: VipDashboardState = {
       swapsBps: 42.5,
       perpsBps: 7,
       referralCarryoverBps: 4242,
+      maintainPointsRequirement: null,
       status: 'current',
     },
     {
@@ -327,12 +332,14 @@ const defaultDashboard: VipDashboardState = {
       swapsBps: 11,
       perpsBps: 6,
       referralCarryoverBps: 5151,
+      maintainPointsRequirement: null,
       status: 'upcoming',
     },
   ],
   localizedText: {
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
+    transactionsTitle: 'Transactions',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
     revenueShareTitle: 'Revenue share',
@@ -444,10 +451,31 @@ describe('RewardsVipView', () => {
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON),
+    ).toBeOnTheScreen();
     expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({
       page_type: 'vip',
       enabled: true,
     });
+  });
+
+  it('navigates to VIP transactions view when the transactions button is pressed', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    fireEvent.press(getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_VIP_TRANSACTIONS_VIEW,
+    );
   });
 
   it('renders the "Last updated" row when computedAt is present', () => {
@@ -705,6 +733,7 @@ describe('RewardsVipView', () => {
         program: { id: 'mock-vip-program', name: 'Acme Rewards Beta — Custom' },
         localizedText: {
           memberIdTitle: 'Member ID',
+          transactionsTitle: 'Transactions',
           swapsFeeTitle: 'Swap fees',
           perpsFeeTitle: 'Perp fees',
           revenueShareTitle: 'Revenue',
@@ -804,5 +833,67 @@ describe('RewardsVipView', () => {
     await waitFor(() => {
       expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
+  });
+
+  it('passes the maintain subline to the progress card when the current tier has a maintain threshold', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        tiers: defaultDashboard.tiers.map((tier) =>
+          tier.id === defaultDashboard.currentTier.id
+            ? { ...tier, maintainPointsRequirement: 250_000 }
+            : tier,
+        ),
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    expect(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toHaveTextContent('250k points to maintain this tier');
+  });
+
+  it('does not pass a maintain subline when the current tier has no maintain threshold', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(
+      queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toBeNull();
+  });
+
+  it('does not pass a maintain subline when the maintain threshold is 0', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        tiers: defaultDashboard.tiers.map((tier) =>
+          tier.id === defaultDashboard.currentTier.id
+            ? { ...tier, maintainPointsRequirement: 0 }
+            : tier,
+        ),
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(
+      queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
+    ).toBeNull();
   });
 });

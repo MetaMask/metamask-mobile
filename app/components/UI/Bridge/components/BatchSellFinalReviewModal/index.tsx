@@ -48,7 +48,6 @@ import { useSubmitBatchSellTx } from '../../hooks/useSubmitBatchSellTx';
 import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useTrackBatchSellReviewModalSubmitted } from '../../hooks/useTrackBatchSellReviewModalSubmitted';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
@@ -305,7 +304,6 @@ export function BatchSellFinalReviewModal() {
     isGasless: batchSellQuoteData.isGasless,
     networkFee: batchSellQuoteData.networkFee,
   });
-  const surfaceClass = useElevatedSurface();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
   const trackBatchSellReviewModalSubmitted =
@@ -433,7 +431,6 @@ export function BatchSellFinalReviewModal() {
       ref={sheetRef}
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

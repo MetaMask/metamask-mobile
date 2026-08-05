@@ -32,47 +32,49 @@ const PillRow: React.FC<PillRowProps> = ({
   const tw = useTailwind();
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      testID={`${testIdPrefix}-pills`}
-      contentContainerStyle={tw.style('px-4')}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+    <Box>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        testID={`${testIdPrefix}-pills`}
+        contentContainerStyle={tw.style('px-4 py-3')}
       >
-        {pills.map((pill) => {
-          const isSelected = activeKey === pill.key;
-          return (
-            <Pressable
-              key={pill.key}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
-              onPress={() => onSelect(pill.key)}
-              testID={`${testIdPrefix}-pill-${pill.key}`}
-              style={tw.style(
-                'rounded-xl px-[12px] py-2',
-                isSelected ? 'bg-icon-default' : 'bg-muted',
-              )}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={
-                  isSelected ? TextColor.InfoInverse : TextColor.TextDefault
-                }
-                testID={`${testIdPrefix}-pill-label-${pill.key}`}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          {pills.map((pill) => {
+            const isSelected = activeKey === pill.key;
+            return (
+              <Pressable
+                key={pill.key}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                onPress={() => onSelect(pill.key)}
+                testID={`${testIdPrefix}-pill-${pill.key}`}
+                style={tw.style(
+                  'rounded-xl px-[12px] py-2',
+                  isSelected ? 'bg-icon-default' : 'bg-muted',
+                )}
               >
-                {pill.name}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </Box>
-    </ScrollView>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={
+                    isSelected ? TextColor.InfoInverse : TextColor.TextDefault
+                  }
+                  testID={`${testIdPrefix}-pill-label-${pill.key}`}
+                >
+                  {pill.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </Box>
+      </ScrollView>
+    </Box>
   );
 };
 

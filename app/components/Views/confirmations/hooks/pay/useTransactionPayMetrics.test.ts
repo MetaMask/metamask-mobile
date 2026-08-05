@@ -22,7 +22,10 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
   useTransactionPayFiatPayment,
 } from './useTransactionPayData';
@@ -36,8 +39,10 @@ import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/select
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { PaymentMethod } from '@metamask/ramps-controller';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 jest.mock('./useTransactionPayToken');
+jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('../pay/useTransactionPayData');
@@ -75,6 +80,10 @@ const QUOTE_MOCK = {
   strategy: TransactionPayStrategy.Relay,
 } as TransactionPayQuote<Json>;
 
+const NOOP_QUOTE_MOCK = {
+  strategy: TransactionPayStrategy.None,
+} as TransactionPayQuote<Json>;
+
 function runHook({ type }: { type?: TransactionType } = {}) {
   const state = merge(
     {},
@@ -95,6 +104,9 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useTransactionPayQuotesRawMock = jest.mocked(
+    useTransactionPayQuotesRaw,
+  );
 
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -124,6 +136,19 @@ describe('useTransactionPayMetrics', () => {
   const useFiatPaymentHighlightedActionsMock = jest.mocked(
     useFiatPaymentHighlightedActions,
   );
+  const useTransactionAccountOverrideMock = jest.mocked(
+    useTransactionAccountOverride,
+  );
+  const useIsTransactionPayQuoteLoadingMock = jest.mocked(
+    useIsTransactionPayQuoteLoading,
+  );
+  const useTransactionPayQuoteErrorMock = jest.mocked(
+    useTransactionPayQuoteError,
+  );
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -144,6 +169,7 @@ describe('useTransactionPayMetrics', () => {
     } as never);
 
     useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesRawMock.mockReturnValue([]);
     useAccountTokensMock.mockReturnValue([]);
     mockSelectConfirmationMetricsById.mockReturnValue(undefined);
 
@@ -162,6 +188,9 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
     useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuoteErrorMock.mockReturnValue(undefined);
   });
 
   it('includes available crypto method even before a pay token is selected', async () => {
@@ -174,6 +203,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: {
           mm_pay_payment_method_available: ['crypto'],
+          mm_pay_payment_token_list_size: 5,
         },
         sensitiveProperties: {},
       },
@@ -578,6 +608,7 @@ describe('useTransactionPayMetrics', () => {
         params: {
           properties: expect.objectContaining({
             mm_pay_payment_method_available: [],
+            mm_pay_payment_token_list_size: 0,
           }),
           sensitiveProperties: {},
         },
@@ -658,6 +689,7 @@ describe('useTransactionPayMetrics', () => {
           properties: expect.objectContaining({
             mm_pay_payment_method_available: ['rev_pay'],
             mm_pay_payment_method_presented: 'rev_pay',
+            mm_pay_payment_token_list_size: 0,
           }),
           sensitiveProperties: {},
         },
@@ -776,9 +808,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'crypto',
-            mm_pay_section_source_selected: 'crypto',
-            mm_pay_section_source_switch_count: 0,
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_source_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -796,8 +828,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'money-account',
-            mm_pay_section_source_selected: 'money-account',
+            mm_pay_account_type_source_presented: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -815,8 +847,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'money-account',
-            mm_pay_section_source_selected: 'money-account',
+            mm_pay_account_type_source_presented: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -834,8 +866,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'perps',
-            mm_pay_section_source_selected: 'perps',
+            mm_pay_account_type_source_presented: 'perps',
+            mm_pay_account_type_source_selected: 'perps',
           }),
           sensitiveProperties: {},
         },
@@ -853,7 +885,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_selected: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
           }),
           sensitiveProperties: {},
         },
@@ -871,8 +903,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'predict',
-            mm_pay_section_source_selected: 'predict',
+            mm_pay_account_type_source_presented: 'predict',
+            mm_pay_account_type_source_selected: 'predict',
           }),
           sensitiveProperties: {},
         },
@@ -892,8 +924,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'bank-card',
-            mm_pay_section_source_selected: 'bank-card',
+            mm_pay_account_type_source_presented: 'bank-card',
+            mm_pay_account_type_source_selected: 'bank-card',
           }),
           sensitiveProperties: {},
         },
@@ -916,10 +948,14 @@ describe('useTransactionPayMetrics', () => {
         }
       )?.params?.properties;
 
-      expect(calledProps).not.toHaveProperty('mm_pay_section_source_presented');
-      expect(calledProps).not.toHaveProperty('mm_pay_section_source_selected');
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_source_switch_count',
+        'mm_pay_account_type_source_presented',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_account_type_source_selected',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_source_mm_account_switch_count',
       );
     });
 
@@ -932,9 +968,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'crypto',
-            mm_pay_section_source_selected: 'crypto',
-            mm_pay_section_source_switch_count: 0,
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_source_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -950,9 +986,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'crypto',
-            mm_pay_section_source_selected: 'money-account',
-            mm_pay_section_source_switch_count: 1,
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'money-account',
+            mm_pay_source_mm_account_switch_count: 1,
           }),
           sensitiveProperties: {},
         },
@@ -972,7 +1008,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_selected: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -997,9 +1033,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'perps',
-            mm_pay_section_recipient_selected: 'perps',
-            mm_pay_section_recipient_switch_count: 0,
+            mm_pay_account_type_recipient_presented: 'perps',
+            mm_pay_account_type_recipient_selected: 'perps',
+            mm_pay_recipient_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -1015,8 +1051,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'perps',
-            mm_pay_section_recipient_selected: 'perps',
+            mm_pay_account_type_recipient_presented: 'perps',
+            mm_pay_account_type_recipient_selected: 'perps',
           }),
           sensitiveProperties: {},
         },
@@ -1032,8 +1068,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'predict',
-            mm_pay_section_recipient_selected: 'predict',
+            mm_pay_account_type_recipient_presented: 'predict',
+            mm_pay_account_type_recipient_selected: 'predict',
           }),
           sensitiveProperties: {},
         },
@@ -1049,8 +1085,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'money-account',
-            mm_pay_section_recipient_selected: 'money-account',
+            mm_pay_account_type_recipient_presented: 'money-account',
+            mm_pay_account_type_recipient_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -1066,9 +1102,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'crypto',
-            mm_pay_section_recipient_selected: 'crypto',
-            mm_pay_section_recipient_switch_count: 0,
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -1084,7 +1120,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_selected: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
           }),
           sensitiveProperties: {},
         },
@@ -1102,7 +1138,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_selected: 'money-account',
+            mm_pay_account_type_recipient_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -1118,9 +1154,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'crypto',
-            mm_pay_section_recipient_selected: 'crypto',
-            mm_pay_section_recipient_switch_count: 0,
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -1136,9 +1172,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'crypto',
-            mm_pay_section_recipient_selected: 'money-account',
-            mm_pay_section_recipient_switch_count: 1,
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'money-account',
+            mm_pay_recipient_mm_account_switch_count: 1,
           }),
           sensitiveProperties: {},
         },
@@ -1162,13 +1198,13 @@ describe('useTransactionPayMetrics', () => {
       )?.params?.properties;
 
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_recipient_presented',
+        'mm_pay_account_type_recipient_presented',
       );
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_recipient_selected',
+        'mm_pay_account_type_recipient_selected',
       );
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_recipient_switch_count',
+        'mm_pay_recipient_mm_account_switch_count',
       );
     });
   });
@@ -1342,6 +1378,490 @@ describe('useTransactionPayMetrics', () => {
       )?.params?.properties;
 
       expect(calledProps).not.toHaveProperty('mm_pay_entry_point');
+    });
+  });
+
+  describe('timing metrics', () => {
+    function timingDispatches(prop: string) {
+      return updateConfirmationMetricMock.mock.calls.filter(
+        (call) =>
+          prop in
+          (call[0] as { params: { properties: Record<string, unknown> } })
+            .params.properties,
+      );
+    }
+
+    it('dispatches confirmation_time_to_open_ms immediately on mount', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      const calls = timingDispatches('confirmation_time_to_open_ms');
+      expect(calls).toHaveLength(1);
+      expect(calls[0][0]).toEqual({
+        id: transactionIdMock,
+        params: {
+          properties: { confirmation_time_to_open_ms: 1000 },
+        },
+      });
+    });
+
+    it('dispatches confirmation_time_to_load_info_ms when pay token loads', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      const calls = timingDispatches('confirmation_time_to_load_info_ms');
+      expect(calls).toHaveLength(1);
+    });
+
+    it('waits for account override on moneyAccountDeposit before dispatching load info', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+      const { rerender } = runHook({
+        type: TransactionType.moneyAccountDeposit,
+      });
+      await act(async () => noop());
+
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(0);
+
+      useTransactionAccountOverrideMock.mockReturnValue(
+        '0xabc' as `0x${string}`,
+      );
+      rerender({});
+      await act(async () => noop());
+
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(1);
+    });
+
+    it('does not dispatch load info when pay token never loads', async () => {
+      runHook();
+      await act(async () => noop());
+
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(0);
+    });
+
+    it('dispatches each metric exactly once across re-renders', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1746696741463);
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { rerender } = runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      rerender({});
+      await act(async () => noop());
+
+      expect(timingDispatches('confirmation_time_to_open_ms')).toHaveLength(1);
+      expect(
+        timingDispatches('confirmation_time_to_load_info_ms'),
+      ).toHaveLength(1);
+    });
+
+    it('dispatches mm_pay_time_to_load_quote_ms when quote arrives after request', async () => {
+      const requestTime = 1746696742000;
+      const quoteArrivalTime = 1746696742600;
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_quote_requested: false },
+      });
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+
+      jest.spyOn(Date, 'now').mockReturnValue(requestTime);
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_quote_requested: true },
+      });
+      rerender({});
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+
+      jest.spyOn(Date, 'now').mockReturnValue(quoteArrivalTime);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+      rerender({});
+      await act(async () => noop());
+
+      const calls = timingDispatches('mm_pay_time_to_load_quote_ms');
+      expect(calls).toHaveLength(1);
+      expect(calls[0][0]).toEqual({
+        id: transactionIdMock,
+        params: {
+          properties: { mm_pay_time_to_load_quote_ms: 600 },
+        },
+      });
+    });
+
+    it('does not dispatch mm_pay_time_to_load_quote_ms without a prior quote request', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      runHook({ type: TransactionType.perpsDeposit });
+      await act(async () => noop());
+
+      expect(timingDispatches('mm_pay_time_to_load_quote_ms')).toHaveLength(0);
+    });
+  });
+
+  describe('mm_pay_quote_errors', () => {
+    const lastProps = () =>
+      (
+        updateConfirmationMetricMock.mock.calls.at(-1)?.[0] as {
+          params: { properties: Record<string, unknown> };
+        }
+      )?.params?.properties;
+
+    it('is omitted when no quote errors have occurred', async () => {
+      runHook();
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
+    });
+
+    it('appends one entry when a loading cycle ends with no quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()?.mm_pay_quote_errors).toEqual([
+        {
+          pay_token: {
+            symbol: PAY_TOKEN_MOCK.symbol,
+            chainId: PAY_TOKEN_MOCK.chainId,
+            address: PAY_TOKEN_MOCK.address,
+          },
+          amount: Number(TOKEN_AMOUNT_MOCK),
+          amount_input_type: null,
+          error_message: 'unknown',
+          error_reason: null,
+          error_detail: null,
+        },
+      ]);
+    });
+
+    it('does NOT append when a cycle ends WITH quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+      useTransactionPayQuotesRawMock.mockReturnValue([QUOTE_MOCK]);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
+    });
+
+    it('does NOT append when a cycle ends with only a no-op quote', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPayQuotesRawMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // A completed same-token / no-conversion route: the raw quotes list
+      // holds a single no-op quote while the filtered list is empty. This is
+      // a success, not a quote error.
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPayQuotesRawMock.mockReturnValue([NOOP_QUOTE_MOCK]);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
+    });
+
+    it('records amount_input_type from stored metric', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_amount_input_type: '50%' },
+      });
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Record<
+        string,
+        unknown
+      >[];
+      expect(errors?.[0]).toMatchObject({
+        amount_input_type: '50%',
+      });
+    });
+
+    it('records amount_input_type as null when no amount input has been made', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      mockSelectConfirmationMetricsById.mockReturnValue({});
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Record<
+        string,
+        unknown
+      >[];
+      expect(errors?.[0]).toMatchObject({
+        amount_input_type: null,
+      });
+    });
+
+    it('accumulates multiple failed cycles oldest-first', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // Cycle 1: loading true
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      // Cycle 1: loading false (no quotes)
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      // Cycle 2: loading true
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      // Cycle 2: loading false (no quotes)
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as unknown[];
+      expect(errors).toHaveLength(2);
+    });
+
+    it('does not duplicate entries on subsequent non-loading re-renders', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // Drive a single failed cycle: loading true → false
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      // Re-render 3 more times while still non-loading (quotes still [])
+      rerender({});
+      await act(async () => noop());
+      rerender({});
+      await act(async () => noop());
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as unknown[];
+      expect(errors).toHaveLength(1);
+    });
+
+    it('records null pay_token fields when no payToken is selected', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // Drive a failed cycle: loading true → false with no quotes
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Record<
+        string,
+        unknown
+      >[];
+      expect(errors).toHaveLength(1);
+      expect(errors?.[0]).toMatchObject({
+        pay_token: {
+          symbol: null,
+          chainId: null,
+          address: null,
+        },
+      });
+    });
+
+    it('records quoteError message, reason and joined detail when available', async () => {
+      useTransactionPayQuoteErrorMock.mockReturnValue({
+        message: 'Insufficient balance',
+        reason: 'insufficient-source-balance',
+        detail: ['Required: 1.5 USDC', 'Current: 1 USDC'],
+      });
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as
+        | {
+            error_message: string;
+            error_reason: string | null;
+            error_detail: string | null;
+          }[]
+        | undefined;
+      expect(errors).toHaveLength(1);
+      expect(errors?.[0].error_message).toBe('Insufficient balance');
+      expect(errors?.[0].error_reason).toBe('insufficient-source-balance');
+      expect(errors?.[0].error_detail).toBe(
+        'Required: 1.5 USDC | Current: 1 USDC',
+      );
+    });
+
+    it('does not append an entry when the amount is zero', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          amountHuman: '0',
+        } as TransactionPayRequiredToken,
+      ]);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
     });
   });
 });

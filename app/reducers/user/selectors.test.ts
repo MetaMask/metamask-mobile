@@ -9,6 +9,7 @@ import {
   selectMusdConversionEducationSeen,
   selectMusdConversionAssetDetailCtasSeen,
   selectMoneyOnboardingSeen,
+  selectMoneyEarnBannerDismissedTokens,
   selectTokenOverviewChartType,
   selectTokenOverviewChartInterval,
   selectTokenIndicators,
@@ -26,6 +27,7 @@ const mockState = {
     musdConversionEducationSeen: false,
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
     moneyOnboardingSeen: false,
+    moneyEarnBannerDismissedTokens: {} as Record<string, boolean>,
     tokenOverviewChartType: ChartType.Line as ChartType,
     tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
     tokenIndicators: [] as string[],
@@ -164,6 +166,45 @@ describe('user state selectors', () => {
     });
   });
 
+  describe('selectMoneyEarnBannerDismissedTokens', () => {
+    it('returns empty object when no banners have been dismissed', () => {
+      mockState.user.moneyEarnBannerDismissedTokens = {};
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyEarnBannerDismissedTokens),
+      );
+
+      expect(result.current).toEqual({});
+    });
+
+    it('returns record of dismissed banners keyed by chainId-address', () => {
+      mockState.user.moneyEarnBannerDismissedTokens = {
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
+      };
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyEarnBannerDismissedTokens),
+      );
+
+      expect(result.current).toEqual({
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
+      });
+    });
+
+    it('defaults to empty object when moneyEarnBannerDismissedTokens is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.moneyEarnBannerDismissedTokens = undefined;
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyEarnBannerDismissedTokens),
+      );
+
+      expect(result.current).toEqual({});
+    });
+  });
+
   describe('selectTokenOverviewChartType', () => {
     it('returns ChartType.Line when chart type is set to Line', () => {
       mockState.user.tokenOverviewChartType = ChartType.Line;
@@ -209,7 +250,6 @@ describe('user state selectors', () => {
     });
 
     it('returns default when interval is invalid', () => {
-      // @ts-expect-error - Testing invalid persisted value
       mockState.user.tokenOverviewChartInterval = 'invalid';
 
       const { result } = renderHook(() =>

@@ -58,6 +58,7 @@ const mockTraders = [
     username: 'alice',
     percentageChange: 96.2,
     pnlValue: 963000,
+    winRatePercent: 92,
     pnlPerChain: { base: 963000 },
     isFollowing: false,
   },
@@ -96,11 +97,19 @@ jest.mock(
   }),
 );
 
+const mockNavigateToSocialLeaderboard = jest.fn();
+jest.mock(
+  '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialLeaderboard: (...args: unknown[]) =>
+      mockNavigateToSocialLeaderboard(...args),
+  }),
+);
+
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
   HomeSectionNames: {
-    CASH: 'cash',
     TOKENS: 'tokens',
     WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
@@ -208,25 +217,27 @@ describe('TopTradersSection', () => {
     });
   });
 
-  it('queries with all chains so the cache key aligns with TopTradersView "All"', () => {
+  it('queries spot-only chains sorted by P&L over 7 days, matching the leaderboard landing state', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
+
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        chains: ['base', 'solana', 'ethereum'],
+        sort: 'pnl',
+        timeframe: '7d',
         limit: 50,
       }),
     );
   });
 
-  it('queries with spot-only chains when social leaderboard perps are disabled', () => {
-    mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => false);
+  it('queries the same spot-only chains when social leaderboard perps are enabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
 
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
         chains: ['base', 'solana', 'ethereum'],
-        limit: 50,
       }),
     );
   });
@@ -272,20 +283,21 @@ describe('TopTradersSection', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to the Top Traders view when the section header is pressed', () => {
+  it('opens the Social Leaderboard (routing through the onboarding gate) when the section header is pressed', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Weekly Top Traders'));
+    fireEvent.press(screen.getByText('Top traders'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW, {
-      source: 'home_carousel',
-    });
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      { source: 'home_carousel' },
+    );
   });
 
   it('navigates to the trader profile with correct params when a card is tapped', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.PROFILE,
@@ -320,6 +332,7 @@ describe('TopTradersSection', () => {
       expect.objectContaining({
         source: 'home_carousel',
         traderAddress: '0x0000000000000000000000000000000000000001',
+        traderAvatarUri: undefined,
       }),
     );
   });
@@ -487,7 +500,9 @@ describe('TopTradersSection', () => {
     });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Retry'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Retry'));
+    });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });

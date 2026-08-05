@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Hex, hexToNumber } from '@metamask/utils';
 import { NetworkStatus } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
 import { selectIsDeviceOffline } from '../../../selectors/connectivityController';
 import Engine from '../../../core/Engine';
@@ -56,7 +57,7 @@ const useNetworkConnectionBanner = (): {
   switchToInfura: () => Promise<void>;
 } => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const networkConnectionBannerState = useSelector(
@@ -68,10 +69,6 @@ const useNetworkConnectionBanner = (): {
   const bannerStateRef = useRef(networkConnectionBannerState);
 
   const evmEnabledNetworksChainIds = useSelector(selectEVMEnabledNetworks);
-
-  useEffect(() => {
-    Engine.lookupEnabledNetworks();
-  }, []);
 
   function updateRpc(
     rpcUrl: string,

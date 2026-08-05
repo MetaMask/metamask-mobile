@@ -6,6 +6,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
@@ -76,7 +77,7 @@ type ActivityDetailsRoute = RouteProp<
 >;
 
 export function MoneyApiActivityDetailsView() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const activity = useRoute<ActivityDetailsRoute>().params?.activity;
 
   useEffect(() => {
@@ -98,7 +99,7 @@ function MoneyApiActivityDetailsContent({
   activity: AccountsApiActivity;
 }) {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,

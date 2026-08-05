@@ -89,6 +89,8 @@ const getRampsV2AnalyticsPayload = (
 
   const unifiedBuyBase = {
     ramp_type: 'UNIFIED_BUY_2' as const,
+    // TRAM-3696: join key back to the provider order. Never emit empty string.
+    ...(data?.providerOrderId && { provider_order_id: data.providerOrderId }),
     amount_source: Number(fiatOrder.amount),
     amount_destination: cryptoAmount,
     exchange_rate: data?.exchangeRate ?? computedExchangeRate,

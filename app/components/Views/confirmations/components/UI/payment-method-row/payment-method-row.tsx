@@ -75,6 +75,7 @@ const PaymentMethodRow = ({
 }: PaymentMethodRowProps) => {
   const tw = useTailwind();
   const resolvedTestID = testID ?? `payment-method-row-${id}`;
+  const rowBackgroundClass = isSelected ? 'bg-section' : 'bg-transparent';
   const iconSlotTestID = `${resolvedTestID}-icon-slot`;
   const tag = renderFirstTag(tagRenderers);
 
@@ -131,9 +132,9 @@ const PaymentMethodRow = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={`px-4 py-3 ${
-          isSelected ? 'bg-section' : 'bg-default'
-        } ${disabled ? 'opacity-50' : ''}`}
+        twClassName={`px-4 py-3 ${rowBackgroundClass} ${
+          disabled ? 'opacity-50' : ''
+        }`}
         testID={resolvedTestID}
       >
         {content}
@@ -150,7 +151,7 @@ const PaymentMethodRow = ({
       style={({ pressed }) =>
         tw.style(
           'flex-row items-center px-4 py-3',
-          isSelected ? 'bg-section' : 'bg-default',
+          rowBackgroundClass,
           pressed && !disabled ? 'bg-pressed' : '',
           disabled ? 'opacity-50' : '',
         )

@@ -10,6 +10,7 @@ import {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PerpsMode } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { RootState } from '../../../reducers';
@@ -27,7 +28,11 @@ import {
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
+import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
+import {
+  selectIsFirstTimePerpsUser,
+  selectPerpsMode,
+} from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
@@ -99,9 +104,42 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
 }));
 
-jest.mock('../../UI/Perps/selectors/perpsController', () => ({
-  selectIsFirstTimePerpsUser: jest.fn(),
+jest.mock('../../UI/Perps/selectors/perpsController', () => {
+  const { PerpsMode: MockedPerpsMode } = jest.requireActual(
+    '@metamask/perps-controller',
+  );
+  return {
+    selectIsFirstTimePerpsUser: jest.fn(),
+    selectPerpsMode: jest.fn(() => MockedPerpsMode.Lite),
+  };
+});
+
+jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsProModeEnabledFlag: jest.fn(),
 }));
+
+const mockSetPerpsMode = jest.fn();
+jest.mock('../../UI/Perps/hooks', () => ({
+  usePerpsMode: jest.fn(() => ({
+    mode: 'lite',
+    setMode: mockSetPerpsMode,
+  })),
+}));
+
+jest.mock('../../UI/Perps/components/PerpsModeToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: 'perps-mode-toggle',
+        // Simulate the user switching to Pro from the stubbed toggle.
+        onPress: () => onChange?.('pro'),
+      }),
+    PerpsMode: { Lite: 'lite', Pro: 'pro' },
+  };
+});
 
 jest.mock('../../UI/Predict', () => ({
   selectPredictEnabledFlag: jest.fn(),
@@ -361,9 +399,17 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
+let mockIsPureBlack = false;
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
+  usePureBlack: () => mockIsPureBlack,
+}));
+
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsPureBlack = false;
     mockParentCanGoBack = true;
     jest
       .spyOn(global, 'requestAnimationFrame')
@@ -434,6 +480,42 @@ describe('TradeWalletActions', () => {
     // Feature flag is disabled by default
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders a bottom cutout stroke when pure black is enabled', () => {
+    mockIsPureBlack = true;
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
+    ).toBeTruthy();
+  });
+
+  it('does not render the bottom cutout stroke when pure black is disabled', () => {
+    mockIsPureBlack = false;
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
     ).toBeNull();
   });
 
@@ -594,6 +676,171 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeDefined();
+  });
+
+  it('should render the Lite/Pro toggle on the Perps row when the Pro mode flag is enabled', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(getByTestId('perps-mode-toggle')).toBeOnTheScreen();
+  });
+
+  it('should not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    ).toBeDefined();
+    expect(queryByTestId('perps-mode-toggle')).toBeNull();
+  });
+
+  it('routes into the default Pro market after dismissing the sheet when the toggle switches to Pro', async () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    await pressActionButton(getByTestId, 'perps-mode-toggle');
+
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    // No `initial: false`: Perps Home must never be seeded beneath the
+    // default market screen, so it stays unreachable via back navigation.
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: expect.objectContaining({
+        market: expect.objectContaining({ symbol: 'BTC' }),
+      }),
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({ initial: false }),
+    );
+  });
+
+  it('hides the Lite/Pro toggle when the selected account cannot sign transactions', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    ).toBeDefined();
+    expect(queryByTestId('perps-mode-toggle')).toBeNull();
+
+    // Without the toggle, mode switching / navigation into Perps cannot be
+    // triggered from the Trade menu accessory.
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.anything(),
+    );
+  });
+
+  it('routes first-time users to the Perps tutorial when the toggle switches mode', async () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectIsFirstTimePerpsUser as jest.MockedFunction<
+        typeof selectIsFirstTimePerpsUser
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    await pressActionButton(getByTestId, 'perps-mode-toggle');
+
+    // Mode is still persisted, but onboarding is not skipped: the user is sent
+    // to the tutorial instead of the mode-switch/home shortcut. The tutorial
+    // redirect still points at the default Pro market (not Perps Home) so
+    // completing onboarding doesn't violate the Pro-mode invariant (TAT-3612).
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+      source: 'trade_menu_action',
+      redirectScreen: Routes.PERPS.MARKET_DETAILS,
+      redirectParams: {
+        market: { symbol: 'BTC' },
+        source: 'trade_menu_action',
+      },
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({ screen: Routes.PERPS.MARKET_DETAILS }),
+    );
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {
@@ -857,6 +1104,46 @@ describe('TradeWalletActions', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: {},
+      });
+    });
+
+    it('navigates to the default Pro market instead of Perps home when Pro mode is already active', async () => {
+      (
+        selectPerpsEnabledFlag as jest.MockedFunction<
+          typeof selectPerpsEnabledFlag
+        >
+      ).mockReturnValue(true);
+      (
+        selectIsFirstTimePerpsUser as jest.MockedFunction<
+          typeof selectIsFirstTimePerpsUser
+        >
+      ).mockReturnValue(false);
+      (
+        selectPerpsProModeEnabledFlag as jest.MockedFunction<
+          typeof selectPerpsProModeEnabledFlag
+        >
+      ).mockReturnValue(true);
+      (
+        selectPerpsMode as jest.MockedFunction<typeof selectPerpsMode>
+      ).mockReturnValue(PerpsMode.Pro);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'BTC' }),
+        }),
       });
     });
 

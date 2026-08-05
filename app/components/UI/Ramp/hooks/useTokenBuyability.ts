@@ -28,11 +28,16 @@ interface BuyabilityTokenSource {
 }
 
 /**
- * Builds the CAIP-19 assetId for a token, matching the format used by
- * useTokenActions.onBuy when navigating to the ramp flow.
+ * Builds the CAIP-19 assetId for ERC-20 buyability matching.
+ * Native tokens are matched by chain + slip44 in {@link getIsTokenBuyable}
+ * (same as Tokens `getCaipAssetIdForToken` / Buy) — do not rebuild from
+ * hex address here (Polygon `0x…1010` would look like an ERC-20).
  */
 function buildRampAssetId(token: TokenI): string | undefined {
   try {
+    if (token.isNative || token.isETH) {
+      return undefined;
+    }
     if (isCaipAssetType(token.address)) {
       return token.address;
     }

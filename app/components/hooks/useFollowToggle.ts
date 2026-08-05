@@ -11,6 +11,7 @@ import {
   type TraderFollowInteractionSource,
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
+import { hasRealAvatar } from '../Views/Homepage/Sections/TopTraders/utils/avatarFallback';
 
 /**
  * Analytics context attached to a follow/unfollow action so the
@@ -30,6 +31,11 @@ export interface FollowToggleAnalyticsContext {
   traderUsername?: string;
   /** Leaderboard rank when triggered from leaderboard / home_carousel. */
   traderRank?: number;
+  /**
+   * Backend-provided avatar URL at tap time. Used to derive
+   * `trader_has_profile_picture_set` (real image vs Maskicon fallback).
+   */
+  traderAvatarUri?: string | null;
 }
 
 export interface UseFollowToggleManyResult {
@@ -127,6 +133,8 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             [SocialLeaderboardEventProperties.SOURCE]: analyticsContext.source,
             [SocialLeaderboardEventProperties.TRADER_RANK]:
               analyticsContext.traderRank,
+            [SocialLeaderboardEventProperties.TRADER_HAS_PROFILE_PICTURE_SET]:
+              hasRealAvatar(analyticsContext.traderAvatarUri),
           });
         }
       } catch (err) {

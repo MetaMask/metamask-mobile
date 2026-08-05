@@ -92,7 +92,6 @@ export function useCardProvisioning(data: CardHomeData | null | undefined) {
           ],
           iconName: IconName.Danger,
           iconColor: theme.colors.error.default,
-          backgroundColor: theme.colors.error.muted,
           hasNoTimeout: false,
         });
       },

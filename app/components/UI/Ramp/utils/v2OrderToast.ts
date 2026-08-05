@@ -1,13 +1,14 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
 import {
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
+  IconColor as DsIconColor,
+  IconSize as DsIconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
-import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import {
   ToastOptions,
   ToastVariants,
@@ -17,10 +18,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import ToastService from '../../../../core/ToastService';
 import { renderNumber } from '../../../../util/number';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
 
 export interface V2OrderToastParams {
   orderId: string;
@@ -28,23 +25,6 @@ export interface V2OrderToastParams {
   cryptoAmount?: string | number;
   status: RampsOrderStatus;
 }
-
-const toastStyles = StyleSheet.create({
-  spinnerContainer: {
-    paddingTop: 4,
-    marginRight: 12,
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-  },
-  iconContainer: {
-    paddingTop: 0,
-    marginRight: 12,
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-  },
-});
 
 /**
  * Builds toast options for V2 Ramps orders based on order status.
@@ -60,15 +40,10 @@ export function buildV2OrderToastOptions(
       return {
         variant: ToastVariants.Plain,
         hasNoTimeout: false,
-        customBottomOffset: 32,
-        startAccessory: React.createElement(
-          View,
-          { style: toastStyles.spinnerContainer },
-          React.createElement(Spinner, {
-            color: ReactNativeDsIconColor.PrimaryDefault,
-            spinnerIconProps: { size: ReactNativeDsIconSize.Xl },
-          }),
-        ),
+        startAccessory: React.createElement(Spinner, {
+          color: DsIconColor.IconDefault,
+          spinnerIconProps: { size: DsIconSize.Lg },
+        }),
         labelOptions: [
           {
             label: strings('ramps_v2.notifications.purchase_pending_title', {
@@ -100,19 +75,11 @@ export function buildV2OrderToastOptions(
         ? renderNumber(String(cryptoAmount))
         : '';
       return {
-        variant: ToastVariants.Plain,
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        iconColor: IconColor.Success,
+        backgroundColor: 'transparent',
         hasNoTimeout: false,
-        startAccessory: React.createElement(
-          View,
-          { style: toastStyles.iconContainer },
-          React.createElement(Avatar, {
-            variant: AvatarVariant.Icon,
-            name: IconName.Confirmation,
-            size: AvatarSize.Lg,
-            iconColor: lightTheme.colors.success.default,
-            backgroundColor: 'transparent',
-          }),
-        ),
         labelOptions: [
           {
             label: strings('ramps_v2.notifications.purchase_completed_title', {
@@ -135,19 +102,11 @@ export function buildV2OrderToastOptions(
 
     case RampsOrderStatus.Failed: {
       return {
-        variant: ToastVariants.Plain,
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        iconColor: IconColor.Error,
+        backgroundColor: 'transparent',
         hasNoTimeout: false,
-        startAccessory: React.createElement(
-          View,
-          { style: toastStyles.iconContainer },
-          React.createElement(Avatar, {
-            variant: AvatarVariant.Icon,
-            name: IconName.Warning,
-            size: AvatarSize.Lg,
-            iconColor: lightTheme.colors.error.default,
-            backgroundColor: 'transparent',
-          }),
-        ),
         labelOptions: [
           {
             label: strings('ramps_v2.notifications.purchase_failed_title', {
@@ -166,19 +125,11 @@ export function buildV2OrderToastOptions(
 
     case RampsOrderStatus.Cancelled: {
       return {
-        variant: ToastVariants.Plain,
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        iconColor: IconColor.Warning,
+        backgroundColor: 'transparent',
         hasNoTimeout: false,
-        startAccessory: React.createElement(
-          View,
-          { style: toastStyles.iconContainer },
-          React.createElement(Avatar, {
-            variant: AvatarVariant.Icon,
-            name: IconName.Warning,
-            size: AvatarSize.Lg,
-            iconColor: lightTheme.colors.warning.default,
-            backgroundColor: 'transparent',
-          }),
-        ),
         labelOptions: [
           {
             label: strings('ramps_v2.notifications.purchase_cancelled_title'),

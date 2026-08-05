@@ -36,6 +36,7 @@ const statusOf = (
     srcChainId,
     destChainId,
     statusSrcTxHash,
+    statusDestTxHash,
     transactionHash,
     nonEvmTransactions = {},
   }: {
@@ -44,6 +45,7 @@ const statusOf = (
     srcChainId?: number;
     destChainId?: number;
     statusSrcTxHash?: string;
+    statusDestTxHash?: string;
     transactionHash?: string;
     nonEvmTransactions?: unknown;
   } = {},
@@ -63,6 +65,7 @@ const statusOf = (
             status: {
               status: bridgeStatus,
               srcChain: { txHash: statusSrcTxHash },
+              destChain: { txHash: statusDestTxHash },
             },
           },
         }
@@ -163,5 +166,54 @@ describe('usePostTradeTxStatus', () => {
         ),
       }),
     ).toBe(Status.Success);
+  });
+
+  describe('cross-chain bridge completion', () => {
+    it('stays in progress when a bridge reports COMPLETE without a destination tx hash', () => {
+      expect(
+        statusOf(TxStatus.confirmed, BridgeStatus.COMPLETE, {
+          isBridge: true,
+          srcChainId: 1,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          statusSrcTxHash: '0xsrc',
+        }),
+      ).toBe(Status.InProgress);
+    });
+
+    it('shows success when a bridge reports COMPLETE with a destination tx hash', () => {
+      expect(
+        statusOf(TxStatus.confirmed, BridgeStatus.COMPLETE, {
+          isBridge: true,
+          srcChainId: 1,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          statusSrcTxHash: '0xsrc',
+          statusDestTxHash: 'sol-dest-sig',
+        }),
+      ).toBe(Status.Success);
+    });
+
+    it('treats a cross-chain quote as a bridge even when isBridge is not passed', () => {
+      // Source EVM tx is confirmed but the destination (Solana) has not settled.
+      // Without deriving `isBridge` from the quote, this would flip to success.
+      expect(
+        statusOf(TxStatus.confirmed, BridgeStatus.UNKNOWN, {
+          isBridge: false,
+          srcChainId: 1,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          statusSrcTxHash: '0xsrc',
+        }),
+      ).toBe(Status.InProgress);
+    });
+
+    it('does not show premature success on COMPLETE for a cross-chain quote even when isBridge is not passed', () => {
+      expect(
+        statusOf(TxStatus.confirmed, BridgeStatus.COMPLETE, {
+          isBridge: false,
+          srcChainId: 1,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          statusSrcTxHash: '0xsrc',
+        }),
+      ).toBe(Status.InProgress);
+    });
   });
 });

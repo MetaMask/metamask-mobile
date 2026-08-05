@@ -28,17 +28,25 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingBottom: 16, // Consistent bottom padding
     },
 
+    // Keeps the fullscreen button fixed while the price row shrinks
+    marketSummaryFullscreenButton: {
+      flexShrink: 0,
+    },
+
     // Container for error state
     container: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
     section: {
+      paddingHorizontal: 16,
+    },
+    chromeBlock: {
       paddingVertical: 16,
       paddingHorizontal: 16,
     },
-    sectionTitle: {
-      marginBottom: 12,
+    positionsOrdersContainer: {
+      paddingHorizontal: 16,
     },
     chartSection: {
       paddingTop: 0,

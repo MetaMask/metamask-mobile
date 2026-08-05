@@ -11,6 +11,7 @@ import { useSendType } from './useSendType';
 import { useSendFlowEnsResolutions } from './useSendFlowEnsResolutions';
 
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   formatChainIdToCaip: jest.fn(),
 }));
 

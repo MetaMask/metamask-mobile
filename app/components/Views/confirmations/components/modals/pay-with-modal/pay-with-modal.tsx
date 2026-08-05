@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
@@ -25,21 +26,23 @@ import {
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
+  TransactionType,
   hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
+import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
-interface PayWithModalParams {
+export interface PayWithModalParams {
   /**
    * When > 1, PayWithModal owns navigation on close by dispatching
    * `StackActions.pop(N)` atomically instead of relying on the legacy
@@ -53,7 +56,7 @@ interface PayWithModalParams {
 }
 
 export function PayWithModal() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
@@ -85,6 +88,7 @@ export function PayWithModal() {
     isPredictContext,
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
+  const ensurePayToken = useEnsurePayToken();
 
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
@@ -150,6 +154,10 @@ export function PayWithModal() {
             TransactionType.perpsDepositAndOrder,
           ])
         ) {
+          // Selecting a token via this nested picker is an explicit Perps
+          // selection — mark it so PerpsPayRow doesn't misread the sheet close
+          // as a dismissal (even when the token identity is unchanged).
+          markPerpsPaymentTokenSelection();
           onPerpsPaymentTokenChange(token);
           return;
         }
@@ -183,6 +191,18 @@ export function PayWithModal() {
           } catch {
             // Network not configured — skip
           }
+
+          // Adding via TokensController only covers legacy metadata. Ensure the
+          // token is also registered in unified assets state, so the pay
+          // controller can resolve it (otherwise it throws "Payment token not
+          // found").
+          await ensurePayToken({
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+            symbol: token.symbol,
+            decimals: token.decimals,
+            name: token.name,
+          });
         }
 
         setPayToken({
@@ -196,6 +216,7 @@ export function PayWithModal() {
     [
       close,
       dismissOnSelectCount,
+      ensurePayToken,
       isPredictContext,
       isWithdraw,
       navigation,
