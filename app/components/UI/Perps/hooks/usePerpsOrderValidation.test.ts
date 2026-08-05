@@ -75,21 +75,31 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
-    it('keeps a zero position size invalid without displaying errors', async () => {
+    it('clears existing errors when position size changes to zero', async () => {
       // Arrange
-      const params = {
-        ...defaultParams,
-        positionSize: '0',
-      };
-
-      // Act
-      const { result } = renderHook(() => usePerpsOrderValidation(params));
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: 'Minimum order size is $10.00',
+      });
+      const { result, rerender } = renderHook(
+        (params) => usePerpsOrderValidation(params),
+        { initialProps: defaultParams },
+      );
       await act(async () => {
         await Promise.resolve();
       });
+      await fastWaitFor(() => {
+        expect(result.current.errors).toContain('Minimum order size is $10.00');
+      });
+
+      // Act
+      rerender({
+        ...defaultParams,
+        positionSize: '0',
+      });
 
       // Assert
-      expect(mockValidateOrder).not.toHaveBeenCalled();
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
       expect(result.current.errors).toEqual([]);
       expect(result.current.isValid).toBe(false);
     });
