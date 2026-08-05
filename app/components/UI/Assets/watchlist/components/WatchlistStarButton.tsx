@@ -72,6 +72,7 @@ const WatchlistStarButton = ({
       createEventBuilder(eventName)
         .addProperties({
           source,
+          asset_id: assetId,
           asset_type: assetType,
           ...(wasWatched ? {} : { has_balance: hasBalance }),
         })
@@ -83,6 +84,7 @@ const WatchlistStarButton = ({
     trackEvent,
     createEventBuilder,
     source,
+    assetId,
     assetType,
     hasBalance,
     theme.colors.success.default,
