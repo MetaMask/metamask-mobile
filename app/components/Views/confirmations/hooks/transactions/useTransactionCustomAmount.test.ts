@@ -846,6 +846,46 @@ describe('useTransactionCustomAmount', () => {
   });
 
   describe('updatePendingAmountPercentage updates amount fiat', () => {
+    it('returns false when there is no balance', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+      let didApply = true;
+
+      await act(async () => {
+        didApply = result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(didApply).toBe(false);
+      expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('returns false when balance rounds down to dust ($0.00)', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0.004',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+      let didApply = true;
+
+      await act(async () => {
+        didApply = result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(didApply).toBe(false);
+      expect(result.current.amountFiat).toBe('0');
+    });
+
     it('to percentage of token balance', async () => {
       const { result } = runHook();
 
@@ -1804,12 +1844,14 @@ describe('useTransactionCustomAmount', () => {
       });
     });
 
-    it('prefills stablecoin with 100% of balance', async () => {
+    it('prefills stablecoin with 100% of balance via Max path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '500',
+          balanceRaw: '500000000',
+          decimals: 6,
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
@@ -1823,9 +1865,24 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+
+      // 100% prefill must set isMaxAmount like pressing Max, so the
+      // insufficient-funds alert can skip a Max money account deposit.
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeDefined();
+
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: '100%',
+        },
+      });
     });
 
-    it('prefills non-stablecoin with 50% of balance', async () => {
+    it('prefills non-stablecoin with 50% of balance via percentage path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1844,9 +1901,21 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: '50%',
+        },
+      });
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
     });
 
-    it('caps at deposit limit when balance exceeds it', async () => {
+    it('caps at deposit limit when balance exceeds it without Max flags', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -1865,6 +1934,13 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('100000');
+
+      const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+        const cfg: Record<string, unknown> = {};
+        call[1](cfg);
+        return cfg.isMaxAmount === true;
+      });
+      expect(isMaxCall).toBeUndefined();
     });
 
     it('does not prefill when flag is disabled', async () => {

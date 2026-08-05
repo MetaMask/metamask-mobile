@@ -12,6 +12,7 @@ import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingS
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 import Wallet from './index';
 import React from 'react';
 
@@ -97,6 +98,52 @@ describeForPlatforms('Wallet', () => {
 
     expect(
       await findByTestId(`route-${Routes.SETTINGS_VIEW}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to Explore search when the header search button is pressed', async () => {
+    const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
+      extraRoutes: [
+        { name: Routes.QR_TAB_SWITCHER },
+        { name: Routes.EXPLORE_SEARCH },
+      ],
+      overrides: {
+        settings: {
+          basicFunctionalityEnabled: true,
+        },
+        engine: {
+          backgroundState: {
+            MultichainNetworkController: {
+              isEvmSelected: true,
+            },
+            RewardsController: {
+              activeAccount: null,
+            },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>,
+    });
+
+    const searchButton = getByTestId(
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+    );
+
+    // Icon-only button, so screen readers have nothing to announce without this.
+    expect(searchButton).toHaveAccessibleName(
+      strings('wallet.search_accessibility_label'),
+    );
+
+    fireEvent.press(searchButton);
+
+    expect(
+      await findByTestId(`route-${Routes.EXPLORE_SEARCH}`),
     ).toBeOnTheScreen();
   });
 

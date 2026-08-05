@@ -206,8 +206,8 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     mockUsePerpsEventTracking(options),
 }));
 
-jest.mock('../../hooks/usePerpsProMarketHeaderActions', () => ({
-  usePerpsProMarketHeaderActions: jest.fn(() => ({
+jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
+  usePerpsMarketHeaderActions: jest.fn(() => ({
     perpsMode: mockHeaderPerpsMode,
     isWatchlist: false,
     handleBackPress: mockHandleBackPress,
@@ -252,9 +252,14 @@ jest.mock('../../hooks/usePerpsProPositionsPanelActions', () => ({
     handleEditPositionTpSl: jest.fn(),
     handleEditPositionMargin: jest.fn(),
     handleCancelOrder: jest.fn(),
+    handleEditOrderPrice: jest.fn(),
+    handleEditOrderSize: jest.fn(),
     handleCloseAllPress: jest.fn(),
     cancelingOrderId: null,
+    editingOrderId: null,
     isOrderCancelable: () => true,
+    isOrderEditable: () => true,
+    isOrderSizeEditable: () => true,
     isPositionMarginEditable: () => true,
     renderActionSheets: () => null,
   })),
