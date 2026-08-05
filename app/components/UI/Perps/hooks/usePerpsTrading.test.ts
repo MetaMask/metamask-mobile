@@ -21,6 +21,29 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
+import { PERPS_CUF_TAG } from '../constants/perpsCufTags';
+import {
+  acceptPerpsCufRequest,
+  endPerpsCufTrace,
+  startPerpsCufTrace,
+  watchPerpsCufOrderPriceUpdated,
+} from '../utils/perpsCufTrace';
+
+jest.mock('../utils/perpsCufTrace', () => ({
+  ...jest.requireActual('../utils/perpsCufTrace'),
+  startPerpsCufTrace: jest.fn(() => 'edit-cuf-op'),
+  endPerpsCufTrace: jest.fn(),
+  endPerpsCufRequestAfter: jest.fn(),
+  watchPerpsCufOrderPriceUpdated: jest.fn(),
+  watchPerpsCufOrderAbsent: jest.fn(),
+  acceptPerpsCufRequest: jest.fn(),
+}));
+
+const mockStartPerpsCufTrace = startPerpsCufTrace as jest.Mock;
+const mockEndPerpsCufTrace = endPerpsCufTrace as jest.Mock;
+const mockWatchPerpsCufOrderPriceUpdated =
+  watchPerpsCufOrderPriceUpdated as jest.Mock;
+const mockAcceptPerpsCufRequest = acceptPerpsCufRequest as jest.Mock;
 
 const mockEnsureArbitrumNetworkExists = jest.fn().mockResolvedValue(undefined);
 jest.mock('./usePerpsNetworkManagement', () => ({
@@ -43,6 +66,7 @@ jest.mock('../../../../core/Engine', () => ({
     PerpsController: {
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -158,6 +182,80 @@ describe('usePerpsTrading', () => {
         cancelParams,
       );
       expect(response).toEqual(mockCancelResult);
+    });
+  });
+
+  describe('editOrder', () => {
+    const baseEditParams = {
+      orderId: 'order123',
+      newOrder: {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '1',
+        orderType: 'limit' as const,
+        price: '51000',
+      },
+    };
+
+    beforeEach(() => {
+      (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
+        {
+          success: true,
+          orderId: 'order123',
+        },
+      );
+    });
+
+    it('calls PerpsController.editOrder with correct parameters', async () => {
+      const { result } = renderHook(() => usePerpsTrading());
+      const response = await result.current.editOrder(baseEditParams);
+
+      expect(Engine.context.PerpsController.editOrder).toHaveBeenCalledWith(
+        baseEditParams,
+      );
+      expect(response).toEqual({
+        success: true,
+        orderId: 'order123',
+      });
+    });
+
+    it('strips watchPriceUpdate and controls the price watcher', async () => {
+      const { result } = renderHook(() => usePerpsTrading());
+
+      await result.current.editOrder({
+        ...baseEditParams,
+        watchPriceUpdate: false,
+      });
+
+      expect(Engine.context.PerpsController.editOrder).toHaveBeenCalledWith(
+        baseEditParams,
+      );
+      expect(mockWatchPerpsCufOrderPriceUpdated).not.toHaveBeenCalled();
+      expect(mockAcceptPerpsCufRequest).not.toHaveBeenCalled();
+      expect(mockEndPerpsCufTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'edit-cuf-op',
+          data: expect.objectContaining({ [PERPS_CUF_TAG.SUCCESS]: true }),
+        }),
+      );
+
+      jest.clearAllMocks();
+      (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
+        {
+          success: true,
+          orderId: 'order123',
+        },
+      );
+
+      await result.current.editOrder(baseEditParams);
+
+      expect(mockStartPerpsCufTrace).toHaveBeenCalled();
+      expect(mockWatchPerpsCufOrderPriceUpdated).toHaveBeenCalledWith(
+        'edit-cuf-op',
+        'order123',
+        '51000',
+      );
+      expect(mockAcceptPerpsCufRequest).toHaveBeenCalledWith('edit-cuf-op');
     });
   });
 

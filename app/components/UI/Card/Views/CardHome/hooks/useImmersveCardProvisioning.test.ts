@@ -119,6 +119,9 @@ describe('useImmersveCardProvisioning', () => {
         jest.advanceTimersByTime(10000);
       });
       expect(controller.fetchCardHomeData).toHaveBeenCalledTimes(2);
+      expect(controller.fetchCardHomeData).toHaveBeenCalledWith({
+        force: true,
+      });
       jest.useRealTimers();
     });
 

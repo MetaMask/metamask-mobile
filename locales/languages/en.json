@@ -311,7 +311,7 @@
     "warning_text_2": "removed",
     "warning_text_3": "if you proceed.",
     "warning_text_4": "You can ONLY recover them with your wallet’s Secret Recovery Phrase. MetaMask cannot help you recover it.",
-    "warning_proceed": "Remove wallet & proceed",
+    "warning_proceed": "Remove wallet and proceed",
     "warning_cancel": "Cancel",
     "step1": "Wallet setup",
     "step2": "Create password",
@@ -349,7 +349,7 @@
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",
     "description": "This Secret Recovery Phrase can help you regain access if you ever forget your password or lose access to your login.",
-    "description_bold": "Settings > Security & Privacy.",
+    "description_bold": "Settings > Security and Privacy.",
     "description_continued": "you can keep this phrase safe so you never lose access to your money.",
     "learn_more": "Learn more",
     "learn_how": "Learn how",
@@ -376,7 +376,7 @@
     "remind_later": "We’ll remind you later",
     "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
     "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
-    "setting_security_privacy": "Settings > Security & Privacy",
+    "setting_security_privacy": "Settings > Security and Privacy",
     "wallet_ready": "Your wallet is ready!"
   },
   "social_login_ios_user": {
@@ -421,7 +421,7 @@
     "step4": {
       "title": "Main menu",
       "content1": "You can access transaction history, settings, and support from this menu.",
-      "content2": "You can take more actions with your accounts & access MetaMask settings."
+      "content2": "You can take more actions with your accounts and access MetaMask settings."
     },
     "step5": {
       "title": "Explore the browser",
@@ -1524,9 +1524,10 @@
     "pro_order_form": {
       "isolated": "Isolated",
       "choose_order_type": "Choose order type",
-      "size_usd": "Size USD",
+      "size_usd": "Size (USD)",
       "size_percentage": "Order size percentage",
       "toggle_size_unit": "Switch size denomination",
+      "available_balance": "{{amount}} available",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
@@ -1539,9 +1540,23 @@
       "orders": "Orders",
       "orders_with_count": "Orders ({{count}})",
       "ticker_only": "{{ticker}} only",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
       "positions_empty": "Your open positions will appear here.",
       "positions_empty_filtered": "No open {{ticker}} positions.",
+      "positions_empty_long": "No long positions.",
+      "positions_empty_short": "No short positions.",
       "orders_empty": "Your open orders will appear here.",
+      "side_filter": {
+        "all_sides": "All sides",
+        "long": "Long",
+        "short": "Short"
+      },
+      "sort": {
+        "position_value": "Position value",
+        "unrealized_pnl": "Unrealized P&L",
+        "funding_rate": "Funding rate",
+        "settings_accessibility": "Sort positions"
+      },
       "card": {
         "entry_price": "Entry price",
         "margin": "Margin",
@@ -1562,10 +1577,6 @@
         "reduce_only": "Reduce only",
         "tp_sl": "TP / SL",
         "trigger_condition": "Trigger condition",
-        "take_profit": "Take profit",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
         "cancel": "Cancel"
       }
     },
@@ -1642,7 +1653,7 @@
         "short": "Short {{asset}}"
       },
       "tpsl_modal": {
-        "title": "Take profit & stop loss",
+        "title": "Take profit and stop loss",
         "save": "Save",
         "current_price": "Current price: {{price}}",
         "on": "ON",
@@ -1849,7 +1860,8 @@
       "margin_available_to_remove": "Margin available to remove",
       "perps_balance": "Perps balance",
       "liquidation_price": "Liquidation price",
-      "liquidation_distance": "Liquidation distance"
+      "liquidation_distance": "Liquidation distance",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "Auto close",
@@ -2177,7 +2189,7 @@
         "content": "A flat fee charged by the provider on each withdrawal."
       },
       "tp_sl": {
-        "title": "Take profit & stop loss",
+        "title": "Take profit and stop loss",
         "content": "Take profit (TP) automatically closes your position when you reach your target profit. Stop loss (SL) limits your losses by closing your position if the price moves against you."
       },
       "close_position_you_receive": {
@@ -2634,47 +2646,9 @@
       "events_in_total": "{{count}} events in total",
       "events_in_total_overflow": "{{count}}+ markets in total",
       "props_pill": "Props",
-      "championship_unavailable": "No championship market to show yet.",
-      "mens_world_cup_title": "Men's World Cup",
-      "mens_world_cup_events": "{{count}} men's world cup events",
-      "mens_world_cup_events_overflow": "{{count}}+ men's world cup events",
-      "winner_unavailable": "No World Cup markets to show yet."
+      "championship_unavailable": "No championship market to show yet."
     },
     "world_cup": {
-      "title": "World Cup",
-      "predictions_title": "World Cup predictions",
-      "banner_title": "World Cup 2026",
-      "banner_description": "Trade every match, every moment.",
-      "hub_banner_title": "$75K up for grabs",
-      "hub_banner_description": "Predict World Cup knockout games to win—join now",
-      "tabs": {
-        "all": "All",
-        "props": "Props",
-        "live": "Live",
-        "games": "Games"
-      },
-      "who_will_win": "Who will win the World Cup?",
-      "stages": {
-        "group_stage": "Group Stage",
-        "round_of_32": "Round of 32",
-        "round_of_16": "Round of 16",
-        "quarterfinals": "Quarter-finals",
-        "semifinals": "Semi-finals",
-        "third_place": "Third Place",
-        "final": "Final",
-        "group_a": "Group A",
-        "group_b": "Group B",
-        "group_c": "Group C",
-        "group_d": "Group D",
-        "group_e": "Group E",
-        "group_f": "Group F",
-        "group_g": "Group G",
-        "group_h": "Group H",
-        "group_i": "Group I",
-        "group_j": "Group J",
-        "group_k": "Group K",
-        "group_l": "Group L"
-      },
       "market_info": {
         "regulation_time_winner": {
           "title": "Regulation time winner"
@@ -2886,15 +2860,63 @@
       "live": "Live",
       "popular_today": "Popular today",
       "tabs": {
+        "all": "All",
         "basketball": "Basketball",
         "tennis": "Tennis",
         "soccer": "Soccer",
         "baseball": "Baseball",
-        "football": "Football"
+        "football": "Football",
+        "esports": "Esports",
+        "cricket": "Cricket",
+        "golf": "Golf",
+        "combat": "Combat",
+        "hockey": "Hockey"
       },
       "filters": {
         "all": "All",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games",
+        "tournaments": "Tournaments",
+        "fights": "Fights",
+        "props": "Props",
+        "mls": "MLS",
+        "champions-league": "UCL",
+        "EPL": "EPL",
+        "uel": "Europa League",
+        "la-liga": "La Liga",
+        "serie-a": "Serie A",
+        "bundesliga": "Bundesliga",
+        "ligue-1": "Ligue 1",
+        "lib": "Copa Libertadores",
+        "mlb": "MLB",
+        "kbo": "KBO",
+        "npb": "NPB",
+        "cpbl": "CPBL",
+        "awards": "MLB Awards",
+        "nfl": "NFL",
+        "nfl-team-futures": "NFL Futures",
+        "nfl-free-agency": "NFL Offseason",
+        "cfb": "College",
+        "cfl": "CFL",
+        "nba": "NBA",
+        "nba-free-agency": "NBA Offseason",
+        "wnba": "WNBA",
+        "ncaa": "NCAA",
+        "league-of-legends": "LoL",
+        "counter-strike-2": "CS2",
+        "valorant": "Valorant",
+        "dota-2": "Dota 2",
+        "rainbow-six-siege": "R6 Siege",
+        "atp": "ATP",
+        "wta": "WTA",
+        "itf": "ITF",
+        "international-cricket": "International",
+        "t20-blast": "T20 Blast",
+        "pga-tour": "PGA Tour",
+        "liv-golf": "LIV",
+        "ufc": "UFC",
+        "boxing": "Boxing",
+        "nhl": "NHL"
       }
     },
     "search_placeholder": "Search prediction markets",
@@ -3526,7 +3548,7 @@
     "description_content_1_legacy": "MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.",
     "description_content_2_legacy": "MetaMask will...",
     "action_description_1_legacy": "Always allow you to opt-out via Settings",
-    "action_description_2_legacy": "Send anonymized click & pageview events",
+    "action_description_2_legacy": "Send anonymized click and pageview events",
     "action_description_3_legacy": "collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)",
     "action_description_4_legacy": "collect your full IP address*",
     "action_description_5_legacy": "sell data. Ever!",
@@ -3865,9 +3887,9 @@
     "privacy_mode": "Privacy mode",
     "privacy_mode_desc": "Websites must request access to view your account information.",
     "nft_opensea_mode": "Enable OpenSea API",
-    "nft_opensea_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
+    "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "Autodetect NFTs",
-    "nft_autodetect_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
+    "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Show conversion on test networks",
     "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks.",
     "show_fiat_on_testnets_modal_title": "Be careful",
@@ -4083,8 +4105,8 @@
     "manage_sdk_connections_title": "Manage connections",
     "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Buy & sell crypto",
-      "description": "Region & more...",
+      "title": "Buy and sell crypto",
+      "description": "Region and more...",
       "current_region": "Current region",
       "reset_region": "Reset region",
       "change_region": "Change region",
@@ -4158,7 +4180,7 @@
         "quote_tag_most_reliable": "Most reliable",
         "quote_unknown_provider": "Unknown provider",
         "start_headless_buy": "Start headless buy",
-        "replace_and_start_headless_buy": "Replace & start headless buy",
+        "replace_and_start_headless_buy": "Replace and start headless buy",
         "start_headless_buy_disabled_hint": "Enter a valid amount to enable",
         "start_headless_buy_pending": "Headless session active — open BuildQuote",
         "cancel_headless_buy": "Cancel headless session",
@@ -5573,6 +5595,11 @@
     "enable_device_passcode_ios": "Unlock with device passcode?",
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
+  "balance_breakdown": {
+    "allocation": "Allocation",
+    "hide_balance": "Hide total balance",
+    "show_balance": "Show total balance"
+  },
   "authentication": {
     "auth_prompt_desc": "Please authenticate in order to use MetaMask",
     "labels": {
@@ -6236,7 +6263,7 @@
     "debit_credit_card_required": "Debit or credit cards. Apple Cash is not supported.",
     "select_card_country": "Select the country where your card is registered (not where you are located).",
     "search_country": "Search for a country",
-    "wyre_countries": "55+ countries, fees & limits vary",
+    "wyre_countries": "55+ countries, fees and limits vary",
     "wyre_fees_us": "2.9% + $0.30 + gas fees ($5 minimum fee)",
     "wyre_fees_us_fee": "Fee of 2.9% + $0.30 + gas ($5 minimum)",
     "wyre_fees_outside_us_fee": "Fee of 3.9% + $0.30 + gas ($5 minimum)",
@@ -7130,11 +7157,11 @@
     "bluetooth_off": "Bluetooth is off",
     "bluetooth_off_message": "Please turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger needs Bluetooth access to pair with your mobile device.",
-    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings & try again.",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "MetaMask needs location access permission to pair with your ledger.",
-    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings & try again.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
     "nearbyDevices_access_blocked": "MetaMask needs nearby devices permission to pair with your Ledger.",
-    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings & try again.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Error while scanning the device",
     "bluetooth_scanning_error_message": "Please make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Bluetooth connection failed",
@@ -8338,7 +8365,7 @@
     "continue": "Continue",
     "confirm_bridge": "Bridge",
     "confirm_swap": "Swap",
-    "terms_and_conditions": "Terms & Conditions",
+    "terms_and_conditions": "Terms and Conditions",
     "select_token": "Select token",
     "batch_sell_transaction_label": "Batch sell",
     "batch_sell_select_title": "Select up to 5 tokens",
@@ -8970,8 +8997,7 @@
         "country_not_available": "Card sign-up isn't available in your country yet.",
         "account_label": "Account",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_exists_toast": "You already have a card account.",
-        "card_program_label": "Card program (testing)"
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -9108,7 +9134,7 @@
         "coinme_terms_consent_2": "Coinme Terms of Service",
         "coinme_terms_consent_3": ".",
         "crb_consent_1": "I agree with Cross River Bank ",
-        "crb_consent_2": "Terms & Conditions",
+        "crb_consent_2": "Terms and Conditions",
         "crb_consent_3": ", ",
         "crb_consent_4": "Account Opening Disclosures",
         "crb_consent_5": ", ",
@@ -10318,7 +10344,7 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "MetaMask Agent CLI link successful",
+      "title": "Agent CLI successfully linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
@@ -10334,10 +10360,10 @@
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
       "modal_title": "Link MetaMask Agent CLI",
       "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
-      "code_label": "ENTER THIS CODE IN THE CLI",
+      "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",
-      "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
+      "security_notice": "Securing the connection"
     },
     "show_not_found": {
       "title": "Connection Not Found",
@@ -10403,7 +10429,7 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, markets and URLs",
-    "quick_trade": "Quick Buy & Sell",
+    "quick_trade": "Quick Buy and Sell",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",

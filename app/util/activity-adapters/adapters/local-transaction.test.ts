@@ -349,6 +349,108 @@ describe('mapLocalTransaction', () => {
     expect(token?.amount).toBe('1000000');
   });
 
+  it('maps a perps deposit to perpsAddFunds with the collateral token', () => {
+    // Pay puts the source-chain leg in a separate transaction, so the perps
+    // type sits on the transaction itself rather than on a nested call.
+    const usdcArbitrum = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+    const bridge = '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7';
+    const transaction = {
+      chainId: '0xa4b1',
+      id: 'perps-deposit-id',
+      hash: '0xperpsdeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.perpsDeposit,
+      txParams: {
+        from,
+        to: usdcArbitrum,
+        data: encodeTransfer(bridge, 100000n),
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('perpsAddFunds');
+    const token = 'token' in result.data ? result.data.token : undefined;
+    expect(token).toEqual({
+      amount: '100000',
+      assetId: toAssetId(usdcArbitrum, 'eip155:42161'),
+      decimals: 6,
+      direction: 'in',
+      symbol: 'USDC',
+    });
+  });
+
+  it('maps a perps deposit carried as a nested batch call', () => {
+    const usdcArbitrum = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+    const transaction = {
+      chainId: '0xa4b1',
+      id: 'perps-deposit-batch-id',
+      hash: '0xperpsdepositbatch',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: { from, to: from },
+      nestedTransactions: [
+        {
+          type: TransactionType.perpsDepositAndOrder,
+          to: usdcArbitrum,
+          data: encodeTransfer(from, 250000n),
+        },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('perpsAddFunds');
+    expect('token' in result.data ? result.data.token?.amount : undefined).toBe(
+      '250000',
+    );
+  });
+
+  it('maps a perps deposit whose type was rewritten but kept as originalType', () => {
+    const usdcArbitrum = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+    const transaction = {
+      chainId: '0xa4b1',
+      id: 'perps-deposit-original-type-id',
+      hash: '0xperpsdepositoriginal',
+      status: TransactionStatus.submitted,
+      time: 1716367781000,
+      type: TransactionType.contractInteraction,
+      originalType: TransactionType.perpsDeposit,
+      txParams: {
+        from,
+        to: usdcArbitrum,
+        data: encodeTransfer(from, 100000n),
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(withoutRaw(mapLocalTransaction(makeGroup(transaction))).type).toBe(
+      'perpsAddFunds',
+    );
+  });
+
+  it('maps a perps withdraw to perpsWithdraw (out direction)', () => {
+    const usdcArbitrum = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+    const transaction = {
+      chainId: '0xa4b1',
+      id: 'perps-withdraw-id',
+      hash: '0xperpswithdraw',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.perpsWithdraw,
+      txParams: {
+        from,
+        to: usdcArbitrum,
+        data: encodeTransfer(from, 500000n),
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('perpsWithdraw');
+    expect(
+      'token' in result.data ? result.data.token?.direction : undefined,
+    ).toBe('out');
+  });
+
   it('leaves unknown token transfer symbols blank', () => {
     const tokenContractAddress = '0x1111111111111111111111111111111111111111';
     const transaction = {

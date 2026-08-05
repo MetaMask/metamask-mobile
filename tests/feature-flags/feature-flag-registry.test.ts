@@ -98,6 +98,12 @@ describe('Feature Flag Registry', () => {
         }),
       );
     });
+
+    it('keeps the Predict sports feed enabled by default', () => {
+      expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
+        expect.objectContaining({ enabled: true }),
+      );
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
@@ -133,6 +139,7 @@ describe('Feature Flag Registry', () => {
 
       expect(flagNames).toContain('bridgeConfigV2');
       expect(flagNames).toContain('bitcoinAccounts');
+      expect(flagNames).toContain('stellarAccounts');
       expect(flagNames).toContain('tronAccounts');
       expect(flagNames).toContain('tronClaimUnstakedTrxButtonEnabled');
     });
@@ -149,6 +156,7 @@ describe('Feature Flag Registry', () => {
       const defaults = getProductionRemoteFlagDefaults();
       expect(defaults.assetsDefiPositionsEnabled).toBe(true);
       expect(defaults.bitcoinTestnetsEnabled).toBe(false);
+      expect(defaults.moneyAccountBalanceSource).toBe('rpc');
     });
 
     it('only includes remote production flags', () => {

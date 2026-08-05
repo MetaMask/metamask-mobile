@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 
 import {
   SpendableBalanceSection,
@@ -20,6 +21,13 @@ jest.mock('../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = jest.mocked(useSelector);
+
 describe('SpendableBalanceSection', () => {
   const defaultProps = {
     minimumReserveBalance: '2.5',
@@ -28,6 +36,10 @@ describe('SpendableBalanceSection', () => {
     symbol: 'XLM',
     fiatValue: '$105.00',
   };
+
+  beforeEach(() => {
+    mockUseSelector.mockReturnValue(false);
+  });
 
   it('renders total, spendable, reserved, and fiat balances', () => {
     const { getByTestId, getByText } = render(
@@ -62,12 +74,29 @@ describe('SpendableBalanceSection', () => {
     );
   });
 
-  it('renders labels for total, fiat, spendable, and reserved rows', () => {
-    const { getByText } = render(<SpendableBalanceSection {...defaultProps} />);
+  it('masks balances when privacy mode is enabled', () => {
+    mockUseSelector.mockReturnValue(true);
 
-    expect(getByText('Total balance')).toBeOnTheScreen();
-    expect(getByText('Value')).toBeOnTheScreen();
-    expect(getByText('Spendable')).toBeOnTheScreen();
-    expect(getByText('Reserved (locked)')).toBeOnTheScreen();
+    const { getByTestId, queryByText } = render(
+      <SpendableBalanceSection {...defaultProps} />,
+    );
+
+    const maskedBalance = '•••••••••';
+    expect(getByTestId(SpendableBalanceSectionTestIds.TOTAL)).toHaveTextContent(
+      maskedBalance,
+    );
+    expect(
+      getByTestId(SpendableBalanceSectionTestIds.SPENDABLE),
+    ).toHaveTextContent(maskedBalance);
+    expect(
+      getByTestId(SpendableBalanceSectionTestIds.RESERVED),
+    ).toHaveTextContent(maskedBalance);
+    expect(getByTestId(SpendableBalanceSectionTestIds.FIAT)).toHaveTextContent(
+      maskedBalance,
+    );
+    expect(queryByText('250 XLM')).toBeNull();
+    expect(queryByText('247.5 XLM')).toBeNull();
+    expect(queryByText('2.5 XLM')).toBeNull();
+    expect(queryByText('$105.00')).toBeNull();
   });
 });
