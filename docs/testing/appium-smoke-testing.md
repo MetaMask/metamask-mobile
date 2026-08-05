@@ -181,10 +181,11 @@ Ensure the emulator is running before starting tests.
 
 ## Yarn commands
 
-| Command                     | Description                     |
-| --------------------------- | ------------------------------- |
-| `yarn appium-smoke:ios`     | Full iOS Appium smoke suite     |
-| `yarn appium-smoke:android` | Full Android Appium smoke suite |
+| Command                               | Description                                     |
+| ------------------------------------- | ----------------------------------------------- |
+| `yarn appium-smoke:ios`               | Full iOS Appium smoke suite                     |
+| `yarn appium-smoke:android`           | Full Android Appium smoke suite                 |
+| `yarn appium-smoke:aggregate-timings` | Aggregate phase-timing JSON into a trend report |
 
 Both use `tests/playwright.smoke-appium.config.ts`. Pass standard Playwright flags: `--grep`, file paths, `--debug`, etc.
 
@@ -206,6 +207,17 @@ Helpers:
 - `softReloadAppForFixtures` — `tests/framework/services/appium/softReloadApp.ts`
 - Worker fixtures — `deviceProvider` + `sharedSession` in `tests/framework/fixtures/playwright/`
 
+## Phase timing telemetry
+
+Appium smoke records phase ms via `PhaseTimer` (`servers_start`, soft-reload phases, `login`, `modal_dismissal`, `test_body`, `teardown`). Suites write `tests/test-reports/appium-timings/<suite>.json` (CI artifact `appium-timings-<suite>`). Aggregate with:
+
+```bash
+yarn appium-smoke:aggregate-timings
+yarn appium-smoke:aggregate-timings -- --input /path/to/timings --markdown /tmp/trend.md
+```
+
+Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare against timings downloaded from `main` once jobs upload them.
+
 ## Reports and artifacts
 
 | Output                        | Path                                  |
@@ -213,8 +225,9 @@ Helpers:
 | HTML report                   | `test-reports/appium-smoke-report/`   |
 | JUnit                         | `test-reports/appium-smoke-junit.xml` |
 | Failure videos (when enabled) | `test-reports/appium-smoke-videos/`   |
+| Phase timings                 | `test-reports/appium-timings/`        |
 
-CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smoke-videos-<suite>`.
+CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`.
 
 ## CI
 
