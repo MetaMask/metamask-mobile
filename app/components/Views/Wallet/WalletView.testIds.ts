@@ -67,6 +67,8 @@ export const WalletViewSelectorsIDs = {
   PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
     'profile-button-avatar-network-subtitle-container',
   HOMEPAGE_CONTAINER: 'homepage-container',
+  HOMEPAGE_BANNER_CONTAINER: 'homepage-banner-container',
+  HOMEPAGE_BANNER_CONTENT: 'homepage-banner-content',
   HOMEPAGE_MORE_SECTION: 'homepage-more-section',
   HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON: 'homepage-more-contact-support-button',
   CAROUSEL_CONTAINER: 'carousel-container',

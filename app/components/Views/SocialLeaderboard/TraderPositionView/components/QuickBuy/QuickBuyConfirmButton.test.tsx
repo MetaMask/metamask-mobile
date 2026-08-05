@@ -67,4 +67,11 @@ describe('QuickBuyConfirmButton', () => {
     fireEvent.press(screen.getByTestId('confirm-button'));
     expect(onPress).not.toHaveBeenCalled();
   });
+
+  it('renders a red sell CTA when tradeMode is sell', () => {
+    render(
+      <QuickBuyConfirmButton {...defaultProps} tradeMode="sell" state="idle" />,
+    );
+    expect(screen.getByText('Confirm')).toBeOnTheScreen();
+  });
 });

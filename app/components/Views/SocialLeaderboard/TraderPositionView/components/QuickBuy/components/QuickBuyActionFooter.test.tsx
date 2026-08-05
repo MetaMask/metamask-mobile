@@ -11,15 +11,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('./QuickBuyPercentageSlider', () => {
-  const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    QuickBuyPercentageSlider: () =>
-      ReactMock.createElement(Text, { testID: 'quick-buy-slider' }),
-  };
-});
-
 jest.mock('./QuickBuyQuickAmounts', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -65,10 +56,6 @@ jest.mock('../QuickBuyConfirmButton', () => {
 });
 
 const baseContext = {
-  sliderPercent: 0,
-  isSliderDisabled: false,
-  handleSliderChange: jest.fn(),
-  handleSliderDragEnd: jest.fn(),
   confirmButtonState: 'idle' as const,
   getButtonLabel: () => 'Buy',
   hasValidAmount: false,
@@ -82,12 +69,10 @@ const baseContext = {
   destBalanceFiat: undefined,
   destToken: undefined,
   selectedDestStable: undefined,
-  formattedRate: undefined,
-  formattedExchangeRate: '1 ETH = 1000 USDC',
+  totalAmountFiat: '$123.75',
   isPriceImpactError: false,
   features: { payWithSheet: true, quoteDetails: true },
   setActiveScreen: jest.fn(),
-  useKeyboard: false,
   isKeypadOpen: false,
 };
 
@@ -140,7 +125,7 @@ describe('QuickBuyActionFooter', () => {
     expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
   });
 
-  it('renders the rate row and navigates to quote details when pressed', () => {
+  it('renders the total row and navigates to quote details when pressed', () => {
     const setActiveScreen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
@@ -150,31 +135,16 @@ describe('QuickBuyActionFooter', () => {
     render(<QuickBuyActionFooter />);
 
     expect(
-      screen.getByText('social_leaderboard.quick_buy.rate'),
+      screen.getByText('social_leaderboard.quick_buy.total'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('1 ETH = 1000 USDC')).toBeOnTheScreen();
+    expect(screen.getByText('$123.75')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('quick-buy-rate-tag-pressable'));
     expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
   });
 
-  it('renders the slider on the control variant', () => {
-    render(<QuickBuyActionFooter />);
-    expect(screen.getByTestId('quick-buy-slider')).toBeOnTheScreen();
-  });
-
-  it('hides the slider on the keyboard treatment', () => {
+  it('keeps the footer interactive while the keypad is open', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      useKeyboard: true,
-    });
-    render(<QuickBuyActionFooter />);
-    expect(screen.queryByTestId('quick-buy-slider')).toBeNull();
-  });
-
-  it('keeps footer mounted but non-interactive while the keypad is open on the treatment', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      useKeyboard: true,
       isKeypadOpen: true,
       features: {
         payWithSheet: true,
@@ -185,12 +155,9 @@ describe('QuickBuyActionFooter', () => {
 
     render(<QuickBuyActionFooter />);
 
-    expect(screen.getByTestId('quick-buy-footer-reveal')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-footer-reveal')).toBeNull();
     expect(screen.getByTestId('quick-buy-pay-with-button')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('quick-buy-footer-reveal-content').props.pointerEvents,
-    ).toBe('none');
   });
 });

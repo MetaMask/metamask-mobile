@@ -43,7 +43,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.nativeBuildNeeded).toBe(true);
     expect(result.android).toBe(true);
     expect(result.ios).toBe(true);
-    expect(result.changedFiles).toBe('tests/smoke/wallet/foo.spec.ts');
+    expect(result.changedSpecFiles).toBe('tests/smoke/wallet/foo.spec.ts');
   });
 
   it('skips E2E for ignorable-only changes', () => {

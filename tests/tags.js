@@ -75,7 +75,7 @@ const smokeTags = {
   smokeSnaps: {
     tag: 'SmokeSnaps:',
     description:
-      'Tests the MetaMask Snaps extensibility platform. Covers snap lifecycle: installation from npm, enabling/disabling installed snaps, and removal with keyring warnings for snaps managing accounts. Tests snap Ethereum provider access: eth_chainId, eth_accounts, personal_sign, eth_signTypedData_v4, and wallet_switchEthereumChain. Validates snap dialog systems for alerts and confirmations with approve/cancel flows. Tests snap capabilities: persistent state management (snap_manageState for set/get/clear), network access for external API calls, WebAssembly (WASM) execution, interactive UI rendering with JSX components, cronjob scheduling for background tasks, entropy generation for randomness, file handling, and BIP-32/BIP-44 key derivation for account management. Also covers preinstalled snaps, snap UI links, lifecycle events, user preference access, image handling in snap UIs, and background event listeners. Snaps enable non-EVM chain support like Solana account derivation.',
+      'Tests the MetaMask Snaps extensibility platform. Snap smoke specs live in tests/smoke-appium/snaps/ and run via Appium smoke CI (appium-smoke-tests-{android,ios}). Covers snap lifecycle: installation from npm, enabling/disabling installed snaps, and removal with keyring warnings for snaps managing accounts. Tests snap Ethereum provider access: eth_chainId, eth_accounts, personal_sign, eth_signTypedData_v4, and wallet_switchEthereumChain. Validates snap dialog systems for alerts and confirmations with approve/cancel flows. Tests snap capabilities: persistent state management (snap_manageState for set/get/clear), network access for external API calls, WebAssembly (WASM) execution, interactive UI rendering with JSX components, cronjob scheduling for background tasks, entropy generation for randomness, file handling, and BIP-32/BIP-44 key derivation for account management. Also covers preinstalled snaps, snap UI links, lifecycle events, user preference access, image handling in snap UIs, and background event listeners. Snaps enable non-EVM chain support like Solana account derivation.',
   },
   smokeMMConnect: {
     tag: 'SmokeMMConnect:',
@@ -89,7 +89,6 @@ const flaskTags = {};
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   sampleFeature: 'SampleFeature:',
-  performance: 'Performance:',
   fixtureValidation: 'FixtureValidation:',
 };
 
@@ -99,13 +98,8 @@ const tagDescribe = (tagPrefix) => (testName) => `${tagPrefix} ${testName}`;
 /** smokeAccounts → SmokeAccounts */
 const smokeExportName = (key) => `Smoke${key.slice('smoke'.length)}`;
 
-/** sampleFeature → SampleFeature; performance → SmokePerformance (tag stays "Performance:") */
-const otherExportName = (key) => {
-  if (key === 'performance') {
-    return 'SmokePerformance';
-  }
-  return key.charAt(0).toUpperCase() + key.slice(1);
-};
+/** sampleFeature → SampleFeature */
+const otherExportName = (key) => key.charAt(0).toUpperCase() + key.slice(1);
 
 /** @param {Record<string, { tag: string, description: string }>} tags */
 const createSmokeDescribeFunctions = (tags) =>
@@ -143,7 +137,7 @@ const {
   SmokeMMConnect,
 } = createSmokeDescribeFunctions(smokeTags);
 
-const { SampleFeature, SmokePerformance, FixtureValidation } =
+const { SampleFeature, FixtureValidation } =
   createOtherDescribeFunctions(otherTags);
 
 export {
@@ -165,6 +159,5 @@ export {
   SmokeMMConnect,
   SampleFeature,
   SmokeSnaps,
-  SmokePerformance,
   FixtureValidation,
 };
