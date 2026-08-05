@@ -111,13 +111,27 @@ describe('PerpsProSizeInput', () => {
     );
   });
 
+  it('allocates the Figma line height to the amount input', () => {
+    renderInput();
+
+    expect(screen.getByTestId(ids.SIZE_FIELD)).toHaveStyle({
+      height: 78,
+    });
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+      'twClassName',
+      expect.stringContaining('h-8'),
+    );
+  });
+
   it('keeps the compact slider section visible with Figma spacing', () => {
     renderInput();
 
     expect(screen.getByTestId(ids.SIZE_SLIDER_SECTION)).toHaveStyle({
       overflow: 'visible',
       paddingTop: 24,
-      paddingBottom: 12,
+      paddingBottom: 16,
+      paddingLeft: 12,
+      paddingRight: 12,
     });
   });
 
