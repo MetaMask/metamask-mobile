@@ -8,7 +8,10 @@ import {
   ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -44,13 +47,14 @@ import {
   formatSpreadPercent,
   getDepthRatio,
   getDepthWidth,
-  getOrderBookPriceDecimals,
+  getOrderBookPriceFormat,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
   selectDefaultGrouping,
   type OrderBookListCurrency,
   type OrderBookListMetric,
+  type OrderBookPriceFormat,
 } from '../../../utils/orderBookGrouping';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import styles from './PerpsProOrderBookPanel.styles';
@@ -91,7 +95,7 @@ interface OrderBookRowProps {
   maxTotal: number;
   depthBarColor: string;
   szDecimals?: number;
-  priceDecimals: number | null;
+  priceFormat: OrderBookPriceFormat | null;
   onSelectPrice?: (price: string) => void;
   testID: string;
 }
@@ -104,7 +108,7 @@ const OrderBookRow = ({
   maxTotal,
   depthBarColor,
   szDecimals,
-  priceDecimals,
+  priceFormat,
   onSelectPrice,
   testID,
 }: OrderBookRowProps) => {
@@ -125,7 +129,7 @@ const OrderBookRow = ({
     width: `${depthWidthSv.value}%`,
   }));
 
-  const priceLabel = formatOrderBookPrice(level.price, priceDecimals);
+  const priceLabel = formatOrderBookPrice(level.price, priceFormat);
 
   const content = (
     <>
@@ -314,13 +318,13 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
         </Box>
       ))}
 
+      {/* Spread row: value only, right-aligned (no label). */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+        justifyContent={BoxJustifyContent.End}
         twClassName="h-8"
       >
-        <Skeleton height={12} width="28%" />
         <Skeleton height={12} width="48%" />
       </Box>
 
@@ -465,12 +469,12 @@ const PerpsProOrderBookPanel = ({
     return calculateAggregationParams(currentGrouping, midPriceValue);
   }, [currentGrouping, midPriceValue]);
 
-  // One decimal count for the whole ladder, derived from the grouping step —
-  // see `getOrderBookPriceDecimals` for why magnitude-based formatting is not
-  // usable here.
-  const priceDecimals = useMemo(
-    () => getOrderBookPriceDecimals(currentGrouping, szDecimals),
-    [currentGrouping, szDecimals],
+  // One shared price format for the whole ladder, derived from the grouping
+  // step — see `getOrderBookPriceFormat` for why per-row magnitude formatting
+  // is not usable here.
+  const priceFormat = useMemo(
+    () => getOrderBookPriceFormat(currentGrouping, midPriceValue, szDecimals),
+    [currentGrouping, midPriceValue, szDecimals],
   );
 
   // Server-aggregated book on its own dedicated socket (does not disturb raw).
@@ -695,7 +699,7 @@ const PerpsProOrderBookPanel = ({
                   maxTotal={grouped.maxTotal}
                   depthBarColor={sellColor}
                   szDecimals={szDecimals}
-                  priceDecimals={priceDecimals}
+                  priceFormat={priceFormat}
                   onSelectPrice={onSelectPrice}
                   testID={`${testID}-ask-row-${index}`}
                 />
@@ -703,23 +707,16 @@ const PerpsProOrderBookPanel = ({
             </Box>
           )}
 
-          {/* The label keeps its intrinsic width and the value takes whatever
-              is left, so the spread figures never get squeezed by the label. */}
+          {/* Figma drops the "Spread" label and right-aligns the value on its
+              own, giving the figures the full column width. The row still
+              carries the label for screen readers, which would otherwise get
+              a bare amount with no indication of what it measures. */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="h-8 gap-2"
+            twClassName="h-8"
             testID={`${testID}-spread`}
           >
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-              twClassName="shrink-0"
-            >
-              {strings('perps.order_book.spread')}
-            </Text>
             {spreadDisplay ? (
               <Text
                 variant={TextVariant.BodyXs}
@@ -727,6 +724,9 @@ const PerpsProOrderBookPanel = ({
                 color={TextColor.TextDefault}
                 numberOfLines={1}
                 twClassName="flex-1 text-right"
+                accessibilityLabel={strings('perps.order_book.spread_value', {
+                  value: spreadDisplay,
+                })}
               >
                 {spreadDisplay}
               </Text>
@@ -746,7 +746,7 @@ const PerpsProOrderBookPanel = ({
                   maxTotal={grouped.maxTotal}
                   depthBarColor={buyColor}
                   szDecimals={szDecimals}
-                  priceDecimals={priceDecimals}
+                  priceFormat={priceFormat}
                   onSelectPrice={onSelectPrice}
                   testID={`${testID}-bid-row-${index}`}
                 />
@@ -779,29 +779,61 @@ const PerpsProOrderBookPanel = ({
               sellColor={sellColor}
             />
           </Box>
+          {/* Figma renders the buy/sell sides as "+ 80%" / "− 20%" rather than
+              spelled-out labels, to reduce clutter in the narrow column. The
+              sign glyph carries no meaning to a screen reader, so each side
+              keeps the spelled-out label as its accessibility label. */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             justifyContent={BoxJustifyContent.Between}
             twClassName="w-full"
           >
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-            >
-              {strings('perps.order_book.buy_percent', {
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-0.5"
+              accessible
+              accessibilityLabel={strings('perps.order_book.buy_percent', {
                 percent: String(depthRatio.buyPercent),
               })}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.ErrorDefault}
+              testID={`${testID}-buy-percent`}
             >
-              {strings('perps.order_book.sell_percent', {
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Xs}
+                color={IconColor.SuccessDefault}
+              />
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {`${depthRatio.buyPercent}%`}
+              </Text>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-0.5"
+              accessible
+              accessibilityLabel={strings('perps.order_book.sell_percent', {
                 percent: String(depthRatio.sellPercent),
               })}
-            </Text>
+              testID={`${testID}-sell-percent`}
+            >
+              <Icon
+                name={IconName.Minus}
+                size={IconSize.Xs}
+                color={IconColor.ErrorDefault}
+              />
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.ErrorDefault}
+              >
+                {`${depthRatio.sellPercent}%`}
+              </Text>
+            </Box>
           </Box>
         </Box>
       ) : null}

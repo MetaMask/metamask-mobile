@@ -10,7 +10,7 @@ import {
   formatSpreadPercent,
   formatColumnValue,
   formatOrderBookPrice,
-  getOrderBookPriceDecimals,
+  getOrderBookPriceFormat,
 } from './orderBookGrouping';
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
 import type { OrderBookData } from '@metamask/perps-controller';
@@ -467,55 +467,113 @@ describe('orderBookGrouping', () => {
     });
   });
 
-  describe('getOrderBookPriceDecimals', () => {
+  describe('getOrderBookPriceFormat', () => {
     it.each([
-      // [grouping, szDecimals, expected]
-      [10, 5, 0],
-      [1, 5, 0],
-      [0.01, 2, 2],
-      [0.002, 0, 3],
-      [0.000001, 0, 6],
+      // [grouping, midPrice, szDecimals, expected decimals]
+      [0.01, 33.45, 2, 2],
+      [0.002, 0.5, 0, 3],
+      [0.000001, 0.002097, 0, 6],
     ])(
-      'matches the grouping step (grouping %p, szDecimals %p)',
-      (grouping, szDecimals, expected) => {
-        expect(getOrderBookPriceDecimals(grouping, szDecimals)).toBe(expected);
+      'matches the grouping step below the abbreviation threshold (grouping %p)',
+      (grouping, midPrice, szDecimals, expected) => {
+        expect(getOrderBookPriceFormat(grouping, midPrice, szDecimals)).toEqual(
+          { divisor: 1, suffix: '', decimals: expected },
+        );
       },
     );
 
     it('caps at the asset price precision Hyperliquid allows (6 - szDecimals)', () => {
-      expect(getOrderBookPriceDecimals(0.0000001, 0)).toBe(6);
-      expect(getOrderBookPriceDecimals(0.001, 5)).toBe(1);
+      expect(getOrderBookPriceFormat(0.0000001, 0.5, 0)?.decimals).toBe(6);
+      expect(getOrderBookPriceFormat(0.001, 0.5, 5)?.decimals).toBe(1);
     });
 
     it('caps at 6 decimals when szDecimals is unknown', () => {
-      expect(getOrderBookPriceDecimals(0.0000001)).toBe(6);
+      expect(getOrderBookPriceFormat(0.0000001, 0.5)?.decimals).toBe(6);
+    });
+
+    it.each([
+      // [grouping, midPrice, expected]
+      [1000, 64500, { divisor: 1000, suffix: 'K', decimals: 0 }],
+      [100, 64500, { divisor: 1000, suffix: 'K', decimals: 1 }],
+      [10, 61470, { divisor: 1000, suffix: 'K', decimals: 2 }],
+      [10000, 5000000, { divisor: 1000000, suffix: 'M', decimals: 2 }],
+      [100000, 52000000, { divisor: 1000000, suffix: 'M', decimals: 1 }],
+    ])(
+      'scales up while the grouping step still fits (grouping %p, mid %p)',
+      (grouping, midPrice, expected) => {
+        expect(getOrderBookPriceFormat(grouping, midPrice, 5)).toEqual(
+          expected,
+        );
+      },
+    );
+
+    it('stays unabbreviated when the suffix would cost more width than it saves', () => {
+      // "$61.470K" is longer than "$61,470" and no clearer.
+      expect(getOrderBookPriceFormat(1, 61470, 5)).toEqual({
+        divisor: 1,
+        suffix: '',
+        decimals: 0,
+      });
+    });
+
+    it('never abbreviates assets priced below the smallest scale', () => {
+      expect(getOrderBookPriceFormat(0.1, 999, 4)?.suffix).toBe('');
+    });
+
+    it('ignores the mid price when it is unusable', () => {
+      expect(getOrderBookPriceFormat(1000, null, 5)).toEqual({
+        divisor: 1,
+        suffix: '',
+        decimals: 0,
+      });
     });
 
     it.each([[null], [0], [-1], [Number.NaN]])(
       'returns null for unusable grouping %p',
       (grouping) => {
-        expect(getOrderBookPriceDecimals(grouping, 0)).toBeNull();
+        expect(getOrderBookPriceFormat(grouping, 64500, 0)).toBeNull();
       },
     );
   });
 
   describe('formatOrderBookPrice', () => {
+    it('abbreviates a BTC ladder grouped in thousands', () => {
+      const format = getOrderBookPriceFormat(1000, 64500, 5);
+
+      // Every level ended in ",000", so three characters per row were padding.
+      expect(
+        [69000, 68000, 67000, 60000].map((price) =>
+          formatOrderBookPrice(price, format),
+        ),
+      ).toEqual(['$69K', '$68K', '$67K', '$60K']);
+    });
+
+    it('keeps the grouping step visible inside the abbreviation', () => {
+      const format = getOrderBookPriceFormat(10, 61470, 5);
+
+      expect(
+        [61470, 61460, 61450].map((price) =>
+          formatOrderBookPrice(price, format),
+        ),
+      ).toEqual(['$61.47K', '$61.46K', '$61.45K']);
+    });
+
     it('renders every level of a PUMP ladder at the same precision', () => {
-      const decimals = getOrderBookPriceDecimals(0.000001, 0);
+      const format = getOrderBookPriceFormat(0.000001, 0.0021, 0);
 
       // Trailing-zero stripping previously produced "$0.0021" between
       // "$0.002099" and "$0.002101", so the column never lined up.
       expect(
         ['0.002099', '0.0021', '0.002101'].map((price) =>
-          formatOrderBookPrice(price, decimals),
+          formatOrderBookPrice(price, format),
         ),
       ).toEqual(['$0.002099', '$0.002100', '$0.002101']);
     });
 
     it('keeps neighbouring low-priced levels distinguishable', () => {
-      const decimals = getOrderBookPriceDecimals(0.000001, 0);
+      const format = getOrderBookPriceFormat(0.000001, 0.0098, 0);
       const prices = ['0.0098', '0.009801', '0.009802'].map((price) =>
-        formatOrderBookPrice(price, decimals),
+        formatOrderBookPrice(price, format),
       );
 
       // Magnitude-based formatting collapsed all three into one string.
@@ -523,9 +581,9 @@ describe('orderBookGrouping', () => {
     });
 
     it('drops decimals entirely for coarse groupings', () => {
-      const decimals = getOrderBookPriceDecimals(10, 5);
+      const format = getOrderBookPriceFormat(1, 61470, 5);
 
-      expect(formatOrderBookPrice('61470', decimals)).toBe('$61,470');
+      expect(formatOrderBookPrice('61470', format)).toBe('$61,470');
     });
 
     it('falls back to magnitude-based formatting when precision is unknown', () => {
@@ -533,7 +591,13 @@ describe('orderBookGrouping', () => {
     });
 
     it('returns the fallback display for unparseable prices', () => {
-      expect(formatOrderBookPrice('not-a-number', 2)).toBe('—');
+      expect(
+        formatOrderBookPrice('not-a-number', {
+          divisor: 1,
+          suffix: '',
+          decimals: 2,
+        }),
+      ).toBe('—');
     });
   });
 });

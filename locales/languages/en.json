@@ -2499,6 +2499,7 @@
       "size": "Size",
       "total": "Total",
       "spread": "Spread",
+      "spread_value": "Spread {{value}}",
       "loading": "Loading order book...",
       "no_data": "No order book data available",
       "error": "Failed to load order book",

@@ -57,6 +57,23 @@ const COMPACT_NOTATION_DECIMALS = 1;
 /** Hyperliquid's absolute cap on perp price decimals (`MaxPriceDecimals`). */
 const MAX_PRICE_DECIMALS = 6;
 
+/**
+ * Magnitude scales a ladder price can be shown in, largest first.
+ */
+const PRICE_SCALES = [
+  { divisor: 1_000_000_000_000, suffix: 'T' },
+  { divisor: 1_000_000_000, suffix: 'B' },
+  { divisor: 1_000_000, suffix: 'M' },
+  { divisor: 1_000, suffix: 'K' },
+] as const;
+
+/**
+ * Most decimals an abbreviated price may carry. Beyond this the suffix stops
+ * buying any width back — "61.470K" is longer than "61,470" — so the ladder
+ * stays unabbreviated instead.
+ */
+const MAX_ABBREVIATED_PRICE_DECIMALS = 2;
+
 /** Decimal places kept when rendering the spread as a percentage. */
 const SPREAD_PERCENT_DECIMALS = 3;
 
@@ -317,33 +334,80 @@ function countDecimalPlaces(value: number): number {
 }
 
 /**
- * Decimal places every price in the ladder should render with.
+ * How every price in the ladder should be rendered.
  *
- * The rule: **match the active grouping increment**, capped at Hyperliquid's
- * price precision for the asset (`6 - szDecimals`). The grouping is the price
- * step actually being displayed, so it is the only precision that carries
- * information — showing fewer decimals collapses neighbouring levels into one
- * identical string (every PEPE level rendered as "$0.00001"), and showing more
- * only adds noise. Applying one count to all rows also keeps the column from
- * wobbling, which is what trailing-zero stripping caused ("$0.002097" above
- * "$0.0021").
+ * @property divisor - Value the price is divided by before formatting.
+ * @property suffix - Magnitude suffix appended after the number.
+ * @property decimals - Fixed decimals shown after dividing.
+ */
+export interface OrderBookPriceFormat {
+  divisor: number;
+  suffix: string;
+  decimals: number;
+}
+
+/**
+ * Resolve the one price format the whole ladder renders with.
+ *
+ * Everything is driven by the **active grouping increment**, because that is
+ * the price step actually on screen and therefore the only precision that
+ * carries information. Two rules fall out of it:
+ *
+ * Decimals match the grouping, capped at Hyperliquid's price precision for the
+ * asset (`6 - szDecimals`). Fewer decimals collapses neighbouring levels into
+ * one identical string (every PEPE level rendered as "$0.00001"); more is
+ * noise, and letting it vary per row makes the column wobble — that is what
+ * trailing-zero stripping caused: "$0.0021" between "$0.002099" and
+ * "$0.002101".
+ *
+ * Magnitude is the largest K/M/B/T scale the mid price reaches that still shows
+ * the grouping step within {@link MAX_ABBREVIATED_PRICE_DECIMALS}. Grouping by
+ * 1,000 means the last three digits never change, so "$69,000" spends three
+ * characters on padding where "$69K" says the same thing. Grouping by 10 needs
+ * two decimals to keep the step visible ("$61.47K"), and grouping by 1 needs
+ * three — longer than "$61,470", so that ladder stays unabbreviated.
+ *
+ * The scale is resolved once from the mid price rather than per row, otherwise
+ * levels either side of a boundary would render at different magnitudes.
+ * Assets priced under $1,000 never reach a scale, so small-price ladders
+ * (PUMP, PEPE) keep their full decimal form.
  *
  * @param grouping - Active price grouping increment, or null when unknown.
+ * @param midPrice - Ladder mid price, used to pick the magnitude.
  * @param szDecimals - Asset base-size precision from Hyperliquid metadata.
- * @returns Fixed decimal count, or null to fall back to magnitude-based rules.
+ * @returns The shared format, or null to fall back to magnitude-based rules.
  */
-export function getOrderBookPriceDecimals(
+export function getOrderBookPriceFormat(
   grouping: number | null,
+  midPrice?: number | null,
   szDecimals?: number,
-): number | null {
+): OrderBookPriceFormat | null {
   if (grouping === null || !Number.isFinite(grouping) || grouping <= 0) {
     return null;
   }
+
+  if (typeof midPrice === 'number' && Number.isFinite(midPrice)) {
+    const magnitude = Math.abs(midPrice);
+    for (const scale of PRICE_SCALES) {
+      if (magnitude < scale.divisor) {
+        continue;
+      }
+      const decimals = countDecimalPlaces(grouping / scale.divisor);
+      if (decimals <= MAX_ABBREVIATED_PRICE_DECIMALS) {
+        return { divisor: scale.divisor, suffix: scale.suffix, decimals };
+      }
+    }
+  }
+
   const maxDecimals =
     typeof szDecimals === 'number' && Number.isFinite(szDecimals)
       ? Math.max(0, MAX_PRICE_DECIMALS - szDecimals)
       : MAX_PRICE_DECIMALS;
-  return Math.min(countDecimalPlaces(grouping), maxDecimals);
+  return {
+    divisor: 1,
+    suffix: '',
+    decimals: Math.min(countDecimalPlaces(grouping), maxDecimals),
+  };
 }
 
 /**
@@ -372,24 +436,25 @@ function getFixedDecimalRanges(decimals: number): FiatRangeConfig[] {
 }
 
 /**
- * Format a ladder price at the fixed precision from `getOrderBookPriceDecimals`.
- * Falls back to magnitude-based formatting when precision is unknown.
+ * Format a ladder price with the shared format from `getOrderBookPriceFormat`.
+ * Falls back to magnitude-based formatting when the format is unknown.
  */
 export function formatOrderBookPrice(
   price: string | number,
-  priceDecimals: number | null,
+  format: OrderBookPriceFormat | null,
 ): string {
   const value = typeof price === 'number' ? price : Number.parseFloat(price);
   if (!Number.isFinite(value)) {
     return ORDER_BOOK_FALLBACK_DISPLAY;
   }
-  if (priceDecimals === null) {
+  if (format === null) {
     return formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
   }
-  return formatPerpsFiat(value, {
-    ranges: getFixedDecimalRanges(priceDecimals),
+  const formatted = formatPerpsFiat(value / format.divisor, {
+    ranges: getFixedDecimalRanges(format.decimals),
     stripTrailingZeros: false,
   });
+  return `${formatted}${format.suffix}`;
 }
 
 /**
