@@ -50,13 +50,53 @@ validate_numeric_run_id() {
   fi
 }
 
+# On an HTTP error `gh api` exits non-zero AND writes the raw JSON error body to STDOUT
+# (CRLF-terminated), so "empty output" never means "no result" here: a 401 hands the caller
+# a `{` line that a downstream parser happily accepts as data. Every call below must
+# therefore branch on the exit status rather than on the output.
+#
+# Runs `gh api "$@"` and returns 0 on success, 1 on a failed request. Results land in the
+# globals GH_API_OUT (stdout) and GH_API_ERROR (stderr) rather than on this function's own
+# stdout: callers must NOT wrap it in `$(...)`, because a command substitution runs in a
+# subshell and the globals would not survive it. On failure GH_API_OUT is cleared, so no
+# fragment of an error body can leak into a digest, a size, or a run id.
+GH_API_OUT=''
+GH_API_ERROR=''
+gh_api_capture() {
+  local err_file
+  local status=0
+
+  err_file="$(mktemp)"
+  GH_API_OUT="$(gh api "$@" 2>"$err_file")" || status=$?
+  GH_API_ERROR="$(cat "$err_file")"
+  rm -f "$err_file"
+
+  if ((status != 0)); then
+    GH_API_OUT=''
+    return 1
+  fi
+}
+
+report_gh_api_failure() {
+  echo -e "${RED}❌ $1${NC}" >&2
+  if [[ -n "$GH_API_ERROR" ]]; then
+    printf '%s\n' "$GH_API_ERROR" >&2
+  fi
+}
+
+# Exit codes: 0 = artifact present, 1 = verified absent, 2 = could not determine.
 run_has_artifact() {
   local run_id="$1"
   local artifact_name="$2"
-  gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
+
+  if ! gh_api_capture "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
     --paginate \
-    --jq ".artifacts[] | select(.expired == false and .name == \"${artifact_name}\") | .name" \
-    | grep -q .
+    --jq ".artifacts[] | select(.expired == false and .name == \"${artifact_name}\") | .name"; then
+    report_gh_api_failure "Failed to list artifacts for run ${run_id}"
+    return 2
+  fi
+
+  [[ -n "$GH_API_OUT" ]]
 }
 
 # Artifact metadata carries only `workflow_run.{id,head_branch,head_sha}` — not the
@@ -65,12 +105,24 @@ run_has_artifact() {
 # `build.yml` dispatch that uploaded just one platform of a half-finished matrix. Re-check
 # the producing run so lookups stay restricted to completed, successful expo-dev-build.yml
 # runs (the guarantee the previous `gh run list --status=success` path provided).
+#
+# Exit codes: 0 = verified good, 1 = verified not a match, 2 = could not determine. The
+# caller must not collapse 2 into 1: reading an auth, rate-limit, or network error as "bad
+# run" would walk past a live artifact and then report it as expired.
 run_is_successful_expo_dev_build() {
   local run_id="$1"
-  local run_meta
-  run_meta="$(gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}" \
-    --jq '"\(.status)|\(.conclusion)|\(.path)"' 2>/dev/null || true)"
-  [[ "$run_meta" == "completed|success|.github/workflows/${EXPO_DEV_WORKFLOW_FILE}" ]]
+
+  if ! gh_api_capture "repos/${GITHUB_REPO}/actions/runs/${run_id}" \
+    --jq '"\(.status)|\(.conclusion)|\(.path)"'; then
+    # A deleted run is genuinely not a match; every other failure is indeterminate.
+    if [[ "$GH_API_ERROR" == *"HTTP 404"* ]]; then
+      return 1
+    fi
+    report_gh_api_failure "Failed to verify run ${run_id}"
+    return 2
+  fi
+
+  [[ "$GH_API_OUT" == "completed|success|.github/workflows/${EXPO_DEV_WORKFLOW_FILE}" ]]
 }
 
 # expo-dev-build.yml now only builds when the @expo/fingerprint gate key changed (see
@@ -86,24 +138,21 @@ find_latest_run_with_artifact() {
   local candidate
   local checked=0
   local matches
-  local api_stderr
-  api_stderr="$(mktemp)"
+  local verify_status
 
   # `--paginate --jq` runs the filter once per page, so a naive sort_by/first would only
   # reduce within a page rather than across all of them. Emit one "created_at|run_id"
   # line per matching artifact across every page instead, then reduce afterwards.
-  if ! matches="$(gh api "repos/${GITHUB_REPO}/actions/artifacts?name=${artifact_name}&per_page=100" \
+  if ! gh_api_capture "repos/${GITHUB_REPO}/actions/artifacts?name=${artifact_name}&per_page=100" \
     --paginate \
-    --jq ".artifacts[] | select(.expired == false and .workflow_run.head_branch == \"${branch}\") | \"\(.created_at)|\(.workflow_run.id)\"" \
-    2>"$api_stderr")"; then
+    --jq ".artifacts[] | select(.expired == false and .workflow_run.head_branch == \"${branch}\") | \"\(.created_at)|\(.workflow_run.id)\""; then
     # Distinguish a failed API call (auth, rate limit, network) from "no such artifact",
     # which would otherwise send the reader chasing the wrong problem entirely.
-    echo -e "${RED}❌ Failed to query GitHub Actions artifacts for \"${artifact_name}\"${NC}" >&2
-    cat "$api_stderr" >&2
-    rm -f "$api_stderr"
+    report_gh_api_failure "Failed to query GitHub Actions artifacts for \"${artifact_name}\""
     return 1
   fi
-  rm -f "$api_stderr"
+  # Copy out before the verification loop below reuses the globals.
+  matches="$GH_API_OUT"
 
   # ISO 8601 timestamps are fixed-width, so a plain reverse string sort puts the newest
   # artifact first. LC_ALL=C keeps that true regardless of the caller's locale.
@@ -124,11 +173,25 @@ find_latest_run_with_artifact() {
       break
     fi
     checked=$((checked + 1))
-    if run_is_successful_expo_dev_build "$candidate"; then
-      echo "$candidate"
-      return 0
-    fi
-    echo -e "${YELLOW}Skipping run ${candidate}: not a completed successful \"${EXPO_DEV_WORKFLOW_FILE}\" run.${NC}" >&2
+    verify_status=0
+    run_is_successful_expo_dev_build "$candidate" || verify_status=$?
+    case "$verify_status" in
+      0)
+        echo "$candidate"
+        return 0
+        ;;
+      1)
+        echo -e "${YELLOW}Skipping run ${candidate}: not a completed successful \"${EXPO_DEV_WORKFLOW_FILE}\" run.${NC}" >&2
+        ;;
+      *)
+        # Indeterminate, not "bad run": falling through to an older build (or to the
+        # "artifacts may have expired" message below) would misreport a live artifact.
+        # run_is_successful_expo_dev_build has already printed the underlying API error.
+        echo -e "${YELLOW}Refusing to fall back to an older build for \"${artifact_name}\".${NC}" >&2
+        echo -e "${YELLOW}Check 'gh auth status' and your API rate limit, then retry — or pass --run ${candidate}.${NC}" >&2
+        return 1
+        ;;
+    esac
   done <<< "$candidate_run_ids"
 
   echo -e "${RED}❌ No live artifact named \"${artifact_name}\" from a successful \"${EXPO_DEV_WORKFLOW_FILE}\" run found on branch \"${branch}\"${NC}" >&2
@@ -143,10 +206,18 @@ resolve_expo_dev_run() {
   local branch="$2"
   local run_id_override="$3"
   local resolved_run_id
+  local artifact_status
 
   if [[ -n "$run_id_override" ]]; then
     validate_numeric_run_id "$run_id_override" || return 1
-    if ! run_has_artifact "$run_id_override" "$artifact_name"; then
+    artifact_status=0
+    run_has_artifact "$run_id_override" "$artifact_name" || artifact_status=$?
+    # Only claim the artifact is absent when the API actually said so; report_gh_api_failure
+    # has already explained an indeterminate result.
+    if ((artifact_status >= 2)); then
+      return 1
+    fi
+    if ((artifact_status != 0)); then
       echo -e "${RED}❌ Run ${run_id_override} does not contain artifact \"${artifact_name}\"${NC}" >&2
       echo -e "${YELLOW}Inspect: https://github.com/${GITHUB_REPO}/actions/runs/${run_id_override}${NC}" >&2
       return 1
@@ -181,9 +252,16 @@ print_artifact_summary() {
   local artifact_digest
   local artifact_size_mb
 
-  artifact_meta="$(gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
+  # Without the exit-status check, a failed request used to reach the parser below as the
+  # `{` first line of the JSON error body, which passed the "not found" guard and printed a
+  # fabricated "✓ Artifact size: 0MB" — a green check for a request that never succeeded.
+  if ! gh_api_capture "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
     --paginate \
-    --jq ".artifacts[] | select(.name==\"${artifact_name}\") | \"\(.expired)|\(.size_in_bytes)|\(.digest // \"\")\"" 2>/dev/null | head -1 || true)"
+    --jq ".artifacts[] | select(.name==\"${artifact_name}\") | \"\(.expired)|\(.size_in_bytes)|\(.digest // \"\")\""; then
+    report_gh_api_failure "Failed to list artifacts for run ${run_id}"
+    return 1
+  fi
+  artifact_meta="$(printf '%s\n' "$GH_API_OUT" | awk 'NR == 1')"
 
   if [[ -z "$artifact_meta" ]]; then
     echo -e "${RED}❌ Artifact '${artifact_name}' not found in run ${run_id}${NC}" >&2
@@ -213,13 +291,25 @@ artifact_digest_cache_path() {
   echo "${BUILD_DIR}/gh-expo-dev-build/${artifact_name}.digest"
 }
 
+# Only feeds the download-skip optimisation, so a failed request is not fatal: return
+# nothing and let the caller re-download. Warn rather than swallow, and never return the
+# error body — the caller writes this value to the digest cache, so caching a `{` fragment
+# would corrupt the comparison on subsequent runs.
 fetch_artifact_digest() {
   local run_id="$1"
   local artifact_name="$2"
-  gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
+
+  if ! gh_api_capture "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
     --paginate \
-    --jq ".artifacts[] | select(.expired == false and .name == \"${artifact_name}\") | .digest // empty" \
-    2>/dev/null | head -1 || true
+    --jq ".artifacts[] | select(.expired == false and .name == \"${artifact_name}\") | .digest // empty"; then
+    echo -e "${YELLOW}⚠️  Could not fetch the digest for '${artifact_name}' (run ${run_id}); re-downloading.${NC}" >&2
+    if [[ -n "$GH_API_ERROR" ]]; then
+      printf '%s\n' "$GH_API_ERROR" >&2
+    fi
+    return 0
+  fi
+
+  printf '%s\n' "$GH_API_OUT" | awk 'NR == 1'
 }
 
 read_cached_artifact_digest() {
