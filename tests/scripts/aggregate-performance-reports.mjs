@@ -153,7 +153,30 @@ function collectAppProfilingArtifacts(searchDirs, outputDir) {
     }
 
     const destPath = path.join(profilingOutputDir, fileName);
-    fs.copyFileSync(sourcePath, destPath);
+    try {
+      const artifact = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+      const providerFromArtifact =
+        artifact.cloudProvider ||
+        artifact.provider ||
+        artifact.device?.provider ||
+        null;
+      const providerFromPath = getCloudProviderFromPath(
+        sourcePath.toLowerCase(),
+      );
+      const hasSpecificTestMuPath =
+        sourcePath.toLowerCase().includes('testmu-standard-') ||
+        sourcePath.toLowerCase().includes('testmu-');
+
+      artifact.cloudProvider = hasSpecificTestMuPath
+        ? providerFromPath
+        : (providerFromArtifact ?? providerFromPath);
+      fs.writeFileSync(destPath, JSON.stringify(artifact, null, 2));
+    } catch (error) {
+      console.warn(
+        `⚠️ Could not enrich app profiling artifact provider for ${sourcePath}: ${error.message}`,
+      );
+      fs.copyFileSync(sourcePath, destPath);
+    }
     copiedCount += 1;
     console.log(`📦 Collected app profiling artifact: ${destPath}`);
   }

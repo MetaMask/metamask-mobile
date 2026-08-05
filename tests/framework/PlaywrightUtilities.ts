@@ -268,7 +268,7 @@ export function boxedStep<This, Args extends unknown[], Return>(
  * Conservative model while `TimerHelper.measure()` is active (click stays outside):
  * - Post-detect probe (`isExisting` after visible) — pure Appium/network RTT.
  * - Failed + success poll command durations, each capped at the probe RTT so
- *   implicit-wait / app-load time inside those commands stays in app time.
+ * implicit-wait / app-load time inside those commands stays in app time.
  * - Poll sleeps and element-resolution (`directMs`) stay in app time.
  *
  * When no `measure()` is active all functions are no-ops.

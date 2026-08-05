@@ -48,6 +48,7 @@ export function normalizeTestMuPlatformVersion(osVersion: string): string {
 function isExactDeviceMatchEnabled(): boolean {
   // Bracket access so babel-plugin-transform-inline-environment-variables
   // cannot bake an undefined value at Jest transform time.
+  // eslint-disable-next-line dot-notation
   const value = process.env['TESTMU_DEVICE_EXACT'];
   return typeof value === 'string' && value.toLowerCase() === 'true';
 }

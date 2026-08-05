@@ -2,6 +2,8 @@ import type { ServiceProvider } from '../common/interfaces/ServiceProvider.ts';
 import type { ProjectConfig } from '../common/types.ts';
 import { ProviderName } from '../../types.ts';
 
+/* eslint-disable @typescript-eslint/no-require-imports -- providers must remain lazy-loaded */
+
 /**
  * Supported provider types
  */
@@ -26,22 +28,21 @@ export function createServiceProvider(project: ProjectConfig): ServiceProvider {
   switch (provider) {
     case ProviderName.EMULATOR:
     case ProviderName.SIMULATOR: {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { EmulatorProvider } = require('./emulator') as typeof import('./emulator');
+      const { EmulatorProvider } =
+        require('./emulator') as typeof import('./emulator');
       return new EmulatorProvider(project);
     }
 
     case ProviderName.BROWSERSTACK: {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { BrowserStackProvider } =
+      const browserStackModule =
         require('./browserstack') as typeof import('./browserstack');
+      const { BrowserStackProvider } = browserStackModule;
       return new BrowserStackProvider(project);
     }
 
     case ProviderName.TESTMU: {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { TestMuAIProvider } =
-        require('./testmu') as typeof import('./testmu');
+      const testMuModule = require('./testmu') as typeof import('./testmu');
+      const { TestMuAIProvider } = testMuModule;
       return new TestMuAIProvider(project);
     }
 
