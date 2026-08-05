@@ -1,21 +1,26 @@
 import {
-  IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Text,
   TextVariant,
   Spinner,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import {
   playNotification,
   NotificationMoment,
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import {
   ButtonIconVariant,
@@ -24,6 +29,9 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { store } from '../../../../store';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
 import {
   ActivityTypeFilter,
@@ -240,31 +248,21 @@ const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
   hasNoTimeout: false,
 };
 
-const toastStyles = StyleSheet.create({
-  spinnerContainer: {
-    paddingRight: 12,
-    alignContent: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
 const usePerpsToasts = (): {
   showToast: (config: PerpsToastOptions) => void;
   PerpsToastOptions: PerpsToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const perpsBaseToastOptions: Record<string, PerpsToastOptions> = useMemo(
     () => ({
       success: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
-        iconColor: theme.colors.accent03.dark,
-        backgroundColor: theme.colors.accent03.normal,
+        iconName: IconName.Confirmation,
+        iconColor: IconColor.Success,
         hapticsType: NotificationMoment.Success,
       },
       // Intentional duplication for now to avoid coupling with success options.
@@ -272,44 +270,34 @@ const usePerpsToasts = (): {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
-        iconColor: theme.colors.accent04.dark,
-        backgroundColor: theme.colors.accent04.normal,
         hapticsType: NotificationMoment.Warning,
         startAccessory: (
-          <View style={toastStyles.spinnerContainer}>
-            <Spinner
-              color={ReactNativeDsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
-            />
-          </View>
+          <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
         ),
       },
       info: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Info,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.background.alternative,
+        iconColor: IconColor.Default,
         hapticsType: NotificationMoment.Warning,
       },
       error: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
-        iconColor: theme.colors.accent01.dark,
-        backgroundColor: theme.colors.accent01.light,
+        iconColor: IconColor.Error,
         hapticsType: NotificationMoment.Error,
       },
       warning: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Warning,
-        iconColor: theme.colors.warning.default,
-        backgroundColor: theme.colors.warning.muted,
+        iconColor: IconColor.Warning,
         hapticsType: NotificationMoment.Warning,
       },
     }),
-    [theme],
+    [],
   );
 
   const navigationHandlers = useMemo(
@@ -323,10 +311,17 @@ const usePerpsToasts = (): {
         perpsFilter?: PerpsActivityFilter,
       ) => {
         toastRef?.current?.closeToast();
+        const state = store.getState();
+        const depositMeta = selectTransactionMetadataById(state, transactionId);
         navigateToTransactionDetails(navigation, {
           transactionId,
           initialTypeFilter: ActivityTypeFilter.Perps,
           ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
+          isTransactionsRedesignEnabled:
+            selectIsTransactionsRedesignEnabled(state),
+          ...(depositMeta?.chainId
+            ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
+            : {}),
         });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
@@ -443,14 +438,14 @@ const usePerpsToasts = (): {
             closeButtonOptions: {
               label: (
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
                   style={{ color: theme.colors.error.default }}
                 >
                   {strings('perps.deposit.cancel_trade')}
                 </Text>
               ),
               variant: ButtonVariants.Secondary,
-              style: { backgroundColor: theme.colors.background.muted },
               onPress: () => {
                 /* no-op */
               },
@@ -460,8 +455,7 @@ const usePerpsToasts = (): {
             ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
             variant: ToastVariants.Icon,
             iconName: IconName.Warning,
-            iconColor: theme.colors.error.default,
-            backgroundColor: theme.colors.error.muted,
+            iconColor: IconColor.Error,
             hapticsType: NotificationMoment.Warning,
             labelOptions: getPerpsToastLabels(
               strings('perps.deposit.trade_canceled'),
@@ -520,8 +514,7 @@ const usePerpsToasts = (): {
           withdrawalStartFailed: (onRetry: () => void) => ({
             ...perpsBaseToastOptions.error,
             iconName: IconName.Error,
-            iconColor: theme.colors.error.default,
-            backgroundColor: theme.colors.accent04.normal,
+            iconColor: IconColor.Error,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.toast_error_title'),
               strings('perps.withdrawal.toast_start_error_description'),
@@ -1094,10 +1087,7 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.success,
       perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
-      theme.colors.accent04.normal,
-      theme.colors.background.muted,
       theme.colors.error.default,
-      theme.colors.error.muted,
       theme.colors.success.default,
       toastRef,
     ],

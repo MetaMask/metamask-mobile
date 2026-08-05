@@ -11,6 +11,8 @@ import {
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
@@ -141,7 +143,7 @@ const useSpendingLimit = ({
   delegationSettings,
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -484,8 +486,9 @@ const useSpendingLimit = ({
 
   // Handlers
   const handleAccountSelect = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         disableAddAccountButton: true,
         onSelectAccount: () => {
           if (!isMoneyAccountSource) return;
@@ -512,8 +515,9 @@ const useSpendingLimit = ({
 
     const excludedTokens = selectedToken ? [selectedToken] : [];
 
-    navigation.navigate(
-      ...createAssetSelectionModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createAssetSelectionModalNavigationDetails({
         selectionOnly: true,
         excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -546,8 +550,9 @@ const useSpendingLimit = ({
   );
 
   const handleLimitSelect = useCallback(() => {
-    navigation.navigate(
-      ...createSpendingLimitOptionsNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createSpendingLimitOptionsNavigationDetails({
         currentLimitType: limitType,
         currentCustomLimit: customLimit,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -569,7 +574,6 @@ const useSpendingLimit = ({
       ],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -585,7 +589,6 @@ const useSpendingLimit = ({
         ],
         iconName: IconName.Danger,
         iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.error.muted,
         hasNoTimeout: false,
       });
     },
@@ -613,7 +616,9 @@ const useSpendingLimit = ({
         });
         if (success) {
           try {
-            await Engine.context.CardController.fetchCardHomeData();
+            await Engine.context.CardController.fetchCardHomeData({
+              force: true,
+            });
           } catch (error) {
             Logger.error(
               error as Error,
@@ -669,7 +674,7 @@ const useSpendingLimit = ({
 
       // Wait for backend to process, then refresh card home data
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await Engine.context.CardController.fetchCardHomeData();
+      await Engine.context.CardController.fetchCardHomeData({ force: true });
 
       if (!isOnboardingFlow) {
         showSuccessToast();

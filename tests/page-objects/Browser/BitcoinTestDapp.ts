@@ -1,46 +1,26 @@
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Gestures from '../../framework/Gestures';
 import Browser from './BrowserView';
 import Utilities, { BASE_DEFAULTS } from '../../framework/Utilities';
-/**
- * Get a test element by data-testid
- * @param dataTestId - The data-testid of the element
- * @param options.tag - The tag of the element having the data-testid attribute (e.g. 'div', 'input', etc.). Defaults to 'div'
- * @param options.extraXPath - The extra xpath to the element (e.g. '/div/button'), useful for accessing elements we aren't able to assign a data-testid to
- * @returns The test element
- */
-function getTestElement(
-  dataTestId: string,
-  options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement | PlaywrightElement> {
-  const { tag = 'div', extraXPath = '' } = options;
-  const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
-
-  return Matchers.getElementByXPath(
-    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-    xpath,
-  );
-}
 
 class BitcoinTestDapp {
   get connectButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.connect, {
+    return Matchers.getTestElement(dataTestIds.testPage.header.connect, {
       tag: 'button',
     });
   }
 
   get disconnectButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.header.disconnect, {
+    return Matchers.getTestElement(dataTestIds.testPage.header.disconnect, {
       tag: 'button',
     });
   }
 
   get walletButtonSelector(): WebElement {
-    return getTestElement(
+    return Matchers.getTestElement(
       dataTestIds.testPage.walletSelectionModal.walletOption,
       {
         tag: 'button',
@@ -49,7 +29,7 @@ class BitcoinTestDapp {
   }
 
   get standardButtonSelector(): WebElement {
-    return getTestElement(
+    return Matchers.getTestElement(
       dataTestIds.testPage.walletSelectionModal.standardButton,
       {
         tag: 'button',
@@ -58,9 +38,12 @@ class BitcoinTestDapp {
   }
 
   get signMessageButtonSelector(): WebElement {
-    return getTestElement(dataTestIds.testPage.signMessage.signMessage, {
-      tag: 'button',
-    });
+    return Matchers.getTestElement(
+      dataTestIds.testPage.signMessage.signMessage,
+      {
+        tag: 'button',
+      },
+    );
   }
 
   get confirmSignMessageButtonSelector(): WebElement {
@@ -153,13 +136,13 @@ class BitcoinTestDapp {
         await this.tapButton(this.standardButtonSelector);
       },
       getConnectionStatus: async () => {
-        const connectionStatusDiv = await getTestElement(
+        const connectionStatusDiv = await Matchers.getTestElement(
           dataTestIds.testPage.header.connectionStatus,
         );
         return await connectionStatusDiv.getText();
       },
       getAccount: async () => {
-        const account = await getTestElement(
+        const account = await Matchers.getTestElement(
           dataTestIds.testPage.header.account,
           { extraXPath: '/a' },
         );
@@ -175,7 +158,7 @@ class BitcoinTestDapp {
   async verifyConnectedAccount(connectionStatus: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const account = await getTestElement(
+        const account = await Matchers.getTestElement(
           dataTestIds.testPage.header.account,
           {
             extraXPath: '/a',
@@ -199,7 +182,7 @@ class BitcoinTestDapp {
   async verifyConnectionStatus(connectionStatus: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const connectionStatusDiv = await getTestElement(
+        const connectionStatusDiv = await Matchers.getTestElement(
           dataTestIds.testPage.header.connectionStatus,
         );
         const actualText = await connectionStatusDiv.getText();
@@ -220,7 +203,7 @@ class BitcoinTestDapp {
   async verifySignedMessage(signedMessage: string): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const signedMessageElement = await getTestElement(
+        const signedMessageElement = await Matchers.getTestElement(
           dataTestIds.testPage.signMessage.signedMessage,
           {
             tag: 'pre',

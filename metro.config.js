@@ -29,6 +29,11 @@ const parsedArgs = parseArgs({
 const getPolyfills = () => [
   // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
+  // Must come AFTER @react-native/js-polyfills (which installs RN's Promise)
+  // and BEFORE lockdown's hardenIntrinsics(). Defines Promise.withResolvers so
+  // babel-preset-expo's injected core-js polyfill skips its own (illegal, post-
+  // freeze) definition. See the file header for the full rationale.
+  require.resolve('./polyfills/promise-with-resolvers.js'),
   require.resolve('reflect-metadata'),
   // Expo's `expo/fetch` (used by @metamask/bridge-controller for SSE
   // `getQuoteStream`) constructs a `ReadableStream` for the response
@@ -51,6 +56,20 @@ const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
+
+// Escapes a filesystem path for safe embedding in a RegExp so the mm CLI
+// daemon-artifact blockList entries below only match paths anchored at the
+// worktree root, not the same substring appearing anywhere in node_modules.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// mm CLI (visual testing) daemon artifacts, anchored to this worktree root.
+// Anchoring prevents an unrelated dependency whose path merely *contains*
+// `.mm-server` or `test-artifacts/` from being silently dropped from the bundle.
+const mmDaemonArtifactBlockList = [
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-daemon.log'))}$`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-server'))}`),
+  new RegExp(`^${escapeRegExp(path.join(__dirname, 'test-artifacts'))}/`),
+];
 
 // True when the module being resolved was requested from a file inside
 // @metamask/perps-controller. Normalizes separators first so this works on
@@ -80,7 +99,7 @@ module.exports = function (baseConfig) {
 
       /**
        * E2E Metro redirects under tests/module-mocking.
-       * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+       * Enables both: @metamask/seedless-onboarding-controller + OAuthLoginHandlers mocks.
        * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
        * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
        * even though hasTestOverrides is false (preventing real OAuth calls to production).
@@ -107,9 +126,33 @@ module.exports = function (baseConfig) {
             ),
           );
 
+      // Isolate Metro transform cache between with-SRP and without-SRP dual
+      // repacks. Expo export:embed forces resetCache=false in CI, so babel
+      // inlines of PREDEFINED_PASSWORD / ADDITIONAL_SRP_* from the first pack
+      // would otherwise be reused from /tmp/metro-cache by the second pack.
+      // Prefer an explicit METRO_TRANSFORM_PROFILE; fall back to presence-only
+      // detection (never put secret values into cacheVersion).
+      const metroTransformProfile =
+        process.env.METRO_TRANSFORM_PROFILE ||
+        (process.env.PREDEFINED_PASSWORD || process.env.ADDITIONAL_SRP_1
+          ? 'with-srp'
+          : 'without-srp');
+
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
+          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
           resolver: {
+            // Exclude mm CLI daemon artifacts from the file watcher so that
+            // log writes, state updates and test-artifact captures don't
+            // trigger unnecessary Fast Refresh cycles during visual testing.
+            blockList: [
+              ...(Array.isArray(defaultConfig.resolver.blockList)
+                ? defaultConfig.resolver.blockList
+                : defaultConfig.resolver.blockList
+                  ? [defaultConfig.resolver.blockList]
+                  : []),
+              ...mmDaemonArtifactBlockList,
+            ],
             unstable_enablePackageExports: true,
             assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
             sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
@@ -225,21 +268,29 @@ module.exports = function (baseConfig) {
                 }
               }
               if (e2eAllowsSeedlessOAuthMetroMocks) {
-                if (
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller',
-                  ) ||
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller/index',
-                  ) ||
-                  moduleName === './seedless-onboarding-controller' ||
-                  moduleName === '../seedless-onboarding-controller'
-                ) {
+                // Wallet owns SeedlessOnboardingController construction, so E2E
+                // replaces the package class. Importers under
+                // tests/module-mocking/seedless still resolve the real package
+                // to avoid a circular mock.
+                if (moduleName === '@metamask/seedless-onboarding-controller') {
+                  const originModulePath = context.originModulePath || '';
+                  if (
+                    originModulePath.includes(
+                      `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
+                    )
+                  ) {
+                    return {
+                      type: 'sourceFile',
+                      filePath: require.resolve(
+                        '@metamask/seedless-onboarding-controller',
+                      ),
+                    };
+                  }
                   return {
                     type: 'sourceFile',
                     filePath: path.resolve(
                       __dirname,
-                      'tests/module-mocking/seedless/index.ts',
+                      'tests/module-mocking/seedless/package.ts',
                     ),
                   };
                 }

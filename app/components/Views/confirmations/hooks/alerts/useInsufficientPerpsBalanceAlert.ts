@@ -9,13 +9,14 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
-import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { getTotalPayFeesUsd } from '../../utils/transaction-pay';
 import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
@@ -62,22 +63,7 @@ export function useInsufficientPerpsBalanceAlert({
       totals?.fees &&
       new BigNumber(amountHuman).isGreaterThan(0)
     ) {
-      const totalFees = new BigNumber(totals.fees.provider?.usd ?? 0)
-        .plus(totals.fees.sourceNetwork?.estimate?.usd ?? 0)
-        .plus(totals.fees.targetNetwork?.usd ?? 0)
-        .plus(totals.fees.metaMask?.usd ?? 0);
-
-      if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
-        return true;
-      }
-
-      if (
-        withdrawableBalance !== undefined &&
-        withdrawableBalance !== null &&
-        new BigNumber(amountHuman)
-          .plus(totalFees)
-          .isGreaterThan(withdrawableBalance)
-      ) {
+      if (getTotalPayFeesUsd(totals.fees).isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
     }

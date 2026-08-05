@@ -14,6 +14,7 @@ import {
   type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
+  type FetchCardHomeDataOptions,
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
 import {
@@ -36,6 +37,7 @@ import {
   type CardProviderCapabilities,
   type CardSecureView,
   type CardSecureViewParams,
+  type CardSensitiveDetails,
   type CardSpendingPrerequisitesParams,
   type CardSpendingPrerequisitesResult,
   type CashbackWalletResponse,
@@ -72,16 +74,19 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
-  type GateVersionedFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   deriveCountryProviderMap,
   getProviderForCountry,
 } from './provider-map';
+import {
+  ImmersveProvider,
+  type CardResumeInfo,
+} from './providers/ImmersveProvider';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
+const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
@@ -173,6 +178,7 @@ export class CardController extends BaseController<
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
+  #lastFetchedAt = 0;
 
   constructor({
     messenger,
@@ -193,6 +199,11 @@ export class CardController extends BaseController<
       },
     });
     this.providers = providers;
+    try {
+      this.previousEvmAddress = this.#getSelectedEvmAddress();
+    } catch {
+      this.previousEvmAddress = null;
+    }
     this.#subscribeToEvents();
   }
 
@@ -239,8 +250,11 @@ export class CardController extends BaseController<
     );
   }
 
-  #fetchCardHomeDataWithLogging(method: string): void {
-    this.fetchCardHomeData().catch((error) =>
+  #fetchCardHomeDataWithLogging(
+    method: string,
+    options: FetchCardHomeDataOptions = {},
+  ): void {
+    this.fetchCardHomeData(options).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card' },
         context: {
@@ -251,17 +265,20 @@ export class CardController extends BaseController<
     );
   }
 
+  #invalidateAndClear(): void {
+    this.invalidateFetch();
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataStatus = 'idle';
+    });
+  }
+
   #handleAccountSwitch(): void {
     const currentAddress = this.#getSelectedEvmAddress();
 
     if (currentAddress !== this.previousEvmAddress) {
       this.previousEvmAddress = currentAddress;
-      this.invalidateFetch();
-      this.update((s) => {
-        s.cardHomeData = null;
-        s.cardHomeDataStatus = 'idle';
-      });
-      this.#fetchCardHomeDataWithLogging('#handleAccountSwitch');
+      this.#invalidateAndClear();
     }
   }
 
@@ -269,12 +286,7 @@ export class CardController extends BaseController<
     const currentAddress = this.#getSelectedEvmAddress();
     if (!currentAddress) return;
 
-    this.invalidateFetch();
-    this.update((s) => {
-      s.cardHomeData = null;
-      s.cardHomeDataStatus = 'idle';
-    });
-    this.#fetchCardHomeDataWithLogging('#handleCardFeatureFlagChange');
+    this.#invalidateAndClear();
   }
 
   #triggerCardholderCheck(): void {
@@ -355,14 +367,10 @@ export class CardController extends BaseController<
       if (providerId) {
         s.activeProviderId = providerId;
       }
-      if (providerChanged) {
-        s.cardHomeData = null;
-        s.cardHomeDataStatus = 'idle';
-      }
     });
 
     if (providerChanged) {
-      this.invalidateFetch();
+      this.#invalidateAndClear();
     }
   }
 
@@ -371,19 +379,14 @@ export class CardController extends BaseController<
       'RemoteFeatureFlagController:getState',
     );
 
-    const immersveEnabled =
-      validatedVersionGatedFeatureFlag(
-        featureState.remoteFeatureFlags
-          ?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag,
-      ) ?? false;
+    const cardFeature = resolveCardFeatureFlag(
+      featureState.remoteFeatureFlags?.cardFeature as
+        | CardFeatureFlag
+        | undefined,
+    );
 
-    if (immersveEnabled) {
-      const cardFeature = resolveCardFeatureFlag(
-        featureState.remoteFeatureFlags?.cardFeature as
-          | CardFeatureFlag
-          | undefined,
-      );
-      const immersveCountries = cardFeature?.immersveCountries ?? [];
+    if (cardFeature.immersve?.enabled) {
+      const immersveCountries = cardFeature.immersveCountries ?? [];
       const map = deriveCountryProviderMap(
         Object.fromEntries(
           immersveCountries.map((c) => [c, true] as [string, boolean]),
@@ -509,7 +512,17 @@ export class CardController extends BaseController<
    * request (same ??= pattern as refreshPromise). A generation counter
    * ensures stale responses (from a previous account or session) are dropped.
    */
-  async fetchCardHomeData(): Promise<void> {
+  async fetchCardHomeData(
+    options: FetchCardHomeDataOptions = {},
+  ): Promise<void> {
+    const { force = false } = options;
+    if (
+      !force &&
+      this.#lastFetchedAt > 0 &&
+      Date.now() - this.#lastFetchedAt < CARD_HOME_DATA_FRESH_MS
+    ) {
+      return;
+    }
     this.fetchCardHomeDataPromise ??= this.#doFetchCardHomeData(
       this.fetchGeneration,
     ).finally(() => {
@@ -520,7 +533,13 @@ export class CardController extends BaseController<
 
   async #doFetchCardHomeData(generation: number): Promise<void> {
     const address = this.#getSelectedEvmAddress();
-    if (!address) return;
+    if (!address) {
+      this.update((s) => {
+        s.cardHomeDataStatus = 'error';
+      });
+      this.#lastFetchedAt = Date.now();
+      return;
+    }
 
     this.update((s) => {
       s.cardHomeDataStatus = 'loading';
@@ -533,6 +552,7 @@ export class CardController extends BaseController<
             data as unknown as Record<string, Json>;
           s.cardHomeDataStatus = 'success';
         });
+        this.#lastFetchedAt = Date.now();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
@@ -546,6 +566,7 @@ export class CardController extends BaseController<
         this.update((s) => {
           s.cardHomeDataStatus = 'error';
         });
+        this.#lastFetchedAt = Date.now();
       }
     }
   }
@@ -558,6 +579,7 @@ export class CardController extends BaseController<
   private invalidateFetch(): void {
     this.fetchGeneration++;
     this.fetchCardHomeDataPromise = null;
+    this.#lastFetchedAt = 0;
   }
 
   #getSelectedEvmAddress(): string | null {
@@ -776,12 +798,6 @@ export class CardController extends BaseController<
   }> {
     const tokens = await this.getValidTokens();
 
-    // Always fetch card home data regardless of auth state: authenticated users
-    // get full card data, unauthenticated users get on-chain asset state.
-    this.#fetchCardHomeDataWithLogging(
-      'validateAndRefreshSession/fetchCardHomeData',
-    );
-
     if (!tokens) return { isAuthenticated: false };
     return { isAuthenticated: true, location: tokens.location };
   }
@@ -801,17 +817,6 @@ export class CardController extends BaseController<
     if (!tokens) {
       this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
-    }
-
-    if (tokens.accountAddress) {
-      const selected = this.#getSelectedEvmAddress();
-      if (
-        !selected ||
-        selected.toLowerCase() !== tokens.accountAddress.toLowerCase()
-      ) {
-        this.markUnauthenticated(this.state.lastUnauthenticatedReason);
-        return null;
-      }
     }
 
     const provider = this.getActiveProvider();
@@ -969,7 +974,15 @@ export class CardController extends BaseController<
         provider.getCardHomeData(address, validTokens),
       );
     }
-    return provider.getOnChainAssets?.(address) ?? emptyCardHomeData();
+
+    const onChainProvider =
+      provider.getOnChainAssets != null
+        ? provider
+        : this.providers[DEFAULT_CARD_PROVIDER_ID];
+    return (
+      (await onChainProvider?.getOnChainAssets?.(address)) ??
+      emptyCardHomeData()
+    );
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(
@@ -1090,6 +1103,19 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
   }
 
+  async getCardSensitiveDetails(): Promise<CardSensitiveDetails> {
+    const provider = this.getActiveProvider();
+    const getCardSensitiveDetails =
+      provider.getCardSensitiveDetails?.bind(provider);
+    if (!getCardSensitiveDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card sensitive details not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCardSensitiveDetails(tokens));
+  }
+
   async createFundingSource(): Promise<CardFundingSourceResult> {
     const provider = this.getActiveProvider();
     const createFundingSource = provider.createFundingSource?.bind(provider);
@@ -1112,6 +1138,14 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => getFundingSources(tokens));
+  }
+
+  async getResumeCardInfo(): Promise<CardResumeInfo | null> {
+    const provider = this.providers.immersve;
+    if (!(provider instanceof ImmersveProvider)) {
+      return null;
+    }
+    return this.#withAuthRetry((tokens) => provider.getResumeCardInfo(tokens));
   }
 
   async getSpendingPrerequisites(
@@ -1466,7 +1500,7 @@ export class CardController extends BaseController<
     });
 
     try {
-      await this.fetchCardHomeData();
+      await this.fetchCardHomeData({ force: true });
     } catch (error) {
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
@@ -1483,7 +1517,7 @@ export class CardController extends BaseController<
     const existing = fromState();
     if (existing) return existing;
 
-    await this.fetchCardHomeData();
+    await this.fetchCardHomeData({ force: true });
     return fromState();
   }
 

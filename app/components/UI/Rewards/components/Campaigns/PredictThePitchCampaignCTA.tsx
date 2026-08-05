@@ -6,6 +6,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCampaignParticipantStatus';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -27,15 +28,15 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
   campaign,
   participantStatus,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isEligible: isPredictEligible } = usePredictEligibility();
   const campaignStatus = getCampaignStatus(campaign);
   const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus.status?.optedIn === true;
 
-  const navigateToPredictWorldCup = useCallback(() => {
+  const navigateToPredict = useCallback(() => {
     navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.WORLD_CUP,
+      screen: Routes.PREDICT.MARKET_LIST,
       params: {
         entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
       },
@@ -49,7 +50,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={navigateToPredictWorldCup}
+          onPress={navigateToPredict}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
           {strings('rewards.predict_the_pitch_campaign.predict_now_cta')}

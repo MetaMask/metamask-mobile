@@ -19,7 +19,10 @@ import {
 } from './Toast.types';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
 import { lightTheme } from '@metamask/design-tokens';
-import { visibilityDuration } from './Toast.constants';
+import {
+  TOAST_DISMISS_VELOCITY_THRESHOLD,
+  visibilityDuration,
+} from './Toast.constants';
 
 const TEST_ACCOUNT_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
 const TEST_NETWORK_NAME = 'Ethereum Mainnet';
@@ -29,6 +32,40 @@ const TEST_NETWORK_IMAGE_SOURCE = {
 const TEST_APP_ICON_SOURCE = {
   uri: 'https://app.uniswap.org/favicon.ico',
 };
+
+const mockPanGestureHandlers: {
+  onStart?: () => void;
+  onUpdate?: (event: { translationY: number }) => void;
+  onEnd?: (event: { translationY: number; velocityY: number }) => void;
+} = {};
+
+jest.mock('react-native-gesture-handler', () => ({
+  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  Gesture: {
+    Pan: () => ({
+      activeOffsetY() {
+        return this;
+      },
+      failOffsetX() {
+        return this;
+      },
+      onStart(handler: () => void) {
+        mockPanGestureHandlers.onStart = handler;
+        return this;
+      },
+      onUpdate(handler: (event: { translationY: number }) => void) {
+        mockPanGestureHandlers.onUpdate = handler;
+        return this;
+      },
+      onEnd(
+        handler: (event: { translationY: number; velocityY: number }) => void,
+      ) {
+        mockPanGestureHandlers.onEnd = handler;
+        return this;
+      },
+    }),
+  },
+}));
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
@@ -48,6 +85,21 @@ const showToast = async (
   });
 };
 
+const swipeToast = async ({
+  translationY,
+  velocityY = 0,
+}: {
+  translationY: number;
+  velocityY?: number;
+}) => {
+  await act(async () => {
+    mockPanGestureHandlers.onStart?.();
+    mockPanGestureHandlers.onUpdate?.({ translationY });
+    mockPanGestureHandlers.onEnd?.({ translationY, velocityY });
+    jest.runAllTimers();
+  });
+};
+
 // Mock safe area context
 describe('Toast', () => {
   let toastRef: React.RefObject<ToastRef | null>;
@@ -55,6 +107,9 @@ describe('Toast', () => {
   beforeEach(() => {
     toastRef = createRef<ToastRef>();
     jest.clearAllMocks();
+    mockPanGestureHandlers.onStart = undefined;
+    mockPanGestureHandlers.onUpdate = undefined;
+    mockPanGestureHandlers.onEnd = undefined;
     jest.useFakeTimers();
   });
 
@@ -289,6 +344,42 @@ describe('Toast', () => {
       expect(screen.getByText('Description line')).toBeOnTheScreen();
     });
 
+    it('renders non-bold label segments alongside bold segments', async () => {
+      render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Normal weight', isBold: false },
+          { label: ' Bold weight', isBold: true },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getByText('Normal weight')).toBeOnTheScreen();
+      expect(screen.getByText(' Bold weight')).toBeOnTheScreen();
+    });
+
+    it('falls back to stable keys when label is not a string', async () => {
+      render(<Toast ref={toastRef} />);
+      // Runtime-only path for Sonar S6479 key fallbacks (`typeof label === 'string'`).
+      const nonStringLabel = 42 as unknown as string;
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: nonStringLabel, isBold: false },
+          { label: '\n' },
+          { label: nonStringLabel },
+        ],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      expect(screen.getAllByText('42')).toHaveLength(2);
+    });
+
     it('uses custom startAccessory instead of avatar', async () => {
       render(<Toast ref={toastRef} />);
       const options: ToastOptions = {
@@ -405,6 +496,39 @@ describe('Toast', () => {
       });
 
       expect(screen.getByText('Second toast')).toBeOnTheScreen();
+    });
+
+    it('keeps persistent toast after replacing a timed toast', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const timedOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Timed toast' }],
+        hasNoTimeout: false,
+      };
+      const persistentOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Persistent toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, timedOptions);
+
+      await act(async () => {
+        triggerToastLayout(view);
+      });
+
+      await act(async () => {
+        toastRef.current?.showToast(persistentOptions);
+        jest.advanceTimersByTime(100);
+      });
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.advanceTimersByTime(visibilityDuration);
+      });
+
+      expect(screen.queryByText('Timed toast')).toBeNull();
+      expect(screen.getByText('Persistent toast')).toBeOnTheScreen();
     });
 
     it('keeps persistent toast visible after layout when hasNoTimeout is true', async () => {
@@ -573,6 +697,86 @@ describe('Toast', () => {
     expect(screen.getByTestId(ToastSelectorsIDs.PRESSABLE)).toBeOnTheScreen();
   });
 
+  it('vertically centers pressable toast content by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Conversion complete', isBold: true },
+        { label: '\n' },
+        { label: '$50.00 added to Money account.' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Conversion complete'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Conversion complete' }] },
+      });
+      fireEvent(
+        screen.getByText('$50.00 added to Money account.'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: '$50.00 added to Money account.' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('center');
+  });
+
+  it('top-aligns pressable toast content when multi-line description requires it', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        { label: 'Title', isBold: true },
+        { label: '\n' },
+        { label: 'Long description that wraps' },
+      ],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    await act(async () => {
+      fireEvent(screen.getByText('Title'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'Title' }] },
+      });
+      fireEvent(
+        screen.getByText('Long description that wraps'),
+        'onTextLayout',
+        {
+          nativeEvent: {
+            lines: [{ text: 'Long description' }, { text: 'that wraps' }],
+          },
+        },
+      );
+    });
+
+    const pressable = screen.getByTestId(ToastSelectorsIDs.PRESSABLE);
+    const flat = StyleSheet.flatten(pressable.props.style);
+
+    expect(flat.alignItems).toBe('flex-start');
+  });
+
   it('calls onPress when the toast content is pressed', async () => {
     const onPress = jest.fn();
     const toastOptions: ToastOptions = {
@@ -637,5 +841,166 @@ describe('Toast', () => {
 
     expect(onCloseButtonPress).toHaveBeenCalledTimes(1);
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  describe('swipe to dismiss', () => {
+    it('dismisses toast when swiped up past the distance threshold', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Swipe dismiss toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Swipe dismiss toast')).toBeOnTheScreen();
+
+      await swipeToast({ translationY: -40 });
+
+      expect(screen.queryByText('Swipe dismiss toast')).toBeNull();
+    });
+
+    it('dismisses toast when swiped up with sufficient velocity', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Quick swipe toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      await swipeToast({
+        translationY: -10,
+        velocityY: -(TOAST_DISMISS_VELOCITY_THRESHOLD + 1),
+      });
+
+      expect(screen.queryByText('Quick swipe toast')).toBeNull();
+    });
+
+    it('keeps toast visible when swipe does not meet dismiss thresholds', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Incomplete swipe toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      await swipeToast({ translationY: -10, velocityY: -100 });
+
+      expect(screen.getByText('Incomplete swipe toast')).toBeOnTheScreen();
+    });
+
+    it('still auto-dismisses after an incomplete swipe during entrance', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Entrance swipe toast' }],
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+      });
+
+      await act(async () => {
+        mockPanGestureHandlers.onStart?.();
+        mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
+        mockPanGestureHandlers.onEnd?.({ translationY: -10, velocityY: -100 });
+      });
+
+      expect(screen.getByText('Entrance swipe toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Entrance swipe toast')).toBeNull();
+    });
+
+    it('ignores stale spring-back resume after toast is replaced', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const timedOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Timed swipe toast' }],
+        hasNoTimeout: false,
+      };
+      const persistentOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Persistent after swipe' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, timedOptions);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+      });
+
+      await act(async () => {
+        toastRef.current?.showToast(persistentOptions);
+        // Simulate a spring-back resume that lands after showToast cleared the
+        // previous toast (visibleAtRef is null during the replace gap).
+        mockPanGestureHandlers.onStart?.();
+        mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
+        mockPanGestureHandlers.onEnd?.({
+          translationY: -10,
+          velocityY: -100,
+        });
+        jest.advanceTimersByTime(100);
+      });
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.advanceTimersByTime(visibilityDuration);
+      });
+
+      expect(screen.queryByText('Timed swipe toast')).toBeNull();
+      expect(screen.getByText('Persistent after swipe')).toBeOnTheScreen();
+    });
+
+    it('does not restore toast when panned after closeToast starts dismissing', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Closing toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        toastRef.current?.closeToast();
+      });
+
+      await swipeToast({ translationY: -10, velocityY: -100 });
+
+      expect(screen.queryByText('Closing toast')).toBeNull();
+    });
   });
 });

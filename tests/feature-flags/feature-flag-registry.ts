@@ -126,6 +126,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialAusCacheRefreshEnabled: {
+    name: 'aiSocialAusCacheRefreshEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.5.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardOnboardingEnabled: {
     name: 'aiSocialLeaderboardOnboardingEnabled',
     type: FeatureFlagType.Remote,
@@ -227,6 +238,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  defiControllerV2: {
+    name: 'defiControllerV2',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      versions: {
+        '8.5.0': {
+          enabled: false,
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsEnableNotificationsByDefault: {
     name: 'assetsEnableNotificationsByDefault',
     type: FeatureFlagType.Remote,
@@ -261,12 +286,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          tracesEnabled: false,
           deprecatedControllers: [],
         },
         '8.3.0': {
           enabled: true,
           featureVersion: '1',
           minimumVersion: '8.3.0',
+          tracesEnabled: false,
           deprecatedControllers: [],
         },
       },
@@ -764,17 +791,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '8.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  immersveOnboardingEnabled: {
-    name: 'immersveOnboardingEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3375,8 +3391,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyDepositCtaTokens: {
-    name: 'earnMoneyDepositCtaTokens',
+  earnMoneyDepositCtaTokenAddresses: {
+    name: 'earnMoneyDepositCtaTokenAddresses',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {},
@@ -3394,11 +3410,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyEarnBannerTokens: {
-    name: 'earnMoneyEarnBannerTokens',
+  earnMoneyEarningSectionEnabled: {
+    name: 'earnMoneyEarningSectionEnabled',
     type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {},
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -3410,6 +3429,36 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '0.0.0',
       enabled: false,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyAssetOverviewFooterCtaEnabled: {
+    name: 'earnMoneyAssetOverviewFooterCtaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyAssetOverviewBalanceCtaEnabled: {
+    name: 'earnMoneyAssetOverviewBalanceCtaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyCardTiltAnimationEnabled: {
+    name: 'earnMoneyCardTiltAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3765,6 +3814,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyAccountDepositQuotePipeline: {
+    name: 'moneyAccountDepositQuotePipeline',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyAccountGeoBlockedCountries: {
     name: 'moneyAccountGeoBlockedCountries',
     type: FeatureFlagType.Remote,
@@ -3967,6 +4024,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.82.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsProModeEnabled: {
+    name: 'perpsProModeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4251,6 +4319,69 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
+        '8.6.0': {
+          enabled: true,
+          leagues: [
+            'nfl',
+            'nba',
+            'wnba',
+            'mlb',
+            'kbo',
+            'npb',
+            'cpbl',
+            'nhl',
+            'shl',
+            'khl',
+            'cehl',
+            'dehl',
+            'cfb',
+            'cfl',
+            'ucl',
+            'fif',
+            'lal',
+            'uef',
+            'bra2',
+            'tur',
+            'col1',
+            'mls',
+            'mex',
+            'bun',
+            'chi',
+            'epl',
+            'elc',
+            'bel1',
+            'cze1',
+            'j1100',
+            'j2100',
+            'fl1',
+            'nor',
+            'aus',
+            'den',
+            'sea',
+            'kor',
+            'ere',
+            'spl',
+            'bra',
+            'por',
+            'chi1',
+            'per1',
+            'lib',
+            'cdr',
+            'sud',
+            'egy1',
+            'uel',
+            'rou1',
+            'col',
+            'bol1',
+            'itc',
+            'dfb',
+            'cde',
+            'fifwc',
+            'atp',
+            'wta',
+            'itf',
+          ],
+        },
         '7.79.0': {
           enabled: true,
           leagues: [
@@ -4406,6 +4537,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  rampsTransakWidgetUrlProxy: {
+    name: 'rampsTransakWidgetUrlProxy',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5144,31 +5286,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  coreMCU589AbtestHubPageDiscoveryTabs: {
-    name: 'coreMCU589AbtestHubPageDiscoveryTabs',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   extensionUxPna25: {
     name: 'extensionUxPna25',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
-  homeTMCU470AbtestTrendingSections: {
-    name: 'homeTMCU470AbtestTrendingSections',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5315,9 +5437,91 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
+        '8.6.0': {
+          enabled: true,
+          enabledSportsMarketTypes: [
+            'moneyline',
+            'spreads',
+            'totals',
+            'first_half_moneyline',
+            'both_teams_to_score',
+            'both_teams_to_score_first_half',
+            'both_teams_to_score_second_half',
+            'first_half_totals',
+            'second_half_totals',
+            'soccer_first_to_score',
+            'soccer_halftime_result',
+            'soccer_second_half_result',
+            'soccer_player_goals',
+            'team_totals',
+            'soccer_team_totals',
+            'basketball_team_to_score_first',
+            'soccer_exact_score',
+            'soccer_team_to_advance',
+            'soccer_extra_time',
+            'soccer_penalty_shootout',
+          ],
+          leagues: [
+            'nba',
+            'wnba',
+            'mlb',
+            'kbo',
+            'npb',
+            'cpbl',
+            'nhl',
+            'shl',
+            'khl',
+            'cehl',
+            'dehl',
+            'fifwc',
+            'ucl',
+            'epl',
+            'lal',
+            'sea',
+            'bun',
+            'mls',
+            'fif',
+            'uel',
+            'col',
+            'fl1',
+            'ere',
+            'bra',
+            'por',
+            'bel1',
+            'elc',
+            'lib',
+            'nfl',
+            'cfb',
+            'cfl',
+            'atp',
+            'wta',
+            'itf',
+          ],
+          minimumVersion: '8.6.0',
+        },
         '7.82.0': {
           enabled: true,
-          enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+          enabledSportsMarketTypes: [
+            'moneyline',
+            'spreads',
+            'totals',
+            'both_teams_to_score',
+            'both_teams_to_score_first_half',
+            'both_teams_to_score_second_half',
+            'first_half_totals',
+            'second_half_totals',
+            'soccer_first_to_score',
+            'soccer_halftime_result',
+            'soccer_second_half_result',
+            'soccer_player_goals',
+            'team_totals',
+            'soccer_team_totals',
+            'basketball_team_to_score_first',
+            'soccer_exact_score',
+            'soccer_team_to_advance',
+            'soccer_extra_time',
+            'soccer_penalty_shootout',
+          ],
           leagues: [
             'nba',
             'wnba',
@@ -5342,44 +5546,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  predictWorldCup: {
-    name: 'predictWorldCup',
+  predictSportsFeed: {
+    name: 'predictSportsFeed',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       enabled: true,
-      minimumVersion: '7.79.0',
-      showMainFeedBanner: true,
-      showMainFeedTab: true,
-      showWorldCupScreen: true,
-      stages: [
-        {
-          eventIds: [
-            '632707',
-            '636318',
-            '640346',
-            '636324',
-            '640353',
-            '640358',
-            '643861',
-            '643867',
-            '643872',
-            '636329',
-            '643876',
-            '643880',
-            '643884',
-            '640362',
-            '640364',
-            '643888',
-          ],
-          key: 'round_of_32',
-        },
-      ],
-      bannerImage: {
-        height: 354,
-        url: 'https://braze-images.com/appboy/communication/assets/image_assets/images/6a29c2c64cef47009e1a3019/original.png',
-        width: 720,
-      },
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5637,6 +5810,40 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictFeedBanner: {
+    name: 'predictFeedBanner',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+      id: '',
+      title: '',
+      description: '',
+      position: 'after-featured-carousel',
+      severity: 'info',
+      dismissible: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictFeedCarousel: {
+    name: 'predictFeedCarousel',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.6.0',
+      mode: 'live',
+      contentSource: {
+        composition: 'query-results',
+        queryParams: '',
+        excludedMarketIds: [],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictPortfolio: {
     name: 'predictPortfolio',
     type: FeatureFlagType.Remote,
@@ -5669,14 +5876,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  swapsSWAPS4543AbtestPostTradeModal: {
-    name: 'swapsSWAPS4543AbtestPostTradeModal',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [],
-    status: FeatureFlagStatus.Active,
-  },
-
   swapsSWAPS4635AbtestVerified2: {
     name: 'swapsSWAPS4635AbtestVerified2',
     type: FeatureFlagType.Remote,
@@ -5696,16 +5895,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  priceAlertsEnabled: {
-    name: 'priceAlertsEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.81.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
   agentic_cli_notifications_enabled: {
     name: 'agentic_cli_notifications_enabled',
     type: FeatureFlagType.Remote,
@@ -5734,6 +5923,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: null,
       enabled: false,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccountBalanceSource: {
+    name: 'moneyAccountBalanceSource',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'rpc',
     status: FeatureFlagStatus.Active,
   },
 

@@ -18,25 +18,30 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
-import Icon, { IconSize } from '../Icons/Icon';
-import Text, { TextColor, TextVariant } from '../Texts/Text';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Icon,
+  IconColor,
   IconName as DsIconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
@@ -52,7 +57,14 @@ import {
 } from './Toast.types';
 import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
-import { TOAST_SPRING_CONFIG, visibilityDuration } from './Toast.constants';
+import {
+  TOAST_DISMISS_DISTANCE_THRESHOLD,
+  TOAST_DISMISS_VELOCITY_THRESHOLD,
+  TOAST_SPRING_CONFIG,
+  TOAST_SWIPE_ACTIVE_OFFSET_Y,
+  TOAST_SWIPE_FAIL_OFFSET_X,
+  visibilityDuration,
+} from './Toast.constants';
 import { useStyles } from '../../hooks';
 import { ButtonProps, ButtonVariants } from '../Buttons/Button/Button.types';
 import ButtonIcon from '../Buttons/ButtonIcon';
@@ -134,6 +146,49 @@ const mapLegacyButtonVariant = (variant?: ButtonVariants): ButtonVariant => {
   return ButtonVariant.Primary;
 };
 
+// Lazy map so incomplete Jest mocks of design-system-react-native do not
+// crash Toast barrel imports (e.g. ToastContext-only consumers).
+const getLegacyIconColorToDs = (): Record<string, IconColor> => ({
+  Default: IconColor.IconDefault,
+  Inverse: IconColor.OverlayInverse,
+  Alternative: IconColor.IconAlternative,
+  Muted: IconColor.IconMuted,
+  Primary: IconColor.PrimaryDefault,
+  PrimaryAlternative: IconColor.PrimaryAlternative,
+  Success: IconColor.SuccessDefault,
+  Error: IconColor.ErrorDefault,
+  ErrorAlternative: IconColor.ErrorAlternative,
+  Warning: IconColor.WarningDefault,
+  Info: IconColor.InfoDefault,
+});
+
+const resolveToastIconAppearance = (
+  iconColor?: string,
+): { color?: IconColor; style?: StyleProp<ViewStyle> } => {
+  if (!iconColor) {
+    return {};
+  }
+
+  if (!IconColor) {
+    return { style: { color: iconColor } as ViewStyle };
+  }
+
+  const dsIconColors = Object.values(IconColor) as string[];
+  if (dsIconColors.includes(iconColor)) {
+    return { color: iconColor as IconColor };
+  }
+
+  const legacyIconColorToDs = getLegacyIconColorToDs();
+  if (iconColor in legacyIconColorToDs) {
+    return { color: legacyIconColorToDs[iconColor] };
+  }
+
+  // Call sites may pass raw theme colors (e.g. theme.colors.success.default).
+  // Icon uses fill="currentColor"; RN SVG reads `color` from style at runtime
+  // even though ViewStyle does not declare it.
+  return { style: { color: iconColor } as ViewStyle };
+};
+
 /**
  * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
  * The API may have changed — compare props before migrating.
@@ -152,10 +207,19 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const { top: topInset } = useSafeAreaInsets();
   const hiddenTranslateY = useSharedValue(-screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
+  const visibleTranslateY = useSharedValue(0);
+  const gestureStartY = useSharedValue(0);
+  const toastHeight = useSharedValue(0);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoDismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const animationStartedRef = useRef(false);
   const visibleAtRef = useRef<number | null>(null);
+  const hasNoTimeoutRef = useRef(false);
+  const isDismissing = useSharedValue(false);
   const topOffset = toastOptions?.customTopOffset ?? 0;
+  hasNoTimeoutRef.current = Boolean(toastOptions?.hasNoTimeout);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
@@ -196,15 +260,27 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     ],
   );
 
+  const clearScheduledAutoDismiss = () => {
+    if (autoDismissTimeoutRef.current !== null) {
+      clearTimeout(autoDismissTimeoutRef.current);
+      autoDismissTimeoutRef.current = null;
+    }
+  };
+
   const resetState = () => {
     animationStartedRef.current = false;
     visibleAtRef.current = null;
+    isDismissing.value = false;
+    clearScheduledAutoDismiss();
     setDescriptionLineCount(null);
     setTitleLineCount(null);
     setToastOptions(undefined);
   };
 
   const startDismissAnimation = () => {
+    clearScheduledAutoDismiss();
+    isDismissing.value = true;
+    visibleAtRef.current = null;
     translateYProgress.value = withSpring(
       hiddenTranslateY.value,
       TOAST_SPRING_CONFIG,
@@ -217,14 +293,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const scheduleAutoDismiss = (delayMs: number) => {
-    translateYProgress.value = withDelay(
-      delayMs,
-      withSpring(hiddenTranslateY.value, TOAST_SPRING_CONFIG, (finished) => {
-        if (finished) {
-          runOnJS(resetState)();
-        }
-      }),
-    );
+    clearScheduledAutoDismiss();
+    autoDismissTimeoutRef.current = setTimeout(() => {
+      autoDismissTimeoutRef.current = null;
+      startDismissAnimation();
+    }, delayMs);
   };
 
   const beginAutoDismiss = () => {
@@ -232,12 +305,51 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     scheduleAutoDismiss(visibilityDuration);
   };
 
-  const syncDismissTargetAfterRemeasure = () => {
-    if (toastOptions?.hasNoTimeout || visibleAtRef.current === null) {
+  const ensureAutoDismissAfterIncompleteSwipe = () => {
+    if (hasNoTimeoutRef.current || isDismissing.value) {
+      return;
+    }
+
+    // Entrance was interrupted before auto-dismiss started — start a full timer
+    // now (from onEnd) rather than from spring-back completion. showToast clears
+    // visibleAtRef on replace; a queued spring-back resume must not treat that
+    // as an interrupted entrance and schedule dismiss on the new toast.
+    if (visibleAtRef.current === null && animationStartedRef.current) {
+      beginAutoDismiss();
+    }
+  };
+
+  const resumeAutoDismissAfterSwipe = () => {
+    if (hasNoTimeoutRef.current || isDismissing.value) {
+      return;
+    }
+
+    // null means the toast was replaced/reset, or ensure already could not start
+    // a timer (e.g. mid-replace). Do not begin a new auto-dismiss here.
+    if (visibleAtRef.current === null) {
       return;
     }
 
     const elapsed = Date.now() - visibleAtRef.current;
+    if (elapsed >= visibilityDuration) {
+      startDismissAnimation();
+      return;
+    }
+
+    scheduleAutoDismiss(visibilityDuration - elapsed);
+  };
+
+  const syncDismissTargetAfterRemeasure = () => {
+    if (
+      toastOptions?.hasNoTimeout ||
+      visibleAtRef.current === null ||
+      isDismissing.value
+    ) {
+      return;
+    }
+
+    const elapsed = Date.now() - visibleAtRef.current;
+    clearScheduledAutoDismiss();
     cancelAnimation(translateYProgress);
 
     if (elapsed >= visibilityDuration) {
@@ -276,13 +388,16 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
     let timeoutDuration = 0;
     if (toastOptions) {
-      if (!options.hasNoTimeout) {
-        cancelAnimation(translateYProgress);
-      }
+      // Always clear any pending auto-dismiss from the previous toast, including
+      // when the replacement is persistent (hasNoTimeout). Otherwise the old
+      // timer can fire and dismiss the new toast.
+      clearScheduledAutoDismiss();
+      cancelAnimation(translateYProgress);
       timeoutDuration = 100;
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
       animationStartedRef.current = false;
       visibleAtRef.current = null;
+      isDismissing.value = false;
       setDescriptionLineCount(null);
       setTitleLineCount(null);
       setToastOptions(undefined);
@@ -294,9 +409,105 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToast = () => {
-    visibleAtRef.current = null;
     startDismissAnimation();
   };
+
+  const closeToastRef = useRef(closeToast);
+  const ensureAutoDismissAfterIncompleteSwipeRef = useRef(
+    ensureAutoDismissAfterIncompleteSwipe,
+  );
+  const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
+  const clearScheduledAutoDismissRef = useRef(clearScheduledAutoDismiss);
+  closeToastRef.current = closeToast;
+  ensureAutoDismissAfterIncompleteSwipeRef.current =
+    ensureAutoDismissAfterIncompleteSwipe;
+  resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
+  clearScheduledAutoDismissRef.current = clearScheduledAutoDismiss;
+
+  const dismissToastFromSwipe = () => {
+    closeToastRef.current();
+  };
+
+  const ensureAutoDismissFromSwipe = () => {
+    ensureAutoDismissAfterIncompleteSwipeRef.current();
+  };
+
+  const resumeAutoDismissFromSwipe = () => {
+    resumeAutoDismissAfterSwipeRef.current();
+  };
+
+  const clearScheduledAutoDismissFromSwipe = () => {
+    clearScheduledAutoDismissRef.current();
+  };
+
+  const swipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetY(TOAST_SWIPE_ACTIVE_OFFSET_Y)
+        .failOffsetX([-TOAST_SWIPE_FAIL_OFFSET_X, TOAST_SWIPE_FAIL_OFFSET_X])
+        .onStart(() => {
+          // Don't interrupt an in-progress dismiss animation.
+          if (isDismissing.value) {
+            return;
+          }
+          runOnJS(clearScheduledAutoDismissFromSwipe)();
+          cancelAnimation(translateYProgress);
+          gestureStartY.value = translateYProgress.value;
+        })
+        .onUpdate((event) => {
+          if (isDismissing.value) {
+            return;
+          }
+          const nextTranslateY = gestureStartY.value + event.translationY;
+          // Toast sits at the top; only allow dragging upward (more negative).
+          translateYProgress.value = Math.min(
+            nextTranslateY,
+            visibleTranslateY.value,
+          );
+        })
+        .onEnd((event) => {
+          if (isDismissing.value) {
+            return;
+          }
+          const { translationY, velocityY } = event;
+          const dismissDistance = Math.max(
+            toastHeight.value * TOAST_DISMISS_DISTANCE_THRESHOLD,
+            24,
+          );
+          const hasReachedDismissOffset = translationY <= -dismissDistance;
+          const hasReachedSwipeThreshold =
+            Math.abs(velocityY) > TOAST_DISMISS_VELOCITY_THRESHOLD;
+          const isQuickDismissing = velocityY < 0;
+
+          const shouldDismiss =
+            hasReachedDismissOffset ||
+            (hasReachedSwipeThreshold && isQuickDismissing);
+
+          if (shouldDismiss) {
+            runOnJS(dismissToastFromSwipe)();
+            return;
+          }
+
+          // Start (or keep) auto-dismiss before spring-back so a later toast
+          // replace cannot be dismissed by a stale spring completion.
+          runOnJS(ensureAutoDismissFromSwipe)();
+
+          translateYProgress.value = withSpring(
+            visibleTranslateY.value,
+            TOAST_SPRING_CONFIG,
+            (finished) => {
+              // A new pan cancels this spring via cancelAnimation; only resume
+              // auto-dismiss when the spring-back completed naturally.
+              if (finished) {
+                runOnJS(resumeAutoDismissFromSwipe)();
+              }
+            },
+          );
+        }),
+    // Shared values and swipe JS wrappers are stable for the component lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   useImperativeHandle(ref, () => ({
     showToast,
@@ -311,9 +522,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     if (toastOptions) {
       const { height } = e.nativeEvent.layout;
       const nextHiddenTranslateY = getHiddenTranslateY(height, topOffset);
-      const visibleTranslateY = topInset + 8;
+      const nextVisibleTranslateY = topInset + 8;
 
       hiddenTranslateY.value = nextHiddenTranslateY;
+      visibleTranslateY.value = nextVisibleTranslateY;
+      toastHeight.value = height;
 
       if (animationStartedRef.current) {
         syncDismissTargetAfterRemeasure();
@@ -326,12 +539,12 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
       if (toastOptions.hasNoTimeout) {
         translateYProgress.value = withSpring(
-          visibleTranslateY,
+          nextVisibleTranslateY,
           TOAST_SPRING_CONFIG,
         );
       } else {
         translateYProgress.value = withSpring(
-          visibleTranslateY,
+          nextVisibleTranslateY,
           TOAST_SPRING_CONFIG,
           (finished) => {
             if (finished) {
@@ -344,19 +557,25 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderInlineLabelSegments = (segments: ToastLabelOptions) => (
-    <Text variant={TextVariant.BodyMD} onTextLayout={handleTitleTextLayout}>
-      {segments.map(({ label, isBold }, index) => (
-        <Text
-          key={`toast-label-${index}`}
-          variant={
-            isBold === false ? TextVariant.BodySM : TextVariant.BodyMDMedium
-          }
-          color={isBold === false ? TextColor.Alternative : undefined}
-          style={isBold === false ? undefined : styles.label}
-        >
-          {label}
-        </Text>
-      ))}
+    <Text variant={TextVariant.BodyMd} onTextLayout={handleTitleTextLayout}>
+      {segments.map(({ label, isBold }) => {
+        const weightKey = isBold === false ? 'normal' : 'bold';
+        const segmentKey =
+          typeof label === 'string'
+            ? `${label}-${weightKey}`
+            : `toast-label-${weightKey}`;
+
+        return (
+          <Text
+            key={segmentKey}
+            variant={isBold === false ? TextVariant.BodySm : TextVariant.BodyMd}
+            fontWeight={isBold === false ? undefined : FontWeight.Medium}
+            color={isBold === false ? TextColor.TextAlternative : undefined}
+          >
+            {label}
+          </Text>
+        );
+      })}
     </Text>
   );
 
@@ -381,16 +600,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           : null}
         {descriptionLabelOptions.length > 0 ? (
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
             style={styles.description}
             onTextLayout={handleDescriptionTextLayout}
           >
-            {descriptionLabelOptions.map(({ label }, index) => (
+            {/* Prefer label content over array index so keys stay stable (Sonar S6479). */}
+            {descriptionLabelOptions.map(({ label }) => (
               <Text
-                key={`toast-description-label-${index}`}
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
+                key={typeof label === 'string' ? label : 'toast-description'}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
               >
                 {label}
               </Text>
@@ -404,8 +624,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const renderDescription = (descriptionOptions?: ToastDescriptionOptions) =>
     descriptionOptions && (
       <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
         style={styles.description}
         onTextLayout={handleDescriptionTextLayout}
       >
@@ -492,8 +712,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       }
       case ToastVariants.Icon: {
         const { iconName, iconColor, backgroundColor } = toastOptions;
+        const iconAppearance = resolveToastIconAppearance(iconColor);
         const icon = (
-          <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
+          <Icon
+            name={iconName as DsIconName}
+            size={IconSize.Lg}
+            color={iconAppearance.color}
+            style={iconAppearance.style}
+          />
         );
         const hasIconBackground =
           backgroundColor != null && backgroundColor !== 'transparent';
@@ -550,19 +776,24 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   }
 
   return (
-    <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
-      {toastOptions.onPress ? (
-        <Pressable
-          style={styles.pressableContent}
-          onPress={toastOptions.onPress}
-          testID={ToastSelectorsIDs.PRESSABLE}
-        >
-          {renderToastContent(toastOptions)}
-        </Pressable>
-      ) : (
-        renderToastContent(toastOptions)
-      )}
-    </Animated.View>
+    <GestureDetector gesture={swipeGesture}>
+      <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
+        {toastOptions.onPress ? (
+          <Pressable
+            style={[
+              styles.pressableContent,
+              shouldTopAlign && styles.pressableContentTopAligned,
+            ]}
+            onPress={toastOptions.onPress}
+            testID={ToastSelectorsIDs.PRESSABLE}
+          >
+            {renderToastContent(toastOptions)}
+          </Pressable>
+        ) : (
+          renderToastContent(toastOptions)
+        )}
+      </Animated.View>
+    </GestureDetector>
   );
 });
 

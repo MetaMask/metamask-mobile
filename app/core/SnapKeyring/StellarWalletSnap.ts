@@ -12,6 +12,9 @@ export const STELLAR_WALLET_SNAP_ID: SnapId =
 export const STELLAR_WALLET_NAME: string = 'Stellar';
 
 export class StellarWalletSnapSender implements Sender {
+  // We assume the caller of this module is aware of this. If we try to use this module
+  // without having the pre-installed Snap, this will likely throw an error in
+  // the `handleSnapRequest` action.
   send = async (request: JsonRpcRequest): Promise<Json> =>
     (await handleSnapRequest(Engine.controllerMessenger, {
       origin: 'metamask',

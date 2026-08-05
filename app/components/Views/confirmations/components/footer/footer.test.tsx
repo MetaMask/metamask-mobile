@@ -29,6 +29,7 @@ import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const mockConfirmSpy = jest.fn();
@@ -74,6 +75,8 @@ jest.mock('../../hooks/alerts/useSecurityAlertResponse', () => ({
 
 jest.mock('../../hooks/pay/useTransactionPayData');
 
+jest.mock('../../hooks/pay/useIsTransactionPayAmountStale');
+
 jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
   useFullScreenConfirmation: jest.fn(() => ({
     isFullScreenConfirmation: true,
@@ -109,6 +112,9 @@ describe('Footer', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useIsTransactionPayAmountStaleMock = jest.mocked(
+    useIsTransactionPayAmountStale,
+  );
   const useIsGaslessLoadingMock = jest.mocked(useIsGaslessLoading);
 
   beforeEach(() => {
@@ -129,6 +135,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     (useAlerts as jest.Mock).mockReturnValue({
@@ -142,6 +150,7 @@ describe('Footer', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useIsTransactionPayAmountStaleMock.mockReturnValue(false);
     useIsGaslessLoadingMock.mockReturnValue({ isGaslessLoading: false });
   });
 
@@ -248,6 +257,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -299,6 +310,44 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
+  it('disables confirm button when pay amount is stale for an MM Pay transaction', () => {
+    useIsTransactionPayAmountStaleMock.mockReturnValue(true);
+
+    const musdClaimConfirmation = {
+      chainId: '0x1',
+      id: 'musd-claim-id',
+      networkClientId: 'mainnet',
+      origin: 'metamask',
+      txParams: {
+        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+        value: '0x0',
+      },
+      type: TransactionType.musdClaim,
+    } as unknown as TransactionMeta;
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: getAppStateForConfirmation(musdClaimConfirmation),
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('keeps confirm button enabled when pay amount is stale for a non-MM Pay transaction', () => {
+    useIsTransactionPayAmountStaleMock.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
+  });
+
   it('hides footer by default for moneyAccountDeposit transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
@@ -315,6 +364,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     const moneyAccountDepositConfirmation = {
@@ -355,6 +406,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     const moneyAccountWithdrawConfirmation = {
@@ -395,6 +448,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isMaxDeposit: false,
+      setIsMaxDeposit: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

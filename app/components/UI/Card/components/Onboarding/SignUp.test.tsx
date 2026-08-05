@@ -38,10 +38,34 @@ jest.mock('../../../../../../locales/i18n', () => ({
 // Mock hooks
 jest.mock('../../hooks/useEmailVerificationSend');
 const mockSignUpRegions = [
-  { key: 'US', name: 'United States', emoji: '🇺🇸', canSignUp: true },
-  { key: 'CA', name: 'Canada', emoji: '🇨🇦', canSignUp: true },
-  { key: 'GB', name: 'United Kingdom', emoji: '🇬🇧', canSignUp: false },
-  { key: 'DE', name: 'Germany', emoji: '🇩🇪', canSignUp: true },
+  {
+    key: 'US',
+    name: 'United States',
+    emoji: '🇺🇸',
+    areaCode: '1',
+    canSignUp: true,
+  },
+  {
+    key: 'CA',
+    name: 'Canada',
+    emoji: '🇨🇦',
+    areaCode: '1',
+    canSignUp: true,
+  },
+  {
+    key: 'GB',
+    name: 'United Kingdom',
+    emoji: '🇬🇧',
+    areaCode: '44',
+    canSignUp: false,
+  },
+  {
+    key: 'DE',
+    name: 'Germany',
+    emoji: '🇩🇪',
+    areaCode: '49',
+    canSignUp: true,
+  },
 ];
 const mockGetRegionByCode = (code: string) =>
   mockSignUpRegions.find((r) => r.key === code) ?? null;
@@ -64,6 +88,7 @@ jest.mock('../../../../../selectors/featureFlagController/card', () => {
   );
   return {
     ...actual,
+    selectCardFeatureFlag: jest.fn(() => actual.defaultCardFeatureFlag),
     selectImmersveOnboardingEnabled: jest.fn(() => false),
   };
 });
@@ -77,7 +102,9 @@ const mockSetUserLocation = jest.fn();
 const mockSetSelectedCountry = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
+const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
+const mockPatchContactDetails = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -87,15 +114,17 @@ jest.mock('../../../../../core/Engine', () => ({
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
+      getResumeCardInfo: (...args: unknown[]) => mockGetResumeCardInfo(...args),
       getSpendingPrerequisites: (...args: unknown[]) =>
         mockGetSpendingPrerequisites(...args),
+      patchContactDetails: (...args: unknown[]) =>
+        mockPatchContactDetails(...args),
     },
   },
 }));
 
-// Post-SIWE routing is unit-tested in useImmersveOnboardingRouter.test.ts;
-// here we assert SignUp resolves the funding source + prerequisites and hands
-// the derived action to the router.
+// Resume/routing details are covered in useImmersveResumeOnboarding.test.ts;
+// here we assert SignUp wires continue → resume → router.
 const mockRouteImmersve = jest.fn();
 jest.mock('../../hooks/useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRouteImmersve,
@@ -166,6 +195,17 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
     backgroundState: {
       GeolocationController:
         typeof geoLocation === 'string' ? { location: geoLocation } : undefined,
+      CardController: {
+        selectedCountry: null,
+        activeProviderId: 'baanx',
+        isAuthenticated: false,
+        cardholderAccounts: [],
+        providerData: {},
+        cardHomeData: null,
+        cardHomeDataStatus: 'idle',
+        moneyAccountCardLinkInProgress: false,
+        lastUnauthenticatedReason: null,
+      },
     },
   };
 
@@ -226,6 +266,19 @@ describe('SignUp Component', () => {
     (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
     (validateEmail as jest.Mock).mockReturnValue(true);
     (validatePassword as jest.Mock).mockReturnValue(true);
+    const cardFlagSelectors = jest.requireMock(
+      '../../../../../selectors/featureFlagController/card',
+    );
+    const actualCardFlagSelectors = jest.requireActual(
+      '../../../../../selectors/featureFlagController/card',
+    );
+    (
+      cardFlagSelectors.selectImmersveOnboardingEnabled as jest.Mock
+    ).mockReturnValue(false);
+    (cardFlagSelectors.selectCardFeatureFlag as jest.Mock).mockReturnValue(
+      actualCardFlagSelectors.defaultCardFeatureFlag,
+    );
+    mockGetResumeCardInfo.mockResolvedValue(null);
     store = createTestStore();
   });
 
@@ -571,8 +624,11 @@ describe('SignUp Component', () => {
       expect(
         queryByTestId('signup-country-not-available-text'),
       ).not.toBeOnTheScreen();
-      // Immersve mode: password hidden, account picker shown instead
+      // Immersve mode: password hidden, phone + account picker shown instead
       expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
+      expect(
+        getByTestId('signup-immersve-phone-number-input'),
+      ).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
@@ -584,20 +640,43 @@ describe('SignUp Component', () => {
       (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
     };
 
-    it('new user: SIWE, creates a funding source (empty list), then routes the derived action', async () => {
+    const fillImmersveForm = (getByTestId: (id: string) => unknown) => {
+      fireEvent.changeText(
+        getByTestId('signup-email-input') as never,
+        'gb@example.com',
+      );
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input') as never,
+        '7911123456',
+      );
+    };
+
+    it('new user: SIWE, creates a funding source, patches contact, then routes', async () => {
       enableImmersve();
       mockImmersveSignIn.mockResolvedValue({ done: true });
       mockGetFundingSources.mockResolvedValue([]);
       mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
-      mockGetSpendingPrerequisites.mockResolvedValue({
-        prerequisites: [
-          {
-            stage: 'kyc',
-            status: 'action-required',
-            actionType: 'submit_contact_phone',
-          },
-        ],
-      });
+      mockPatchContactDetails.mockResolvedValue(undefined);
+      mockGetSpendingPrerequisites
+        .mockResolvedValueOnce({
+          prerequisites: [
+            {
+              stage: 'kyc',
+              status: 'action-required',
+              actionType: 'submit_contact_phone',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          prerequisites: [
+            {
+              stage: 'kyc',
+              status: 'action-required',
+              actionType: 'follow_kyc_url',
+              params: { kycUrl: 'https://kyc' },
+            },
+          ],
+        });
 
       const { getByTestId } = render(
         <Provider store={createTestStore({ geoLocation: 'GB' })}>
@@ -605,7 +684,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fillImmersveForm(getByTestId);
       await act(async () => {
         fireEvent.press(getByTestId('signup-continue-button'));
       });
@@ -617,13 +696,13 @@ describe('SignUp Component', () => {
       expect(mockGetFundingSources).toHaveBeenCalled();
       expect(mockCreateFundingSource).toHaveBeenCalled();
       await waitFor(() =>
-        expect(mockGetSpendingPrerequisites).toHaveBeenCalledWith('fs-1', {
-          kycRegion: 'GB',
-          kycRedirectUrl: 'https://metamask.io/card/kyc-complete',
+        expect(mockPatchContactDetails).toHaveBeenCalledWith({
+          email: 'gb@example.com',
+          phone: '+447911123456',
         }),
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
-        { type: 'contact', needsEmail: false, needsPhone: true },
+        { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
         { email: 'gb@example.com', countryKey: 'GB' },
       );
     });
@@ -641,12 +720,13 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fillImmersveForm(getByTestId);
       await act(async () => {
         fireEvent.press(getByTestId('signup-continue-button'));
       });
 
       expect(mockCreateFundingSource).not.toHaveBeenCalled();
+      expect(mockPatchContactDetails).not.toHaveBeenCalled();
       await waitFor(() =>
         expect(mockGetSpendingPrerequisites).toHaveBeenCalledWith(
           'fs-existing',
@@ -670,7 +750,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fillImmersveForm(getByTestId);
       await act(async () => {
         fireEvent.press(getByTestId('signup-continue-button'));
       });

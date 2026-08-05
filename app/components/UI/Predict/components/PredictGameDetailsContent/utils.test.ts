@@ -40,6 +40,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         '1st Set Total Games',
       'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
       'predict.sports_market_types.tennis_completed_match': 'Completed Match',
+      'predict.sports_market_types.round_handicap_game': 'Rounds Handicap',
+      'predict.sports_market_types.round_over_under_game': 'Total Rounds',
     };
     if (key.startsWith('predict.sports_market_types.basketball_')) {
       return translations[key] ?? `[missing "${key}" translation]`;
@@ -143,6 +145,21 @@ describe('PredictGameDetailsContent utils', () => {
       );
       expect(getSportsMarketTypeLabel('tennis_first_set_winner')).toBe(
         '1st Set Winner',
+      );
+    });
+
+    it('returns shared base labels for numbered esports round market types', () => {
+      expect(getSportsMarketTypeLabel('round_handicap_game_1')).toBe(
+        'Rounds Handicap',
+      );
+      expect(getSportsMarketTypeLabel('round_handicap_game_7')).toBe(
+        'Rounds Handicap',
+      );
+      expect(getSportsMarketTypeLabel('round_over_under_game_2')).toBe(
+        'Total Rounds',
+      );
+      expect(getSportsMarketTypeLabel('round_over_under_game_10')).toBe(
+        'Total Rounds',
       );
     });
 

@@ -1,4 +1,5 @@
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { renderFiat } from '../../../../util/number/bigint';
 import {
@@ -7,6 +8,7 @@ import {
   mapRampOrderType,
   toRampOrderToken,
 } from '../../../../util/activity-adapters/adapters/ramp-order-helpers';
+import { mapRampsOrderStatus } from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
 import I18n, { strings } from '../../../../../locales/i18n';
 
 type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
@@ -76,6 +78,10 @@ export function mapRampActivityStatus(order: FiatOrder) {
   return mapRampOrderStatus(order.state);
 }
 
+export function mapRampsOrderActivityStatus(order: RampsOrder) {
+  return mapRampsOrderStatus(order.status);
+}
+
 export function formatRampActivityDate(timestamp: number) {
   const date = new Date(timestamp);
   const month = getIntlDateTimeFormatter(I18n.locale, {
@@ -87,4 +93,47 @@ export function formatRampActivityDate(timestamp: number) {
     hour12: true,
   }).format(date);
   return `${month} ${date.getDate()}, ${date.getFullYear()} at ${timeString}`;
+}
+
+/** Matches OrderContent short id: `...` + last 6 chars when longer than 8. */
+export function formatShortRampOrderId(orderId: string | undefined): string {
+  if (!orderId) {
+    return '...';
+  }
+  return orderId.length > 8 ? `...${orderId.slice(-6)}` : orderId;
+}
+
+export function getFiatOrderProviderOrderLink(
+  order: FiatOrder,
+): string | undefined {
+  const data = order.data as { providerOrderLink?: unknown } | undefined;
+  return typeof data?.providerOrderLink === 'string'
+    ? data.providerOrderLink
+    : undefined;
+}
+
+/**
+ * Provider status copy from Aggregator/Deposit `order.data.statusDescription`
+ * (same field OrderDetails Stage / DepositOrderContent render).
+ */
+export function getFiatOrderStatusDescription(
+  order: FiatOrder,
+): string | undefined {
+  const data = order.data as { statusDescription?: unknown } | undefined;
+  return typeof data?.statusDescription === 'string' &&
+    data.statusDescription.length > 0
+    ? data.statusDescription
+    : undefined;
+}
+
+/**
+ * Native RampsOrder `statusDescription` (OrderContent terminal info row).
+ */
+export function getRampsOrderStatusDescription(
+  order: RampsOrder,
+): string | undefined {
+  const description = order.statusDescription;
+  return typeof description === 'string' && description.length > 0
+    ? description
+    : undefined;
 }

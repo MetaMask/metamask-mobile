@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
@@ -23,6 +24,8 @@ import NavigationService from '../../../../core/NavigationService/NavigationServ
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { selectPrefilledAmountConfig } from '../../../../selectors/featureFlagController/confirmations';
+import type { RootState } from '../../../../reducers';
 import { ensureError } from '../../../../util/errorUtils';
 import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
 import useMoneyToasts from './useMoneyToasts';
@@ -90,8 +93,11 @@ function isMoneyConfirmationActive(): boolean {
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const prefillConfig = useSelector((state: RootState) =>
+    selectPrefilledAmountConfig(state, 'moneyAccountDeposit'),
+  );
   const { navigateToConfirmation } = useConfirmNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateDeposit = useCallback(
@@ -153,8 +159,14 @@ export function useMoneyAccountDeposit() {
         depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
       }
 
+      const usePrefillLoader =
+        (prefillConfig.enabled || options?.intent === 'addMusd') &&
+        options?.intent !== 'card';
+
       const confirmationParams = {
-        loader: ConfirmationLoader.AdvancedCustomAmount,
+        loader: usePrefillLoader
+          ? ConfirmationLoader.PrefillCustomAmount
+          : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
       };
@@ -178,6 +190,7 @@ export function useMoneyAccountDeposit() {
           accountantAddress: depositSetup.accountantAddress,
           lensAddress: depositSetup.lensAddress,
           provider: depositSetup.provider,
+          initialiseWithoutData: true,
         });
 
         // We only set the transaction from the money account perspective.
@@ -226,6 +239,7 @@ export function useMoneyAccountDeposit() {
       MoneyToastOptions.deposit,
       navigateToConfirmation,
       navigation,
+      prefillConfig.enabled,
       primaryMoneyAccount,
       showToast,
       vaultConfig,
@@ -240,7 +254,7 @@ export function useMoneyAccountWithdrawal() {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateWithdrawal = useCallback(async () => {
