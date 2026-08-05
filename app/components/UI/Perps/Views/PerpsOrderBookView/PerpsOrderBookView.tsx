@@ -49,7 +49,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
+import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
@@ -379,10 +379,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
     if (market) {
       return (
-        <PerpsMarketHeader
+        <PerpsMarketInlineHeader
           market={market}
-          onBackPress={handleBack}
           currentPrice={currentPrice}
+          onBackPress={handleBack}
           endAccessory={groupingSelectButton}
         />
       );

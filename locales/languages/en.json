@@ -1577,7 +1577,10 @@
         "reduce_only": "Reduce only",
         "tp_sl": "TP / SL",
         "trigger_condition": "Trigger condition",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "edit_price": "Edit limit price",
+        "edit_size": "Edit size"
       }
     },
     "order": {
@@ -1661,6 +1664,11 @@
         "take_profit_helper": "Close position when price reaches this level",
         "stop_loss_helper": "Limit losses by closing position at this price"
       },
+      "size_modal": {
+        "title": "Edit size",
+        "set": "Set",
+        "order_value": "Order value: {{value}}"
+      },
       "limit_price_modal": {
         "title": "Set limit price",
         "set": "Set",
@@ -1741,7 +1749,11 @@
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
       "pay_with_token_required": "Token selection required",
       "select_token_to_pay_with": "Please select a token to pay with before placing your order",
-      "initializing": "Initializing order..."
+      "initializing": "Initializing order...",
+      "updating_your_order": "Updating your order",
+      "order_updated": "Order updated",
+      "order_update_failed": "Failed to update order",
+      "order_update_failed_subtitle": "Your order is still open at its previous price and size."
     },
     "slippage": {
       "config_title": "Set slippage",
@@ -3237,6 +3249,7 @@
   },
   "wallet": {
     "title": "Wallet",
+    "search_accessibility_label": "Search",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
@@ -10344,7 +10357,7 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "MetaMask Agent CLI link successful",
+      "title": "Agent CLI successfully linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
@@ -10360,10 +10373,10 @@
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
       "modal_title": "Link MetaMask Agent CLI",
       "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
-      "code_label": "ENTER THIS CODE IN THE CLI",
+      "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",
-      "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
+      "security_notice": "Securing the connection"
     },
     "show_not_found": {
       "title": "Connection Not Found",
