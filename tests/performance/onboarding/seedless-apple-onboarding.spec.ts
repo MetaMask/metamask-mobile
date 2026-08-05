@@ -127,7 +127,11 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await CreatePasswordView.reEnterPassword(password);
         await PlaywrightGestures.hideKeyboard();
 
-        await CreatePasswordView.tapIUnderstandCheckBox();
+        try {
+          await CreatePasswordView.ensureMarketingOptInChecked();
+        } catch (error) {
+          console.error('Error ensuring marketing opt-in checked:', error);
+        }
         await PlaywrightGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
 

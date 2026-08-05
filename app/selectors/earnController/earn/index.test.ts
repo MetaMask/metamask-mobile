@@ -65,6 +65,20 @@ jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
       .internalAccount2,
 }));
 
+const TRX_NATIVE_TOKEN_ADDRESS = 'tron:728126428/slip44:195';
+const TRON_MAINNET_CHAIN_ID = 'tron:728126428';
+
+const mockSelectAccountTokensAcrossChainsUnified = jest.fn();
+
+jest.mock('../../../selectors/multichain', () => {
+  const actual = jest.requireActual('../../../selectors/multichain');
+  return {
+    ...actual,
+    selectAccountTokensAcrossChainsUnified: (state: RootState) =>
+      mockSelectAccountTokensAcrossChainsUnified(state),
+  };
+});
+
 const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER = mockEarnControllerRootState();
 const MOCK_RATE = {
   price: 0.99,
@@ -382,6 +396,13 @@ describe('Earn Controller Selectors', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
+    const { selectAccountTokensAcrossChainsUnified } = jest.requireActual<
+      typeof import('../../../selectors/multichain')
+    >('../../../selectors/multichain');
+    mockSelectAccountTokensAcrossChainsUnified.mockImplementation(
+      selectAccountTokensAcrossChainsUnified,
+    );
+
     (
       selectPooledStakingEnabledFlag as jest.MockedFunction<
         typeof selectPooledStakingEnabledFlag
@@ -545,6 +566,113 @@ describe('Earn Controller Selectors', () => {
       expect(result.earnTokens.slice(nonZeroBalances.length)).toEqual(
         zeroBalances,
       );
+    });
+
+    describe('trxNativeTokenAddress', () => {
+      let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+      const createTronToken = (overrides: Partial<TokenI> = {}): TokenI =>
+        ({
+          address: TRX_NATIVE_TOKEN_ADDRESS,
+          chainId: TRON_MAINNET_CHAIN_ID,
+          symbol: 'TRX',
+          name: 'TRON',
+          decimals: 6,
+          isNative: true,
+          isETH: false,
+          isStaked: false,
+          balance: '100',
+          balanceFiat: '12',
+          aggregators: [],
+          ticker: 'TRX',
+          ...overrides,
+        }) as TokenI;
+
+      const createStateWithTrxStakingEnabled = () =>
+        ({
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  trxStakingEnabled: { enabled: true, minimumVersion: '1.0.0' },
+                },
+                cacheTimestamp: 0,
+              },
+              EarnController: {
+                ...mockState.engine.backgroundState.EarnController,
+                lending: {
+                  markets: [],
+                  positions: [],
+                },
+              },
+            },
+          },
+        }) as unknown as RootState;
+
+      beforeEach(() => {
+        mockHasMinimumRequiredVersion = jest.spyOn(
+          remoteFeatureFlagModule,
+          'hasMinimumRequiredVersion',
+        );
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        (getVersion as jest.MockedFunction<typeof getVersion>).mockReturnValue(
+          '1.0.0',
+        );
+
+        (
+          selectPooledStakingEnabledFlag as jest.MockedFunction<
+            typeof selectPooledStakingEnabledFlag
+          >
+        ).mockReturnValue(false);
+        (
+          selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+            typeof selectStablecoinLendingEnabledFlag
+          >
+        ).mockReturnValue(false);
+      });
+
+      afterEach(() => {
+        mockHasMinimumRequiredVersion?.mockRestore();
+      });
+
+      it('includes canonical TRX native token as a pooled staking earn token', () => {
+        const tronToken = createTronToken();
+
+        mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
+          [TRON_MAINNET_CHAIN_ID]: [tronToken],
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          createStateWithTrxStakingEnabled(),
+        );
+
+        expect(result.earnTokens).toHaveLength(1);
+        expect(result.earnTokens[0].address).toBe(TRX_NATIVE_TOKEN_ADDRESS);
+        expect(result.earnTokens[0].experience.type).toBe(
+          EARN_EXPERIENCES.POOLED_STAKING,
+        );
+      });
+
+      it('excludes Tron slip44 tokens that do not match trxNativeTokenAddress', () => {
+        const tronToken = createTronToken({
+          address: 'tron:728126428/slip44:195-in-lock-period',
+          symbol: 'TRX-IN-LOCK-PERIOD',
+          ticker: 'TRX-IN-LOCK-PERIOD',
+        });
+
+        mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
+          [TRON_MAINNET_CHAIN_ID]: [tronToken],
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          createStateWithTrxStakingEnabled(),
+        );
+
+        expect(result.earnTokens).toHaveLength(0);
+      });
     });
   });
 
@@ -903,6 +1031,7 @@ describe('Earn Controller Selectors', () => {
       },
       settings: {
         showFiatOnTestnets: false,
+        basicFunctionalityEnabled: true,
       },
     });
 

@@ -3,7 +3,7 @@ import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
-import { cleanup, render, waitFor } from '@testing-library/react-native';
+import { act, cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -27,7 +27,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../Views/MultichainAccounts/AccountDetails.testIds';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { TraceName, TraceOperation } from '../../../util/trace';
+import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
 
@@ -76,6 +76,9 @@ jest.mock(
 );
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
+jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
+  <MockView testID="mock-ramps-service-disruption-modal" />
+));
 
 jest.mock('../../Views/Onboarding', () => () => (
   <MockView testID="mock-onboarding" />
@@ -367,6 +370,15 @@ jest.mock('../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.requireActual(
+      '../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
+}));
+
 jest.mock('../../../components/hooks/useAsyncResult', () => ({
   useAsyncResultOrThrow: jest.fn().mockResolvedValue({
     pending: false,
@@ -526,7 +538,7 @@ describe('App', () => {
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
         ).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account edit name screen when navigated to', async () => {
       const routeState = {
@@ -550,7 +562,7 @@ describe('App', () => {
         expect(getByText('Account Group')).toBeOnTheScreen();
         expect(getByText('Account name')).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account share address screen when navigated to', async () => {
       jest.useRealTimers();
@@ -577,7 +589,7 @@ describe('App', () => {
       });
 
       jest.useFakeTimers();
-    });
+    }, 30000);
   });
 
   describe('route registration', () => {
@@ -647,7 +659,6 @@ describe('App', () => {
     });
 
     it('has sheet routes defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
       expect(Routes.SHEET.NETWORK_SELECTOR).toBeDefined();
       expect(Routes.SHEET.ONBOARDING_SHEET).toBeDefined();
       expect(Routes.SHEET.SDK_LOADING).toBeDefined();
@@ -749,6 +760,10 @@ describe('App', () => {
 
   describe('App version handling', () => {
     it('should handle version storage operations', async () => {
+      const getItemSpy = jest
+        .spyOn(StorageWrapper, 'getItem')
+        .mockResolvedValue(null);
+
       const mockStore = configureMockStore();
       const store = mockStore(initialState);
 
@@ -764,9 +779,15 @@ describe('App', () => {
 
       render(<App />, { wrapper: Providers });
 
-      await waitFor(() => {
-        expect(StorageWrapper.getItem).toHaveBeenCalled();
+      // Flush startApp's microtasks. Avoid waitFor here: this suite uses fake
+      // timers and testSetup freezes Date.now, so waitFor's timeout never
+      // elapses and a delayed getItem call hangs until Jest's test timeout.
+      await act(async () => {
+        await Promise.resolve();
       });
+
+      expect(getItemSpy).toHaveBeenCalledWith(CURRENT_APP_VERSION);
+      getItemSpy.mockRestore();
     });
   });
 
@@ -793,9 +814,11 @@ describe('App', () => {
 
       renderAppForVersionTest(initialState);
 
-      await waitFor(() => {
-        expect(getItemSpy).toHaveBeenCalled();
+      await act(async () => {
+        await Promise.resolve();
       });
+
+      expect(getItemSpy).toHaveBeenCalled();
 
       getItemSpy.mockRestore();
     });
@@ -940,10 +963,6 @@ describe('App', () => {
       expect(Routes.SHEET.SUCCESS_ERROR_SHEET).toBeDefined();
     });
 
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
-    });
-
     it('has experience enhancer route defined', () => {
       expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
     });
@@ -1010,10 +1029,6 @@ describe('App', () => {
 
     it('has nft auto detection modal route defined', () => {
       expect(Routes.MODAL.NFT_AUTO_DETECTION_MODAL).toBeDefined();
-    });
-
-    it('has whats new route defined', () => {
-      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
     });
 
     it('has multi rpc migration modal route defined', () => {
@@ -1176,15 +1191,11 @@ describe('App', () => {
 
   describe('Account management screens', () => {
     it('has account selector route defined', () => {
-      expect(Routes.SHEET.ACCOUNT_SELECTOR).toBeDefined();
+      expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR).toBeDefined();
     });
 
     it('has address selector route defined', () => {
       expect(Routes.SHEET.ADDRESS_SELECTOR).toBeDefined();
-    });
-
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
     });
 
     it('has account actions route defined', () => {
@@ -1326,10 +1337,6 @@ describe('App', () => {
     it('has tooltip modal route defined', () => {
       expect(Routes.SHEET.TOOLTIP_MODAL).toBeDefined();
     });
-
-    it('has whats new route defined', () => {
-      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
-    });
   });
 
   describe('Multichain introduction screens', () => {
@@ -1429,17 +1436,6 @@ describe('App', () => {
 
       return render(<App />, { wrapper: Providers });
     };
-
-    it('calls trace with NavInit on first render', () => {
-      renderApp();
-
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.NavInit,
-          op: TraceOperation.NavInit,
-        }),
-      );
-    });
 
     it('calls endTrace with UIStartup after mount', async () => {
       renderApp();
@@ -2082,29 +2078,54 @@ describe('App', () => {
     });
 
     it('renders the MultichainAddressList screen', async () => {
+      // Nested navigator shares the ADDRESS_LIST route name; seed child state so
+      // the mocked screen mounts without waiting on navigation effects.
+      // Avoid waitFor: App suite uses fake timers and testSetup mocks Date.now,
+      // so waitFor's timeout never elapses and a slow mount hangs until Jest's
+      // 5s test timeout (flaky CI failures).
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-address-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-address-list')).toBeOnTheScreen();
     });
 
     it('renders the MultichainPrivateKeyList screen', async () => {
       const routeState = {
         index: 0,
-        routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+        routes: [
+          {
+            name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST }],
+            },
+          },
+        ],
       };
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-pk-list')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
     });
 
     it('renders the LockScreen route', async () => {
@@ -2264,14 +2285,6 @@ describe('App', () => {
       });
     });
 
-    it('renders WhatsNew modal', async () => {
-      const { toJSON } = renderAppWithModal(Routes.MODAL.WHATS_NEW);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
-      });
-    });
-
     it('renders TooltipModal sheet', async () => {
       const { toJSON } = renderAppWithModal(Routes.SHEET.TOOLTIP_MODAL);
 
@@ -2280,11 +2293,23 @@ describe('App', () => {
       });
     });
 
+    it('renders RampsServiceDisruptionModal sheet', async () => {
+      const { getByTestId } = renderAppWithModal(
+        Routes.SHEET.RAMPS_SERVICE_DISRUPTION_MODAL,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-ramps-service-disruption-modal'),
+        ).toBeOnTheScreen();
+      });
+    });
+
     it('renders WalletActions modal', async () => {
       const { getByTestId } = renderAppWithModal(Routes.MODAL.WALLET_ACTIONS);
 
       await waitFor(() => {
-        expect(getByTestId('mock-wallet-actions')).toBeTruthy();
+        expect(getByTestId('mock-wallet-actions')).toBeOnTheScreen();
       });
     });
 

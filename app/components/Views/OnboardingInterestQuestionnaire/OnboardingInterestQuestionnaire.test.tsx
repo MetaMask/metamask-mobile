@@ -1,6 +1,6 @@
 import React from 'react';
-import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
-import { BackHandler, Platform } from 'react-native';
+import { fireEvent, screen, act } from '@testing-library/react-native';
+import { BackHandler, Platform, View, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import OnboardingInterestQuestionnaire from './OnboardingInterestQuestionnaire';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
@@ -11,7 +11,45 @@ import {
 } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+
+const MockView = View;
+const MockPressable = Pressable;
+const MockText = Text;
+
+jest.mock('./OtherBottomSheet', () => ({
+  __esModule: true,
+  default: function MockOtherBottomSheet({
+    onClose,
+    onDone,
+    initialValue,
+  }: {
+    onClose: () => void;
+    onDone: (value: string) => void;
+    initialValue?: string;
+  }) {
+    return (
+      <MockView testID="mock-other-bottom-sheet">
+        <MockText testID="mock-other-initial-value">{initialValue}</MockText>
+        <MockPressable
+          testID="mock-other-done"
+          onPress={() => onDone('Custom usage')}
+        >
+          <MockText>Done</MockText>
+        </MockPressable>
+        <MockPressable
+          testID="mock-other-done-empty"
+          onPress={() => onDone('')}
+        >
+          <MockText>Done Empty</MockText>
+        </MockPressable>
+        <MockPressable testID="mock-other-close" onPress={onClose}>
+          <MockText>Close</MockText>
+        </MockPressable>
+      </MockView>
+    );
+  },
+}));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -98,33 +136,17 @@ describe('OnboardingInterestQuestionnaire', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders updated option labels from i18n', () => {
-      renderComponent();
-
-      expect(
-        screen.getByText(
-          strings(
-            'onboarding_interest_questionnaire.option_buy_and_sell_crypto',
-          ),
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(
-          strings('onboarding_interest_questionnaire.option_advanced_trades'),
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders all six option cards in the grid', () => {
+    it('renders all seven option rows', () => {
       renderComponent();
 
       const optionIds = [
-        'buy_and_sell_crypto',
-        'consolidate_wallets',
-        'advanced_trades',
-        'predict_sports_events',
-        'crypto_as_money',
-        'connect_apps_sites',
+        'swap_tokens',
+        'trade_perpetuals',
+        'prediction_markets',
+        'send_receive_crypto',
+        'earn_and_spend',
+        'use_other_crypto_apps',
+        'other',
       ];
 
       optionIds.forEach((id) => {
@@ -136,13 +158,21 @@ describe('OnboardingInterestQuestionnaire', () => {
       });
     });
 
-    it('renders the Continue button', () => {
+    it('renders the Next button', () => {
       renderComponent();
 
       expect(
         screen.getByTestId(
           OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
         ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Skip button', () => {
+      renderComponent();
+
+      expect(
+        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON),
       ).toBeOnTheScreen();
     });
   });
@@ -226,7 +256,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       renderComponent();
 
       const option = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
       );
 
       fireEvent.press(option);
@@ -238,7 +268,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       renderComponent();
 
       const option = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
       );
 
       fireEvent.press(option);
@@ -250,24 +280,67 @@ describe('OnboardingInterestQuestionnaire', () => {
     it('allows selecting multiple options independently', () => {
       renderComponent();
 
-      const buyOption = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
+      const swapOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
       );
-      const predictOption = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}predict_sports_events`,
+      const perpsOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}trade_perpetuals`,
       );
 
-      fireEvent.press(buyOption);
-      fireEvent.press(predictOption);
+      fireEvent.press(swapOption);
+      fireEvent.press(perpsOption);
 
-      expect(buyOption.props.accessibilityState.checked).toBe(true);
-      expect(predictOption.props.accessibilityState.checked).toBe(true);
+      expect(swapOption.props.accessibilityState.checked).toBe(true);
+      expect(perpsOption.props.accessibilityState.checked).toBe(true);
     });
   });
 
-  describe('Continue button behaviour', () => {
-    it('fires Submitted with skipped=true and empty array when no option selected', async () => {
+  describe('Other option', () => {
+    it('does not render the bottom sheet by default', () => {
       renderComponent();
+
+      expect(
+        screen.queryByTestId('mock-other-bottom-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the bottom sheet when Other is pressed', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+
+      expect(screen.getByTestId('mock-other-bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('displays entered text below Other after Done', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      expect(
+        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).toHaveTextContent('Custom usage');
+    });
+  });
+
+  describe('Next button behaviour', () => {
+    it('fires Submitted and calls onComplete with selections', async () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
+        ),
+      );
 
       await act(async () => {
         fireEvent.press(
@@ -286,118 +359,223 @@ describe('OnboardingInterestQuestionnaire', () => {
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           question_type: 'interest',
+          selected_interests: ['swap_tokens'],
+          item_count: 1,
+          skipped: false,
+        }),
+      );
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables Continue button when no option is selected', () => {
+      renderComponent();
+
+      expect(
+        screen.getByTestId(
+          OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+        ),
+      ).toBeDisabled();
+    });
+  });
+
+  describe('Other option extended', () => {
+    it('hides the bottom sheet when the close button is pressed', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      expect(screen.getByTestId('mock-other-bottom-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('mock-other-close'));
+
+      expect(
+        screen.queryByTestId('mock-other-bottom-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('deselects the Other option when Done is called with an empty string', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      const otherOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+      );
+      expect(otherOption.props.accessibilityState.checked).toBe(true);
+
+      fireEvent.press(otherOption);
+      fireEvent.press(screen.getByTestId('mock-other-done-empty'));
+
+      expect(otherOption.props.accessibilityState.checked).toBe(false);
+    });
+
+    it('hides the bottom sheet after Done is called with an empty string', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done-empty'));
+
+      expect(
+        screen.queryByTestId('mock-other-bottom-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not display the other text when Done is called with an empty string', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done-empty'));
+
+      expect(
+        screen.queryByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('passes the previously entered text as initialValue when Other is reopened', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+
+      expect(screen.getByTestId('mock-other-initial-value')).toHaveTextContent(
+        'Custom usage',
+      );
+    });
+  });
+
+  describe('Skip button behaviour', () => {
+    it('fires Submitted with skipped=true and completes onboarding on Skip', async () => {
+      renderComponent();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
+          ),
+        );
+      });
+
+      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
+
+      expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+        2,
+        MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED,
+      );
+      expect(builderInstance.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'interest',
           selected_interests: [],
           item_count: 0,
           skipped: true,
         }),
       );
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
+  });
 
-    it('includes account_type in Submitted event when route supplies accountType', async () => {
-      mockInterestQuestionnaireRouteParams.accountType = 'hardware_wallet';
-
-      renderComponent();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
-
-      expect(builderInstance.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          question_type: 'interest',
-          selected_interests: [],
-          skipped: true,
-          account_type: 'hardware_wallet',
-        }),
-      );
-    });
-
-    it('fires Submitted with skipped=false and correct interests when options selected', async () => {
+  describe('analytics guard', () => {
+    it('fires the Viewed event only once even when options are selected', () => {
       renderComponent();
 
       fireEvent.press(
         screen.getByTestId(
-          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}buy_and_sell_crypto`,
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
         ),
       );
       fireEvent.press(
         screen.getByTestId(
-          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}predict_sports_events`,
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}trade_perpetuals`,
         ),
       );
 
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+        1,
+        MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED,
+      );
+    });
+  });
 
-      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
+  describe('Redux account_type', () => {
+    it('uses account_type from Redux store in the Viewed event when route has no accountType', () => {
+      const useSelectorMock = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      useSelectorMock.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectOnboardingAccountType) return 'hardware';
+          return undefined;
+        },
+      );
 
-      expect(builderInstance.addProperties).toHaveBeenCalledWith(
+      renderComponent();
+
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           question_type: 'interest',
-          selected_interests: expect.arrayContaining([
-            'buy_and_sell_crypto',
-            'predict_sports_events',
-          ]),
-          item_count: 2,
-          skipped: false,
+          account_type: 'hardware',
         }),
       );
+
+      useSelectorMock.mockReturnValue(undefined);
     });
 
-    it('navigates to crypto experience questionnaire with onComplete on Continue', async () => {
-      renderComponent();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
-          expect.objectContaining({
-            onComplete: mockOnComplete,
-          }),
-        );
-      });
-      expect(mockOnComplete).not.toHaveBeenCalled();
-    });
-
-    it('passes accountType to crypto experience when route supplies accountType', async () => {
-      mockInterestQuestionnaireRouteParams.accountType = 'imported';
+    it('includes account_type from Redux in the Submitted event when route has no accountType', async () => {
+      const useSelectorMock = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      useSelectorMock.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectOnboardingAccountType) return 'hardware';
+          return undefined;
+        },
+      );
 
       renderComponent();
 
       await act(async () => {
         fireEvent.press(
           screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+            OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
           ),
         );
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+      const submittedBuilder = mockCreateEventBuilder.mock.results[1]?.value;
+      expect(submittedBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          onComplete: mockOnComplete,
-          accountType: 'imported',
+          account_type: 'hardware',
         }),
       );
+
+      useSelectorMock.mockReturnValue(undefined);
     });
   });
 });

@@ -4,6 +4,7 @@ export interface ListItemHeader {
   type: 'header';
   feedId: SearchFeedId;
   title: string;
+  isFirstHeader: boolean;
 }
 
 export interface ListItemData {

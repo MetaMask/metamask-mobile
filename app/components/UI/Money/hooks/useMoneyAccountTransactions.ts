@@ -22,6 +22,8 @@ import {
   ERC20_TRANSFER_CALLDATA_LENGTH,
   ERC20_TRANSFER_FROM_CALLDATA_LENGTH,
 } from '../constants/activityStyles';
+import { getMoneyActivityStatus } from '../utils/classifyMoneyActivity';
+import { isPerpsPredictMoneyActivity } from '../utils/moneyTransactionGuards';
 
 // Statuses that should surface in money activity. `unapproved`/`approved`/
 // `signed` are mid-compose and shouldn't appear yet; `rejected`/`dropped`/
@@ -32,8 +34,21 @@ const VISIBLE_ACTIVITY_STATUSES: TransactionStatus[] = [
   TransactionStatus.failed,
 ];
 
+// Money account txs paid cross-chain are held by the MetaMask Pay publish
+// hook in `approved`/`signed` until the bridged funds arrive — already
+// user-confirmed and in-flight, so they must surface as pending rows.
+// `unapproved` stays hidden: the confirmation sheet is still open.
+const PAY_HELD_STATUSES: TransactionStatus[] = [
+  TransactionStatus.approved,
+  TransactionStatus.signed,
+];
+
 function hasVisibleStatus(tx: TransactionMeta): boolean {
   return VISIBLE_ACTIVITY_STATUSES.includes(tx.status);
+}
+
+function isMoneyAccountTxVisible(tx: TransactionMeta): boolean {
+  return hasVisibleStatus(tx) || PAY_HELD_STATUSES.includes(tx.status);
 }
 
 /**
@@ -72,7 +87,7 @@ function getErc20TransferRecipient(tx: TransactionMeta): string | undefined {
 }
 
 export interface UseMoneyAccountTransactionsResult {
-  /** Confirmed + submitted (filtered) merged, sorted by time descending */
+  /** Confirmed + in-flight (filtered) merged, sorted by time descending */
   allTransactions: TransactionMeta[];
   /** Confirmed deposits (incoming) and submitted incoming */
   deposits: TransactionMeta[];
@@ -121,8 +136,9 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
           tx.type === TransactionType.moneyAccountDeposit ||
           tx.type === TransactionType.moneyAccountWithdraw
         ) {
-          return hasVisibleStatus(tx);
+          return isMoneyAccountTxVisible(tx);
         }
+
         // EIP-7702 batch where a Money account call is a nested call.
         if (
           tx.nestedTransactions?.some(
@@ -131,8 +147,14 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
               nested.type === TransactionType.moneyAccountWithdraw,
           )
         ) {
-          return hasVisibleStatus(tx);
+          return isMoneyAccountTxVisible(tx);
         }
+
+        // Perps/Predict ↔ Money account transfers
+        if (isPerpsPredictMoneyActivity(tx)) {
+          return isMoneyAccountTxVisible(tx);
+        }
+
         if (moneyAddress === undefined) return false;
         // The inbound-mUSD and locally-signed mUSD branches below must skip
         // mid-compose and explicitly-aborted rows, which would otherwise
@@ -167,7 +189,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
       .sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
 
     const submittedTransactions = moneyTransactions.filter(
-      (tx) => tx.status === TransactionStatus.submitted,
+      (tx) => getMoneyActivityStatus(tx) === 'pending',
     );
 
     return {

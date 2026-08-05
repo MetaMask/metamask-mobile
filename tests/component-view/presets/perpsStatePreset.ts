@@ -14,8 +14,15 @@ const defaultPerpsControllerState = {
     optionId: 'default',
     direction: 'desc' as const,
   },
+  mode: 'lite' as const,
   accountState: null,
   perpsBalances: {},
+  proLayoutPreferences: {
+    orderBookExpanded: false,
+    chartExpanded: false,
+    orderBookPosition: 'left' as const,
+    orderFormPosition: 'right' as const,
+  },
   selectedPaymentToken: null,
   activeProvider: 'hyperliquid' as const,
   isTestnet: false,
@@ -43,6 +50,10 @@ export const initialStatePerps = () =>
         enabled: true,
         featureVersion: null,
         minimumVersion: null,
+      },
+      perpsWatchlistV2Enabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
       },
     } as Record<string, unknown>)
     .withOverrides({

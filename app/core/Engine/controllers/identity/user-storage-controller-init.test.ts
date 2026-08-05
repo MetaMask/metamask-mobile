@@ -51,7 +51,6 @@ describe('UserStorageControllerInit', () => {
         name: 'mock-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },

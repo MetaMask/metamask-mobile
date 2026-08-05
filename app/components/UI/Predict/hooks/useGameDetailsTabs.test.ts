@@ -1,7 +1,12 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useGameDetailsTabs } from './useGameDetailsTabs';
-import type { PredictOutcomeGroup, PredictPosition } from '../types';
+import type {
+  PredictOutcome,
+  PredictOutcomeGroup,
+  PredictPosition,
+  PredictSportsLeague,
+} from '../types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -16,10 +21,37 @@ const mockUseSelector = useSelector as jest.Mock;
 const createMockPosition = (id = 'pos-1'): PredictPosition =>
   ({ id }) as PredictPosition;
 
-const createGroup = (key: string): PredictOutcomeGroup => ({
-  key,
-  outcomes: [],
+const createOutcome = (
+  id: string,
+  status: PredictOutcome['status'] = 'open',
+): PredictOutcome => ({
+  id,
+  providerId: 'test-provider',
+  marketId: 'test-market',
+  title: id,
+  description: `${id} description`,
+  image: '',
+  status,
+  tokens: [],
+  volume: 0,
+  groupItemTitle: id,
 });
+
+const createGroup = (
+  key: string,
+  outcomes: PredictOutcome[] = [],
+  subgroups?: PredictOutcomeGroup[],
+): PredictOutcomeGroup => ({
+  key,
+  outcomes,
+  ...(subgroups && { subgroups }),
+});
+
+const createOpenGroup = (key: string): PredictOutcomeGroup =>
+  createGroup(key, [createOutcome(`${key}-open`)]);
+
+const createResolvedGroup = (key: string): PredictOutcomeGroup =>
+  createGroup(key, [createOutcome(`${key}-closed`, 'closed')]);
 
 const defaultParams = {
   activePositions: [] as PredictPosition[],
@@ -27,6 +59,13 @@ const defaultParams = {
   league: 'nba' as const,
   outcomeGroups: [] as PredictOutcomeGroup[],
 };
+const ESPORTS_LEAGUES: PredictSportsLeague[] = [
+  'cs2',
+  'lol',
+  'dota2',
+  'val',
+  'r6siege',
+];
 
 describe('useGameDetailsTabs', () => {
   beforeEach(() => {
@@ -60,6 +99,68 @@ describe('useGameDetailsTabs', () => {
       );
 
       expect(result.current.enabled).toBe(false);
+    });
+
+    it.each(ESPORTS_LEAGUES)(
+      'returns enabled true for esports league %s',
+      (league) => {
+        mockUseSelector.mockReturnValue(ESPORTS_LEAGUES);
+
+        const { result } = renderHook(() =>
+          useGameDetailsTabs({ ...defaultParams, league }),
+        );
+
+        expect(result.current.enabled).toBe(true);
+      },
+    );
+
+    it('exposes Outcomes and game chips for an enabled LoL match', () => {
+      mockUseSelector.mockReturnValue(ESPORTS_LEAGUES);
+      const outcomeGroups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('game_1'),
+        createOpenGroup('game_7'),
+      ];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          league: 'lol',
+          outcomeGroups,
+        }),
+      );
+
+      expect(result.current.tabs).toEqual([
+        { label: 'predict.tabs.outcomes', key: 'outcomes' },
+      ]);
+      expect(result.current.chips).toEqual([
+        { key: 'game_lines', label: 'Game Lines' },
+        { key: 'game_1', label: 'Game 1' },
+        { key: 'game_7', label: 'Game 7' },
+      ]);
+    });
+
+    it('exposes map chips for an enabled CS2 match', () => {
+      mockUseSelector.mockReturnValue(ESPORTS_LEAGUES);
+      const outcomeGroups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('map_1'),
+        createOpenGroup('map_7'),
+      ];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          league: 'cs2',
+          outcomeGroups,
+        }),
+      );
+
+      expect(result.current.chips).toEqual([
+        { key: 'game_lines', label: 'Game Lines' },
+        { key: 'map_1', label: 'Map 1' },
+        { key: 'map_7', label: 'Map 7' },
+      ]);
     });
   });
 
@@ -101,7 +202,12 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('includes only Outcomes tab when no positions exist', () => {
-      const { result } = renderHook(() => useGameDetailsTabs(defaultParams));
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          outcomeGroups: [createOpenGroup('game_lines')],
+        }),
+      );
 
       expect(result.current.tabs).toEqual([
         { label: 'predict.tabs.outcomes', key: 'outcomes' },
@@ -113,6 +219,7 @@ describe('useGameDetailsTabs', () => {
         useGameDetailsTabs({
           ...defaultParams,
           activePositions: [createMockPosition()],
+          outcomeGroups: [createOpenGroup('game_lines')],
         }),
       );
 
@@ -127,6 +234,7 @@ describe('useGameDetailsTabs', () => {
         useGameDetailsTabs({
           ...defaultParams,
           claimablePositions: [createMockPosition()],
+          outcomeGroups: [createOpenGroup('game_lines')],
         }),
       );
 
@@ -155,6 +263,7 @@ describe('useGameDetailsTabs', () => {
           initialProps: {
             ...defaultParams,
             activePositions: [createMockPosition()],
+            outcomeGroups: [createOpenGroup('game_lines')],
           },
         },
       );
@@ -164,7 +273,11 @@ describe('useGameDetailsTabs', () => {
       });
       expect(result.current.activeTab).toBe(1);
 
-      rerender({ ...defaultParams, activePositions: [] });
+      rerender({
+        ...defaultParams,
+        activePositions: [],
+        outcomeGroups: [createOpenGroup('game_lines')],
+      });
       expect(result.current.activeTab).toBe(0);
     });
 
@@ -175,6 +288,7 @@ describe('useGameDetailsTabs', () => {
           initialProps: {
             ...defaultParams,
             activePositions: [createMockPosition()],
+            outcomeGroups: [createOpenGroup('game_lines')],
           },
         },
       );
@@ -188,6 +302,7 @@ describe('useGameDetailsTabs', () => {
       rerender({
         ...defaultParams,
         activePositions: [createMockPosition()],
+        outcomeGroups: [createOpenGroup('game_lines')],
       });
 
       expect(result.current.tabs).toHaveLength(1);
@@ -205,6 +320,7 @@ describe('useGameDetailsTabs', () => {
         useGameDetailsTabs({
           ...defaultParams,
           activePositions: [createMockPosition()],
+          outcomeGroups: [createOpenGroup('game_lines')],
         }),
       );
 
@@ -232,6 +348,7 @@ describe('useGameDetailsTabs', () => {
         useGameDetailsTabs({
           ...defaultParams,
           activePositions: [createMockPosition()],
+          outcomeGroups: [createOpenGroup('game_lines')],
         }),
       );
 
@@ -243,10 +360,22 @@ describe('useGameDetailsTabs', () => {
         useGameDetailsTabs({
           ...defaultParams,
           claimablePositions: [createMockPosition()],
+          outcomeGroups: [createResolvedGroup('game_lines')],
         }),
       );
 
       expect(result.current.showTabBar).toBe(true);
+    });
+
+    it('returns false when positions exist without extended outcome content', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          activePositions: [createMockPosition()],
+        }),
+      );
+
+      expect(result.current.showTabBar).toBe(false);
     });
   });
 
@@ -256,7 +385,10 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('returns a Map keyed by group key', () => {
-      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+      const groups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('touchdowns'),
+      ];
 
       const { result } = renderHook(() =>
         useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
@@ -266,6 +398,22 @@ describe('useGameDetailsTabs', () => {
       expect(result.current.groupMap.size).toBe(2);
       expect(result.current.groupMap.get('game_lines')).toBe(groups[0]);
       expect(result.current.groupMap.get('touchdowns')).toBe(groups[1]);
+    });
+
+    it('excludes resolved groups from the open groupMap', () => {
+      const groups = [
+        createOpenGroup('game_lines'),
+        createResolvedGroup('touchdowns'),
+      ];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      expect(result.current.groupMap.size).toBe(1);
+      expect(result.current.groupMap.get('game_lines')).toBe(groups[0]);
+      expect(result.current.groupMap.has('touchdowns')).toBe(false);
+      expect(result.current.resolvedOutcomeGroups).toEqual([groups[1]]);
     });
 
     it('returns empty Map when no outcomeGroups', () => {
@@ -281,7 +429,10 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('returns chip items derived from outcomeGroups', () => {
-      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+      const groups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('touchdowns'),
+      ];
 
       const { result } = renderHook(() =>
         useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
@@ -298,6 +449,21 @@ describe('useGameDetailsTabs', () => {
 
       expect(result.current.chips).toEqual([]);
     });
+
+    it('does not include fully resolved groups as chips', () => {
+      const groups = [
+        createOpenGroup('game_lines'),
+        createResolvedGroup('touchdowns'),
+      ];
+
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
+      );
+
+      expect(result.current.chips).toEqual([
+        { key: 'game_lines', label: 'Game Lines' },
+      ]);
+    });
   });
 
   describe('activeChipKey', () => {
@@ -306,7 +472,10 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('initializes to first group key', () => {
-      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+      const groups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('touchdowns'),
+      ];
 
       const { result } = renderHook(() =>
         useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
@@ -322,7 +491,10 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('updates when handleChipSelect is called', () => {
-      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+      const groups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('touchdowns'),
+      ];
 
       const { result } = renderHook(() =>
         useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
@@ -337,8 +509,8 @@ describe('useGameDetailsTabs', () => {
 
     it('resets to first group key when selected key no longer exists', () => {
       const initialGroups = [
-        createGroup('game_lines'),
-        createGroup('touchdowns'),
+        createOpenGroup('game_lines'),
+        createOpenGroup('touchdowns'),
       ];
 
       const { result, rerender } = renderHook(
@@ -353,14 +525,17 @@ describe('useGameDetailsTabs', () => {
 
       rerender({
         ...defaultParams,
-        outcomeGroups: [createGroup('game_lines')],
+        outcomeGroups: [createOpenGroup('game_lines')],
       });
 
       expect(result.current.activeChipKey).toBe('game_lines');
     });
 
     it('preserves activeChipKey when key still exists after rerender', () => {
-      const groups = [createGroup('game_lines'), createGroup('touchdowns')];
+      const groups = [
+        createOpenGroup('game_lines'),
+        createOpenGroup('touchdowns'),
+      ];
 
       const { result, rerender } = renderHook(
         (props) => useGameDetailsTabs(props),
@@ -374,7 +549,10 @@ describe('useGameDetailsTabs', () => {
 
       rerender({
         ...defaultParams,
-        outcomeGroups: [createGroup('game_lines'), createGroup('touchdowns')],
+        outcomeGroups: [
+          createOpenGroup('game_lines'),
+          createOpenGroup('touchdowns'),
+        ],
       });
 
       expect(result.current.activeChipKey).toBe('touchdowns');

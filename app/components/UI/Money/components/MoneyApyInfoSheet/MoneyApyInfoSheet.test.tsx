@@ -125,6 +125,14 @@ describe('MoneyApyInfoSheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders paragraph_4', () => {
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(
+      getByText(strings('money.apy_tooltip.paragraph_4')),
+    ).toBeOnTheScreen();
+  });
+
   it('does not render a Learn More footer button', () => {
     const { queryByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
 
@@ -137,6 +145,60 @@ describe('MoneyApyInfoSheet', () => {
     fireEvent.press(getByTestId('bottom-sheet-close-button'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  describe('when variant is deposit', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({ apy: DEFAULT_APY, variant: 'deposit' });
+    });
+
+    it('renders the deposit body copy', () => {
+      const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(
+        getByText(strings('money.apy_tooltip.deposit_body')),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render paragraph_1', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(
+        queryByText(
+          strings('money.apy_tooltip.paragraph_1', { percentage: DEFAULT_APY }),
+        ),
+      ).toBeNull();
+    });
+
+    it('does not render paragraph_2', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(queryByText(strings('money.apy_tooltip.paragraph_2'))).toBeNull();
+    });
+
+    it('does not render paragraph_3', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(queryByText(strings('money.apy_tooltip.paragraph_3'))).toBeNull();
+    });
+
+    it('does not render paragraph_4', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(queryByText(strings('money.apy_tooltip.paragraph_4'))).toBeNull();
+    });
+
+    it('renders the sheet title', () => {
+      const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(getByText(strings('money.apy_tooltip.title'))).toBeOnTheScreen();
+    });
+  });
+
+  it('does not render the deposit body copy without a variant', () => {
+    const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(queryByText(strings('money.apy_tooltip.deposit_body'))).toBeNull();
   });
 
   describe('analytics', () => {

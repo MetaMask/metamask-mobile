@@ -81,12 +81,8 @@ class LoginView {
       appium: async () => {
         await UnifiedGestures.typeText(this.passwordInput, password, {
           description: 'Password Input',
+          hideKeyboard: false,
         });
-        // Do NOT call hideKeyboard here — the login button is above the
-        // keyboard (~184pt vs keyboard at ~574pt) and does not need dismissal.
-        // Both 'pressKey: Done' and 'tapOutside' strategies trigger navigation
-        // (either via onSubmitEditing or by tapping the login button itself)
-        // before tapLoginButton can find and tap the element.
       },
     });
   }
@@ -116,9 +112,9 @@ class LoginView {
           checkForDisplayed: true,
           checkForEnabled: true,
           waitForInteractive: true,
-          timeout: 20_000,
-          enabledStableReads: 4,
-          postEnabledSettleMs: 1500,
+          timeout: 10_000,
+          enabledStableReads: 2,
+          postEnabledSettleMs: 300,
         });
       },
     });

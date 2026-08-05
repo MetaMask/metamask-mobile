@@ -11,7 +11,19 @@ jobs:
   add-release-label:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
+    permissions:
+      id-token: write
+      contents: read
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: read
+            issues: write
+            pull_requests: write
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -40,7 +52,7 @@ jobs:
       - name: Add release label to PR and linked issues
         id: add-release-label-to-pr-and-linked-issues
         env:
-          RELEASE_LABEL_TOKEN: ${{ secrets.RELEASE_LABEL_TOKEN }}
+          RELEASE_LABEL_TOKEN: ${{ steps.get-token.outputs.token }}
           NEXT_SEMVER_VERSION: ${{ env.NEXT_SEMVER_VERSION }}
         run: yarn run add-release-label-to-pr-and-linked-issues
         working-directory: '.github/scripts'

@@ -70,3 +70,17 @@ export const isMoneyAccountDelegatedForCard = ({
       token.fundingStatus !== FundingStatus.NotEnabled,
   );
 };
+
+export const isAnyMoneyAccountDelegatedForCard = ({
+  fundingTokens,
+  vedaConfig,
+}: {
+  fundingTokens: CardFundingToken[];
+  vedaConfig: VedaTokenConfig | null;
+}): boolean =>
+  Boolean(vedaConfig) &&
+  fundingTokens.some(
+    (token) =>
+      isVedaToken(token, vedaConfig) &&
+      token.fundingStatus !== FundingStatus.NotEnabled,
+  );

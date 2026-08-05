@@ -1,12 +1,15 @@
 import { waitFor } from 'detox';
-import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, stripJsonKeys } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import Matchers from './Matchers.ts';
 import {
   asDetoxElement,
+  asPlaywrightElement,
   type EncapsulatedElementType,
 } from './EncapsulatedElement.ts';
 import { Json } from '@metamask/utils';
+import { FrameworkDetector } from './FrameworkDetector.ts';
+import PlaywrightAssertions from './PlaywrightAssertions.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -21,9 +24,20 @@ export default class Assertions {
       | WebElement
       | DetoxMatcher
       | IndexableNativeElement
-      | EncapsulatedElementType,
+      | EncapsulatedElementType
+      | (() => EncapsulatedElementType),
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const resolved = typeof elem === 'function' ? elem() : elem;
+      return PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(resolved as EncapsulatedElementType),
+        options,
+      );
+    }
+
+    const target = typeof elem === 'function' ? elem() : elem;
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should be visible',
@@ -31,7 +45,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Awaited<
+        const el = (await target) as Awaited<
           DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement
         >;
         const isWebElement = Utilities.isWebElement(el);
@@ -60,9 +74,20 @@ export default class Assertions {
       | WebElement
       | DetoxMatcher
       | IndexableNativeElement
-      | EncapsulatedElementType,
+      | EncapsulatedElementType
+      | (() => EncapsulatedElementType),
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const resolved = typeof elem === 'function' ? elem() : elem;
+      return PlaywrightAssertions.expectElementToNotBeVisible(
+        asPlaywrightElement(resolved as EncapsulatedElementType),
+        options,
+      );
+    }
+
+    const target = typeof elem === 'function' ? elem() : elem;
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = 'element should not visible',
@@ -70,7 +95,7 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Awaited<
+        const el = (await target) as Awaited<
           DetoxElement | WebElement | DetoxMatcher | IndexableNativeElement
         >;
         const isWebElement = Utilities.isWebElement(el);
@@ -96,6 +121,14 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectElementText(
+        asPlaywrightElement(elem),
+        text,
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element has text "${text}"`,
@@ -156,6 +189,14 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectElementNotToHaveText(
+        asPlaywrightElement(elem),
+        text,
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element does not have text "${text}"`,
@@ -181,6 +222,14 @@ export default class Assertions {
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectElementToHaveLabel(
+        asPlaywrightElement(elem),
+        label,
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element has label "${label}"`,
@@ -205,6 +254,10 @@ export default class Assertions {
     text: string,
     options: AssertionOptions & { allowDuplicates?: boolean } = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectTextDisplayed(text, options);
+    }
+
     const { timeout = BASE_DEFAULTS.timeout, allowDuplicates = false } =
       options;
 
@@ -240,6 +293,10 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectTextNotDisplayed(text, options);
+    }
+
     const { timeout = BASE_DEFAULTS.timeout } = options;
     return Utilities.executeWithRetry(
       async () => {
@@ -731,7 +788,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if element is disabled
-   * @deprecated Use Utilities.waitForElementToBeEnabled() with negated logic instead
+   * @deprecated Use Utilities.waitForElementToBeDisabled() instead for better retry handling
    */
   static async checkIfDisabled(
     elem: EncapsulatedElementType,
@@ -771,5 +828,47 @@ export default class Assertions {
         )}\nActual: ${JSON.stringify(actual, null, 2)}`,
       );
     }
+  }
+
+  /**
+   * Parse a JSON string and assert equality (objects, arrays, and primitives).
+   */
+  static async checkParsedJsonEqual(
+    actualText: string,
+    expectedJson: Json,
+    description = 'result',
+  ): Promise<void> {
+    let actualJson: Json;
+    try {
+      actualJson = JSON.parse(actualText) as Json;
+    } catch {
+      throw new Error(
+        `Failed to parse JSON from ${description}: ${actualText}`,
+      );
+    }
+    await this.checkIfJsonEqual(actualJson, expectedJson);
+  }
+
+  /**
+   * Parse a JSON string, strip excluded keys, and assert equality.
+   */
+  static async checkParsedJsonEqualExcluding(
+    actualText: string,
+    expectedJson: Json,
+    excludedKeys: string[],
+    description = 'result',
+  ): Promise<void> {
+    let actualJson: Json;
+    try {
+      actualJson = JSON.parse(actualText) as Json;
+    } catch {
+      throw new Error(
+        `Failed to parse JSON from ${description}: ${actualText}`,
+      );
+    }
+    await this.checkIfJsonEqual(
+      stripJsonKeys(actualJson, excludedKeys),
+      stripJsonKeys(expectedJson, excludedKeys),
+    );
   }
 }

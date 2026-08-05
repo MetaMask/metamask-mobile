@@ -16,6 +16,7 @@ import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
+import type { CurrentDeviceDetails } from '../../../framework/fixtures/playwright/types';
 
 export interface IdentityFixtureOptions {
   fixture?: FixtureBuilder | Fixture;
@@ -27,6 +28,7 @@ export interface IdentityFixtureOptions {
   sharedUserStorageController?: UserStorageMockttpController;
   mockBalancesAccounts?: string[];
   testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
+  currentDeviceDetails?: CurrentDeviceDetails;
 }
 
 export interface IdentityTestContext {
@@ -50,6 +52,7 @@ export async function withIdentityFixtures(
     ],
     userStorageOverrides,
     sharedUserStorageController,
+    currentDeviceDetails,
   } = options;
 
   let userStorageController: UserStorageMockttpController;
@@ -80,6 +83,7 @@ export async function withIdentityFixtures(
       fixture,
       restartDevice,
       testSpecificMock,
+      currentDeviceDetails,
     },
     async ({ mockServer }) => {
       if (!mockServer) {

@@ -3,9 +3,10 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -105,8 +106,29 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
   }),
 }));
 
-// Mock usePredictOrderPreview hook - external API dependency
-let mockPreview: {
+jest.mock('../../hooks/usePredictRewards', () => ({
+  usePredictRewards: jest.fn(() => ({
+    shouldShowRewardsRow: false,
+    accountOptedIn: false,
+    rewardsAccountScope: null,
+    estimatedPoints: null,
+    isLoading: false,
+    hasError: false,
+  })),
+}));
+
+interface MockFees {
+  metamaskFee: number;
+  providerFee: number;
+  marketFee: number;
+  totalFee: number;
+  totalFeePercentage: number;
+  collector: string;
+  executors: string[];
+  permit2Enabled: boolean;
+}
+
+interface MockPreview {
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
@@ -119,7 +141,22 @@ let mockPreview: {
   tickSize: number;
   minOrderSize: number;
   negRisk: boolean;
-} | null = {
+  fees?: MockFees;
+}
+
+const mockFees: MockFees = {
+  metamaskFee: 1.8,
+  providerFee: 0.6,
+  marketFee: 0.3,
+  totalFee: 2.4,
+  totalFeePercentage: 4,
+  collector: '0xCollector',
+  executors: [],
+  permit2Enabled: false,
+};
+
+// Mock usePredictOrderPreview hook - external API dependency
+let mockPreview: MockPreview | null = {
   marketId: 'market-1',
   outcomeId: 'outcome-456',
   outcomeTokenId: 'outcome-token-789',
@@ -132,6 +169,7 @@ let mockPreview: {
   tickSize: 0.01,
   minOrderSize: 1,
   negRisk: false,
+  fees: mockFees,
 };
 let mockPreviewError: string | null = null;
 let mockIsCalculating = false;
@@ -262,6 +300,7 @@ describe('PredictSellPreview', () => {
       tickSize: 0.01,
       minOrderSize: 1,
       negRisk: false,
+      fees: mockFees,
     };
     mockPreviewError = null;
     mockIsCalculating = false;
@@ -299,20 +338,22 @@ describe('PredictSellPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows current value from preview minAmountReceived', () => {
+    it('shows estimated net proceeds from the preview', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
     });
 
-    it('shows P&L percentage calculated from position data', () => {
+    it('shows P&L percentage calculated from net proceeds after fees', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      // net = minAmountReceived(60) - metamaskFee(1.8) - exchangeFee(0.9) = $57.30
+      // cashPnl = 57.30 - initialValue(50) = 7.30, percentPnl = 14.6%
+      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
     it('shows negative P&L when minAmountReceived is less than initial value', () => {
@@ -560,8 +601,9 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+      // net proceeds = 60 - 1.8 - 0.9 = $57.30; cashPnl = 57.30 - 50 = $7.30 (14.6%)
+      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
     it('hides position icon row in sheet mode', () => {
@@ -605,7 +647,104 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+    });
+  });
+
+  describe('fee disclosure', () => {
+    it('renders Total row when preview has fees', () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.total')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders net proceeds as Total amount after deducting fees', () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      // minAmountReceived(60) - metamaskFee(1.8) - providerFee(0.6) - marketFee(0.3) = $57.30
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+    });
+
+    it('hides Total row when preview is unavailable', () => {
+      mockPreview = null;
+      mockIsCalculating = true;
+      mockPreviewError = null;
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.queryByText(strings('predict.fee_summary.total')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('closes Price details sheet when preview refreshes to null', async () => {
+      const { rerender } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.price_details')),
+      ).toBeOnTheScreen();
+
+      mockPreview = null;
+      mockIsCalculating = true;
+
+      await act(async () => {
+        rerender(<PredictSellPreview />);
+      });
+
+      expect(
+        screen.queryByText(strings('predict.fee_summary.price_details')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens Price details sheet when Total row is pressed', async () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.price_details')),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows MetaMask fee and exchange fee in Price details sheet', async () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.metamask_fee')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('predict.fee_summary.exchange_fee')),
+      ).toBeOnTheScreen();
     });
   });
 });

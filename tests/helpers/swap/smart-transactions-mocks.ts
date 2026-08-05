@@ -1,6 +1,6 @@
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
+import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 import PortManager, { ResourceType } from '../../framework/PortManager';
 
 const STX_UUID = '0d506aaa-5e38-4cab-ad09-2039cb7a0f33';

@@ -52,38 +52,67 @@ function makeOctokit(
 
 describe('renderFailureComment', () => {
   it('contains the static heading', () => {
-    const result = renderFailureComment(['Reason A'], false);
+    const result = renderFailureComment({ blocking: ['Reason A'], warning: [] });
     expect(result).toContain('PR template — items to address before');
   });
 
-  it('lists each reason as a bullet', () => {
-    const result = renderFailureComment(['First reason', 'Second reason'], false);
-    expect(result).toContain('- First reason');
-    expect(result).toContain('- Second reason');
-  });
-
   it('contains the ready-for-review doc link', () => {
-    const result = renderFailureComment(['x'], false);
+    const result = renderFailureComment({ blocking: [], warning: ['x'] });
     expect(result).toContain('ready-for-review.md');
   });
 
-  it('shows the blocking message when isDraft is false', () => {
-    const result = renderFailureComment(['x'], false);
-    expect(result).toContain('blocking');
-    expect(result).not.toContain('informational');
-  });
-
-  it('shows the informational message when isDraft is true', () => {
-    const result = renderFailureComment(['x'], true);
-    expect(result).toContain('informational');
-    // The draft note mentions "blocking" only in the future-tense clause
-    // ("will start blocking once…"), not as the primary description.
-    expect(result).not.toMatch(/^_This check is blocking\./m);
-  });
-
   it('does not prepend the sticky marker (that is done by upsertStickyComment)', () => {
-    const result = renderFailureComment(['x'], false);
+    const result = renderFailureComment({ blocking: ['x'], warning: [] });
     expect(result).not.toContain('<!-- pr-template-checks -->');
+  });
+
+  describe('blocking-only failures', () => {
+    it('shows the Blocking section with the reason', () => {
+      const result = renderFailureComment({ blocking: ['Missing changelog'], warning: [] });
+      expect(result).toContain('**Blocking**');
+      expect(result).toContain('- Missing changelog');
+    });
+
+    it('does not show the Warnings section when there are no warnings', () => {
+      const result = renderFailureComment({ blocking: ['x'], warning: [] });
+      expect(result).not.toContain('**Warnings**');
+    });
+  });
+
+  describe('warning-only failures', () => {
+    it('shows the Warnings section with the reason', () => {
+      const result = renderFailureComment({ blocking: [], warning: ['Missing description'] });
+      expect(result).toContain('**Warnings**');
+      expect(result).toContain('- Missing description');
+    });
+
+    it('does not show the Blocking section when there are no blocking failures', () => {
+      const result = renderFailureComment({ blocking: [], warning: ['x'] });
+      expect(result).not.toContain('**Blocking**');
+    });
+  });
+
+  describe('mixed failures', () => {
+    it('shows both Blocking and Warnings sections', () => {
+      const result = renderFailureComment({
+        blocking: ['Missing changelog'],
+        warning: ['Missing description'],
+      });
+      expect(result).toContain('**Blocking**');
+      expect(result).toContain('- Missing changelog');
+      expect(result).toContain('**Warnings**');
+      expect(result).toContain('- Missing description');
+    });
+
+    it('lists each reason as a bullet in the correct group', () => {
+      const result = renderFailureComment({
+        blocking: ['B1', 'B2'],
+        warning: ['W1'],
+      });
+      expect(result).toContain('- B1');
+      expect(result).toContain('- B2');
+      expect(result).toContain('- W1');
+    });
   });
 });
 

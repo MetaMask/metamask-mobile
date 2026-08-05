@@ -136,7 +136,6 @@ describe('useInsufficientBalanceAlert', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
 
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);

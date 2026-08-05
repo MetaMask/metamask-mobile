@@ -4,6 +4,9 @@ import MoneyTransactionMonitor from './MoneyTransactionMonitor';
 import { useMoneyTransactionStatus } from '../../hooks/useMoneyTransactionStatus';
 
 jest.mock('../../hooks/useMoneyTransactionStatus');
+jest.mock('../../hooks/useMoneyFirstTimeDepositTracker', () => ({
+  useMoneyFirstTimeDepositTracker: jest.fn(),
+}));
 
 describe('MoneyTransactionMonitor', () => {
   const mockUseMoneyTransactionStatus = jest.mocked(useMoneyTransactionStatus);

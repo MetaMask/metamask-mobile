@@ -55,8 +55,8 @@ const MONEY_ACCOUNT_SECTION_MOCK: PayWithSectionConfig = {
   rows: [
     {
       id: 'money-account-musd',
-      icon: 'Money balance',
-      title: 'Money balance',
+      icon: 'Money account',
+      title: 'Money account',
     },
   ],
 };

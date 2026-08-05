@@ -6,39 +6,27 @@ import {
   SectionDivider,
   SectionHeader,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../../Wallet/WalletView.testIds';
 import { PredictEntryPointProvider } from '../../../../../../UI/Predict/contexts';
 import { PredictEventValues } from '../../../../../../UI/Predict/constants/eventNames';
-import { BTC_UP_OR_DOWN_5M_SERIES } from '../../../../../../UI/Predict/constants/btcUpDown5mSeries';
 import {
   PREDICT_EMPTY_STATE_CTA_NAMES,
   type PredictEmptyStateCtaName,
 } from '../../../../abTestConfig';
-import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../../../UI/Predict/constants/worldCupTabs';
 import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
 import { usePredictNavigation } from '../../../../../../UI/Predict/hooks/usePredictNavigation';
+import { selectPredictEnabledFlag } from '../../../../../../UI/Predict/selectors/featureFlags';
 import {
-  selectPredictEnabledFlag,
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
-  selectPredictWorldCupScreenEnabledFlag,
-} from '../../../../../../UI/Predict/selectors/featureFlags';
-import {
-  pickWorldCupWinnerMarket,
-  resolveNbaChampionHomepageMarket,
-} from '../../utils/marketResolvers';
-import type { UseHomepagePredictWorldCupMarketsResult } from '../../hooks/useHomepagePredictWorldCupMarkets';
-import type { UseHomepagePredictTaggedMarketsResult } from '../../hooks/useHomepagePredictTaggedMarkets';
+  HOMEPAGE_PREDICT_EVENT_SLOTS,
+  HOMEPAGE_PREDICT_SERIES_SLOT,
+} from '../../constants/homepagePredictMarketSlots';
+import type { UseHomepagePredictMarketSlotsResult } from '../../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../../predictionsSectionTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import BtcLiveRow from './BtcLiveRow';
 import ChampionshipRow, { type ChampionshipRowState } from './ChampionshipRow';
-import MensWorldCupRow from './MensWorldCupRow';
-import BracketPills from './BracketPills';
-
-const WORLD_CUP_CTA_CATEGORY_NAME = 'world_cup';
 
 export interface HomepagePredictWorldCupDiscoveryProps {
   title: string;
@@ -46,8 +34,7 @@ export interface HomepagePredictWorldCupDiscoveryProps {
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
   ) => void;
   headerTestIdKey: PredictionsTrendingHeaderTestId;
-  worldCup: UseHomepagePredictWorldCupMarketsResult;
-  nbaChampion: UseHomepagePredictTaggedMarketsResult;
+  marketSlots: UseHomepagePredictMarketSlotsResult;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onTreatmentCtaClick?: (
     ctaName: PredictEmptyStateCtaName,
@@ -61,20 +48,13 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   title,
   onViewAll,
   headerTestIdKey,
-  worldCup,
-  nbaChampion,
+  marketSlots,
   transactionActiveAbTests,
   onTreatmentCtaClick,
 }) => {
   const navigation = useNavigation();
   const { navigateToMarketDetails } = usePredictNavigation();
-  const worldCupScreenEnabled = useSelector(
-    selectPredictWorldCupScreenEnabledFlag,
-  );
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const showNbaChampionDiscoveryRow = useSelector(
-    selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
-  );
   const {
     marketId: btcMarketId,
     market: btcWindowMarket,
@@ -82,67 +62,22 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     priceToBeat,
     countdown: btcCountdown,
   } = useCurrentCryptoUpDownMarketData({
-    series: BTC_UP_OR_DOWN_5M_SERIES,
+    series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
     enabled: isPredictEnabled,
   });
-  const championshipRowKind = showNbaChampionDiscoveryRow
-    ? 'nba'
-    : 'world_cup_winner';
-  const championshipCtaCategoryName =
-    championshipRowKind === 'world_cup_winner'
-      ? WORLD_CUP_CTA_CATEGORY_NAME
-      : 'nba';
-
-  const { marketData, isFetching, hasMore } = worldCup;
-  const { marketData: nbaMarketData, isFetching: isNbaFetching } = nbaChampion;
-
-  const isInitialLoad = isFetching && marketData.length === 0;
-  const nbaLeadLoading =
-    championshipRowKind === 'nba' &&
-    isNbaFetching &&
-    nbaMarketData.length === 0;
-
-  const eventCountLabel = useMemo(() => {
-    const n = marketData.length;
-    const i18nKey =
-      n > 0 && hasMore
-        ? 'predict.homepage_discovery.events_in_total_overflow'
-        : 'predict.homepage_discovery.events_in_total';
-    return strings(i18nKey, { count: n });
-  }, [marketData.length, hasMore]);
-
-  const championshipRow: ChampionshipRowState = useMemo(() => {
-    if (championshipRowKind === 'nba') {
-      if (nbaLeadLoading) {
-        return { kind: 'loading' };
-      }
-      const lead = resolveNbaChampionHomepageMarket(nbaMarketData, marketData);
-      if (!lead) {
-        return { kind: 'empty' };
-      }
-      return {
-        kind: 'market',
-        market: {
-          ...lead,
-          title: strings('predict.homepage_discovery.nba_2026_champion_title'),
-        },
-        detailsTitle: lead.outcomes[0]?.title ?? lead.title,
-      };
-    }
-    if (isInitialLoad) {
-      return { kind: 'loading' };
-    }
-    const winner = pickWorldCupWinnerMarket(marketData);
-    return winner
-      ? { kind: 'market', market: winner, detailsTitle: undefined }
-      : { kind: 'empty' };
-  }, [
-    championshipRowKind,
-    isInitialLoad,
-    marketData,
-    nbaLeadLoading,
-    nbaMarketData,
-  ]);
+  const eventSlotRows = useMemo<ChampionshipRowState[]>(
+    () =>
+      HOMEPAGE_PREDICT_EVENT_SLOTS.map(({ id, slug }) => {
+        const market = marketSlots.marketData.find(
+          (candidate) => candidate.id === id && candidate.slug === slug,
+        );
+        if (market) {
+          return { kind: 'market', market, detailsTitle: undefined };
+        }
+        return marketSlots.isFetching ? { kind: 'loading' } : { kind: 'empty' };
+      }),
+    [marketSlots.isFetching, marketSlots.marketData],
+  );
 
   const handleBtcRow = useCallback(() => {
     onTreatmentCtaClick?.(
@@ -154,7 +89,8 @@ const HomepagePredictWorldCupDiscovery: React.FC<
         {
           marketId: btcMarketId,
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-          title: btcWindowMarket?.title ?? BTC_UP_OR_DOWN_5M_SERIES.title,
+          title:
+            btcWindowMarket?.title ?? HOMEPAGE_PREDICT_SERIES_SLOT.series.title,
           image: btcWindowMarket?.image,
           ...(transactionActiveAbTests?.length && {
             transactionActiveAbTests,
@@ -182,51 +118,6 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     transactionActiveAbTests,
   ]);
 
-  const goToWorldCup = useCallback(
-    (initialTab: string) => {
-      onTreatmentCtaClick?.(
-        PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,
-        WORLD_CUP_CTA_CATEGORY_NAME,
-      );
-      const entryPoint = PredictEventValues.ENTRY_POINT.HOME_SECTION;
-      if (worldCupScreenEnabled) {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.WORLD_CUP,
-          params: {
-            initialTab,
-            entryPoint,
-            ...(transactionActiveAbTests?.length && {
-              transactionActiveAbTests,
-            }),
-          },
-        });
-        return;
-      }
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint,
-          ...(transactionActiveAbTests?.length && {
-            transactionActiveAbTests,
-          }),
-        },
-      });
-    },
-    [
-      navigation,
-      onTreatmentCtaClick,
-      transactionActiveAbTests,
-      worldCupScreenEnabled,
-    ],
-  );
-  const handleMensRow = useCallback(
-    () => goToWorldCup(PREDICT_WORLD_CUP_TAB_KEYS.ALL),
-    [goToWorldCup],
-  );
-  const handlePropsPill = useCallback(
-    () => goToWorldCup(PREDICT_WORLD_CUP_TAB_KEYS.PROPS),
-    [goToWorldCup],
-  );
   const handleViewAll = useCallback(() => {
     onTreatmentCtaClick?.(PREDICT_EMPTY_STATE_CTA_NAMES.EXPLORE_FEATURED);
     onViewAll(transactionActiveAbTests);
@@ -234,9 +125,9 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   const handleChampionshipRowPress = useCallback(() => {
     onTreatmentCtaClick?.(
       PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,
-      championshipCtaCategoryName,
+      'sports',
     );
-  }, [championshipCtaCategoryName, onTreatmentCtaClick]);
+  }, [onTreatmentCtaClick]);
 
   return (
     <>
@@ -257,20 +148,16 @@ const HomepagePredictWorldCupDiscovery: React.FC<
             priceToBeat={priceToBeat}
             countdown={btcCountdown}
           />
-          <ChampionshipRow
-            state={championshipRow}
-            onPress={handleChampionshipRowPress}
-            transactionActiveAbTests={transactionActiveAbTests}
-          />
-          <MensWorldCupRow
-            onPress={handleMensRow}
-            eventCountLabel={eventCountLabel}
-          />
+          {eventSlotRows.map((state, index) => (
+            <ChampionshipRow
+              key={HOMEPAGE_PREDICT_EVENT_SLOTS[index].id}
+              state={state}
+              onPress={handleChampionshipRowPress}
+              transactionActiveAbTests={transactionActiveAbTests}
+              testID={`homepage-predict-discovery-market-slot-${index + 2}`}
+            />
+          ))}
         </Box>
-        <BracketPills
-          onPropsPress={handlePropsPill}
-          onStagePress={goToWorldCup}
-        />
       </PredictEntryPointProvider>
     </>
   );

@@ -22,10 +22,15 @@ import {
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
 } from '@metamask/perps-controller';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('../../Money/utils/moneyTransactionGuards', () => ({
+  isPerpsPredictMoneyDeposit: jest.fn(() => false),
 }));
 
 jest.mock('./stream/usePerpsLiveAccount');
@@ -66,6 +71,10 @@ const mockSelectTransactionBridgeQuotesById =
   selectTransactionBridgeQuotesById as jest.MockedFunction<
     typeof selectTransactionBridgeQuotesById
   >;
+const mockIsPerpsPredictMoneyDeposit =
+  isPerpsPredictMoneyDeposit as jest.MockedFunction<
+    typeof isPerpsPredictMoneyDeposit
+  >;
 
 describe('usePerpsDepositStatus', () => {
   let mockSubscribe: jest.Mock;
@@ -95,6 +104,8 @@ describe('usePerpsDepositStatus', () => {
 
     // Mock selectTransactionBridgeQuotesById
     mockSelectTransactionBridgeQuotesById.mockReturnValue([]);
+
+    mockIsPerpsPredictMoneyDeposit.mockReturnValue(false);
 
     // Default mock for usePerpsLiveAccount
     mockUsePerpsLiveAccount.mockReturnValue({
@@ -221,6 +232,8 @@ describe('usePerpsDepositStatus', () => {
       dataFetching: {} as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       contentSharing: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      watchlist: {} as any,
     };
 
     mockUsePerpsToasts.mockReturnValue({
@@ -325,6 +338,60 @@ describe('usePerpsDepositStatus', () => {
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id');
+    });
+
+    it('should not show any toast when perpsDeposit is funded from the Money account', () => {
+      mockShowToast.mockClear();
+      mockIsPerpsPredictMoneyDeposit.mockReturnValue(true);
+      renderHook(() => usePerpsDepositStatus());
+      const transactionMeta: TransactionMeta = {
+        id: 'test-tx-id',
+        type: TransactionType.perpsDeposit,
+        status: TransactionStatus.approved,
+      } as TransactionMeta;
+
+      act(() => {
+        transactionHandler({ transactionMeta });
+      });
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.inProgress,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should not set expecting state when perpsDeposit is funded from the Money account', () => {
+      mockShowToast.mockClear();
+      mockIsPerpsPredictMoneyDeposit.mockReturnValue(true);
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
+
+      act(() => {
+        transactionHandler({
+          transactionMeta: {
+            id: 'test-tx-id',
+            type: TransactionType.perpsDeposit,
+            status: TransactionStatus.approved,
+          } as TransactionMeta,
+        });
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '1500.00',
+          withdrawableBalance: '1500.00',
+          marginUsed: '9000.00',
+          unrealizedPnl: '100.00',
+          returnOnEquity: '0.15',
+          totalBalance: '10600.00',
+        },
+        isInitialLoading: false,
+      });
+
+      rerender({});
+
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.success,
+      ).not.toHaveBeenCalled();
     });
 
     it('should not show in-progress toast when perpsDeposit transaction is submitted', () => {

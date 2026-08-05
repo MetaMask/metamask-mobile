@@ -10,10 +10,16 @@ describe('getQuickBuyFeatureId', () => {
     expect(getQuickBuyFeatureId('market_insights')).toBe(
       FeatureId.QUICK_BUY_TOKEN_DETAILS,
     );
+    expect(getQuickBuyFeatureId('security_trust')).toBe(
+      FeatureId.QUICK_BUY_TOKEN_DETAILS,
+    );
   });
 
   it('maps follow-trading surfaces to QUICK_BUY_FOLLOW_TRADING', () => {
     expect(getQuickBuyFeatureId('leaderboard')).toBe(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
+    expect(getQuickBuyFeatureId('trader_feed')).toBe(
       FeatureId.QUICK_BUY_FOLLOW_TRADING,
     );
     expect(getQuickBuyFeatureId('profile_position')).toBe(
@@ -21,6 +27,24 @@ describe('getQuickBuyFeatureId', () => {
     );
     expect(getQuickBuyFeatureId('notification')).toBe(
       FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
+  });
+
+  it('maps explore surfaces to QUICK_BUY_EXPLORE', () => {
+    expect(getQuickBuyFeatureId('explore_search')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_crypto')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_now')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_rwas')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_stocks')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
     );
   });
 

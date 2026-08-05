@@ -1,19 +1,20 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Modal, View } from 'react-native';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   Box,
-  Button,
+  ButtonsAlignment,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface MarketInsightsDisclaimerBottomSheetProps {
   onClose: () => void;
@@ -23,40 +24,57 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
   MarketInsightsDisclaimerBottomSheetProps
 > = ({ onClose }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const primaryButtonProps = useMemo(
+    () => ({
+      children: strings('market_insights.disclaimer_modal.got_it'),
+      onPress: handleClose,
+      size: ButtonSize.Lg,
+      variant: ButtonVariant.Primary,
+    }),
+    [handleClose],
+  );
+
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-    >
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Medium}>
-          {strings('market_insights.disclaimer_modal.title')}
-        </Text>
-      </BottomSheetHeader>
-
-      <Box twClassName="px-4 pb-4">
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('market_insights.disclaimer_modal.body')}
-        </Text>
-      </Box>
-
-      <Box twClassName="px-4 pb-6 mt-4">
-        <Button
-          size={ButtonSize.Lg}
-          onPress={handleClose}
-          variant={ButtonVariant.Primary}
-          isFullWidth
+    <View>
+      <Modal
+        visible
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        onRequestClose={handleClose}
+      >
+        <BottomSheet
+          ref={bottomSheetRef}
+          onClose={onClose}
+          twClassName={surfaceClass}
         >
-          {strings('market_insights.disclaimer_modal.got_it')}
-        </Button>
-      </Box>
-    </BottomSheet>
+          <BottomSheetHeader onClose={handleClose}>
+            {strings('market_insights.disclaimer_modal.title')}
+          </BottomSheetHeader>
+
+          <Box paddingHorizontal={4}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.disclaimer_modal.body')}
+            </Text>
+          </Box>
+
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+            primaryButtonProps={primaryButtonProps}
+            twClassName="pt-6"
+          />
+        </BottomSheet>
+      </Modal>
+    </View>
   );
 };
 

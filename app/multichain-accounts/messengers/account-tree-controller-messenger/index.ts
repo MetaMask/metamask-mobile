@@ -1,7 +1,4 @@
-import {
-  AccountTreeControllerMessenger,
-  AccountTreeControllerSelectedAccountGroupChangeEvent,
-} from '@metamask/account-tree-controller';
+import { AccountTreeControllerMessenger } from '@metamask/account-tree-controller';
 import {
   RootExtendedMessenger,
   RootMessenger,
@@ -60,9 +57,6 @@ export function getAccountTreeControllerMessenger(
   return messenger;
 }
 
-export type AllowedInitializationEvents =
-  AccountTreeControllerSelectedAccountGroupChangeEvent;
-
 type AccountTreeControllerInitMessengerActions = AnalyticsControllerActions;
 
 export type AccountTreeControllerInitMessenger = ReturnType<
@@ -82,7 +76,7 @@ export function getAccountTreeControllerInitMessenger(
   const messenger = new Messenger<
     'AccountTreeControllerInit',
     AccountTreeControllerInitMessengerActions,
-    AllowedInitializationEvents,
+    never,
     RootMessenger
   >({
     namespace: 'AccountTreeControllerInit',
@@ -90,7 +84,6 @@ export function getAccountTreeControllerInitMessenger(
   });
   rootMessenger.delegate({
     actions: ['AnalyticsController:trackEvent'],
-    events: ['AccountTreeController:selectedAccountGroupChange'],
     messenger,
   });
   return messenger;

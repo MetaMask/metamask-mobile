@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -89,7 +90,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   isCampaignComplete = false,
   hideTierHeader = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { isPreview, showSplitView, visibleEntries } =
@@ -145,12 +146,12 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton />;
+    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
   }
 
   if (hasError && entries.length === 0) {
     return (
-      <Box twClassName="px-4">
+      <Box twClassName="px-4 py-2">
         <RewardsErrorBanner
           title={strings('rewards.ondo_campaign_leaderboard.error_loading')}
           description={strings(

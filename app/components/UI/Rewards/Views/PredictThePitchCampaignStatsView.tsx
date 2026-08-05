@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -42,6 +43,8 @@ export const PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS = {
   PERFORMANCE_PNL: 'predict-the-pitch-campaign-stats-view-performance-pnl',
   PERFORMANCE_VOLUME:
     'predict-the-pitch-campaign-stats-view-performance-volume',
+  PERFORMANCE_MARKETS_TRADED:
+    'predict-the-pitch-campaign-stats-view-performance-markets-traded',
   QUALIFIED_CARD: 'predict-the-pitch-campaign-stats-view-qualified-card',
   QUALIFY_FOR_RANK_CARD:
     'predict-the-pitch-campaign-stats-view-qualify-for-rank-card',
@@ -57,7 +60,7 @@ const getMetricColor = (value: number | null): TextColor => {
 
 const PredictThePitchCampaignStatsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -97,6 +100,16 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
   const roiDisplay = roi != null ? formatPercentChange(roi) : '-';
   const pnlDisplay = pnl != null ? formatSignedUsd(pnl) : '-';
   const volumeDisplay = volume != null ? formatUsd(volume) : '-';
+
+  const marketsTraded = position?.marketsTraded ?? null;
+  const minimumMarketsTraded = position?.minimumMarketsTraded ?? null;
+  const showMarketsTraded =
+    marketsTraded != null && minimumMarketsTraded != null;
+  const marketsDisplay = showMarketsTraded
+    ? marketsTraded < minimumMarketsTraded
+      ? `${marketsTraded}/${minimumMarketsTraded}`
+      : String(marketsTraded)
+    : '';
 
   const isPending = position != null && !position.eligible;
   const isEligible = position != null && position.eligible;
@@ -185,7 +198,20 @@ const PredictThePitchCampaignStatsView: React.FC = () => {
                   PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME
                 }
               />
-              <Box twClassName="flex-1" />
+              {showMarketsTraded ? (
+                <StatCell
+                  label={strings(
+                    'rewards.predict_the_pitch_campaign.label_markets_traded',
+                  )}
+                  value={marketsDisplay}
+                  isLoading={showSkeleton}
+                  testID={
+                    PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARKETS_TRADED
+                  }
+                />
+              ) : (
+                <Box twClassName="flex-1" />
+              )}
             </Box>
 
             {showQualifiedCard && (

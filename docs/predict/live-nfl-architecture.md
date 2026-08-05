@@ -8,10 +8,15 @@ The Live NFL feature introduces real-time sports betting functionality with WebS
 
 ## Feature Flag
 
-The feature is gated behind `predictLiveNflEnabled`:
+The feature is gated behind `predictLiveNflEnabled` using `validatedVersionGatedFeatureFlag` (see [`docs/readme/version-gated-feature-flags.md`](../readme/version-gated-feature-flags.md)):
 
 ```typescript
 // app/components/UI/Predict/selectors/featureFlags/index.ts
+import {
+  validatedVersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
+
 export const selectPredictLiveNflEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

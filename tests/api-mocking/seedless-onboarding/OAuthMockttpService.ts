@@ -5,6 +5,11 @@
 import { Mockttp } from 'mockttp';
 
 import {
+  EncAccountDataType,
+  SecretType,
+} from '@metamask/seedless-onboarding-controller';
+
+import {
   AuthServer,
   AUTH_SERVICE_BASE_URL,
   E2E_EMAILS,
@@ -16,7 +21,10 @@ import {
   SSSNodeKeyPairs,
 } from './constants';
 
-import { OAuthMockttpServiceOptions, SecretType } from './types';
+import {
+  EncAccountDataGetMockPayload,
+  OAuthMockttpServiceOptions,
+} from './types';
 
 /**
  * Configuration for E2E OAuth mock
@@ -90,6 +98,32 @@ export class OAuthMockttpService {
       loginProvider: E2ELoginProvider.APPLE,
       scenario: E2EScenario.EXISTING_USER,
       email: E2E_EMAILS.APPLE_EXISTING_USER,
+    };
+    return this;
+  }
+
+  /**
+   * Configure for Telegram New User flow
+   * @returns this for method chaining
+   */
+  configureTelegramNewUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.NEW_USER,
+      email: E2E_EMAILS.TELEGRAM_NEW_USER,
+    };
+    return this;
+  }
+
+  /**
+   * Configure for Telegram Existing User flow
+   * @returns this for method chaining
+   */
+  configureTelegramExistingUser(): this {
+    this.config = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.EXISTING_USER,
+      email: E2E_EMAILS.TELEGRAM_EXISTING_USER,
     };
     return this;
   }
@@ -259,7 +293,7 @@ export class OAuthMockttpService {
           );
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -355,7 +389,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -427,7 +461,7 @@ export class OAuthMockttpService {
           const body = JSON.parse(requestBody);
 
           const emailForMock = this.config.email.replace(
-            /^(google|apple)\./,
+            /^(google|apple|telegram)\./,
             '',
           );
 
@@ -531,8 +565,6 @@ export class OAuthMockttpService {
    * Setup Metadata Service mocks
    */
   private async setupMetadataServiceMocks(server: Mockttp): Promise<void> {
-    const encryptedSecretData = this.generateMockEncryptedSecretData();
-
     // Set metadata
     await server
       .forPost('/proxy')
@@ -555,8 +587,7 @@ export class OAuthMockttpService {
       .asPriority(1000)
       .thenJson(200, {
         success: true,
-        data: this.isExistingUser() ? encryptedSecretData : [],
-        ids: this.isExistingUser() ? ['', PasswordChangeItemId] : [],
+        ...this.getMetadataEncAccountDataGetPayload(),
       });
 
     await server
@@ -921,10 +952,27 @@ export class OAuthMockttpService {
   }
 
   /**
-   * Generate mock encrypted secret data for existing user flow
-   * This simulates the encrypted seed phrase response from metadata service
+   * Builds `/metadata/enc_account_data/get` mock payload aligned with v2 metadata
+   * (`EncAccountDataType`, `versions`) for the preview seedless onboarding controller.
    */
-  private generateMockEncryptedSecretData(): string[] {
+  private getMetadataEncAccountDataGetPayload(): EncAccountDataGetMockPayload {
+    if (this.isExistingUser()) {
+      return this.buildExistingUserEncAccountDataGetPayload();
+    }
+    return {
+      data: [],
+      ids: [],
+      versions: [],
+      dataTypes: [],
+      createdAt: [],
+    };
+  }
+
+  /**
+   * Generate mock encrypted secret data for existing user flow.
+   * Simulates the encrypted seed phrase + PW_BACKUP items from the metadata service.
+   */
+  private buildExistingUserEncAccountDataGetPayload(): EncAccountDataGetMockPayload {
     const mockEncryptedSrp = Buffer.from(
       JSON.stringify({
         data: Buffer.from(E2E_SRP).toString('base64'),
@@ -940,7 +988,13 @@ export class OAuthMockttpService {
       }),
     ).toString('base64');
 
-    return [mockEncryptedSrp, mockPasswordChangeItem];
+    return {
+      data: [mockEncryptedSrp, mockPasswordChangeItem],
+      ids: ['', PasswordChangeItemId],
+      versions: ['v2', 'v2'],
+      dataTypes: [EncAccountDataType.PrimarySrp, null],
+      createdAt: [null, null],
+    };
   }
 }
 

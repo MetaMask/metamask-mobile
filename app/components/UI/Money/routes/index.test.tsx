@@ -2,19 +2,19 @@ import React from 'react';
 import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
-import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
 import {
   MoneyConfirmationScreenStack,
   MoneyModalStack,
   MoneyTabScreenStack,
 } from './index';
 
-jest.mock('../hooks/useUpgradeMoneyAccountOnMount', () => ({
-  useUpgradeMoneyAccountOnMount: jest.fn(),
+jest.mock('../hooks/useUpgradeMoneyAccountOnFocus', () => ({
+  useUpgradeMoneyAccountOnFocus: jest.fn(),
 }));
 
-const mockUseUpgradeMoneyAccountOnMount = jest.mocked(
-  useUpgradeMoneyAccountOnMount,
+const mockUseUpgradeMoneyAccountOnFocus = jest.mocked(
+  useUpgradeMoneyAccountOnFocus,
 );
 
 jest.mock(
@@ -103,19 +103,19 @@ jest.mock('../components/MoneyLinkCardSheet', () => () => (
 jest.mock('../components/MoneyEarnCryptoInfoSheet', () => () => (
   <MockView testID="mock-money-earn-crypto-info-sheet" />
 ));
-jest.mock('../components/MoneyTransactionDetailsSheet', () => () => (
-  <MockView testID="mock-money-transaction-details-sheet" />
-));
 jest.mock('../../../Views/confirmations/components/confirm', () => ({
   Confirm: () => <MockView testID="mock-confirm" />,
 }));
+jest.mock('../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet', () => () => (
+  <MockView testID="mock-money-geo-block-sheet" />
+));
 
 describe('MoneyTabScreenStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('registers Money home, activity, how-it-works, and potential-earnings screens', () => {
+  it('registers Money home, activity, and how-it-works screens', () => {
     const { getByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
       theme: themeWithCustomBackground,
     });
@@ -123,9 +123,6 @@ describe('MoneyTabScreenStack', () => {
     expect(getByTestId('money-screen-MoneyHome')).toBeOnTheScreen();
     expect(getByTestId('money-screen-MoneyActivity')).toBeOnTheScreen();
     expect(getByTestId('money-screen-MoneyHowItWorks')).toBeOnTheScreen();
-    expect(
-      getByTestId('money-screen-MoneyPotentialEarnings'),
-    ).toBeOnTheScreen();
   });
 
   it('sets stack content background from theme to avoid flash during inner navigation', () => {
@@ -146,12 +143,12 @@ describe('MoneyTabScreenStack', () => {
     expect(getByTestId('money-header-hidden')).toBeOnTheScreen();
   });
 
-  it('calls useUpgradeMoneyAccountOnMount on mount', () => {
+  it('calls useUpgradeMoneyAccountOnFocus', () => {
     renderWithProvider(<MoneyTabScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -191,16 +188,28 @@ describe('MoneyConfirmationScreenStack', () => {
     );
   });
 
-  it('calls useUpgradeMoneyAccountOnMount on mount', () => {
+  it('calls useUpgradeMoneyAccountOnFocus', () => {
     renderWithProvider(<MoneyConfirmationScreenStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('MoneyModalStack', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls useUpgradeMoneyAccountOnFocus', () => {
+    renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
+  });
+
   it('registers the Add money sheet as a modal screen', () => {
     const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
       theme: themeWithCustomBackground,
@@ -269,13 +278,11 @@ describe('MoneyModalStack', () => {
     ).toBeOnTheScreen();
   });
 
-  it('registers the Transaction details sheet as a modal screen', () => {
+  it('registers the Geo block sheet as a modal screen', () => {
     const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(
-      getByTestId('money-screen-MoneyTransactionDetailsSheet'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('money-screen-MoneyGeoBlockSheet')).toBeOnTheScreen();
   });
 });

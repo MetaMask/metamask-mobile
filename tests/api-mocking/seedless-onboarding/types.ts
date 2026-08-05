@@ -35,9 +35,15 @@ export interface OAuthMockttpServiceOptions {
 }
 
 /**
- * SecretType enum matching @metamask/seedless-onboarding-controller
+ * Payload for Mockttp `/metadata/enc_account_data/get` responses.
+ * Matches `@metamask/toprf-secure-backup` `MetadataStore` `_getAllDataItems` parsing:
+ * parallel arrays `data`, `ids`, `versions` (required per item); optional `dataTypes`,
+ * `createdAt` aligned by index.
  */
-export enum SecretType {
-  Mnemonic = 'mnemonic',
-  PrivateKey = 'privateKey',
+export interface EncAccountDataGetMockPayload {
+  data: string[];
+  ids: string[];
+  versions: ('v1' | 'v2')[];
+  dataTypes?: (number | null | undefined)[];
+  createdAt?: (string | null | undefined)[];
 }

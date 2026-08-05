@@ -27,6 +27,7 @@ _public_envs: &public_envs # Servers (production)
   MM_PORTFOLIO_URL: 'https://portfolio.api.cx.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
+  PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
   COMPLIANCE_API_URL: 'https://compliance.api.cx.metamask.io'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
@@ -36,7 +37,9 @@ _public_envs: &public_envs # Servers (production)
   # Build flags (production defaults)
   RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
-  BRIDGE_USE_DEV_APIS: 'false'
+  # Empty by default: the Bridge API base URL is derived from METAMASK_ENVIRONMENT.
+  # Set only to point a build at a custom Bridge API deployment.
+  BRIDGE_USE_CUSTOM_BASE_URL: ''
   MM_BATCH_SELL_ENABLED: 'true'
   RAMP_INTERNAL_BUILD: 'false'
   HAS_TEST_OVERRIDES: 'false'
@@ -46,8 +49,7 @@ _public_envs: &public_envs # Servers (production)
   MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
   MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
   MM_PERPS_HIP3_ENABLED: 'true'
-  # Temporary flag to enable builds with GitHub Actions (legacy path retained for local dev)
-  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
+  MM_PURE_BLACK_PREVIEW: 'true'
   MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
   MM_PREDICT_BUILDER_CODE: '0x11a22276beb720e66a072cba8b8e74cded60afda510af535b947b81a1b81a883'
 
@@ -90,6 +92,7 @@ _secrets: &secrets # Infrastructure
   QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
   QUICKNODE_HYPEREVM_URL: 'QUICKNODE_HYPEREVM_URL'
   QUICKNODE_ARC_URL: 'QUICKNODE_ARC_URL'
+  QUICKNODE_ROBINHOOD_URL: 'QUICKNODE_ROBINHOOD_URL'
   # OAuth
   IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
   IOS_GOOGLE_REDIRECT_URI: 'IOS_GOOGLE_REDIRECT_URI'
@@ -236,6 +239,10 @@ builds:
       E2E_MOCK_OAUTH: 'true'
       IS_PERFORMANCE_TEST: 'true'
       RAMP_INTERNAL_BUILD: 'true'
+      # e2e/test LaunchDarkly env has telegram_login_enabled=false; bake the
+      # selector override so Telegram seedless onboarding performance coverage
+      # (TO-916) can see the button without depending on remote test flags.
+      MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
@@ -296,6 +303,9 @@ builds:
       IS_SIM_BUILD: 'false'
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
+      # Keep Telegram seedless onboarding available for RC without-srp perf runs
+      # even if remote flag delivery lags; selector reads MM_TELEGRAM_LOGIN_ENABLED.
+      MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
@@ -313,7 +323,7 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -337,7 +347,7 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -361,7 +371,7 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -402,6 +412,7 @@ builds:
       DISABLE_NOTIFICATION_PROMPT: 'true'
       E2E_MOCK_OAUTH: 'true'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
@@ -420,8 +431,8 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
-      RAMPS_ENVIRONMENT: 'staging'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      RAMPS_ENVIRONMENT: 'development'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
@@ -447,8 +458,8 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
-      RAMPS_ENVIRONMENT: 'staging'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      RAMPS_ENVIRONMENT: 'development'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
@@ -491,7 +502,7 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -515,7 +526,7 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
@@ -538,8 +549,8 @@ builds:
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
       SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-      BRIDGE_USE_DEV_APIS: 'true'
-      RAMPS_ENVIRONMENT: 'staging'
+      PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
+      RAMPS_ENVIRONMENT: 'development'
       RAMP_DEV_BUILD: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'

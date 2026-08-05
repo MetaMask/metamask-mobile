@@ -96,6 +96,14 @@ class NavigationService {
   static set navigation(navRef: NavigationContainerRef<ParamListBase>) {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
+
+    if (__DEV__) {
+      import('../../dev-tools/AgenticService/AgenticService').then(
+        ({ default: AgenticService }) => {
+          AgenticService.install(navRef, this.#navigation);
+        },
+      );
+    }
   }
 
   /**

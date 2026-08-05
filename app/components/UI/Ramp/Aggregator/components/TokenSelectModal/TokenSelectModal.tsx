@@ -42,9 +42,9 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../sele
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { getCaipChainIdFromCryptoCurrency } from '../../utils';
-import NetworksFilterBar from '../../../Deposit/components/NetworksFilterBar';
+import NetworksFilterBar from '../../../components/NetworksFilterBar';
 import { CaipChainId } from '@metamask/utils';
-import NetworksFilterSelector from '../../../Deposit/components/NetworksFilterSelector/NetworksFilterSelector';
+import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
 
 const MAX_TOKENS_RESULTS = 20;
 

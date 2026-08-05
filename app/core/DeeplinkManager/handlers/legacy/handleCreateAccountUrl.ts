@@ -5,34 +5,9 @@ import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/
 import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
 import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import { WalletClientType } from '../../../SnapKeyring/MultichainWalletSnapClient';
-import {
-  BtcScope,
-  SolScope,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import NavigationService from '../../../NavigationService';
-
-const getClientType = (chainId: string) => {
-  let clientType: WalletClientType;
-  if (Object.values(BtcScope).includes(chainId as BtcScope)) {
-    clientType = WalletClientType.Bitcoin;
-  } else if (Object.values(SolScope).includes(chainId as SolScope)) {
-    clientType = WalletClientType.Solana;
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  } else if (Object.values(TrxScope).includes(chainId as TrxScope)) {
-    clientType = WalletClientType.Tron;
-    ///: END:ONLY_INCLUDE_IF
-  } else {
-    throw new Error(`Unsupported chainId: ${chainId}`);
-  }
-
-  return clientType;
-};
 
 export function handleCreateAccountUrl({ path }: { path: string }) {
   const chainId = new URLSearchParams(path).get('chainId');
@@ -49,18 +24,6 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
   );
 
   const hasAccountsInScope = Object.keys(accountsBalanceInScope).length > 0;
-
-  if (!hasAccountsInScope) {
-    // if there are no accounts in the scope, show the modal to create an account
-    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: getClientType(chainId),
-        scope: chainId,
-      },
-    });
-    return;
-  }
 
   const accountIdWithNativeBalanceGreaterThanZero = Object.keys(
     accountsBalanceInScope,

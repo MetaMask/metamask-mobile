@@ -1,4 +1,3 @@
-import TestHelpers from '../../../../helpers';
 import { SmokeNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../page-objects/Browser/BrowserView';
 import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
@@ -25,7 +24,6 @@ import { DappVariants } from '../../../../framework/Constants';
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('handles permission cleanup when removing a connected chain', async () => {

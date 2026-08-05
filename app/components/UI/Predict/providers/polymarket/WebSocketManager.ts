@@ -1,13 +1,7 @@
 import { AppState, AppStateStatus } from 'react-native';
 import {
-  array,
-  create,
-  optional,
-  string,
-  type as structType,
-  type Infer,
-} from '@metamask/superstruct';
-import {
+  ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
@@ -38,8 +32,14 @@ const PING_INTERVAL_MS = 50000;
 const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
 const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
 const RTDS_PING_INTERVAL_MS = 5000;
-const DEFAULT_THROTTLE_INTERVAL_MS = 16;
+// Crypto price ticks (RTDS chainlink) can arrive many times per second per
+// symbol, while the UI only needs a few updates per second. Each flush fans
+// out through React state updates (chart data rebuild, screen re-render,
+// WebView postMessage), so this is deliberately aligned with
+// MARKET_PRICE_EMIT_THROTTLE_MS instead of a per-frame 16ms interval.
+const CRYPTO_PRICE_EMIT_THROTTLE_MS = 250;
 const ORDERBOOK_EMIT_THROTTLE_MS = 250;
+const MARKET_PRICE_EMIT_THROTTLE_MS = 250;
 
 const HEARTBEAT_CHECK_INTERVAL_MS = 5000;
 const MARKET_STALE_THRESHOLD_MS = 60000;
@@ -59,29 +59,64 @@ interface SportsWebSocketEvent {
   ended: boolean;
 }
 
-const MarketOrderbookLevelSchema = structType({
-  price: string(),
-  size: string(),
-});
+interface MarketOrderbookLevel {
+  price: string;
+  size: string;
+}
 
-const MarketPriceChangeSchema = structType({
-  asset_id: string(),
-  price: string(),
-  best_bid: string(),
-  best_ask: string(),
-});
+interface MarketPriceChange {
+  asset_id: string;
+  price: string;
+  best_bid: string;
+  best_ask: string;
+}
 
-const MarketWebSocketEventSchema = structType({
-  event_type: string(),
-  market: optional(string()),
-  asset_id: optional(string()),
-  bids: optional(array(MarketOrderbookLevelSchema)),
-  asks: optional(array(MarketOrderbookLevelSchema)),
-  price_changes: optional(array(MarketPriceChangeSchema)),
-  timestamp: optional(string()),
-});
+interface MarketWebSocketEvent {
+  event_type: string;
+  market?: string;
+  asset_id?: string;
+  bids?: MarketOrderbookLevel[];
+  asks?: MarketOrderbookLevel[];
+  price_changes?: MarketPriceChange[];
+  timestamp?: string;
+}
 
-type MarketWebSocketEvent = Infer<typeof MarketWebSocketEventSchema>;
+/**
+ * Lightweight structural guard for market WebSocket messages.
+ *
+ * This runs on EVERY message of a very chatty socket (order book snapshots
+ * can carry hundreds of levels), so schema-library validation (superstruct
+ * `create`) is deliberately avoided here — per-element validation of
+ * `bids`/`asks`/`price_changes` dominated JS CPU profiles of the Crypto
+ * Up/Down flow. Only top-level field shapes are checked; array elements are
+ * validated defensively at their single consumption sites
+ * (`handleBookEvent` and the price-change mapping in `handleMarketMessage`).
+ */
+const toMarketWebSocketEvent = (
+  parsed: unknown,
+): MarketWebSocketEvent | undefined => {
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return undefined;
+  }
+  const candidate = parsed as Record<string, unknown>;
+  if (typeof candidate.event_type !== 'string') {
+    return undefined;
+  }
+  if (
+    (candidate.market !== undefined && typeof candidate.market !== 'string') ||
+    (candidate.asset_id !== undefined &&
+      typeof candidate.asset_id !== 'string') ||
+    (candidate.timestamp !== undefined &&
+      typeof candidate.timestamp !== 'string') ||
+    (candidate.bids !== undefined && !Array.isArray(candidate.bids)) ||
+    (candidate.asks !== undefined && !Array.isArray(candidate.asks)) ||
+    (candidate.price_changes !== undefined &&
+      !Array.isArray(candidate.price_changes))
+  ) {
+    return undefined;
+  }
+  return candidate as unknown as MarketWebSocketEvent;
+};
 
 interface RtdsWebSocketEvent {
   topic: string;
@@ -107,7 +142,16 @@ export class WebSocketManager {
 
   private gameSubscriptions: Map<string, Set<GameUpdateCallback>> = new Map();
   private priceSubscriptions: Map<string, Set<PriceUpdateCallback>> = new Map();
+  // Parsed token-id set per subscription key, precomputed once at subscribe
+  // time so the high-frequency message handler never re-runs
+  // `key.split(',')` + `new Set(...)` per message.
+  private priceSubscriptionTokenSets: Map<string, Set<string>> = new Map();
   private marketPriceCache: Map<string, PriceUpdate> = new Map();
+  // Coalesced price emission: token ids that changed since the last flush, plus
+  // the leading/trailing throttle timer. Avoids re-rendering subscribers at the
+  // full WebSocket message rate.
+  private marketPricePendingTokenIds: Set<string> = new Set();
+  private marketPriceEmitTimer: ReturnType<typeof setTimeout> | null = null;
   private orderbookSubscriptions: Map<string, Set<OrderbookCallback>> =
     new Map();
   private orderbookState: Map<
@@ -148,6 +192,13 @@ export class WebSocketManager {
   private throttleTimer: ReturnType<typeof setInterval> | null = null;
 
   private appStateSubscription: { remove: () => void } | null = null;
+
+  // Single source of connection-status fan-out. Subscribers receive the current
+  // status on subscribe and thereafter only on real transitions, so N mounted
+  // hooks share one push instead of each running a 1s poll timer.
+  private connectionStatusSubscribers: Set<ConnectionStatusCallback> =
+    new Set();
+  private lastConnectionStatus: ConnectionStatus | null = null;
 
   private constructor() {
     this.setupAppStateListener();
@@ -250,10 +301,12 @@ export class WebSocketManager {
       this.sportsWs.onopen = () => {
         this.sportsReconnectAttempts = 0;
         this.startSportsPing();
+        this.emitConnectionStatusIfChanged();
       };
 
       this.sportsWs.onclose = () => {
         this.stopSportsPing();
+        this.emitConnectionStatusIfChanged();
         this.scheduleSportsReconnect();
       };
 
@@ -411,6 +464,7 @@ export class WebSocketManager {
         this.sportsWs.close();
       }
       this.sportsWs = null;
+      this.emitConnectionStatusIfChanged();
     }
   }
 
@@ -431,6 +485,10 @@ export class WebSocketManager {
     if (!callbacks) {
       callbacks = new Set();
       this.priceSubscriptions.set(subscriptionKey, callbacks);
+      this.priceSubscriptionTokenSets.set(
+        subscriptionKey,
+        new Set(subscriptionKey.split(',').filter(Boolean)),
+      );
     }
     callbacks.add(callback);
 
@@ -471,6 +529,7 @@ export class WebSocketManager {
         subscriptionCallbacks.delete(callback);
         if (subscriptionCallbacks.size === 0) {
           this.priceSubscriptions.delete(subscriptionKey);
+          this.priceSubscriptionTokenSets.delete(subscriptionKey);
           const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
           const tokenIdsToUnsubscribe = tokenIds.filter(
             (tokenId) =>
@@ -626,6 +685,74 @@ export class WebSocketManager {
     };
   }
 
+  /**
+   * Throttle market price fan-out with a leading + trailing edge, mirroring
+   * {@link scheduleOrderbookEmit}. The first change in a window is delivered
+   * immediately; subsequent changes within the window are batched and flushed
+   * once when the window closes.
+   */
+  private scheduleMarketPriceEmit(): void {
+    if (this.marketPriceEmitTimer === null) {
+      this.flushMarketPriceUpdates();
+      this.marketPriceEmitTimer = setTimeout(() => {
+        this.marketPriceEmitTimer = null;
+        if (this.marketPricePendingTokenIds.size > 0) {
+          this.flushMarketPriceUpdates();
+        }
+      }, MARKET_PRICE_EMIT_THROTTLE_MS);
+    }
+  }
+
+  private flushMarketPriceUpdates(): void {
+    if (this.marketPricePendingTokenIds.size === 0) {
+      return;
+    }
+
+    const changedTokenIds = this.marketPricePendingTokenIds;
+    this.marketPricePendingTokenIds = new Set();
+
+    this.priceSubscriptions.forEach((callbacks, key) => {
+      if (callbacks.size === 0) {
+        return;
+      }
+      const subscribedTokenIds = this.priceSubscriptionTokenSets.get(key);
+      if (!subscribedTokenIds) {
+        return;
+      }
+
+      const relevantUpdates: PriceUpdate[] = [];
+      changedTokenIds.forEach((tokenId) => {
+        if (subscribedTokenIds.has(tokenId)) {
+          const cached = this.marketPriceCache.get(tokenId);
+          if (cached) {
+            relevantUpdates.push(cached);
+          }
+        }
+      });
+
+      if (relevantUpdates.length === 0) {
+        return;
+      }
+
+      callbacks.forEach((callback) => {
+        try {
+          callback(relevantUpdates);
+        } catch (error) {
+          DevLogger.log('WebSocketManager: Market price subscriber failed', {
+            error,
+            subscriptionKey: key,
+          });
+          Logger.error(
+            this.toError(error),
+            this.getErrorContext('flushMarketPriceUpdates', 'market', {
+              subscriptionKey: key,
+            }),
+          );
+        }
+      });
+    });
+  }
+
   private emitOrderbookSnapshot(tokenId: string): void {
     const cached = this.orderbookState.get(tokenId);
     const callbacks = this.orderbookSubscriptions.get(tokenId);
@@ -705,7 +832,7 @@ export class WebSocketManager {
 
   private ensureMarketConnection(tokenIds: string[]): void {
     if (this.marketWs?.readyState === WebSocket.OPEN) {
-      this.sendMarketSubscribe(tokenIds);
+      this.sendMarketSubscriptionUpdate(tokenIds);
       return;
     }
     if (this.marketWs?.readyState === WebSocket.CONNECTING) {
@@ -726,11 +853,13 @@ export class WebSocketManager {
         this.startMarketPing();
         this.startMarketHeartbeat();
         this.resubscribeAllMarkets();
+        this.emitConnectionStatusIfChanged();
       };
 
       this.marketWs.onclose = () => {
         this.stopMarketPing();
         this.stopMarketHeartbeat();
+        this.emitConnectionStatusIfChanged();
         this.scheduleMarketReconnect();
       };
 
@@ -782,15 +911,13 @@ export class WebSocketManager {
       return undefined;
     }
 
-    try {
-      return create(parsedMessage, MarketWebSocketEventSchema);
-    } catch (error) {
+    const data = toMarketWebSocketEvent(parsedMessage);
+    if (!data) {
       DevLogger.log('WebSocketManager: Ignoring invalid market message', {
-        error,
         bodySnippet: message.slice(0, 200),
       });
-      return undefined;
     }
+    return data;
   }
 
   private handleMarketMessage = (event: WebSocketMessageEvent): void => {
@@ -812,45 +939,29 @@ export class WebSocketManager {
         return;
       }
 
-      const updates: PriceUpdate[] = data.price_changes.map((change) => ({
-        tokenId: change.asset_id,
-        price: parseFloat(change.price) || 0,
-        bestBid: parseFloat(change.best_bid) || 0,
-        bestAsk: parseFloat(change.best_ask) || 0,
-      }));
+      const updates: PriceUpdate[] = [];
+      for (const change of data.price_changes) {
+        // Elements are not schema-validated in the hot parse path (see
+        // `toMarketWebSocketEvent`) — guard here instead.
+        if (!change || typeof change.asset_id !== 'string') {
+          continue;
+        }
+        updates.push({
+          tokenId: change.asset_id,
+          price: parseFloat(change.price) || 0,
+          bestBid: parseFloat(change.best_bid) || 0,
+          bestAsk: parseFloat(change.best_ask) || 0,
+        });
+      }
 
       updates.forEach((update) => {
         this.marketPriceCache.set(update.tokenId, update);
+        this.marketPricePendingTokenIds.add(update.tokenId);
       });
 
-      this.priceSubscriptions.forEach((callbacks, key) => {
-        const subscribedTokenIds = new Set(key.split(','));
-        const relevantUpdates = updates.filter((u) =>
-          subscribedTokenIds.has(u.tokenId),
-        );
-
-        if (relevantUpdates.length > 0) {
-          callbacks.forEach((callback) => {
-            try {
-              callback(relevantUpdates);
-            } catch (error) {
-              DevLogger.log(
-                'WebSocketManager: Market price subscriber failed',
-                {
-                  error,
-                  subscriptionKey: key,
-                },
-              );
-              Logger.error(
-                this.toError(error),
-                this.getErrorContext('handleMarketMessage', 'market', {
-                  subscriptionKey: key,
-                }),
-              );
-            }
-          });
-        }
-      });
+      // Coalesce emission instead of fanning out synchronously on every
+      // message. Live odds stream far faster than the UI needs to render.
+      this.scheduleMarketPriceEmit();
 
       // Intentionally NOT forwarding `price_change` to orderbook subscribers.
       // The payload only carries `best_bid` / `best_ask` (no per-level
@@ -878,8 +989,13 @@ export class WebSocketManager {
       return;
     }
 
+    // Levels are not schema-validated in the hot parse path (see
+    // `toMarketWebSocketEvent`) — guard each level here instead.
     const bids = new Map<string, number>();
     data.bids?.forEach((level) => {
+      if (!level || typeof level.price !== 'string') {
+        return;
+      }
       const size = parseFloat(level.size);
       if (Number.isFinite(size) && size > 0) {
         bids.set(level.price, size);
@@ -887,6 +1003,9 @@ export class WebSocketManager {
     });
     const asks = new Map<string, number>();
     data.asks?.forEach((level) => {
+      if (!level || typeof level.price !== 'string') {
+        return;
+      }
       const size = parseFloat(level.size);
       if (Number.isFinite(size) && size > 0) {
         asks.set(level.price, size);
@@ -902,7 +1021,7 @@ export class WebSocketManager {
     this.scheduleOrderbookEmit(data.asset_id);
   }
 
-  private sendMarketSubscribe(tokenIds: string[]): void {
+  private sendInitialMarketSubscription(tokenIds: string[]): void {
     if (this.marketWs?.readyState !== WebSocket.OPEN) {
       return;
     }
@@ -910,6 +1029,19 @@ export class WebSocketManager {
     this.marketWs.send(
       JSON.stringify({
         type: 'market',
+        assets_ids: tokenIds,
+      }),
+    );
+  }
+
+  private sendMarketSubscriptionUpdate(tokenIds: string[]): void {
+    if (this.marketWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    this.marketWs.send(
+      JSON.stringify({
+        operation: 'subscribe',
         assets_ids: tokenIds,
       }),
     );
@@ -949,7 +1081,7 @@ export class WebSocketManager {
     });
 
     if (allTokenIds.size > 0) {
-      this.sendMarketSubscribe(Array.from(allTokenIds));
+      this.sendInitialMarketSubscription(Array.from(allTokenIds));
     }
   }
 
@@ -1047,6 +1179,7 @@ export class WebSocketManager {
         this.marketWs.close();
       }
       this.marketWs = null;
+      this.emitConnectionStatusIfChanged();
     }
   }
 
@@ -1054,6 +1187,11 @@ export class WebSocketManager {
     this.cleanupMarketConnection();
     this.marketReconnectAttempts = 0;
     this.marketPriceCache.clear();
+    if (this.marketPriceEmitTimer) {
+      clearTimeout(this.marketPriceEmitTimer);
+      this.marketPriceEmitTimer = null;
+    }
+    this.marketPricePendingTokenIds.clear();
     // Drop cached orderbook state so a future reconnect doesn't replay a
     // stale snapshot to subscribers. The provider's REST bootstrap and the
     // next live `book` event will repopulate. Also flush throttle timers so
@@ -1089,11 +1227,13 @@ export class WebSocketManager {
         this.startRtdsPing();
         this.startRtdsHeartbeat();
         this.resubscribeAllRtds();
+        this.emitConnectionStatusIfChanged();
       };
 
       this.rtdsWs.onclose = () => {
         this.stopRtdsPing();
         this.stopRtdsHeartbeat();
+        this.emitConnectionStatusIfChanged();
         this.scheduleRtdsReconnect();
       };
 
@@ -1180,7 +1320,7 @@ export class WebSocketManager {
 
     this.throttleTimer = setInterval(() => {
       this.flushCryptoPriceBuffer();
-    }, DEFAULT_THROTTLE_INTERVAL_MS);
+    }, CRYPTO_PRICE_EMIT_THROTTLE_MS);
   }
 
   private flushCryptoPriceBuffer(): void {
@@ -1417,6 +1557,7 @@ export class WebSocketManager {
         this.rtdsWs.close();
       }
       this.rtdsWs = null;
+      this.emitConnectionStatusIfChanged();
     }
   }
 
@@ -1456,6 +1597,7 @@ export class WebSocketManager {
     this.disconnectAll();
     this.gameSubscriptions.clear();
     this.priceSubscriptions.clear();
+    this.priceSubscriptionTokenSets.clear();
     this.cryptoPriceSubscriptions.clear();
     this.marketPriceCache.clear();
     this.orderbookSubscriptions.clear();
@@ -1468,6 +1610,50 @@ export class WebSocketManager {
       this.appStateSubscription.remove();
       this.appStateSubscription = null;
     }
+  }
+
+  /**
+   * Subscribe to WebSocket connection-status changes. The callback is invoked
+   * immediately with the current status, then only when a channel actually
+   * transitions (see {@link emitConnectionStatusIfChanged}).
+   *
+   * @param callback - Receives the full {@link ConnectionStatus} on each change.
+   * @returns Unsubscribe function.
+   */
+  subscribeToConnectionStatus(callback: ConnectionStatusCallback): () => void {
+    this.connectionStatusSubscribers.add(callback);
+    const { sportsConnected, marketConnected, rtdsConnected } =
+      this.getConnectionStatus();
+    callback({ sportsConnected, marketConnected, rtdsConnected });
+    return () => {
+      this.connectionStatusSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Fan out connection status only when the derived booleans changed. Called
+   * from every socket open/close and cleanup so reconnect churn does not spam
+   * subscribers.
+   */
+  private emitConnectionStatusIfChanged(): void {
+    const { sportsConnected, marketConnected, rtdsConnected } =
+      this.getConnectionStatus();
+    const previous = this.lastConnectionStatus;
+    if (
+      previous &&
+      previous.sportsConnected === sportsConnected &&
+      previous.marketConnected === marketConnected &&
+      previous.rtdsConnected === rtdsConnected
+    ) {
+      return;
+    }
+    const status: ConnectionStatus = {
+      sportsConnected,
+      marketConnected,
+      rtdsConnected,
+    };
+    this.lastConnectionStatus = status;
+    this.connectionStatusSubscribers.forEach((callback) => callback(status));
   }
 
   getConnectionStatus(): {

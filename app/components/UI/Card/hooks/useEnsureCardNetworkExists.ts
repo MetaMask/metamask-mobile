@@ -7,7 +7,30 @@ import Engine from '../../../../core/Engine';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
+import { BASE_SEPOLIA_RPC_URL } from '../constants';
+
+// PopularList only curates production mainnets. Card feature dev/sandbox
+// builds (e.g. Immersve funding against the Base Sepolia sandbox) need a
+// testnet that will never appear there — this small map fills that gap
+// without touching the app-wide PopularList used for regular network adds.
+const CARD_TEST_NETWORKS: {
+  chainId: Hex;
+  nickname: string;
+  rpcUrl: string;
+  failoverRpcUrls?: string[];
+  ticker: string;
+  rpcPrefs: { blockExplorerUrl: string };
+}[] = [
+  {
+    chainId: NETWORKS_CHAIN_ID.BASE_SEPOLIA,
+    nickname: 'Base Sepolia',
+    rpcUrl: BASE_SEPOLIA_RPC_URL,
+    ticker: 'ETH',
+    rpcPrefs: { blockExplorerUrl: 'https://sepolia.basescan.org' },
+  },
+];
 
 /**
  * Ensures a Card-supported EVM network exists in the user's network list.
@@ -33,10 +56,15 @@ export const useEnsureCardNetworkExists = () => {
         return rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
       }
 
-      // Network is missing — find it in PopularList and add it
-      const popularEntry = PopularList.find(
-        (network) => toHex(network.chainId as string) === hexChainId,
-      );
+      // Network is missing — find it in PopularList (or the Card-specific
+      // testnet fallback) and add it
+      const popularEntry =
+        PopularList.find(
+          (network) => toHex(network.chainId as string) === hexChainId,
+        ) ??
+        CARD_TEST_NETWORKS.find(
+          (network) => toHex(network.chainId) === hexChainId,
+        );
 
       if (!popularEntry) {
         throw new Error(

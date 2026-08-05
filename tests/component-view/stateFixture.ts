@@ -1,5 +1,6 @@
 import type { DeepPartial } from '../../app/util/test/renderWithProvider';
 import type { RootState } from '../../app/reducers';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 // Removed dependency on large JSON snapshot; tests compose state via builder helpers
 
 type PlainObject = Record<string, unknown>;
@@ -36,11 +37,6 @@ export const defaultFeatureFlags: Record<string, unknown> = {
     minimumVersion: null,
   },
   enableMultichainAccounts: {
-    enabled: false,
-    featureVersion: null,
-    minimumVersion: null,
-  },
-  rewardsEnabled: {
     enabled: false,
     featureVersion: null,
     minimumVersion: null,
@@ -174,7 +170,9 @@ export interface StateFixtureBuilder {
 export function createStateFixture(): StateFixtureBuilder {
   const baseState = {
     engine: { backgroundState: {} },
-    settings: {},
+    settings: {
+      basicFunctionalityEnabled: true,
+    },
   } as unknown as DeepPartial<RootState>;
   let current: DeepPartial<RootState> = baseState;
 
@@ -225,6 +223,10 @@ export function createStateFixture(): StateFixtureBuilder {
             address: srcTokenAddress,
             decimals: 18,
             symbol: 'ETH',
+            assetId: formatAddressToAssetId(
+              srcTokenAddress,
+              numericChainId,
+            ) as `${string}:${string}/${string}:${string}`,
             name: 'Ether',
           },
           destAsset: {
@@ -233,6 +235,10 @@ export function createStateFixture(): StateFixtureBuilder {
             decimals: 6,
             symbol: 'USDC',
             name: 'USD Coin',
+            assetId: formatAddressToAssetId(
+              destTokenAddress,
+              numericChainId,
+            ) as `${string}:${string}/${string}:${string}`,
           },
           srcTokenAmount: srcAmount,
           destTokenAmount: '1000000', // 1 USDC (6 decimals)
@@ -245,6 +251,10 @@ export function createStateFixture(): StateFixtureBuilder {
                 decimals: 18,
                 symbol: 'ETH',
                 name: 'Ether',
+                assetId: formatAddressToAssetId(
+                  srcTokenAddress,
+                  numericChainId,
+                ) as `${string}:${string}/${string}:${string}`,
               },
             },
           },
@@ -326,6 +336,7 @@ export function createStateFixture(): StateFixtureBuilder {
                 quotesRefreshCount: 0,
                 quoteFetchError: null,
                 tokenWarnings: [],
+                inputPrimaryDenomination: 'token_amount',
                 quoteStreamComplete: null,
               },
             },
@@ -463,6 +474,7 @@ export function createStateFixture(): StateFixtureBuilder {
                 quotesLastFetched: 0,
                 quotes: [],
                 tokenWarnings: [],
+                inputPrimaryDenomination: 'token_amount',
                 quoteStreamComplete: null,
               },
             },

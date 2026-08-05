@@ -45,7 +45,6 @@ import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
-  /** Used when `BottomSheet` is mocked in unit tests (production sheet has no wrapper testID). */
   BOTTOM_SHEET: 'account-selector-bottom-sheet',
 };
 
@@ -153,6 +152,24 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const accountName = selectedAccountGroup?.metadata?.name;
 
+  const displayLabel = useMemo(() => {
+    if (
+      !filteredAccountSections ||
+      filteredAccountSections.length <= 1 ||
+      !selectedAccountGroup
+    ) {
+      return label;
+    }
+
+    const walletName = filteredAccountSections
+      .find((section) =>
+        section.data.some((group) => group.id === selectedAccountGroup.id),
+      )
+      ?.title?.replace(/ accounts$/iu, '');
+
+    return walletName ? `${label} ${walletName}` : label;
+  }, [filteredAccountSections, selectedAccountGroup, label]);
+
   return (
     <View style={[styles.container, style]}>
       <TouchableOpacity
@@ -161,7 +178,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {label}
+          {displayLabel}
         </Text>
         <View style={styles.valueContainer}>
           {selectedAddress && accountName ? (

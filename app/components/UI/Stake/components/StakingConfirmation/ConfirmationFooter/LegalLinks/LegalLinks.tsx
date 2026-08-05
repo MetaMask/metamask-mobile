@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { View, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Text, {
@@ -13,7 +14,7 @@ import styleSheet from './LegalLinks.styles';
 const FooterLegalLinks = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleNavigateToWebView = (url: string) =>
     navigation.navigate('Webview', {

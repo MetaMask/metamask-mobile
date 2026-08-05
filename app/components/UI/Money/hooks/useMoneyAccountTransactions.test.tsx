@@ -257,8 +257,6 @@ describe('useMoneyAccountTransactions', () => {
 
     describe.each([
       TransactionStatus.unapproved,
-      TransactionStatus.approved,
-      TransactionStatus.signed,
       TransactionStatus.rejected,
       TransactionStatus.dropped,
       TransactionStatus.cancelled,
@@ -296,10 +294,15 @@ describe('useMoneyAccountTransactions', () => {
       });
     });
 
+    // `approved`/`signed` are user-confirmed Money txs held by the MetaMask
+    // Pay publish hook while a cross-chain payment completes — they must
+    // surface as pending rows for the whole bridge duration.
     it.each([
       TransactionStatus.confirmed,
       TransactionStatus.submitted,
       TransactionStatus.failed,
+      TransactionStatus.approved,
+      TransactionStatus.signed,
     ])(
       'includes direct moneyAccountDeposit with visible status %s',
       (status) => {
@@ -317,6 +320,8 @@ describe('useMoneyAccountTransactions', () => {
       TransactionStatus.confirmed,
       TransactionStatus.submitted,
       TransactionStatus.failed,
+      TransactionStatus.approved,
+      TransactionStatus.signed,
     ])(
       'includes EIP-7702 batch with nested moneyAccountDeposit and visible status %s',
       (status) => {
@@ -335,8 +340,72 @@ describe('useMoneyAccountTransactions', () => {
       },
     );
 
+    it.each([
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+      TransactionStatus.submitted,
+    ])(
+      'counts a moneyAccountDeposit with in-flight status %s as a submitted transaction',
+      (status) => {
+        const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.submittedTransactions).toHaveLength(1);
+      },
+    );
+
     it('excludes unrelated transaction types', () => {
       const tx = makeTx(TransactionType.swap);
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(0);
+    });
+
+    const MUSD_ON_MONAD = {
+      tokenAddress: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    };
+
+    it('includes a Perps deposit funded from the Money account as a transfer (outflow)', () => {
+      const tx = makeTx(TransactionType.perpsDeposit, {
+        metamaskPay: MUSD_ON_MONAD as TransactionMeta['metamaskPay'],
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(0);
+    });
+
+    it('includes a Predict withdraw landing in the Money account as a deposit (inflow)', () => {
+      const tx = makeTx(TransactionType.batch, {
+        nestedTransactions: [
+          { type: TransactionType.predictWithdraw } as TransactionMeta,
+        ],
+        metamaskPay: MUSD_ON_MONAD as TransactionMeta['metamaskPay'],
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(0);
+    });
+
+    it('excludes a Perps deposit not funded from the Money account', () => {
+      const tx = makeTx(TransactionType.perpsDeposit, {
+        metamaskPay: {
+          tokenAddress: OTHER_ERC20,
+          chainId: CHAIN_IDS.ARBITRUM,
+        } as TransactionMeta['metamaskPay'],
+      });
       const { result } = renderHookWithProvider(
         () => useMoneyAccountTransactions(),
         { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },

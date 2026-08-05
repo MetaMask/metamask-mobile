@@ -1,7 +1,12 @@
 import { web, system } from 'detox';
+import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import { resolve } from './Selector.ts';
+import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
+import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import type { ScrollContainer } from './types.ts';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -17,10 +22,8 @@ export default class Matchers {
     if (typeof elementId === 'string') {
       return resolve({ testID: elementId, index });
     }
-    const el = element(by.id(elementId));
-    return (index !== undefined
-      ? el.atIndex(index)
-      : el) as unknown as DetoxElement;
+
+    return resolve({ testIDPattern: elementId, index });
   }
 
   /**
@@ -33,7 +36,8 @@ export default class Matchers {
     if (typeof text === 'string') {
       return resolve({ text, index });
     }
-    return element(by.text(text)).atIndex(index) as unknown as DetoxElement;
+
+    return resolve({ textPattern: text, index });
   }
 
   /**
@@ -133,7 +137,16 @@ export default class Matchers {
   static async getElementByWebID(
     webviewID: string,
     innerID: string,
-  ): WebElement {
+    pageUrl?: string,
+  ): Promise<WebElement | PlaywrightElement> {
+    if (FrameworkDetector.isAppium()) {
+      if (!pageUrl) {
+        throw new Error(
+          'pageUrl is required for Appium WebView element lookup via getElementByWebID',
+        );
+      }
+      return PlaywrightWebMatchers.getElementByWebID(innerID, pageUrl);
+    }
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.id(innerID));
   }
@@ -157,9 +170,37 @@ export default class Matchers {
   static async getElementByXPath(
     webviewID: string,
     xpath: string,
-  ): Promise<DetoxElement | WebElement> {
+    pageUrl?: string,
+  ): Promise<DetoxElement | WebElement | PlaywrightElement> {
+    if (FrameworkDetector.isAppium()) {
+      if (!pageUrl) {
+        throw new Error(
+          'pageUrl is required for Appium WebView element lookup via getElementByXPath',
+        );
+      }
+      return PlaywrightWebMatchers.getElementByXPath(xpath, pageUrl);
+    }
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.xpath(xpath));
+  }
+
+  /**
+   * Get a browser WebView test element by data-testid.
+   * @param dataTestId - The data-testid of the element
+   * @param options.tag - The tag of the element having the data-testid attribute (e.g. 'div', 'input'). Defaults to 'div'
+   * @param options.extraXPath - Extra xpath suffix (e.g. '/div/button') for elements without a data-testid
+   */
+  static getTestElement(
+    dataTestId: string,
+    options: { extraXPath?: string; tag?: string } = {},
+  ): Promise<DetoxElement | WebElement | PlaywrightElement> {
+    const { tag = 'div', extraXPath = '' } = options;
+    const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
+
+    return this.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      xpath,
+    );
   }
 
   /**
@@ -193,11 +234,40 @@ export default class Matchers {
   }
 
   /**
+   * Scroll container for Gestures.scrollToElement.
+   * Detox: native matcher by testID. Appium: testID string (resolved in UnifiedGestures).
+   */
+  static scrollContainer(selectorString: string): ScrollContainer {
+    if (FrameworkDetector.isAppium()) {
+      return selectorString;
+    }
+    return this.getIdentifier(selectorString);
+  }
+
+  /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text
    */
   static async getSystemElementByText(
     text: string,
   ): Promise<Detox.IndexableSystemElement> {
     return system.element(by.system.label(text));
+  }
+
+  /**
+   * Get all elements matching an XPath selector (Appium-only).
+   * Returns an empty array when no element matches — use this when the count
+   * itself is meaningful (e.g. asserting a duplicate label appears N times).
+   * Detox has no direct equivalent; matched elements there are addressed via
+   * `.atIndex(N)` on a Detox matcher instead.
+   */
+  static async getAllElementsByXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement[]> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'Matchers.getAllElementsByXPath is Appium-only. On Detox, use the matcher returned by getElementByID/getElementByIDAndLabel and address indices via .atIndex(N).',
+      );
+    }
+    return PlaywrightMatchers.getAllElementsByXPath(xpath);
   }
 }

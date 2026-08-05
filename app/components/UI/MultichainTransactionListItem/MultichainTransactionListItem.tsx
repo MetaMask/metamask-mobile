@@ -12,10 +12,10 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
+import { strings } from '../../../../locales/i18n';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../reducers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
@@ -29,6 +29,7 @@ import {
   TRANSACTION_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
+import { selectAppTheme } from '../../../selectors/user';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -45,11 +46,19 @@ const MultichainTransactionListItem = ({
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
-  const appTheme = useSelector((state: RootState) => state.user.appTheme);
+  const appTheme = useSelector(selectAppTheme);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
-  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
+  const {
+    title,
+    from,
+    to,
+    priorityFee,
+    baseFee,
+    isRedeposit,
+    isUnlimitedApproval,
+  } = displayData;
 
   const handlePress = useCallback(() => {
     trackEvent(
@@ -113,7 +122,17 @@ const MultichainTransactionListItem = ({
     }
 
     if (transaction.type === TransactionType.Unknown) {
-      return `${baseFee?.amount} ${baseFee?.unit}`;
+      return baseFee ? `${baseFee.amount} ${baseFee.unit}` : ``;
+    }
+
+    if (transaction.type === TransactionType.TokenApprove) {
+      const unit = from?.unit || to?.unit || '';
+      if (isUnlimitedApproval) {
+        const unitSuffix = unit ? ` ${unit}` : '';
+        return `${strings('confirm.unlimited')}${unitSuffix}`;
+      }
+      const amount = to?.amount || from?.amount?.replace(/^-/, '') || '';
+      return `${amount} ${unit}`.trim();
     }
 
     return `${to?.amount} ${to?.unit}`;

@@ -23,8 +23,6 @@ const mockAnalyticsDataDeletion = {
   checkDataDeleteStatus: jest.fn(),
   getDeleteRegulationCreationDate: jest.fn(),
   getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  updateDataRecordingFlag: jest.fn(),
 };
 jest.mock('../../../util/analytics/analyticsDataDeletion', () => ({
   createDataDeletionTask: (...args: unknown[]) =>
@@ -35,10 +33,6 @@ jest.mock('../../../util/analytics/analyticsDataDeletion', () => ({
     mockAnalyticsDataDeletion.getDeleteRegulationCreationDate(...args),
   getDeleteRegulationId: (...args: unknown[]) =>
     mockAnalyticsDataDeletion.getDeleteRegulationId(...args),
-  isDataRecorded: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.isDataRecorded(...args),
-  updateDataRecordingFlag: (...args: unknown[]) =>
-    mockAnalyticsDataDeletion.updateDataRecordingFlag(...args),
 }));
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -60,45 +54,13 @@ const expectedDataDeletionTaskResponse = {
 const expectedDataDeleteStatus = {
   deletionRequestDate: undefined,
   dataDeletionRequestStatus: DataDeleteStatus.unknown,
-  hasCollectedDataSinceDeletionRequest: false,
 };
 
 const expectedDate = '20/04/2024';
 
 const expectedDataDeleteRegulationId = 'TWV0YU1hc2t1c2Vzbm9wb2ludCE';
 
-const buildAnalyticsEvent = (
-  saveDataRecording: boolean,
-): AnalyticsTrackingEvent => ({
-  name: 'test-event',
-  properties: {},
-  sensitiveProperties: {},
-  saveDataRecording,
-  get isAnonymous() {
-    return false;
-  },
-  get hasProperties() {
-    return false;
-  },
-});
-
-const createMockEventBuilder = (
-  analyticsEvent: AnalyticsTrackingEvent,
-): ReturnType<typeof AnalyticsEventBuilder.createEventBuilder> => ({
-  addProperties: jest.fn().mockReturnThis(),
-  addSensitiveProperties: jest.fn().mockReturnThis(),
-  removeProperties: jest.fn().mockReturnThis(),
-  removeSensitiveProperties: jest.fn().mockReturnThis(),
-  setSaveDataRecording: jest.fn().mockReturnThis(),
-  build: jest.fn(() => analyticsEvent),
-});
-
 describe('useAnalytics', () => {
-  let mockEventBuilder: ReturnType<
-    typeof AnalyticsEventBuilder.createEventBuilder
-  >;
-  let mockAnalyticsEvent: AnalyticsTrackingEvent;
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -114,7 +76,6 @@ describe('useAnalytics', () => {
     mockAnalyticsDataDeletion.getDeleteRegulationId.mockReturnValue(
       expectedDataDeleteRegulationId,
     );
-    mockAnalyticsDataDeletion.isDataRecorded.mockReturnValue(true);
 
     // Set up analytics mock return values
     (
@@ -125,13 +86,6 @@ describe('useAnalytics', () => {
         typeof analytics.getAnalyticsId
       >
     ).mockResolvedValue('4d657461-4d61-436b-8e73-46756e212121');
-
-    mockAnalyticsEvent = buildAnalyticsEvent(false);
-    mockEventBuilder = createMockEventBuilder(mockAnalyticsEvent);
-
-    jest
-      .spyOn(AnalyticsEventBuilder, 'createEventBuilder')
-      .mockReturnValue(mockEventBuilder);
   });
 
   afterEach(() => {
@@ -151,7 +105,6 @@ describe('useAnalytics', () => {
       name: 'test-event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: true,
       get isAnonymous() {
         return false;
       },
@@ -162,38 +115,10 @@ describe('useAnalytics', () => {
     const { result } = renderHook(() => useAnalytics());
 
     act(() => {
-      result.current.trackEvent(event, false);
+      result.current.trackEvent(event);
     });
 
-    expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-      event,
-    );
-    expect(mockEventBuilder.setSaveDataRecording).toHaveBeenCalledWith(false);
-    expect(analytics.trackEvent).toHaveBeenCalledWith(mockAnalyticsEvent);
-  });
-
-  it('updates data recording flag', () => {
-    const event: AnalyticsTrackingEvent = {
-      name: 'test-event',
-      properties: {},
-      sensitiveProperties: {},
-      saveDataRecording: true,
-      get isAnonymous() {
-        return false;
-      },
-      get hasProperties() {
-        return false;
-      },
-    };
-    const { result } = renderHook(() => useAnalytics());
-
-    act(() => {
-      result.current.trackEvent(event, false);
-    });
-
-    expect(
-      mockAnalyticsDataDeletion.updateDataRecordingFlag,
-    ).toHaveBeenCalledWith(false);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(event);
   });
 
   it('calls analytics optIn when enable is true', async () => {
@@ -222,17 +147,6 @@ describe('useAnalytics', () => {
 
     await act(async () => {
       await result.current.identify(userTraits);
-    });
-
-    expect(analytics.identify).toHaveBeenCalledWith(userTraits);
-  });
-
-  it('calls analytics identify via deprecated addTraitsToUser()', async () => {
-    const userTraits = { test: 'value' };
-    const { result } = renderHook(() => useAnalytics());
-
-    await act(async () => {
-      await result.current.addTraitsToUser(userTraits);
     });
 
     expect(analytics.identify).toHaveBeenCalledWith(userTraits);
@@ -288,15 +202,6 @@ describe('useAnalytics', () => {
       mockAnalyticsDataDeletion.getDeleteRegulationId,
     ).toHaveBeenCalledTimes(1);
     expect(regulationId).toEqual(expectedDataDeleteRegulationId);
-  });
-
-  it('delegates isDataRecorded to analyticsDataDeletion', () => {
-    const { result } = renderHook(() => useAnalytics());
-
-    const isDataRecordedValue = result.current.isDataRecorded();
-
-    expect(mockAnalyticsDataDeletion.isDataRecorded).toHaveBeenCalledTimes(1);
-    expect(isDataRecordedValue).toBe(true);
   });
 
   it('returns analytics enabled state', () => {

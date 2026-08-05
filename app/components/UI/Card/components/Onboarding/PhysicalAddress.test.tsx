@@ -351,7 +351,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.physical_address.crb_consent_1':
         'I agree with Cross River Bank ',
       'card.card_onboarding.physical_address.crb_consent_2':
-        'Terms & Conditions',
+        'Terms and Conditions',
       'card.card_onboarding.physical_address.crb_consent_3': ', ',
       'card.card_onboarding.physical_address.crb_consent_4':
         'Account Opening Disclosures',
@@ -1719,14 +1719,14 @@ describe('PhysicalAddress Component', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('https://coinme.com/legal/');
     });
 
-    it('opens CRB Terms & Conditions URL when link is pressed', () => {
+    it('opens CRB Terms and Conditions URL when link is pressed', () => {
       const { getByText } = render(
         <Provider store={store}>
           <PhysicalAddress />
         </Provider>,
       );
 
-      fireEvent.press(getByText('Terms & Conditions'));
+      fireEvent.press(getByText('Terms and Conditions'));
 
       expect(Linking.openURL).toHaveBeenCalledWith(
         'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf',
@@ -1758,6 +1758,56 @@ describe('PhysicalAddress Component', () => {
 
       expect(Linking.openURL).toHaveBeenCalledWith(
         'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf',
+      );
+    });
+
+    it('opens the dynamic auth-settings URLs when provided', () => {
+      mockUseRegistrationSettings.mockReturnValue({
+        data: {
+          usStates: [
+            {
+              id: '1',
+              name: 'California',
+              postalAbbreviation: 'CA',
+              canSignUp: true,
+            },
+          ],
+          links: {
+            us: {
+              termsAndConditions: 'https://docs.baanx.us/metamask/terms.pdf',
+              accountOpeningDisclosure:
+                'https://docs.baanx.us/metamask/account-opening.pdf',
+              noticeOfPrivacy: 'https://docs.baanx.us/metamask/privacy.pdf',
+              eSignConsentDisclosure:
+                'https://docs.baanx.us/metamask/esign.pdf',
+            },
+            intl: { termsAndConditions: '', rightToInformation: '' },
+          },
+        },
+        isLoading: false,
+        error: null,
+        fetchData: jest.fn(),
+      } as unknown as ReturnType<typeof useRegistrationSettings>);
+
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('Terms and Conditions'));
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://docs.baanx.us/metamask/terms.pdf',
+      );
+
+      fireEvent.press(getByText('Account Opening Disclosures'));
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://docs.baanx.us/metamask/account-opening.pdf',
+      );
+
+      fireEvent.press(getByText('Notice of Privacy Practices'));
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://docs.baanx.us/metamask/privacy.pdf',
       );
     });
 
@@ -1793,7 +1843,7 @@ describe('PhysicalAddress Component', () => {
 
       expect(queryByText('E-Sign Consent Disclosure')).toBeFalsy();
       expect(queryByText('Coinme Terms of Service')).toBeFalsy();
-      expect(queryByText('Terms & Conditions')).toBeFalsy();
+      expect(queryByText('Terms and Conditions')).toBeFalsy();
       expect(queryByText('Account Opening Disclosures')).toBeFalsy();
       expect(queryByText('Notice of Privacy Practices')).toBeFalsy();
       expect(queryByText('CL Privacy Policy')).toBeFalsy();

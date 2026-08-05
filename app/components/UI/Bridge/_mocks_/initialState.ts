@@ -9,18 +9,17 @@ import {
   BtcAccountType,
   TrxScope,
   TrxAccountType,
+  XlmScope,
+  XlmAccountType,
 } from '@metamask/keyring-api';
 import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
-jest.mock(
-  '../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
@@ -59,6 +58,11 @@ export const btcNativeTokenAddress =
 export const trxAccountId = 'trxAccountId';
 export const trxAccountAddress = 'TN3W4Bb1JVHPiWJVm7d9q9qHGXSdoMrMrE';
 export const trxNativeTokenAddress = 'tron:728126428/slip44:195' as CaipAssetId;
+
+export const xlmAccountId = 'xlmAccountId';
+export const xlmAccountAddress =
+  'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
+export const xlmNativeTokenAddress = 'stellar:pubnet/slip44:148' as CaipAssetId;
 
 export const initialState = {
   engine: {
@@ -108,6 +112,11 @@ export const initialState = {
                 isGaslessSwapEnabled: false,
               },
               [TrxScope.Mainnet]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+                isGaslessSwapEnabled: false,
+              },
+              [XlmScope.Pubnet]: {
                 isActiveSrc: true,
                 isActiveDest: true,
                 isGaslessSwapEnabled: false,
@@ -278,6 +287,9 @@ export const initialState = {
           tron: {
             [TrxScope.Mainnet]: true,
           },
+          stellar: {
+            [XlmScope.Pubnet]: true,
+          },
         },
       },
       MultichainNetworkController: {
@@ -302,6 +314,12 @@ export const initialState = {
             chainId: TrxScope.Mainnet,
             name: 'Tron',
             nativeCurrency: 'tron:728126428/slip44:195' as const,
+            isEvm: false as const,
+          },
+          [XlmScope.Pubnet]: {
+            chainId: XlmScope.Pubnet,
+            name: 'Stellar',
+            nativeCurrency: 'stellar:pubnet/slip44:148' as const,
             isEvm: false as const,
           },
         },
@@ -330,6 +348,12 @@ export const initialState = {
               unit: 'TRX',
             },
           },
+          [xlmAccountId]: {
+            [xlmNativeTokenAddress]: {
+              amount: '250',
+              unit: 'XLM',
+            },
+          },
         },
       },
       MultichainAssetsController: {
@@ -337,6 +361,7 @@ export const initialState = {
           [solanaAccountId]: [solanaNativeTokenAddress, solanaToken2Address],
           [btcAccountId]: [btcNativeTokenAddress],
           [trxAccountId]: [trxNativeTokenAddress],
+          [xlmAccountId]: [xlmNativeTokenAddress],
         },
         assetsMetadata: {
           [btcNativeTokenAddress]: {
@@ -413,6 +438,20 @@ export const initialState = {
               },
             ],
           },
+          [xlmNativeTokenAddress]: {
+            name: 'Stellar',
+            symbol: 'XLM',
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/stellar/pubnet/slip44/148.png',
+            fungible: true as const,
+            units: [
+              {
+                name: 'Stellar',
+                symbol: 'XLM',
+                decimals: 7,
+              },
+            ],
+          },
         },
       },
       MultichainAssetsRatesController: {
@@ -431,6 +470,10 @@ export const initialState = {
           },
           [trxNativeTokenAddress]: {
             rate: '0.10', // 1 TRX = 0.10 USD
+            conversionTime: 0,
+          },
+          [xlmNativeTokenAddress]: {
+            rate: '0.12', // 1 XLM = 0.12 USD
             conversionTime: 0,
           },
         },
@@ -475,6 +518,16 @@ export const initialState = {
               name: 'Account 4',
               type: TrxAccountType.Eoa,
               scopes: [TrxScope.Mainnet],
+              metadata: {
+                lastSelected: 0,
+              },
+            },
+            [xlmAccountId]: {
+              id: xlmAccountId,
+              address: xlmAccountAddress,
+              name: 'Account 5',
+              type: XlmAccountType.Account,
+              scopes: [XlmScope.Pubnet],
               metadata: {
                 lastSelected: 0,
               },
@@ -767,7 +820,8 @@ export const initialState = {
     destToken: undefined,
     selectedSourceChainIds: undefined,
     selectedDestChainId: undefined,
-    slippage: '0.5',
+    slippage: undefined,
+    isSlippageUserOverride: false,
     batchSellSlippages: {},
     batchSellSourceTokens: [],
     batchSellSourceTokenAmounts: {},

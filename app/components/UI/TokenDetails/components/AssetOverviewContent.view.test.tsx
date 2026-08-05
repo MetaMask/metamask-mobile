@@ -1,7 +1,7 @@
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { merge } from 'lodash';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 
@@ -62,7 +62,6 @@ const baseOverviewProps: AssetOverviewContentProps = {
   timePeriod: '1d' as TimePeriod,
   setTimePeriod: () => undefined,
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-  isPerpsEnabled: false,
   currentCurrency: 'USD',
   onBuy: () => undefined,
   onSend: async () => undefined,
@@ -80,7 +79,7 @@ function renderAssetOverviewMarketInsightsStack(
   }[],
   providerValues: ProviderValues,
 ) {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   const DefaultRouteProbe =
     (routeName: string): React.FC =>
@@ -133,6 +132,9 @@ function buildTokenDetailsMarketInsightsState(
           EarnController: {
             pooled_staking: { isEligible: false },
             lending: { positions: [], markets: [] },
+          },
+          MoneyAccountController: {
+            moneyAccounts: {},
           },
         },
       },

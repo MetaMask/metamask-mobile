@@ -11,6 +11,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -32,6 +33,7 @@ import {
   getQrCodeViewedAccountType,
   trackQrCodeViewed,
 } from '../../../../../util/analytics/qrCodeViewedTracking';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 interface RootNavigationParamList extends ParamListBase {
   ShareAddress: {
@@ -46,7 +48,7 @@ export const ShareAddress = () => {
   const tw = useTailwind();
   const route = useRoute<ShareAddressRouteProp>();
   const { account } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const formattedAddress = getFormattedAddressFromInternalAccount(account);
 
@@ -65,8 +67,22 @@ export const ShareAddress = () => {
     });
   }, [account, createEventBuilder, trackEvent]);
 
+  const explorerButtonText = strings(
+    'multichain_accounts.share_address.view_on_explorer_button',
+    {
+      explorer:
+        blockExplorer?.blockExplorerName ??
+        strings('multichain_accounts.share_address.view_on_block_explorer'),
+    },
+  );
+
   const handleExplorerLinkPress = useCallback(() => {
     if (blockExplorer) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'share_address',
+        text: explorerButtonText,
+        url: blockExplorer.url,
+      });
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -75,7 +91,13 @@ export const ShareAddress = () => {
         },
       });
     }
-  }, [blockExplorer, navigation]);
+  }, [
+    blockExplorer,
+    createEventBuilder,
+    explorerButtonText,
+    navigation,
+    trackEvent,
+  ]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
@@ -117,16 +139,7 @@ export const ShareAddress = () => {
           testID={ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON}
           style={tw.style('mt-1 self-center')}
         >
-          {strings(
-            'multichain_accounts.share_address.view_on_explorer_button',
-            {
-              explorer:
-                blockExplorer?.blockExplorerName ??
-                strings(
-                  'multichain_accounts.share_address.view_on_block_explorer',
-                ),
-            },
-          )}
+          {explorerButtonText}
         </Button>
       </Box>
     </BottomSheet>

@@ -52,7 +52,7 @@ function PillToggleCardList<T>({
   };
 
   return (
-    <Box testID={testIdPrefix} twClassName="mt-2 mb-9">
+    <Box testID={testIdPrefix}>
       <PillRow
         pills={pills}
         activeKey={activeKey}

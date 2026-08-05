@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useNavigation, StackActions } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -21,9 +23,11 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import { AddWalletTestIds } from './AddWallet.testIds';
 interface ActionConfig {
   analyticsEvent: IMetaMetricsEvent;
@@ -36,8 +40,9 @@ interface ActionConfig {
 
 const AddWallet = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const actionConfigs = useMemo<ActionConfig[]>(
     () => [
@@ -69,19 +74,38 @@ const AddWallet = () => {
         testID: AddWalletTestIds.CONNECT_HARDWARE_BUTTON,
         title: strings('connect_hardware.title_select_hardware'),
       },
+      ...(isAddDeviceSyncEnabled
+        ? [
+            {
+              // TODO: This is a temporary event for the add device to wallet. Event will be updated after the add device to wallet is implemented.
+              analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
+              description: strings(
+                'multichain_accounts.link_metamask_extension_description',
+              ),
+              iconName: IconName.Extension,
+              routeName: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+              testID: AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
+              title: strings('multichain_accounts.link_metamask_extension'),
+            },
+          ]
+        : []),
     ],
-    [],
+    [isAddDeviceSyncEnabled],
   );
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleActionPress = useCallback(
     (config: ActionConfig) => {
-      navigation.navigate(config.routeName as never);
-      // Dismiss AddWallet so that hardware wallet completion (pop(2) in HW
-      // screens) lands on AccountSelector rather than back here.
       if (config.routeName === Routes.HW.CONNECT) {
-        navigation.goBack();
+        // Replace AddWallet with the hardware wallet flow so completion
+        // (pop(2) in the HW screens) lands on AccountSelector instead of
+        // back on this screen. AddWallet and the HW flow now live in the same
+        // navigator, so navigate()+goBack() would dismiss the HW flow rather
+        // than this screen.
+        navigation.dispatch(StackActions.replace(config.routeName));
+      } else {
+        navigateWithDetails(navigation, [config.routeName]);
       }
       trackEvent(createEventBuilder(config.analyticsEvent).build());
     },
@@ -89,9 +113,13 @@ const AddWallet = () => {
   );
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-default`} edges={['top', 'bottom']}>
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={tw`flex-1 bg-default`}
+    >
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
         <HeaderStandard
+          includesTopInset
           backButtonProps={{
             accessibilityLabel: strings('navigation.back'),
             onPress: handleBack,

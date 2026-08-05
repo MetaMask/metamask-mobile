@@ -20,7 +20,6 @@ const mockSelectPredictPortfolioEnabledFlag = jest.fn(
 const mockSelectPredictHomeRedesignEnabledFlag = jest.fn(
   () => mockPredictHomeRedesignEnabled,
 );
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn((selector: (state: unknown) => unknown) => selector({})),
@@ -62,11 +61,6 @@ jest.mock('../views/PredictHome', () => {
       <Text>PredictHome</Text>
     </View>
   );
-});
-
-jest.mock('../views/PredictWorldCup', () => {
-  const { View } = jest.requireActual('react-native');
-  return () => <View testID="predict-world-cup" />;
 });
 
 jest.mock('../views/PredictFeedView', () => {
@@ -191,16 +185,6 @@ describe('PredictScreenStack', () => {
     expect(screen.getByTestId('predict-market-details')).toBeOnTheScreen();
   });
 
-  it('navigates to WORLD_CUP screen', async () => {
-    renderWithNavigation(<PredictScreenStack />);
-
-    await act(async () => {
-      navigationRef.current?.navigate(Routes.PREDICT.WORLD_CUP);
-    });
-
-    expect(screen.getByTestId('predict-world-cup')).toBeOnTheScreen();
-  });
-
   it('navigates to FEED screen', async () => {
     renderWithNavigation(<PredictScreenStack />);
 
@@ -292,45 +276,6 @@ describe('PredictScreenStack', () => {
 
     expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
   });
-
-  it('navigates to no-header confirmation with animation disabled', async () => {
-    renderWithNavigation(<PredictScreenStack />);
-
-    await act(async () => {
-      navigationRef.current?.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
-        { animationEnabled: false },
-      );
-    });
-
-    expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
-  });
-
-  it('navigates to redesigned confirmation with animation disabled', async () => {
-    renderWithNavigation(<PredictScreenStack />);
-
-    await act(async () => {
-      navigationRef.current?.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        { animationEnabled: false },
-      );
-    });
-
-    expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
-  });
-
-  it('navigates to redesigned confirmation with animation enabled', async () => {
-    renderWithNavigation(<PredictScreenStack />);
-
-    await act(async () => {
-      navigationRef.current?.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        { animationEnabled: true },
-      );
-    });
-
-    expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
-  });
 });
 
 describe('PredictModalStack', () => {
@@ -393,19 +338,6 @@ describe('PredictModalStack', () => {
     await act(async () => {
       navigationRef.current?.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
-      );
-    });
-
-    expect(screen.getByTestId('confirm-component')).toBeOnTheScreen();
-  });
-
-  it('navigates to no-header confirmation with animation disabled in modal', async () => {
-    renderWithNavigation(<PredictModalStack />);
-
-    await act(async () => {
-      navigationRef.current?.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
-        { animationEnabled: false },
       );
     });
 

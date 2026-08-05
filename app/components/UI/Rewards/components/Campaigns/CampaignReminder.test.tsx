@@ -1,11 +1,8 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import CampaignReminder from './CampaignReminder';
-import {
-  buildCampaignReminderCompositeKey,
-  reminderStorageKeyForComposite,
-} from '../../hooks/useCampaignReminderActions';
+import { buildCampaignReminderCompositeKey } from '../../hooks/useCampaignReminderActions';
 import {
   type CampaignDto,
   CampaignType,
@@ -17,6 +14,8 @@ import {
   selectIsMetaMaskPushNotificationsEnabled,
 } from '../../../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications/constants';
+import { subscribeCampaignReminder } from '../../../../../reducers/rewards';
+import { selectSubscribedCampaignReminders } from '../../../../../reducers/rewards/selectors';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -36,25 +35,17 @@ let mockEnableNotificationsLoading = false;
 
 const TEST_REWARDS_SUBSCRIPTION_ID = 'test-rewards-sub-id';
 
-const mockGetItemSync = jest.fn((_key: string): string | null => null);
-const mockSetItem = jest.fn(
-  (_key: string, _value: string): Promise<void> => Promise.resolve(),
-);
+const mockDispatch = jest.fn();
+let mockSubscribedCampaignReminders: Record<string, boolean> = {};
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-
-jest.mock('../../../../../store/storage-wrapper', () => ({
-  __esModule: true,
-  default: {
-    getItemSync: (key: string) => mockGetItemSync(key),
-    setItem: (key: string, value: string) => mockSetItem(key, value),
-  },
-}));
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => ({
@@ -162,10 +153,19 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   ...overrides,
 });
 
-function mockSelectors({ notificationsEnabled = true } = {}) {
+function mockSelectors({
+  notificationsEnabled = true,
+  subscribedCampaignReminders = mockSubscribedCampaignReminders,
+}: {
+  notificationsEnabled?: boolean;
+  subscribedCampaignReminders?: Record<string, boolean>;
+} = {}) {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) {
       return TEST_REWARDS_SUBSCRIPTION_ID;
+    }
+    if (selector === selectSubscribedCampaignReminders) {
+      return subscribedCampaignReminders;
     }
     if (
       selector === selectIsMetamaskNotificationsEnabled ||
@@ -182,8 +182,8 @@ describe('CampaignReminder', () => {
     jest.clearAllMocks();
     mockEnableNotifications.mockResolvedValue(undefined);
     mockEnableNotificationsLoading = false;
-    mockGetItemSync.mockReturnValue(null);
-    mockSetItem.mockResolvedValue(undefined);
+    mockSubscribedCampaignReminders = {};
+    mockUseDispatch.mockReturnValue(mockDispatch);
     mockSelectors();
     mockCreateEventBuilder.mockImplementation(() => {
       const builder = {
@@ -230,10 +230,13 @@ describe('CampaignReminder', () => {
       TEST_REWARDS_SUBSCRIPTION_ID,
       'cr-analytics',
     );
-    expect(mockSetItem).toHaveBeenCalledWith(
-      reminderStorageKeyForComposite(compositeKey),
-      '1',
+    expect(mockDispatch).toHaveBeenCalledWith(
+      subscribeCampaignReminder({
+        subscriptionId: TEST_REWARDS_SUBSCRIPTION_ID,
+        campaignId: 'cr-analytics',
+      }),
     );
+    expect(compositeKey).toBe(`${TEST_REWARDS_SUBSCRIPTION_ID}:cr-analytics`);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
     );
@@ -265,7 +268,7 @@ describe('CampaignReminder', () => {
         onPress: expect.any(Function),
       }),
     );
-    expect(mockSetItem).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockTrackEvent).not.toHaveBeenCalled();
 
     const linkButtonOptions = mockEnableNotificationsNudge.mock.calls[0][0] as {
@@ -281,13 +284,11 @@ describe('CampaignReminder', () => {
     rerender(<CampaignReminder campaign={campaign} />);
 
     await waitFor(() => {
-      const compositeKey = buildCampaignReminderCompositeKey(
-        TEST_REWARDS_SUBSCRIPTION_ID,
-        'cr-notifications',
-      );
-      expect(mockSetItem).toHaveBeenCalledWith(
-        reminderStorageKeyForComposite(compositeKey),
-        '1',
+      expect(mockDispatch).toHaveBeenCalledWith(
+        subscribeCampaignReminder({
+          subscriptionId: TEST_REWARDS_SUBSCRIPTION_ID,
+          campaignId: 'cr-notifications',
+        }),
       );
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -309,9 +310,13 @@ describe('CampaignReminder', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('shows Notify me CTA when notifications are disabled even if reminder was already stored', async () => {
-    mockSelectors({ notificationsEnabled: false });
-    mockGetItemSync.mockReturnValue('1');
+  it('shows Notify me CTA when notifications are disabled even if reminder was already subscribed', async () => {
+    mockSelectors({
+      notificationsEnabled: false,
+      subscribedCampaignReminders: {
+        [`${TEST_REWARDS_SUBSCRIPTION_ID}:cr-re-subscribe`]: true,
+      },
+    });
     const campaign = createTestCampaign({ id: 'cr-re-subscribe' });
     const { getByTestId } = render(<CampaignReminder campaign={campaign} />);
 
@@ -322,9 +327,13 @@ describe('CampaignReminder', () => {
     });
   });
 
-  it('does not show Notify me CTA when notifications are enabled and reminder is already stored', async () => {
-    mockSelectors({ notificationsEnabled: true });
-    mockGetItemSync.mockReturnValue('1');
+  it('does not show Notify me CTA when notifications are enabled and reminder is already subscribed', async () => {
+    mockSelectors({
+      notificationsEnabled: true,
+      subscribedCampaignReminders: {
+        [`${TEST_REWARDS_SUBSCRIPTION_ID}:cr-already-stored`]: true,
+      },
+    });
     const campaign = createTestCampaign({ id: 'cr-already-stored' });
     const { queryByTestId } = render(<CampaignReminder campaign={campaign} />);
 
@@ -332,16 +341,6 @@ describe('CampaignReminder', () => {
       expect(
         queryByTestId('campaign-reminder-notify-cr-already-stored'),
       ).toBeNull();
-    });
-  });
-});
-
-describe('campaign reminder storage helpers', () => {
-  describe('reminderStorageKeyForComposite', () => {
-    it('prefixes composite key for isolated MMKV rows', () => {
-      expect(reminderStorageKeyForComposite('sub-1:camp-2')).toBe(
-        'rewards_campaign_reminder_subscribed::sub-1:camp-2',
-      );
     });
   });
 });

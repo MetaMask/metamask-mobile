@@ -12,34 +12,38 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 }));
 
 const baseContext = {
-  formattedRate: undefined,
-  formattedExchangeRate: '1 ETH = 1000 USDC',
   setActiveScreen: jest.fn(),
-  features: { tradeModes: ['buy'] as ('buy' | 'sell')[] },
+  onClose: jest.fn(),
+  isQuickAmountPreferencesLoaded: true,
+  features: {
+    tradeModes: ['buy'] as ('buy' | 'sell')[],
+    quickAmountPills: true,
+  },
   tradeMode: 'buy' as const,
   setTradeMode: jest.fn(),
 };
 
 describe('QuickBuyToolbar', () => {
   const setActiveScreen = jest.fn();
+  const onClose = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      formattedRate: undefined,
-      formattedExchangeRate: '1 ETH = 1000 USDC',
       setActiveScreen,
+      onClose,
     });
   });
 
-  it('renders the static buy mode pill when only buy mode is enabled', () => {
+  it('renders buy-only toggle styling when only buy mode is enabled', () => {
     render(<QuickBuyToolbar />);
+    expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.quick_buy.buy_mode'),
+      screen.getByText('social_leaderboard.quick_buy.buy_label'),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('quick-buy-trade-mode-toggle'),
+      screen.queryByTestId('quick-buy-trade-mode-buy'),
     ).not.toBeOnTheScreen();
   });
 
@@ -47,62 +51,56 @@ describe('QuickBuyToolbar', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       setActiveScreen,
-      features: { tradeModes: ['buy', 'sell'] },
+      onClose,
+      features: { tradeModes: ['buy', 'sell'], quickAmountPills: true },
+      hasSellableBalance: true,
     });
     render(<QuickBuyToolbar />);
     expect(screen.getByTestId('quick-buy-trade-mode-toggle')).toBeOnTheScreen();
+  });
+
+  it('shows the edit quick amounts gear when quickAmountPills is enabled', () => {
+    render(<QuickBuyToolbar />);
     expect(
-      screen.queryByText('social_leaderboard.quick_buy.buy_mode'),
-    ).not.toBeOnTheScreen();
+      screen.getByTestId('quick-buy-edit-amounts-button'),
+    ).toBeOnTheScreen();
   });
 
-  it('shows formattedExchangeRate when no quote is available', () => {
-    render(<QuickBuyToolbar />);
-    expect(screen.getByTestId('quick-buy-rate-tag')).toBeOnTheScreen();
-    expect(screen.getByText('1 ETH = 1000 USDC')).toBeOnTheScreen();
-  });
-
-  it('prefers formattedRate (quote-based) over formattedExchangeRate when a quote is available', () => {
+  it('hides the edit quick amounts gear when quickAmountPills is disabled', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      formattedRate: '1 ETH = 4381.23 REPPO',
-      formattedExchangeRate: '1 ETH = 1000 USDC',
       setActiveScreen,
+      onClose,
+      features: { tradeModes: ['buy'], quickAmountPills: false },
+    });
+    render(<QuickBuyToolbar />);
+    expect(screen.queryByTestId('quick-buy-edit-amounts-button')).toBeNull();
+  });
+
+  it('navigates to editQuickAmounts when the gear is pressed', () => {
+    render(<QuickBuyToolbar />);
+    fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
+    expect(setActiveScreen).toHaveBeenCalledWith('editQuickAmounts');
+  });
+
+  it('disables the gear while quick amount preferences are loading', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      setActiveScreen,
+      onClose,
+      isQuickAmountPreferencesLoaded: false,
     });
 
     render(<QuickBuyToolbar />);
-    expect(screen.getByText('1 ETH = 4381.23 REPPO')).toBeOnTheScreen();
-    expect(screen.queryByText('1 ETH = 1000 USDC')).not.toBeOnTheScreen();
+
+    expect(screen.getByTestId('quick-buy-edit-amounts-button')).toBeDisabled();
+    fireEvent.press(screen.getByTestId('quick-buy-edit-amounts-button'));
+    expect(setActiveScreen).not.toHaveBeenCalled();
   });
 
-  it('shows formattedRate even when formattedExchangeRate is undefined', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      formattedRate: '1 ETH = 4381.23 REPPO',
-      formattedExchangeRate: undefined,
-      setActiveScreen,
-    });
-
+  it('calls onClose when the close button is pressed', () => {
     render(<QuickBuyToolbar />);
-    expect(screen.getByTestId('quick-buy-rate-tag')).toBeOnTheScreen();
-    expect(screen.getByText('1 ETH = 4381.23 REPPO')).toBeOnTheScreen();
-  });
-
-  it('hides the rate tag when both rates are undefined', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue({
-      ...baseContext,
-      formattedRate: undefined,
-      formattedExchangeRate: undefined,
-      setActiveScreen,
-    });
-
-    render(<QuickBuyToolbar />);
-    expect(screen.queryByTestId('quick-buy-rate-tag')).not.toBeOnTheScreen();
-  });
-
-  it('navigates to quoteDetails screen when the rate tag is pressed', () => {
-    render(<QuickBuyToolbar />);
-    fireEvent.press(screen.getByTestId('quick-buy-rate-tag-pressable'));
-    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
+    fireEvent.press(screen.getByTestId('quick-buy-close-button'));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

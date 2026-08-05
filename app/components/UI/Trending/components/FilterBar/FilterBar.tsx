@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   IconName,
@@ -42,7 +42,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       numberOfLines,
       ellipsizeMode,
     }}
-    twClassName={twClassName}
+    twClassName={twClassName ? `shrink-0 ${twClassName}` : 'shrink-0'}
   />
 );
 
@@ -58,6 +58,10 @@ export interface FilterBarProps {
 
   /** Optional extra filter buttons rendered after the network button */
   extraFilters?: React.ReactNode;
+  /** Optional testID override for the price-change button */
+  priceChangeTestID?: string;
+  /** Optional testID override for the network button */
+  networkTestID?: string;
 }
 
 /**
@@ -73,31 +77,39 @@ const FilterBar: React.FC<FilterBarProps> = ({
   networkName,
   onNetworkPress,
   extraFilters,
+  priceChangeTestID = 'price-change-button',
+  networkTestID = 'all-networks-button',
 }) => {
   const tw = useTailwind();
 
   return (
-    <View style={tw`flex-grow-0 px-4 pb-4`}>
-      <View style={tw`flex-row items-center gap-2`}>
-        <FilterButton
-          testID="price-change-button"
-          label={priceChangeButtonText}
-          onPress={onPriceChangePress}
-          disabled={isPriceChangeDisabled}
-          iconName={priceChangeIconName}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        />
-        <FilterButton
-          testID="all-networks-button"
-          label={networkName}
-          onPress={onNetworkPress}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        />
-        {extraFilters}
-      </View>
-    </View>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      style={tw`flex-grow-0`}
+      contentContainerStyle={tw.style(
+        'flex-grow-0 flex-row items-center gap-2 px-4 pb-4',
+      )}
+    >
+      <FilterButton
+        testID={priceChangeTestID}
+        label={priceChangeButtonText}
+        onPress={onPriceChangePress}
+        disabled={isPriceChangeDisabled}
+        iconName={priceChangeIconName}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      />
+      <FilterButton
+        testID={networkTestID}
+        label={networkName}
+        onPress={onNetworkPress}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      />
+      {extraFilters}
+    </ScrollView>
   );
 };
 

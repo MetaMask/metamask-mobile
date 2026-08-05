@@ -1,9 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import type {
@@ -12,6 +8,11 @@ import type {
 } from '../../hooks/stream/usePerpsLiveOrderBook';
 import styleSheet from './PerpsOrderBookTable.styles';
 import { PerpsOrderBookTableSelectorsIDs } from '../../Perps.testIds';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import {
   formatPerpsFiat,
   formatLargeNumber,
@@ -119,14 +120,17 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
 
           {/* Total (left for bids) */}
           <View style={styles.totalColumn}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
               {formatTotal(level)}
             </Text>
           </View>
 
           {/* Price (right for bids, colored green) */}
           <View style={styles.priceColumnBid}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Success}>
+            <Text variant={TextVariant.BodyXs} color={TextColor.SuccessDefault}>
               {formatPrice(level.price)}
             </Text>
           </View>
@@ -160,14 +164,17 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
 
           {/* Price (left for asks, colored red) */}
           <View style={styles.priceColumnAsk}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Error}>
+            <Text variant={TextVariant.BodyXs} color={TextColor.ErrorDefault}>
               {formatPrice(level.price)}
             </Text>
           </View>
 
           {/* Total (right for asks) */}
           <View style={styles.totalColumnRight}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
               {formatTotal(level)}
             </Text>
           </View>
@@ -195,7 +202,7 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
   if (isLoading || !orderBook) {
     return (
       <View style={styles.emptyState} testID={testID}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {isLoading
             ? strings('perps.order_book.loading')
             : strings('perps.order_book.no_data')}
@@ -206,27 +213,51 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Column Headers */}
+      {/* Column Headers - mirrors the bid/ask split row structure */}
       <View style={styles.header}>
-        <View style={styles.headerColumn}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.total')} ({unitLabel})
-          </Text>
-        </View>
-        <View style={styles.headerColumnCenter}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.price')}
-          </Text>
-        </View>
-        <View style={styles.headerColumnCenter}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.price')}
-          </Text>
-        </View>
-        <View style={styles.headerColumnRight}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.total')} ({unitLabel})
-          </Text>
+        <View style={styles.bookContainer}>
+          <View style={styles.bidsSide}>
+            <View style={styles.row}>
+              <View style={styles.totalColumn}>
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                >
+                  {strings('perps.order_book.total')} ({unitLabel})
+                </Text>
+              </View>
+              <View style={styles.priceColumnBid}>
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.order_book.price')}
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.asksSide}>
+            <View style={styles.row}>
+              <View style={styles.priceColumnAsk}>
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.order_book.price')}
+                </Text>
+              </View>
+              <View style={styles.totalColumnRight}>
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  numberOfLines={1}
+                >
+                  {strings('perps.order_book.total')} ({unitLabel})
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
       </View>
 

@@ -47,6 +47,7 @@ import {
   getCaip25PermissionFromLegacyPermissions,
   requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
+import { preprocessTypedSignRequest } from '../../components/Views/confirmations/utils/typed-sign-security';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -275,7 +276,7 @@ const generateRawSignature = async ({
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
     {
-      data: req.params[1],
+      data: preprocessTypedSignRequest(req.params[1]),
       from: req.params[0],
       requestId: req.id,
       ...pageMeta,

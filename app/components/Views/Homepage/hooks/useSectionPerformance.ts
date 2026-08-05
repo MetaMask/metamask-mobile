@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { addBreadcrumb } from '@sentry/react-native';
-import performance from 'react-native-performance';
 import {
   endTrace,
   trace,
@@ -9,6 +7,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import type { HomeSectionName } from './useHomeViewedEvent';
+import { useRenderStormMonitor } from '../../../../hooks/performance/useRenderStormMonitor';
 
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
@@ -49,7 +48,7 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  * Captures three metrics via the existing trace/endTrace Sentry integration:
  * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
  * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
- * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs in `useEffect` after paint, not during render).
+ * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs after every commit).
  *
  * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
  */
@@ -74,12 +73,18 @@ export const useSectionPerformance = ({
   const fetchEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
 
-  // --- Re-render monitoring refs ---
-  const renderTimestamps = useRef<number[]>([]);
-  const hasLoggedExcessiveRenders = useRef(false);
-
   const traceContentState =
     contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
+
+  useRenderStormMonitor({
+    id: sectionId,
+    category: TraceOperation.HomepageSectionPerformance,
+    entityLabel: 'section',
+    breadcrumbData: { section_id: sectionId },
+    enabled,
+    reRenderThreshold,
+    reRenderWindowMs,
+  });
 
   // ──────────────────────────────────────────────
   // 1. Time to Content — start span on mount
@@ -115,8 +120,7 @@ export const useSectionPerformance = ({
         fetchStarted.current = false;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled]);
+  }, [enabled, sectionId]);
 
   // Time to Content — end span when content is ready
   useEffect(() => {
@@ -175,48 +179,4 @@ export const useSectionPerformance = ({
       fetchEnded.current = true;
     }
   }, [enabled, isLoading, sectionId, traceContentState]);
-
-  // ──────────────────────────────────────────────
-  // 3. Re-render Monitoring — useEffect after commit (not during render)
-  //
-  // In development, React 18 Strict Mode runs mount effects twice (setup → cleanup
-  // → setup), which records one extra sample vs a single logical mount. Bump the
-  // effective threshold in __DEV__ so dev builds match production sensitivity.
-  // ──────────────────────────────────────────────
-  useEffect(() => {
-    if (!enabled) return;
-
-    const effectiveReRenderThreshold = __DEV__
-      ? reRenderThreshold + 1
-      : reRenderThreshold;
-
-    const now = performance.now();
-    const timestamps = renderTimestamps.current;
-    timestamps.push(now);
-
-    const windowStart = now - reRenderWindowMs;
-    while (timestamps.length > 0 && timestamps[0] < windowStart) {
-      timestamps.shift();
-    }
-
-    if (
-      timestamps.length > effectiveReRenderThreshold &&
-      !hasLoggedExcessiveRenders.current
-    ) {
-      hasLoggedExcessiveRenders.current = true;
-      addBreadcrumb({
-        category: TraceOperation.HomepageSectionPerformance,
-        message: `Excessive re-renders detected in section "${sectionId}": ${timestamps.length} renders in ${reRenderWindowMs}ms`,
-        level: 'warning',
-        data: {
-          section_id: sectionId,
-          render_count: timestamps.length,
-          window_ms: reRenderWindowMs,
-          threshold: reRenderThreshold,
-        },
-      });
-    }
-    // Intentionally every commit — do not add deps (would miss re-renders).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  });
 };

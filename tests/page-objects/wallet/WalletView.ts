@@ -5,15 +5,9 @@ import {
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
 import { CashGetMusdEmptyStateSelectors } from '../../../app/components/Views/Homepage/Sections/Cash/CashGetMusdEmptyState.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
-import {
-  PredictPositionsHeaderSelectorsIDs,
-  PredictPositionSelectorsIDs,
-  PredictClaimConfirmationSelectorsIDs,
-} from '../../../app/components/UI/Predict/Predict.testIds';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
-import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import Utilities from '../../framework/Utilities';
@@ -25,101 +19,50 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import WalletHomeScroll from './WalletHomeScroll';
+import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
 
-class WalletView {
-  static readonly MAX_SCROLL_ITERATIONS = 4;
-
+class WalletView extends WalletHomeSectionsBase {
   get container(): EncapsulatedElementType {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+  }
+
+  /**
+   * Wallet header root — high in the Android view hierarchy (above scroll /
+   * homepage sections). Appium uses resourceIdMatches so package-qualified
+   * IDs resolve quickly without deep tree walks into token lists.
+   */
+  get headerRoot(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_CONTAINER,
-            {
-              exact: true,
-            },
+            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
+            { exact: false },
           ),
         ios: () =>
           PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.EYE_SLASH_ICON,
+            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
           ),
       },
     });
   }
 
-  /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
-  get walletScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+  get walletScrollContainer(): string {
+    return WalletHomeScroll.walletScrollContainer;
   }
 
-  /** Wallet ScrollView as element (for gestures like swipe). */
   get walletScrollView(): EncapsulatedElementType {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
-  }
-
-  /**
-   * Progressive scroll for homepage sections:
-   * try tap -> small scroll down -> retry, until the section is tappable.
-   * @param options.scrollAmount - Pixels to scroll per step.
-   * @param options.overshootSwipe - After scroll, perform a small swipe to move the section away
-   * from the tab bar (e.g. direction 'up' = one more scroll down = section moves higher on screen).
-   */
-  private async scrollAndTapSection(
-    target: DetoxElement | EncapsulatedElementType,
-    description: string,
-    direction: 'up' | 'down' = 'down',
-    options: {
-      scrollAmount?: number;
-      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
-    } = {},
-  ): Promise<void> {
-    const { scrollAmount = 200, overshootSwipe } = options;
-    await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-      direction,
-      scrollAmount,
-      elemDescription: `Scroll to ${description}`,
-    });
-    if (overshootSwipe) {
-      await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
-        percentage: overshootSwipe.percentage ?? 0.15,
-        speed: 'slow',
-        elemDescription: `Overshoot swipe for ${description}`,
-      });
-    }
-    await Gestures.waitAndTap(target, {
-      elemDescription: description,
-    });
+    return WalletHomeScroll.walletScrollView;
   }
 
   get earnButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
-  }
-
-  /**
-   * The "Earn" CTA on the USDC token row's secondary balance area.
-   * Index 2 = USDC (third token: ETH → mUSD → USDC) in the standard lending fixture.
-   */
-  get lendingEarnCta(): EncapsulatedElementType {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 2);
-  }
-
-  get stakedEthereumLabel(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM);
-  }
-
-  get stakeMoreButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
-  }
-
-  get tokenDetectionLinkButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
-    );
   }
 
   get accountIcon(): EncapsulatedElementType {
@@ -142,12 +85,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON);
   }
 
-  get notificationBellIcon(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
-    );
-  }
-
   get hamburgerMenuButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -166,18 +103,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
 
-  get navbarNetworkButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
-          { exact: true },
-        ),
-    });
-  }
-
   get navbarNetworkPicker(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
@@ -188,24 +113,12 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
   }
 
-  get nftTab(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
-  }
-
-  get nftTabContainer(): EncapsulatedElementType {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.NFT_TAB_CONTAINER);
-  }
-
   get importNFTButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
   }
 
   get importTokensButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
-  }
-
-  get networkName(): EncapsulatedElementType {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.NETWORK_NAME);
   }
 
   get totalBalance(): EncapsulatedElementType {
@@ -248,20 +161,6 @@ class WalletView {
     );
   }
 
-  get accountNameLabelInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT,
-          { exact: true },
-        ),
-    });
-  }
-
   get hideTokensLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
@@ -278,26 +177,6 @@ class WalletView {
 
   get sortButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
-  }
-
-  get sortBy(): EncapsulatedElementType {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
-  }
-
-  get tokenNetworkFilterAll(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
-    );
-  }
-
-  get tokenNetworkFilterCurrent(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
-    );
-  }
-
-  get cancelButton(): EncapsulatedElementType {
-    return Matchers.getElementByText('Cancel');
   }
 
   get carouselContainer(): EncapsulatedElementType {
@@ -349,10 +228,6 @@ class WalletView {
     });
   }
 
-  get walletBridgeButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
-  }
-
   get walletSendButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -371,8 +246,7 @@ class WalletView {
     });
   }
 
-  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
-  get musdConversionCta(): EncapsulatedElementType {
+  get musdAssetListConversionCta(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
     );
@@ -401,11 +275,6 @@ class WalletView {
     );
   }
 
-  get walletReceiveButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
-    );
-  }
   // Balance Empty State - displayed when account group has zero balance across all networks
   get balanceEmptyStateContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
@@ -418,65 +287,10 @@ class WalletView {
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
     );
   }
-  getPredictCurrentPositionCardByIndex(
-    index: number = 0,
-  ): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
-      index,
-    );
-  }
-
-  getPredictResolvedPositionCardByIndex(
-    index: number = 0,
-  ): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD,
-      index,
-    );
-  }
-
-  getCarouselSlide(id: string): EncapsulatedElementType {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE(id));
-  }
-
-  getCarouselSlideTitle(id: string): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE_TITLE(id),
-    );
-  }
-
-  getCarouselSlideCloseButton(id: string): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(id),
-    );
-  }
 
   async tapCurrentMainWalletAccountActions(): Promise<void> {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions, {
       elemDescription: 'Current Main Wallet Account Actions',
-    });
-  }
-
-  async longPressAccountNameLabel(): Promise<void> {
-    await UnifiedGestures.longPress(this.accountNameLabelText, {
-      description: 'Account name label',
-    });
-  }
-
-  async editAccountNameLabel(text: string): Promise<void> {
-    await UnifiedGestures.typeText(this.accountNameLabelInput, text, {
-      description: 'Account name label input',
-    });
-  }
-
-  async waitForTokenToBeReady(text: string, index = 0): Promise<DetoxElement> {
-    const elem = Matchers.getElementByText(text, index);
-    await Assertions.expectElementToBeVisible(elem, {
-      description: `${text} token in wallet list`,
-    });
-    return await Utilities.waitForReadyState(elem, {
-      elemDescription: `Token with text ${text} at index ${index}`,
     });
   }
 
@@ -488,11 +302,10 @@ class WalletView {
           PlaywrightMatchers.getElementById(getAssetTestId(token), {
             exact: true,
           }),
-        // iOS: TokenListItem sets accessibilityLabel to "Name, $fiat, balance"
-        // so the iOS predicate `name` (= accessibilityLabel) differs from testID.
-        // Use `~testID` which maps to accessibilityIdentifier (= testID).
+        // iOS: match accessibilityIdentifier (= RN testID), not accessibilityLabel
+        // (label is "Name, $fiat, balance" and does not contain asset-SYMBOL).
         ios: () =>
-          PlaywrightMatchers.getElementByNameiOS(getAssetTestId(token)),
+          PlaywrightMatchers.getElementByAccessibilityId(getAssetTestId(token)),
       },
     });
   }
@@ -539,12 +352,6 @@ class WalletView {
     });
   }
 
-  async tapBellIcon(): Promise<void> {
-    await Gestures.waitAndTap(this.notificationBellIcon, {
-      elemDescription: 'Notification Bell Icon',
-    });
-  }
-
   async tapHamburgerMenu(): Promise<void> {
     await Gestures.waitAndTap(this.hamburgerMenuButton, {
       elemDescription: 'Hamburger Menu Button',
@@ -552,41 +359,17 @@ class WalletView {
   }
 
   async tapNetworksButtonOnNavBar(): Promise<void> {
-    await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON),
+      {
+        elemDescription: 'Navbar Network Button',
+      },
+    );
   }
 
   async tapNavbarCardButton(): Promise<void> {
     await Gestures.waitAndTap(this.navbarCardButton, {
       elemDescription: 'Card Button on Navbar',
-    });
-  }
-
-  async tapNftTab(): Promise<void> {
-    await Gestures.waitAndTap(this.nftTab);
-  }
-
-  async scrollDownOnNFTsTab(): Promise<void> {
-    await Gestures.swipe(this.nftTabContainer, 'up', {
-      speed: 'slow',
-      percentage: 0.4,
-    });
-  }
-
-  async scrollToBottomOfTokensList(): Promise<void> {
-    const tokensContainer = await this.getTokensInWallet();
-    for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
-      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
-        speed: 'fast',
-        percentage: 0.7,
-      });
-    }
-  }
-
-  async scrollToTopOfTokensList(): Promise<void> {
-    const tokensContainer = await this.getTokensInWallet();
-    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
-      speed: 'fast',
-      percentage: 0.7,
     });
   }
 
@@ -596,19 +379,12 @@ class WalletView {
   ): Promise<void> {
     await Gestures.scrollToElement(
       this.tokenInWallet(tokenName) as unknown as DetoxElement,
-      Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      Matchers.scrollContainer(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
         direction,
         scrollAmount: 50,
       },
     );
-  }
-
-  async scrollUpOnNFTsTab(): Promise<void> {
-    await Gestures.swipe(this.nftTabContainer, 'down', {
-      speed: 'slow',
-      percentage: 0.4,
-    });
   }
 
   async tapImportNFTButton(): Promise<void> {
@@ -635,13 +411,6 @@ class WalletView {
     });
   }
 
-  async tapOnNFTInWallet(nftName: string): Promise<void> {
-    const elem = Matchers.getElementByText(nftName);
-    await Gestures.waitAndTap(elem, {
-      elemDescription: 'NFT Name',
-    });
-  }
-
   async removeTokenFromWallet(token: string): Promise<void> {
     const elem = Matchers.getElementByText(token);
     await Gestures.longPress(elem, {
@@ -656,24 +425,8 @@ class WalletView {
     return Matchers.getElementByText(tokenName);
   }
 
-  async getTokensInWallet(): Promise<EncapsulatedElementType> {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
-    );
-  }
-
-  async nftIDInWallet(nftId: string): Promise<EncapsulatedElementType> {
-    return Matchers.getElementByID(nftId);
-  }
-
   async nftInWallet(nftName: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByText(nftName);
-  }
-
-  async tapNewTokensFound(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenDetectionLinkButton, {
-      elemDescription: 'New Tokens Found Button',
-    });
   }
 
   async tapTokenNetworkFilter(): Promise<void> {
@@ -688,39 +441,9 @@ class WalletView {
     });
   }
 
-  async tapTokenNetworkFilterAll(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenNetworkFilterAll, {
-      elemDescription: 'Token Network Filter All',
-    });
-  }
-
-  async tapTokenNetworkFilterCurrent(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenNetworkFilterCurrent, {
-      elemDescription: 'Token Network Filter Current',
-    });
-  }
-
   async tapOnEarnButton(): Promise<void> {
     await Gestures.waitAndTap(this.earnButton, {
       elemDescription: 'Earn Button',
-    });
-  }
-
-  async tapOnStakedEthereum(): Promise<void> {
-    await Gestures.waitAndTap(this.stakedEthereumLabel, {
-      elemDescription: 'Staked Ethereum Label',
-    });
-  }
-
-  async tapOnStakeMore(): Promise<void> {
-    await Gestures.waitAndTap(this.stakeMoreButton, {
-      elemDescription: 'Stake More Button',
-    });
-  }
-
-  async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
-      elemDescription: 'Cancel Button',
     });
   }
 
@@ -733,277 +456,6 @@ class WalletView {
       speed: 'slow',
       percentage: 0.7,
       elemDescription: 'Swipe Carousel',
-    });
-  }
-
-  /**
-   * Closes the carousel slide with the specified ID by tapping its close button.
-   *
-   * @param {string|number} id - The identifier of the carousel slide to close.
-   * @returns {Promise<void>} A promise that resolves when the slide has been closed.
-   */
-  async closeCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlideCloseButton(id), {
-      elemDescription: 'Close Carousel Slide',
-    });
-  }
-
-  /**
-   * Taps on a carousel slide with the specified identifier.
-   *
-   * @param {string} id - The unique identifier of the carousel slide to tap.
-   * @returns {Promise<void>} Resolves when the tap action is complete.
-   */
-  async tapCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlide(id), {
-      elemDescription: `tap carousel slide ${id}`,
-    });
-  }
-
-  get defiTab(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
-  }
-
-  get defiNetworkFilter(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
-    );
-  }
-
-  get defiTabContainer(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
-    );
-  }
-  get claimButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
-    );
-  }
-  get predictClaimConfirmButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
-    );
-  }
-  get defiPositionDetailsContainer(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
-    );
-  }
-
-  get predictionsTab(): EncapsulatedElementType {
-    return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
-  }
-
-  get availableBalanceLabel(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
-  }
-
-  get defiPositionsNew(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION);
-  }
-
-  /** Perpetuals section title button on the homepage. */
-  get perpsSectionHeader(): EncapsulatedElementType {
-    return Matchers.getElementByLabel(
-      WalletViewSelectorsText.PERPETUALS_SECTION,
-    );
-  }
-
-  /** Predictions section title button on the homepage. */
-  get predictionsSectionHeader(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
-    );
-  }
-
-  /** Tokens section header on the homepage. */
-  get tokensSectionHeader(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
-  }
-
-  get tokensSection(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            `${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}`,
-          ),
-      },
-    });
-  }
-
-  /** NFTs section header on the homepage. */
-  get nftsSectionHeader(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
-  }
-
-  async tapOnNewTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'New Tokens Section',
-    });
-  }
-
-  async tapOnTokensSection(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.tokensSectionHeader, {
-          checkStability: true,
-          elemDescription: 'Tokens Section',
-        });
-      },
-      appium: async () => {
-        const elem = await asPlaywrightElement(this.tokensSection);
-        await PlaywrightGestures.waitForElementStable(elem);
-
-        // Re-fetch to avoid stale reference after stability wait
-        const freshElem = await asPlaywrightElement(this.tokensSection);
-        await freshElem.unwrap().click();
-      },
-    });
-  }
-
-  async tapOnDeFiTab(): Promise<void> {
-    await Gestures.waitAndTap(this.defiTab, {
-      elemDescription: 'DeFi Tab',
-    });
-  }
-
-  async tapOnDeFiNetworksFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.defiNetworkFilter, {
-      elemDescription: 'DeFi Networks Filter',
-    });
-  }
-
-  async tapOnDeFiPosition(positionName: string): Promise<void> {
-    const elem = Matchers.getElementByText(positionName);
-    await Gestures.waitAndTap(elem, {
-      elemDescription: 'DeFi Position',
-    });
-  }
-
-  async tapOnPredictionsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.predictionsTab, {
-      elemDescription: 'Predictions Tab',
-    });
-  }
-
-  async tapOnPredictionsPosition(positionName: string): Promise<void> {
-    const elem = Matchers.getElementByText(positionName);
-    await this.scrollAndTapSection(
-      elem,
-      `Predictions Position: ${positionName}`,
-    );
-  }
-
-  async scrollAndTapDefiSection(): Promise<void> {
-    await this.scrollAndTapSection(this.defiPositionsNew, 'DeFi section');
-  }
-
-  async scrollAndTapPerpsSection(): Promise<void> {
-    await this.scrollAndTapSection(
-      this.perpsSectionHeader,
-      'Perpetuals section',
-    );
-  }
-
-  /**
-   * Scrolls to the Predictions section and taps it. After scroll, does a small overshoot swipe
-   * so the section sits higher on screen and the tap does not hit the main menu "+" button.
-   */
-  async scrollAndTapPredictionsSection(
-    direction: 'up' | 'down' = 'down',
-    options: {
-      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
-    } = {},
-  ): Promise<void> {
-    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
-      overshootSwipe: options.overshootSwipe ?? {
-        direction:
-          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
-        percentage: 0.15,
-      },
-    });
-
-    try {
-      await this.scrollAndTapSection(
-        this.predictionsSectionHeader,
-        'Predictions section',
-        direction,
-        getScrollOptions(direction),
-      );
-    } catch {
-      const fallbackDirection = direction === 'down' ? 'up' : 'down';
-      await this.scrollAndTapSection(
-        this.predictionsSectionHeader,
-        'Predictions section',
-        fallbackDirection,
-        getScrollOptions(fallbackDirection),
-      );
-    }
-  }
-
-  async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
-    const target = Matchers.getElementByText(positionName);
-    try {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-        direction: 'down',
-        scrollAmount: 220,
-        timeout: 12000,
-        elemDescription: `Scroll to prediction position: ${positionName}`,
-      });
-    } catch {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-        direction: 'up',
-        scrollAmount: 220,
-        timeout: 12000,
-        elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
-      });
-    }
-
-    await Gestures.waitAndTap(target, {
-      checkStability: true,
-      elemDescription: `Predictions Position: ${positionName}`,
-    });
-  }
-
-  async scrollAndTapNftsSection(): Promise<void> {
-    await this.scrollAndTapSection(this.nftsSectionHeader, 'NFTs section');
-  }
-
-  async tapOnAvailableBalance(): Promise<void> {
-    await Gestures.waitAndTap(this.availableBalanceLabel, {
-      elemDescription: 'tap available balance to expand balance card',
-    });
-  }
-
-  async tapClaimButton(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.claimButton,
-      this.walletScrollViewIdentifier,
-      {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Scroll to Claim Button',
-      },
-    );
-    await Gestures.waitAndTap(this.claimButton, {
-      elemDescription: 'Claim Button',
-    });
-  }
-
-  async tapClaimConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.predictClaimConfirmButton, {
-      elemDescription: 'Claim confirm button',
     });
   }
 
@@ -1157,35 +609,9 @@ class WalletView {
     });
   }
 
-  async waitForScreenToDisplay(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(this.container, {
-          timeout: 30000,
-          description: 'Wallet view should be visible',
-        });
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(this.walletSwapButton),
-          {
-            timeout: 30000,
-            description: 'Wallet swap button should be visible',
-          },
-        );
-      },
-    });
-  }
-
   async tapWalletSwapButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.walletSwapButton, {
       description: 'Wallet Swap Button',
-    });
-  }
-
-  async tapWalletBridgeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletBridgeButton, {
-      elemDescription: 'Wallet Bridge Button',
     });
   }
 
@@ -1222,7 +648,7 @@ class WalletView {
    * container as the Asset/Transactions screen (transactions-container).
    */
   async scrollDownToAssetOverviewMusdCta(): Promise<void> {
-    const assetOverviewScrollContainer = Matchers.getIdentifier(
+    const assetOverviewScrollContainer = Matchers.scrollContainer(
       'transactions-container',
     );
     await Gestures.scrollToElement(
@@ -1249,43 +675,9 @@ class WalletView {
     });
   }
 
-  async tapWalletReceiveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletReceiveButton, {
-      elemDescription: 'Wallet Receive Button',
-    });
-  }
-
-  get perpsTab(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
-  }
-
-  async tapOnPerpsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.perpsTab, {
-      elemDescription: 'Perps Tab Button',
-    });
-  }
-
-  async verifyTokenNetworkFilterText(expectedText: string): Promise<void> {
-    await Assertions.expectElementToHaveLabel(
-      this.tokenNetworkFilter,
-      expectedText,
-      {
-        description: `token network filter should display "${expectedText}"`,
-      },
-    );
-  }
-
   async tapBalanceEmptyStateActionButton(): Promise<void> {
     await Gestures.waitAndTap(this.balanceEmptyStateActionButton, {
       elemDescription: 'Balance Empty State Action Button',
-    });
-  }
-
-  async tapPredictPosition(positionName: string): Promise<void> {
-    const position = Matchers.getElementByText(positionName);
-
-    await Gestures.waitAndTap(position, {
-      elemDescription: `Tapping Prediction position ${positionName}`,
     });
   }
 }

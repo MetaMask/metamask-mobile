@@ -1,6 +1,7 @@
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
@@ -11,7 +12,46 @@ import type { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import TransactionTypes from '../../../../TransactionTypes';
 import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
+
+/**
+ * Eagerly refresh native and token balances across all configured chains
+ * so that balance checks in the confirmation UI have up-to-date data for
+ * the override account. Without this, an account that was never selected
+ * would have empty/stale balance state on every chain, causing false
+ * "insufficient funds" alerts.
+ */
+function refreshOverrideAccountBalances(): void {
+  const {
+    AccountTrackerController,
+    NetworkController,
+    TokenBalancesController,
+  } = Engine.context;
+
+  const chainIds = Object.keys(
+    NetworkController.state.networkConfigurationsByChainId ?? {},
+  ) as Hex[];
+
+  const networkClientIds: string[] = [];
+  for (const chainId of chainIds) {
+    try {
+      networkClientIds.push(
+        NetworkController.findNetworkClientIdByChainId(chainId),
+      );
+    } catch {
+      // Chain not configured locally — skip
+    }
+  }
+
+  if (networkClientIds.length > 0) {
+    AccountTrackerController.refresh(networkClientIds);
+  }
+
+  try {
+    TokenBalancesController.updateBalances({ chainIds });
+  } catch {
+    // Non-critical — skip token balance refresh
+  }
+}
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
   TransactionType.moneyAccountDeposit,
@@ -89,5 +129,11 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
     config.accountOverride = selectedAccount.address as Hex;
+
+    if (!isMoneyAccountWithdraw(transaction)) {
+      config.isQuoteRequired = true;
+    }
   });
+
+  refreshOverrideAccountBalances();
 }

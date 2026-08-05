@@ -33,48 +33,42 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
 
   const textColor = isHighPriceImpact
     ? TextColor.ErrorDefault
-    : TextColor.TextAlternative;
+    : TextColor.TextDefault;
 
   const iconColor = isHighPriceImpact
     ? IconColor.ErrorDefault
-    : IconColor.IconAlternative;
+    : IconColor.IconDefault;
 
   const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      gap={1}
+      gap={2}
+      testID="quick-buy-rate-tag"
     >
       <Text variant={TextVariant.BodySm} color={textColor}>
         {displayLabel}
       </Text>
-      <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={iconColor} />
+      {onPress ? (
+        <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={iconColor} />
+      ) : null}
     </Box>
   );
 
-  return (
-    <Box
-      twClassName={
-        isHighPriceImpact
-          ? 'rounded-full bg-error-muted px-3 py-1'
-          : 'rounded-full bg-muted px-3 py-1'
-      }
-      testID="quick-buy-rate-tag"
-    >
-      {onPress ? (
-        <TouchableOpacity
-          onPress={onPress}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          testID="quick-buy-rate-tag-pressable"
-        >
-          {content}
-        </TouchableOpacity>
-      ) : (
-        content
-      )}
-    </Box>
-  );
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        testID="quick-buy-rate-tag-pressable"
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 export default QuickBuyRateTag;

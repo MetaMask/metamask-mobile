@@ -12,7 +12,7 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -27,7 +27,11 @@ import {
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
-import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
+import {
+  fromWei,
+  hexToBigInt,
+  weiToFiatNumber,
+} from '../../util/number/bigint';
 import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectAccountsByChainId } from '../accountTrackerController';
@@ -56,6 +60,8 @@ import {
   getTokensControllerAllIgnoredTokens,
   getTokensControllerAllTokens,
 } from './assets-migration';
+import { isAssetSupportActivation } from '../stellar/stellar-assets';
+import { filterExcludedAssets } from '../../enablement/assets/networks-customization';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -156,7 +162,8 @@ function callSelectAssetsBySelectedAccountGroup(
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+  (assetsState) =>
+    filterExcludedAssets(callSelectAssetsBySelectedAccountGroup(assetsState)),
 );
 
 /**
@@ -251,7 +258,7 @@ const selectStakedAssets = createDeepEqualSelector(
               currencyRates[nativeCurrency]?.conversionRate;
 
             const fiatBalance = conversionRate
-              ? weiToFiatNumber(hexToBN(stakedBalance), conversionRate)
+              ? weiToFiatNumber(hexToBigInt(stakedBalance), conversionRate)
               : undefined;
 
             const account = Object.values(internalAccounts).find(
@@ -275,7 +282,7 @@ const selectStakedAssets = createDeepEqualSelector(
               accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
-              balance: fromWei(stakedBalance),
+              balance: fromWei(hexToBigInt(stakedBalance)),
               fiat: fiatBalance
                 ? {
                     balance: Number(fiatBalance),
@@ -337,6 +344,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -491,6 +499,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;
@@ -503,6 +512,13 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       );
     },
   );
+
+export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
+  (chainIds: string[]) => (state: RootState) =>
+    selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      chainIds,
+    );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(

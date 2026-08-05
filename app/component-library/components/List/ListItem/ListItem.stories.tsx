@@ -62,7 +62,7 @@ export default ListItemMeta;
 
 export const ListItem = {
   render: (
-    args: JSX.IntrinsicAttributes &
+    args: React.JSX.IntrinsicAttributes &
       ListItemProps & { children?: React.ReactNode },
   ) => (
     <ListItemComponent {...args}>

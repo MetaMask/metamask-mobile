@@ -19,6 +19,38 @@ export function getSimulatorName() {
   return process.env.IOS_SIMULATOR_NAME ?? 'iPhone 16 Pro';
 }
 
+function runWdaXcodebuild(wdaProject, derivedDataPath, destinations) {
+  const args = [
+    'build-for-testing',
+    '-project',
+    wdaProject,
+    '-scheme',
+    'WebDriverAgentRunner',
+    '-derivedDataPath',
+    derivedDataPath,
+    'CODE_SIGNING_ALLOWED=NO',
+  ];
+
+  let lastStatus = 1;
+  for (const destination of destinations) {
+    console.log(`  destination: ${destination}`);
+    const build = spawnSync(
+      'xcodebuild',
+      [...args, '-destination', destination],
+      { stdio: 'inherit' },
+    );
+    if (build.status === 0) {
+      return;
+    }
+    lastStatus = build.status ?? 1;
+    console.warn(
+      `WDA prebuild failed for destination "${destination}" (exit ${lastStatus}) — trying next destination…`,
+    );
+  }
+
+  process.exit(lastStatus);
+}
+
 /**
  * @param {string} dir
  * @param {(entryPath: string, name: string, isDirectory: boolean) => boolean | 'stop'} predicate
@@ -183,11 +215,12 @@ function logArtifacts(label, derivedDataPath, { wdaApp, xctestrun }) {
 
 /**
  * Ensures WDA is prebuilt. No-op when artifacts already exist.
+ * @param {{ udid?: string; simulatorName?: string }} [options]
  * @returns {Promise<{ wdaApp: string; xctestrun: string }>}
  */
-export async function ensureWdaPrebuilt() {
+export async function ensureWdaPrebuilt(options = {}) {
   const derivedDataPath = getDerivedDataPath();
-  const simulatorName = getSimulatorName();
+  const simulatorName = options.simulatorName ?? getSimulatorName();
   const productsDir = join(derivedDataPath, 'Build', 'Products');
 
   let artifacts = findWdaArtifacts(derivedDataPath);
@@ -203,30 +236,19 @@ export async function ensureWdaPrebuilt() {
     );
   }
 
+  const destinations = [
+    ...(options.udid?.trim()
+      ? [`platform=iOS Simulator,id=${options.udid.trim()}`]
+      : []),
+    'generic/platform=iOS Simulator',
+    `platform=iOS Simulator,name=${simulatorName}`,
+  ];
+
   console.log(`Prebuilding WebDriverAgent for simulator "${simulatorName}"…`);
   console.log(`  project: ${wdaProject}`);
   console.log(`  derivedDataPath: ${derivedDataPath}`);
 
-  const build = spawnSync(
-    'xcodebuild',
-    [
-      'build-for-testing',
-      '-project',
-      wdaProject,
-      '-scheme',
-      'WebDriverAgentRunner',
-      '-derivedDataPath',
-      derivedDataPath,
-      '-destination',
-      `platform=iOS Simulator,name=${simulatorName}`,
-      'CODE_SIGNING_ALLOWED=NO',
-    ],
-    { stdio: 'inherit' },
-  );
-
-  if (build.status !== 0) {
-    process.exit(build.status ?? 1);
-  }
+  runWdaXcodebuild(wdaProject, derivedDataPath, destinations);
 
   artifacts = findWdaArtifacts(derivedDataPath);
   if (!artifacts.wdaApp || !artifacts.xctestrun) {

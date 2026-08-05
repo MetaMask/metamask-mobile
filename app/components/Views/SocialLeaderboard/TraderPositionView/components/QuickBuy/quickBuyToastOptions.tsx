@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Box,
   IconColor as DsIconColor,
   IconSize as DsIconSize,
   Spinner,
@@ -85,12 +84,10 @@ export function buildQuickBuyToastOptions(
         descriptionOptions,
         closeButtonOptions,
         startAccessory: (
-          <Box twClassName="pr-3">
-            <Spinner
-              color={DsIconColor.PrimaryDefault}
-              spinnerIconProps={{ size: DsIconSize.Lg }}
-            />
-          </Box>
+          <Spinner
+            color={DsIconColor.IconDefault}
+            spinnerIconProps={{ size: DsIconSize.Lg }}
+          />
         ),
       };
   }

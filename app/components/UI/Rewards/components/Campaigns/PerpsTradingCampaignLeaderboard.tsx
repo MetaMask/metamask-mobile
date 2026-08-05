@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   Text,
@@ -72,7 +73,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   userPosition,
   isCampaignComplete = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
 
   const handleHyperTrackerPress = useCallback(() => {
@@ -100,7 +101,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   );
 
   if (isLoading && entries.length === 0) {
-    return <CampaignLeaderboardSkeleton skeletonRowCount={5} />;
+    return <CampaignLeaderboardSkeleton skeletonRowCount={maxEntries ?? 20} />;
   }
 
   if (hasError && entries.length === 0) {

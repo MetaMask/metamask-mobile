@@ -10,6 +10,7 @@ import { WebDriverConfig } from '../types';
 import {
   DEFAULT_ACTION_TIMEOUT_MS,
   DEFAULT_IMPLICIT_WAIT_MS,
+  resolveE2EWaitTimeoutMs,
 } from '../Constants';
 
 const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
@@ -26,7 +27,7 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   retries: isCI ? 2 : 0,
   workers: 1,
   reporter: [['list'], ['html', { open: 'always' }]],
-  timeout: 300_000,
+  timeout: resolveE2EWaitTimeoutMs(300_000),
 };
 
 export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
@@ -42,8 +43,8 @@ export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
     globalSetup: [resolveGlobalSetup()],
     reporter: [...reporterConfig],
     use: {
-      actionTimeout: DEFAULT_ACTION_TIMEOUT_MS,
-      expectTimeout: DEFAULT_IMPLICIT_WAIT_MS,
+      actionTimeout: resolveE2EWaitTimeoutMs(DEFAULT_ACTION_TIMEOUT_MS),
+      expectTimeout: resolveE2EWaitTimeoutMs(DEFAULT_IMPLICIT_WAIT_MS),
       ...config.use,
     },
   });

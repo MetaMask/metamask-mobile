@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import type { LinkFlowOrigin } from './useMoneyAccountCardLinkage';
+import { CardEntryPoint } from '../util/metrics';
 
 export const MONEY_HOME_CARD_ORIGIN: LinkFlowOrigin = {
   screen: Routes.HOME_TABS,
@@ -9,6 +11,16 @@ export const MONEY_HOME_CARD_ORIGIN: LinkFlowOrigin = {
     screen: Routes.MONEY.ROOT,
     params: { screen: Routes.MONEY.HOME },
   },
+};
+
+export const CASHBACK_MONEY_ACCOUNT_ORIGIN: LinkFlowOrigin = {
+  screen: Routes.CARD.CASHBACK,
+  entrypoint: CardEntryPoint.CASHBACK,
+};
+
+export const CREDIT_MONEY_ACCOUNT_ORIGIN: LinkFlowOrigin = {
+  screen: Routes.CARD.CREDIT_REDEEM,
+  entrypoint: CardEntryPoint.CREDIT,
 };
 
 const isLinkFlowOrigin = (value: unknown): value is LinkFlowOrigin =>
@@ -22,7 +34,7 @@ const isLinkFlowOrigin = (value: unknown): value is LinkFlowOrigin =>
  * Money account entry point. Returns undefined for direct card opens.
  */
 export const useCardPostAuthRedirect = (): LinkFlowOrigin | undefined => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   return useMemo(() => {
     let parent = navigation.getParent();

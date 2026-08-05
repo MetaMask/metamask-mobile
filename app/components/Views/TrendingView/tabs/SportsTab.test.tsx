@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
@@ -42,18 +43,6 @@ const mockUsePredictionsFeed = jest.fn<
 }));
 jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
   usePredictionsFeed: () => mockUsePredictionsFeed(),
-}));
-
-const mockUseWorldCupPredictionsFeed = jest.fn<
-  { data: MockPredictionMarket[]; isLoading: boolean; isEnabled: boolean },
-  []
->(() => ({
-  data: [],
-  isLoading: false,
-  isEnabled: false,
-}));
-jest.mock('../feeds/predictions/useWorldCupPredictionsFeed', () => ({
-  useWorldCupPredictionsFeed: () => mockUseWorldCupPredictionsFeed(),
 }));
 
 const mockUseSportsMarketsFeed = jest.fn(() => ({
@@ -98,7 +87,7 @@ const renderSportsTab = () =>
     </NavigationContainer>,
   );
 
-describe('SportsTab — Predictions carousel', () => {
+describe('SportsTab', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
@@ -113,14 +102,9 @@ describe('SportsTab — Predictions carousel', () => {
       data: [{ id: 'sports-market-1' }],
       isLoading: false,
     });
-    mockUseWorldCupPredictionsFeed.mockReturnValue({
-      data: [],
-      isLoading: false,
-      isEnabled: false,
-    });
   });
 
-  it('opens the sports predictions tab when World Cup predictions are disabled', () => {
+  it('opens the sports predictions tab', () => {
     renderSportsTab();
 
     fireEvent.press(
@@ -136,27 +120,15 @@ describe('SportsTab — Predictions carousel', () => {
     });
   });
 
-  it('shows World Cup predictions and opens the World Cup screen when enabled', () => {
-    mockUseWorldCupPredictionsFeed.mockReturnValue({
-      data: [{ id: 'world-cup-market-1' }],
-      isLoading: false,
-      isEnabled: true,
-    });
+  it('keeps the same market key when its list position changes', () => {
+    const market = { id: 'sports-market-1' };
+    const { UNSAFE_getByType } = renderSportsTab();
+    const { keyExtractor } = UNSAFE_getByType(FlashList).props;
 
-    renderSportsTab();
+    const initialKey = keyExtractor(market, 0);
+    const reorderedKey = keyExtractor(market, 1);
 
-    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId('section-header-view-all-sports_predictions'),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.WORLD_CUP,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        initialTab: 'all',
-      },
-    });
+    expect(initialKey).toBe('all_sports-soccer-sports-market-1');
+    expect(reorderedKey).toBe(initialKey);
   });
 });

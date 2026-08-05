@@ -9,8 +9,9 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
+  selectUnifiedBalanceBySelectedAccountGroup,
 } from '../../../../../selectors/assets/balances';
-import { selectWalletHomeOnboardingStepsEnabled } from '../../../../../selectors/featureFlagController/homepage';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
@@ -60,9 +61,6 @@ const AccountGroupBalance = ({
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
-  const isWalletHomeOnboardingStepsEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
@@ -88,9 +86,16 @@ const AccountGroupBalance = ({
     [popularChainIdsKey],
   );
 
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
   const groupBalanceSelector = useMemo(
-    () => selectBalanceBySelectedAccountGroup(chainIdsForBalance),
-    [chainIdsForBalance],
+    () =>
+      isAssetsUnifyStateEnabled
+        ? selectUnifiedBalanceBySelectedAccountGroup(chainIdsForBalance)
+        : selectBalanceBySelectedAccountGroup(chainIdsForBalance),
+    [chainIdsForBalance, isAssetsUnifyStateEnabled],
   );
   const balanceChange1dSelector = useMemo(
     () => selectBalanceChangeBySelectedAccountGroup('1d', chainIdsForBalance),
@@ -141,8 +146,7 @@ const AccountGroupBalance = ({
   const shouldShowEmptyState =
     hasZeroAccountGroupBalance && !isCurrentNetworkTestnet;
 
-  const inWalletHomePostOnboardingFlow =
-    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
+  const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
   const isWalletHomeOnboardingFundStep =
     inWalletHomePostOnboardingFlow && walletHomeOnboardingStepIndex === 0;

@@ -5,7 +5,10 @@
  */
 
 import type { UseAnalyticsHook } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import type { AnalyticsTrackingEvent } from '../analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../analytics/AnalyticsEventBuilder';
 
 export interface MockAnalytics {
   isEnabled: jest.Mock<boolean, []>;
@@ -83,27 +86,22 @@ export const createMockUseAnalyticsHook = (
     addSensitiveProperties: jest.fn().mockReturnThis(),
     removeProperties: jest.fn().mockReturnThis(),
     removeSensitiveProperties: jest.fn().mockReturnThis(),
-    setSaveDataRecording: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({
       name: 'mock-event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
     }),
   })),
   isEnabled: jest.fn().mockReturnValue(true),
   identify: jest.fn().mockResolvedValue(undefined),
   enable: jest.fn().mockResolvedValue(undefined),
-  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
   createDataDeletionTask: jest.fn().mockResolvedValue({ status: 'ok' }),
   checkDataDeleteStatus: jest.fn().mockResolvedValue({
     deletionRequestDate: undefined,
-    hasCollectedDataSinceDeletionRequest: false,
     dataDeletionRequestStatus: 'UNKNOWN',
   }),
   getDeleteRegulationCreationDate: jest.fn().mockReturnValue('20/04/2024'),
   getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
-  isDataRecorded: jest.fn().mockReturnValue(true),
   getAnalyticsId: jest.fn().mockResolvedValue('mock-analytics-id'),
   ...overrides,
 });
@@ -124,6 +122,28 @@ export const createMockUseAnalyticsHook = (
  *   createMockUseAnalyticsHook({ createEventBuilder: mockCreateEventBuilder }),
  * );
  */
+/**
+ * Configures a mocked `useAnalytics` hook for external link tracking tests.
+ * Call from `beforeEach` after `jest.mock('.../useAnalytics')`.
+ */
+export const configureUseAnalyticsExternalLinkMock = (
+  trackEventMock: jest.Mock = jest.fn(),
+): jest.Mock => {
+  const { useAnalytics } = jest.requireMock(
+    '../../components/hooks/useAnalytics/useAnalytics',
+  ) as {
+    useAnalytics: jest.Mock<UseAnalyticsHook, []>;
+  };
+
+  useAnalytics.mockReturnValue(
+    createMockUseAnalyticsHook({
+      trackEvent: trackEventMock,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    }),
+  );
+  return trackEventMock;
+};
+
 export const createMockEventBuilder = (
   buildReturnValue?: AnalyticsTrackingEvent,
 ) => ({
@@ -131,13 +151,11 @@ export const createMockEventBuilder = (
   addSensitiveProperties: jest.fn().mockReturnThis(),
   removeProperties: jest.fn().mockReturnThis(),
   removeSensitiveProperties: jest.fn().mockReturnThis(),
-  setSaveDataRecording: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue(
     buildReturnValue ?? {
       name: 'mock-event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
     },
   ),
 });

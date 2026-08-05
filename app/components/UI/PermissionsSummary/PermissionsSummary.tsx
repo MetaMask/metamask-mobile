@@ -3,6 +3,7 @@ import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -18,10 +19,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import styleSheet from './PermissionsSummary.styles';
@@ -33,6 +30,7 @@ import {
 } from './MaliciousDappIndicators';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -66,13 +64,16 @@ import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import AccountConnectCreateInitialAccount from '../../Views/MultichainAccounts/shared/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { WalletClientType } from '../../../core/SnapKeyring/types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import {
   Text as TextComponent,
   TextVariant,
   TextColor,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 const PermissionsSummary = ({
@@ -113,7 +114,7 @@ const PermissionsSummary = ({
     nonTabView,
     fullNonTabView,
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
@@ -240,19 +241,22 @@ const PermissionsSummary = ({
               iconName={IconName.Info}
               iconColor={IconColor.Default}
               onPress={() => {
-                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                  screen: Routes.SHEET.CONNECTION_DETAILS,
-                  params: {
-                    hostInfo: {
-                      metadata: {
-                        origin:
-                          currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).origin,
+                navigateWithDetails(navigation, [
+                  Routes.MODAL.ROOT_MODAL_FLOW,
+                  {
+                    screen: Routes.SHEET.CONNECTION_DETAILS,
+                    params: {
+                      hostInfo: {
+                        metadata: {
+                          origin:
+                            currentPageInformation?.url &&
+                            new URL(currentPageInformation?.url).origin,
+                        },
                       },
+                      connectionDateTime: new Date().getTime(),
                     },
-                    connectionDateTime: new Date().getTime(),
                   },
-                });
+                ]);
               }}
               testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
             />
@@ -671,11 +675,10 @@ const PermissionsSummary = ({
           {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 testID={
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
-                label={strings('accounts.disconnect_all')}
                 onPress={toggleRevokeAllPermissionsModal}
                 startIconName={IconName.Logout}
                 isDanger
@@ -683,7 +686,9 @@ const PermissionsSummary = ({
                 style={{
                   ...styles.disconnectButton,
                 }}
-              />
+              >
+                {strings('accounts.disconnect_all')}
+              </Button>
             </View>
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
@@ -717,8 +722,7 @@ const PermissionsSummary = ({
             <View style={styles.nonDappNetworkSwitchButtons}>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('permissions.add_this_network')}
+                  variant={ButtonVariant.Primary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON
                   }
@@ -727,12 +731,13 @@ const PermissionsSummary = ({
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.add_this_network')}
+                </Button>
               </View>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Secondary}
-                  label={strings('permissions.choose_from_permitted_networks')}
+                  variant={ButtonVariant.Secondary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
                   }
@@ -741,7 +746,9 @@ const PermissionsSummary = ({
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.choose_from_permitted_networks')}
+                </Button>
               </View>
             </View>
           )}

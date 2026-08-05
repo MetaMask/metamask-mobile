@@ -17,11 +17,12 @@ import {
 } from './FixtureUtils';
 import Utilities from '../Utilities';
 import {
+  dismissAndroidSystemOverlaysPlaywright,
   dismissDevScreens,
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
-import TestHelpers from '../../helpers';
+import { launchApp as launchDetoxApp } from '../detox/DetoxAppLaunch';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
@@ -45,11 +46,13 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
-import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import { mockNotificationServices } from '../../smoke-appium/notifications/utils/mocks';
+import { softReloadAppForFixtures } from '../services/appium/softReloadApp';
 import {
   runAnalyticsExpectations,
   shouldRunAnalyticsExpectations,
@@ -67,7 +70,6 @@ import {
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
 import { FrameworkDetector } from '../FrameworkDetector';
-import PlaywrightUtilities from '../PlaywrightUtilities';
 import { DeviceCommandHandler } from '../services/device-commands';
 
 const logger = createLogger({
@@ -118,6 +120,17 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
+        );
+        break;
+      case DappVariants.BITCOIN_TEST_DAPP:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BITCOIN_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
           }),
         );
         break;
@@ -347,22 +360,16 @@ function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
 }
 
 /**
- * Updates dapp URLs in PermissionController with actual allocated ports by index.
- * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
+ * Updates dapp URLs in fixture with actual allocated ports by index.
+ * Replaces all occurrences of fallback dapp ports (8085, 8086, …) with the
+ * dynamically allocated ports. This affects browser tabs, PermissionController
+ * subjects, and any other fixture field that references a dapp URL.
  */
 function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
-  const permissionController =
-    state.state?.engine?.backgroundState?.PermissionController;
 
-  if (!permissionController?.subjects) {
-    return state;
-  }
+  let fixtureJson = JSON.stringify(state);
 
-  // Serialize subjects to JSON string for easy replacement
-  let subjectsJson = JSON.stringify(permissionController.subjects);
-
-  // Update each dapp URL by index
   let index = 0;
   while (true) {
     const actualPort = portManager.getMultiInstancePort(
@@ -375,15 +382,15 @@ function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
     const oldUrl = `localhost:${fallbackPort}`;
     const newUrl = `localhost:${actualPort}`;
 
-    // Replace all occurrences
-    subjectsJson = subjectsJson.split(oldUrl).join(newUrl);
-
+    fixtureJson = fixtureJson.split(oldUrl).join(newUrl);
     index++;
   }
 
-  // Parse back and update
-  permissionController.subjects = JSON.parse(subjectsJson);
-  return state;
+  if (index === 0) {
+    return state;
+  }
+
+  return JSON.parse(fixtureJson);
 }
 
 /**
@@ -535,9 +542,6 @@ export async function withFixtures(
   // This ensures we start with a clean slate on Android
   await cleanupAllAndroidPortForwarding();
 
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
-
   // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
   // Resources must be started in this specific order to ensure ports are allocated
   // before they're referenced by subsequent resources, especially in testSpecificMock.
@@ -640,7 +644,7 @@ export async function withFixtures(
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
-        await TestHelpers.launchApp({
+        await launchDetoxApp({
           delete: true,
           launchArgs: {
             fixtureServerPort: isAndroid
@@ -682,23 +686,14 @@ export async function withFixtures(
           ...(launchArgs || {}),
         };
 
-        if (deviceCommands) {
-          await deviceCommands.clearAppData();
-        }
-
-        const appStateRequest = fixtureServer.waitForNextStateRequest();
-        try {
-          await PlaywrightUtilities.launchApp(currentDeviceDetails, {
-            launchArgs: testArgs,
-          });
-          if (process.env.CI !== 'true') {
-            await dismissDevelopmentServerPickerPlaywright();
-            didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
-          }
-          await appStateRequest;
-        } catch (error) {
-          appStateRequest.catch(() => undefined);
-          throw error;
+        const softReloadResult = await softReloadAppForFixtures({
+          currentDeviceDetails,
+          deviceCommands,
+          launchArgs: testArgs,
+          fixtureServer,
+        });
+        if (softReloadResult.attemptedMetroDevLauncherDismissal) {
+          didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
         }
       } else {
         throw new Error(`Unsupported test runner: ${framework}`);
@@ -713,11 +708,14 @@ export async function withFixtures(
       }
     }
 
-    // Dismiss dev screens if running locally (not in CI)
+    // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
     if (process.env.CI !== 'true') {
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();
-      } else if (FrameworkDetector.isAppium()) {
+      } else if (
+        FrameworkDetector.isAppium() &&
+        shouldHandleMetroDevLauncherLocally()
+      ) {
         if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
           await dismissDevelopmentServerPickerPlaywright();
         }

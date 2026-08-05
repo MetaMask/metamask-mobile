@@ -629,6 +629,122 @@ describe('usePredictBuyConditions', () => {
     });
   });
 
+  describe('isPayRouteUnavailable', () => {
+    it('is true once an ERC20 pay token settles with no quotes, blocking the bet', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      // While the quote cycle is still in flight the guard must not fire yet.
+      expect(result.current.isPayRouteUnavailable).toBe(false);
+
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [];
+      });
+      rerender({});
+
+      expect(result.current.isPaySystemSettling).toBe(false);
+      expect(result.current.isPayRouteUnavailable).toBe(true);
+      expect(result.current.canPlaceBet).toBe(false);
+      expect(result.current.isCurrentTokenInsufficient).toBe(true);
+    });
+
+    it('is false once quotes arrive after settling (a usable route exists)', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockIsPayQuoteLoading = true;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      act(() => {
+        mockIsPayQuoteLoading = false;
+        mockIsPayTotalsLoading = false;
+        mockQuotes = [{ id: 'q1' }];
+      });
+      rerender({});
+
+      expect(result.current.isPaySystemSettling).toBe(false);
+      expect(result.current.isPayRouteUnavailable).toBe(false);
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('is false when the Predict balance is selected', () => {
+      mockIsPredictBalanceSelected = true;
+      mockQuotes = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.isPayRouteUnavailable).toBe(false);
+    });
+
+    it('is false while the pay system is still settling', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
+      mockQuotes = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.isPaySystemSettling).toBe(true);
+      expect(result.current.isPayRouteUnavailable).toBe(false);
+    });
+
+    it('is false while pay fees are loading', () => {
+      mockIsPredictBalanceSelected = false;
+      mockIsPayTotalsLoading = true;
+      mockQuotes = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
+      );
+
+      expect(result.current.isPayFeesLoading).toBe(true);
+      expect(result.current.isPayRouteUnavailable).toBe(false);
+    });
+
+    it('is false when the amount is zero', () => {
+      mockIsPredictBalanceSelected = false;
+      mockQuotes = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          currentValue: 0,
+          totalPayForPredictBalance: 0,
+        }),
+      );
+
+      expect(result.current.isPayRouteUnavailable).toBe(false);
+    });
+
+    it('is false when the amount is below the minimum bet', () => {
+      mockIsPredictBalanceSelected = false;
+      mockQuotes = [];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({ ...defaultParams, currentValue: 0.5 }),
+      );
+
+      expect(result.current.isBelowMinimum).toBe(true);
+      expect(result.current.isPayRouteUnavailable).toBe(false);
+    });
+  });
+
   describe('hasAlternativeBalance', () => {
     it('is false when currentValue is 0', () => {
       mockAvailableTokens = [

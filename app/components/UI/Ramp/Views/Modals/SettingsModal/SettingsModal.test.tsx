@@ -1,5 +1,8 @@
 import React from 'react';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
 import SettingsModal from './SettingsModal';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -10,7 +13,7 @@ import { ToastContext } from '../../../../../../component-library/components/Toa
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../Deposit/utils/ProviderTokenVault';
+} from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import type { Provider } from '@metamask/ramps-controller';
 
@@ -18,7 +21,7 @@ const MOCK_SUPPORT_URL = 'https://support.test-provider.com';
 const MOCK_TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 
 const createMockProvider = (overrides?: Partial<Provider>): Provider => ({
-  id: '/providers/test-provider',
+  id: 'test-provider',
   name: 'Test Provider',
   environmentType: 'PRODUCTION',
   description: 'Test Provider Description',
@@ -33,8 +36,8 @@ const createMockProvider = (overrides?: Partial<Provider>): Provider => ({
   ...overrides,
 });
 
-const TRANSAK_PROVIDER_ID = '/providers/transak-native';
-const TRANSAK_STAGING_PROVIDER_ID = '/providers/transak-native-staging';
+const TRANSAK_PROVIDER_ID = 'transak-native';
+const TRANSAK_STAGING_PROVIDER_ID = 'transak-native-staging';
 
 const createMockTransakProvider = (
   overrides?: Partial<Provider>,
@@ -72,7 +75,7 @@ const createMockTransakStagingProvider = (
   ...overrides,
 });
 
-jest.mock('../../../Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../../utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
   resetProviderToken: jest.fn(),
 }));
@@ -285,7 +288,7 @@ describe('SettingsModal', () => {
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: 'Icon',
         labelOptions: [{ label: 'Successfully logged out' }],
-        iconName: 'CheckBold',
+        iconName: IconName.Confirmation,
         iconColor: IconColor.Success,
         hasNoTimeout: false,
       });

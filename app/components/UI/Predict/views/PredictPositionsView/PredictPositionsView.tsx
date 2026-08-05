@@ -1,9 +1,9 @@
 import {
-  type NavigationProp,
   type RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -93,8 +93,7 @@ const PredictPositionsTabs = ({
 };
 
 const PredictPositionsView = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictPositions'>>();
   const tw = useTailwind();

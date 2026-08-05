@@ -6,6 +6,7 @@ import reducer, {
   setDestAmount,
   resetBridgeState,
   setSlippage,
+  setSlippageUserOverride,
   setBridgeViewMode,
   selectBridgeViewMode,
   setSourceToken,
@@ -33,10 +34,14 @@ import reducer, {
   selectBatchSellDestStablecoinsByChain,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
+  selectBridgeQuotes,
   selectBatchSellQuotes,
+  selectBatchSellTrades,
+  selectControllerFields,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
+  selectIsNonEvmSourced,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -118,7 +123,8 @@ describe('bridge slice', () => {
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
-        slippage: '0.5',
+        slippage: undefined,
+        isSlippageUserOverride: false,
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isSelectingToken: false,
@@ -224,6 +230,12 @@ describe('bridge slice', () => {
 
       expect(state.slippage).toBe(slippage);
     });
+
+    it('records an explicit Auto override', () => {
+      const state = reducer(initialState, setSlippageUserOverride(undefined));
+
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
   });
 
   describe('setDestAmount', () => {
@@ -271,6 +283,16 @@ describe('bridge slice', () => {
 
       expect(state.isDestTokenManuallySet).toBe(true);
     });
+
+    it('clears slippage when the token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setDestToken(mockDestToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
   });
 
   describe('setSourceToken', () => {
@@ -280,6 +302,49 @@ describe('bridge slice', () => {
       expect(state.sourceToken?.address).toBe(
         '0x0000000000000000000000000000000000000000',
       );
+    });
+
+    it('clears slippage when the source token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setSourceToken(mockToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
+
+    it('keeps slippage when the source token identity is unchanged', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.slippage).toBe('2');
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
+
+    it('clears slippage when the token address is unchanged on another network', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({
+          ...mockToken,
+          chainId: '0x89',
+        }),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
     });
   });
 
@@ -496,6 +561,8 @@ describe('bridge slice', () => {
         destAmount: '100',
         sourceToken: mockToken,
         destToken: mockDestToken,
+        slippage: '3.5',
+        isSlippageUserOverride: true,
         bridgeViewMode: BridgeViewMode.Bridge,
       };
 
@@ -949,6 +1016,82 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('bridge controller quote selectors', () => {
+    beforeEach(() => {
+      selectControllerFields.resetRecomputations();
+      selectBridgeQuotes.resetRecomputations();
+      selectBatchSellQuotes.resetRecomputations();
+      selectBatchSellTrades.resetRecomputations();
+    });
+
+    it('updates controller fields when analytics opt-in changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.AnalyticsController = {
+        ...mockState.engine.backgroundState.AnalyticsController,
+        optedIn: false,
+        analyticsId: 'test-analytics-id',
+      };
+
+      expect(selectControllerFields(mockState).participateInMetaMetrics).toBe(
+        false,
+      );
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+
+      const optedInState = cloneDeep(mockState);
+      optedInState.engine.backgroundState.AnalyticsController.optedIn = true;
+
+      expect(
+        selectControllerFields(optedInState).participateInMetaMetrics,
+      ).toBe(true);
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations + 1,
+      );
+    });
+
+    it('does not recompute when unrelated bridge UI state changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+
+      selectBridgeQuotes(mockState);
+      selectBatchSellQuotes(mockState);
+      selectBatchSellTrades(mockState);
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+      const bridgeQuotesRecomputations = selectBridgeQuotes.recomputations();
+      const batchSellQuotesRecomputations =
+        selectBatchSellQuotes.recomputations();
+      const batchSellTradesRecomputations =
+        selectBatchSellTrades.recomputations();
+
+      const unrelatedState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceAmount: '1',
+        },
+      } as RootState;
+
+      selectBridgeQuotes(unrelatedState);
+      selectBatchSellQuotes(unrelatedState);
+      selectBatchSellTrades(unrelatedState);
+
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations,
+      );
+      expect(selectBridgeQuotes.recomputations()).toBe(
+        bridgeQuotesRecomputations,
+      );
+      expect(selectBatchSellQuotes.recomputations()).toBe(
+        batchSellQuotesRecomputations,
+      );
+      expect(selectBatchSellTrades.recomputations()).toBe(
+        batchSellTradesRecomputations,
+      );
+    });
+  });
+
   describe('selectTokenSelectorNetworkFilter', () => {
     it('should return undefined when no filter is set', () => {
       const mockState = cloneDeep(mockRootState);
@@ -1107,7 +1250,7 @@ describe('bridge slice', () => {
       expect(selectHardwareWalletsSwaps(mockState)).toEqual({
         ...initialHardwareWalletsSwapsState,
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
+        currentStep: 0,
         totalSteps: 1,
         steps: expect.any(Array),
       });
@@ -1228,6 +1371,56 @@ describe('bridge slice', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsNonEvmSourced', () => {
+    const buildState = (sourceToken: BridgeToken | undefined) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+      };
+      return mockState as unknown as RootState;
+    };
+
+    const tokenOn = (chainId: string): BridgeToken =>
+      ({
+        address: '0xsource',
+        symbol: 'SRC',
+        decimals: 18,
+        image: '',
+        chainId: chainId as BridgeToken['chainId'],
+        name: 'Source',
+      }) as BridgeToken;
+
+    it('returns true for a Solana source token', () => {
+      const state = buildState(
+        tokenOn('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Tron source token', () => {
+      const state = buildState(tokenOn('tron:728126428'));
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Bitcoin source token', () => {
+      const state = buildState(
+        tokenOn('bip122:000000000019d6689c085ae165831e93'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns false for an EVM source token', () => {
+      const state = buildState(tokenOn('0x1'));
+      expect(selectIsNonEvmSourced(state)).toBe(false);
+    });
+
+    it('returns a falsy value when there is no source token', () => {
+      const state = buildState(undefined);
+      expect(selectIsNonEvmSourced(state)).toBeFalsy();
     });
   });
 });

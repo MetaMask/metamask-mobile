@@ -5,6 +5,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
@@ -62,7 +63,7 @@ const CustomNetworkSelector = ({
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const safeAreaInsets = useSafeAreaInsets();
 
   // Get the currently active network's chain ID in CAIP format
@@ -164,7 +165,6 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
-            style={styles.networkItem}
           >
             {(!isTestNet(chainId) || showFiatOnTestnets) && (
               <AccountGroupBalancePerChain caipChainId={caipChainId} />
@@ -179,7 +179,6 @@ const CustomNetworkSelector = ({
       dismissModal,
       openRpcModal,
       createAvatarProps,
-      styles.networkItem,
       selectedChainIdCaip,
       showFiatOnTestnets,
     ],

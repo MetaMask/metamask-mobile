@@ -5,8 +5,6 @@ import * as ReactRedux from 'react-redux';
 // eslint-disable-next-line import-x/no-namespace
 import * as Selectors from '../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-namespace
-import * as HomepageFeatureSelectors from '../../../selectors/featureFlagController/homepage';
-// eslint-disable-next-line import-x/no-namespace
 import * as OnboardingSelectors from '../../../selectors/onboarding';
 // eslint-disable-next-line import-x/no-namespace
 import * as KeyringSelectors from '../../../selectors/keyringController';
@@ -383,9 +381,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
     const mockGetIsNotificationEnabledByDefaultFeatureFlag = jest
       .spyOn(Selectors, 'getIsNotificationEnabledByDefaultFeatureFlag')
       .mockReturnValue(true);
-    const mockSelectWalletHomeOnboardingStepsEnabled = jest
-      .spyOn(HomepageFeatureSelectors, 'selectWalletHomeOnboardingStepsEnabled')
-      .mockReturnValue(false);
     const mockSelectShouldShowWalletHomeOnboardingSteps = jest
       .spyOn(OnboardingSelectors, 'selectShouldShowWalletHomeOnboardingSteps')
       .mockReturnValue(false);
@@ -396,7 +391,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
       mockSelectIsUnlocked,
       mockSelectIsSignedIn,
       mockGetIsNotificationEnabledByDefaultFeatureFlag,
-      mockSelectWalletHomeOnboardingStepsEnabled,
       mockSelectShouldShowWalletHomeOnboardingSteps,
     };
   };
@@ -511,9 +505,6 @@ describe('useEnableNotificationsByDefaultEffect', () => {
 
   it('does not enable notifications when wallet home post-onboarding checklist is active', async () => {
     const mocks = arrange();
-    mocks.selectors.mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(
-      true,
-    );
     mocks.selectors.mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(
       true,
     );

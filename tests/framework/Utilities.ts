@@ -1,13 +1,22 @@
 import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import {
+  asPlaywrightElement,
+  type EncapsulatedElementType,
+} from './EncapsulatedElement.ts';
+import { FrameworkDetector } from './FrameworkDetector.ts';
+import PlaywrightAssertions from './PlaywrightAssertions.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
+import { resolveE2EWaitTimeoutMs } from './Constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
+import { Json } from '@metamask/utils';
 
 const TEST_CONFIG_DEFAULTS = {
-  timeout: 15000,
+  timeout: resolveE2EWaitTimeoutMs(15000),
   retryInterval: 500,
   actionDelay: 100,
   stabilityCheckInterval: 200,
@@ -18,6 +27,18 @@ const logger = createLogger({ name: 'Utilities' });
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+export function stripJsonKeys(value: Json, excludedKeys: string[]): Json {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const next = { ...(value as Record<string, Json>) };
+  for (const key of excludedKeys) {
+    delete next[key];
+  }
+  return next;
+}
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
@@ -43,6 +64,24 @@ export default class Utilities {
   static async checkElementEnabled(
     elem: EncapsulatedElementType,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(elem);
+      if (!(await el.isEnabled())) {
+        throw new Error(
+          [
+            '🚫 Element is not enabled.',
+            '',
+            '💡 If this element might be disabled in some situations,',
+            '   consider using the {checkEnabled: false} option.',
+            '',
+            '📝 Example:',
+            '   await Gestures.waitAndTap(element, {checkEnabled: false})',
+          ].join('\n'),
+        );
+      }
+      return;
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {
@@ -63,6 +102,19 @@ export default class Utilities {
   static async checkElementDisabled(
     elem: EncapsulatedElementType,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(elem);
+      if (!(await el.isEnabled())) {
+        return;
+      }
+      // RN may report isEnabled=true while native enabled="false".
+      const enabledAttr = await el.getAttribute('enabled');
+      if (enabledAttr === 'false') {
+        return;
+      }
+      throw new Error('🚫 Element is enabled, but should be disabled.');
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || attributes.enabled) {
@@ -82,6 +134,21 @@ export default class Utilities {
       timeout,
       interval,
       description: 'Element to be enabled',
+    });
+  }
+
+  /**
+   * Wait for element to be disabled with retry mechanism
+   */
+  static async waitForElementToBeDisabled(
+    elem: EncapsulatedElementType,
+    timeout = 3500,
+    interval = 100,
+  ): Promise<void> {
+    return this.executeWithRetry(() => this.checkElementDisabled(elem), {
+      timeout,
+      interval,
+      description: 'Element to be disabled',
     });
   }
 
@@ -249,6 +316,35 @@ export default class Utilities {
      * - Stability check: 2000ms (allows time for UI to settle)
      */
 
+    if (FrameworkDetector.isAppium()) {
+      const playwrightElem = asPlaywrightElement(elem);
+
+      if (checkVisibility) {
+        const visibilityTimeout = timeout || 100;
+        await PlaywrightAssertions.expectElementToBeVisible(playwrightElem, {
+          timeout: visibilityTimeout,
+        });
+      }
+
+      if (checkEnabled && PlatformDetector.isAndroid()) {
+        const pwEl = await playwrightElem;
+        if (!(await pwEl.isEnabled())) {
+          throw new Error('Element is not enabled');
+        }
+      }
+
+      if (checkStability) {
+        const stabilityTimeout = timeout || 2000;
+        const stabilityCheckInterval = timeout ? timeout / 10 : 200;
+        await PlaywrightGestures.waitForElementStable(await playwrightElem, {
+          timeout: stabilityTimeout,
+          interval: stabilityCheckInterval,
+        });
+      }
+
+      return el;
+    }
+
     if (checkVisibility) {
       const visibilityTimeout = timeout || 100; // If no timeout is provided, default to 100ms
       if (device.getPlatform() === 'ios') {
@@ -308,14 +404,20 @@ export default class Utilities {
     elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(elem as EncapsulatedElementType),
+        { timeout },
+      );
+      return;
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const isWebElement = this.isWebElement(el);
 
     if (isWebElement) {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       await (expect(el) as any).toExist();
-    } else if (device.getPlatform() === 'ios') {
-      await waitFor(el).toExist().withTimeout(timeout);
     } else {
       await waitFor(el).toBeVisible().withTimeout(timeout);
     }
@@ -328,6 +430,14 @@ export default class Utilities {
     elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightAssertions.expectElementToNotBeVisible(
+        asPlaywrightElement(elem as EncapsulatedElementType),
+        { timeout },
+      );
+      return;
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const isWebElement = this.isWebElement(el);
     if (isWebElement) {

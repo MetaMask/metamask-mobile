@@ -461,6 +461,40 @@ describe('useNetworkEnablement', () => {
     });
   });
 
+  describe('referential stability', () => {
+    it('returns a stable object and popularNetworks array across re-renders', () => {
+      // Stable selector results so only the hook's own memoization is exercised.
+      const enabledNetworks = {
+        eip155: { '0x1': true, '0x89': false },
+      };
+      const networkConfigs = { '0x1': {} };
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectEnabledNetworksByNamespace) {
+          return enabledNetworks;
+        }
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectNetworkConfigurations) {
+          return networkConfigs;
+        }
+        return undefined;
+      });
+
+      const { result, rerender } = renderHook(() => useNetworkEnablement());
+      const first = result.current;
+      const firstPopularNetworks = result.current.popularNetworks;
+
+      rerender({});
+
+      expect(result.current).toBe(first);
+      expect(result.current.popularNetworks).toBe(firstPopularNetworks);
+    });
+  });
+
   describe('hook return values', () => {
     it('returns all expected properties', () => {
       const { result } = renderHook(() => useNetworkEnablement());

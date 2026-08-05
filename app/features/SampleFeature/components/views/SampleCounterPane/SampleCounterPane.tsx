@@ -2,9 +2,7 @@ import React from 'react';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import styleSheet from './SampleCounterPane.styles';
 import { useSampleCounter } from '../../hooks/useSampleCounter/useSampleCounter';
 import { strings } from '../../../../../../locales/i18n';
@@ -61,12 +59,13 @@ export function SampleCounterPane() {
       </Text>
 
       <Button
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         style={styles.button}
         onPress={incrementCount}
         testID="sample-counter-pane-increment-button"
-        label={strings('sample_feature.counter.increment')}
-      />
+      >
+        {strings('sample_feature.counter.increment')}
+      </Button>
     </Card>
   );
 }

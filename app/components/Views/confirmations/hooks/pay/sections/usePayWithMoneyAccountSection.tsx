@@ -1,12 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
-import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
-import Engine from '../../../../../../core/Engine';
 import MoneyIcon from '../../../../../../images/money.png';
 import { RootState } from '../../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
@@ -14,7 +12,8 @@ import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagC
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../../utils/transaction';
+import { getTransactionType } from '../../../utils/transaction';
+import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
@@ -28,27 +27,15 @@ const styles = StyleSheet.create({
   moneyIcon: { width: 24, height: 24 },
 });
 
-const PERPS_TRANSACTION_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.perpsWithdraw,
-] as const;
-
-const PREDICT_TRANSACTION_TYPES = [
-  TransactionType.predictDeposit,
-  TransactionType.predictDepositAndOrder,
-  TransactionType.predictWithdraw,
-] as const;
-
 export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const {
-    enablePerpsMoneyAccountTransactions,
-    enablePredictMoneyAccountTransactions,
-  } = useSelector(selectMetaMaskPayFlags);
-  const { totalFiatFormatted } = useMoneyAccountBalance();
+  const { enableMoneyAccountTransactions } = useSelector(
+    selectMetaMaskPayFlags,
+  );
+  const { withdrawableFiatFormatted } = useMoneyAccountBalance();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -56,42 +43,30 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
 
-  const isPerps = hasTransactionType(
-    transactionMeta,
-    PERPS_TRANSACTION_TYPES as unknown as TransactionType[],
+  const transactionType = getTransactionType(transactionMeta);
+  const isEnabled = Boolean(
+    transactionType && enableMoneyAccountTransactions[transactionType],
   );
-  const isPredict = hasTransactionType(
-    transactionMeta,
-    PREDICT_TRANSACTION_TYPES as unknown as TransactionType[],
-  );
-  const isEnabled =
-    (isPerps && enablePerpsMoneyAccountTransactions) ||
-    (isPredict && enablePredictMoneyAccountTransactions);
 
   const handlePress = useCallback(() => {
     if (transactionId) {
-      Engine.context.TransactionPayController.setTransactionConfig(
+      applyMoneyAccountOverride(
         transactionId,
-        (config) => {
-          (config as Record<string, unknown>).paymentOverride =
-            PaymentOverride.MoneyAccount;
-          if (moneyAccount?.address) {
-            config.refundTo = moneyAccount.address as Hex;
-          }
-        },
+        moneyAccount?.address,
+        transactionMeta,
       );
     }
     navigation.goBack();
-  }, [moneyAccount?.address, navigation, transactionId]);
+  }, [moneyAccount?.address, navigation, transactionId, transactionMeta]);
 
   return useMemo(() => {
     if (!isEnabled || !moneyAccount) {
       return null;
     }
 
-    const subtitle = totalFiatFormatted
+    const subtitle = withdrawableFiatFormatted
       ? strings('confirm.pay_with_bottom_sheet.available_balance', {
-          balance: totalFiatFormatted,
+          balance: withdrawableFiatFormatted,
         })
       : undefined;
 
@@ -101,10 +76,9 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
         source: MoneyIcon,
         style: styles.moneyIcon,
       }),
-      title: strings('confirm.pay_with_bottom_sheet.money_balance'),
+      title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      isLastUsed: false,
       trailingElement: isMoneyAccountSelected ? 'checkmark' : 'none',
       onPress: handlePress,
       testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
@@ -121,6 +95,6 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     handlePress,
     isMoneyAccountSelected,
     moneyAccount,
-    totalFiatFormatted,
+    withdrawableFiatFormatted,
   ]);
 }

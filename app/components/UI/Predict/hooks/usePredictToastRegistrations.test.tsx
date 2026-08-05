@@ -2,9 +2,15 @@ import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../../Money/utils/moneyTransactionGuards';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../../selectors/networkController';
 
@@ -38,6 +44,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
+      primary: { default: mockTestHexColors.CHART_PRIMARY },
       success: { default: mockTestHexColors.SUCCESS_BRIGHT },
       error: { default: mockTestHexColors.ERROR_BRIGHT },
       accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
@@ -92,6 +99,11 @@ jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactionMetadataById: jest.fn(() => undefined),
 }));
 
+jest.mock('../../Money/utils/moneyTransactionGuards', () => ({
+  isPerpsPredictMoneyDeposit: jest.fn(() => false),
+  isPerpsPredictMoneyWithdraw: jest.fn(() => false),
+}));
+
 jest.mock('../../../../selectors/tokensController', () => ({
   selectSingleTokenByAddressAndChainId: jest.fn(() => undefined),
 }));
@@ -102,10 +114,20 @@ jest.mock('../../../../selectors/networkController', () => ({
 
 let mockBottomSheetEnabled = false;
 let mockProviderMounted = false;
+let mockTransactionsRedesignEnabled = false;
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/activityRedesign',
+  () => ({
+    selectIsTransactionsRedesignEnabled: jest.fn(
+      () => mockTransactionsRedesignEnabled,
+    ),
+  }),
+);
 
 jest.mock('../contexts/PredictPreviewSheetContext', () => ({
   shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
@@ -126,6 +148,7 @@ describe('usePredictToastRegistrations', () => {
 
     mockBottomSheetEnabled = false;
     mockProviderMounted = false;
+    mockTransactionsRedesignEnabled = false;
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -172,12 +195,45 @@ describe('usePredictToastRegistrations', () => {
 
       const onTrack = showToast.mock.calls[0][0].closeButtonOptions.onPress;
       onTrack();
-      jest.advanceTimersByTime(100);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: 'tx-1',
       });
+    });
+
+    it('tracks to the redesigned details screen when the redesign is enabled', () => {
+      mockTransactionsRedesignEnabled = true;
+      jest
+        .mocked(selectTransactionMetadataById)
+        .mockReturnValue({ chainId: '0x89' } as unknown as ReturnType<
+          typeof selectTransactionMetadataById
+        >);
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-1',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      showToast.mock.calls[0][0].closeButtonOptions.onPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+        chainId: 'eip155:137',
+        txIdentifier: 'tx-1',
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.TRANSACTION_DETAILS,
+        expect.anything(),
+      );
     });
 
     it('shows success toast on confirmed status', () => {
@@ -297,6 +353,60 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).not.toHaveBeenCalled();
       expect(mockInvalidateQueries).not.toHaveBeenCalled();
     });
+
+    it.each(['approved', 'confirmed', 'failed'])(
+      'does not show toast on %s status when funded from the Money account',
+      (status) => {
+        (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue(
+          { id: 'tx-money' },
+        );
+        (isPerpsPredictMoneyDeposit as unknown as jest.Mock).mockReturnValue(
+          true,
+        );
+
+        const handler = getHandler();
+
+        handler(
+          {
+            type: 'deposit',
+            status,
+            transactionId: 'tx-money',
+            senderAddress: selectedAddress,
+            amount: 100,
+          },
+          showToast,
+        );
+
+        expect(showToast).not.toHaveBeenCalled();
+      },
+    );
+
+    it('still shows pending toast for a non-money deposit', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-normal',
+      });
+      (isPerpsPredictMoneyDeposit as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-normal',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+        }),
+      );
+    });
   });
 
   describe('claim transactions', () => {
@@ -357,6 +467,43 @@ describe('usePredictToastRegistrations', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows redeemed toast on confirmed status when amount is zero', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'confirmed',
+          amount: 0,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Info',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.title',
+            }),
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.description',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$0.00'),
+            }),
+          ]),
         }),
       );
     });
@@ -765,6 +912,56 @@ describe('usePredictToastRegistrations', () => {
 
       expect(showToast).not.toHaveBeenCalled();
     });
+
+    it('suppresses the native success toast on confirmed when destination is the Money account', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-money-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-money-withdraw',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('still shows the native success toast for a non-Money withdraw (other flows unchanged)', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-normal-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-normal-withdraw',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'Confirmation' }),
+      );
+    });
   });
 
   describe('order transactions', () => {
@@ -833,7 +1030,7 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
-          iconName: 'Check',
+          iconName: 'Confirmation',
           hasNoTimeout: false,
         }),
       );
