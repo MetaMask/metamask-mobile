@@ -4170,6 +4170,7 @@ describe('PerpsStreamManager', () => {
   describe('OrderStreamChannel.updateOrderOptimistic', () => {
     let mockOrdersSubscribe: jest.Mock;
     let mockOrdersUnsubscribe: jest.Mock;
+    let orderCallback: ((orders: Order[]) => void) | null = null;
 
     const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
       orderId: 'order-1',
@@ -4189,9 +4190,35 @@ describe('PerpsStreamManager', () => {
       ...overrides,
     });
 
+    const seedCachedOrder = async (subscriber: jest.Mock) => {
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback: subscriber,
+        throttleMs: 0,
+      });
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+      act(() => {
+        orderCallback?.([createMockOrder()]);
+      });
+      await waitFor(() => {
+        expect(subscriber).toHaveBeenCalledTimes(1);
+      });
+      subscriber.mockClear();
+      return unsubscribe;
+    };
+
     beforeEach(() => {
+      orderCallback = null;
       mockOrdersUnsubscribe = jest.fn();
-      mockOrdersSubscribe = jest.fn().mockReturnValue(mockOrdersUnsubscribe);
+      mockOrdersSubscribe = jest
+        .fn()
+        .mockImplementation(
+          (params: { callback: (orders: Order[]) => void }) => {
+            orderCallback = params.callback;
+            return mockOrdersUnsubscribe;
+          },
+        );
       mockEngine.context.PerpsController.subscribeToOrders =
         mockOrdersSubscribe;
       mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
@@ -4199,175 +4226,55 @@ describe('PerpsStreamManager', () => {
         .mockReturnValue(false);
     });
 
-    it('updates limit price in cached order', async () => {
-      let orderCallback: ((orders: Order[]) => void) | null = null;
-      mockOrdersSubscribe.mockImplementation(
-        (params: { callback: (orders: Order[]) => void }) => {
-          orderCallback = params.callback;
-          return mockOrdersUnsubscribe;
-        },
-      );
-
-      const callback = jest.fn();
-      const unsubscribe = testStreamManager.orders.subscribe({
-        callback,
-        throttleMs: 0,
-      });
-
-      await waitFor(() => {
-        expect(mockOrdersSubscribe).toHaveBeenCalled();
-      });
-
-      act(() => {
-        orderCallback?.([createMockOrder()]);
-      });
-
-      await waitFor(() => {
-        expect(callback).toHaveBeenCalledTimes(1);
-      });
-
-      callback.mockClear();
-
-      act(() => {
-        testStreamManager.orders.updateOrderOptimistic('order-1', {
-          limitPrice: '51000',
-        });
-      });
-
-      expect(callback).toHaveBeenCalledWith([
-        expect.objectContaining({
+    it.each([
+      [
+        'limit price',
+        { limitPrice: '51000' },
+        {
           orderId: 'order-1',
           price: '51000',
           size: '1.0',
           originalSize: '1.0',
           remainingSize: '1.0',
-        }),
-      ]);
-
-      unsubscribe();
-    });
-
-    it('updates size fields in cached order', async () => {
-      let orderCallback: ((orders: Order[]) => void) | null = null;
-      mockOrdersSubscribe.mockImplementation(
-        (params: { callback: (orders: Order[]) => void }) => {
-          orderCallback = params.callback;
-          return mockOrdersUnsubscribe;
         },
-      );
-
-      const callback = jest.fn();
-      const unsubscribe = testStreamManager.orders.subscribe({
-        callback,
-        throttleMs: 0,
-      });
-
-      await waitFor(() => {
-        expect(mockOrdersSubscribe).toHaveBeenCalled();
-      });
-
-      act(() => {
-        orderCallback?.([createMockOrder()]);
-      });
-
-      await waitFor(() => {
-        expect(callback).toHaveBeenCalledTimes(1);
-      });
-
-      callback.mockClear();
-
-      act(() => {
-        testStreamManager.orders.updateOrderOptimistic('order-1', {
-          size: '2.5',
-        });
-      });
-
-      expect(callback).toHaveBeenCalledWith([
-        expect.objectContaining({
+      ],
+      [
+        'size',
+        { size: '2.5' },
+        {
           orderId: 'order-1',
           price: '50000',
           size: '2.5',
           originalSize: '2.5',
           remainingSize: '2.5',
-        }),
-      ]);
+        },
+      ],
+    ])('updates %s in cached order', async (_label, edit, expected) => {
+      const subscriber = jest.fn();
+      const unsubscribe = await seedCachedOrder(subscriber);
 
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', edit);
+      });
+
+      expect(subscriber).toHaveBeenCalledWith([
+        expect.objectContaining(expected),
+      ]);
       unsubscribe();
     });
 
-    it('does nothing when the order is not cached', async () => {
-      let orderCallback: ((orders: Order[]) => void) | null = null;
-      mockOrdersSubscribe.mockImplementation(
-        (params: { callback: (orders: Order[]) => void }) => {
-          orderCallback = params.callback;
-          return mockOrdersUnsubscribe;
-        },
-      );
-
-      const callback = jest.fn();
-      const unsubscribe = testStreamManager.orders.subscribe({
-        callback,
-        throttleMs: 0,
-      });
-
-      await waitFor(() => {
-        expect(mockOrdersSubscribe).toHaveBeenCalled();
-      });
-
-      act(() => {
-        orderCallback?.([createMockOrder()]);
-      });
-
-      await waitFor(() => {
-        expect(callback).toHaveBeenCalledTimes(1);
-      });
-
-      callback.mockClear();
+    it('skips subscriber notification for no-op edits', async () => {
+      const subscriber = jest.fn();
+      const unsubscribe = await seedCachedOrder(subscriber);
 
       act(() => {
         testStreamManager.orders.updateOrderOptimistic('missing-order', {
           limitPrice: '51000',
         });
-      });
-
-      expect(callback).not.toHaveBeenCalled();
-      unsubscribe();
-    });
-
-    it('does nothing when no edit fields are provided', async () => {
-      let orderCallback: ((orders: Order[]) => void) | null = null;
-      mockOrdersSubscribe.mockImplementation(
-        (params: { callback: (orders: Order[]) => void }) => {
-          orderCallback = params.callback;
-          return mockOrdersUnsubscribe;
-        },
-      );
-
-      const callback = jest.fn();
-      const unsubscribe = testStreamManager.orders.subscribe({
-        callback,
-        throttleMs: 0,
-      });
-
-      await waitFor(() => {
-        expect(mockOrdersSubscribe).toHaveBeenCalled();
-      });
-
-      act(() => {
-        orderCallback?.([createMockOrder()]);
-      });
-
-      await waitFor(() => {
-        expect(callback).toHaveBeenCalledTimes(1);
-      });
-
-      callback.mockClear();
-
-      act(() => {
         testStreamManager.orders.updateOrderOptimistic('order-1', {});
       });
 
-      expect(callback).not.toHaveBeenCalled();
+      expect(subscriber).not.toHaveBeenCalled();
       unsubscribe();
     });
   });
