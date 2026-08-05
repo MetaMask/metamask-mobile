@@ -62,12 +62,12 @@ const PredictModalStack = () => {
       <ModalStack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
-        options={emptyNavHeaderOptions}
+        options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
       />
       <ModalStack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
         component={Confirm}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, presentation: 'card' }}
       />
     </ModalStack.Navigator>
   );
