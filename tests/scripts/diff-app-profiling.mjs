@@ -620,6 +620,48 @@ function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
 }
 
 /**
+ * Group network log entries by exact URL, highest count first.
+ * @param {Array<{ url?: string }>|null|undefined} apiCalls
+ * @returns {Array<{ url: string, count: number }>}
+ */
+function groupApiCallsByEndpoint(apiCalls) {
+  if (!Array.isArray(apiCalls) || apiCalls.length === 0) {
+    return [];
+  }
+
+  const counts = new Map();
+  for (const entry of apiCalls) {
+    const url = typeof entry?.url === 'string' ? entry.url.trim() : '';
+    if (!url) continue;
+    counts.set(url, (counts.get(url) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .map(([url, count]) => ({ url, count }))
+    .sort((a, b) => b.count - a.count || a.url.localeCompare(b.url));
+}
+
+/**
+ * Collapsed markdown details listing unique endpoints with call counts.
+ * @param {Array<{ url?: string }>|null|undefined} apiCalls
+ * @returns {string}
+ */
+function buildApiCallsDetails(apiCalls) {
+  const grouped = groupApiCallsByEndpoint(apiCalls);
+  if (grouped.length === 0) {
+    return '';
+  }
+
+  const totalCalls = grouped.reduce((sum, item) => sum + item.count, 0);
+  let md = `\n<details>\n<summary>API calls (${totalCalls})</summary>\n\n`;
+  for (const { url, count } of grouped) {
+    md += `- ${url} -> ${count}\n`;
+  }
+  md += `\n</details>\n`;
+  return md;
+}
+
+/**
  * Compact profiling block for embedding under a failed performance test.
  * Returns null when there is no usable baseline comparison.
  */
@@ -676,6 +718,8 @@ function buildEmbeddedProfilingSection({
     md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
   }
   md += `\n</details>\n`;
+
+  md += buildApiCallsDetails(currentArtifact.apiCalls);
 
   if (includeRawJson) {
     md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
@@ -930,6 +974,8 @@ export {
   buildEmbeddedProfilingSection,
   buildScenarioComment,
   shouldIncludeScenarioInComment,
+  groupApiCallsByEndpoint,
+  buildApiCallsDetails,
   findBaselineScenario,
   findProfilingArtifacts,
   parseArgs,

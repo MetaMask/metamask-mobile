@@ -13,6 +13,8 @@ import {
   buildRegressionSummary,
   shouldIncludeScenarioInComment,
   buildEmbeddedProfilingSection,
+  groupApiCallsByEndpoint,
+  buildApiCallsDetails,
   COMMENT_MARKER,
 } from './diff-app-profiling.mjs';
 
@@ -254,6 +256,41 @@ test('buildEmbeddedProfilingSection returns null without baseline', () => {
   );
 });
 
+test('groupApiCallsByEndpoint aggregates duplicate URLs with counts', () => {
+  const grouped = groupApiCallsByEndpoint([
+    { method: 'GET', url: 'https://api.example.com/a', status: 200 },
+    { method: 'GET', url: 'https://api.example.com/a', status: 200 },
+    { method: 'POST', url: 'https://api.example.com/b', status: 201 },
+    { method: 'GET', url: 'https://api.example.com/a', status: 200 },
+  ]);
+
+  assert.deepEqual(grouped, [
+    { url: 'https://api.example.com/a', count: 3 },
+    { url: 'https://api.example.com/b', count: 1 },
+  ]);
+});
+
+test('buildApiCallsDetails renders collapsed grouped endpoint list', () => {
+  const md = buildApiCallsDetails([
+    { method: 'GET', url: 'https://sdfasdas', status: 200 },
+    { method: 'GET', url: 'https://sdfasdas', status: 200 },
+    { method: 'GET', url: 'https://sdfasdas', status: 200 },
+    { method: 'GET', url: 'https://sdfasdas', status: 200 },
+    { method: 'GET', url: 'https://other.example/x', status: 200 },
+  ]);
+
+  assert.match(md, /<details>/);
+  assert.match(md, /API calls \(5\)/);
+  assert.match(md, /https:\/\/sdfasdas -> 4/);
+  assert.match(md, /https:\/\/other\.example\/x -> 1/);
+});
+
+test('buildApiCallsDetails returns empty string without apiCalls data', () => {
+  assert.equal(buildApiCallsDetails(null), '');
+  assert.equal(buildApiCallsDetails(undefined), '');
+  assert.equal(buildApiCallsDetails([]), '');
+});
+
 test('buildEmbeddedProfilingSection returns compact summary and collapsed table', () => {
   const md = buildEmbeddedProfilingSection({
     currentRunId: '111',
@@ -265,6 +302,11 @@ test('buildEmbeddedProfilingSection returns compact summary and collapsed table'
         issues: 1,
         criticalIssues: 0,
       },
+      apiCalls: [
+        { method: 'GET', url: 'https://api.example.com/tokens', status: 200 },
+        { method: 'GET', url: 'https://api.example.com/tokens', status: 200 },
+        { method: 'POST', url: 'https://api.example.com/rpc', status: 200 },
+      ],
     },
     baseline: {
       isGreen: true,
@@ -291,6 +333,9 @@ test('buildEmbeddedProfilingSection returns compact summary and collapsed table'
   assert.match(md, /Full metric table/);
   assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
   assert.equal(md.includes('Raw profilingSummary JSON'), false);
+  assert.match(md, /API calls \(3\)/);
+  assert.match(md, /https:\/\/api\.example\.com\/tokens -> 2/);
+  assert.match(md, /https:\/\/api\.example\.com\/rpc -> 1/);
 });
 
 test('buildEmbeddedProfilingSection labels non-green baseline fallback', () => {
