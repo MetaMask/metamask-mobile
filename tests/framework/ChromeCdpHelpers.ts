@@ -594,12 +594,14 @@ export default class ChromeCdpHelpers {
     // Prefer adb → chrome_devtools_remote. After MetaMask deeplink returns,
     // `mobile: getContexts` can hang for minutes on emulator Chrome while the
     // abstract DevTools socket stays usable via adb forward.
-    this.ensureAdbForward();
     const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
     try {
+      this.ensureAdbForward();
       await this.waitForCdpEndpoint(endpoint);
       return endpoint;
     } catch (adbError) {
+      // ensureAdbForward() can throw (adb missing / device offline); still try
+      // the timed Appium-context fallback rather than failing immediately.
       logger.debug(
         'ADB Chrome CDP forward not ready; falling back to Appium contexts:',
         adbError instanceof Error ? adbError.message : String(adbError),

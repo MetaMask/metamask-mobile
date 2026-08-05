@@ -296,9 +296,10 @@ const applyJsonRpcEnvelope = async (
   }
 
   return {
+    ...response,
+    // Echo request id/jsonrpc last so mock payloads cannot overwrite them.
     jsonrpc: rpcRequest.jsonrpc,
     id: rpcRequest.id ?? null,
-    ...response,
   };
 };
 
