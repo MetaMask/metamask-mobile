@@ -1546,6 +1546,7 @@
       "positions_empty_long": "Δεν υπάρχουν ανοιχτές θέσεις αγοράς.",
       "positions_empty_short": "Δεν υπάρχουν ανοιχτές θέσεις πώλησης.",
       "orders_empty": "Εδώ θα εμφανίζονται οι εκκρεμείς εντολές σας.",
+      "orders_empty_filtered": "Δεν έχετε ανοιχτές εντολές στο {{ticker}}.",
       "side_filter": {
         "all_sides": "Όλες οι θέσεις",
         "long": "Αγορά (Long)",

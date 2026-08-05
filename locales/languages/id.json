@@ -1546,6 +1546,7 @@
       "positions_empty_long": "Tidak ada posisi long.",
       "positions_empty_short": "Tidak ada posisi short.",
       "orders_empty": "Order terbuka akan muncul di sini.",
+      "orders_empty_filtered": "Tidak ada order {{ticker}} yang dibuka.",
       "side_filter": {
         "all_sides": "Semua sisi",
         "long": "Long",

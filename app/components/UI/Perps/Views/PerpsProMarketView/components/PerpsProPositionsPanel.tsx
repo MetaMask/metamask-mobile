@@ -77,8 +77,9 @@ interface PerpsProPositionsPanelProps {
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * The Positions tab shows the user's open positions across all assets,
  * falling back to an empty state when there are none.
- * The `$TICKER only` checkbox filters positions (not orders) to the current
- * market. The Orders tab shows the user's open orders.
+ * The `$TICKER only` checkbox filters positions and orders to the current
+ * market (shared across both tabs). The Orders tab shows the user's open
+ * orders.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -169,6 +170,14 @@ const PerpsProPositionsPanel = ({
     [isTickerOnly, positions, symbol],
   );
 
+  const visibleOrders = useMemo(
+    () =>
+      isTickerOnly
+        ? orders.filter((order) => order.symbol === symbol)
+        : orders,
+    [isTickerOnly, orders, symbol],
+  );
+
   const sideFilteredPositions = useMemo(
     () => filterProPositionsBySide(visiblePositions, sideFilter),
     [sideFilter, visiblePositions],
@@ -193,7 +202,7 @@ const PerpsProPositionsPanel = ({
         })
       : strings('perps.pro_positions_panel.positions');
 
-  const openOrdersCount = orders.length;
+  const openOrdersCount = visibleOrders.length;
   const ordersTabLabel =
     openOrdersCount > 0
       ? strings('perps.pro_positions_panel.orders_with_count', {
@@ -230,6 +239,12 @@ const PerpsProPositionsPanel = ({
     hasAnyPositions &&
     visiblePositions.length === 0 &&
     !isSideFilterEmpty
+      ? displaySymbol
+      : undefined;
+
+  const hasAnyOrders = orders.length > 0;
+  const filteredOrdersTicker =
+    isTickerOnly && hasAnyOrders && visibleOrders.length === 0
       ? displaySymbol
       : undefined;
 
@@ -276,10 +291,10 @@ const PerpsProPositionsPanel = ({
   };
 
   const renderOrdersTab = () => {
-    if (orders.length > 0) {
+    if (visibleOrders.length > 0) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
-          {orders.map((order, index) => (
+          {visibleOrders.map((order, index) => (
             <PerpsProOrderCard
               key={order.orderId}
               order={order}
@@ -301,10 +316,21 @@ const PerpsProPositionsPanel = ({
 
     return (
       <Box twClassName="items-center justify-center px-2 pt-6">
-        <PerpsProOrdersEmptyState />
+        <PerpsProOrdersEmptyState filteredTicker={filteredOrdersTicker} />
       </Box>
     );
   };
+
+  const renderTickerOnlyCheckbox = () => (
+    <Checkbox
+      label={strings('perps.pro_positions_panel.ticker_only', {
+        ticker: displaySymbol,
+      })}
+      isSelected={isTickerOnly}
+      onChange={setIsTickerOnly}
+      testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
+    />
+  );
 
   return (
     <Box
@@ -323,7 +349,7 @@ const PerpsProPositionsPanel = ({
         twClassName="-mx-2"
         testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
       />
-      {activeIndex === POSITIONS_TAB_INDEX && (
+      {activeIndex === POSITIONS_TAB_INDEX ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -347,14 +373,15 @@ const PerpsProPositionsPanel = ({
           >
             {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
           </Button>
-          <Checkbox
-            label={strings('perps.pro_positions_panel.ticker_only', {
-              ticker: displaySymbol,
-            })}
-            isSelected={isTickerOnly}
-            onChange={setIsTickerOnly}
-            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
-          />
+          {renderTickerOnlyCheckbox()}
+        </Box>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2 px-2 pt-3"
+        >
+          {renderTickerOnlyCheckbox()}
         </Box>
       )}
       {activeIndex === ORDERS_TAB_INDEX

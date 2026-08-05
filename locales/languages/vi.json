@@ -1546,6 +1546,7 @@
       "positions_empty_long": "Không có vị thế mua khống.",
       "positions_empty_short": "Không có vị thế bán khống.",
       "orders_empty": "Các lệnh đang mở của bạn sẽ hiển thị tại đây.",
+      "orders_empty_filtered": "Không có lệnh {{ticker}} nào đang mở.",
       "side_filter": {
         "all_sides": "Tất cả các hướng",
         "long": "Mua khống",

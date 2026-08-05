@@ -1546,6 +1546,7 @@
       "positions_empty_long": "暂无多头持仓。",
       "positions_empty_short": "暂无空头持仓。",
       "orders_empty": "您的未平仓订单将显示在此处。",
+      "orders_empty_filtered": "暂无 {{ticker}} 未平仓订单。",
       "side_filter": {
         "all_sides": "全部方向",
         "long": "做多",

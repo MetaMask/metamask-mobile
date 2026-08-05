@@ -1546,6 +1546,7 @@
       "positions_empty_long": "롱 포지션이 없습니다.",
       "positions_empty_short": "숏 포지션이 없습니다.",
       "orders_empty": "미체결 주문이 여기에 표시됩니다.",
+      "orders_empty_filtered": "미체결 {{ticker}} 주문이 없습니다.",
       "side_filter": {
         "all_sides": "전체 포지션 방향",
         "long": "롱",
