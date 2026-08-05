@@ -23,11 +23,6 @@ import {
 import { useActivityDetailsLendAgain } from '../hooks/useActivityDetailsLendAgain';
 import { getSwapAgainLabel } from './swapAgainLabel';
 
-/**
- * Isolated so the Earn token map — an expensive derived selector — is only
- * subscribed to on lending-deposit details, not on every swap-family screen.
- * Renders nothing when the deposited token is no longer lendable.
- */
 function LendAgainButton({
   token,
   fallbackCaipChainId,
@@ -84,10 +79,7 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
     destinationToken,
     fallbackCaipChainId: item.chainId,
   });
-  // Lending in/out share this template but not its CTA: the swap view can't
-  // repeat either action (a deposit carries no destination token, and a
-  // withdrawal's source is a non-swappable aToken). A deposit instead re-opens
-  // the earn flow with the underlying token; a withdrawal gets no CTA.
+
   const swapAgainLabel =
     item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal'
       ? undefined

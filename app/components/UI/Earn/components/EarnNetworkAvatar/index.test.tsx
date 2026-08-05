@@ -1,5 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { getFallbackAssetImageUrls } from '../../../Assets/components/AssetLogo/AssetLogo.utils';
 import { EarnNetworkAvatar } from './index';
 import { TokenI } from '../../../Tokens/types';
 
@@ -17,10 +23,6 @@ jest.mock('../../../../hooks/useStyles', () => ({
 }));
 
 jest.mock('../../../NetworkAssetLogo', () => 'NetworkAssetLogo');
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => 'AvatarToken',
-);
 
 describe('EarnNetworkAvatar', () => {
   const mockNativeToken: TokenI = {
@@ -39,7 +41,7 @@ describe('EarnNetworkAvatar', () => {
   };
 
   const mockNonNativeToken: TokenI = {
-    address: '0x123',
+    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     aggregators: [],
     decimals: 6,
     image: 'https://example.com/usdc.png',
@@ -49,6 +51,7 @@ describe('EarnNetworkAvatar', () => {
     logo: undefined,
     isETH: false,
     isNative: false,
+    chainId: '0x1',
   };
 
   it('renders NetworkAssetLogo for native tokens', () => {
@@ -71,22 +74,33 @@ describe('EarnNetworkAvatar', () => {
     });
   });
 
-  it('renders AvatarToken for non-native tokens', () => {
-    const { getByTestId } = render(
+  it('renders the token image for non-native tokens', () => {
+    const { UNSAFE_getByType } = renderWithProvider(
       <EarnNetworkAvatar token={mockNonNativeToken} />,
     );
 
-    const avatarToken = getByTestId('earn-token-avatar-USDC');
-    expect(avatarToken.props).toEqual({
-      name: 'USDC',
-      imageSource: { uri: 'https://example.com/usdc.png' },
-      size: '32',
-      style: {
-        height: 32,
-        width: 32,
-        flexShrink: 0,
-      },
-      testID: 'earn-token-avatar-USDC',
+    expect(UNSAFE_getByType(AvatarToken).props).toEqual(
+      expect.objectContaining({
+        name: 'USDC',
+        src: { uri: 'https://example.com/usdc.png' },
+        size: AvatarTokenSize.Md,
+        testID: 'earn-token-avatar-USDC',
+      }),
+    );
+  });
+
+  it('falls back to the CDN icon when the token carries no image', () => {
+    // Tokens added without icon metadata have an empty `image`; a bare
+    // `AvatarToken` rendered them as a letter placeholder.
+    const { UNSAFE_getByType } = renderWithProvider(
+      <EarnNetworkAvatar token={{ ...mockNonNativeToken, image: '' }} />,
+    );
+
+    expect(UNSAFE_getByType(AvatarToken).props.src).toEqual({
+      uri: getFallbackAssetImageUrls(
+        mockNonNativeToken.chainId,
+        mockNonNativeToken.address,
+      )?.[0],
     });
   });
 

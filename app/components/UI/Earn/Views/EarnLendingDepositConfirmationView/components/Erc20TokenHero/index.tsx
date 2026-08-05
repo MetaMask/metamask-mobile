@@ -10,8 +10,8 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../../../component-library/components/Badges/Badge';
 import NetworkAssetLogo from '../../../../../NetworkAssetLogo';
-import AvatarToken from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar';
+import { AvatarTokenSize } from '@metamask/design-system-react-native';
+import AssetLogo from '../../../../../Assets/components/AssetLogo/AssetLogo';
 import { renderFromTokenMinimalUnit } from '../../../../../../../util/number';
 import Text, {
   TextVariant,
@@ -38,14 +38,9 @@ const TokenAvatar = ({ token }: { token: TokenI }) => {
     );
   }
 
-  return (
-    <AvatarToken
-      name={token.symbol}
-      imageSource={{ uri: token.image }}
-      size={AvatarSize.Xl}
-      testID={testId}
-    />
-  );
+  // `AssetLogo` (not a bare `AvatarToken`) so tokens whose `TokensController`
+  // entry carries no `image` still render an icon from the CDN fallback.
+  return <AssetLogo asset={token} size={AvatarTokenSize.Xl} testID={testId} />;
 };
 
 const NetworkAndTokenImage = ({ token }: { token: TokenI }) => {

@@ -1,6 +1,7 @@
 import { strings } from '../../../../../locales/i18n';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 
+/** Activity types routed to the `SwapDetails` template. Keep both lists in sync. */
 type SwapFamilyType = Extract<
   ActivityListItem,
   {
@@ -16,10 +17,8 @@ type SwapFamilyType = Extract<
 >['type'];
 
 /**
- * Swap-family types whose CTA re-opens the swap view. Lending deposits and
- * withdrawals share the `SwapDetails` template but are deliberately excluded:
- * the swap view cannot repeat either action, so they get their own CTA (or
- * none) instead of a "Swap again" label.
+ * The subset whose CTA re-opens the swap view. Lending in/out is excluded: the
+ * swap view can't repeat either action, so they get their own CTA (or none).
  */
 type SwapAgainType = Exclude<
   SwapFamilyType,
@@ -27,9 +26,9 @@ type SwapAgainType = Exclude<
 >;
 
 /**
- * Transaction-type-specific verb for the "do it again" CTA on swap-family
- * details (the action opens the unified swap/bridge view seeded with the
- * original tokens). Never returns the generic "Do it again".
+ * Type-specific verb for the "do it again" CTA, which opens the unified
+ * swap/bridge view seeded with the original tokens. Never returns the generic
+ * "Do it again".
  */
 export function getSwapAgainLabel(type: SwapAgainType): string {
   switch (type) {
