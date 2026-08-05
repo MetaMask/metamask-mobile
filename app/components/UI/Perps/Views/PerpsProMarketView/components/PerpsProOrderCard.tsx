@@ -63,7 +63,6 @@ interface KeyValueItemProps {
   value: string;
   isHidden?: boolean;
   onValuePress?: () => void;
-  isValuePressDisabled?: boolean;
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
   showEditIcon?: boolean;
@@ -74,7 +73,6 @@ const KeyValueItem = ({
   value,
   isHidden = false,
   onValuePress,
-  isValuePressDisabled = false,
   valuePressTestID,
   valuePressAccessibilityLabel,
   showEditIcon = false,
@@ -98,11 +96,9 @@ const KeyValueItem = ({
       {onValuePress ? (
         <Pressable
           onPress={onValuePress}
-          disabled={isValuePressDisabled}
           testID={valuePressTestID}
           accessibilityRole="button"
           accessibilityLabel={valuePressAccessibilityLabel}
-          accessibilityState={{ disabled: isValuePressDisabled }}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -195,15 +191,11 @@ const PerpsProOrderCard = ({
   const handlePress = onPress ? () => onPress(order) : undefined;
 
   const handleEditPricePress = () => {
-    if (canEditPrice) {
-      onEditPrice?.(order);
-    }
+    onEditPrice?.(order);
   };
 
   const handleEditSizePress = () => {
-    if (canEditSize) {
-      onEditSize?.(order);
-    }
+    onEditSize?.(order);
   };
 
   return (
@@ -291,7 +283,6 @@ const PerpsProOrderCard = ({
                 label={strings('perps.pro_positions_panel.order_card.size')}
                 value={`${size} ${displaySymbol}`}
                 onValuePress={canEditSize ? handleEditSizePress : undefined}
-                isValuePressDisabled={!canEditSize}
                 valuePressTestID={
                   PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT
                 }
@@ -331,7 +322,6 @@ const PerpsProOrderCard = ({
                 value={price}
                 isHidden={privacyMode}
                 onValuePress={canEditPrice ? handleEditPricePress : undefined}
-                isValuePressDisabled={!canEditPrice}
                 valuePressTestID={
                   PerpsProMarketViewSelectorsIDs.ORDER_PRICE_EDIT
                 }
