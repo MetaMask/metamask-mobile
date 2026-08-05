@@ -29,6 +29,9 @@ const Network = ({ chainId }: NetworkProps) => {
         name={networkName}
         src={networkImage as ImageOrSvgSrc}
         size={AvatarNetworkSize.Xs}
+        imageOrSvgProps={{
+          imageProps: { testID: 'network-avatar-image' },
+        }}
       />
       <Text style={styles.value}>{networkName}</Text>
     </View>
