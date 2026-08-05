@@ -7,6 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import formatFiat from '../../../../util/formatFiat';
 import { formatNetworkFee } from './formatNetworkFee';
 import { isGaslessQuote } from './isGaslessQuote';
+import { merge } from 'lodash';
 
 jest.mock('../../../../util/formatFiat');
 jest.mock('../../../../util/number');
@@ -44,15 +45,16 @@ describe('formatNetworkFee', () => {
     it('returns formatted fiat when includedTxFees has valid amount and valueInCurrency', () => {
       mockFormatFiat.mockReturnValue('$5.00');
 
-      const quote = {
-        quote: { gasIncluded: true },
-        ...toQuoteMetadataV2({
+      const quote = merge(
+        {},
+        { quote: { gasIncluded: true } },
+        toQuoteMetadataV2({
           includedTxFees: {
             amount: '0.002',
             valueInCurrency: '5.00',
           },
         }),
-      };
+      );
 
       const result = formatNetworkFee('USD', quote);
 
@@ -62,13 +64,17 @@ describe('formatNetworkFee', () => {
     });
 
     it('returns "-" when includedTxFees.valueInCurrency is null', () => {
-      const quote = {
-        quote: { gasIncluded: true },
-        includedTxFees: {
-          amount: '0.002',
-          valueInCurrency: undefined,
+      const quote = merge(
+        {},
+        { quote: { gasIncluded: true } },
+        {
+          quote: { gasIncluded: true },
+          includedTxFees: {
+            amount: '0.002',
+            valueInCurrency: undefined,
+          },
         },
-      };
+      );
 
       const result = formatNetworkFee('USD', toQuoteMetadataV2(quote));
 

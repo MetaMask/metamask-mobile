@@ -659,10 +659,13 @@ describe('useBridgeQuoteData', () => {
   it('returns "-" when totalNetworkFee is missing', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: undefined,
-      },
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: null,
+          },
+        },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -679,8 +682,17 @@ describe('useBridgeQuoteData', () => {
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          valueInCurrency: '10',
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          feeData: {
+            ...mockQuoteWithMetadata.quote.feeData,
+            network: [
+              {
+                normalizedAmount: undefined,
+                valueInCurrency: '10',
+              },
+            ],
+          },
         },
       },
     }));
@@ -697,12 +709,17 @@ describe('useBridgeQuoteData', () => {
   it('returns "-" when totalNetworkFee valueInCurrency is missing', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.01',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -717,7 +734,7 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee with fiat formatter for normal values', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: merge(mockQuoteWithMetadata, {
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
         quote: {
           feeData: {
             network: [
@@ -743,7 +760,7 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee as "<$0.01" when value is less than 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: merge(mockQuoteWithMetadata, {
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
         quote: {
           feeData: {
             network: [
@@ -769,7 +786,7 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee normally when value is exactly 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: merge(mockQuoteWithMetadata, {
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
         quote: {
           feeData: {
             network: [
@@ -795,7 +812,7 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee normally when value is 0', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: merge(mockQuoteWithMetadata, {
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
         quote: {
           feeData: {
             network: [
