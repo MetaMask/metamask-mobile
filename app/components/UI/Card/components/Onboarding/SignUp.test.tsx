@@ -21,6 +21,51 @@ jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
   },
 }));
 
+const mockRefetchLegalDocs = jest.fn();
+const mockUseImmersveSupportedRegions = jest.fn(
+  (
+    _regionCode?: string | null,
+    _options?: { enabled?: boolean },
+  ): {
+    region: null;
+    onboardingDocuments: {
+      id: string;
+      title: string;
+      url: string;
+    }[];
+    permanentDocuments: never[];
+    isLoading: boolean;
+    error: Error | null;
+    refetch: jest.Mock;
+  } => ({
+    region: null,
+    onboardingDocuments: [
+      {
+        id: 'generalTermsOfUse',
+        title: 'Terms of Use',
+        url: 'https://example.com/terms',
+      },
+      {
+        id: 'privacyPolicy',
+        title: 'Privacy Policy',
+        url: 'https://example.com/privacy',
+      },
+    ],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: mockRefetchLegalDocs,
+  }),
+);
+
+jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) =>
+    (
+      mockUseImmersveSupportedRegions as unknown as (...a: unknown[]) => unknown
+    )(...args),
+}));
+
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -247,6 +292,26 @@ describe('SignUp Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
+    mockUseImmersveSupportedRegions.mockReturnValue({
+      region: null,
+      onboardingDocuments: [
+        {
+          id: 'generalTermsOfUse',
+          title: 'Terms of Use',
+          url: 'https://example.com/terms',
+        },
+        {
+          id: 'privacyPolicy',
+          title: 'Privacy Policy',
+          url: 'https://example.com/privacy',
+        },
+      ],
+      permanentDocuments: [],
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchLegalDocs,
+    });
+    mockRefetchLegalDocs.mockResolvedValue(null);
     mockNavigate = jest.fn();
     mockGoBack = jest.fn();
     mockUseNavigation.mockReturnValue({
@@ -650,6 +715,111 @@ describe('SignUp Component', () => {
         '7911123456',
       );
     };
+
+    it('shows Immersve legal clickwrap for Immersve countries', () => {
+      enableImmersve();
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('signup-immersve-legal-clickwrap')).toBeOnTheScreen();
+      expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
+      expect(mockUseImmersveSupportedRegions).toHaveBeenCalledWith('GB');
+    });
+
+    it('hides Immersve legal clickwrap for non-Immersve countries', () => {
+      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(false);
+
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(queryByTestId('signup-immersve-legal-clickwrap')).toBeNull();
+    });
+
+    it('disables Next while Immersve legal docs are loading', () => {
+      enableImmersve();
+      mockUseImmersveSupportedRegions.mockReturnValue({
+        region: null,
+        onboardingDocuments: [],
+        permanentDocuments: [],
+        isLoading: true,
+        error: null,
+        refetch: mockRefetchLegalDocs,
+      });
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+      const { getByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+
+      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      expect(getByTestId('signup-immersve-legal-loading')).toBeOnTheScreen();
+    });
+
+    it('disables Next and shows retry when Immersve legal docs fail to load', () => {
+      enableImmersve();
+      mockUseImmersveSupportedRegions.mockReturnValue({
+        region: null,
+        onboardingDocuments: [],
+        permanentDocuments: [],
+        isLoading: false,
+        error: new Error('502'),
+        refetch: mockRefetchLegalDocs,
+      });
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+      const { getByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+
+      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      fireEvent.press(getByTestId('signup-immersve-legal-retry'));
+      expect(mockRefetchLegalDocs).toHaveBeenCalled();
+    });
+
+    it('disables Next and shows retry when Immersve legal docs are empty after load', () => {
+      enableImmersve();
+      mockUseImmersveSupportedRegions.mockReturnValue({
+        region: null,
+        onboardingDocuments: [],
+        permanentDocuments: [],
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchLegalDocs,
+      });
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+      const { getByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+
+      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      expect(getByTestId('signup-immersve-legal-error')).toBeOnTheScreen();
+      fireEvent.press(getByTestId('signup-immersve-legal-retry'));
+      expect(mockRefetchLegalDocs).toHaveBeenCalled();
+    });
 
     it('new user: SIWE, creates a funding source, patches contact, then routes', async () => {
       enableImmersve();

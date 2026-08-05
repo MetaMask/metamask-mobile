@@ -30,6 +30,7 @@ export const PredictEventProperties = {
   ORDER_TYPE: 'order_type',
   TRADE_TYPE: 'trade_type',
   IMPLEMENTATION_TYPE: 'implementation_type',
+  USD_TRADE_VALUE: 'usd_trade_value',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',

@@ -55,6 +55,7 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
+import { startPhase } from '../framework/telemetry/PhaseTimer';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -758,10 +759,18 @@ export const loginToAppPlaywright = async (
   const { scenarioType = 'login' } = options;
 
   const dismissPostLoginModals = async (): Promise<void> => {
-    await PlaywrightUtilities.wait(500);
-    await dismissPushNotificationExistingUserSheet();
-    await dismissExperienceEnhancerModal();
+    startPhase('modal_dismissal');
+    try {
+      await PlaywrightUtilities.wait(500);
+      await dismissPushNotificationExistingUserSheet();
+      await dismissExperienceEnhancerModal();
+    } finally {
+      // Resume test_body after login + modals (exclusive phases).
+      startPhase('test_body');
+    }
   };
+
+  startPhase('login');
 
   await dismissAndroidSystemOverlaysPlaywright();
 
