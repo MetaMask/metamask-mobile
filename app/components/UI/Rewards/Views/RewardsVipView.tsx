@@ -38,6 +38,7 @@ import VipFeeTile, {
   VIP_FEE_TILE_WIDTH,
 } from '../components/Vip/VipFeeTile';
 import VipPointsSection from '../components/Vip/VipPointsSection';
+import VipEquityMultiplierSection from '../components/Vip/VipEquityMultiplierSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
 import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
@@ -335,6 +336,7 @@ const RewardsVipViewContent: React.FC = () => {
                   currentTier={dashboard.currentTier}
                   programName={dashboard.program.name}
                   progress={dashboard.progress}
+                  currentPoints={dashboard.volume.points}
                   subline={progressSubline}
                   maintainSubline={maintainSubline}
                   memberIdTitle={dashboard.localizedText.memberIdTitle}
@@ -455,6 +457,7 @@ const RewardsVipViewContent: React.FC = () => {
                   dashboard.localizedText.equityUnlockedDescription
                 }
               />
+              <VipEquityMultiplierSection />
             </>
           ) : null}
         </ScrollView>

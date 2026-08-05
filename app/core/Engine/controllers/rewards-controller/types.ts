@@ -140,6 +140,39 @@ export type VipLocalizedTextDto = {
   nextTierReferralPointsDelta: string;
 };
 
+/**
+ * Display-only equity multiplier from POST /vip/equity-multiplier.
+ * Never persist as program truth; never feed settlement (RWDS-1485).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierLocalizedTextDto = {
+  title: string;
+  eligibleDescription: string;
+  ineligibleDescription: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierUnavailableDto = {
+  available: false;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierAvailableDto = {
+  available: true;
+  multiplier: string;
+  eligible: boolean;
+  progressPercent: number;
+  tierNumber: number;
+  tierName: string;
+  capUsd: string;
+  computedAt: string;
+  localizedText: VipEquityMultiplierLocalizedTextDto;
+};
+
+export type VipEquityMultiplierDto =
+  | VipEquityMultiplierUnavailableDto
+  | VipEquityMultiplierAvailableDto;
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardDto = {
   program: VipProgramDto;

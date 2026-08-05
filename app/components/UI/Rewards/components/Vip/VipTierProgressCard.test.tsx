@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import VipTierProgressCard, {
@@ -78,6 +79,7 @@ describe('VipTierProgressCard', () => {
       remainingPointsToNextTier: 123_456,
       status: 'on_track',
     },
+    currentPoints: 250_000,
     subline: '$123K Swaps • $456K Perps to Mock Tier Alpha 4',
     memberIdTitle: 'Member ID',
     memberId: 'MOCK-123',
@@ -233,5 +235,106 @@ describe('VipTierProgressCard', () => {
     expect(
       queryByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.MAINTAIN_SUBLINE),
     ).toBeNull();
+  });
+
+  it('renders a compact current-points label above the progress fill endpoint', () => {
+    const { getByTestId } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} currentPoints={250_000} />,
+    );
+
+    expect(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER_LABEL),
+    ).toHaveTextContent('250K');
+  });
+
+  it('positions the pointer at the exact clamped progress percent', () => {
+    const flattenLeft = (style: unknown): string | undefined =>
+      StyleSheet.flatten(style as object)?.left;
+
+    const { getByTestId, rerender } = renderWithTheme(
+      <VipTierProgressCard {...baseProps} />,
+    );
+    expect(
+      flattenLeft(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER).props
+          .style,
+      ),
+    ).toBe('42%');
+
+    rerender(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 0 }}
+      />,
+    );
+    expect(
+      flattenLeft(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER).props
+          .style,
+      ),
+    ).toBe('0%');
+
+    rerender(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 100 }}
+      />,
+    );
+    expect(
+      flattenLeft(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER).props
+          .style,
+      ),
+    ).toBe('100%');
+  });
+
+  it('insets only the points label at the progress bar edges', () => {
+    const getLabelPlacement = (
+      getByTestId: ReturnType<typeof renderWithTheme>['getByTestId'],
+    ): { translateX?: number; textAlign?: string } => {
+      const style = StyleSheet.flatten(
+        getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_POINTER_LABEL)
+          .props.style,
+      );
+      return {
+        translateX: style.transform?.find(
+          (entry: { translateX?: number }) => entry.translateX !== undefined,
+        )?.translateX,
+        textAlign: style.textAlign,
+      };
+    };
+
+    const { getByTestId, rerender } = renderWithTheme(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 20 }}
+      />,
+    );
+    fireEvent(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_BAR),
+      'layout',
+      { nativeEvent: { layout: { width: 200 } } },
+    );
+    expect(getLabelPlacement(getByTestId)).toEqual({
+      translateX: 0,
+      textAlign: 'left',
+    });
+
+    rerender(<VipTierProgressCard {...baseProps} />);
+    expect(getLabelPlacement(getByTestId)).toEqual({
+      translateX: -20,
+      textAlign: 'center',
+    });
+
+    rerender(
+      <VipTierProgressCard
+        {...baseProps}
+        progress={{ ...baseProps.progress, percent: 80 }}
+      />,
+    );
+    expect(getLabelPlacement(getByTestId)).toEqual({
+      translateX: -40,
+      textAlign: 'right',
+    });
   });
 });

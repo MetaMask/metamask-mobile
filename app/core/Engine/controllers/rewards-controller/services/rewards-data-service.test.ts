@@ -210,6 +210,10 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipEquityMultiplier',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getVipFees',
         expect.any(Function),
       );
@@ -4531,6 +4535,66 @@ describe('RewardsDataService', () => {
       await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
         'Get VIP dashboard failed: 500',
       );
+    });
+  });
+
+  describe('getVipEquityMultiplier', () => {
+    const mockSubscriptionId = 'sub-vip';
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('POSTs holdingsUsd and returns the multiplier payload', async () => {
+      const payload = {
+        available: true as const,
+        multiplier: '1.0889',
+        eligible: true,
+        progressPercent: 44.4,
+        tierNumber: 6,
+        tierName: 'VIP 6',
+        capUsd: '10000000',
+        computedAt: '2099-06-30T14:52:00.000Z',
+        localizedText: {
+          title: 'Estimated equity multiplier',
+          eligibleDescription: 'ok',
+          ineligibleDescription: 'no',
+        },
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(payload),
+      } as unknown as Response);
+
+      const result = await service.getVipEquityMultiplier(
+        mockSubscriptionId,
+        '5000000',
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/equity-multiplier',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ holdingsUsd: '5000000' }),
+        }),
+      );
+      expect(result).toEqual(payload);
+    });
+
+    it('returns null on 404', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(
+        service.getVipEquityMultiplier(mockSubscriptionId, '5000000'),
+      ).resolves.toBeNull();
     });
   });
 
