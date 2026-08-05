@@ -346,6 +346,11 @@ export default class AndroidWebViewCdpHelpers {
       `(() => {
       const el = document.getElementById(${JSON.stringify(webId)});
       if (!el || typeof el.click !== 'function') return false;
+      const disabled =
+        ('disabled' in el && Boolean(el.disabled)) ||
+        el.getAttribute('aria-disabled') === 'true' ||
+        (typeof el.matches === 'function' && el.matches(':disabled'));
+      if (disabled) return false;
       el.scrollIntoView({ block: 'center', inline: 'nearest' });
       el.click();
       return true;

@@ -93,7 +93,11 @@ jest.mock('ws', () => {
           expression.includes('el.click') ||
           expression.includes('.click(')
         ) {
-          value = expression.includes('getElementById');
+          // Simulate disabled controls: evaluate returns false so native
+          // wait-until-enabled can run.
+          value =
+            expression.includes('getElementById') &&
+            !expression.includes('"disabled-id"');
         } else if (
           expression.includes("dispatchEvent(new Event('input'") ||
           expression.includes('dispatchEvent(new Event("input"')
@@ -420,6 +424,14 @@ describe('AndroidWebViewCdpHelpers.tapElementById', () => {
     const result = await AndroidWebViewCdpHelpers.tapElementById('missing-id', {
       pageUrl,
     });
+    expect(result).toBe(false);
+  });
+
+  it('returns false when element is disabled so native can wait', async () => {
+    const result = await AndroidWebViewCdpHelpers.tapElementById(
+      'disabled-id',
+      { pageUrl },
+    );
     expect(result).toBe(false);
   });
 
