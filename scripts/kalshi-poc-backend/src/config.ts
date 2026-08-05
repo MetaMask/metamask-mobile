@@ -34,7 +34,7 @@ function readAdminPem(): string {
 export const config = {
   port: Number(process.env.PORT ?? 8080),
   kalshi: {
-    baseUrl: (process.env.KALSHI_BASE_URL ?? 'https://demo-api.kalshi.co').replace(
+    baseUrl: (process.env.KALSHI_BASE_URL ?? 'https://external-api.demo.kalshi.co').replace(
       /\/$/,
       '',
     ),

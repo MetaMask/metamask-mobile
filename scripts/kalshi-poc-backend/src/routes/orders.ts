@@ -39,11 +39,11 @@ const METAMASK_FEE_RATE_BPS = 0; // POC: no MetaMask fee surcharge.
 interface KalshiV2Market {
   ticker: string;
   event_ticker: string;
-  yes_ask?: number;
-  yes_bid?: number;
-  no_ask?: number;
-  no_bid?: number;
-  last_price?: number;
+  yes_ask_dollars?: string;
+  yes_bid_dollars?: string;
+  no_ask_dollars?: string;
+  no_bid_dollars?: string;
+  last_price_dollars?: string;
 }
 
 ordersRouter.post(
@@ -138,32 +138,40 @@ ordersRouter.post(
       return;
     }
 
-    const order = await kalshiFetch<{ order: KalshiSubmittedOrder }>({
+    // New V2 endpoint: side is always from the YES perspective (bid=buy YES, ask=sell YES).
+    // Buying NO = selling YES (ask); selling NO = buying YES (bid).
+    const v2Side = (isBuy === isYes) ? 'bid' : 'ask';
+    const submitted = await kalshiFetch<KalshiV2OrderResponse>({
       credential,
       method: 'POST',
-      path: '/trade-api/v2/portfolio/orders',
+      path: '/trade-api/v2/portfolio/events/orders',
       body: {
-        action: isBuy ? 'buy' : 'sell',
-        side: isYes ? 'yes' : 'no',
         ticker,
-        type: 'limit',
-        count,
-        [isYes ? 'yes_price' : 'no_price']: priceCents,
+        side: v2Side,
+        count: String(count),
+        price: (priceCents / 100).toFixed(4),
         time_in_force: 'fill_or_kill',
+        self_trade_prevention_type: 'taker_at_cross',
         client_order_id: `mm-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        // intentionally no `subaccount` field.
       },
     });
 
-    const submitted = order.order;
     void slippageBps; // POC: ignored, FOK is its own slippage protection.
+
+    const filledContracts = parseFloat(submitted.fill_count);
+    const remainingContracts = parseFloat(submitted.remaining_count);
+    const orderStatus = filledContracts > 0 && remainingContracts === 0
+      ? 'filled'
+      : filledContracts > 0
+        ? 'partially_filled'
+        : 'submitted';
 
     res.json({
       orderId: submitted.order_id,
-      status: mapOrderStatus(submitted.status),
+      status: orderStatus,
       venueOrderId: submitted.order_id,
-      spentAmount: centsToDecimal(((submitted.count ?? count) - (submitted.remaining_count ?? 0)) * priceCents),
-      receivedAmount: String((submitted.count ?? count) - (submitted.remaining_count ?? 0)),
+      spentAmount: centsToDecimal(filledContracts * priceCents),
+      receivedAmount: String(filledContracts),
       txHashes: [],
     });
   }),
@@ -189,25 +197,13 @@ ordersRouter.post(
   }),
 );
 
-interface KalshiSubmittedOrder {
+interface KalshiV2OrderResponse {
   order_id: string;
-  status: string;
-  count?: number;
-  remaining_count?: number;
-}
-
-function mapOrderStatus(status: string): 'submitted' | 'filled' | 'partially_filled' {
-  switch (status) {
-    case 'executed':
-    case 'filled':
-      return 'filled';
-    case 'resting':
-    case 'pending':
-    case 'open':
-      return 'submitted';
-    default:
-      return 'partially_filled';
-  }
+  fill_count: string;
+  remaining_count: string;
+  ts_ms: number;
+  client_order_id?: string;
+  average_fill_price?: string;
 }
 
 async function fetchPublicMarket(ticker: string): Promise<KalshiV2Market> {
@@ -221,10 +217,12 @@ async function fetchPublicMarket(ticker: string): Promise<KalshiV2Market> {
 }
 
 function pickQuotePrice(market: KalshiV2Market, yes: boolean, side: 'buy' | 'sell'): number {
+  const c = (d?: string) => { const v = d ? Math.round(parseFloat(d) * 100) : undefined; return (v && v > 0 && v < 100) ? v : undefined; };
+  const last = market.last_price_dollars ? Math.round(parseFloat(market.last_price_dollars) * 100) : undefined;
   if (side === 'buy') {
-    return yes ? market.yes_ask ?? market.last_price ?? 50 : market.no_ask ?? 50;
+    return yes ? c(market.yes_ask_dollars) ?? last ?? 50 : c(market.no_ask_dollars) ?? (last !== undefined ? 100 - last : 50);
   }
-  return yes ? market.yes_bid ?? market.last_price ?? 50 : market.no_bid ?? 50;
+  return yes ? c(market.yes_bid_dollars) ?? last ?? 50 : c(market.no_bid_dollars) ?? (last !== undefined ? 100 - last : 50);
 }
 
 /**

@@ -1380,10 +1380,10 @@ const MainNavigator = () => {
           />
         </>
       )}
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.PREDICT_NEXT_POC}
         component={PredictNextPocScreen}
-        options={{ headerShown: true, title: 'Kalshi POC', ...slideFromRightAnimation }}
+        options={{ headerShown: true, title: 'Kalshi POC', ...slideFromRightNativeOptions }}
       />
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <NativeStack.Screen

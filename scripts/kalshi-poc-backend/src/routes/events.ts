@@ -33,15 +33,13 @@ interface KalshiV2Market {
   open_time?: string;
   close_time?: string;
   expiration_time?: string;
-  yes_bid?: number;
-  yes_ask?: number;
-  no_bid?: number;
-  no_ask?: number;
-  last_price?: number;
-  volume?: number;
-  volume_24h?: number;
-  liquidity?: number;
-  open_interest?: number;
+  yes_ask_dollars?: string;
+  yes_bid_dollars?: string;
+  no_ask_dollars?: string;
+  no_bid_dollars?: string;
+  last_price_dollars?: string;
+  volume_fp?: string;
+  liquidity_dollars?: string;
   result?: string;
   can_close_early?: boolean;
 }
@@ -82,6 +80,7 @@ eventsRouter.get(
         cursor,
         limit: limit ?? 50,
         status: status ?? 'open',
+        series_ticker: 'KXHIGHNY',
         with_nested_markets: 'true',
       },
     );
@@ -175,30 +174,36 @@ function toPredictMarket(m: KalshiV2Market, eventId: string): {
   negRisk: boolean;
   resolvedBy?: string;
 } {
-  const yesPrice = m.yes_ask ?? m.last_price ?? 50;
-  const noPrice = m.no_ask ?? 100 - yesPrice;
+  const parseCents = (d?: string) => d !== undefined ? Math.round(parseFloat(d) * 100) : undefined;
+  // _dollars = "0.0000" or "1.0000" both signal no ask liquidity on that side
+  const validAsk = (c?: number) => (c !== undefined && c > 0 && c < 100) ? c : undefined;
+  const yesAsk = validAsk(parseCents(m.yes_ask_dollars));
+  const noAsk = validAsk(parseCents(m.no_ask_dollars));
+  const last = parseCents(m.last_price_dollars);
+  const yesPrice = yesAsk ?? last ?? 50;
+  const noPrice = noAsk ?? (last !== undefined ? 100 - last : 100 - yesPrice);
   return {
     id: m.ticker,
     venueId: 'kalshi',
     eventId,
-    title: m.title,
+    title: m.yes_sub_title ?? m.title,
     description: m.subtitle,
     status: mapMarketStatus(m.status),
     acceptingOrders: m.status === 'active',
     outcomes: [
       {
         id: `${m.ticker}:yes`,
-        label: m.yes_sub_title ?? 'Yes',
+        label: 'Yes',
         price: contractPriceCentsToProbability(yesPrice),
       },
       {
         id: `${m.ticker}:no`,
-        label: m.no_sub_title ?? 'No',
+        label: 'No',
         price: contractPriceCentsToProbability(noPrice),
       },
     ],
-    volume: centsToDecimal(m.volume ?? 0),
-    liquidity: m.liquidity ? centsToDecimal(m.liquidity) : '0.00',
+    volume: m.volume_fp ?? '0.00',
+    liquidity: m.liquidity_dollars ?? '0.00',
     tickSize: '0.01',
     negRisk: false,
     resolvedBy: m.result,
