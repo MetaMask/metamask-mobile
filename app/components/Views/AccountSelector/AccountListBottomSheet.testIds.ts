@@ -1,4 +1,5 @@
 import enContent from '../../../../locales/languages/en.json';
+import { ACCOUNT_CELL_MENU_TEST_ID } from '../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 
 export const AccountListBottomSheetSelectorsIDs = {
   ACCOUNT_LIST_ID: 'account-list',
@@ -6,6 +7,7 @@ export const AccountListBottomSheetSelectorsIDs = {
   ACCOUNT_TYPE_LABEL: 'account-type-label',
   ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID: 'account-balance-by-address',
   CREATE_ACCOUNT: 'create-account',
+  ACCOUNT_CELL_MENU_TEST_ID,
 };
 
 export const AccountListBottomSheetSelectorsText = {

@@ -4,9 +4,11 @@ import {
   AccountListBottomSheetSelectorsText,
 } from '../../../app/components/Views/AccountSelector/AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
-import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
+import {
+  AccountCellIds,
+  getAccountCellMenuTestId,
+} from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
@@ -23,7 +25,6 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   createLogger,
   encapsulatedAction,
-  getDriver,
   LogLevel,
   PlaywrightGestures,
   sleep,
@@ -222,7 +223,9 @@ class AccountListBottomSheet {
 
   async tapEditAccountActionsAtIndex(index: number): Promise<void> {
     await Gestures.tapAtIndex(
-      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS),
+      Matchers.getElementByID(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_CELL_MENU_TEST_ID,
+      ),
       index,
     );
   }
@@ -521,7 +524,10 @@ class AccountListBottomSheet {
 
   async scrollToAccount(index: number): Promise<void> {
     await Gestures.scrollToElement(
-      Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
+      Matchers.getElementByID(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_CELL_MENU_TEST_ID,
+        index,
+      ),
       Matchers.getIdentifier(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
       ),
@@ -537,7 +543,9 @@ class AccountListBottomSheet {
 
   // V2 Multichain Accounts Methods
   get ellipsisMenuButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(AccountCellIds.MENU);
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_CELL_MENU_TEST_ID,
+    );
   }
 
   /**
@@ -560,7 +568,10 @@ class AccountListBottomSheet {
     accountIndex: number,
     { shouldWait = false }: { shouldWait: boolean } = { shouldWait: false },
   ): Promise<void> {
-    const elem = Matchers.getElementByID(AccountCellIds.MENU, accountIndex);
+    const elem = Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_CELL_MENU_TEST_ID,
+      accountIndex,
+    );
     await Gestures.waitAndTap(elem, {
       elemDescription: `V2 ellipsis menu button for account at index ${accountIndex}`,
       delay: shouldWait ? 1500 : 0,
@@ -587,88 +598,15 @@ class AccountListBottomSheet {
     const accountCell = accountCells[accountCells.length - 1];
     await PlaywrightGestures.scrollIntoView(accountCell);
 
-    if (PlatformDetector.isIOS()) {
-      await this.tapAccountEllipsisAlignedToRowIos(accountCell, accountName);
-      return;
-    }
-
-    const addressXpath = `//*[@resource-id='${AccountCellIds.ADDRESS}']`;
-    const addressElements = await Matchers.getAllElementsByXPath(addressXpath);
-
-    let menuIndex = -1;
-    for (let i = 0; i < addressElements.length; i++) {
-      const text = (await addressElements[i].textContent()).trim();
-      if (text === accountName) {
-        menuIndex = i;
-      }
-    }
-
-    if (menuIndex < 0) {
-      throw new Error(
-        `Could not resolve ellipsis menu index for account "${accountName}"`,
-      );
-    }
-
-    await this.tapAccountEllipsisButtonV2(menuIndex, { shouldWait: true });
-  }
-
-  // TODO: Add testId for this element.
-  private async tapAccountEllipsisAlignedToRowIos(
-    accountCell: PlaywrightElement,
-    accountName: string,
-  ): Promise<void> {
-    const drv = getDriver();
-    if (!drv) {
-      throw new Error('Driver is not available');
-    }
-
-    const rowLocation = await accountCell.unwrap().getLocation();
-    const rowSize = await accountCell.unwrap().getSize();
-    const rowCenterY = rowLocation.y + rowSize.height / 2;
-
-    const menuElements = await Matchers.getAllElementsByXPath(
-      `//*[@name='${AccountCellIds.MENU}']`,
+    const menuEl = await PlaywrightMatchers.getElementById(
+      getAccountCellMenuTestId(accountName),
     );
-    if (menuElements.length === 0) {
-      throw new Error(
-        `No ellipsis menu buttons found while targeting "${accountName}"`,
-      );
-    }
-
-    let bestMenu = menuElements[0];
-    let bestDelta = Number.POSITIVE_INFINITY;
-    for (const menu of menuElements) {
-      const menuLocation = await menu.unwrap().getLocation();
-      const menuSize = await menu.unwrap().getSize();
-      const menuCenterY = menuLocation.y + menuSize.height / 2;
-      const delta = Math.abs(menuCenterY - rowCenterY);
-      if (delta < bestDelta) {
-        bestDelta = delta;
-        bestMenu = menu;
-      }
-    }
-
-    // Guard against matching a distant/off-screen menu.
-    if (bestDelta > Math.max(rowSize.height, 48)) {
-      throw new Error(
-        `Could not align ellipsis menu to "${accountName}" (Δy=${Math.round(bestDelta)})`,
-      );
-    }
-
-    const menuLocation = await bestMenu.unwrap().getLocation();
-    const menuSize = await bestMenu.unwrap().getSize();
-    const x = Math.floor(menuLocation.x + menuSize.width / 2);
-    const y = Math.floor(menuLocation.y + menuSize.height / 2);
-
-    await drv
-      .action('pointer', {
-        parameters: { pointerType: 'touch' },
-      })
-      .move({ x, y })
-      .down()
-      .pause(80)
-      .up()
-      .perform();
+    await PlaywrightGestures.waitAndTap(menuEl, {
+      elemDescription: `Ellipsis menu for "${accountName}"`,
+      timeout: 15_000,
+      checkForDisplayed: false,
+      checkForEnabled: false,
+    });
   }
 
   async expectAccountVisibleByNameV2(

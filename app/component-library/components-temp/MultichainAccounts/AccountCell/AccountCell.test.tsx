@@ -14,9 +14,17 @@ import {
   Jazzicon,
   Maskicon,
 } from '@metamask/design-system-react-native';
-import { AccountCellIds } from './AccountCell.testIds';
+import {
+  AccountCellIds,
+  getAccountCellMenuTestId,
+} from './AccountCell.testIds';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { AvatarAccountType } from '../avatarAccountVariant';
+
+const MOCK_ACCOUNT_GROUP_NAME = 'Test Account Group';
+const MOCK_ACCOUNT_MENU_TEST_ID = getAccountCellMenuTestId(
+  MOCK_ACCOUNT_GROUP_NAME,
+);
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -60,7 +68,7 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockAccountGroup = createMockAccountGroup(
   'keyring:test-group/ethereum',
-  'Test Account Group',
+  MOCK_ACCOUNT_GROUP_NAME,
   ['account-1'],
 );
 
@@ -137,17 +145,17 @@ describe('AccountCell', () => {
 
   it('renders menu button by default', () => {
     const { getByTestId } = renderAccountCell();
-    expect(getByTestId(AccountCellIds.MENU)).toBeTruthy();
+    expect(getByTestId(MOCK_ACCOUNT_MENU_TEST_ID)).toBeTruthy();
   });
 
   it('hides menu button when hideMenu is true', () => {
     const { queryByTestId } = renderAccountCell({ hideMenu: true });
-    expect(queryByTestId(AccountCellIds.MENU)).toBeNull();
+    expect(queryByTestId(MOCK_ACCOUNT_MENU_TEST_ID)).toBeNull();
   });
 
   it('navigates to account group details when menu button is pressed', () => {
     const { getByTestId } = renderAccountCell();
-    const menuButton = getByTestId(AccountCellIds.MENU);
+    const menuButton = getByTestId(MOCK_ACCOUNT_MENU_TEST_ID);
     fireEvent.press(menuButton);
     expect(mockNavigate).toHaveBeenCalledWith('MultichainAccountGroupDetails', {
       accountGroup: mockAccountGroup,
@@ -224,7 +232,7 @@ describe('AccountCell', () => {
 
     // Given a rendered account cell
     // When the user presses the menu button
-    const menuButton = getByTestId(AccountCellIds.MENU);
+    const menuButton = getByTestId(MOCK_ACCOUNT_MENU_TEST_ID);
     fireEvent.press(menuButton);
 
     // Then onSelectAccount should not be called, only navigate
@@ -289,6 +297,6 @@ describe('AccountCell', () => {
     expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
     expect(getByTestId(AccountCellIds.ADDRESS)).toBeTruthy();
     expect(getByTestId(AccountCellIds.BALANCE)).toBeTruthy();
-    expect(getByTestId(AccountCellIds.MENU)).toBeTruthy();
+    expect(getByTestId(MOCK_ACCOUNT_MENU_TEST_ID)).toBeTruthy();
   });
 });
