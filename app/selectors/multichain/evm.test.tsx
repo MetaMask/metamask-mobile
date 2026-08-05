@@ -149,7 +149,7 @@ describe('Multichain Selectors', () => {
   const MOCK_SELECTED_ADDRESS = '0xAddress1';
 
   describe('selectedAccountNativeTokenCachedBalanceByChainIdForAddress', () => {
-    it('should return native token balances for all chains', () => {
+    it('returns native token balances for every chain', () => {
       const result = selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
         mockState,
         MOCK_SELECTED_ADDRESS,
@@ -170,7 +170,7 @@ describe('Multichain Selectors', () => {
       });
     });
 
-    it('should return empty object when no address is provided', () => {
+    it('returns an empty object when no address is provided', () => {
       const result = selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
         mockState,
         undefined,
@@ -180,7 +180,7 @@ describe('Multichain Selectors', () => {
   });
 
   describe('selectAccountTokensAcrossChainsForAddress', () => {
-    it('should return tokens across all chains for the given account', () => {
+    it('returns tokens across all chains for the given account', () => {
       const result = selectAccountTokensAcrossChainsForAddress(
         mockState,
         MOCK_SELECTED_ADDRESS,
@@ -209,7 +209,7 @@ describe('Multichain Selectors', () => {
       expect(tk1Token?.isNative).toBe(false);
     });
 
-    it('should handle multiple chains correctly', () => {
+    it('includes tokens from every configured chain', () => {
       const result = selectAccountTokensAcrossChainsForAddress(
         mockState,
         MOCK_SELECTED_ADDRESS,
@@ -361,17 +361,23 @@ describe('Multichain Selectors', () => {
       );
     });
 
-    it('re-runs the token aggregation and surfaces the new token when the token slice changes', () => {
-      const before = selectTokensForMockAccount(mockState);
+    it('re-runs the token aggregation when the token slice changes', () => {
+      selectTokensForMockAccount(mockState);
       const recomputationsBefore =
         selectAccountTokensAcrossChainsForAddress.recomputations();
 
-      const after = selectTokensForMockAccount(withExtraMainnetToken());
+      selectTokensForMockAccount(withExtraMainnetToken());
 
       expect(selectAccountTokensAcrossChainsForAddress.recomputations()).toBe(
         recomputationsBefore + 1,
       );
-      expect(after).not.toBe(before);
+    });
+
+    it('includes the added token once the token slice changes', () => {
+      selectTokensForMockAccount(mockState);
+
+      const after = selectTokensForMockAccount(withExtraMainnetToken());
+
       expect(after['0x1'].some((token) => token.symbol === 'TK2')).toBe(true);
     });
 
@@ -556,7 +562,7 @@ describe('re-renders', () => {
     expect(getByText(newToken.name)).toBeDefined();
   });
 
-  it('should return exactly same data if state does not change', async () => {
+  it('returns identical data when state does not change', async () => {
     expect(mockRenderCall).toHaveBeenCalledTimes(1);
     mockRenderCall.mockReset();
     const result1 = selectAccountTokensAcrossChainsForAddress(
