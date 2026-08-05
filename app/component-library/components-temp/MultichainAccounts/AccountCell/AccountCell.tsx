@@ -28,10 +28,7 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../../components/UI/Box/box.types';
-import {
-  AccountCellIds,
-  getAccountCellMenuTestId,
-} from './AccountCell.testIds';
+import { AccountCellIds } from './AccountCell.testIds';
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
@@ -130,7 +127,7 @@ const BalanceEndContainer = ({
       </TouchableOpacity>
       {!hideMenu && (
         <TouchableOpacity
-          testID={getAccountCellMenuTestId(accountGroup.metadata.name)}
+          testID={AccountCellIds.MENU}
           style={styles.menuButton}
           onPress={handleMenuPress}
         >

@@ -13,7 +13,7 @@ import {
   createMockState,
   createMockInternalAccountsFromGroups,
 } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
-import { ACCOUNT_CELL_MENU_TEST_ID } from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
+import { AccountCellIds } from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import { Hex } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
@@ -331,10 +331,10 @@ describe('RecipientSelectorModal', () => {
 
   describe('Props passed to MultichainAccountSelectorList', () => {
     it('hides account cell menu', () => {
-      const { queryAllByTestId } = renderRecipientSelectorModal();
+      const { queryByTestId } = renderRecipientSelectorModal();
 
       // Menu buttons should not be visible (hideAccountCellMenu = true)
-      expect(queryAllByTestId(ACCOUNT_CELL_MENU_TEST_ID)).toHaveLength(0);
+      expect(queryByTestId(AccountCellIds.MENU)).toBeFalsy();
     });
 
     it('shows external account on empty search', () => {

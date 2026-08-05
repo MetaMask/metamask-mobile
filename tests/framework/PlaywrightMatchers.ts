@@ -78,8 +78,7 @@ export default class PlaywrightMatchers {
       // Detox by.id(RegExp) matches the suffix; UiAutomator resourceIdMatches needs .*…*.
       const androidPattern = `.*${escaped}.*`;
       // iOS NSPredicate MATCHES is a full-string match — prefix patterns like
-      // /^multichain-account-cell-menu-/ must allow a suffix or they never hit
-      // `…-Account 1`.
+      // /^foo-/ must allow a suffix or they never hit `foo-Account 1`.
       const iosPattern = toIosPredicateMatchPattern(escaped);
       const locator = isAndroid
         ? `android=new UiSelector().resourceIdMatches("${androidPattern}")`

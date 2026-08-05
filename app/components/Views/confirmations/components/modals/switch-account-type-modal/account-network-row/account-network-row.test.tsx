@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { getSmartAccountSwitchTestId } from '../../../../../MultichainAccounts/SmartAccount.testIds';
+import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../../../reducers';
 import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';
@@ -87,9 +87,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    expect(
-      getByTestId(getSmartAccountSwitchTestId(MOCK_NETWORK.name)),
-    ).toBeTruthy();
+    expect(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH)).toBeTruthy();
   });
 
   it('renders switch in correct state for smart account (supported network)', () => {
@@ -98,9 +96,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
     expect(switchComponent.props.value).toBe(true);
   });
 
@@ -113,9 +109,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
     expect(switchComponent.props.value).toBe(false);
   });
 
@@ -125,9 +119,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
     fireEvent(switchComponent, 'onValueChange', false);
 
     expect(mockDowngradeAccount).toHaveBeenCalledWith(MOCK_ADDRESS);
@@ -143,9 +135,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
     fireEvent(switchComponent, 'onValueChange', true);
 
     expect(mockUpgradeAccount).toHaveBeenCalledWith(
@@ -170,9 +160,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
     fireEvent(switchComponent, 'onValueChange', true);
 
     expect(mockUpgradeAccount).not.toHaveBeenCalled();
@@ -187,9 +175,7 @@ describe('Account Network Row', () => {
       <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
       { state: MOCK_STATE },
     );
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
     expect(
       switchComponent.props.accessibilityState?.disabled ??
         switchComponent.props.disabled,
@@ -209,9 +195,7 @@ describe('Account Network Row', () => {
       />,
       { state: MOCK_STATE },
     );
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
     expect(
       switchComponent.props.accessibilityState?.disabled ??
         switchComponent.props.disabled,
@@ -224,9 +208,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    fireEvent.press(
-      getByTestId(getSmartAccountSwitchTestId(MOCK_NETWORK.name)),
-    );
+    fireEvent.press(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH));
 
     expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
@@ -237,9 +219,7 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
 
-    const switchComponent = getByTestId(
-      getSmartAccountSwitchTestId(MOCK_NETWORK.name),
-    );
+    const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
 
     // First click to trigger the switch and set switchRequestSubmitted to true
     fireEvent(switchComponent, 'onValueChange', false);

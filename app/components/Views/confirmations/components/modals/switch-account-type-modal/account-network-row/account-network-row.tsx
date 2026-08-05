@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { getSmartAccountSwitchTestId } from '../../../../../MultichainAccounts/SmartAccount.testIds';
+import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Text, {
   TextColor,
@@ -91,7 +91,7 @@ const AccountNetworkRow = ({
         {name}
       </Text>
       <Switch
-        testID={getSmartAccountSwitchTestId(name)}
+        testID={SmartAccountIds.SMART_ACCOUNT_SWITCH}
         value={addressSupportSmartAccount}
         onValueChange={onSwitch}
         trackColor={{
