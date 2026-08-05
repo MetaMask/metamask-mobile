@@ -105,6 +105,10 @@ describe('RewardsDataService', () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    // Only timers are restored here: resetting mock implementations would wipe
+    // the defaults set in the jest.mock factories (e.g. getVersion), and mocks
+    // that individual tests mutate are re-established in beforeEach.
+    jest.useRealTimers();
   });
 
   describe('initialization', () => {
@@ -1391,11 +1395,22 @@ describe('RewardsDataService', () => {
       next: null,
     };
 
+    // getDiscoverSeasons coerces an expired current season to previous by
+    // comparing against the wall clock, so pin it for every test here.
+    const NOW = new Date('2025-10-01T00:00:00.000Z');
+
+    const yearsFromNow = (years: number): Date => {
+      const date = new Date(NOW);
+      date.setFullYear(date.getFullYear() + years);
+      return date;
+    };
+
     beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(NOW);
+
       // Use a future date to ensure current season doesn't get moved to previous
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
-      const futureEndDateString = futureEndDate.toISOString();
+      const futureEndDateString = yearsFromNow(1).toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1412,6 +1427,10 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('fetches discover seasons from the correct public endpoint', async () => {
       const result = await service.getDiscoverSeasons();
 
@@ -1425,7 +1444,7 @@ describe('RewardsDataService', () => {
       );
       expect(result.current?.endDate).toBeInstanceOf(Date);
       // Verify end date is in the future (at least 6 months from now)
-      const minFutureDate = new Date();
+      const minFutureDate = new Date(NOW);
       minFutureDate.setMonth(minFutureDate.getMonth() + 6);
       expect(result.current?.endDate.getTime()).toBeGreaterThan(
         minFutureDate.getTime(),
@@ -1474,9 +1493,7 @@ describe('RewardsDataService', () => {
 
     it('converts date strings to Date objects for current season', async () => {
       // Use a future date to ensure current season doesn't get moved to previous
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
-      const futureEndDateString = futureEndDate.toISOString();
+      const futureEndDateString = yearsFromNow(1).toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1506,13 +1523,8 @@ describe('RewardsDataService', () => {
 
     it('handles response with previous, current and next seasons', async () => {
       // Use future dates to ensure seasons don't get moved
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
-      const futureEndDateString = futureEndDate.toISOString();
-
-      const futureNextEndDate = new Date();
-      futureNextEndDate.setFullYear(futureNextEndDate.getFullYear() + 2);
-      const futureNextEndDateString = futureNextEndDate.toISOString();
+      const futureEndDateString = yearsFromNow(1).toISOString();
+      const futureNextEndDateString = yearsFromNow(2).toISOString();
 
       const mockResponse = {
         ok: true,
@@ -1615,40 +1627,29 @@ describe('RewardsDataService', () => {
     });
 
     it('coerces current season to previous when end date equals current time', async () => {
-      jest.useFakeTimers();
-      const now = new Date('2025-01-01T00:00:00.000Z');
-      jest.setSystemTime(now);
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          previous: null,
+          current: {
+            id: '7444682d-9050-43b8-9038-28a6a62d6264',
+            startDate: '2019-09-01T04:00:00.000Z',
+            endDate: NOW.toISOString(),
+          },
+          next: null,
+        }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
 
-      try {
-        const mockResponse = {
-          ok: true,
-          json: jest.fn().mockResolvedValue({
-            previous: null,
-            current: {
-              id: '7444682d-9050-43b8-9038-28a6a62d6264',
-              startDate: '2019-09-01T04:00:00.000Z',
-              endDate: now.toISOString(),
-            },
-            next: null,
-          }),
-        } as unknown as Response;
-        mockFetch.mockResolvedValue(mockResponse);
+      const result = await service.getDiscoverSeasons();
 
-        const result = await service.getDiscoverSeasons();
-
-        expect(result.current).toBeNull();
-        expect(result.previous).not.toBeNull();
-        expect(result.previous?.id).toBe(
-          '7444682d-9050-43b8-9038-28a6a62d6264',
-        );
-      } finally {
-        jest.useRealTimers();
-      }
+      expect(result.current).toBeNull();
+      expect(result.previous).not.toBeNull();
+      expect(result.previous?.id).toBe('7444682d-9050-43b8-9038-28a6a62d6264');
     });
 
     it('does not coerce current season when end date is in the future', async () => {
-      const futureEndDate = new Date();
-      futureEndDate.setFullYear(futureEndDate.getFullYear() + 1);
+      const futureEndDate = yearsFromNow(1);
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue({
