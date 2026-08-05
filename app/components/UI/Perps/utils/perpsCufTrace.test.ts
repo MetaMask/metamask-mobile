@@ -16,6 +16,7 @@ import {
   watchPerpsCufPositionClosed,
   watchPerpsCufTpSlChanged,
   watchPerpsCufOrderAbsent,
+  watchPerpsCufOrderPriceUpdated,
   watchPerpsCufLimitRendered,
   watchPerpsCufAnyPositions,
   acceptPerpsCufRequest,
@@ -53,6 +54,10 @@ describe('perpsCufTrace', () => {
     jest.clearAllMocks();
     resetPerpsLifecycleContextForTests();
     resetPerpsCufTraceForTests();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('isPerpsFillRendered (shared fill predicate)', () => {
@@ -932,5 +937,75 @@ describe('perpsCufTrace', () => {
     handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }], flush);
 
     expect(flush).not.toHaveBeenCalled();
+  });
+
+  describe('PerpsEditOrder ORDER_PRICE_UPDATED', () => {
+    it('ends the edit span once the order reflects the expected price', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      acceptPerpsCufRequest(opId);
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '50000' }]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '51000' }]);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: opId,
+          data: expect.objectContaining({
+            [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+          }),
+        }),
+      );
+    });
+
+    it('treats financially equal prices as a match', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000.00');
+      acceptPerpsCufRequest(opId);
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '51000' }]);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: opId }),
+      );
+    });
+
+    it('does not end when the delivered price is non-finite', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      acceptPerpsCufRequest(opId);
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: 'not-a-price' }]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('defers ending until the edit request is accepted', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '51000' }]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      acceptPerpsCufRequest(opId);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: opId }),
+      );
+    });
+
+    it('ends the edit span when the order fills and leaves the stream', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      acceptPerpsCufRequest(opId);
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-2', price: '3000' }]);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: opId,
+          data: expect.objectContaining({
+            [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+          }),
+        }),
+      );
+    });
   });
 });

@@ -5,6 +5,8 @@ import type { Context } from '@wdio/protocols';
 import type { AndroidDetailedContext } from 'webdriverio/build/types';
 import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver, executeMobileDeepLink } from './PlaywrightUtilities';
+import { PlatformDetector } from './PlatformLocator';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('ChromeCdpHelpers');
@@ -338,6 +340,25 @@ export default class ChromeCdpHelpers {
         package: APP_PACKAGE_IDS.ANDROID,
       });
     });
+  }
+
+  private static async dispatchTrustedClickById(
+    session: CdpSession,
+    elementId: string,
+  ): Promise<void> {
+    const clicked = await session.evaluate<boolean>(
+      `(() => {
+        const el = document.getElementById(${JSON.stringify(elementId)});
+        if (!el || typeof el.click !== 'function') return false;
+        el.scrollIntoView({ block: 'center', inline: 'center' });
+        el.click();
+        return true;
+      })()`,
+      { userGesture: true },
+    );
+    if (!clicked) {
+      throw new Error(`CDP: could not click #${elementId}`);
+    }
   }
 
   private static async installDeeplinkCapture(
@@ -690,7 +711,7 @@ export default class ChromeCdpHelpers {
     return (
       Boolean(target.title) &&
       /multichain api test dapp/i.test(target.title ?? '') &&
-      /:8090\b/.test(dappUrl)
+      dappUrl.includes('localhost')
     );
   }
 
@@ -726,6 +747,255 @@ export default class ChromeCdpHelpers {
 
     function defaultPort(protocol: string): string {
       return protocol === 'https:' ? '443' : '80';
+    }
+  }
+
+  // ── MetaMask in-app WebView CDP support ────────────────────────────────────
+  //
+  // The MetaMask in-app browser uses `webview_devtools_remote_<pid>` instead
+  // of `chrome_devtools_remote`. These methods mirror the Chrome helpers above
+  // but resolve the WebView socket via `mobile: getContexts`. The socket name
+  // is cached so `mobile: getContexts` (which can be slow) is called at most
+  // once per test — call `resetMetaMaskWebViewCache()` between tests.
+
+  private static readonly MM_WV_CDP_PORT = 10902;
+  private static cachedMmWebViewSocket: string | null = null;
+
+  /** Clear the WebView socket cache — call at the start of each test. */
+  static resetMetaMaskWebViewCache(): void {
+    this.cachedMmWebViewSocket = null;
+  }
+
+  private static async resolveMetaMaskWebViewEndpoint(): Promise<string> {
+    if (this.cachedMmWebViewSocket) {
+      try {
+        execFileSync(
+          'adb',
+          [
+            'forward',
+            `tcp:${this.MM_WV_CDP_PORT}`,
+            `localabstract:${this.cachedMmWebViewSocket}`,
+          ],
+          { stdio: 'pipe' },
+        );
+        return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+      } catch {
+        this.cachedMmWebViewSocket = null;
+      }
+    }
+
+    const rawContexts = (await getDriver().execute('mobile: getContexts')) as {
+      proc?: string;
+      webviewName?: string;
+    }[];
+    const mmCtx = rawContexts.find(
+      (ctx) =>
+        ctx.webviewName === 'WEBVIEW_io.metamask' ||
+        ctx.proc?.includes('webview_devtools_remote'),
+    );
+    if (!mmCtx?.proc) throw new Error('MetaMask WebView CDP context not found');
+
+    const socketName = mmCtx.proc.replace(/^@/, '');
+    try {
+      execFileSync(
+        'adb',
+        [
+          'forward',
+          `tcp:${this.MM_WV_CDP_PORT}`,
+          `localabstract:${socketName}`,
+        ],
+        { stdio: 'pipe' },
+      );
+    } catch {
+      // may already be forwarded
+    }
+    this.cachedMmWebViewSocket = socketName;
+    return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+  }
+
+  private static async withMetaMaskWebViewSession<T>(
+    dappUrl: string,
+    fn: (session: CdpSession) => Promise<T>,
+  ): Promise<T> {
+    const endpoint = await this.resolveMetaMaskWebViewEndpoint();
+    const target = await this.waitForCdpTarget(endpoint, dappUrl);
+    if (!target.webSocketDebuggerUrl) {
+      throw new Error(
+        `MetaMask WebView CDP target for ${dappUrl} has no webSocketDebuggerUrl`,
+      );
+    }
+    const session = await CdpSession.connect(target.webSocketDebuggerUrl);
+    try {
+      return await fn(session);
+    } finally {
+      session.close();
+    }
+  }
+
+  /**
+   * Evaluate arbitrary JavaScript in the MetaMask in-app WebView page at `dappUrl`.
+   * Android: CDP Runtime.evaluate. iOS: Appium WebView context + execute().
+   * Note: expression must be synchronous — do not return Promises.
+   */
+  static async evaluateInWebView<T>(
+    dappUrl: string,
+    expression: string,
+  ): Promise<T | null> {
+    if (PlatformDetector.isAndroid()) {
+      try {
+        return await this.withMetaMaskWebViewSession(dappUrl, (session) =>
+          session.evaluate<T>(expression),
+        );
+      } catch {
+        return null;
+      }
+    }
+    // iOS: use Appium WebView context switching
+    try {
+      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      const result = (await getDriver().execute(
+        `return (${expression})`,
+      )) as T | null;
+      await PlaywrightContextHelpers.switchToNativeContext();
+      return result ?? null;
+    } catch {
+      await PlaywrightContextHelpers.switchToNativeContext().catch(
+        () => undefined,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Click an element by HTML `id` in the MetaMask in-app WebView.
+   * Android: CDP trusted click. iOS: Appium WebView context + element.click().
+   */
+  static async clickByIdInWebView(
+    dappUrl: string,
+    elementId: string,
+  ): Promise<boolean> {
+    if (PlatformDetector.isAndroid()) {
+      try {
+        await this.withMetaMaskWebViewSession(dappUrl, (session) =>
+          this.dispatchTrustedClickById(session, elementId),
+        );
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    // iOS
+    try {
+      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      const el = getDriver().$(`#${elementId}`);
+      await el.scrollIntoView();
+      await el.click();
+      await PlaywrightContextHelpers.switchToNativeContext();
+      return true;
+    } catch {
+      await PlaywrightContextHelpers.switchToNativeContext().catch(
+        () => undefined,
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Read `textContent` of an element by HTML `id` (single attempt).
+   * Android: CDP. iOS: Appium WebView context.
+   */
+  static async readTextByIdInWebView(
+    dappUrl: string,
+    elementId: string,
+  ): Promise<string | null> {
+    if (PlatformDetector.isAndroid()) {
+      try {
+        return await this.withMetaMaskWebViewSession(dappUrl, (session) =>
+          session.evaluate<string | null>(
+            `(() => {
+              const el = document.getElementById(${JSON.stringify(elementId)});
+              return el ? (el.textContent ?? null) : null;
+            })()`,
+          ),
+        );
+      } catch {
+        return null;
+      }
+    }
+    // iOS
+    try {
+      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      const text = (await getDriver().execute(
+        `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
+      )) as string | null;
+      await PlaywrightContextHelpers.switchToNativeContext();
+      return text || null;
+    } catch {
+      await PlaywrightContextHelpers.switchToNativeContext().catch(
+        () => undefined,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Poll until the element's `textContent` is non-empty (truthy).
+   * Android: single CDP session held open for the full duration.
+   * iOS: Appium WebView context held open for the full duration.
+   */
+  static async waitForElementTextInWebView(
+    dappUrl: string,
+    elementId: string,
+    timeoutMs = 10_000,
+  ): Promise<string | null> {
+    if (PlatformDetector.isAndroid()) {
+      try {
+        return await this.withMetaMaskWebViewSession(
+          dappUrl,
+          async (session) => {
+            const deadline = Date.now() + timeoutMs;
+            while (Date.now() < deadline) {
+              const text = await session.evaluate<string | null>(
+                `(() => {
+                const el = document.getElementById(${JSON.stringify(elementId)});
+                return el ? (el.textContent ?? null) : null;
+              })()`,
+              );
+              if (text) return text;
+              await new Promise<void>((r) => setTimeout(r, POLL_MS));
+            }
+            return null;
+          },
+        );
+      } catch {
+        return null;
+      }
+    }
+    // iOS: hold WebView context open for the full polling duration
+    try {
+      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        try {
+          const text = (await getDriver().execute(
+            `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
+          )) as string | null;
+          if (text) {
+            await PlaywrightContextHelpers.switchToNativeContext();
+            return text;
+          }
+        } catch {
+          // element not yet in DOM
+        }
+        await new Promise<void>((r) => setTimeout(r, POLL_MS));
+      }
+      await PlaywrightContextHelpers.switchToNativeContext();
+      return null;
+    } catch {
+      await PlaywrightContextHelpers.switchToNativeContext().catch(
+        () => undefined,
+      );
+      return null;
     }
   }
 }

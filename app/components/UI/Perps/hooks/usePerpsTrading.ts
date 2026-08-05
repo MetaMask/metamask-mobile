@@ -8,6 +8,7 @@ import {
   type CancelOrderParams,
   type CancelOrderResult,
   type ClosePositionParams,
+  type EditOrderParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
   type FlipPositionParams,
@@ -41,6 +42,7 @@ import {
   endPerpsCufTrace,
   endPerpsCufRequestAfter,
   watchPerpsCufOrderAbsent,
+  watchPerpsCufOrderPriceUpdated,
   acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
 import {
@@ -112,6 +114,73 @@ export function usePerpsTrading() {
       } catch (error) {
         endPerpsCufTrace({
           id: cancelCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const editOrder = useCallback(
+    async (
+      params: EditOrderParams & {
+        /**
+         * When true (default if `newOrder.price` is set), arm an
+         * ORDER_PRICE_UPDATED stream watcher. Pass false for size-only edits
+         * that still send an unchanged limit price to the venue.
+         */
+        watchPriceUpdate?: boolean;
+      },
+    ): Promise<OrderResult> => {
+      const { watchPriceUpdate, ...controllerParams } = params;
+      const controller = Engine.context.PerpsController;
+      const editCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsEditOrder,
+      });
+      const expectedPrice = controllerParams.newOrder.price;
+      const shouldWatchPriceUpdate = watchPriceUpdate ?? Boolean(expectedPrice);
+      if (expectedPrice && shouldWatchPriceUpdate) {
+        watchPerpsCufOrderPriceUpdated(
+          editCufOpId,
+          String(controllerParams.orderId),
+          expectedPrice,
+        );
+      }
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        editCufOpId,
+        () => controllerSettled,
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
+      try {
+        const result = await controller.editOrder(controllerParams);
+        controllerSettled = true;
+        if (!result?.success) {
+          endPerpsCufTrace({
+            id: editCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+        } else if (expectedPrice && shouldWatchPriceUpdate) {
+          acceptPerpsCufRequest(editCufOpId);
+        } else {
+          endPerpsCufTrace({
+            id: editCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: true,
+            },
+          });
+        }
+        return result;
+      } catch (error) {
+        endPerpsCufTrace({
+          id: editCufOpId,
           data: {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
@@ -326,6 +395,7 @@ export function usePerpsTrading() {
   return {
     placeOrder,
     cancelOrder,
+    editOrder,
     closePosition,
     getMarkets,
     getPositions,

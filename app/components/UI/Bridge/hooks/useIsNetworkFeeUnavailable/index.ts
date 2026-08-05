@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import {
   isBitcoinChainId,
-  isTronChainId,
   sumAmounts,
+  isStellarChainId,
+  isTronChainId,
 } from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 
@@ -16,7 +17,9 @@ export const isQuoteNetworkFeeUnavailable = (
 
   if (
     !sourceChainId ||
-    (!isBitcoinChainId(sourceChainId) && !isTronChainId(sourceChainId))
+    (!isBitcoinChainId(sourceChainId) &&
+      !isTronChainId(sourceChainId) &&
+      !isStellarChainId(sourceChainId))
   ) {
     return false;
   }

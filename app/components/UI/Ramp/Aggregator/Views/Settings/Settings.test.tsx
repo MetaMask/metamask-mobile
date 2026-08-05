@@ -189,13 +189,13 @@ describe('Settings', () => {
 
   it('renders correctly', () => {
     render(Settings);
-    expect(screen.getByText('Buy & sell crypto')).toBeOnTheScreen();
+    expect(screen.getByText('Buy and sell crypto')).toBeOnTheScreen();
     expect(withRampSDK).toHaveBeenCalled();
   });
 
-  it('renders inline header with title Buy & sell crypto', () => {
+  it('renders inline header with title Buy and sell crypto', () => {
     render(Settings);
-    expect(screen.getByText('Buy & sell crypto')).toBeOnTheScreen();
+    expect(screen.getByText('Buy and sell crypto')).toBeOnTheScreen();
     expect(screen.getByTestId(RAMP_SETTINGS_HEADER_TEST_ID)).toBeOnTheScreen();
   });
 
