@@ -69,8 +69,7 @@ export class TestMuAIConfigBuilder {
     logger.info(
       `TestMu AI tunnel: ${isLocal}, geoLocation: ${isLocal ? 'disabled for tunnel sessions' : geoLocation}`,
     );
-    const appiumVersion =
-      process.env.TESTMU_APPIUM_VERSION?.trim() || 'latest';
+    const appiumVersion = process.env.TESTMU_APPIUM_VERSION?.trim() || 'latest';
 
     logger.info(
       `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, appiumVersion=${appiumVersion}, isRealMobile=true` +
@@ -99,6 +98,18 @@ export class TestMuAIConfigBuilder {
       network: false,
       appProfiling: true,
       smartHeal: true,
+      'appium:settings[actionAcknowledgmentTimeout]': 3000,
+      'appium:settings[ignoreUnimportantViews]': true,
+      'appium:settings[waitForSelectorTimeout]': 1000,
+      'appium:includeSafariInWebviews': true,
+      'appium:chromedriverAutodownload': true,
+      'appium:waitForQuiescence': false,
+      'appium:animationCoolOffTimeout': 0,
+      'appium:reduceMotion': true,
+      'appium:customSnapshotTimeout': 15,
+      'appium:waitForIdleTimeout': 0,
+      'appium:disableWindowAnimation': true,
+      'appium:skipDeviceInitialization': true,
       ...(platformName === 'android' ? { autoGrantPermissions: true } : {}),
       ...(!isLocal ? { geoLocation } : {}),
       ...(isLocal
@@ -135,19 +146,7 @@ export class TestMuAIConfigBuilder {
         'appium:fullReset': true,
         'appium:newCommandTimeout':
           DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
-        'appium:settings[actionAcknowledgmentTimeout]': 3000,
-        'appium:settings[ignoreUnimportantViews]': true,
         'appium:settings[snapshotMaxDepth]': 62,
-        'appium:settings[waitForSelectorTimeout]': 1000,
-        'appium:includeSafariInWebviews': true,
-        'appium:chromedriverAutodownload': true,
-        'appium:waitForQuiescence': false,
-        'appium:animationCoolOffTimeout': 0,
-        'appium:reduceMotion': true,
-        'appium:customSnapshotTimeout': 15,
-        'appium:waitForIdleTimeout': 0,
-        'appium:disableWindowAnimation': true,
-        'appium:skipDeviceInitialization': true,
         ...(testMuDevice.otherApps && testMuDevice.otherApps.length > 0
           ? { 'appium:otherApps': testMuDevice.otherApps as string[] }
           : {}),
