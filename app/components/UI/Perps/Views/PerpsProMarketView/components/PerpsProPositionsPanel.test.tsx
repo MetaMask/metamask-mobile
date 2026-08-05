@@ -346,9 +346,7 @@ describe('PerpsProPositionsPanel', () => {
     expectTabLabel('Orders');
     expect(screen.queryAllByText('Orders (1)')).toHaveLength(0);
     expect(screen.getByText('No open SOL orders.')).toBeOnTheScreen();
-    expect(
-      screen.queryByText('Your open orders will appear here.'),
-    ).toBeNull();
+    expect(screen.queryByText('Your open orders will appear here.')).toBeNull();
   });
 
   it('matches the ticker-only filter on the full market symbol for HIP-3 orders', () => {

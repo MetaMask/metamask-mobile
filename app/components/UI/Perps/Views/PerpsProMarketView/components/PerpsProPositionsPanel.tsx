@@ -172,9 +172,7 @@ const PerpsProPositionsPanel = ({
 
   const visibleOrders = useMemo(
     () =>
-      isTickerOnly
-        ? orders.filter((order) => order.symbol === symbol)
-        : orders,
+      isTickerOnly ? orders.filter((order) => order.symbol === symbol) : orders,
     [isTickerOnly, orders, symbol],
   );
 
