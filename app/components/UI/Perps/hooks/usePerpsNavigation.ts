@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -175,12 +175,18 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToMarketListFromHeader = useCallback(
     (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
-      navigateToMarketList({
-        ...params,
-        animation: 'slide_from_bottom',
-      });
+      // Push a new MARKET_LIST over MARKET_DETAILS so the common
+      // MARKET_LIST → MARKET_DETAILS stack keeps details beneath the slide-up
+      // picker. navigate() would jump back to the existing list entry and pop
+      // details, breaking Back-to-dismiss behavior.
+      navigation.dispatch(
+        StackActions.push(Routes.PERPS.MARKET_LIST, {
+          ...params,
+          animation: 'slide_from_bottom',
+        }),
+      );
     },
-    [navigateToMarketList],
+    [navigation],
   );
 
   const { depositWithOrder } = usePerpsTrading();

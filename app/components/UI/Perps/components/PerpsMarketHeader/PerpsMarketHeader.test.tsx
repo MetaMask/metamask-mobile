@@ -221,6 +221,27 @@ describe('PerpsMarketHeader', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('renders wallet and favorite actions when handlers exist even without testIDs', () => {
+    const onWalletPress = jest.fn();
+    const onFavoritePress = jest.fn();
+    const {
+      walletButton: _walletButton,
+      favoriteButton: _favoriteButton,
+      ...testIDsWithoutActions
+    } = createProMarketHeaderTestIDs();
+    const { getByLabelText } = renderHeader({
+      testIDs: testIDsWithoutActions,
+      onWalletPress,
+      onFavoritePress,
+    });
+
+    fireEvent.press(getByLabelText('Perps balance'));
+    fireEvent.press(getByLabelText('Add to watchlist'));
+
+    expect(onWalletPress).toHaveBeenCalledTimes(1);
+    expect(onFavoritePress).toHaveBeenCalledTimes(1);
+  });
+
   it('renders endAccessory instead of default actions when provided', () => {
     const onFavoritePress = jest.fn();
     const { getByTestId, queryByTestId } = renderHeader({

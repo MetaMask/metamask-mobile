@@ -207,7 +207,7 @@ const PerpsMarketHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
-        {onWalletPress && testIDs.walletButton ? (
+        {onWalletPress ? (
           <ButtonIcon
             iconName={IconName.Wallet}
             size={ButtonIconSize.Md}
@@ -216,7 +216,7 @@ const PerpsMarketHeader = ({
             testID={testIDs.walletButton}
           />
         ) : null}
-        {onFavoritePress && testIDs.favoriteButton ? (
+        {onFavoritePress ? (
           <ButtonIcon
             iconName={isFavorite ? IconName.StarFilled : IconName.Star}
             size={ButtonIconSize.Md}

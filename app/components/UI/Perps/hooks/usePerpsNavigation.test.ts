@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PerpsMode } from '@metamask/perps-controller';
 import { usePerpsNavigation } from './usePerpsNavigation';
@@ -13,6 +13,7 @@ import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 
@@ -52,6 +53,7 @@ jest.mock(
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
+  const mockDispatch = jest.fn();
   const mockCanGoBack = jest.fn();
   const mockGoBack = jest.fn();
   const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -99,6 +101,7 @@ describe('usePerpsNavigation', () => {
     });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      dispatch: mockDispatch,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
     } as Partial<ReturnType<typeof useNavigation>> as ReturnType<
@@ -294,19 +297,21 @@ describe('usePerpsNavigation', () => {
       });
     });
 
-    it('navigates to market list from header with slide_from_bottom animation', () => {
+    it('pushes market list from header so details stay beneath the slide-up', () => {
       const { result } = renderHook(() => usePerpsNavigation());
       const params = { source: 'perp_asset_screen' };
 
       result.current.navigateToMarketListFromHeader(params);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_LIST,
-        params: {
+      // Must push (not ROOT navigate) so MARKET_LIST → MARKET_DETAILS keeps
+      // details under the picker; navigate() would pop back to the existing list.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push(Routes.PERPS.MARKET_LIST, {
           ...params,
           animation: 'slide_from_bottom',
-        },
-      });
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates to order screen with direction and asset', async () => {
