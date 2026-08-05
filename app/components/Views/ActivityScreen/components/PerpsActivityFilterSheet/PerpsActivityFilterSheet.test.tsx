@@ -115,10 +115,6 @@ describe('PerpsActivityFilterSheet', () => {
     }
   });
 
-  // Pins the resolved copy, which the map/label assertions above cannot: they
-  // compare `getLabel` against the same `strings()` call and so pass for any
-  // text. Buckets read as plural, and funding matches the perp market page's
-  // "Funding payments" rather than the ambiguous "Fundings" (TMCU-1073).
   it.each([
     [PerpsActivityFilter.Trades, 'Trades'],
     [PerpsActivityFilter.Orders, 'Orders'],
