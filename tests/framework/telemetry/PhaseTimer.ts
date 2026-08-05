@@ -1,25 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules -- AsyncLocalStorage for per-test PhaseTimer binding */
 import { AsyncLocalStorage } from 'node:async_hooks';
 
-/**
- * Canonical Appium smoke fixture/login phases.
- * Sibling durations in milliseconds.
- */
-export const APPIUM_PHASES = [
-  'servers_start',
-  'app_clear',
-  'context_reset',
-  'app_launch',
-  'fixture_bootstrap',
-  'login',
-  'modal_dismissal',
-  'test_body',
-  'teardown',
-] as const;
-
-export type AppiumPhase = (typeof APPIUM_PHASES)[number];
-
-export type PhaseName = AppiumPhase | (string & {});
+export type PhaseName = string;
 
 export interface PhaseTimerMeta {
   platform?: 'android' | 'ios' | string;
@@ -40,18 +22,14 @@ export interface PhaseTimerSnapshot {
 }
 
 export interface PhaseTimer {
-  /** Start an exclusive phase; stops the previous phase and accumulates duration. */
   start(phase: PhaseName): void;
-  /** Add an absolute duration for a phase (e.g. soft-reload measurements). */
   record(phase: PhaseName, ms: number): void;
-  /** Stop the current running phase without starting another. */
   stop(): void;
   setMeta(meta: Partial<PhaseTimerMeta>): void;
   snapshot(): PhaseTimerSnapshot;
 }
 
 export interface CreatePhaseTimerOptions {
-  /** Clock for tests; defaults to `Date.now`. */
   now?: () => number;
 }
 
@@ -78,8 +56,7 @@ class PhaseTimerImpl implements PhaseTimer {
     if (!Number.isFinite(ms) || ms < 0) {
       return;
     }
-    const previous = this.#phases.get(phase) ?? 0;
-    this.#phases.set(phase, previous + ms);
+    this.#phases.set(phase, (this.#phases.get(phase) ?? 0) + ms);
   }
 
   stop(): void {
@@ -92,11 +69,10 @@ class PhaseTimerImpl implements PhaseTimer {
 
   snapshot(): PhaseTimerSnapshot {
     this.#stopCurrent();
-    const phases: Record<string, number> = {};
-    for (const [name, ms] of this.#phases.entries()) {
-      phases[name] = ms;
-    }
-    return { phases, meta: { ...this.#meta } };
+    return {
+      phases: Object.fromEntries(this.#phases.entries()),
+      meta: { ...this.#meta },
+    };
   }
 
   #stopCurrent(): void {
@@ -106,8 +82,10 @@ class PhaseTimerImpl implements PhaseTimer {
       return;
     }
     const elapsed = this.#now() - this.#currentStartedAt;
-    const previous = this.#phases.get(this.#currentPhase) ?? 0;
-    this.#phases.set(this.#currentPhase, previous + elapsed);
+    this.#phases.set(
+      this.#currentPhase,
+      (this.#phases.get(this.#currentPhase) ?? 0) + elapsed,
+    );
     this.#currentPhase = null;
     this.#currentStartedAt = null;
   }
@@ -126,25 +104,18 @@ export function runWithPhaseTimer<T>(
   return storage.run(timer, fn);
 }
 
-/**
- * Active timer for the current async context, or `undefined` outside a fixture.
- * Callers must no-op safely when missing (Detox / unit paths).
- */
 export function getPhaseTimer(): PhaseTimer | undefined {
   return storage.getStore();
 }
 
-/** Convenience: start a phase when a timer is bound. */
 export function startPhase(phase: PhaseName): void {
   getPhaseTimer()?.start(phase);
 }
 
-/** Convenience: record absolute ms when a timer is bound. */
 export function recordPhase(phase: PhaseName, ms: number): void {
   getPhaseTimer()?.record(phase, ms);
 }
 
-/** Convenience: stop current phase when a timer is bound. */
 export function stopPhase(): void {
   getPhaseTimer()?.stop();
 }

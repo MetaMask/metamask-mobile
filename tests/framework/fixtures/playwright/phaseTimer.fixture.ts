@@ -1,4 +1,4 @@
-import type { FullProject, TestInfo } from '@playwright/test';
+import type { Fixtures, FullProject, TestInfo } from '@playwright/test';
 import type { WebDriverConfig } from '../../types.ts';
 import {
   createPhaseTimer,
@@ -21,9 +21,6 @@ function annotationDescription(
 function parseBooleanAnnotation(
   value: string | undefined,
 ): boolean | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
   if (value === 'true') {
     return true;
   }
@@ -34,30 +31,21 @@ function parseBooleanAnnotation(
 }
 
 /**
- * Test-scoped Appium phase timer.
- *
- * Auto-fixture: runs for every smoke test. Depends on `driver` so session
- * annotations exist before attach. Binds AsyncLocalStorage so FixtureHelper /
- * login helpers can call getPhaseTimer().
+ * Auto phase-timer fixture: binds ALS for FixtureHelper/login and attaches JSON.
+ * Depends on `driver` so session annotations exist before attach.
  */
-export const phaseTimerFixture = {
+export const phaseTimerFixture: Fixtures<
+  TestLevelFixtures,
+  WorkerLevelFixtures
+> = {
   phaseTimer: [
-    async (
-      {
-        driver: _driver,
-        deviceProvider,
-      }: Pick<TestLevelFixtures, 'driver'> &
-        Pick<WorkerLevelFixtures, 'deviceProvider'>,
-      use: (timer: PhaseTimer) => Promise<void>,
-      testInfo: TestInfo,
-    ) => {
+    async ({ driver: _driver, deviceProvider }, use, testInfo: TestInfo) => {
       const timer = createPhaseTimer();
       const project = testInfo.project as FullProject<WebDriverConfig>;
-      const platform = project.use.platform;
       const suiteName = process.env.APPIUM_SMOKE_SUITE_NAME?.trim();
 
       timer.setMeta({
-        platform,
+        platform: project.use.platform,
         suite: suiteName || 'local',
         spec: testInfo.file,
         title: testInfo.title,
@@ -69,24 +57,20 @@ export const phaseTimerFixture = {
         try {
           await use(timer);
         } finally {
-          const sessionReused = parseBooleanAnnotation(
-            annotationDescription(testInfo.annotations, 'sessionReused'),
-          );
-          const sessionRecreated = parseBooleanAnnotation(
-            annotationDescription(testInfo.annotations, 'sessionRecreated'),
-          );
-
           timer.setMeta({
             outcome: testInfo.status,
-            sessionReused,
-            sessionRecreated,
+            sessionReused: parseBooleanAnnotation(
+              annotationDescription(testInfo.annotations, 'sessionReused'),
+            ),
+            sessionRecreated: parseBooleanAnnotation(
+              annotationDescription(testInfo.annotations, 'sessionRecreated'),
+            ),
             sessionCreationMs: deviceProvider.sessionCreationDurationMs,
           });
 
-          const snapshot = timer.snapshot();
           try {
             await testInfo.attach(PHASE_TIMINGS_ATTACHMENT_NAME, {
-              body: JSON.stringify(snapshot),
+              body: JSON.stringify(timer.snapshot()),
               contentType: 'application/json',
             });
           } catch (error) {

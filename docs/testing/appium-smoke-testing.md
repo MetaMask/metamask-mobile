@@ -209,31 +209,14 @@ Helpers:
 
 ## Phase timing telemetry
 
-Every Appium smoke test records sibling phase durations (ms) via `PhaseTimer`:
-
-| Phase                                                              | Source                                         |
-| ------------------------------------------------------------------ | ---------------------------------------------- |
-| `servers_start`                                                    | Fixture servers / nodes / mocks                |
-| `app_clear` / `context_reset` / `app_launch` / `fixture_bootstrap` | Soft reload                                    |
-| `login` / `modal_dismissal`                                        | `loginToAppPlaywright`                         |
-| `test_body`                                                        | `withFixtures` callback excluding login/modals |
-| `teardown`                                                         | Fixture cleanup                                |
-
-Artifacts:
-
-| Output                | Path / name                                      |
-| --------------------- | ------------------------------------------------ |
-| Per-suite timing JSON | `tests/test-reports/appium-timings/<suite>.json` |
-| CI artifact           | `appium-timings-<suite>`                         |
-
-Aggregate locally (or after downloading CI artifacts from `main` / a PR run into the timings dir):
+Appium smoke records phase ms via `PhaseTimer` (`servers_start`, soft-reload phases, `login`, `modal_dismissal`, `test_body`, `teardown`). Suites write `tests/test-reports/appium-timings/<suite>.json` (CI artifact `appium-timings-<suite>`). Aggregate with:
 
 ```bash
 yarn appium-smoke:aggregate-timings
 yarn appium-smoke:aggregate-timings -- --input /path/to/timings --markdown /tmp/trend.md
 ```
 
-The report prints avg/p95 per phase per platform, slowest shard, retry rate per spec, and session-reuse rate. Use timings from `main` CI artifacts as the comparison source once jobs are uploading them.
+Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare against timings downloaded from `main` once jobs upload them.
 
 ## Reports and artifacts
 

@@ -1,27 +1,19 @@
 /* eslint-disable import-x/no-nodejs-modules */
-/**
- * Pure helpers for aggregating Appium phase-timing JSON artifacts.
- */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 export const DEFAULT_INPUT_DIR = 'tests/test-reports/appium-timings';
 
 export function average(values: number[]): number | null {
-  if (!values.length) {
-    return null;
-  }
-  const sum = values.reduce((a, b) => a + b, 0);
-  return sum / values.length;
+  if (!values.length) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 export function percentile(
   values: number[],
   percentileValue: number,
 ): number | null {
-  if (!values.length) {
-    return null;
-  }
+  if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
   const index = Math.min(
     sorted.length - 1,
@@ -34,27 +26,19 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-/** Collect timing suite JSON files from a directory (non-recursive + one level). */
 export function collectTimingFiles(inputPath: string): string[] {
   const resolved = resolve(inputPath);
-  if (!existsSync(resolved)) {
-    return [];
-  }
+  if (!existsSync(resolved)) return [];
   const stats = statSync(resolved);
-  if (stats.isFile()) {
-    return resolved.endsWith('.json') ? [resolved] : [];
-  }
+  if (stats.isFile()) return resolved.endsWith('.json') ? [resolved] : [];
   const files: string[] = [];
   for (const name of readdirSync(resolved)) {
     const full = join(resolved, name);
     const st = statSync(full);
-    if (st.isFile() && name.endsWith('.json')) {
-      files.push(full);
-    } else if (st.isDirectory()) {
+    if (st.isFile() && name.endsWith('.json')) files.push(full);
+    else if (st.isDirectory()) {
       for (const nested of readdirSync(full)) {
-        if (nested.endsWith('.json')) {
-          files.push(join(full, nested));
-        }
+        if (nested.endsWith('.json')) files.push(join(full, nested));
       }
     }
   }
@@ -79,13 +63,17 @@ export interface TimingSuiteFile {
 export function loadTimingFile(filePath: string): TimingSuiteFile | null {
   try {
     const raw: unknown = JSON.parse(readFileSync(filePath, 'utf8'));
-    if (!isObject(raw) || !Array.isArray(raw.tests)) {
-      return null;
-    }
+    if (!isObject(raw) || !Array.isArray(raw.tests)) return null;
     return { ...(raw as TimingSuiteFile), sourcePath: filePath };
   } catch {
     return null;
   }
+}
+
+export interface PhaseStats {
+  avg: number | null;
+  p95: number | null;
+  samples: number;
 }
 
 export interface AggregateTimingReport {
@@ -93,10 +81,7 @@ export interface AggregateTimingReport {
   generatedAt: string;
   testCount: number;
   suiteCount: number;
-  phases: Record<
-    string,
-    Record<string, { avg: number | null; p95: number | null; samples: number }>
-  >;
+  phases: Record<string, Record<string, PhaseStats>>;
   slowestShard: {
     suite: string;
     platform: string;
@@ -107,11 +92,7 @@ export interface AggregateTimingReport {
     string,
     { attempts: number; retries: number; retryRate: number }
   >;
-  sessionReuse: {
-    known: number;
-    reused: number;
-    rate: number | null;
-  };
+  sessionReuse: { known: number; reused: number; rate: number | null };
 }
 
 export function aggregateTimingSuites(
@@ -119,12 +100,7 @@ export function aggregateTimingSuites(
 ): AggregateTimingReport {
   const phaseByPlatform = new Map<string, number[]>();
   const retryBySpec = new Map<string, { attempts: number; retries: number }>();
-  const shardTotals: {
-    suite: string;
-    platform: string;
-    totalMs: number;
-    sourcePath?: string;
-  }[] = [];
+  const shardTotals: AggregateTimingReport['slowestShard'][] = [];
   let sessionReuseTrue = 0;
   let sessionReuseKnown = 0;
   let testCount = 0;
@@ -139,12 +115,9 @@ export function aggregateTimingSuites(
         typeof test.meta?.platform === 'string'
           ? test.meta.platform
           : 'unknown';
-      const phases = test.phases ?? {};
       let testPhaseSum = 0;
-      for (const [phase, ms] of Object.entries(phases)) {
-        if (typeof ms !== 'number' || !Number.isFinite(ms)) {
-          continue;
-        }
+      for (const [phase, ms] of Object.entries(test.phases ?? {})) {
+        if (typeof ms !== 'number' || !Number.isFinite(ms)) continue;
         testPhaseSum += ms;
         const key = `${platform}::${phase}`;
         const bucket = phaseByPlatform.get(key) ?? [];
@@ -162,17 +135,12 @@ export function aggregateTimingSuites(
         retries: 0,
       };
       retryStats.attempts += 1;
-      // Playwright retry index > 0 means this result is a retry attempt.
-      if ((test.retry ?? 0) > 0) {
-        retryStats.retries += 1;
-      }
+      if ((test.retry ?? 0) > 0) retryStats.retries += 1;
       retryBySpec.set(specKey, retryStats);
 
       if (typeof test.meta?.sessionReused === 'boolean') {
         sessionReuseKnown += 1;
-        if (test.meta.sessionReused) {
-          sessionReuseTrue += 1;
-        }
+        if (test.meta.sessionReused) sessionReuseTrue += 1;
       }
     }
 
@@ -189,9 +157,7 @@ export function aggregateTimingSuites(
   const phases: AggregateTimingReport['phases'] = {};
   for (const [key, values] of phaseByPlatform.entries()) {
     const [platform, phase] = key.split('::');
-    if (!phases[platform]) {
-      phases[platform] = {};
-    }
+    phases[platform] ??= {};
     phases[platform][phase] = {
       avg: average(values),
       p95: percentile(values, 95),
@@ -199,19 +165,18 @@ export function aggregateTimingSuites(
     };
   }
 
-  const slowestShard =
-    shardTotals.length === 0
-      ? null
-      : [...shardTotals].sort((a, b) => b.totalMs - a.totalMs)[0];
-
   const retryRatePerSpec: AggregateTimingReport['retryRatePerSpec'] = {};
   for (const [spec, stats] of retryBySpec.entries()) {
     retryRatePerSpec[spec] = {
-      attempts: stats.attempts,
-      retries: stats.retries,
+      ...stats,
       retryRate: stats.attempts === 0 ? 0 : stats.retries / stats.attempts,
     };
   }
+
+  const sortedShards = [...shardTotals].filter(
+    (shard): shard is NonNullable<typeof shard> => shard != null,
+  );
+  sortedShards.sort((a, b) => b.totalMs - a.totalMs);
 
   return {
     schemaVersion: 1,
@@ -219,7 +184,7 @@ export function aggregateTimingSuites(
     testCount,
     suiteCount: suites.length,
     phases,
-    slowestShard,
+    slowestShard: sortedShards[0] ?? null,
     retryRatePerSpec,
     sessionReuse: {
       known: sessionReuseKnown,
@@ -238,26 +203,26 @@ export function formatTrendMarkdown(report: AggregateTimingReport): string {
     `Suites: ${report.suiteCount} · Tests: ${report.testCount}`,
     '',
   ];
-
   if (report.sessionReuse.rate !== null) {
     lines.push(
       `Session reuse rate: ${(report.sessionReuse.rate * 100).toFixed(1)}% (${report.sessionReuse.reused}/${report.sessionReuse.known})`,
       '',
     );
   }
-
   if (report.slowestShard) {
     lines.push(
       `Slowest shard: **${report.slowestShard.suite}** (${report.slowestShard.platform}) — ${Math.round(report.slowestShard.totalMs)}ms phase sum`,
       '',
     );
   }
-
   lines.push('## Avg / p95 by phase (ms)', '');
   for (const platform of Object.keys(report.phases).sort()) {
-    lines.push(`### ${platform}`, '');
-    lines.push('| Phase | Avg | p95 | Samples |');
-    lines.push('| --- | ---: | ---: | ---: |');
+    lines.push(
+      `### ${platform}`,
+      '',
+      '| Phase | Avg | p95 | Samples |',
+      '| --- | ---: | ---: | ---: |',
+    );
     for (const phase of Object.keys(report.phases[platform]).sort()) {
       const row = report.phases[platform][phase];
       lines.push(
@@ -266,15 +231,17 @@ export function formatTrendMarkdown(report: AggregateTimingReport): string {
     }
     lines.push('');
   }
-
   const retryEntries = Object.entries(report.retryRatePerSpec)
     .filter(([, s]) => s.retries > 0)
     .sort((a, b) => b[1].retryRate - a[1].retryRate)
     .slice(0, 20);
   if (retryEntries.length > 0) {
-    lines.push('## Specs with retries', '');
-    lines.push('| Spec | Retry rate | Retries / Attempts |');
-    lines.push('| --- | ---: | ---: |');
+    lines.push(
+      '## Specs with retries',
+      '',
+      '| Spec | Retry rate | Retries / Attempts |',
+      '| --- | ---: | ---: |',
+    );
     for (const [spec, stats] of retryEntries) {
       lines.push(
         `| ${spec} | ${(stats.retryRate * 100).toFixed(0)}% | ${stats.retries}/${stats.attempts} |`,
@@ -282,7 +249,6 @@ export function formatTrendMarkdown(report: AggregateTimingReport): string {
     }
     lines.push('');
   }
-
   return `${lines.join('\n')}\n`;
 }
 
@@ -290,18 +256,13 @@ export function parseArgs(
   argv: string[],
   defaultInput: string = DEFAULT_INPUT_DIR,
 ): { input: string; markdown: string | null } {
-  const opts = {
-    input: defaultInput,
-    markdown: null as string | null,
-  };
+  const opts = { input: defaultInput, markdown: null as string | null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--input' && argv[i + 1]) {
-      opts.input = resolve(argv[i + 1]);
-      i += 1;
+      opts.input = resolve(argv[++i]);
     } else if (arg === '--markdown' && argv[i + 1]) {
-      opts.markdown = resolve(argv[i + 1]);
-      i += 1;
+      opts.markdown = resolve(argv[++i]);
     }
   }
   return opts;

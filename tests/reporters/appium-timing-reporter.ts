@@ -5,8 +5,7 @@
  * Output: tests/test-reports/appium-timings/<suite|local>.json
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { Buffer } from 'node:buffer';
 import type {
   FullConfig,
@@ -18,7 +17,8 @@ import type {
 } from '@playwright/test/reporter';
 import { PHASE_TIMINGS_ATTACHMENT_NAME } from '../framework/telemetry/PhaseTimer.ts';
 
-const testsRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+// Repo-root relative: yarn scripts always run from the repository root.
+const testsRoot = join(process.cwd(), 'tests');
 
 interface PhaseTimingEntry {
   phases: Record<string, number>;
