@@ -9,6 +9,7 @@ import {
   HeaderStandard,
   Text,
   TextColor,
+  TextFieldSearch,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
@@ -19,7 +20,6 @@ import {
   Platform,
 } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
@@ -875,12 +875,14 @@ const PerpsMarketListView = ({
             onChangeText={setSearchQuery}
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
-            testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
-            autoComplete="off"
-            autoCorrect={false}
-            autoCapitalize="none"
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
+            }}
+            inputProps={{
+              autoComplete: 'off',
+              autoCorrect: false,
+              autoCapitalize: 'none',
+              testID: PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
             }}
           />
         </View>

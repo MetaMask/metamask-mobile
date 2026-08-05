@@ -488,6 +488,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   twFn.color = () => 'black';
   return {
     useTailwind: () => twFn,
+    // MMDS Input (via TextFieldSearch) reads theme for placeholder color.
+    useTheme: () => 'light',
+    Theme: { Light: 'light', Dark: 'dark' },
   };
 });
 

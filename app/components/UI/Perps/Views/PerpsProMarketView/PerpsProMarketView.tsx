@@ -147,7 +147,7 @@ const PerpsProMarketView = () => {
   const handleSelectMarket = useCallback(
     (
       nextMarket: PerpsMarketData | Partial<PerpsMarketData>,
-      sourceSection:
+      panelSourceSection:
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     ) => {
@@ -163,7 +163,7 @@ const PerpsProMarketView = () => {
       navigation.setParams({
         market: nextMarket,
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
-        source_section: sourceSection,
+        source_section: panelSourceSection,
         direction: undefined,
       });
     },
