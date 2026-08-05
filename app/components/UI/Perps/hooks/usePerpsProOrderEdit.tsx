@@ -12,6 +12,7 @@ import {
   buildOrderEditParams,
   buildOrderOptimisticEdit,
   getOrderEditConfirmedSize,
+  getOrderEditMarketPrice,
   getOrderEditPreviousValue,
   hasOrderEditValueChanged,
   type OrderEditField,
@@ -223,7 +224,11 @@ export const usePerpsProOrderEdit = ({
             editingOrderLeverage,
             {
               totalFee: 0,
-              marketPrice: 0,
+              marketPrice: getOrderEditMarketPrice(
+                orderToEdit,
+                field,
+                newValue,
+              ),
               source: PRO_MARKET_SOURCE,
             },
           ),

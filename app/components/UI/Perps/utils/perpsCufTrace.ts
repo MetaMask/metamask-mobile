@@ -761,6 +761,11 @@ export function handlePerpsCufOrdersDelivered(
     const updatedOrder = orders.find((o) => o.orderId === orderId);
     if (updatedOrder && orderPriceMatches(expectedPrice, updatedOrder.price)) {
       deferred = confirmOrDefer(opId, meta, toEnd) || deferred;
+    } else if (!updatedOrder && meta[CUF_META.AWAIT_ACCEPT] !== true) {
+      // A marketable price edit can fill immediately, removing the resting
+      // order from the stream before its updated price is observed. End the
+      // span successfully rather than letting it time out as a failure.
+      toEnd.push(opId);
     }
   }
 

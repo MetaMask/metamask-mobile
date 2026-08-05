@@ -56,6 +56,10 @@ describe('perpsCufTrace', () => {
     resetPerpsCufTraceForTests();
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('isPerpsFillRendered (shared fill predicate)', () => {
     const pos = (size: string) => ({ symbol: 'BTC', size });
 
@@ -986,6 +990,27 @@ describe('perpsCufTrace', () => {
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({ id: opId }),
       );
+    });
+
+    it('ends the edit span when the order fills and leaves the stream', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      acceptPerpsCufRequest(opId);
+
+      // Order is absent — it filled immediately at the marketable price.
+      handlePerpsCufOrdersDelivered([]);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: opId }),
+      );
+    });
+
+    it('does not end on fill when the edit request is still awaiting acceptance', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      // Not yet accepted — do not end even if order is absent.
+
+      handlePerpsCufOrdersDelivered([]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
   });
 });

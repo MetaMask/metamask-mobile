@@ -104,6 +104,7 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
     resetPerpsLifecycleContextForTests();
 
     // Restore the default Terminal flag state (enabled) after any per-test override.
@@ -1493,11 +1494,12 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalled();
     });
 
+    const FIXED_TS = new Date('2024-01-01T12:00:00.000Z').getTime();
     const firstUpdate: PriceUpdate = {
       symbol: 'BTC-PERP',
 
       price: '50000',
-      timestamp: Date.now(),
+      timestamp: FIXED_TS,
       isTradable: true,
     };
 
@@ -1514,7 +1516,7 @@ describe('PerpsStreamManager', () => {
       symbol: 'BTC-PERP',
 
       price: '50100',
-      timestamp: Date.now() + 10,
+      timestamp: FIXED_TS + 10,
       isTradable: true,
     };
 
@@ -1522,7 +1524,7 @@ describe('PerpsStreamManager', () => {
       symbol: 'BTC-PERP',
 
       price: '50200',
-      timestamp: Date.now() + 20,
+      timestamp: FIXED_TS + 20,
       isTradable: true,
     };
 
