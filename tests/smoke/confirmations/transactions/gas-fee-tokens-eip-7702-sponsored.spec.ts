@@ -200,7 +200,8 @@ const localNodeOptions = [
     type: LocalNodeType.anvil,
     options: {
       hardfork: 'prague' as Hardfork,
-      loadState: './tests/smoke-appium/7702/withDelegatorContracts.json',
+      loadState:
+        './tests/smoke-appium/confirmations/transactions/7702/withDelegatorContracts.json',
     },
   },
 ];
