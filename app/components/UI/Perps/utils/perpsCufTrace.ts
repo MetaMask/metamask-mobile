@@ -2,6 +2,7 @@ import {
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
 } from '@metamask/perps-controller';
+import { BigNumber } from 'bignumber.js';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
@@ -60,6 +61,8 @@ const PERPS_CUF_WATCH = {
   ORDER_ABSENT: 'order_absent',
   /** Limit place: the order rests in the orders stream OR fills into a position. */
   ORDER_PRESENT_OR_FILLED: 'order_present_or_filled',
+  /** Edit: the order's resting limit price updated to the requested value. */
+  ORDER_PRICE_UPDATED: 'order_price_updated',
   ANY_POSITIONS: 'any_positions',
 } as const;
 
@@ -457,6 +460,20 @@ export function watchPerpsCufOrderAbsent(opId: string, orderId: string): void {
   });
 }
 
+/** Watch for an open order to reflect the edited limit price before ending `opId`. */
+export function watchPerpsCufOrderPriceUpdated(
+  opId: string,
+  orderId: string,
+  expectedPrice: string,
+): void {
+  setPerpsCufMeta(opId, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_PRICE_UPDATED,
+    [CUF_META.ORDER_ID]: orderId,
+    [CUF_META.SNAPSHOT]: expectedPrice,
+    [CUF_META.AWAIT_ACCEPT]: true,
+  });
+}
+
 /**
  * Limit place confirmation: end `opId` when the order renders as resting in the
  * orders stream OR fills into a position (a marketable limit never rests).
@@ -673,13 +690,28 @@ export function handlePerpsCufPositionsDelivered(
   }
 }
 
+function orderPriceMatches(expected: string, actual?: string): boolean {
+  const expectedBn = new BigNumber(expected);
+  const actualBn = new BigNumber(actual ?? '');
+  if (!expectedBn.isFinite() || !actualBn.isFinite()) {
+    return false;
+  }
+  if (expectedBn.eq(actualBn)) {
+    return true;
+  }
+  // Venue modify may round the submitted price; treat near-equal values as a
+  // match so ORDER_PRICE_UPDATED CUF does not time out on tick rounding.
+  const maxMagnitude = BigNumber.max(expectedBn.abs(), actualBn.abs(), 1);
+  return expectedBn.minus(actualBn).abs().div(maxMagnitude).lte(1e-8);
+}
+
 /**
  * Orders just rendered to stream subscribers: close pending cancel spans once
  * their order is absent, and pending limit-order-render spans once their order
  * is present. Flushes throttled subscribers once before ending, as above.
  */
 export function handlePerpsCufOrdersDelivered(
-  orders: readonly { orderId: string }[] | null,
+  orders: readonly { orderId: string; price?: string }[] | null,
   flushThrottled?: () => void,
 ): void {
   if (!orders) {
@@ -712,6 +744,26 @@ export function handlePerpsCufOrdersDelivered(
       typeof orderId === 'string' &&
       orders.some((o) => o.orderId === orderId)
     ) {
+      toEnd.push(opId);
+    }
+  }
+  for (const opId of pendingOpIdsForName(TraceName.PerpsEditOrder)) {
+    const meta = pendingCufMeta.get(opId);
+    const orderId = meta?.[CUF_META.ORDER_ID];
+    const expectedPrice = meta?.[CUF_META.SNAPSHOT];
+    if (
+      meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.ORDER_PRICE_UPDATED ||
+      typeof orderId !== 'string' ||
+      typeof expectedPrice !== 'string'
+    ) {
+      continue;
+    }
+    const updatedOrder = orders.find((o) => o.orderId === orderId);
+    if (updatedOrder && orderPriceMatches(expectedPrice, updatedOrder.price)) {
+      deferred = confirmOrDefer(opId, meta, toEnd) || deferred;
+    } else if (!updatedOrder && meta[CUF_META.AWAIT_ACCEPT] !== true) {
+      // A marketable price edit can fill immediately, removing the resting order
+      // from the stream before its updated price is observed.
       toEnd.push(opId);
     }
   }

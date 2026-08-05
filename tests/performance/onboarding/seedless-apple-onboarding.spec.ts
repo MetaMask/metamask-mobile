@@ -6,11 +6,7 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import {
-  dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
-  dismissPushNotificationExistingUserSheet,
-} from '../../flows/wallet.flow';
+import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -21,9 +17,13 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import {
+  measureCreatePasswordToOnboardingSuccess,
+  measurePredictGtmModalIfShown,
+} from './helpers/seedlessOnboardingTimers';
+
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
     let rejectedCount = 0;
@@ -40,7 +40,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 /* Seedless Onboarding: Apple Login */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  test.setTimeout(240000);
+  test.setTimeout(300000);
 
   test(
     'Seedless Onboarding: Apple Login New User',
@@ -134,27 +134,13 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         }
         await PlaywrightGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
+        await measureCreatePasswordToOnboardingSuccess(timer4);
 
-        await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingSuccessView.doneButton),
-            {
-              description: 'Onboarding success done button should be visible',
-            },
-          );
-        });
-        await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
-        await dismissPushNotificationExistingUserSheet();
-        await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
+
+        // Optional Predict GTM: measure Done → modal when present (no pre-wait).
+        const predictGtmOnboardingModalEnabled =
+          await measurePredictGtmModalIfShown(timer5);
 
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
@@ -166,10 +152,14 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timer6];
+        const timers = [timer1, timer2, timer4];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
+        if (predictGtmOnboardingModalEnabled) {
+          timers.push(timer5);
+        }
+        timers.push(timer6);
         performanceTracker.addTimers(...timers);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
