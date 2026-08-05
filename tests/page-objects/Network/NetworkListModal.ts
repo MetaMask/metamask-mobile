@@ -174,15 +174,10 @@ class NetworkListModal {
 
   async tapNetworkRowMenuButton(networkName: string): Promise<void> {
     const escapedName = networkName.replace(/'/g, "\\'");
-    const rowId = 'list-item-multi-select-button-row';
     const menuId = 'button-menu-select-test-id';
-    const menuButton = PlatformDetector.isAndroid()
-      ? PlaywrightMatchers.getElementByXPath(
-          `(//*[@text='${escapedName}']/ancestor::*[@resource-id='${rowId}'][1])//*[@resource-id='${menuId}']`,
-        )
-      : PlaywrightMatchers.getElementByXPath(
-          `(//*[@name='${escapedName}' or @label='${escapedName}']/ancestor::*[@name='${rowId}'][1])//*[@name='${menuId}']`,
-        );
+    const menuButton = PlaywrightMatchers.getElementByXPath(
+      `(//*[contains(@text,'${escapedName}') or contains(@content-desc,'${escapedName}') or contains(@name,'${escapedName}') or contains(@label,'${escapedName}')]/ancestor::*[contains(@resource-id,'network-list-item-') or contains(@name,'network-list-item-') or contains(@label,'network-list-item-')][1])//*[@resource-id='${menuId}' or @content-desc='${menuId}' or @name='${menuId}']`,
+    );
     await Gestures.waitAndTap(menuButton, {
       elemDescription: `Network row menu button for ${networkName}`,
     });

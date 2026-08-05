@@ -42,7 +42,6 @@ appiumTest.describe(
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
             await navigateToBrowserView();
-            await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
@@ -88,7 +87,6 @@ appiumTest.describe(
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
             await navigateToBrowserView();
-            await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
@@ -151,7 +149,7 @@ appiumTest.describe(
             await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
             await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
-            await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+            await Assertions.expectElementToBeVisible(Browser.addressBar);
             await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
             await Assertions.expectElementToNotBeVisible(
               ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,

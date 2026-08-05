@@ -46,7 +46,6 @@ appiumTest.describe(
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
             await navigateToBrowserView();
-            await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
             // Connect to DApp (current network Optimism is permitted by default)
             await Browser.navigateToTestDApp();

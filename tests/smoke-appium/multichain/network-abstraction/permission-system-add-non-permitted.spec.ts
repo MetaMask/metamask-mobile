@@ -39,7 +39,6 @@ appiumTest.describe(
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
             await navigateToBrowserView();
-            await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();

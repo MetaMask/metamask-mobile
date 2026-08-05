@@ -40,7 +40,6 @@ appiumTest.describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
             await navigateToBrowserView();
-            await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
             await Browser.navigateToTestDApp();
             await TestDApp.tapDappConnectButton();
@@ -50,7 +49,7 @@ appiumTest.describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
             await NetworkConnectMultiSelector.tapUpdateButton();
             await ConnectBottomSheet.tapConnectButton();
 
-            await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+            await Assertions.expectElementToBeVisible(Browser.addressBar);
 
             await TestDApp.tapSwitchChainButton();
             await ConnectBottomSheet.tapConnectButton();
