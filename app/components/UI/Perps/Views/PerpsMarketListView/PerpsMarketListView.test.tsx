@@ -1541,6 +1541,76 @@ describe('PerpsMarketListView', () => {
         }),
       );
     });
+
+    it('replaces underlying market details when opened as the header picker', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          animation: 'slide_from_bottom',
+          replaceOnSelect: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+      const stackReducer = mockNavigation.dispatch.mock.calls[0][0] as (state: {
+        key: string;
+        index: number;
+        routeNames: string[];
+        routes: { key: string; name: string; params?: object }[];
+        type: string;
+        stale: boolean;
+      }) => unknown;
+
+      expect(typeof stackReducer).toBe('function');
+      expect(
+        stackReducer({
+          key: 'stack',
+          index: 2,
+          routeNames: [
+            'PerpsMarketListView',
+            'PerpsMarketDetails',
+            'PerpsMarketListView',
+          ],
+          routes: [
+            { key: 'list', name: 'PerpsMarketListView' },
+            {
+              key: 'details-btc',
+              name: 'PerpsMarketDetails',
+              params: { market: mockMarketData[0] },
+            },
+            {
+              key: 'picker',
+              name: 'PerpsMarketListView',
+              params: { replaceOnSelect: true },
+            },
+          ],
+          type: 'stack',
+          stale: false,
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          type: 'RESET',
+          payload: expect.objectContaining({
+            index: 1,
+            routes: [
+              { key: 'list', name: 'PerpsMarketListView' },
+              expect.objectContaining({
+                name: 'PerpsMarketDetails',
+                params: expect.objectContaining({
+                  market: mockMarketData[1],
+                  source: 'perp_markets',
+                }),
+              }),
+            ],
+          }),
+        }),
+      );
+    });
   });
 
   describe('Loading States', () => {
