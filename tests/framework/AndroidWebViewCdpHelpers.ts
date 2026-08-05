@@ -368,6 +368,9 @@ export default class AndroidWebViewCdpHelpers {
       return false;
     }
 
+    // React controlled inputs ignore bare `el.value = …`. Use the native
+    // prototype setter + `_valueTracker` reset (same idea as Detox
+    // Gestures.typeInWebElement) so `input`/`change` update React state.
     const filled = await this.withEvaluate<boolean>(
       options.pageUrl,
       `(() => {
@@ -375,11 +378,30 @@ export default class AndroidWebViewCdpHelpers {
       if (!el) return false;
       el.scrollIntoView({ block: 'center', inline: 'nearest' });
       el.focus?.();
-      if ('value' in el) {
-        el.value = '';
-        el.value = ${JSON.stringify(value)};
+      const next = ${JSON.stringify(value)};
+      if (!('value' in el)) {
+        el.textContent = next;
       } else {
-        el.textContent = ${JSON.stringify(value)};
+        const proto = Object.getPrototypeOf(el);
+        const valueDesc =
+          Object.getOwnPropertyDescriptor(proto, 'value') ||
+          Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype,
+            'value',
+          ) ||
+          Object.getOwnPropertyDescriptor(
+            window.HTMLTextAreaElement.prototype,
+            'value',
+          );
+        if (valueDesc && valueDesc.set) {
+          valueDesc.set.call(el, next);
+        } else {
+          el.value = next;
+        }
+        const tracker = el._valueTracker;
+        if (tracker && typeof tracker.setValue === 'function') {
+          tracker.setValue('');
+        }
       }
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
@@ -430,7 +452,24 @@ export default class AndroidWebViewCdpHelpers {
         opt.text.includes(${JSON.stringify(optionText)}),
       );
       if (!option) return false;
-      el.value = option.value;
+      const next = option.value;
+      const proto = Object.getPrototypeOf(el);
+      const valueDesc =
+        Object.getOwnPropertyDescriptor(proto, 'value') ||
+        Object.getOwnPropertyDescriptor(
+          window.HTMLSelectElement.prototype,
+          'value',
+        );
+      if (valueDesc && valueDesc.set) {
+        valueDesc.set.call(el, next);
+      } else {
+        el.value = next;
+      }
+      option.selected = true;
+      const tracker = el._valueTracker;
+      if (tracker && typeof tracker.setValue === 'function') {
+        tracker.setValue('');
+      }
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
       return true;

@@ -99,9 +99,11 @@ jest.mock('ws', () => {
             expression.includes('getElementById') &&
             !expression.includes('"disabled-id"');
         } else if (
-          expression.includes("dispatchEvent(new Event('input'") ||
-          expression.includes('dispatchEvent(new Event("input"')
+          expression.includes('_valueTracker') &&
+          (expression.includes("dispatchEvent(new Event('input'") ||
+            expression.includes('dispatchEvent(new Event("input"'))
         ) {
+          // Fill/select must use React-friendly value setting.
           value = expression.includes('getElementById');
         } else if (
           expression.includes('innerText') ||
