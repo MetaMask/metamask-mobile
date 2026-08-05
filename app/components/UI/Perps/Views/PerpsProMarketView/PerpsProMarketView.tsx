@@ -157,10 +157,14 @@ const PerpsProMarketView = () => {
 
       // POSITION_TAB is the panel-level source; source_section distinguishes
       // which tab the row came from (same pattern as Perps home).
+      // `direction` is cleared because `setParams` merges: the side belongs to
+      // the entry point that opened this screen, and keeping it would reseed
+      // the remounted order form with the previous market's trade intent.
       navigation.setParams({
         market: nextMarket,
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
         source_section: sourceSection,
+        direction: undefined,
       });
     },
     [navigation, routeMarket?.symbol],
