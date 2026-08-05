@@ -44,25 +44,32 @@ export const fetchSupportedChains = (): Promise<Response> =>
   });
 
 /**
- * Mirrors a real-watchlist add into Price Alerts.
- * Idempotent — `201` whether the asset was already present or newly created.
+ * Mirrors real-watchlist adds into Price Alerts.
+ * Body: `{ assetIds: string[] }`. Response 200 includes processed/unprocessed.
  */
-export const addWatchlistAlert = (asset: string): Promise<Response> =>
+export const addWatchlistAlerts = (assetIds: string[]): Promise<Response> =>
   authenticatedFetch(WATCHLIST_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ asset }),
+    body: JSON.stringify({ assetIds }),
   });
 
 /**
- * Mirrors a real-watchlist remove into Price Alerts.
- * Idempotent — `204` even when the asset was not present (never `404`).
+ * Mirrors real-watchlist removes into Price Alerts.
+ * Same JSON body as POST (not query params). Idempotent when already absent.
  */
-export const removeWatchlistAlert = (asset: string): Promise<Response> =>
-  authenticatedFetch(`${WATCHLIST_URL}?asset=${encodeURIComponent(asset)}`, {
+export const removeWatchlistAlerts = (assetIds: string[]): Promise<Response> =>
+  authenticatedFetch(WATCHLIST_URL, {
     method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assetIds }),
   });
 
+/** 200 response body from POST/DELETE `/v1/alerts/watchlist`. */
+export interface WatchlistAlertsResult {
+  processedAssetIds: string[];
+  unprocessedAssetIds: string[];
+}
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   authenticatedFetch(ALERTS_URL, {
     method: 'POST',

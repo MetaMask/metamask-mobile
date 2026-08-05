@@ -13,8 +13,8 @@ import {
   updateAlertByType,
   deleteAlertByType,
   fetchSupportedChains,
-  addWatchlistAlert,
-  removeWatchlistAlert,
+  addWatchlistAlerts,
+  removeWatchlistAlerts,
   priceAlertsQueryKey,
   assertOkResponse,
   useSubmitPriceAlert,
@@ -134,29 +134,45 @@ describe('fetchSupportedChains', () => {
 
 const WATCHLIST_URL = `${ALERTS_URL}/watchlist`;
 
-describe('addWatchlistAlert', () => {
-  it('POSTs the CAIP-19 asset to /v1/alerts/watchlist', async () => {
-    await addWatchlistAlert('eip155:1/slip44:60');
+describe('addWatchlistAlerts', () => {
+  it('POSTs assetIds JSON body to /v1/alerts/watchlist', async () => {
+    const assetIds = [
+      'eip155:1/slip44:60',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:So11111111111111111111111111111111111111112',
+    ];
+    await addWatchlistAlerts(assetIds);
     expect(mockGetBearerToken).toHaveBeenCalledTimes(1);
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(url).toBe(WATCHLIST_URL);
     expect(init.method).toBe('POST');
-    expect(init.body).toBe(JSON.stringify({ asset: 'eip155:1/slip44:60' }));
+    expect(init.body).toBe(JSON.stringify({ assetIds }));
     expect((init.headers as Record<string, string>)['Content-Type']).toBe(
       'application/json',
     );
   });
+
+  it('preserves Solana mint casing in the request body', async () => {
+    const mint =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+    await addWatchlistAlerts([mint]);
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(init.body).toContain(mint);
+    expect(init.body).not.toContain(mint.toLowerCase());
+  });
 });
 
-describe('removeWatchlistAlert', () => {
-  it('DELETEs with the asset URL-encoded as a query param', async () => {
-    await removeWatchlistAlert('eip155:1/erc20:0xABCDEF');
+describe('removeWatchlistAlerts', () => {
+  it('DELETEs with the same assetIds JSON body (not query params)', async () => {
+    const assetIds = ['eip155:1/erc20:0xABCDEF'];
+    await removeWatchlistAlerts(assetIds);
     expect(mockGetBearerToken).toHaveBeenCalledTimes(1);
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe(
-      `${WATCHLIST_URL}?asset=${encodeURIComponent('eip155:1/erc20:0xABCDEF')}`,
-    );
+    expect(url).toBe(WATCHLIST_URL);
     expect(init.method).toBe('DELETE');
+    expect(init.body).toBe(JSON.stringify({ assetIds }));
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/json',
+    );
   });
 });
 

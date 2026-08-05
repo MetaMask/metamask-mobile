@@ -1,36 +1,54 @@
 import Logger from '../../../../util/Logger';
 import {
-  addWatchlistAlert,
+  addWatchlistAlerts,
   assertOkResponse,
-  removeWatchlistAlert,
+  removeWatchlistAlerts,
+  type WatchlistAlertsResult,
 } from './api';
 
-const softFailMirror = async (
+const softFailBatchMirror = async (
   action: 'POST' | 'DELETE',
-  asset: string,
+  assetIds: string[],
   request: () => Promise<Response>,
 ): Promise<void> => {
+  if (assetIds.length === 0) {
+    return;
+  }
+
   try {
     const response = await request();
     await assertOkResponse(response);
+    const body = (await response.json()) as WatchlistAlertsResult;
+    if (body.unprocessedAssetIds?.length) {
+      // Expected for unsupported chains / rejected assets — do not fail UX.
+      Logger.log('Price Alerts watchlist partial processing', {
+        action,
+        unprocessedAssetIds: body.unprocessedAssetIds,
+        processedAssetIds: body.processedAssetIds ?? [],
+      });
+    }
   } catch (error) {
     Logger.error(error as Error, {
       message: `Price Alerts watchlist ${action} soft-fail`,
-      asset,
+      assetIds,
     });
   }
 };
 
 /**
  * After the real token watchlist blob is updated, mirror net membership
- * changes into Price Alerts. The client always calls the API; support /
- * validation is handled server-side. Soft-fails on every Price Alerts
- * error — never throws, never rolls back the real watchlist write.
+ * changes into Price Alerts as batched POST/DELETE `{ assetIds }`.
+ *
+ * Soft-fails on every Price Alerts error or partial processing — never
+ * throws, never rolls back the real watchlist write. CAIP-19 IDs are sent
+ * with original casing (Solana mint refs must not be lowercased).
  */
 export async function syncPriceAlertsWatchlistMirror(
   previousAssets: readonly string[],
   nextAssets: readonly string[],
 ): Promise<void> {
+  // EVM identity is case-insensitive; keep original strings for the request
+  // body so Solana mint casing is preserved when sent.
   const previousLower = new Set(
     previousAssets.map((asset) => asset.toLowerCase()),
   );
@@ -48,11 +66,9 @@ export async function syncPriceAlertsWatchlistMirror(
   }
 
   await Promise.all([
-    ...added.map((asset) =>
-      softFailMirror('POST', asset, () => addWatchlistAlert(asset)),
-    ),
-    ...removed.map((asset) =>
-      softFailMirror('DELETE', asset, () => removeWatchlistAlert(asset)),
+    softFailBatchMirror('POST', added, () => addWatchlistAlerts(added)),
+    softFailBatchMirror('DELETE', removed, () =>
+      removeWatchlistAlerts(removed),
     ),
   ]);
 }
