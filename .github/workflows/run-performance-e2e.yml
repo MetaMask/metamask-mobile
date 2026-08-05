@@ -661,6 +661,7 @@ jobs:
       testmu_build_name: ${{ needs.prepare.outputs.testmu_android_build_name }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+    secrets: inherit
 
   run-ios-imported-wallet-tests:
     name: Performance Test iOS (Imported Wallet)
