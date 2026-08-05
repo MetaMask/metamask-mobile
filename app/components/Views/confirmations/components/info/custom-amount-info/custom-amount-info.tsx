@@ -276,7 +276,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { toastRef } = useContext(ToastContext);
 
-    const isTransactionResultReady = useIsResultReady({ isKeyboardVisible });
+    const isTransactionResultReady = useIsResultReady({
+      isKeyboardVisible,
+      requireQuotes: isAddMusdIntent,
+    });
     const quotes = useTransactionPayQuotes();
     const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
     quotesLastUpdatedRef.current = quotesLastUpdated;
@@ -285,10 +288,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const showLoadingReview =
       !isKeyboardVisible &&
       (isAmountUpdating || (isQuotesLoading && hasCommittedAmount));
-    const isResultReady =
-      showLoadingReview ||
-      isTransactionResultReady ||
-      (isAddMusdIntent && !isKeyboardVisible);
+    const isResultReady = showLoadingReview || isTransactionResultReady;
+    const showReviewRows =
+      isResultReady || (isAddMusdIntent && !isKeyboardVisible);
     const { alerts } = useAlerts();
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
@@ -332,7 +334,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const resolvedHelpText =
       (showBuySection ? buyEmptyHelpText : undefined) ??
       helpText ??
-      headlessBuyError;
+      (isKeyboardVisible ? undefined : headlessBuyError);
     const hasBlockingErrorEffective =
       Boolean(resolvedHelpText) || hasBlockingError;
     const hideConfirm = Boolean(showBuySection && buyEmptyHelpText);
@@ -454,8 +456,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
 
       const hasQuotes = Boolean(quotes?.length);
-      const hasObservedLoading =
-        quoteHandoff.kind === 'loading' && isQuotesLoading;
       const hasObservedCompletedQuote =
         quotesLastUpdated !== undefined &&
         (quoteHandoff.kind === 'completed'
@@ -465,8 +465,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               quotesLastUpdated > quoteHandoff.quotesLastUpdated));
 
       // Loading can finish before Redux ever sees isLoading:true. In that case
-      // neither hasObservedLoading nor a strictly-newer timestamp fires, so
-      // confirm the controller has settled and Redux has at least the baseline.
+      // a strictly-newer timestamp may never fire, so confirm the controller
+      // has settled and Redux has at least the baseline.
       const controllerTransactionData =
         transactionId === undefined
           ? undefined
@@ -482,11 +482,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           (quotesLastUpdated !== undefined &&
             quotesLastUpdated >= quoteHandoff.quotesLastUpdated));
 
-      if (
-        hasObservedLoading ||
-        hasObservedCompletedQuote ||
-        hasSettledWithoutObservedLoading
-      ) {
+      if (hasObservedCompletedQuote || hasSettledWithoutObservedLoading) {
         setQuoteHandoff(undefined);
         setIsAmountUpdating(false);
       }
@@ -607,7 +603,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           twClassName={Platform.OS === 'android' ? 'pb-4' : 'pb-0'}
         >
-          {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
+          {!showReviewRows && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {showLiveAccountSelector && (
                 <Box twClassName="border-b border-muted mb-[-4px]">
@@ -620,7 +616,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
             </>
           )}
-          {isResultReady && (
+          {showReviewRows && (
             <View
               pointerEvents={showLoadingReview ? 'none' : 'auto'}
               testID={CustomAmountInfoTestIds.REVIEW_ROWS}
@@ -795,8 +791,10 @@ function getBuyEmptyHelpText(
 
 function useIsResultReady({
   isKeyboardVisible,
+  requireQuotes,
 }: {
   isKeyboardVisible: boolean;
+  requireQuotes: boolean;
 }) {
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
@@ -804,6 +802,8 @@ function useIsResultReady({
 
   return (
     !isKeyboardVisible &&
-    (isQuotesLoading || Boolean(quotes?.length) || !hasSourceAmount)
+    (isQuotesLoading ||
+      Boolean(quotes?.length) ||
+      (!requireQuotes && !hasSourceAmount))
   );
 }

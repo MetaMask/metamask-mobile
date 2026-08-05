@@ -53,6 +53,7 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
+import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 
 jest.mock('../../../../../UI/Ramp/hooks/useBlinkingCursor', () => ({
   useBlinkingCursor: () => 1,
@@ -105,6 +106,9 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccount', () => ({
+  getMoneyAccountDepositIntent: jest.fn(),
+}));
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
@@ -362,6 +366,9 @@ describe('CustomAmountInfo', () => {
   );
   const setIsConfirmationSubmittingMock = jest.fn();
   const useAccountNoFundsAlertMock = jest.mocked(useAccountNoFundsAlert);
+  const getMoneyAccountDepositIntentMock = jest.mocked(
+    getMoneyAccountDepositIntent,
+  );
 
   const useRouteMock = jest.mocked(useRoute);
 
@@ -383,6 +390,7 @@ describe('CustomAmountInfo', () => {
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    getMoneyAccountDepositIntentMock.mockReturnValue(undefined);
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -892,7 +900,7 @@ describe('CustomAmountInfo', () => {
       ).toBeUndefined();
     });
 
-    it('keeps the loading review until Redux observes controller loading', async () => {
+    it('keeps the loading review across a Redux loading flicker until quotes settle', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -919,7 +927,21 @@ describe('CustomAmountInfo', () => {
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
+      // Brief isLoading:false pulse must not clear the review skeleton.
       useIsTransactionPayLoadingMock.mockReturnValue(false);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+
+      setControllerTransactionData({ isLoading: false });
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
       view.rerender(
         createCustomAmountInfo({
           transactionType: TransactionType.moneyAccountDeposit,
@@ -1136,7 +1158,9 @@ describe('CustomAmountInfo', () => {
         }),
       );
 
+      setControllerTransactionData({ isLoading: false });
       useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
       view.rerender(
         createCustomAmountInfo({
           transactionType: TransactionType.moneyAccountDeposit,
@@ -1167,6 +1191,7 @@ describe('CustomAmountInfo', () => {
           transactionType: TransactionType.moneyAccountDeposit,
         }),
       );
+      setControllerTransactionData({ isLoading: false });
       useIsTransactionPayLoadingMock.mockReturnValue(false);
       useTransactionPayQuotesMock.mockReturnValue([{}] as never);
       view.rerender(
@@ -1215,7 +1240,7 @@ describe('CustomAmountInfo', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the universal loading review until Redux observes controller loading', async () => {
+    it('keeps the universal loading review until quotes settle after controller loading', async () => {
       const deferred = createDeferredPromise();
       const nonMoneyTransactionId = 'non-money-transaction';
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -1256,8 +1281,14 @@ describe('CustomAmountInfo', () => {
           .pointerEvents,
       ).toBe('none');
 
-      // A fresh, non-empty quote settles the override into the populated review.
+      // Redux loading flicker must not clear the review skeleton early.
       useIsTransactionPayLoadingMock.mockReturnValue(false);
+      view.rerender(createCustomAmountInfo());
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+
+      mockTransactionPayControllerState.transactionData[nonMoneyTransactionId] =
+        { isLoading: false };
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
       view.rerender(createCustomAmountInfo());
 
       expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
@@ -1518,6 +1549,71 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(strings('alert_system.account_no_funds.message')),
     ).toBeNull();
+  });
+
+  describe('headlessBuyError', () => {
+    it('keeps Done enabled when keyboard is open after a headless buy error', () => {
+      useConfirmationContextMock.mockReturnValue({
+        mmPayRequestInProgressNavHandler: { current: false },
+        navHeaderConfig: null,
+        setNavHeaderConfig: jest.fn(),
+        headlessBuyError: 'Payment provider unavailable',
+        isFooterVisible: true,
+        isConfirmationSubmitting: false,
+        isConfirmationSubmittingRef: { current: false },
+        setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+        isHeadlessBuyInProgress: false,
+        isTransactionDataUpdating: false,
+        isTransactionValueUpdating: false,
+        setHeadlessBuyError: noop,
+        setIsFooterVisible: noop,
+        setIsHeadlessBuyInProgress: noop,
+        setIsTransactionDataUpdating: noop,
+        setIsTransactionValueUpdating: noop,
+        isMaxDeposit: false,
+        setIsMaxDeposit: noop,
+      } as ReturnType<typeof useConfirmationContext>);
+
+      const { getByTestId, queryByText } = render();
+
+      expect(queryByText('Payment provider unavailable')).toBeNull();
+      expect(getByTestId('deposit-keyboard-done-button')).not.toBeDisabled();
+    });
+
+    it('shows headless buy error and disables Confirm on the review path', async () => {
+      useConfirmationContextMock.mockReturnValue({
+        mmPayRequestInProgressNavHandler: { current: false },
+        navHeaderConfig: null,
+        setNavHeaderConfig: jest.fn(),
+        headlessBuyError: 'Payment provider unavailable',
+        isFooterVisible: true,
+        isConfirmationSubmitting: false,
+        isConfirmationSubmittingRef: { current: false },
+        setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+        isHeadlessBuyInProgress: false,
+        isTransactionDataUpdating: false,
+        isTransactionValueUpdating: false,
+        setHeadlessBuyError: noop,
+        setIsFooterVisible: noop,
+        setIsHeadlessBuyInProgress: noop,
+        setIsTransactionDataUpdating: noop,
+        setIsTransactionValueUpdating: noop,
+        isMaxDeposit: false,
+        setIsMaxDeposit: noop,
+      } as ReturnType<typeof useConfirmationContext>);
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
+
+      const { getByText, getByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(getByText('Payment provider unavailable')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+    });
   });
 
   it('does not render PayAccountSelector when supportAccountSelection is true but selectedFiatPaymentMethodId exists', () => {
@@ -1925,6 +2021,73 @@ describe('CustomAmountInfo', () => {
       ).not.toBeOnTheScreen();
       expect(
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('keeps Confirm disabled for addMusd while totals are still skeleton', () => {
+      getMoneyAccountDepositIntentMock.mockReturnValue('addMusd');
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+        batchId: 'batch-1',
+      } as never);
+      useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(
+        getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS),
+      ).toBeOnTheScreen();
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('enables Confirm for addMusd once quotes settle', () => {
+      getMoneyAccountDepositIntentMock.mockReturnValue('addMusd');
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+        batchId: 'batch-1',
+      } as never);
+      useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([{} as never]);
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(queryByTestId('bridge-fee-row-skeleton')).toBeNull();
+      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
+    });
+
+    it('keeps Confirm disabled for addMusd when only same-chain hasSourceAmount is false', () => {
+      getMoneyAccountDepositIntentMock.mockReturnValue('addMusd');
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+        batchId: 'batch-1',
+      } as never);
+      useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
     });
 
