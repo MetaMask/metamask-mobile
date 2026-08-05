@@ -1,5 +1,6 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type {
+  QuoteMetadata,
   QuoteResponse,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
@@ -37,7 +38,7 @@ export interface CancelTarget {
 
 /** Bridge-only submission payload (a selected quote + analytics context). */
 export interface SubmissionParams {
-  quoteResponse: QuoteResponse;
+  quoteResponse: QuoteResponse & QuoteMetadata;
   location?: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Token/amount context for the post-trade modal after HW signing completes. */
