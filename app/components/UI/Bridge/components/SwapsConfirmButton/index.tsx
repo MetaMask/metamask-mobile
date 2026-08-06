@@ -250,7 +250,7 @@ export const SwapsConfirmButton = ({
     if (Engine.context.BridgeController?.resetState) {
       Engine.context.BridgeController.resetState();
     }
-    updateQuoteParams();
+    updateQuoteParams({ isRefresh: true });
   };
 
   const buttonIsInLoadingState =

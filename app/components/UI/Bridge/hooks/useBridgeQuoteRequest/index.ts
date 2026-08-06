@@ -25,11 +25,16 @@ import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
+import { trace, TraceName } from '../../../../../util/trace';
 
 export const DEBOUNCE_WAIT = 300;
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
+}
+
+interface UpdateQuoteParamsOptions {
+  isRefresh?: boolean;
 }
 
 /**
@@ -93,58 +98,67 @@ export const useBridgeQuoteRequest = (
   /**
    * Updates quote parameters in the bridge controller
    */
-  const updateQuoteParams = useCallback(async () => {
-    if (
-      !sourceToken ||
-      !destToken ||
-      sourceAmount === undefined ||
-      !destChainId ||
-      !walletAddress
-    ) {
-      return;
-    }
+  const updateQuoteParams = useCallback(
+    async ({ isRefresh = false }: UpdateQuoteParamsOptions = {}) => {
+      if (
+        !sourceToken ||
+        !destToken ||
+        sourceAmount === undefined ||
+        !destChainId ||
+        !walletAddress
+      ) {
+        return;
+      }
 
-    const normalizedSourceAmount =
-      sourceAmount && sourceToken?.decimals
-        ? calcTokenValue(
-            sourceAmount === '.' ? '0' : sourceAmount || '0',
-            sourceToken.decimals,
-          ).toFixed(0)
-        : '0';
+      const normalizedSourceAmount =
+        sourceAmount && sourceToken?.decimals
+          ? calcTokenValue(
+              sourceAmount === '.' ? '0' : sourceAmount || '0',
+              sourceToken.decimals,
+            ).toFixed(0)
+          : '0';
 
-    const params: GenericQuoteRequest = {
-      srcChainId: getDecimalChainId(sourceToken.chainId),
-      srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
-      destChainId: getDecimalChainId(destChainId),
-      destTokenAddress: formatAddressToCaipReference(destToken.address),
-      srcTokenAmount: normalizedSourceAmount,
-      slippage: slippage ? Number(slippage) : undefined,
+      const params: GenericQuoteRequest = {
+        srcChainId: getDecimalChainId(sourceToken.chainId),
+        srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
+        destChainId: getDecimalChainId(destChainId),
+        destTokenAddress: formatAddressToCaipReference(destToken.address),
+        srcTokenAmount: normalizedSourceAmount,
+        slippage: slippage ? Number(slippage) : undefined,
+        walletAddress,
+        destWalletAddress: destAddress ?? walletAddress,
+        gasIncluded,
+        gasIncluded7702,
+        insufficientBal,
+      };
+
+      trace({
+        name: TraceName.SwapQuoteFetch,
+        data: { isRefresh },
+        startTime: Date.now(),
+      });
+
+      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
+        params,
+        context,
+        0,
+        1,
+      );
+    },
+    [
+      sourceToken,
+      destToken,
+      sourceAmount,
+      destChainId,
+      slippage,
       walletAddress,
-      destWalletAddress: destAddress ?? walletAddress,
+      destAddress,
+      context,
       gasIncluded,
       gasIncluded7702,
       insufficientBal,
-    };
-
-    await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-      params,
-      context,
-      0,
-      1,
-    );
-  }, [
-    sourceToken,
-    destToken,
-    sourceAmount,
-    destChainId,
-    slippage,
-    walletAddress,
-    destAddress,
-    context,
-    gasIncluded,
-    gasIncluded7702,
-    insufficientBal,
-  ]);
+    ],
+  );
 
   // Create a stable debounced function that persists across renders
   return useMemo(
