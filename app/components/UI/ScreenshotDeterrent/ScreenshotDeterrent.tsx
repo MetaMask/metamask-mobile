@@ -18,23 +18,12 @@ const CAPTURE_RELEASE_DELAY_MS = 500;
 
 let activeScreenCaptureBlocks = 0;
 let pendingCaptureRelease: ReturnType<typeof setTimeout> | undefined;
-// Tracks whether the window flag is actually applied, rather than assuming it
-// follows the block count. The two can diverge when the native call fails or
-// when Android rebuilds the activity window, and the count alone would then
-// stop any later screen from re-applying protection.
-let isCaptureBlocked = false;
 
-const applyCaptureBlock = (blocked: boolean) => {
-  isCaptureBlocked = blocked;
-
-  // Resolves to a promise on Android and to a plain value on iOS, where both
-  // calls are no-ops. A rejection means the activity was missing, so the flag
-  // did not change and the next screen should try again.
-  Promise.resolve(
-    blocked ? PreventScreenshot.forbid() : PreventScreenshot.allow(),
-  ).catch(() => {
-    isCaptureBlocked = !blocked;
-  });
+// Both calls resolve to a promise on Android and to a plain value on iOS, where
+// they are no-ops. A rejection only means the activity was missing, which the
+// next call recovers from, so it is swallowed rather than left unobserved.
+const runCaptureCall = (call: () => unknown) => {
+  Promise.resolve(call()).catch(() => undefined);
 };
 
 const acquireScreenCaptureBlock = () => {
@@ -44,9 +33,11 @@ const acquireScreenCaptureBlock = () => {
   }
 
   activeScreenCaptureBlocks += 1;
-  if (!isCaptureBlocked) {
-    applyCaptureBlock(true);
-  }
+  // Setting the window flag is idempotent, so every protected screen re-applies
+  // it rather than only the first. That restores protection when an earlier
+  // call failed or Android rebuilt the window, without tracking native state on
+  // this side, where it could drift out of sync and silently skip the call.
+  runCaptureCall(() => PreventScreenshot.forbid());
 };
 
 const releaseScreenCaptureBlock = () => {
@@ -57,8 +48,8 @@ const releaseScreenCaptureBlock = () => {
 
   pendingCaptureRelease = setTimeout(() => {
     pendingCaptureRelease = undefined;
-    if (activeScreenCaptureBlocks === 0 && isCaptureBlocked) {
-      applyCaptureBlock(false);
+    if (activeScreenCaptureBlocks === 0) {
+      runCaptureCall(() => PreventScreenshot.allow());
     }
   }, CAPTURE_RELEASE_DELAY_MS);
 };

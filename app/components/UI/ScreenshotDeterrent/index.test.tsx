@@ -109,13 +109,14 @@ describe('ScreenshotDeterrent screen capture blocking', () => {
     jest.clearAllMocks();
   });
 
-  it('blocks capture once when several protected screens are mounted', () => {
+  it('re-applies the block for every protected screen', () => {
     // Act
     renderDeterrent();
     renderDeterrent();
 
-    // Assert
-    expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(1);
+    // Assert: setting the flag is idempotent, and re-applying it is what
+    // recovers protection after a failed call or a rebuilt window.
+    expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(2);
   });
 
   it('keeps capture blocked while another protected screen is still mounted', () => {
@@ -182,7 +183,7 @@ describe('ScreenshotDeterrent screen capture blocking', () => {
     expect(PreventScreenshot.allow).toHaveBeenCalledTimes(1);
   });
 
-  it('re-applies the block on the next screen when the native call fails', async () => {
+  it('restores the block on the next screen after a failed native call', async () => {
     // Arrange: the first screen leaves the window flag unset, and stays
     // mounted so the block count never returns to zero.
     jest
@@ -198,15 +199,24 @@ describe('ScreenshotDeterrent screen capture blocking', () => {
     expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(2);
   });
 
-  it('does not re-apply the block when it is already in place', async () => {
+  it('survives a failed release without leaving the block unrecoverable', async () => {
     // Arrange
-    renderDeterrent();
+    jest
+      .mocked(PreventScreenshot.forbid)
+      .mockRejectedValueOnce(new Error('no activity'));
+    jest
+      .mocked(PreventScreenshot.allow)
+      .mockRejectedValueOnce(new Error('no activity'));
+    const firstScreen = renderDeterrent();
+
+    // Act: both native calls fail while the screen comes and goes.
+    firstScreen.unmount();
+    jest.runOnlyPendingTimers();
     await flushMicrotasks();
-
-    // Act
     renderDeterrent();
 
-    // Assert
-    expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(1);
+    // Assert: the next screen still applies the flag rather than assuming a
+    // block that was never actually set.
+    expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(2);
   });
 });
