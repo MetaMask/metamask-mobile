@@ -19,6 +19,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERFORMANCE_CONFIG,
+  type OrderType,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
@@ -61,7 +62,7 @@ interface PerpsLeverageBottomSheetProps {
   direction: 'long' | 'short';
   asset?: string;
   limitPrice?: string;
-  orderType?: 'market' | 'limit';
+  orderType?: OrderType;
 }
 
 interface LeverageSliderEntry {
