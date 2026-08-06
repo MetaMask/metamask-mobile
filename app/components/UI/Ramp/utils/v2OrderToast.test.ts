@@ -83,7 +83,7 @@ describe('v2OrderToast', () => {
 
     it('returns toast options for COMPLETED state with success icon', () => {
       (strings as jest.Mock)
-        .mockReturnValueOnce('Your purchase of 100.5 USDC was successful.')
+        .mockReturnValueOnce('Your purchase of 100.5 USDC was successful')
         .mockReturnValueOnce('Your USDC is now available');
 
       const params: V2OrderToastParams = {
@@ -102,7 +102,7 @@ describe('v2OrderToast', () => {
         expect(result.iconName).toBe(IconName.Confirmation);
       }
       expect(result?.labelOptions?.[0]?.label).toBe(
-        'Your purchase of 100.5 USDC was successful.',
+        'Your purchase of 100.5 USDC was successful',
       );
       expect(result?.labelOptions?.[0]?.isBold).toBe(true);
       expect(result?.descriptionOptions?.description).toBe(
@@ -179,7 +179,7 @@ describe('v2OrderToast', () => {
 
     it('handles missing cryptoAmount for Completed status', () => {
       (strings as jest.Mock)
-        .mockReturnValueOnce('Your purchase of  ETH was successful.')
+        .mockReturnValueOnce('Your purchase of  ETH was successful')
         .mockReturnValueOnce('Your ETH is now available');
 
       const params: V2OrderToastParams = {
@@ -192,7 +192,7 @@ describe('v2OrderToast', () => {
 
       expect(result).not.toBeNull();
       expect(result?.labelOptions?.[0]?.label).toBe(
-        'Your purchase of  ETH was successful.',
+        'Your purchase of  ETH was successful',
       );
     });
   });
@@ -200,7 +200,7 @@ describe('v2OrderToast', () => {
   describe('showV2OrderToast', () => {
     it('calls ToastService.showToast with valid toast options', () => {
       (strings as jest.Mock)
-        .mockReturnValueOnce('Your purchase of 1.5 ETH was successful.')
+        .mockReturnValueOnce('Your purchase of 1.5 ETH was successful')
         .mockReturnValueOnce('Your ETH is now available');
 
       const params: V2OrderToastParams = {
