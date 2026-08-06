@@ -362,11 +362,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       (hasAccountNoFunds || stage === CustomAmountStage.Loading);
 
     // Keep payment details fixed while the amount update prepares the request.
-    // Once a Money Account deposit quote is in flight, reopening either picker
-    // is safe and keeps the loading screen responsive.
-    const shouldBlockReviewRows =
-      stage === CustomAmountStage.Loading &&
-      (!isMoneyAccountDeposit || isAmountUpdating);
+    // Once quote loading takes over, reopening a picker is safe and keeps the
+    // loading screen responsive.
+    const shouldBlockReviewRows = isAmountUpdating;
 
     const { headlessBuyError } = useConfirmationContext();
 
