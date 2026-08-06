@@ -137,6 +137,19 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      if (
+        payToken &&
+        payToken.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
+      ) {
+        close(() => {
+          if (dismissOnSelectCount > 1) {
+            navigation.dispatch(StackActions.pop(dismissOnSelectCount));
+          }
+        });
+        return;
+      }
+
       const onClosed = async () => {
         if (dismissOnSelectCount > 1) {
           navigation.dispatch(StackActions.pop(dismissOnSelectCount));
@@ -223,6 +236,7 @@ export function PayWithModal() {
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
+      payToken,
       setPayToken,
       transactionMeta,
     ],
