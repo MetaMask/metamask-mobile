@@ -23,16 +23,11 @@ export const selectRawFeatureFlags = createSelector(
 
 const selectRemoteFeatureFlagsMerged = createSelector(
   selectRemoteFeatureFlagControllerState,
-  (remoteFeatureFlagControllerState) => {
-    const localOverrides =
-      remoteFeatureFlagControllerState?.localOverrides ?? {};
-    const remoteFeatureFlags =
-      remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
-    return {
-      ...remoteFeatureFlags,
-      ...localOverrides,
-    };
-  },
+  // As of @metamask/remote-feature-flag-controller@5, `localOverrides` are
+  // merged into `remoteFeatureFlags` at the controller level, so consumers
+  // receive effective flag values directly (no app-side merge needed).
+  (remoteFeatureFlagControllerState) =>
+    remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
 );
 
 /**
