@@ -14,6 +14,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
     'Money Home after fresh wallet creation with empty balance',
     { tag: '@mm-earn-team' },
     async ({ currentDeviceDetails, driver: _driver, performanceTracker }) => {
+      // We use TEST_SRP_1 for the unfunded Money account.
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1 ?? '');
 
       await PlaywrightAssertions.expectElementToBeVisible(
@@ -24,50 +25,27 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
         },
       );
 
-      const balanceTimer = new TimerHelper(
-        'Time since the user taps Money until the empty balance is visible',
-        { ios: 6000, android: 6000 },
-        currentDeviceDetails.platform,
-      );
-      const apyTimer = new TimerHelper(
-        'Time since the user taps Money until the APY is visible',
-        { ios: 1500, android: 1500 },
-        currentDeviceDetails.platform,
-      );
-      const ctaTimer = new TimerHelper(
-        'Time since the user taps Money until the onboarding card step 1 CTA is visible',
-        { ios: 1500, android: 1500 },
-        currentDeviceDetails.platform,
-      );
-      const sendButtonTimer = new TimerHelper(
-        'Time since the user taps Money until the Send button is disabled',
-        { ios: 1000, android: 1000 },
+      const timer = new TimerHelper(
+        'Time since the user taps Money until content is visible',
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
 
-      // Action before measure(); assertion inside measure();
+      // Best practice: action before measure() with assertions inside measure();
       await TabBarComponent.tapMoney();
 
-      // Measurement for each assertion for better granularity
-      await balanceTimer.measure(async () => {
-        await MoneyHomeView.waitForEmptyBalance();
-      });
-      await apyTimer.measure(async () => {
-        await MoneyHomeView.expectApyVisible();
-      });
-      await ctaTimer.measure(async () => {
-        await MoneyHomeView.expectOnboardingCardStep1Title();
-      });
-      await sendButtonTimer.measure(async () => {
-        await MoneyHomeView.expectSendButtonDisabled();
+      // Measure data load times.
+      await timer.measure(async () => {
+        await MoneyHomeView.waitForEmptyBalanceLoaded();
       });
 
-      performanceTracker.addTimers(
-        balanceTimer,
-        apyTimer,
-        ctaTimer,
-        sendButtonTimer,
-      );
+      // Don't include regular assertions in measure().
+      // Each assertion carries overhead and can skew the results.
+      await MoneyHomeView.expectApyVisible();
+      await MoneyHomeView.expectOnboardingCardTitleVisible();
+      await MoneyHomeView.expectSendButtonDisabled();
+
+      performanceTracker.addTimers(timer);
     },
   );
 });
