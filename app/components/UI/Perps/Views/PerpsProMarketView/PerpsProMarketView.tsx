@@ -359,6 +359,7 @@ const PerpsProMarketView = () => {
             initialAsset={market.symbol}
             initialDirection={initialDirection}
             initialType="market"
+            fallbackAmount=""
           >
             <PerpsProMarketLayout
               isOrderBookCollapsed={isOrderBookCollapsed}

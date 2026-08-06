@@ -5,6 +5,7 @@ import { PlatformDetector } from '../framework/PlatformLocator';
 import Utilities from '../framework/Utilities';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
+import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import FooterActions from '../page-objects/Browser/Confirmations/FooterActions';
 import RowComponents from '../page-objects/Browser/Confirmations/RowComponents';
 import TestDApp from '../page-objects/Browser/TestDApp';
