@@ -68,6 +68,8 @@ const newOverrides = [
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.test.ts',
+      'app/components/UI/Card/util/mapCardApiUrl.ts',
+      'app/components/UI/Card/util/mapCardApiUrl.test.ts',
       'app/core/Engine/controllers/card-controller/services/baanx-config.ts',
       'app/core/Engine/controllers/card-controller/services/baanx-config.test.ts',
       'app/components/UI/Perps/adapters/mobileInfrastructure.ts',
