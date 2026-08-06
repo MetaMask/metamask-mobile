@@ -244,7 +244,18 @@ export function usePerpsOrderValidation(
     }
 
     // Skip validation if critical data is missing
-    if (!positionSize || assetPrice === 0) {
+    const numericPositionSize = Number.parseFloat(positionSize);
+    if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
+      setValidation((prev) => ({
+        ...prev,
+        errors: EMPTY_ERRORS,
+        isValidating: false,
+        isValid: false,
+      }));
+      return;
+    }
+
+    if (assetPrice === 0) {
       setValidation((prev) => ({
         ...prev,
         isValidating: false,
