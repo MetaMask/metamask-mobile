@@ -186,60 +186,72 @@ describe('usePerpsTrading', () => {
   });
 
   describe('editOrder', () => {
-    const baseEditParams = {
-      orderId: 'order123',
-      newOrder: {
-        symbol: 'BTC',
-        isBuy: true,
-        size: '1',
-        orderType: 'limit' as const,
-        price: '51000',
-      },
-    };
+    it('calls PerpsController.editOrder with correct parameters', async () => {
+      const mockEditResult: OrderResult = {
+        success: true,
+        orderId: 'order123',
+      };
 
-    beforeEach(() => {
+      (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
+        mockEditResult,
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const editParams = {
+        orderId: 'order123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '1',
+          orderType: 'limit' as const,
+          price: '51000',
+        },
+      };
+
+      const response = await result.current.editOrder(editParams);
+
+      expect(Engine.context.PerpsController.editOrder).toHaveBeenCalledWith(
+        editParams,
+      );
+      expect(response).toEqual(mockEditResult);
+    });
+
+    it('strips watchPriceUpdate before calling the controller', async () => {
       (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
         {
           success: true,
           orderId: 'order123',
         },
       );
-    });
 
-    it('calls PerpsController.editOrder with correct parameters', async () => {
-      const { result } = renderHook(() => usePerpsTrading());
-      const response = await result.current.editOrder(baseEditParams);
-
-      expect(Engine.context.PerpsController.editOrder).toHaveBeenCalledWith(
-        baseEditParams,
-      );
-      expect(response).toEqual({
-        success: true,
-        orderId: 'order123',
-      });
-    });
-
-    it('strips watchPriceUpdate and controls the price watcher', async () => {
       const { result } = renderHook(() => usePerpsTrading());
 
       await result.current.editOrder({
-        ...baseEditParams,
+        orderId: 'order123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '1',
+          orderType: 'limit',
+          price: '51000',
+        },
         watchPriceUpdate: false,
       });
 
-      expect(Engine.context.PerpsController.editOrder).toHaveBeenCalledWith(
-        baseEditParams,
-      );
-      expect(mockWatchPerpsCufOrderPriceUpdated).not.toHaveBeenCalled();
-      expect(mockAcceptPerpsCufRequest).not.toHaveBeenCalled();
-      expect(mockEndPerpsCufTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'edit-cuf-op',
-          data: expect.objectContaining({ [PERPS_CUF_TAG.SUCCESS]: true }),
-        }),
-      );
+      expect(Engine.context.PerpsController.editOrder).toHaveBeenCalledWith({
+        orderId: 'order123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '1',
+          orderType: 'limit',
+          price: '51000',
+        },
+      });
+    });
 
-      jest.clearAllMocks();
+    it('arms an ORDER_PRICE_UPDATED watcher by default when price is set', async () => {
       (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
         {
           success: true,
@@ -247,7 +259,18 @@ describe('usePerpsTrading', () => {
         },
       );
 
-      await result.current.editOrder(baseEditParams);
+      const { result } = renderHook(() => usePerpsTrading());
+
+      await result.current.editOrder({
+        orderId: 'order123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '1',
+          orderType: 'limit',
+          price: '51000',
+        },
+      });
 
       expect(mockStartPerpsCufTrace).toHaveBeenCalled();
       expect(mockWatchPerpsCufOrderPriceUpdated).toHaveBeenCalledWith(
@@ -256,6 +279,38 @@ describe('usePerpsTrading', () => {
         '51000',
       );
       expect(mockAcceptPerpsCufRequest).toHaveBeenCalledWith('edit-cuf-op');
+    });
+
+    it('skips the price watcher for size-only edits and ends CUF on success', async () => {
+      (Engine.context.PerpsController.editOrder as jest.Mock).mockResolvedValue(
+        {
+          success: true,
+          orderId: 'order123',
+        },
+      );
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      await result.current.editOrder({
+        orderId: 'order123',
+        newOrder: {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '2',
+          orderType: 'limit',
+          price: '51000',
+        },
+        watchPriceUpdate: false,
+      });
+
+      expect(mockWatchPerpsCufOrderPriceUpdated).not.toHaveBeenCalled();
+      expect(mockAcceptPerpsCufRequest).not.toHaveBeenCalled();
+      expect(mockEndPerpsCufTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'edit-cuf-op',
+          data: expect.objectContaining({ [PERPS_CUF_TAG.SUCCESS]: true }),
+        }),
+      );
     });
   });
 

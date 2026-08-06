@@ -29,6 +29,7 @@ import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/Perp
 import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsNavigation } from './usePerpsNavigation';
+import { usePerpsProOrderEdit } from './usePerpsProOrderEdit';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -55,9 +56,14 @@ export interface UsePerpsProPositionsPanelActionsReturn {
   handleEditPositionMargin: (position: Position) => void;
   isPositionMarginEditable: (position: Position) => boolean;
   handleCancelOrder: (order: Order) => Promise<void>;
+  handleEditOrderPrice: (order: Order) => void;
+  handleEditOrderSize: (order: Order) => void;
   handleCloseAllPress: () => void;
   cancelingOrderId: string | null;
+  editingOrderId: string | null;
   isOrderCancelable: (order: Order) => boolean;
+  isOrderEditable: (order: Order) => boolean;
+  isOrderSizeEditable: (order: Order) => boolean;
   renderActionSheets: () => React.ReactNode;
 }
 
@@ -120,6 +126,18 @@ export const usePerpsProPositionsPanelActions =
       },
       [gate, isEligible, showGeoBlockForSource],
     );
+
+    const {
+      editingOrderId,
+      isOrderEditable,
+      isOrderSizeEditable,
+      handleEditOrderPrice,
+      handleEditOrderSize,
+      renderOrderEditSheets,
+    } = usePerpsProOrderEdit({
+      isMutationBlocked: Boolean(cancelingOrderId),
+      runGatedEligibleAction,
+    });
 
     const handleCloseAllSheetClose = useCallback(() => {
       setShowCloseAllSheet(false);
@@ -250,7 +268,8 @@ export const usePerpsProPositionsPanelActions =
 
     const handleCancelOrder = useCallback(
       async (order: Order) => {
-        if (!isOrderCancelable(order) || cancelingOrderId) {
+        // Mirror openEditSheet: block cancel while another cancel or edit is in flight.
+        if (!isOrderCancelable(order) || cancelingOrderId || editingOrderId) {
           return;
         }
 
@@ -310,6 +329,7 @@ export const usePerpsProPositionsPanelActions =
         PerpsToastOptions,
         cancelOrder,
         cancelingOrderId,
+        editingOrderId,
         isOrderCancelable,
         showToast,
       ],
@@ -361,6 +381,8 @@ export const usePerpsProPositionsPanelActions =
             </PerpsProPositionsModalPortal>
           )}
 
+          {renderOrderEditSheets()}
+
           {isGeoBlockVisible && (
             <PerpsProPositionsModalPortal onRequestClose={closeGeoBlockModal}>
               <PerpsBottomSheetTooltip
@@ -380,6 +402,7 @@ export const usePerpsProPositionsPanelActions =
         handleCloseAllSheetClose,
         handleReverseSheetClose,
         isGeoBlockVisible,
+        renderOrderEditSheets,
         reversePosition,
         showCloseAllSheet,
       ],
@@ -392,9 +415,14 @@ export const usePerpsProPositionsPanelActions =
       handleEditPositionTpSl,
       handleEditPositionMargin,
       handleCancelOrder,
+      handleEditOrderPrice,
+      handleEditOrderSize,
       handleCloseAllPress,
       cancelingOrderId,
+      editingOrderId,
       isOrderCancelable,
+      isOrderEditable,
+      isOrderSizeEditable,
       isPositionMarginEditable,
       renderActionSheets,
     };

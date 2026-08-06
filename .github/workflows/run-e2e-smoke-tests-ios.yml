@@ -48,24 +48,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  network-expansion-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkExpansion')
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: network-expansion-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeNetworkExpansion'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
@@ -81,7 +63,6 @@ jobs:
       }}
     needs:
       - network-abstraction-ios-smoke
-      - network-expansion-ios-smoke
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1

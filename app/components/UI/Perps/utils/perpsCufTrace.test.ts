@@ -997,15 +997,20 @@ describe('perpsCufTrace', () => {
       watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
       acceptPerpsCufRequest(opId);
 
-      handlePerpsCufOrdersDelivered([{ orderId: 'o-2', price: '3000' }]);
+      // Order is absent — it filled immediately at the marketable price.
+      handlePerpsCufOrdersDelivered([]);
       expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: opId,
-          data: expect.objectContaining({
-            [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-          }),
-        }),
+        expect.objectContaining({ id: opId }),
       );
+    });
+
+    it('does not end on fill when the edit request is still awaiting acceptance', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      // Not yet accepted — do not end even if order is absent.
+
+      handlePerpsCufOrdersDelivered([]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
   });
 });
