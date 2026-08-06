@@ -10373,12 +10373,12 @@
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
-      "title": "Turn on notifications",
-      "description": "Get alerts for transactions from your CLI session.",
-      "turn_on_button": "Turn on",
-      "loading_title": "Turning on notifications",
-      "loading_description": "Give us a moment while we set things up.",
-      "enable_error": "Couldn't turn on notifications. Try again from Settings."
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "Enable notifications",
+      "preview_title": "Transaction request",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "now"
     },
     "show_otp": {
       "title": "Enter this code",
@@ -10567,6 +10567,7 @@
       "bluetooth_connection_failed": "The connection to your device failed. Please try again",
       "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
       "not_supported": "This operation is not supported",
+      "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },
     "error": {
@@ -10590,6 +10591,7 @@
       "nearby_devices_permission_denied": "Nearby Devices Permission Required",
       "scan_failed": "Scan Failed",
       "camera_permission_denied": "Camera Permission Required",
+      "unsupported_signature": "Signature not supported",
       "something_went_wrong": "Something went wrong"
     },
     "qr_scan_errors": {

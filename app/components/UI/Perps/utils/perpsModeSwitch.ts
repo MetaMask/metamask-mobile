@@ -1,7 +1,11 @@
 import { useCallback } from 'react';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
-import type { NavigatorScreenParams } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigationState,
+  type NavigatorScreenParams,
+} from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsMode } from '../selectors/perpsController';
@@ -138,5 +142,100 @@ export const navigateToPerpsHomeTarget = (
   (navigation.navigate as unknown as (screen: string, params?: object) => void)(
     target.screen,
     target.params,
+  );
+};
+
+/**
+ * Removes `PerpsHomeView` from a Perps stack's history, leaving every other
+ * entry (e.g. the market list) untouched.
+ *
+ * Switching to Pro from a market screen swaps the rendered layout in place —
+ * `PerpsMarketDetailsRouter` keeps the same route — so a Perps Home entry the
+ * user came through stays in history and the back button would reveal the Lite
+ * hub while Pro is active (TAT-3612). Screens that switch mode by navigating
+ * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
+ */
+export const dropPerpsHomeFromStackHistory = (navigation: {
+  getState: () => NavigationState | undefined;
+  // Callers cast through `unknown` at the reset boundary (same as the hook).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  reset: (state: any) => void;
+}): void => {
+  const state = navigation.getState();
+
+  if (!state) {
+    return;
+  }
+
+  const routes = state.routes.filter(
+    (route) => route.name !== Routes.PERPS.PERPS_HOME,
+  );
+
+  // Nothing to drop, or Home is the only entry — resetting to an empty
+  // history would leave the navigator with no screen to render.
+  if (routes.length === state.routes.length || routes.length === 0) {
+    return;
+  }
+
+  // Keep the user on the screen they're looking at: its position shifts when
+  // an earlier route is removed.
+  const focusedKey = state.routes[state.index]?.key;
+  const focusedIndex = routes.findIndex((route) => route.key === focusedKey);
+
+  // Same assertion rationale as `toPerpsNavigatorScreenParams`: route names
+  // are plain `string`s here, so they can't be correlated with the
+  // navigator's param list keys.
+  const reset = navigation.reset as unknown as (state: NavigationState) => void;
+
+  reset({
+    ...state,
+    routes,
+    index: focusedIndex >= 0 ? focusedIndex : routes.length - 1,
+  });
+};
+
+/**
+ * Hook wrapper around {@link dropPerpsHomeFromStackHistory} for screens that
+ * already sit on the Perps stack (not a nested modal navigator).
+ */
+export const useDropPerpsHomeFromStackHistory = (): (() => void) => {
+  const navigation = useNavigation();
+
+  return useCallback(() => {
+    dropPerpsHomeFromStackHistory(navigation);
+  }, [navigation]);
+};
+
+/**
+ * Returns a function that jumps into the Perps stack at its Pro-aware "home"
+ * screen, entering through `Routes.PERPS.ROOT`.
+ *
+ * For call sites outside the Perps stack — other navigators (Activity details,
+ * the in-app browser, transaction confirmations) and the Perps modal stack —
+ * which cannot reach `Routes.PERPS.PERPS_HOME` directly. Screens already inside
+ * the stack should use `usePerpsNavigation().navigateToHome` instead.
+ */
+export const useNavigateToPerpsHome = (): ((
+  extraParams?: Record<string, unknown>,
+) => void) => {
+  const navigation = useNavigation();
+  const getTarget = useGetPerpsHomeNavigationTarget();
+
+  return useCallback(
+    (extraParams?: Record<string, unknown>) => {
+      // Same assertion rationale as `navigateToPerpsHomeTarget`: the nested
+      // screen name is resolved at runtime, so `navigate()`'s overloads can't
+      // correlate it with its params.
+      const navigate = navigation.navigate as unknown as (
+        screen: string,
+        params: NavigatorScreenParams<PerpsStackParamList>,
+      ) => void;
+
+      navigate(
+        Routes.PERPS.ROOT,
+        toPerpsNavigatorScreenParams(getTarget(extraParams)),
+      );
+    },
+    [navigation, getTarget],
   );
 };

@@ -208,6 +208,8 @@ jest.mock(
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockReset = jest.fn();
+const mockGetState = jest.fn();
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -259,6 +261,8 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
+      getState: mockGetState,
+      reset: mockReset,
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -879,6 +883,14 @@ describe('PerpsMarketDetailsView', () => {
 
     // Reset navigation mocks
     mockCanGoBack.mockReturnValue(true);
+    // Default stack shape for this screen: reached from Perps Home.
+    mockGetState.mockReturnValue({
+      index: 1,
+      routes: [
+        { name: Routes.PERPS.PERPS_HOME, key: 'home-1' },
+        { name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' },
+      ],
+    });
 
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
@@ -1057,6 +1069,9 @@ describe('PerpsMarketDetailsView', () => {
       },
     });
     expect(mockNavigateToHome).not.toHaveBeenCalled();
+    // Pill only opens the chooser; Home-stack cleanup on Pro runs after select
+    // in PerpsModeSelectionView (TAT-3612).
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('does not show the active-mode pill when the Pro mode flag is disabled', () => {

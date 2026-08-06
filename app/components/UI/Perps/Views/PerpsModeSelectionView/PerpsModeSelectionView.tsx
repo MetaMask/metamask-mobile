@@ -24,6 +24,7 @@ import {
 } from '../../utils/openPerpsModeSelection';
 import {
   buildDefaultProMarket,
+  dropPerpsHomeFromStackHistory,
   toPerpsNavigatorScreenParams,
   useGetPerpsHomeNavigationTarget,
 } from '../../utils/perpsModeSwitch';
@@ -99,10 +100,20 @@ const PerpsModeSelectionView: React.FC = () => {
           Routes.PERPS.ROOT,
           toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
         );
+        return;
       }
 
-      // `home` + Lite and `market` entries: dismiss only — mode state update
-      // remounts the correct Lite/Pro layout via existing routers.
+      if (entry === 'market' && mode === PerpsMode.Pro) {
+        // Modal is nested under the Perps stack when opened from a market.
+        // Drop Home from that parent so back cannot reveal the Lite hub while
+        // Pro is active (TAT-3612). Mode remount stays in place via the router.
+        const perpsStack = navigation.getParent();
+        if (perpsStack) {
+          dropPerpsHomeFromStackHistory(perpsStack);
+        }
+      }
+
+      // `home` + Lite: dismiss only — already on Perps Home.
     },
     [
       entry,
@@ -128,6 +139,18 @@ const PerpsModeSelectionView: React.FC = () => {
       // Home → Pro resets the parent Perps stack (clears the modal too).
       if (entry === 'home' && mode === PerpsMode.Pro && !isFirstTimePerpsUser) {
         continueAfterSelection(mode);
+        return;
+      }
+
+      // Market → Pro must drop Home while the modal is still nested under the
+      // Perps stack — after goBack the parent relationship is gone.
+      if (
+        entry === 'market' &&
+        mode === PerpsMode.Pro &&
+        !isFirstTimePerpsUser
+      ) {
+        continueAfterSelection(mode);
+        navigation.goBack();
         return;
       }
 

@@ -361,6 +361,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Opens the
   // Lite/Pro chooser; selecting a mode remounts Lite/Pro via the market router.
+  // Home-stack cleanup on Pro (TAT-3612) runs in PerpsModeSelectionView.
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode } = usePerpsMode();
   const handlePerpsModeChange = useCallback(() => {
