@@ -206,6 +206,7 @@ const PerpsMarketHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
       >
         {onWalletPress ? (
           <ButtonIcon
