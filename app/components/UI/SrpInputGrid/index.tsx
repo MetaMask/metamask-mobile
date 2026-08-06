@@ -125,8 +125,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     useEffect(() => {
       if (seedPhrase.length > 1) {
         setPreferGridMode(true);
+        return;
       }
-    }, [seedPhrase.length]);
+      if (trimmedSeedPhraseLength === 0) {
+        setPreferGridMode(false);
+      }
+    }, [seedPhrase.length, trimmedSeedPhraseLength]);
 
     // Determine if we're in single input (textarea) mode
     const isFirstInput = useMemo(

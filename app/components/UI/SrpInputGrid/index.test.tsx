@@ -205,6 +205,23 @@ describe('SrpInputGrid', () => {
       expect(queryByText('2.')).toBeNull();
     });
 
+    it('exits sticky grid mode when the last word is fully deleted', () => {
+      const { getByText, queryByText, rerender } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={['wallet', 'abandon']} />,
+      );
+
+      // Latch sticky grid with 2+ cells, then delete down to one word.
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet']} />);
+      expect(getByText('1.')).toBeOnTheScreen();
+
+      // Fully empty — Paste replaces Clear, so sticky mode must release or
+      // the numbered empty cell (no placeholder) becomes unreachable to reset.
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['']} />);
+
+      expect(queryByText('1.')).toBeNull();
+      expect(getByText('Paste')).toBeOnTheScreen();
+    });
+
     it('dismisses keyboard on submit editing', () => {
       const seedPhrase = ['wallet', ''];
       const { getByTestId } = renderWithProvider(
