@@ -1349,9 +1349,24 @@ describe('setupSentry', () => {
     expect(integrationNames).not.toContain('ReactNativeTracing');
   });
 
-  it('sets the perf_fix nav-tracing-v1 tag after initialisation', async () => {
+  it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {
     await setupSentry();
 
-    expect(mockedSetTag).toHaveBeenCalledWith('perf_fix', 'nav-tracing-v1');
+    // Must NOT be set globally — the tag is scoped to transactions only
+    // so it never appears on error events.
+    expect(mockedSetTag).not.toHaveBeenCalledWith('perf_fix', 'nav-tracing-v1');
+
+    // Verify beforeSendTransaction stamps the tag on kept events
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSendTransaction: (event: {
+        tags?: Record<string, string>;
+      }) => { tags?: Record<string, string> } | null;
+    };
+    const mockEvent = { transaction: 'SomeRoute', tags: {} };
+    const result = initOptions.beforeSendTransaction(mockEvent);
+    expect(result).not.toBeNull();
+    expect((result as { tags?: Record<string, string> }).tags?.perf_fix).toBe(
+      'nav-tracing-v1',
+    );
   });
 });

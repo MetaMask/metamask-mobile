@@ -693,6 +693,11 @@ export async function setupSentry(
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => {
         const filtered = excludeEvents(event as SentryEvent);
+        if (filtered) {
+          // Scoped to transactions only so it never appears on error events.
+          // Remove once the nav-tracing rollout has been validated in Sentry.
+          filtered.tags = { ...filtered.tags, perf_fix: 'nav-tracing-v1' };
+        }
         return filtered as typeof event;
       },
       enabled: forceEnabled || hasConsent,
@@ -702,14 +707,6 @@ export async function setupSentry(
 
     // Set EAS update context after Sentry initialization
     setEASUpdateContext();
-
-    // Filterable marker for nav-tracing rollout; used to isolate ReactNavigation
-    // transactions in Sentry queries.
-    // TODO: Remove this global tag once the nav-tracing rollout is evaluated.
-    // It currently lands on every event (errors included, not just transactions).
-    // Either scope it inside beforeSendTransaction or delete it after validation.
-    // Track removal in a follow-up ticket before merging to production.
-    Sentry.setTag('perf_fix', 'nav-tracing-v1');
   };
   await init();
 }
