@@ -20,7 +20,7 @@ import {
   rewriteBreadcrumb,
   setEASUpdateContext,
   isSentryEnabled,
-  navIntegration,
+  getNavIntegration,
   setupSentry,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
@@ -1286,23 +1286,27 @@ describe('setEASUpdateContext', () => {
   });
 });
 
-describe('navIntegration', () => {
-  it('is exported and exposes registerNavigationContainer', () => {
-    expect(navIntegration).toBeDefined();
-    expect(typeof navIntegration.registerNavigationContainer).toBe('function');
+describe('getNavIntegration', () => {
+  it('returns an object that exposes registerNavigationContainer', () => {
+    const integration = getNavIntegration();
+    expect(integration).toBeDefined();
+    expect(typeof integration.registerNavigationContainer).toBe('function');
   });
 
-  it('is created with enableTimeToInitialDisplay: true so TTID spans are emitted', () => {
-    // navIntegration is created at module load time. jest.clearAllMocks() calls
-    // in sibling describe blocks (e.g. setEASUpdateContext) wipe the call history
-    // before this test runs, leaving 0 recorded calls on the module-level mock.
-    // Re-load utils in an isolated registry so we get a fresh, uncleaned call
-    // record while still using the same jest.fn() mock instance.
+  it('returns the same instance on repeated calls (memoised)', () => {
+    expect(getNavIntegration()).toBe(getNavIntegration());
+  });
+
+  it('is created lazily with enableTimeToInitialDisplay: true so TTID spans are emitted', () => {
+    // getNavIntegration() is lazy: nothing runs at import time. isolateModules
+    // gives us a fresh module registry; calling getNavIntegration() inside it
+    // triggers creation and records the factory call on the shared jest.fn() mock.
     const mockedFactory = jest.mocked(reactNavigationIntegration);
     mockedFactory.mockClear();
     jest.isolateModules(() => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('./utils');
+      const utils = require('./utils') as typeof import('./utils');
+      utils.getNavIntegration();
     });
     expect(mockedFactory).toHaveBeenCalledWith(
       expect.objectContaining({ enableTimeToInitialDisplay: true }),
@@ -1326,7 +1330,7 @@ describe('setupSentry', () => {
     process.env.MM_SENTRY_DSN = originalDsn;
   });
 
-  it('initialises Sentry with reactNativeTracingIntegration and navIntegration', async () => {
+  it('initialises Sentry with navIntegration (ReactNavigation) in the explicit integrations list', async () => {
     await setupSentry();
 
     expect(mockedInit).toHaveBeenCalledTimes(1);
@@ -1336,8 +1340,13 @@ describe('setupSentry', () => {
     };
     const integrationNames = initOptions.integrations.map((i) => i.name);
 
-    expect(integrationNames).toContain('ReactNativeTracing');
+    // ReactNavigation (navIntegration) is the explicit addition in this PR.
     expect(integrationNames).toContain('ReactNavigation');
+
+    // ReactNativeTracing is NOT added explicitly — getDefaultIntegrations() pushes it
+    // automatically when tracesSampleRate is set and enableAutoPerformanceTracing is true.
+    // Adding it explicitly here would be a no-op after the SDK's name-deduplication pass.
+    expect(integrationNames).not.toContain('ReactNativeTracing');
   });
 
   it('sets the perf_fix nav-tracing-v1 tag after initialisation', async () => {

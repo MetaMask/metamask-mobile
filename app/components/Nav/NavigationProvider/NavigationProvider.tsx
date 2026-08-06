@@ -18,7 +18,7 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
-import { navIntegration } from '../../../util/sentry/utils';
+import { getNavIntegration } from '../../../util/sentry/utils';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -63,7 +63,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       return;
     }
     NavigationService.navigation = ref;
-    navIntegration.registerNavigationContainer(ref);
+    getNavIntegration().registerNavigationContainer(ref);
   };
 
   return (

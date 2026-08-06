@@ -12,7 +12,7 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-import { navIntegration } from '../../../util/sentry/utils';
+import { getNavIntegration } from '../../../util/sentry/utils';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -23,11 +23,14 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-jest.mock('../../../util/sentry/utils', () => ({
-  navIntegration: {
+jest.mock('../../../util/sentry/utils', () => {
+  const mockIntegration = {
     registerNavigationContainer: jest.fn(),
-  },
-}));
+  };
+  return {
+    getNavIntegration: jest.fn(() => mockIntegration),
+  };
+});
 
 jest.mock('../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../util/theme');
@@ -98,8 +101,11 @@ describe('NavigationProvider', () => {
       </NavigationProvider>,
     );
 
-    expect(navIntegration.registerNavigationContainer).toHaveBeenCalledTimes(1);
-    expect(navIntegration.registerNavigationContainer).toHaveBeenCalledWith(
+    const mockIntegration = jest.mocked(getNavIntegration)();
+    expect(mockIntegration.registerNavigationContainer).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockIntegration.registerNavigationContainer).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: expect.any(Function) }),
     );
     const container = UNSAFE_getByType(NavigationContainer);
