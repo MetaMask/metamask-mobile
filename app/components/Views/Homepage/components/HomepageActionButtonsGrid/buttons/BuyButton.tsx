@@ -5,6 +5,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../../UI/Ramp/constants/rampsBuyCufTags';
 import {
   ActionButtonType,
   ActionLocation,
@@ -30,7 +31,7 @@ const BuyButton = ({
       button_label: label,
       location: ActionLocation.HOME,
     });
-    goToBuy();
+    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.HOME });
   }, [actionPosition, createEventBuilder, goToBuy, label, trackEvent]);
 
   return (
