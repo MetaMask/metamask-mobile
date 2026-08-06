@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from '@metamask/design-system-react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -11,6 +11,7 @@ import {
 } from '../../Perps.testIds';
 import PerpsMarketHeader from './PerpsMarketHeader';
 import { createProMarketHeaderTestIDs } from './perpsMarketHeaderTestIds';
+import { GLOW_TOTAL_MS } from '../PerpsModeToggle/PerpsModeSwitchPill';
 
 jest.mock('../../providers/PerpsStreamManager');
 
@@ -44,6 +45,10 @@ const renderHeader = (
   );
 
 describe('PerpsMarketHeader', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('renders the asset name, leverage, and ticker subtitle', () => {
     const { getByTestId, getByText } = renderHeader();
 
@@ -178,11 +183,17 @@ describe('PerpsMarketHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('fires onModeChange from the active Pro mode pill', () => {
+  it('fires onModeChange from the active Pro mode pill once the shimmer finishes', () => {
+    jest.useFakeTimers();
     const onModeChange = jest.fn();
     const { getByTestId } = renderHeader({ onModeChange });
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(onModeChange).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
 
     expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
   });
