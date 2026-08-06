@@ -6,6 +6,8 @@ import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import type { RampsQueryStatus } from './useRampsPaymentMethods';
 import {
+  buildRampsBuyQuoteFetchCufCompletion,
+  buildRampsBuyQuoteFetchStartTags,
   endRampsBuyQuoteFetchTrace,
   startRampsBuyQuoteFetchTrace,
 } from '../utils/rampsBuyCufTrace';
@@ -37,6 +39,12 @@ export interface UseRampsQuotesResult {
   error: unknown | null;
 }
 
+interface ActiveQuoteCufOperation {
+  id: string;
+  requestedProviders?: string[];
+  requestedProvidersKey: string;
+}
+
 export function useRampsQuotes(
   options?: GetQuotesOptions | null,
 ): UseRampsQuotesResult {
@@ -57,6 +65,16 @@ export function useRampsQuotes(
     options?.assetId && options.walletAddress && options.amount > 0,
   );
 
+  const requestedProvidersKey = (options?.providers ?? []).join(',');
+  const hasRequestedProviders = options?.providers !== undefined;
+  const requestedProviders = useMemo(() => {
+    if (!hasRequestedProviders) {
+      return undefined;
+    }
+
+    return requestedProvidersKey ? requestedProvidersKey.split(',') : [];
+  }, [hasRequestedProviders, requestedProvidersKey]);
+
   const quotesQuery = useQuery({
     ...rampsQueries.quotes.options({
       assetId: options?.assetId,
@@ -64,51 +82,81 @@ export function useRampsQuotes(
       walletAddress: options?.walletAddress ?? '',
       redirectUrl: options?.redirectUrl,
       paymentMethods: options?.paymentMethods,
-      providers: options?.providers,
+      providers: requestedProviders,
       forceRefresh: options?.forceRefresh,
       ttl: options?.ttl,
     }),
     enabled: queryEnabled,
   });
 
-  const quoteCufOpIdRef = useRef<string | null>(null);
+  const quoteCufOpRef = useRef<ActiveQuoteCufOperation | null>(null);
 
-  // Buy Quote Fetch CUF (TRAM-3780): fetch start → quotes rendered or error.
+  // Buy Quote Fetch CUF (TRAM-3780 / TRAM-3805): fetch start → usable quotes
+  // or a query/provider-level failure.
   // Fires for every Unified Buy quote fetch; nests under E2E parent when active.
   useEffect(() => {
     if (!queryEnabled) {
-      if (quoteCufOpIdRef.current) {
+      if (quoteCufOpRef.current) {
         endRampsBuyQuoteFetchTrace({
-          id: quoteCufOpIdRef.current,
+          id: quoteCufOpRef.current.id,
           data: {
             [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
             [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.CANCELLED,
           },
         });
-        quoteCufOpIdRef.current = null;
+        quoteCufOpRef.current = null;
       }
       return;
     }
 
-    if (quotesQuery.isFetching && !quoteCufOpIdRef.current) {
-      quoteCufOpIdRef.current = startRampsBuyQuoteFetchTrace();
+    if (
+      quoteCufOpRef.current &&
+      quoteCufOpRef.current.requestedProvidersKey !== requestedProvidersKey
+    ) {
+      endRampsBuyQuoteFetchTrace({
+        id: quoteCufOpRef.current.id,
+        data: {
+          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+        },
+      });
+      quoteCufOpRef.current = null;
+    }
+
+    if (quotesQuery.isFetching && !quoteCufOpRef.current) {
+      const providersAtStart = requestedProviders
+        ? [...requestedProviders]
+        : undefined;
+      quoteCufOpRef.current = {
+        id: startRampsBuyQuoteFetchTrace({
+          tags: buildRampsBuyQuoteFetchStartTags(providersAtStart),
+        }),
+        requestedProviders: providersAtStart,
+        requestedProvidersKey,
+      };
       return;
     }
 
-    if (!quotesQuery.isFetching && quoteCufOpIdRef.current) {
-      const opId = quoteCufOpIdRef.current;
-      quoteCufOpIdRef.current = null;
+    if (!quotesQuery.isFetching && quoteCufOpRef.current) {
+      const operation = quoteCufOpRef.current;
+      quoteCufOpRef.current = null;
       endRampsBuyQuoteFetchTrace({
-        id: opId,
-        data: quotesQuery.isError
-          ? {
-              [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-              [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-            }
-          : { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
+        id: operation.id,
+        data: buildRampsBuyQuoteFetchCufCompletion({
+          isQueryError: quotesQuery.isError,
+          response: quotesQuery.data,
+          requestedProviders: operation.requestedProviders,
+        }),
       });
     }
-  }, [queryEnabled, quotesQuery.isFetching, quotesQuery.isError]);
+  }, [
+    queryEnabled,
+    quotesQuery.isFetching,
+    quotesQuery.isError,
+    quotesQuery.data,
+    requestedProviders,
+    requestedProvidersKey,
+  ]);
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {

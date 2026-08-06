@@ -11,6 +11,7 @@ import {
   RAMPS_BUY_CUF_FEATURE,
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_SURFACE,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TIMEOUT_MS,
   type RampsBuyCufSurface,
@@ -223,6 +224,79 @@ export interface StartRampsBuyQuoteFetchTraceOptions {
   tags?: Record<string, TraceValue>;
   startTime?: number;
   data?: Record<string, TraceValue>;
+}
+
+export function buildRampsBuyQuoteFetchStartTags(
+  providers?: string[],
+): Record<string, TraceValue> | undefined {
+  if (providers?.length !== 1) {
+    return undefined;
+  }
+
+  return { [RAMPS_BUY_CUF_TAG.PROVIDER]: providers[0] };
+}
+
+export interface BuildRampsBuyQuoteFetchCufCompletionParams {
+  isQueryError: boolean;
+  response?: {
+    success?: {
+      provider?: string;
+      quote?: unknown;
+    }[];
+  } | null;
+  requestedProviders?: string[];
+}
+
+/**
+ * Provider errors arrive in a successful HTTP response, so query status alone
+ * cannot distinguish a usable quote from a provider-level miss.
+ */
+export function buildRampsBuyQuoteFetchCufCompletion({
+  isQueryError,
+  response,
+  requestedProviders,
+}: BuildRampsBuyQuoteFetchCufCompletionParams): Record<string, TraceValue> {
+  const singleProvider =
+    requestedProviders?.length === 1 ? requestedProviders[0] : undefined;
+  const providerData: Record<string, TraceValue> = singleProvider
+    ? { [RAMPS_BUY_CUF_TAG.PROVIDER]: singleProvider }
+    : {};
+
+  if (isQueryError) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+      ...providerData,
+    };
+  }
+
+  const successQuotes = response?.success ?? [];
+  const usableQuotes = singleProvider
+    ? successQuotes.filter(({ provider }) => provider === singleProvider)
+    : successQuotes;
+
+  if (usableQuotes.length === 0) {
+    return {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+      ...providerData,
+    };
+  }
+
+  const isCustomAction =
+    (usableQuotes[0].quote as { isCustomAction?: boolean } | undefined)
+      ?.isCustomAction === true;
+
+  return {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+    ...providerData,
+    ...(isCustomAction
+      ? {
+          [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.CUSTOM_ACTION,
+          [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: true,
+        }
+      : { [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false }),
+  };
 }
 
 /**
