@@ -68,7 +68,8 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
         description={strings('perps.margin_mode.cross_description')}
         isSelected={false}
         showSelectedIcon
-        isDisabled
+        disabled
+        twClassName="opacity-50"
         testID={PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION}
       />
     </BottomSheet>
