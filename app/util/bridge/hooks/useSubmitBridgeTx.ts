@@ -22,6 +22,11 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+} from '../../../components/UI/Bridge/components/SwapsConfirmButton/abTestConfig';
+import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
@@ -68,6 +73,14 @@ export default function useSubmitBridgeTx() {
     variantName: ambientColorVariantName,
     isActive: isAmbientColorAbActive,
   } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
+  const {
+    variantName: ctaButtonColorVariantName,
+    isActive: isCtaButtonColorAbActive,
+  } = useABTest(
+    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  );
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -105,6 +118,15 @@ export default function useSubmitBridgeTx() {
       );
     }
 
+    if (isCtaButtonColorAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+          ctaButtonColorVariantName,
+        ),
+      );
+    }
+
     return tests.length > 0 ? tests : undefined;
   }, [
     isNumpadAbActive,
@@ -113,6 +135,8 @@ export default function useSubmitBridgeTx() {
     tokenSelectorVariantName,
     isAmbientColorAbActive,
     ambientColorVariantName,
+    isCtaButtonColorAbActive,
+    ctaButtonColorVariantName,
   ]);
 
   const submitBridgeTx = async ({

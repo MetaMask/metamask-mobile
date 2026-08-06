@@ -13,6 +13,8 @@ import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
+import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
+import { SWAPS_CTA_BUTTON_COLOR_AB_KEY } from '../../../components/UI/Bridge/components/SwapsConfirmButton/abTestConfig';
 
 type BridgeQuoteResponse = QuoteResponse;
 interface MockABTestResult {
@@ -102,10 +104,12 @@ describe('useSubmitBridgeTx', () => {
     numpad = inactiveABTestResult,
     tokenSelector = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
+    ctaButtonColor = inactiveABTestResult,
   }: {
     numpad?: MockABTestResult;
     tokenSelector?: MockABTestResult;
     ambientColor?: MockABTestResult;
+    ctaButtonColor?: MockABTestResult;
   } = {}) => {
     jest
       .mocked(useABTest)
@@ -113,7 +117,8 @@ describe('useSubmitBridgeTx', () => {
       .mockReturnValue(inactiveABTestResult)
       .mockReturnValueOnce(numpad)
       .mockReturnValueOnce(tokenSelector)
-      .mockReturnValueOnce(ambientColor);
+      .mockReturnValueOnce(ambientColor)
+      .mockReturnValueOnce(ctaButtonColor);
   };
 
   beforeEach(() => {
@@ -547,6 +552,102 @@ describe('useSubmitBridgeTx', () => {
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
+  });
+
+  it('forwards caller-supplied active A/B tests via submitTx', async () => {
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment('callerExperiment', 'treatment'),
+    ];
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
+    mockSubmitTx.mockResolvedValueOnce({
+      chainId: '0x1',
+      id: '1',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta);
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await result.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+      transactionActiveAbTests,
+    });
+
+    expect(mockSubmitTx).toHaveBeenLastCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: undefined,
+      },
+      true,
+      undefined,
+      undefined,
+      undefined,
+      transactionActiveAbTests,
+      null,
+      undefined,
+      'token_amount',
+    );
+  });
+
+  it('forwards CTA button color A/B test assignment via submitTx', async () => {
+    mockABTests({
+      ctaButtonColor: {
+        variant: {},
+        variantName: 'treatment',
+        isActive: true,
+      },
+    });
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
+    mockSubmitTx.mockResolvedValueOnce({
+      chainId: '0x1',
+      id: '1',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta);
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await result.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+    });
+
+    expect(mockSubmitTx).toHaveBeenLastCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: undefined,
+      },
+      true,
+      undefined,
+      undefined,
+      undefined,
+      [
+        createActiveABTestAssignment(
+          SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+          'treatment',
+        ),
+      ],
+      null,
+      undefined,
+      'token_amount',
+    );
   });
 
   it('forwards ambient color AB test assignment via submitTx when active', async () => {
