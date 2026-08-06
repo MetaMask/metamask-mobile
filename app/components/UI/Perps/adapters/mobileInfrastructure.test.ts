@@ -411,12 +411,6 @@ describe('getTerminalApiUrl', () => {
     expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
   });
 
-  it('returns uat URL for beta build type', () => {
-    process.env.METAMASK_ENVIRONMENT = 'production';
-    process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
-  });
-
   it('returns prd URL for production environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
@@ -435,7 +429,7 @@ describe('getTerminalApiUrl', () => {
     expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
   });
 
-  it('returns uat URL for non-beta build type in non-prod env (default fallthrough)', () => {
+  it('returns uat URL for flask build type in non-prod env (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'flask';
     expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
@@ -451,12 +445,6 @@ describe('getTerminalApiUrl', () => {
     process.env.METAMASK_ENVIRONMENT = 'local';
     delete process.env.METAMASK_BUILD_TYPE;
     expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
-  });
-
-  it('returns dev URL when env is dev even if build type is beta', () => {
-    process.env.METAMASK_ENVIRONMENT = 'dev';
-    process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
   });
 });
 

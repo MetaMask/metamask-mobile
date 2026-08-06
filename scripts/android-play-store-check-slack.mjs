@@ -153,7 +153,7 @@ function main() {
   const isProduction = process.env.METAMASK_ENVIRONMENT === 'production';
   lines.push('');
   if (aabs.length === 0 && !isProduction) {
-    // Non-production environments (rc, beta, etc.) distribute via APK.
+    // Non-production environments (rc, exp, etc.) distribute via APK.
     // AAB is intentionally not built — bundletool validation is not applicable.
     lines.push(
       '*bundletool validate* — skipped (_no AAB produced for this environment — production only_).',

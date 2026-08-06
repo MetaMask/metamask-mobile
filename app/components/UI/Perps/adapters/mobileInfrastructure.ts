@@ -51,8 +51,7 @@ import { TERMINAL_API_URLS } from '../constants/terminalApi';
  * Resolves the Terminal API base URL based on build environment.
  *
  * Mapping:
- * - dev / test / e2e → DEV (takes priority over beta build type)
- * - beta build type (non-dev envs) → UAT
+ * - dev / test / e2e → DEV
  * - production / rc → PRD
  * - all other environments (local, undefined, etc.) → UAT
  */
@@ -61,11 +60,6 @@ export function getTerminalApiUrl(): string {
 
   if (env === 'dev' || env === 'test' || env === 'e2e') {
     return TERMINAL_API_URLS.DEV;
-  }
-
-  // Beta builds target UAT (except dev/test/e2e which are handled above).
-  if (process.env.METAMASK_BUILD_TYPE === 'beta') {
-    return TERMINAL_API_URLS.UAT;
   }
 
   if (env === 'production' || env === 'rc') {

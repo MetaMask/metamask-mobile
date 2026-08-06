@@ -174,7 +174,7 @@ function renameAndroid() {
     }
   }
 
-  // Expose sourcemap directory for all non-Debug builds (prod, RC, beta, test, e2e, exp)
+  // Expose sourcemap directory for all non-Debug builds (prod, RC, test, e2e, exp)
   if (buildConfig === 'release') {
     const sourcemapDir = path.join(
       __dirname,

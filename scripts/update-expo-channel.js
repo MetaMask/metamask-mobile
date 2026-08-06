@@ -13,7 +13,6 @@ const path = require('path');
 const { RUNTIME_VERSION, UPDATE_URL } = require('../ota.config.js');
 
 const VALID_ENVIRONMENTS = [
-  'beta',
   'rc',
   'exp',
   'test',
@@ -37,7 +36,7 @@ const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
 
 // Match the OTA environment selection logic from app.config.js:
 // - "production" and "rc" use their own certificates
-// - all other environments (exp, dev, test, e2e, beta, etc.) fall back to "exp"
+// - all other environments (exp, dev, test, e2e, etc.) fall back to "exp"
 function getOtaEnvironment(environment) {
   return environment === 'production' || environment === 'rc'
     ? environment

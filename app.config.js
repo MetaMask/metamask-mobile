@@ -2,7 +2,7 @@ const { RUNTIME_VERSION, PROJECT_ID, UPDATE_URL } = require('./ota.config.js');
 
 // Use METAMASK_ENVIRONMENT to select OTA certs:
 // - "production" and "rc" use their own certificates
-// - all other environments (exp, dev, test, e2e, beta, etc.) fall back to "exp"
+// - all other environments (exp, dev, test, e2e, etc.) fall back to "exp"
 const OTA_ENV_MAP = {
   production: 'production',
   rc: 'rc',

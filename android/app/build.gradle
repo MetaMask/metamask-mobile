@@ -246,12 +246,6 @@ android {
         keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
         keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
-      mainBeta {
-        storeFile file('../keystores/rc.keystore')
-        storePassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD")
-        keyAlias System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS")
-        keyPassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD")
-      }
       mainRc {
         storeFile file('../keystores/rc.keystore')
         storePassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD")
@@ -346,8 +340,6 @@ android {
                 signingConfig signingConfigs.mainProd
             } else if (env == 'rc') {
                 signingConfig signingConfigs.mainRc
-            } else if (env == 'beta') {
-                signingConfig signingConfigs.mainBeta
             } else if (env == 'dev') {
                 signingConfig signingConfigs.mainDev
             } else {
