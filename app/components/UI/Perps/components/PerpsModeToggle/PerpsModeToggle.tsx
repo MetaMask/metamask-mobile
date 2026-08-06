@@ -13,6 +13,8 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
@@ -25,12 +27,17 @@ import PerpsProGradientLabel from './PerpsProGradientLabel';
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const PERPS_PRO_ACCENT_SELECTED_BG = '#382b43';
 
+// Figma node 10857:46178 defines solid Pro label/border colors per theme.
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+const PERPS_PRO_ACTIVE_COLOR_LIGHT = '#CF8D00';
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+const PERPS_PRO_ACTIVE_COLOR_DARK = '#DDC598';
+
 /**
  * Reusable Lite ⇄ Pro mode toggle for Perps entry points (TAT-3551).
  *
  * Rendered as a two-segment pill built on the design-system `SegmentedControl`
  * / `FilterButton`. A single component powers every entry point:
- * - Trade bottom-sheet menu (Perps row)
  * - Perps home header
  * - Market header (`variant="active"` shows only the active mode)
  */
@@ -44,6 +51,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   testID = PerpsModeToggleSelectorsIDs.CONTAINER,
 }) => {
   const { track } = usePerpsEventTracking();
+  const { themeAppearance } = useTheme();
 
   const handleChange = useCallback(
     (value: string) => {
@@ -70,18 +78,28 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
     <PerpsProGradientLabel>{proLabel}</PerpsProGradientLabel>
   );
 
-  // Market header: single outlined pill showing only the active mode, per Figma
-  // (transparent fill, `border/muted` border, gradient "Pro" text). Pressing it
-  // flips to the opposite mode (same analytics + onChange path as the full
-  // toggle).
+  // Market header: single outlined pill showing only the active mode. Pro uses
+  // the theme-specific gold treatment from Figma; Lite uses neutral tokens.
   if (variant === 'active') {
     const isPro = mode === PerpsMode.Pro;
     const nextModeLabel = isPro ? liteLabel : proLabel;
     const currentModeLabel = isPro ? proLabel : liteLabel;
+    const activeProColor =
+      themeAppearance === AppThemeKey.dark
+        ? PERPS_PRO_ACTIVE_COLOR_DARK
+        : PERPS_PRO_ACTIVE_COLOR_LIGHT;
     return (
       <ButtonBase
         size={ButtonBaseSize.Sm}
-        twClassName="bg-transparent border border-border-muted"
+        twClassName="border border-border-muted bg-default"
+        style={isPro ? { borderColor: activeProColor } : undefined}
+        textProps={
+          isPro
+            ? {
+                style: { color: activeProColor },
+              }
+            : undefined
+        }
         onPress={() => handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)}
         accessibilityLabel={strings(
           'perps.mode.active_pill_accessibility_label',
@@ -97,7 +115,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
             : PerpsModeToggleSelectorsIDs.LITE_SEGMENT
         }
       >
-        {isPro ? proGradientLabel : liteLabel}
+        {currentModeLabel}
       </ButtonBase>
     );
   }

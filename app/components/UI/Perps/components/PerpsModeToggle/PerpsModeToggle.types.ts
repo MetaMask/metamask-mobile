@@ -5,7 +5,7 @@ import type { PerpsMode } from '@metamask/perps-controller';
  * How the toggle presents itself.
  *
  * `'toggle'` (default) renders the interactive two-segment pill ("Lite" / "Pro")
- * used in the Trade menu and Perps home header.
+ * used in the Perps home header.
  *
  * `'active'` renders a single pill showing only the currently active mode, used
  * in the Market header (AC #6.3). Pressing it flips to the opposite mode.

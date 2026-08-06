@@ -187,7 +187,7 @@ describe('PerpsModeToggle', () => {
   });
 
   it('renders only the active mode as a single pill in the active variant', () => {
-    const { getByTestId, queryByTestId, getAllByText } = render(
+    const { getByTestId, queryByTestId, getByText } = render(
       <PerpsModeToggle
         mode={PerpsMode.Pro}
         onChange={jest.fn()}
@@ -199,8 +199,7 @@ describe('PerpsModeToggle', () => {
       getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
     ).toBeOnTheScreen();
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
-    // Gradient label renders the string twice (mask + sizing text).
-    expect(getAllByText('Pro').length).toBeGreaterThan(0);
+    expect(getByText('Pro')).toBeOnTheScreen();
   });
 
   it('flips to the opposite mode and tracks the change when the active pill is pressed', () => {

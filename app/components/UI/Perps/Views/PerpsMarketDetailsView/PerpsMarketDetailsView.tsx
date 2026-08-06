@@ -155,7 +155,6 @@ import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
-import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import {
   getRelatedMarketsForMarket,
   hasRelatedMarketsCategory,
@@ -905,83 +904,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     asset: market?.symbol || '',
   });
 
-  const handleWatchlistPress = useCallback(() => {
-    if (!market?.symbol) return;
-
-    const controller = Engine.context.PerpsController;
-    const isAdding = !isWatchlist;
-
-    // Guard: block adding when the watchlist is already full
-    if (
-      isAdding &&
-      controller.getWatchlistMarkets().length >= WATCHLIST_LIMIT
-    ) {
-      showToast(PerpsToastOptions.watchlist.limitReached);
-      return;
-    }
-
-    // Controller applies its own synchronous optimistic update (instant UI
-    // feedback via Redux) and reverts internally on remote-write failure;
-    // fire-and-forget here.
-    controller.toggleWatchlistMarket(market.symbol);
-
-    // Track watchlist toggle event
-    const watchlistCount = controller.getWatchlistMarkets().length;
-
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
-      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: isAdding
-        ? PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET
-        : PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
-      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistCount,
-    });
-  }, [market, isWatchlist, track, showToast, PerpsToastOptions]);
-
-  const liteHeaderEndAccessory = useMemo(() => {
-    const favoriteButton = (
-      <ButtonIcon
-        iconName={isWatchlist ? IconName.StarFilled : IconName.Star}
-        size={ButtonIconSize.Md}
-        onPress={handleWatchlistPress}
-        testID={PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON}
-        accessibilityLabel={strings(
-          isWatchlist
-            ? 'perps.market_details.remove_from_watchlist'
-            : 'perps.market_details.add_to_watchlist',
-        )}
-      />
-    );
-
-    if (!isPerpsProModeEnabled) {
-      return favoriteButton;
-    }
-
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={2}
-      >
-        {favoriteButton}
-        <PerpsModeToggle
-          mode={perpsMode}
-          variant="active"
-          onChange={handlePerpsModeChange}
-          source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
-        />
-      </Box>
-    );
-  }, [
-    isWatchlist,
-    handleWatchlistPress,
-    isPerpsProModeEnabled,
-    perpsMode,
-    handlePerpsModeChange,
-  ]);
-
   const handleMarketListPress = useCallback(() => {
     if (!market) return;
 
@@ -999,6 +921,50 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     });
   }, [market, track, navigateToMarketListFromHeader]);
+
+  const liteHeaderEndAccessory = useMemo(() => {
+    const searchButton = (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="size-10"
+      >
+        <ButtonIcon
+          iconName={IconName.Search}
+          size={ButtonIconSize.Md}
+          onPress={handleMarketListPress}
+          testID={PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON}
+          accessibilityLabel={strings('perps.market_details.market_list')}
+        />
+      </Box>
+    );
+
+    if (!isPerpsProModeEnabled) {
+      return searchButton;
+    }
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        {searchButton}
+        <Box justifyContent={BoxJustifyContent.Center} twClassName="h-10">
+          <PerpsModeToggle
+            mode={perpsMode}
+            variant="active"
+            onChange={handlePerpsModeChange}
+            source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+          />
+        </Box>
+      </Box>
+    );
+  }, [
+    handleMarketListPress,
+    isPerpsProModeEnabled,
+    perpsMode,
+    handlePerpsModeChange,
+  ]);
 
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') =>
@@ -1678,7 +1644,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         market={market}
         testIDs={createLiteMarketHeaderTestIDs()}
         onBackPress={handleBackPress}
-        onIdentityPress={handleMarketListPress}
+        showMarketIdentity={false}
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
         endAccessory={liteHeaderEndAccessory}

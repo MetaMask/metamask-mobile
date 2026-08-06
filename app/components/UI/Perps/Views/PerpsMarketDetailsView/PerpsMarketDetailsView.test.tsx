@@ -402,16 +402,11 @@ jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
 
 // Mock Engine for REST fallback tests
 const mockGetOrderFills = jest.fn();
-const mockToggleWatchlistMarket = jest.fn();
-const mockGetWatchlistMarkets = jest.fn(() => [] as string[]);
 const mockRecordMarketViewed = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
-      toggleWatchlistMarket: (...args: unknown[]) =>
-        mockToggleWatchlistMarket(...args),
-      getWatchlistMarkets: () => mockGetWatchlistMarkets(),
       recordMarketViewed: (...args: unknown[]) =>
         mockRecordMarketViewed(...args),
     },
@@ -959,23 +954,6 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('toggles the watchlist via the controller when the favorite button is pressed', () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsConnectionProvider>
-        <PerpsMarketDetailsView />
-      </PerpsConnectionProvider>,
-      {
-        state: initialState,
-      },
-    );
-
-    fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
-
-    // The component fires the controller's own optimistic-update/revert toggle
-    // (fire-and-forget) rather than maintaining a separate local optimistic copy.
-    expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
-  });
-
   const enableProModeFlag = () => {
     const { useSelector } = jest.requireMock('react-redux');
     const mockSelectPerpsEligibility = jest.requireMock(
@@ -992,7 +970,7 @@ describe('PerpsMarketDetailsView', () => {
     });
   };
 
-  it('shows the active-mode pill next to the star when the Pro mode flag is enabled', () => {
+  it('shows the active-mode pill next to search when the Pro mode flag is enabled', () => {
     enableProModeFlag();
 
     const { getByTestId } = renderWithProvider(
@@ -1004,10 +982,8 @@ describe('PerpsMarketDetailsView', () => {
       },
     );
 
-    // Watchlist star remains, and the active-mode pill (Lite, from the mocked
-    // usePerpsMode) is appended next to it.
     expect(
-      getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+      getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
@@ -4749,7 +4725,7 @@ describe('PerpsMarketDetailsView', () => {
       };
     });
 
-    it('uses route market data when maxLeverage is present (no enrichment needed)', () => {
+    it('hides route market identity in the redesigned Lite header', () => {
       // Route has complete market data including maxLeverage
       mockRouteParams.market = {
         symbol: 'ETH',
@@ -4770,7 +4746,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getByText, getAllByText } = renderWithProvider(
+      const { getByTestId, queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -4779,14 +4755,15 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Should show the route market's leverage badge
-      expect(getByText('25x')).toBeOnTheScreen();
-      // Header shows the full asset name and the market pair subtitle
-      expect(getByText('Ethereum')).toBeOnTheScreen();
-      expect(getAllByText('ETH-USD perp').length).toBeGreaterThanOrEqual(1);
+      expect(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      ).toBeOnTheScreen();
+      expect(queryByText('25x')).not.toBeOnTheScreen();
+      expect(queryByText('Ethereum')).not.toBeOnTheScreen();
+      expect(queryByText('ETH-USD perp')).not.toBeOnTheScreen();
     });
 
-    it('enriches market data when route maxLeverage is unformatted', async () => {
+    it('keeps enriched leverage out of the redesigned Lite header', () => {
       mockRouteParams.market = {
         symbol: 'xyz:SPCX',
         name: 'SPCX',
@@ -4816,7 +4793,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       }));
 
-      const { getByText, queryByText } = renderWithProvider(
+      const { queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -4825,9 +4802,7 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(getByText('5x')).toBeOnTheScreen();
-      });
+      expect(queryByText('5x')).not.toBeOnTheScreen();
       expect(queryByText('100')).toBeNull();
     });
 
@@ -4869,7 +4844,7 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       try {
-        const { getByTestId, getByText } = renderWithProvider(
+        const { getByTestId } = renderWithProvider(
           <PerpsConnectionProvider>
             <PerpsMarketDetailsView />
           </PerpsConnectionProvider>,
@@ -4877,10 +4852,6 @@ describe('PerpsMarketDetailsView', () => {
             state: initialState,
           },
         );
-
-        await waitFor(() => {
-          expect(getByText('5x')).toBeOnTheScreen();
-        });
 
         await act(async () => {
           fireEvent.press(
@@ -4907,7 +4878,7 @@ describe('PerpsMarketDetailsView', () => {
       }
     });
 
-    it('enriches unformatted route market without market source', async () => {
+    it('keeps unformatted route leverage out of the Lite header', () => {
       mockRouteParams.market = {
         symbol: 'SPCX',
         name: 'SPCX',
@@ -4937,7 +4908,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       }));
 
-      const { getByText, queryByText } = renderWithProvider(
+      const { queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -4946,13 +4917,11 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      await waitFor(() => {
-        expect(getByText('5x')).toBeOnTheScreen();
-      });
+      expect(queryByText('5x')).not.toBeOnTheScreen();
       expect(queryByText('100')).toBeNull();
     });
 
-    it('enriches market data from usePerpsMarkets when route has minimal data', async () => {
+    it('hides enriched market identity in the redesigned Lite header', () => {
       // Route has minimal market data (no maxLeverage)
       mockRouteParams.market = {
         symbol: 'BTC',
@@ -4979,7 +4948,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       }));
 
-      const { getByText, getByTestId, getAllByText } = renderWithProvider(
+      const { queryByText, getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -4988,15 +4957,10 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Verify the header renders with correct market symbol
       expect(getByTestId('perps-market-header')).toBeOnTheScreen();
-      expect(getByText('Bitcoin')).toBeOnTheScreen();
-      expect(getAllByText('BTC-USD perp').length).toBeGreaterThanOrEqual(1);
-
-      // Should show the enriched market's leverage badge from usePerpsMarkets
-      await waitFor(() => {
-        expect(getByText('40x')).toBeOnTheScreen();
-      });
+      expect(queryByText('Bitcoin')).not.toBeOnTheScreen();
+      expect(queryByText('BTC-USD perp')).not.toBeOnTheScreen();
+      expect(queryByText('40x')).not.toBeOnTheScreen();
     });
 
     it('gracefully handles when enrichment data is not available', () => {
@@ -5015,7 +4979,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getByText, getAllByText, queryByText } = renderWithProvider(
+      const { queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -5024,10 +4988,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Should show the asset name but no leverage badge (since no maxLeverage available)
-      expect(getByText('Unknown Asset')).toBeOnTheScreen();
-      expect(getAllByText('UNKNOWN-USD perp').length).toBeGreaterThanOrEqual(1);
-      // No leverage badge should be shown
+      expect(queryByText('Unknown Asset')).not.toBeOnTheScreen();
+      expect(queryByText('UNKNOWN-USD perp')).not.toBeOnTheScreen();
       expect(queryByText('40x')).toBeNull();
       expect(queryByText('25x')).toBeNull();
     });

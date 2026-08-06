@@ -132,6 +132,19 @@ describe('PerpsMarketHeader', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides the market identity for the Lite header layout', () => {
+    const { queryByTestId } = renderHeader({
+      showMarketIdentity: false,
+    });
+
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PerpsProMarketViewSelectorsIDs.HEADER_ASSET_ICON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('fires onWalletPress from the wallet button', () => {
     const onWalletPress = jest.fn();
     const { getByTestId } = renderHeader({ onWalletPress });
