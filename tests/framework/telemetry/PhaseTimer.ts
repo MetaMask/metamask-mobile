@@ -135,6 +135,14 @@ export function getPhaseTimer(): PhaseTimer | undefined {
   return storage.getStore() ?? activeTimer;
 }
 
+/**
+ * ALS store only — ignores the activeTimer fallback.
+ * Tests use this to prove a real context gap while getPhaseTimer() still resolves.
+ */
+export function getPhaseTimerAlsStore(): PhaseTimer | undefined {
+  return storage.getStore();
+}
+
 export function startPhase(phase: PhaseName): void {
   getPhaseTimer()?.start(phase);
 }

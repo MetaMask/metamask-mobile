@@ -4,6 +4,7 @@ import {
   bindPhaseTimer,
   createPhaseTimer,
   getPhaseTimer,
+  getPhaseTimerAlsStore,
   recordPhase,
   runWithPhaseTimer,
   startPhase,
@@ -105,6 +106,7 @@ describe('PhaseTimer', () => {
     const unbind = bindPhaseTimer(timer);
 
     try {
+      expect(getPhaseTimerAlsStore()).toBeUndefined();
       expect(getPhaseTimer()).toBe(timer);
       startPhase('login');
       now += 7;
@@ -125,11 +127,16 @@ describe('PhaseTimer', () => {
   it('runWithPhaseTimer keeps active binding when AsyncLocalStorage context is lost', async () => {
     let now = 1_000;
     const timer = createPhaseTimer({ now: () => now });
+    // Construct outside runWithPhaseTimer so runInAsyncScope restores an empty
+    // ALS store (construction-time context), forcing the activeTimer fallback.
+    const resource = new AsyncResource('als-loss-probe');
 
     await runWithPhaseTimer(timer, async () => {
+      expect(getPhaseTimerAlsStore()).toBe(timer);
+
       await new Promise<void>((resolve) => {
-        const resource = new AsyncResource('als-loss-probe');
         resource.runInAsyncScope(() => {
+          expect(getPhaseTimerAlsStore()).toBeUndefined();
           expect(getPhaseTimer()).toBe(timer);
           startPhase('test_body');
           now += 11;
