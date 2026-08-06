@@ -64,19 +64,22 @@ const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
   };
 });
 
-jest
-  .spyOn(InteractionManager, 'runAfterInteractions')
-  .mockImplementation(mockRunAfterInteractions);
-
 describe('ScreenshotDeterrent with isSRP = true', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCalled = false;
     jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation(mockRunAfterInteractions);
+    jest
       .mocked(useAnalytics)
       .mockReturnValue(
         createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
       );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('Component props handling', () => {
