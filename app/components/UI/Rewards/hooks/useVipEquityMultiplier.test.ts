@@ -19,9 +19,13 @@ jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
   selectVipProgramEnabled: () => true,
 }));
 
-const mockHoldings = jest.fn(() => ({
-  holdingsUsd: '5000000' as string | undefined,
-}));
+interface MockHoldings {
+  holdingsUsd: string | undefined;
+  isLoading: boolean;
+  hasError: boolean;
+}
+
+const mockHoldings = jest.fn<MockHoldings, []>();
 
 jest.mock('./useSubscriptionLinkedMusdHoldings', () => ({
   useSubscriptionLinkedMusdHoldings: () => mockHoldings(),
@@ -61,7 +65,11 @@ describe('useVipEquityMultiplier', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    mockHoldings.mockReturnValue({ holdingsUsd: '5000000' });
+    mockHoldings.mockReturnValue({
+      holdingsUsd: '5000000',
+      isLoading: false,
+      hasError: false,
+    });
     mockUseFocusEffect.mockImplementation(() => undefined);
   });
 
@@ -70,22 +78,10 @@ describe('useVipEquityMultiplier', () => {
     jest.useRealTimers();
   });
 
-  it('sets shouldRender when available:true is returned', async () => {
-    (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({
-      available: true,
-      multiplier: '1.0889',
-      eligible: true,
-      progressPercent: 44.4,
-      tierNumber: 6,
-      tierName: 'VIP 6',
-      capUsd: '10000000',
-      computedAt: '2026-08-04T00:00:00.000Z',
-      localizedText: {
-        title: 'Estimated equity multiplier',
-        eligibleDescription: 'ok',
-        ineligibleDescription: 'no',
-      },
-    });
+  it('becomes ready when available:true is returned', async () => {
+    (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(
+      buildAvailableResult('10000000'),
+    );
 
     const { result } = renderHook(() => useVipEquityMultiplier());
 
@@ -95,10 +91,29 @@ describe('useVipEquityMultiplier', () => {
       await Promise.resolve();
     });
 
-    expect(result.current.shouldRender).toBe(true);
+    expect(result.current.status).toBe('ready');
     expect(result.current.data?.multiplier).toBe('1.0889');
     expect(result.current.holdingsUsd).toBe('5000000');
     expect(result.current.data).not.toHaveProperty('holdingsUsd');
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'RewardsController:getVipEquityMultiplier',
+      'sub-1',
+      '5000000',
+    );
+  });
+
+  it('requests the first holdings value without waiting for the debounce', async () => {
+    (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(
+      buildAvailableResult('10000000'),
+    );
+
+    renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
     expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
       'RewardsController:getVipEquityMultiplier',
       'sub-1',
@@ -119,12 +134,30 @@ describe('useVipEquityMultiplier', () => {
       await Promise.resolve();
     });
 
-    expect(result.current.shouldRender).toBe(false);
+    expect(result.current.status).toBe('hidden');
     expect(result.current.data).toBeNull();
   });
 
-  it('hides when holdings are still loading', async () => {
-    mockHoldings.mockReturnValue({ holdingsUsd: undefined });
+  it('hides when the backend reports no enrollment', async () => {
+    (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(null);
+
+    const { result } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.status).toBe('hidden');
+  });
+
+  it('reports loading while holdings are still resolving', async () => {
+    mockHoldings.mockReturnValue({
+      holdingsUsd: undefined,
+      isLoading: true,
+      hasError: false,
+    });
 
     const { result } = renderHook(() => useVipEquityMultiplier());
 
@@ -133,8 +166,55 @@ describe('useVipEquityMultiplier', () => {
       await Promise.resolve();
     });
 
-    expect(result.current.shouldRender).toBe(false);
+    expect(result.current.status).toBe('loading');
     expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
+  });
+
+  it('reports an error when holdings cannot be determined', async () => {
+    mockHoldings.mockReturnValue({
+      holdingsUsd: undefined,
+      isLoading: false,
+      hasError: true,
+    });
+
+    const { result } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+
+    expect(result.current.status).toBe('error');
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
+  });
+
+  it('reports an error when the request fails, and recovers on retry', async () => {
+    (Engine.controllerMessenger.call as jest.Mock).mockRejectedValueOnce(
+      new Error('boom'),
+    );
+
+    const { result } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.status).toBe('error');
+
+    (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue(
+      buildAvailableResult('10000000'),
+    );
+
+    await act(async () => {
+      result.current.retry();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.status).toBe('ready');
+    expect(result.current.data?.capUsd).toBe('10000000');
   });
 
   it('fetches again for holdings that change while a request is in flight', async () => {
@@ -154,7 +234,11 @@ describe('useVipEquityMultiplier', () => {
     });
     expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
 
-    mockHoldings.mockReturnValue({ holdingsUsd: '7000000' });
+    mockHoldings.mockReturnValue({
+      holdingsUsd: '7000000',
+      isLoading: false,
+      hasError: false,
+    });
     rerender();
     await act(async () => {
       jest.advanceTimersByTime(1000);
@@ -197,7 +281,11 @@ describe('useVipEquityMultiplier', () => {
       await Promise.resolve();
     });
 
-    mockHoldings.mockReturnValue({ holdingsUsd: '7000000' });
+    mockHoldings.mockReturnValue({
+      holdingsUsd: '7000000',
+      isLoading: false,
+      hasError: false,
+    });
     rerender();
     await act(async () => {
       jest.advanceTimersByTime(1000);
@@ -217,6 +305,7 @@ describe('useVipEquityMultiplier', () => {
     });
 
     expect(result.current.data?.capUsd).toBe('7000000');
+    expect(result.current.holdingsUsd).toBe('7000000');
   });
 
   it('does not issue duplicate requests for unchanged holdings', async () => {

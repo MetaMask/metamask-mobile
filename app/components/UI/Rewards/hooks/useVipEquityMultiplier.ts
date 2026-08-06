@@ -9,57 +9,86 @@ import { useSubscriptionLinkedMusdHoldings } from './useSubscriptionLinkedMusdHo
 
 const HOLDINGS_DEBOUNCE_MS = 1000;
 
+export type VipEquityMultiplierStatus =
+  | 'hidden'
+  | 'loading'
+  | 'error'
+  | 'ready';
+
+interface VipEquityMultiplierSnapshot {
+  payload: VipEquityMultiplierAvailableDto;
+  holdingsUsd: string;
+}
+
 export interface UseVipEquityMultiplierResult {
-  /** When false, the section must not render (no skeleton). */
-  shouldRender: boolean;
+  /**
+   * `hidden` — the surface does not apply (not enrolled, VIP off, or the
+   * program has no band configured). `loading` / `error` are user-visible so
+   * that a transient failure is distinguishable from "you do not qualify".
+   */
+  status: VipEquityMultiplierStatus;
   data: VipEquityMultiplierAvailableDto | null;
-  /** Local wallet holdings used for the POST body / radial label — never from API. */
+  /**
+   * The holdings `data` was computed from — never from the API. Paired with
+   * `data` so the radial label cannot describe a different balance than the
+   * arc while a refetch is in flight.
+   */
   holdingsUsd: string | undefined;
+  retry: () => void;
 }
 
 /**
- * Fetches display-only VIP equity multiplier for linked-in-wallet holdings.
- * Debounces holdings changes; controller cache absorbs VIP focus re-entry.
- * Does not gate on client `features.vip.enabled` — that flag can be stale;
- * enrollment is enforced by the backend (404 → hide).
+ * Fetches the display-only VIP equity multiplier for linked mUSD holdings.
+ *
+ * Debounces holdings changes (leading edge on the first value, so the section
+ * does not sit blank for a full window on every visit); the controller cache
+ * absorbs VIP focus re-entry. Does not gate on client `features.vip.enabled` —
+ * that flag can be stale; enrollment is enforced by the backend (404 → hidden).
  */
 export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
-  const { holdingsUsd } = useSubscriptionLinkedMusdHoldings();
+  const {
+    holdingsUsd,
+    isLoading: isHoldingsLoading,
+    hasError: hasHoldingsError,
+  } = useSubscriptionLinkedMusdHoldings();
 
-  const [data, setData] = useState<VipEquityMultiplierAvailableDto | null>(
+  const [snapshot, setSnapshot] = useState<VipEquityMultiplierSnapshot | null>(
     null,
   );
-  const [shouldRender, setShouldRender] = useState(false);
+  const [isUnavailable, setIsUnavailable] = useState(false);
+  const [hasFetchError, setHasFetchError] = useState(false);
   const [debouncedHoldings, setDebouncedHoldings] = useState<
     string | undefined
   >(undefined);
+
   const requestIdRef = useRef(0);
   const inFlightHoldingsRef = useRef<string | undefined>(undefined);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasSeenHoldingsRef = useRef(false);
 
   useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+    if (holdingsUsd === undefined) {
+      return undefined;
     }
-    debounceTimerRef.current = setTimeout(() => {
+    // Leading edge for the first resolved value; trailing debounce afterwards.
+    if (!hasSeenHoldingsRef.current) {
+      hasSeenHoldingsRef.current = true;
+      setDebouncedHoldings(holdingsUsd);
+      return undefined;
+    }
+    const timer = setTimeout(() => {
       setDebouncedHoldings(holdingsUsd);
     }, HOLDINGS_DEBOUNCE_MS);
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
+    return () => clearTimeout(timer);
   }, [holdingsUsd]);
 
   const fetchMultiplier = useCallback(async (): Promise<void> => {
-    if (
-      !subscriptionId ||
-      !isVipProgramEnabled ||
-      debouncedHoldings === undefined
-    ) {
-      setShouldRender(false);
+    if (!subscriptionId || !isVipProgramEnabled) {
+      setIsUnavailable(true);
+      return;
+    }
+    if (debouncedHoldings === undefined) {
       return;
     }
     // Dedupe re-entrant calls for the same holdings (focus + mount effect).
@@ -80,15 +109,19 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
       if (requestId !== requestIdRef.current) {
         return;
       }
+      setHasFetchError(false);
       if (result?.available === true) {
-        setData(result);
-        setShouldRender(true);
+        setIsUnavailable(false);
+        setSnapshot({ payload: result, holdingsUsd: debouncedHoldings });
       } else {
-        setShouldRender(false);
+        // `available: false` (no band configured) and 404 → null (not
+        // enrolled) both mean the surface does not apply — not a failure.
+        setIsUnavailable(true);
+        setSnapshot(null);
       }
     } catch {
       if (requestId === requestIdRef.current) {
-        setShouldRender(false);
+        setHasFetchError(true);
       }
     } finally {
       if (requestId === requestIdRef.current) {
@@ -107,10 +140,28 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
     fetchMultiplier().then();
   }, [fetchMultiplier]);
 
+  const retry = useCallback(() => {
+    inFlightHoldingsRef.current = undefined;
+    setHasFetchError(false);
+    fetchMultiplier().then();
+  }, [fetchMultiplier]);
+
+  let status: VipEquityMultiplierStatus = 'loading';
+  if (!subscriptionId || !isVipProgramEnabled || isUnavailable) {
+    status = 'hidden';
+  } else if (hasHoldingsError || hasFetchError) {
+    // Prefer an explicit error over a stale estimate: the previous snapshot
+    // describes a balance we can no longer confirm.
+    status = 'error';
+  } else if (snapshot && !isHoldingsLoading) {
+    status = 'ready';
+  }
+
   return {
-    shouldRender: shouldRender && data !== null,
-    data: shouldRender ? data : null,
-    holdingsUsd: debouncedHoldings,
+    status,
+    data: status === 'ready' ? (snapshot?.payload ?? null) : null,
+    holdingsUsd: status === 'ready' ? snapshot?.holdingsUsd : undefined,
+    retry,
   };
 };
 
