@@ -53,7 +53,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -1624,7 +1623,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   if (!market) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
@@ -1633,7 +1632,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             {strings('perps.market.details.error_message')}
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -1649,9 +1648,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
   return (
-    <SafeAreaView
+    <View
       style={styles.mainContainer}
-      edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
       <PerpsMarketHeader
@@ -2074,7 +2072,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           onConfirm={closeReversePositionSheet}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

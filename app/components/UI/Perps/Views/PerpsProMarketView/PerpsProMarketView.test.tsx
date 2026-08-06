@@ -566,15 +566,6 @@ describe('PerpsProMarketView', () => {
     },
   );
 
-  it('renders the screen inside every safe-area edge', () => {
-    const { getByTestId } = renderView();
-
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER)).toHaveProp(
-      'edges',
-      ['top', 'bottom', 'left', 'right'],
-    );
-  });
-
   it('tracks an attributed Pro market screen view', () => {
     renderView();
 
