@@ -10,7 +10,40 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
+// A protected screen unmounts as soon as the route leaves the navigation state,
+// but react-native-screens keeps painting it for the duration of the pop
+// animation. Releasing FLAG_SECURE straight away would expose those frames to
+// screen recorders, so the release is held until the transition has finished.
+const CAPTURE_RELEASE_DELAY_MS = 500;
+
 let activeScreenCaptureBlocks = 0;
+let pendingCaptureRelease: ReturnType<typeof setTimeout> | undefined;
+
+const acquireScreenCaptureBlock = () => {
+  if (pendingCaptureRelease) {
+    clearTimeout(pendingCaptureRelease);
+    pendingCaptureRelease = undefined;
+  }
+
+  activeScreenCaptureBlocks += 1;
+  if (activeScreenCaptureBlocks === 1) {
+    PreventScreenshot.forbid();
+  }
+};
+
+const releaseScreenCaptureBlock = () => {
+  activeScreenCaptureBlocks = Math.max(0, activeScreenCaptureBlocks - 1);
+  if (activeScreenCaptureBlocks > 0) {
+    return;
+  }
+
+  pendingCaptureRelease = setTimeout(() => {
+    pendingCaptureRelease = undefined;
+    if (activeScreenCaptureBlocks === 0) {
+      PreventScreenshot.allow();
+    }
+  }, CAPTURE_RELEASE_DELAY_MS);
+};
 
 const useScreenCaptureBlock = (enabled: boolean) => {
   useEffect(() => {
@@ -18,17 +51,9 @@ const useScreenCaptureBlock = (enabled: boolean) => {
       return undefined;
     }
 
-    activeScreenCaptureBlocks += 1;
-    if (activeScreenCaptureBlocks === 1) {
-      PreventScreenshot.forbid();
-    }
+    acquireScreenCaptureBlock();
 
-    return () => {
-      activeScreenCaptureBlocks -= 1;
-      if (activeScreenCaptureBlocks === 0) {
-        PreventScreenshot.allow();
-      }
-    };
+    return releaseScreenCaptureBlock;
   }, [enabled]);
 };
 
