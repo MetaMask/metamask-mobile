@@ -417,22 +417,44 @@ describe('useAmountValidation', () => {
     );
   });
 
-  it('debounces validation so rapid value changes result in a single validation call', async () => {
+  it('snap validation is debounced with 300ms delay', async () => {
+    mockValidateAmountMultichain.mockResolvedValue({ errors: [] });
     mockDebounce.mockClear();
 
     jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
-      asset: EVM_NATIVE_ASSET,
+      asset: {
+        ...SOLANA_ASSET,
+        rawBalance: '0xde0b6b3a7640000',
+      },
       from: MOCK_ADDRESS_1,
+      fromAccount: { id: 'solana-account-id' },
       value: '1',
     } as unknown as SendContext.SendContextType);
 
     renderHookWithProvider(() => useAmountValidation(), {
-      state: evmSendStateMock,
+      state: solanaSendStateMock,
     });
 
     await waitFor(() => {
       expect(mockDebounce).toHaveBeenCalledWith(expect.any(Function), 300);
     });
+  });
+
+  it('snap is never called for EVM send flows', async () => {
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: EVM_NATIVE_ASSET,
+      from: MOCK_ADDRESS_1,
+      value: 'abc',
+    } as unknown as SendContext.SendContextType);
+
+    const { result } = renderHookWithProvider(() => useAmountValidation(), {
+      state: evmSendStateMock,
+    });
+
+    await waitFor(() =>
+      expect(result.current.amountError).toEqual('Invalid value'),
+    );
+    expect(mockValidateAmountMultichain).not.toHaveBeenCalled();
   });
 
   it('returns insufficient balance to cover fees error when snap returns InsufficientBalanceToCoverFee', async () => {
