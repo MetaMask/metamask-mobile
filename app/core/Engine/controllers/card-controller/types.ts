@@ -25,27 +25,26 @@ import type {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
+import { CardProviderIds, type CardProviderId } from './provider-types';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
 /** The provider ID used when no other provider has been selected. */
-export const DEFAULT_CARD_PROVIDER_ID = 'baanx';
+export const DEFAULT_CARD_PROVIDER_ID = CardProviderIds.Baanx;
 
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 export type CardUnauthenticatedReason = 'onboarding_token_revoked';
+
+export interface FetchCardHomeDataOptions {
+  force?: boolean;
+}
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardControllerState = {
   /** ISO 3166-1 alpha-2 country code selected by the user. */
   selectedCountry: string | null;
-  /**
-   * Temporary internal-testing override for Immersve cardProgramId.
-   * Selected on SignUp when cardFeature.immersve.cardProgramIds has multiple options.
-   * Easy to remove once multi-program testing is no longer needed.
-   */
-  selectedCardProgramId: string | null;
   /** Active provider ID, derived from selectedCountry. */
-  activeProviderId: string | null;
+  activeProviderId: CardProviderId | null;
   /** Whether the user is authenticated with the active provider. */
   isAuthenticated: boolean;
   /** Last reason the active provider session became unauthenticated. */
@@ -56,7 +55,7 @@ export type CardControllerState = {
    * Per-provider persistent data keyed by provider ID.
    * Values are JSON-serializable objects (e.g. `{ location: 'us' }`).
    */
-  providerData: Record<string, Record<string, Json>>;
+  providerData: Partial<Record<CardProviderId, Record<string, Json>>>;
   /**
    * Cached card home data fetched from the active provider.
    * Not persisted to disk — re-fetched after each session validation.

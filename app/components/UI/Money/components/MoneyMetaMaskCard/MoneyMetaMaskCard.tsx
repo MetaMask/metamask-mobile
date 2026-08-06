@@ -17,6 +17,7 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -44,7 +45,7 @@ interface MoneyMetaMaskCardProps {
    * 'link': card-linking CTA layout.
    * 'manage': cardholder management layout with available balance and metal upsell.
    */
-  mode?: 'upsell' | 'link' | 'manage' | 'verifying';
+  mode?: 'upsell' | 'link' | 'manage' | 'verifying' | 'loading';
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
@@ -435,6 +436,17 @@ const MoneyMetaMaskCard = ({
         />
       </Box>
     );
+  } else if (mode === 'loading') {
+    content = (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="py-3"
+        testID={MoneyMetaMaskCardTestIds.LOADING_SPINNER}
+      >
+        <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
+      </Box>
+    );
   } else {
     content = (
       <>
@@ -459,7 +471,7 @@ const MoneyMetaMaskCard = ({
   let headerTitleKey: string;
   if (mode === 'link') {
     headerTitleKey = 'money.metamask_card.link_title';
-  } else if (mode === 'manage' || mode === 'verifying') {
+  } else if (mode === 'manage' || mode === 'verifying' || mode === 'loading') {
     headerTitleKey = 'money.metamask_card.title';
   } else {
     headerTitleKey = 'money.metamask_card.upsell_title';

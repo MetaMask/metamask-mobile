@@ -804,7 +804,7 @@ describe('CustomAmountInfo', () => {
       });
     });
 
-    it('keeps the loading review throughout quote loading', async () => {
+    it('unblocks account and payment rows while waiting for quotes', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -832,7 +832,7 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
-      ).toBe('none');
+      ).toBe('auto');
       expect(
         view.getByTestId('custom-amount-input').props.onPress,
       ).toBeUndefined();
@@ -1006,6 +1006,10 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
+      expect(
+        view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
+          .pointerEvents,
+      ).toBe('none');
 
       await act(async () => {
         deferred.resolve();
@@ -1103,6 +1107,11 @@ describe('CustomAmountInfo', () => {
 
       useIsTransactionPayLoadingMock.mockReturnValue(true);
       view.rerender(createCustomAmountInfo());
+      expect(
+        view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
+          .pointerEvents,
+      ).toBe('none');
+
       // A fresh, non-empty quote settles the override into the populated review.
       useIsTransactionPayLoadingMock.mockReturnValue(false);
       useTransactionPayQuotesMock.mockReturnValue([{}] as never);
@@ -1688,6 +1697,36 @@ describe('CustomAmountInfo', () => {
       // Keyboard stays open and the page never enters the loading/commit path.
       expect(queryByTestId('deposit-keyboard')).toBeOnTheScreen();
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('auto-submits when Max leaves amountFiat unchanged (already at max)', async () => {
+      // amountFiat is already the max (e.g. defaultAmount / prefill) while
+      // percentage buttons are still shown. Max must commit via the Loading
+      // stage transition, not wait for amountFiat to change.
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        hasPrefetchedQuote: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
     });
   });
 
