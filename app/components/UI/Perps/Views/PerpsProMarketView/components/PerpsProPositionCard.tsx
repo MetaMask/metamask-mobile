@@ -269,7 +269,7 @@ const PerpsProPositionCard = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-4 px-2"
+            twClassName="gap-4 px-4 py-2"
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -307,30 +307,46 @@ const PerpsProPositionCard = ({
                 </SensitiveText>
               </Box>
             </Box>
-            <SensitiveText
-              variant={TextVariant.BodyMdMedium}
-              color={
-                privacyMode
-                  ? TextColor.TextDefault
-                  : pnlNum >= 0
-                    ? TextColor.SuccessDefault
-                    : TextColor.ErrorDefault
-              }
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              testID="pnl-text"
-            >
-              {`${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`}
-            </SensitiveText>
+            <Box twClassName="items-end gap-0">
+              <SensitiveText
+                variant={TextVariant.BodyMdMedium}
+                color={
+                  privacyMode
+                    ? TextColor.TextDefault
+                    : pnlNum >= 0
+                      ? TextColor.SuccessDefault
+                      : TextColor.ErrorDefault
+                }
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID="pnl-text"
+              >
+                {formatPnl(pnlNum)}
+              </SensitiveText>
+              <SensitiveText
+                variant={TextVariant.BodySmMedium}
+                color={
+                  privacyMode
+                    ? TextColor.TextDefault
+                    : pnlNum >= 0
+                      ? TextColor.SuccessDefault
+                      : TextColor.ErrorDefault
+                }
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {formatPercentage(roe, 1)}
+              </SensitiveText>
+            </Box>
           </Box>
         </Pressable>
 
         {/* Summary: key figures in three columns */}
-        <Box twClassName="px-2">
+        <Box twClassName="px-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 rounded-xl border border-muted px-4 py-2"
+            twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
           >
             <Box twClassName="flex-1 gap-6">
               <KeyValueItem
@@ -342,9 +358,6 @@ const PerpsProPositionCard = ({
                 label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
                 isHidden={privacyMode}
-                labelAccessory={
-                  <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
-                }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined
                 }
@@ -357,6 +370,7 @@ const PerpsProPositionCard = ({
                 )}
                 showEditIcon={canEditMargin}
               />
+              <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
             </Box>
             <Box twClassName="min-w-[128px] gap-6">
               <KeyValueItem
@@ -400,7 +414,7 @@ const PerpsProPositionCard = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 px-2"
+          twClassName="gap-2 px-4"
         >
           <Button
             variant={ButtonVariant.Secondary}
