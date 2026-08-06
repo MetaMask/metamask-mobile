@@ -5,15 +5,17 @@ import Matchers from '../../framework/Matchers';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
-import { Assertions, TapOptions, Utilities } from '../../framework';
+import { Assertions, TapOptions, Utilities, sleep } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
+import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -198,12 +200,6 @@ class TestDApp {
   get revokeAccountPermission(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.REVOKE_ACCOUNTS_PERMISSIONS,
-    );
-  }
-
-  get requestPermissions(): WebElement {
-    return getTestDappWebElementById(
-      TestDappSelectorsWebIDs.REQUEST_PERMISSIONS,
     );
   }
 
@@ -477,6 +473,68 @@ class TestDApp {
     });
   }
 
+  async tapDappConnectButton(timeoutMs = 15_000): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastClickAt = 0;
+
+    while (Date.now() < deadline) {
+      if (Date.now() - lastClickAt >= 1_000) {
+        lastClickAt = Date.now();
+        await ChromeCdpHelpers.evaluateInWebView(
+          testDappPageUrl(),
+          `(() => {
+            const el = document.getElementById(${JSON.stringify(
+              TestDappSelectorsWebIDs.CONNECT_BUTTON,
+            )});
+            if (!el) return false;
+            el.click();
+            return true;
+          })()`,
+        );
+      }
+
+      try {
+        const connectSheetButton = await PlaywrightMatchers.getElementById(
+          ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
+        );
+        await connectSheetButton.unwrap().waitForDisplayed({ timeout: 500 });
+        return;
+      } catch {
+        // Connect sheet not up yet.
+      }
+
+      await sleep(300);
+    }
+
+    throw new Error(
+      `Timed out waiting for connect sheet after #${TestDappSelectorsWebIDs.CONNECT_BUTTON} click`,
+    );
+  }
+
+  async requestPermissions({
+    accounts,
+  }: { accounts?: string[] } = {}): Promise<void> {
+    const request = JSON.stringify({
+      jsonrpc: '2.0',
+      method: 'wallet_requestPermissions',
+      params: [
+        {
+          eth_accounts: accounts
+            ? {
+                caveats: [
+                  { type: 'restrictReturnedAccounts', value: accounts },
+                ],
+              }
+            : {},
+        },
+      ],
+    });
+    await ChromeCdpHelpers.evaluateInWebView(
+      testDappPageUrl(),
+      `window.ethereum.request(${request})`,
+    );
+  }
+
   async tapApproveButton(): Promise<void> {
     await Gestures.waitAndTap(this.approveButtonText, {
       elemDescription: 'Approve Button',
@@ -550,12 +608,6 @@ class TestDApp {
   async tapRevokeAccountPermission(): Promise<void> {
     await this.tapButton(this.revokeAccountPermission, {
       elemDescription: 'Revoke Account Permission Button',
-    });
-  }
-
-  async tapRequestPermissions(): Promise<void> {
-    await this.tapButton(this.requestPermissions, {
-      elemDescription: 'Request Permissions Button',
     });
   }
 

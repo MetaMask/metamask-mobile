@@ -104,6 +104,7 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
     resetPerpsLifecycleContextForTests();
 
     // Restore the default Terminal flag state (enabled) after any per-test override.
@@ -1493,11 +1494,12 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalled();
     });
 
+    const FIXED_TS = new Date('2024-01-01T12:00:00.000Z').getTime();
     const firstUpdate: PriceUpdate = {
       symbol: 'BTC-PERP',
 
       price: '50000',
-      timestamp: Date.now(),
+      timestamp: FIXED_TS,
       isTradable: true,
     };
 
@@ -1514,7 +1516,7 @@ describe('PerpsStreamManager', () => {
       symbol: 'BTC-PERP',
 
       price: '50100',
-      timestamp: Date.now() + 10,
+      timestamp: FIXED_TS + 10,
       isTradable: true,
     };
 
@@ -1522,7 +1524,7 @@ describe('PerpsStreamManager', () => {
       symbol: 'BTC-PERP',
 
       price: '50200',
-      timestamp: Date.now() + 20,
+      timestamp: FIXED_TS + 20,
       isTradable: true,
     };
 
@@ -4170,16 +4172,15 @@ describe('PerpsStreamManager', () => {
   describe('OrderStreamChannel.updateOrderOptimistic', () => {
     let mockOrdersSubscribe: jest.Mock;
     let mockOrdersUnsubscribe: jest.Mock;
-    let orderCallback: ((orders: Order[]) => void) | null = null;
 
     const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
       orderId: 'order-1',
-      symbol: 'BTC',
+      symbol: 'ETH',
       side: 'buy',
       orderType: 'limit',
       size: '1.0',
       originalSize: '1.0',
-      price: '50000',
+      price: '3000',
       filledSize: '0',
       remainingSize: '1.0',
       status: 'open',
@@ -4190,35 +4191,9 @@ describe('PerpsStreamManager', () => {
       ...overrides,
     });
 
-    const seedCachedOrder = async (subscriber: jest.Mock) => {
-      const unsubscribe = testStreamManager.orders.subscribe({
-        callback: subscriber,
-        throttleMs: 0,
-      });
-      await waitFor(() => {
-        expect(mockOrdersSubscribe).toHaveBeenCalled();
-      });
-      act(() => {
-        orderCallback?.([createMockOrder()]);
-      });
-      await waitFor(() => {
-        expect(subscriber).toHaveBeenCalledTimes(1);
-      });
-      subscriber.mockClear();
-      return unsubscribe;
-    };
-
     beforeEach(() => {
-      orderCallback = null;
       mockOrdersUnsubscribe = jest.fn();
-      mockOrdersSubscribe = jest
-        .fn()
-        .mockImplementation(
-          (params: { callback: (orders: Order[]) => void }) => {
-            orderCallback = params.callback;
-            return mockOrdersUnsubscribe;
-          },
-        );
+      mockOrdersSubscribe = jest.fn().mockReturnValue(mockOrdersUnsubscribe);
       mockEngine.context.PerpsController.subscribeToOrders =
         mockOrdersSubscribe;
       mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
@@ -4226,56 +4201,147 @@ describe('PerpsStreamManager', () => {
         .mockReturnValue(false);
     });
 
-    it.each([
-      [
-        'limit price',
-        { limitPrice: '51000' },
-        {
-          orderId: 'order-1',
-          price: '51000',
-          size: '1.0',
-          originalSize: '1.0',
-          remainingSize: '1.0',
+    const seedOrdersAndSubscribe = async (
+      initialOrders: Order[],
+    ): Promise<{
+      callback: jest.Mock;
+      unsubscribe: () => void;
+    }> => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
         },
-      ],
-      [
-        'size',
-        { size: '2.5' },
-        {
-          orderId: 'order-1',
-          price: '50000',
-          size: '2.5',
-          originalSize: '2.5',
-          remainingSize: '2.5',
-        },
-      ],
-    ])('updates %s in cached order', async (_label, edit, expected) => {
-      const subscriber = jest.fn();
-      const unsubscribe = await seedCachedOrder(subscriber);
+      );
 
-      act(() => {
-        testStreamManager.orders.updateOrderOptimistic('order-1', edit);
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
       });
 
-      expect(subscriber).toHaveBeenCalledWith([
-        expect.objectContaining(expected),
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      act(() => {
+        orderCallback?.(initialOrders);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(initialOrders);
+      });
+
+      callback.mockClear();
+      return { callback, unsubscribe };
+    };
+
+    it('updates limit price in the cached order', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
       ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          limitPrice: '3100',
+        });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          price: '3100',
+          size: '1.0',
+        }),
+      ]);
+
       unsubscribe();
     });
 
-    it('skips subscriber notification for no-op edits', async () => {
-      const subscriber = jest.fn();
-      const unsubscribe = await seedCachedOrder(subscriber);
+    it('updates size, originalSize, and remainingSize together', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
 
       act(() => {
-        testStreamManager.orders.updateOrderOptimistic('missing-order', {
-          limitPrice: '51000',
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          size: '2.5',
         });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          size: '2.5',
+          originalSize: '2.5',
+          remainingSize: '2.5',
+          price: '3000',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates price and size in one optimistic patch', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          limitPrice: '3200',
+          size: '1.5',
+        });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          price: '3200',
+          size: '1.5',
+          originalSize: '1.5',
+          remainingSize: '1.5',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('no-ops when neither limitPrice nor size is provided', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
         testStreamManager.orders.updateOrderOptimistic('order-1', {});
       });
 
-      expect(subscriber).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
       unsubscribe();
+    });
+
+    it('no-ops when the order is not in the cache', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('missing-order', {
+          limitPrice: '3100',
+        });
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      unsubscribe();
+    });
+
+    it('no-ops when there is no cached orders list', () => {
+      expect(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          limitPrice: '3100',
+        });
+      }).not.toThrow();
     });
   });
 
