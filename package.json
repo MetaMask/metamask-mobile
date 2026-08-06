@@ -287,7 +287,7 @@
     "@metamask/ens-resolver-snap": "^1.2.0",
     "@metamask/eth-hd-keyring": "^14.1.1",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
-    "@metamask/eth-json-rpc-middleware": "^23.1.2",
+    "@metamask/eth-json-rpc-middleware": "^24.0.0",
     "@metamask/eth-ledger-bridge-keyring": "^12.1.0",
     "@metamask/eth-money-keyring": "^3.0.0",
     "@metamask/eth-qr-keyring": "^2.1.0",
