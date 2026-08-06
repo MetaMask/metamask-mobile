@@ -10,7 +10,6 @@ import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../../../framework/Assertions.js';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper.js';
 import {
-  buildPermissions,
   AnvilPort,
   getDappUrlForFixture,
 } from '../../../../framework/fixtures/FixtureUtils.js';
@@ -46,7 +45,6 @@ function buildIncreaseAllowanceFixture({
       nickname: 'Local RPC',
       ticker: 'ETH',
     })
-    .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
     .build();
 
   fixture.state.browser.tabs[0].url = getDappUrlForFixture(0);
