@@ -5,6 +5,7 @@ import Logger from '../../../../util/Logger';
 import {
   PERPS_CONSTANTS,
   type OrderResult,
+  type OrderType,
   type Position,
   type TrackingData,
 } from '@metamask/perps-controller';
@@ -36,7 +37,7 @@ interface ClosePositionParams {
 
   // Core parameters
   size?: string;
-  orderType?: 'market' | 'limit';
+  orderType?: OrderType;
   limitPrice?: string;
 
   // Tracking data

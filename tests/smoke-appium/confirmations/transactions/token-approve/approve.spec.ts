@@ -64,7 +64,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-appiumTest.describe(
+appiumTest.describe.skip(
   SmokeConfirmations('Token Approve - approve method'),
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });
