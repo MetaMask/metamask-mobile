@@ -16,6 +16,7 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
+  resolveOrderExecution,
 } from './orderUtils';
 import { Order, OrderParams } from '@metamask/perps-controller';
 import { Position } from '../hooks';
@@ -1444,6 +1445,78 @@ describe('orderUtils', () => {
 
         expect(result).toBe(false);
       });
+    });
+
+    describe('Trigger Orders', () => {
+      it('treats a stop market trigger as taker', () => {
+        const result = determineMakerStatus({
+          orderType: 'stop_market',
+          direction: 'long',
+          limitPrice: '49500',
+          bestAsk: 50001,
+          bestBid: 49999,
+          symbol: 'BTC',
+        });
+
+        expect(result).toBe(false);
+      });
+
+      it('treats a take profit market trigger as taker', () => {
+        const result = determineMakerStatus({
+          orderType: 'take_profit_market',
+          direction: 'short',
+          limitPrice: '50500',
+          bestAsk: 50001,
+          bestBid: 49999,
+          symbol: 'BTC',
+        });
+
+        expect(result).toBe(false);
+      });
+
+      it('treats a stop limit trigger resting below the ask as maker', () => {
+        const result = determineMakerStatus({
+          orderType: 'stop_limit',
+          direction: 'long',
+          limitPrice: '49500',
+          bestAsk: 50001,
+          bestBid: 49999,
+          symbol: 'BTC',
+        });
+
+        expect(result).toBe(true);
+      });
+
+      it('treats a take profit limit trigger crossing the book as taker', () => {
+        const result = determineMakerStatus({
+          orderType: 'take_profit_limit',
+          direction: 'long',
+          limitPrice: '50100',
+          bestAsk: 50001,
+          bestBid: 49999,
+          symbol: 'BTC',
+        });
+
+        expect(result).toBe(false);
+      });
+    });
+  });
+
+  describe('resolveOrderExecution', () => {
+    it.each([
+      ['market', 'market'],
+      ['stop_market', 'market'],
+      ['take_profit_market', 'market'],
+    ] as const)('resolves %s to market execution', (orderType, expected) => {
+      expect(resolveOrderExecution(orderType)).toBe(expected);
+    });
+
+    it.each([
+      ['limit', 'limit'],
+      ['stop_limit', 'limit'],
+      ['take_profit_limit', 'limit'],
+    ] as const)('resolves %s to limit execution', (orderType, expected) => {
+      expect(resolveOrderExecution(orderType)).toBe(expected);
     });
   });
 

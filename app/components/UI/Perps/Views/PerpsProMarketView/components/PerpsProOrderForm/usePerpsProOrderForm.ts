@@ -58,7 +58,10 @@ import {
   buildPerpsOrderTrackingData,
 } from '../../../../utils/orderParams';
 import { deriveOrderSizing } from '../../../../utils/orderSizing';
-import { willFlipPosition } from '../../../../utils/orderUtils';
+import {
+  resolveOrderExecution,
+  willFlipPosition,
+} from '../../../../utils/orderUtils';
 import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
 import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
@@ -351,16 +354,16 @@ export const usePerpsProOrderForm = ({
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: () => {
       showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].confirmed(
-          orderForm.direction,
-          positionSize,
-          orderForm.asset,
-        ),
+        PerpsToastOptions.orderManagement[
+          resolveOrderExecution(orderForm.type)
+        ].confirmed(orderForm.direction, positionSize, orderForm.asset),
       );
     },
     onError: (error) => {
       showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].creationFailed(error),
+        PerpsToastOptions.orderManagement[
+          resolveOrderExecution(orderForm.type)
+        ].creationFailed(error),
       );
     },
   });
@@ -485,11 +488,9 @@ export const usePerpsProOrderForm = ({
       });
 
       showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].submitted(
-          orderForm.direction,
-          positionSize,
-          orderForm.asset,
-        ),
+        PerpsToastOptions.orderManagement[
+          resolveOrderExecution(orderForm.type)
+        ].submitted(orderForm.direction, positionSize, orderForm.asset),
       );
 
       const shouldHandleTPSLSeparately =

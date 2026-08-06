@@ -240,7 +240,7 @@ export type PerpsStackParamList = {
     initialTakeProfitPrice?: string;
     initialStopLossPrice?: string;
     leverage?: number;
-    orderType?: 'market' | 'limit';
+    orderType?: OrderType;
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L

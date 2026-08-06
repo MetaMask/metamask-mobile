@@ -1,9 +1,12 @@
 import { capitalize } from 'lodash';
 import {
+  isLimitExecutionOrderType,
   isTPSLOrder,
+  type OrderExecution,
   type OrderParams,
   type Order,
   type OrderDirection,
+  type OrderType,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
@@ -685,16 +688,31 @@ export const getOrderLabelDirection = (order: Order): string => {
 };
 
 /**
+ * Resolves an order placement type onto how it executes.
+ *
+ * `OrderType` covers six placement types, but the copy and toasts a user sees
+ * only distinguish two outcomes: an order that fills against the book, and one
+ * that rests on it. Trigger placements follow their suffix — `stop_limit` and
+ * `take_profit_limit` execute as limit orders, `stop_market` and
+ * `take_profit_market` as market orders.
+ *
+ * @param orderType - The order placement type
+ * @returns How the order executes once it is live
+ */
+export const resolveOrderExecution = (orderType: OrderType): OrderExecution =>
+  isLimitExecutionOrderType(orderType) ? 'limit' : 'market';
+
+/**
  * Determines if a limit order will likely be a maker or taker.
  *
  * Logic:
  * 1. Validates price data freshness and market state
- * 2. Market orders are always taker
+ * 2. Market-executing orders are always taker
  * 3. Limit orders that would execute immediately are taker
  * 4. Limit orders that go into order book are maker
  *
  * @param params - Order parameters
- * @param params.orderType - The order type (market or limit)
+ * @param params.orderType - The order placement type
  * @param params.limitPrice - The limit price for limit orders
  * @param params.direction - The order direction (long or short)
  * @param params.bestAsk - The best ask price from order book
@@ -705,7 +723,7 @@ export const getOrderLabelDirection = (order: Order): string => {
  */
 export function determineMakerStatus(
   params: {
-    orderType: 'market' | 'limit';
+    orderType: OrderType;
     limitPrice?: string;
     direction: 'long' | 'short';
     bestAsk?: number;
@@ -715,8 +733,10 @@ export function determineMakerStatus(
   debugLogger?: OrderUtilsDebugLogger,
 ): boolean {
   const { orderType, limitPrice, direction, bestAsk, bestBid, symbol } = params;
-  // Market orders are always taker
-  if (orderType === 'market') {
+  // Only an order that executes as a limit order can rest on the book and earn
+  // the maker fee. Market orders, and trigger orders that fire as market orders,
+  // are always taker.
+  if (!isLimitExecutionOrderType(orderType)) {
     return false;
   }
 
