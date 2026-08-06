@@ -1109,7 +1109,7 @@ describe('WalletConnect2Session', () => {
         }),
       }));
 
-      const requestId = Math.floor(Math.random() * 1000000);
+      const requestId = 111111;
       const request: WalletKitTypes.SessionRequest = {
         id: requestId,
         topic: mockSession.topic,
@@ -1156,7 +1156,7 @@ describe('WalletConnect2Session', () => {
         }),
       }));
 
-      const requestId = Math.floor(Math.random() * 1000000);
+      const requestId = 222222;
       const oversizedData = '0x' + 'aa'.repeat(105 * 1024);
       const request: WalletKitTypes.SessionRequest = {
         id: requestId,
