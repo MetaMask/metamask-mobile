@@ -520,6 +520,9 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_ROW: 'perps-pro-market-position-row',
   ORDERS_LIST: 'perps-pro-market-orders-list',
   ORDER_CANCEL: 'perps-pro-market-order-cancel',
+  ORDER_EDIT: 'perps-pro-market-order-edit',
+  ORDER_PRICE_EDIT: 'perps-pro-market-order-price-edit',
+  ORDER_SIZE_EDIT: 'perps-pro-market-order-size-edit',
   ORDER_ROW: 'perps-pro-market-order-row',
   ORDER_TYPE: 'perps-pro-market-order-type',
 };
@@ -539,10 +542,17 @@ export const PerpsProOrderFormSelectorsIDs = {
   LEVERAGE_BUTTON: 'perps-pro-order-form-leverage',
   ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
+  LIMIT_PRICE_PREFIX: 'perps-pro-order-form-limit-price-prefix',
   MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
+  MARGIN_SETTINGS_ROW: 'perps-pro-order-form-margin-settings',
+  SIZE_CARD: 'perps-pro-order-form-size-card',
+  SIZE_FIELD: 'perps-pro-order-form-size-field',
   SIZE_INPUT: 'perps-pro-order-form-size-input',
+  SIZE_PREFIX: 'perps-pro-order-form-size-prefix',
   SIZE_SLIDER: 'perps-pro-order-form-size-slider',
+  SIZE_SLIDER_SECTION: 'perps-pro-order-form-size-slider-section',
   SIZE_UNIT_BUTTON: 'perps-pro-order-form-size-unit',
+  SIZE_UNIT_LABEL: 'perps-pro-order-form-size-unit-label',
   KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
   AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
   ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
@@ -569,6 +579,9 @@ export const PerpsMarketHeaderSelectorsIDs = {
   BACK_BUTTON: 'perps-market-header-back-button',
   ASSET_ICON: 'perps-market-header-asset-icon',
   ASSET_NAME: 'perps-market-header-asset-name',
+  /** Compact header price shown while scrolling (distinct from summary row). */
+  COMPACT_PRICE: 'perps-market-header-compact-price',
+  COMPACT_PRICE_CHANGE: 'perps-market-header-compact-price-change',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
   MORE_BUTTON: 'perps-market-header-more-button',
@@ -810,6 +823,11 @@ export const PerpsLimitPriceBottomSheetSelectorsIDs = {
   PRESET_BID: 'perps-limit-price-preset-bid',
   PRESET_ASK: 'perps-limit-price-preset-ask',
   PRESET_PERCENT: 'perps-limit-price-preset-',
+};
+
+export const PerpsOrderSizeBottomSheetSelectorsIDs = {
+  SIZE_DISPLAY: 'perps-order-size-display',
+  CONFIRM_BUTTON: 'perps-order-size-confirm-button',
 };
 
 // ========================================
