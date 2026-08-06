@@ -50,7 +50,7 @@ const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
 const buildAvailableResult = (holdings: string) => ({
   available: true,
   multiplier: '1.0889',
-  eligible: true,
+  state: 'active' as const,
   progressPercent: 44.4,
   tierNumber: 6,
   tierName: 'VIP 6',
@@ -58,8 +58,7 @@ const buildAvailableResult = (holdings: string) => ({
   computedAt: '2026-08-04T00:00:00.000Z',
   localizedText: {
     title: 'Estimated equity multiplier',
-    eligibleDescription: 'ok',
-    ineligibleDescription: 'no',
+    description: '1.09x active. Accumulate more mUSD to increase.',
   },
 });
 

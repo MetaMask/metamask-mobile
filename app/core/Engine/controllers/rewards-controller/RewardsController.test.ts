@@ -7483,6 +7483,8 @@ describe('RewardsController', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
+        equityMultiplierFailedTitle: 'Estimate failed',
+        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
       ...overrides,
     });
@@ -7750,7 +7752,7 @@ describe('RewardsController', () => {
     const createMockEquityMultiplier = (overrides = {}) => ({
       available: true as const,
       multiplier: '1.0889',
-      eligible: true,
+      state: 'active' as const,
       progressPercent: 44.444444,
       capUsd: '10000000',
       tierNumber: 6,
@@ -7758,9 +7760,7 @@ describe('RewardsController', () => {
       computedAt: '2099-06-30T14:52:00.000Z',
       localizedText: {
         title: 'Estimated equity multiplier',
-        eligibleDescription: '1.09x active. Accumulate more mUSD to increase.',
-        ineligibleDescription:
-          'Not active. Accumulate over $1M mUSD to activate.',
+        description: '1.09x active. Accumulate more mUSD to increase.',
       },
       ...overrides,
     });
@@ -10892,6 +10892,8 @@ describe('RewardsController', () => {
                 equityLockedDescription: 'Body copy',
                 equityUnlockedTitle: 'VIP allocation unlocked',
                 equityUnlockedDescription: 'Unlocked body copy',
+                equityMultiplierFailedTitle: 'Estimate failed',
+                equityMultiplierFailedDescription: 'Estimate failed body copy',
               },
               lastFetched: 123,
             },

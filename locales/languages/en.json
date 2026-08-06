@@ -9660,8 +9660,6 @@
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
-      "equity_multiplier_fallback_title": "Equity multiplier",
-      "equity_multiplier_error_description": "We couldn't estimate this right now.",
       "tiers_title": "Tiers",
       "tier_thresholds": "{{points}} points",
       "maintain_threshold_label": "Maintain threshold",

@@ -2,7 +2,13 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { Hex, parseCaipAccountId } from '@metamask/utils';
+import {
+  toMultichainAccountGroupId,
+  toMultichainAccountWalletId,
+} from '@metamask/account-api';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
+import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import {
   MUSD_DECIMALS,
@@ -36,8 +42,8 @@ export interface UseSubscriptionLinkedMusdHoldingsResult {
  *
  * Sums wallet mUSD across {@link VIP_MUSD_HOLDINGS_CHAIN_IDS} for opted-in
  * on-device subscription EVM addresses, plus the primary Money Account total
- * (mUSD + vmUSD) — but only when that Money Account is itself tied to the
- * current subscription.
+ * (mUSD + vmUSD) — but only when the EVM account in that Money Account's
+ * multichain account group is tied to the current subscription.
  *
  * Gaps (accepted): off-device linked accounts, non-primary Money Accounts,
  * unpolled token balances, not time-weighted. Display-only — never settlement
@@ -47,12 +53,14 @@ export const useSubscriptionLinkedMusdHoldings =
   (): UseSubscriptionLinkedMusdHoldingsResult => {
     const subscriptionAccounts = useSelector(selectCurrentSubscriptionAccounts);
     const allTokenBalances = useSelector(selectAllTokenBalances);
+    const internalAccountsByGroupId = useSelector(
+      selectInternalAccountsByGroupId,
+    );
     const {
       isMoneyAccountFeatureEnabled,
       hasMoneyAccount,
       primaryMoneyAccount,
     } = useMoneyAccountInfo();
-
     const moneyAccountAddress = primaryMoneyAccount?.address?.toLowerCase();
 
     /**
@@ -81,16 +89,43 @@ export const useSubscriptionLinkedMusdHoldings =
     }, [subscriptionAccounts]);
 
     /**
-     * The Money Account balance only counts when that account is itself opted
-     * in and tied to the current subscription. Without this check an unlinked
-     * Money Account would credit a program-facing figure with a balance the
-     * program does not recognise — the mirror of the wallet-side opt-in filter.
+     * The EVM account sharing the Money Account's multichain account group.
+     *
+     * Rewards opt-in happens on that EVM account, never on the Money Account
+     * address — the latter is derived on the Money derivation path and is not
+     * something the user can link — so the Money Account's own address is
+     * absent from the subscription and cannot be the thing we check.
+     */
+    const moneyAccountGroupEvmAddress = useMemo(() => {
+      const entropy = primaryMoneyAccount?.options?.entropy;
+      if (!entropy) {
+        return undefined;
+      }
+      const groupId = toMultichainAccountGroupId(
+        toMultichainAccountWalletId(entropy.id),
+        entropy.groupIndex,
+      );
+      return internalAccountsByGroupId(groupId)
+        .find(
+          (account) =>
+            isEvmAccountType(account.type) &&
+            account.address.toLowerCase() !== moneyAccountAddress,
+        )
+        ?.address.toLowerCase();
+    }, [primaryMoneyAccount, moneyAccountAddress, internalAccountsByGroupId]);
+
+    /**
+     * The Money Account balance only counts when the EVM account it belongs to
+     * is opted in and tied to the current subscription. Without this check an
+     * unlinked Money Account would credit a program-facing figure with a
+     * balance the program does not recognise — the mirror of the wallet-side
+     * opt-in filter.
      */
     const includeMoneyAccountBalance =
       isMoneyAccountFeatureEnabled &&
       hasMoneyAccount &&
-      moneyAccountAddress !== undefined &&
-      linkedEvmAddresses.has(moneyAccountAddress);
+      moneyAccountGroupEvmAddress !== undefined &&
+      linkedEvmAddresses.has(moneyAccountGroupEvmAddress);
 
     const {
       totalFiatRaw,

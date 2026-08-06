@@ -1,5 +1,4 @@
 import React from 'react';
-import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -14,6 +13,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useVipEquityMultiplier } from '../../hooks/useVipEquityMultiplier';
 import { formatCompactUsd } from '../../utils/formatUtils';
+import RewardsErrorBanner from '../RewardsErrorBanner';
 import VipCircularProgress from './VipCircularProgress';
 
 export const VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS = {
@@ -24,7 +24,6 @@ export const VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS = {
   RADIAL_LABEL: 'vip-equity-multiplier-radial-label',
   SKELETON: 'vip-equity-multiplier-skeleton',
   ERROR: 'vip-equity-multiplier-error',
-  RETRY: 'vip-equity-multiplier-retry',
 } as const;
 
 const parseUsdOrZero = (value: string | undefined): number => {
@@ -32,18 +31,31 @@ const parseUsdOrZero = (value: string | undefined): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+interface VipEquityMultiplierSectionProps {
+  /**
+   * Failure copy from the VIP dashboard payload. The multiplier request cannot
+   * supply copy for its own failure, and the dashboard succeeded independently.
+   */
+  failedTitle: string;
+  failedDescription: string;
+}
+
 /**
  * Display-only equity multiplier section. Server owns eligibility, formula,
  * and copy. Never derives unlock from pointsAllocation / isEquityUnlocked.
+ * `localizedText` arrives resolved for the current state, so it is rendered
+ * flat — branching on `state` here would mean a release for any new state.
  *
  * Renders four ways. `hidden` — not enrolled, VIP off, or no band configured;
  * nothing is drawn. `loading` — a skeleton keeps the block's height stable
  * rather than shifting the page when the estimate lands. `error` — shown
  * explicitly so a transient failure is distinguishable from "you do not
- * qualify", falling back to local copy because a failed request returns no
- * server strings. `ready` — server copy plus the holdings radial.
+ * qualify". `ready` — server copy plus the holdings radial.
  */
-const VipEquityMultiplierSection: React.FC = () => {
+const VipEquityMultiplierSection: React.FC<VipEquityMultiplierSectionProps> = ({
+  failedTitle,
+  failedDescription,
+}) => {
   const tw = useTailwind();
   const { status, data, holdingsUsd, retry } = useVipEquityMultiplier();
 
@@ -75,41 +87,21 @@ const VipEquityMultiplierSection: React.FC = () => {
 
   if (status === 'error') {
     return (
-      <Pressable
-        onPress={retry}
-        testID={VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS.ERROR}
-      >
-        <Box twClassName="gap-3 px-4">
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            testID={VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS.TITLE}
-          >
-            {strings('rewards.vip.equity_multiplier_fallback_title')}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('rewards.vip.equity_multiplier_error_description')}
-          </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
-            testID={VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS.RETRY}
-          >
-            {strings('rewards.vip.retry_button')}
-          </Text>
-        </Box>
-      </Pressable>
+      <Box twClassName="px-4">
+        <RewardsErrorBanner
+          title={failedTitle}
+          description={failedDescription}
+          onConfirm={retry}
+          confirmButtonLabel={strings('rewards.vip.retry_button')}
+          testID={VIP_EQUITY_MULTIPLIER_SECTION_TEST_IDS.ERROR}
+        />
+      </Box>
     );
   }
 
   if (!data) {
     return null;
   }
-
-  const description = data.eligible
-    ? data.localizedText.eligibleDescription
-    : data.localizedText.ineligibleDescription;
 
   const holdingsValue = parseUsdOrZero(holdingsUsd);
   const capValue = parseUsdOrZero(data.capUsd);
@@ -133,7 +125,7 @@ const VipEquityMultiplierSection: React.FC = () => {
             {data.localizedText.title}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {description}
+            {data.localizedText.description}
           </Text>
         </Box>
         <VipCircularProgress

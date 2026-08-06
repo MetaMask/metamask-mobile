@@ -4488,6 +4488,8 @@ describe('RewardsDataService', () => {
         equityLockedDescription: 'Body copy',
         equityUnlockedTitle: 'VIP allocation unlocked',
         equityUnlockedDescription: 'Unlocked body copy',
+        equityMultiplierFailedTitle: 'Estimate failed',
+        equityMultiplierFailedDescription: 'Estimate failed body copy',
       },
     };
 
@@ -4559,7 +4561,7 @@ describe('RewardsDataService', () => {
       const payload = {
         available: true as const,
         multiplier: '1.0889',
-        eligible: true,
+        state: 'active' as const,
         progressPercent: 44.4,
         tierNumber: 6,
         tierName: 'VIP 6',
@@ -4567,8 +4569,7 @@ describe('RewardsDataService', () => {
         computedAt: '2099-06-30T14:52:00.000Z',
         localizedText: {
           title: 'Estimated equity multiplier',
-          eligibleDescription: 'ok',
-          ineligibleDescription: 'no',
+          description: '1.09x active. Accumulate more mUSD to increase.',
         },
       };
       mockFetch.mockResolvedValue({

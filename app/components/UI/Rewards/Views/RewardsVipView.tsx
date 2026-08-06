@@ -457,7 +457,14 @@ const RewardsVipViewContent: React.FC = () => {
                   dashboard.localizedText.equityUnlockedDescription
                 }
               />
-              <VipEquityMultiplierSection />
+              <VipEquityMultiplierSection
+                failedTitle={
+                  dashboard.localizedText.equityMultiplierFailedTitle
+                }
+                failedDescription={
+                  dashboard.localizedText.equityMultiplierFailedDescription
+                }
+              />
             </>
           ) : null}
         </ScrollView>

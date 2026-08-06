@@ -14,6 +14,8 @@ const ACCOUNT_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const ACCOUNT_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 const MONEY_ACCOUNT = '0xcccccccccccccccccccccccccccccccccccccccc';
 const SUBSCRIPTION_ID = 'sub-1';
+const ENTROPY_ID = '01KZ7YVDCZQQRMF9AX03SFE7SS';
+const MONEY_GROUP_ID = `entropy:${ENTROPY_ID}/0`;
 
 jest.mock('../../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
@@ -27,6 +29,7 @@ jest.mock('../../Earn/constants/musd', () => ({
 
 const mockSubscriptionAccounts = jest.fn();
 const mockTokenBalances = jest.fn();
+const mockInternalAccountsByGroupId = jest.fn();
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectCurrentSubscriptionAccounts: 'selectCurrentSubscriptionAccounts',
@@ -36,6 +39,10 @@ jest.mock('../../../../selectors/tokenBalancesController', () => ({
   selectAllTokenBalances: 'selectAllTokenBalances',
 }));
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectInternalAccountsByGroupId: 'selectInternalAccountsByGroupId',
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: string) => {
     switch (selector) {
@@ -43,6 +50,8 @@ jest.mock('react-redux', () => ({
         return mockSubscriptionAccounts();
       case 'selectAllTokenBalances':
         return mockTokenBalances();
+      case 'selectInternalAccountsByGroupId':
+        return mockInternalAccountsByGroupId();
       default:
         return undefined;
     }
@@ -73,11 +82,42 @@ const linkedAccount = (address: string) => ({
   subscriptionId: SUBSCRIPTION_ID,
 });
 
+const evmAccount = (address: string) => ({ address, type: 'eip155:eoa' });
+
+/**
+ * Provisions a primary Money Account whose multichain account group holds the
+ * Money Account itself plus, when given, the EVM account the user opts in with.
+ */
+const withMoneyAccount = (groupEvmAddress?: string) => {
+  mockMoneyAccountInfo.mockReturnValue({
+    isMoneyAccountFeatureEnabled: true,
+    hasMoneyAccount: true,
+    primaryMoneyAccount: {
+      address: MONEY_ACCOUNT,
+      type: 'eip155:eoa',
+      options: {
+        entropy: { type: 'mnemonic', id: ENTROPY_ID, groupIndex: 0 },
+      },
+    },
+  });
+  mockInternalAccountsByGroupId.mockReturnValue((groupId: string) =>
+    groupId === MONEY_GROUP_ID
+      ? [
+          // Money Account first: it is EVM-typed too, so resolution must skip
+          // it rather than take the first EVM account in the group.
+          evmAccount(MONEY_ACCOUNT),
+          ...(groupEvmAddress ? [evmAccount(groupEvmAddress)] : []),
+        ]
+      : [],
+  );
+};
+
 describe('useSubscriptionLinkedMusdHoldings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
     mockTokenBalances.mockReturnValue({});
+    mockInternalAccountsByGroupId.mockReturnValue(() => []);
     mockMoneyAccountInfo.mockReturnValue({
       isMoneyAccountFeatureEnabled: false,
       hasMoneyAccount: false,
@@ -211,21 +251,14 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
     expect(result.current.holdingsUsd).toBe('105');
   });
 
-  it('adds the Money Account total when it is linked to the subscription', () => {
-    mockSubscriptionAccounts.mockReturnValue([
-      linkedAccount(ACCOUNT_A),
-      linkedAccount(MONEY_ACCOUNT),
-    ]);
+  it('adds the Money Account total when its account group EVM account is linked', () => {
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
     mockTokenBalances.mockReturnValue({
       [ACCOUNT_A]: {
         [ETH_CHAIN_ID]: { [MUSD_ETH]: musdMinimalUnits(1000) },
       },
     });
-    mockMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-      primaryMoneyAccount: { address: MONEY_ACCOUNT },
-    });
+    withMoneyAccount(ACCOUNT_A);
     mockMoneyAccountBalance.mockReturnValue({
       totalFiatRaw: '250.5',
       isBalanceLoading: false,
@@ -255,11 +288,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
         [ETH_CHAIN_ID]: { [MUSD_ETH]: musdMinimalUnits(25) },
       },
     });
-    mockMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-      primaryMoneyAccount: { address: MONEY_ACCOUNT },
-    });
+    withMoneyAccount(ACCOUNT_A);
     mockMoneyAccountBalance.mockReturnValue({
       totalFiatRaw: '900',
       isBalanceLoading: false,
@@ -273,18 +302,14 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
     expect(result.current.holdingsUsd).toBe('1025');
   });
 
-  it('ignores the Money Account balance when it is not linked to the subscription', () => {
-    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
+  it('ignores the Money Account balance when its account group EVM account is not linked', () => {
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_B)]);
     mockTokenBalances.mockReturnValue({
-      [ACCOUNT_A]: {
+      [ACCOUNT_B]: {
         [ETH_CHAIN_ID]: { [MUSD_ETH]: musdMinimalUnits(15) },
       },
     });
-    mockMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-      primaryMoneyAccount: { address: MONEY_ACCOUNT },
-    });
+    withMoneyAccount(ACCOUNT_A);
     mockMoneyAccountBalance.mockReturnValue({
       totalFiatRaw: '999',
       isBalanceLoading: false,
@@ -298,13 +323,41 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
     expect(result.current.hasError).toBe(false);
   });
 
-  it('reports loading while a linked Money Account balance is in flight', () => {
+  it('ignores the Money Account balance when only its own address is opted in', () => {
+    // Opt-in never happens on the Money Account address, so it linking on its
+    // own must not qualify the balance.
     mockSubscriptionAccounts.mockReturnValue([linkedAccount(MONEY_ACCOUNT)]);
-    mockMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-      primaryMoneyAccount: { address: MONEY_ACCOUNT },
+    withMoneyAccount(ACCOUNT_A);
+    mockMoneyAccountBalance.mockReturnValue({
+      totalFiatRaw: '999',
+      isBalanceLoading: false,
+      isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
     });
+
+    const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
+
+    expect(result.current.holdingsUsd).toBe('0');
+  });
+
+  it('ignores the Money Account balance when its account group has no EVM account', () => {
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
+    withMoneyAccount();
+    mockMoneyAccountBalance.mockReturnValue({
+      totalFiatRaw: '999',
+      isBalanceLoading: false,
+      isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
+    });
+
+    const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
+
+    expect(result.current.holdingsUsd).toBe('0');
+  });
+
+  it('reports loading while a linked Money Account balance is in flight', () => {
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
+    withMoneyAccount(ACCOUNT_A);
     mockMoneyAccountBalance.mockReturnValue({
       totalFiatRaw: undefined,
       isBalanceLoading: true,
@@ -320,12 +373,8 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
   });
 
   it('reports an error when a linked Money Account balance fetch fails', () => {
-    mockSubscriptionAccounts.mockReturnValue([linkedAccount(MONEY_ACCOUNT)]);
-    mockMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-      primaryMoneyAccount: { address: MONEY_ACCOUNT },
-    });
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
+    withMoneyAccount(ACCOUNT_A);
     mockMoneyAccountBalance.mockReturnValue({
       totalFiatRaw: undefined,
       isBalanceLoading: false,
@@ -376,12 +425,8 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
   });
 
   it('refetches the Money Account balance on retry when it is linked', () => {
-    mockSubscriptionAccounts.mockReturnValue([linkedAccount(MONEY_ACCOUNT)]);
-    mockMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-      primaryMoneyAccount: { address: MONEY_ACCOUNT },
-    });
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
+    withMoneyAccount(ACCOUNT_A);
     mockMoneyAccountBalance.mockReturnValue({
       totalFiatRaw: undefined,
       isBalanceLoading: false,
@@ -396,12 +441,8 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
   });
 
   it('does not refetch the Money Account balance when it is not counted', () => {
-    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
-    mockMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
-      hasMoneyAccount: true,
-      primaryMoneyAccount: { address: MONEY_ACCOUNT },
-    });
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_B)]);
+    withMoneyAccount(ACCOUNT_A);
 
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
     result.current.retry();
