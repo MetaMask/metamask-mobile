@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook';
-import { PRO_ORDER_BOOK_SEPARATOR_INSET } from './PerpsProMarketLayout.styles';
+import { PRO_ORDER_BOOK_COLLAPSE_GUTTER_OFFSET } from './PerpsProOrderBookPanel.styles';
 
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
@@ -264,7 +264,7 @@ describe('PerpsProOrderBookPanel', () => {
       justifyContent: 'space-between',
     });
     expect(leading).toHaveStyle({
-      marginLeft: -PRO_ORDER_BOOK_SEPARATOR_INSET,
+      marginLeft: -PRO_ORDER_BOOK_COLLAPSE_GUTTER_OFFSET,
     });
     expect(
       within(leading).getByTestId(
