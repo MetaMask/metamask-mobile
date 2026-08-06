@@ -16,8 +16,8 @@ import Avatar, {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import {
   BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -225,10 +225,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <HeaderStandard
-              title={selectorTitle}
-              onClose={() => closeAccountSheet()}
-            />
+            <BottomSheetHeader onClose={() => closeAccountSheet()}>
+              {selectorTitle}
+            </BottomSheetHeader>
             <View style={styles.modalSheetBody}>
               <MultichainAccountSelectorList
                 selectedAccountGroups={

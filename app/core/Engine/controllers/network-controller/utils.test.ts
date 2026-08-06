@@ -424,6 +424,8 @@ function setQuicknodeEnvironmentVariables() {
   process.env.QUICKNODE_ARC_URL = 'https://example.quicknode.com/arc';
   process.env.QUICKNODE_ROBINHOOD_URL =
     'https://example.quicknode.com/robinhood';
+  process.env.QUICKNODE_ZKSYNC_URL = 'https://example.quicknode.com/zksync';
+  process.env.QUICKNODE_MEGAETH_URL = 'https://example.quicknode.com/megaeth';
 }
 
 /**

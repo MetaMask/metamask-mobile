@@ -154,6 +154,69 @@ describe('PredictAnalytics', () => {
       expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
     });
 
+    it('tracks Trade Completed after Predict Trade Transaction with matching properties', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: 150,
+        sharePrice: 0.63,
+        completionDuration: 1832,
+        orderType: 'FOK',
+        analyticsProperties: {
+          marketId: 'm1',
+          marketTitle: 'Will Team A win?',
+          entryPoint: 'predict_feed',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+          outcome: 'yes',
+        },
+      });
+
+      const predictTradeEvent = getTrackedEvent();
+      const tradeCompletedEvent = getTrackedEvent(1);
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
+      expect(predictTradeEvent.name).toBe(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION.category,
+      );
+      expect(tradeCompletedEvent.name).toBe(
+        MetaMetricsEvents.TRADE_COMPLETED.category,
+      );
+      expect(tradeCompletedEvent.properties).toEqual({
+        ...predictTradeEvent.properties,
+        trade_type: 'predict',
+        implementation_type: 'native',
+      });
+      expect(tradeCompletedEvent.sensitiveProperties).toEqual({
+        ...predictTradeEvent.sensitiveProperties,
+        usd_trade_value: 150,
+      });
+    });
+
+    it('does not track Trade Completed for a succeeded Predict deposit', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: 150,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        },
+      });
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not track Trade Completed without a USD trade value', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+      });
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
+    });
+
     it('tracks failed status with completionDuration and failureReason', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.FAILED,
