@@ -31,17 +31,22 @@ interface PayFeeToken {
 }
 
 /**
- * MetaMask Pay's pre-aggregated fiat fees are the only fee source for a
- * Pay-routed row: it carries no token-denominated `data.fees`.
+ * Pay's pre-aggregated fiat is the only fee source for a Pay-routed row, which
+ * carries no token-denominated `data.fees`.
+ *
+ * @param pay - Metadata to inspect.
+ * @returns Whether any fiat value is recorded.
  */
 function hasPayFiat(pay: MetamaskPayMetadata | undefined): boolean {
   return Boolean(pay?.networkFeeFiat || pay?.bridgeFeeFiat || pay?.totalFiat);
 }
 
 /**
- * A row's Pay fiat metadata, or `undefined` when nothing would render — what
- * templates gate their divider on. Fiat rather than fees: a `totalFiat`-only
- * row still renders.
+ * Gated on fiat rather than fees, so a `totalFiat`-only row still renders.
+ *
+ * @param item - Row to resolve.
+ * @returns The row's Pay metadata, or `undefined` when no fee section would
+ * render — what templates gate their divider on.
  */
 export function useActivityPayFiat(
   item: ActivityListItem,

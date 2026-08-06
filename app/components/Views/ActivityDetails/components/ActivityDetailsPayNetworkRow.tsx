@@ -8,22 +8,16 @@ import { ActivityDetailRow } from './ActivityDetailsLayout';
 import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 
 /**
- * The Network row for a MetaMask-Pay-routed funding activity (Perps and Predict
- * deposits/withdrawals).
+ * Network row for a Perps or Predict funding activity.
  *
- * `item.chainId` cannot back this row. Those rows come from a provider feed with
- * no CAIP-2 of its own, so the list injects the provider's settlement chain —
- * Arbitrum for HyperLiquid, Polygon for Polymarket — which is a constant, not
- * the network the user transacted on. So:
+ * Names `metamaskPay.chainId` rather than `item.chainId`, which is the
+ * provider's settlement chain (Arbitrum, Polygon) injected by the Activity list,
+ * not where the user paid. Deposits show no network: they span the payment chain
+ * and the settlement chain, and the step timeline already names both.
  *
- * Deposits render no row at all, per the Activity redesign. A Pay deposit spans
- * two chains (the payment chain, then the provider's settlement chain), so one
- * network can't name it, and `item.chainId` is the less informative of the two.
- * The step timeline already names both legs.
- *
- * Everything else reads `metamaskPay.chainId` — the chain Pay actually moved the
- * funds on — falling back to the row's own chain when Pay didn't route it (a
- * direct, same-chain funds movement).
+ * @param props.item - Row to name the network for.
+ * @param props.isDeposit - Whether the row is a deposit.
+ * @returns The Network row, or `null` for a deposit.
  */
 export function ActivityDetailsPayNetworkRow({
   item,

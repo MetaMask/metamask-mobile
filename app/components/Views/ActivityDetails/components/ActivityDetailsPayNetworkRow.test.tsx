@@ -9,6 +9,9 @@ import { ActivityDetailsPayNetworkRow } from './ActivityDetailsPayNetworkRow';
 /**
  * A provider-backed funds row. `chainId` is the settlement chain the Activity
  * list injects for HyperLiquid (Arbitrum), not a chain the user chose.
+ *
+ * @param overrides - Fields to replace on the base row.
+ * @returns The activity row.
  */
 function payItem(overrides: Partial<ActivityListItem> = {}): ActivityListItem {
   return {
@@ -23,7 +26,10 @@ function payItem(overrides: Partial<ActivityListItem> = {}): ActivityListItem {
   } as unknown as ActivityListItem;
 }
 
-/** A row whose own local transaction carries the Pay metadata. */
+/**
+ * @param payChainId - Chain the local transaction records as the payment chain.
+ * @returns A row whose own local transaction carries the Pay metadata.
+ */
 function localPayItem(payChainId: string): ActivityListItem {
   return payItem({
     raw: {
@@ -43,8 +49,10 @@ function localPayItem(payChainId: string): ActivityListItem {
 
 /**
  * Real network configurations, so chain ids resolve to names rather than falling
- * back to the raw id. `transactions` optionally supplies the local transaction a
- * provider-backed row is matched to by hash.
+ * back to the raw id.
+ *
+ * @param transactions - Local transactions a provider-backed row can match by hash.
+ * @returns Redux state for the render.
  */
 function stateWithNetworks(transactions: TransactionMeta[] = []) {
   return {
@@ -60,6 +68,11 @@ function stateWithNetworks(transactions: TransactionMeta[] = []) {
   };
 }
 
+/**
+ * @param hash - Hash the activity row is matched by.
+ * @param payChainId - Chain the transaction records as the payment chain.
+ * @returns A local transaction carrying Pay metadata.
+ */
 function payTransaction(hash: string, payChainId: string): TransactionMeta {
   return {
     id: 'perps-withdraw-tx',
@@ -71,8 +84,6 @@ function payTransaction(hash: string, payChainId: string): TransactionMeta {
 
 describe('ActivityDetailsPayNetworkRow', () => {
   it('renders no row at all for a deposit', () => {
-    // Pay can source a deposit from any combination of chains, so the redesign
-    // omits the row rather than naming one.
     const { queryByTestId, queryByText } = renderWithProvider(
       <ActivityDetailsPayNetworkRow item={localPayItem('0x1')} isDeposit />,
       { state: stateWithNetworks() },

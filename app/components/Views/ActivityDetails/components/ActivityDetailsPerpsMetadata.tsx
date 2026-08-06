@@ -16,8 +16,12 @@ import {
 } from './ActivityDetailsPerps.utils';
 
 /**
- * Metadata for a perps deposit/withdrawal. `isDeposit` drives the Network row —
+ * Metadata block for a perps deposit/withdrawal.
+ *
+ * @param props.item - Row to render metadata for.
+ * @param props.isDeposit - Whether the row is a deposit; drives the Network row,
  * see {@link ActivityDetailsPayNetworkRow}.
+ * @returns The status, date, account and network rows.
  */
 export function ActivityDetailsPerpsMetadata({
   item,

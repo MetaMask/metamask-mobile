@@ -5,7 +5,10 @@ import type { RootState } from '../../../../reducers';
 import { selectTransactionMetadataByHash } from '../../../../selectors/transactionController';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 
-/** MetaMask Pay metadata carried by the row's own local transaction. */
+/**
+ * @param item - Row to read.
+ * @returns Pay metadata on the row's own local transaction, if it has one.
+ */
 function getLocalPayMetadata(
   item: ActivityListItem,
 ): MetamaskPayMetadata | undefined {
@@ -15,12 +18,12 @@ function getLocalPayMetadata(
 }
 
 /**
- * The MetaMask Pay metadata behind an activity row, or `undefined` when Pay
- * didn't route it.
+ * Resolves the MetaMask Pay metadata behind an activity row. Provider-backed
+ * rows (Perps, Predict) come from a remote feed carrying no `metamaskPay`, so
+ * theirs is found via the local transaction behind the row's hash.
  *
- * Provider-backed rows (Perps, Predict) come from a remote feed and carry no
- * `metamaskPay` of their own, so theirs is resolved from the local transaction
- * behind the row's hash.
+ * @param item - Row to resolve.
+ * @returns The Pay metadata, or `undefined` when Pay didn't route the row.
  */
 export function useActivityPayMetadata(
   item: ActivityListItem,

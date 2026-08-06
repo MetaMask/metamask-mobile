@@ -29,6 +29,10 @@ jest.mock(
   },
 );
 
+/**
+ * @param overrides - Fields to replace on the base row.
+ * @returns A Predict row, on the injected Polygon chain id.
+ */
 function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
   return {
     type: 'predictionPlaced',
@@ -287,8 +291,8 @@ describe('PredictDetails', () => {
   });
 
   describe('Network row', () => {
-    // Every Predict row carries the same injected chain id — Polymarket settles
-    // on Polygon — so the row's own chain can't describe where the user paid.
+    // Every Predict row carries the same injected chain id (Polygon), so the
+    // row's own chain can't describe where the user paid.
     it('omits the row entirely for a deposit', () => {
       const { queryByTestId, queryByText } = renderWithProvider(
         <PredictDetails
@@ -334,12 +338,21 @@ describe('PredictDetails', () => {
   });
 });
 
+/**
+ * @param metamaskPay - Pay metadata for the backing local transaction.
+ * @returns A Predict deposit row.
+ */
 function addFundsItemWithPayMetadata(
   metamaskPay: Record<string, string> | undefined,
 ): ActivityListItem {
   return fundsItemWithPayMetadata('predictionsAddFunds', metamaskPay);
 }
 
+/**
+ * @param type - Whether the row is a deposit or a withdrawal.
+ * @param metamaskPay - Pay metadata for the backing local transaction.
+ * @returns The activity row.
+ */
 function fundsItemWithPayMetadata(
   type: 'predictionsAddFunds' | 'predictionsWithdrawFunds',
   metamaskPay: Record<string, string> | undefined,
