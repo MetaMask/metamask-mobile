@@ -5,6 +5,7 @@ import {
   BtcAccountType,
   TrxAccountType,
   TrxScope,
+  XlmAccountType,
 } from '@metamask/keyring-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
@@ -199,6 +200,27 @@ export function isTronAddress(address: string): boolean {
     Logger.error(new Error('Error decoding Tron address'), { error });
     return false;
   }
+}
+
+/**
+ * Returns whether an account is a Stellar account.
+ *
+ * @param account - The internal account to check.
+ * @returns `true` if the account is of type Eoa, false otherwise.
+ */
+export function isStellarAccount(account: InternalAccount): boolean {
+  const { Account } = XlmAccountType;
+  return Boolean(account && account.type === Account);
+}
+
+/**
+ * Stellar account address (StrKey, starts with G).
+ *
+ * @param address - The address to check.
+ * @returns `true` if the string matches the Stellar account key format.
+ */
+export function isStellarAddress(address: string): boolean {
+  return /^G[A-Z2-7]{55}$/u.test(address);
 }
 
 /**

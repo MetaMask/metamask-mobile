@@ -5,6 +5,7 @@ import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 import {
   buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
   buildCampaignOutcomeToastCompositeKey,
   type CampaignOutcomeToastVariant,
 } from './compositeKeys';
@@ -15,6 +16,7 @@ import type {
   PerpsTradingCampaignVolumeDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchPrizePoolDto,
+  VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
@@ -417,6 +419,15 @@ export const selectOndoCampaignActivityById =
         ] ?? null)
       : null;
 
+export const selectVipTransactionsById =
+  (subscriptionId: string | undefined, type: VipTransactionType | undefined) =>
+  (state: RootState) =>
+    subscriptionId && type && state.rewards.vipTransactions
+      ? (state.rewards.vipTransactions[
+          buildSubscriptionVipTransactionCompositeKey(subscriptionId, type)
+        ] ?? null)
+      : null;
+
 // Campaign deposits selectors
 export const selectOndoCampaignDepositsByCampaignId =
   (campaignId: string | undefined) =>
@@ -453,6 +464,10 @@ export const selectSubscribedCampaignReminders = (
 ): RootState['rewards']['subscribedCampaignReminders'] =>
   state.rewards.subscribedCampaignReminders ??
   initialState.subscribedCampaignReminders;
+
+export const selectFirstPredictOnUsOfferViewed = (state: RootState): boolean =>
+  state.rewards.firstPredictionOnUsInteraction?.offerViewed ??
+  initialState.firstPredictionOnUsInteraction.offerViewed;
 
 export const selectIsCampaignOutcomeToastDismissed =
   (

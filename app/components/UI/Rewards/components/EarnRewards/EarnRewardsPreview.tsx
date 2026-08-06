@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  GestureResponderEvent,
   Image,
   ImageSourcePropType,
   Pressable,
@@ -9,6 +10,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -36,6 +38,9 @@ import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance'
 import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { MONEY_DISCLAIMER_URL } from '../../../../../constants/urls';
 
 const AVATAR_SIZE = 78;
 const UK_COUNTRY_CODE = 'GB';
@@ -58,7 +63,7 @@ const styles = StyleSheet.create({
 
 interface EarnCardProps {
   image: ImageSourcePropType;
-  title: string;
+  title: ReactNode;
   subtitle: string;
   onPress: () => void;
   testID: string;
@@ -100,9 +105,7 @@ const EarnCard: React.FC<EarnCardProps> = ({
         />
       </Box>
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {title}
-        </Text>
+        {title}
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">
           {subtitle}
         </Text>
@@ -130,6 +133,7 @@ type CarouselSlotKey = 'musd-skeleton' | 'musd' | 'card';
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   // Only the left padding consumes viewport space at scroll position 0.
@@ -160,6 +164,20 @@ const EarnRewardsPreview: React.FC = () => {
   const handleMusdPress = useCallback(() => {
     handleDeeplink({ uri: MUSD_MONEY_URL });
   }, []);
+
+  const handleMusdDisclaimerPress = useCallback(
+    (event: GestureResponderEvent) => {
+      event.stopPropagation();
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: MONEY_DISCLAIMER_URL,
+          timestamp: Date.now(),
+        },
+      });
+    },
+    [navigation],
+  );
 
   const handleCardPress = useCallback(() => {
     handleDeeplink({ uri: 'metamask://card-home' });
@@ -243,9 +261,29 @@ const EarnRewardsPreview: React.FC = () => {
               <EarnCard
                 testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
                 image={musdImage}
-                title={strings('rewards.earn_rewards.musd_title', {
-                  percentage: apyPercent ?? 3,
-                })}
+                title={
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {strings('rewards.earn_rewards.musd_money_title', {
+                      percentage: apyPercent ?? 3,
+                    })}
+                    <Text
+                      accessibilityRole="link"
+                      accessibilityLabel={strings(
+                        'rewards.earn_rewards.musd_disclaimer_accessibility_label',
+                      )}
+                      testID={
+                        REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_DISCLAIMER_LINK
+                      }
+                      twClassName="text-primary"
+                      onPress={handleMusdDisclaimerPress}
+                    >
+                      *
+                    </Text>
+                  </Text>
+                }
                 subtitle={strings('rewards.earn_rewards.musd_subtitle')}
                 onPress={handleMusdPress}
                 disabled={isDragging}
@@ -255,7 +293,14 @@ const EarnRewardsPreview: React.FC = () => {
               <EarnCard
                 testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
                 image={cardImage}
-                title={strings('rewards.earn_rewards.card_title')}
+                title={
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {strings('rewards.earn_rewards.card_title')}
+                  </Text>
+                }
                 subtitle={cardSubtitle}
                 onPress={handleCardPress}
                 disabled={isDragging}

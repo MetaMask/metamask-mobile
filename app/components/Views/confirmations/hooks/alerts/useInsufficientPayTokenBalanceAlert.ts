@@ -23,7 +23,9 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../utils/transaction';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -41,6 +43,14 @@ export function useInsufficientPayTokenBalanceAlert({
   const transactionMeta = useTransactionMetadataRequest();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const { isMaxDeposit } = useConfirmationContext();
+  // Single Max path for all deposit types. `isMaxDeposit` covers the
+  // React-sync gap where controller `isMaxAmount` can lag one frame behind
+  // a money-account Max/prefill (fiat-rounding false positives).
+  const isMaxTransaction = isMax || (isMoneyAccountDeposit && isMaxDeposit);
 
   // In post-quote (withdrawal) flows, payToken is the *destination* token,
   // so payToken.chainId is the destination chain. The source chain (where gas
@@ -82,9 +92,11 @@ export function useInsufficientPayTokenBalanceAlert({
     payToken?.address.toLowerCase() === nativeToken?.address.toLowerCase() &&
     payToken?.chainId === sourceChainId;
 
+  // For Max, treat the spend amount as the available balance so fiat rounding
+  // between a Max snapshot and the live balance cannot false-positive.
   const totalAmountUsd = useMemo(
     () =>
-      isMax
+      isMaxTransaction
         ? new BigNumber(balanceUsd ?? '0')
         : pendingAmountUsd
           ? new BigNumber(pendingAmountUsd)
@@ -94,7 +106,7 @@ export function useInsufficientPayTokenBalanceAlert({
                 (acc, t) => acc.plus(new BigNumber(t.amountUsd)),
                 new BigNumber(0),
               ),
-    [balanceUsd, isMax, pendingAmountUsd, requiredTokens],
+    [balanceUsd, isMaxTransaction, pendingAmountUsd, requiredTokens],
   );
 
   const totalSourceAmountRaw = useMemo(() => {
@@ -148,14 +160,24 @@ export function useInsufficientPayTokenBalanceAlert({
   // from the same money account balance. The input-only check above may pass
   // while the total (input + fees) still exceeds the available balance.
   // Only checked once quotes have resolved (not during pending keyboard input).
+  // Skip for Max: atomic is cleared so the deposit amount is reduced to leave
+  // room for fees — amount+fees > balance is expected, not an error.
   const isInsufficientForMoneyAccountTotal = useMemo(
     () =>
       isMoneyPaymentOverride &&
+      !isMaxTransaction &&
       !isPostQuote &&
       !isPendingAlert &&
       totals?.total?.usd !== undefined &&
       new BigNumber(totals.total.usd).isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, isMoneyPaymentOverride, isPendingAlert, isPostQuote, totals],
+    [
+      balanceUsd,
+      isMaxTransaction,
+      isMoneyPaymentOverride,
+      isPendingAlert,
+      isPostQuote,
+      totals,
+    ],
   );
 
   // For post-quote flows, we still need to check if the user has enough native

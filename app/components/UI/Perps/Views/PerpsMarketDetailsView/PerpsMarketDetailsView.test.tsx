@@ -7,6 +7,7 @@ import {
   getPerpsRelatedMarketsSelector,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsRelatedMarketsSelectorsIDs,
 } from '../../Perps.testIds';
@@ -17,10 +18,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
   CandlePeriod,
+  PerpsMode,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   TimeDuration,
@@ -205,6 +208,11 @@ jest.mock(
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockReset = jest.fn();
+const mockGetState = jest.fn();
+const mockSetPerpsMode = jest.fn();
+// Mutable active mode surfaced by the mocked usePerpsMode hook.
+let mockPerpsModeValue = 'lite';
 
 // usePerpsNavigation mock functions
 const mockNavigateToHome = jest.fn();
@@ -212,6 +220,7 @@ const mockNavigateToActivity = jest.fn();
 const mockNavigateToOrder = jest.fn();
 const mockNavigateToTutorial = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketListFromHeader = jest.fn();
 const mockNavigateBack = jest.fn();
 
 // Mock notification feature flag
@@ -252,6 +261,8 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
+      getState: mockGetState,
+      reset: mockReset,
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -378,10 +389,6 @@ const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
     error: null,
   }),
 );
-
-jest.mock('../../hooks/usePerpsOpenOrders', () => ({
-  usePerpsOpenOrders: () => mockUsePerpsOpenOrdersImpl(),
-}));
 
 const mockUsePerpsLiveFillsImpl = jest.fn<
   ReturnType<
@@ -554,19 +561,6 @@ jest.mock('../../hooks', () => ({
     resetError: jest.fn(),
     reconnectWithNewContext: jest.fn(),
   }),
-  usePerpsOpenOrders: () => ({
-    orders: [],
-    refresh: mockRefreshOrders,
-    isLoading: false,
-    error: null,
-  }),
-  usePerpsPositions: jest.fn(() => ({
-    positions: [],
-    isLoading: false,
-    isRefreshing: false,
-    error: null,
-    loadPositions: jest.fn(),
-  })),
   usePerpsTPSLUpdate: jest.fn(() => ({
     updateTPSL: jest.fn(),
     isUpdating: false,
@@ -584,6 +578,15 @@ jest.mock('../../hooks', () => ({
     error: null,
     refetch: jest.fn(),
   })),
+  usePerpsMode: jest.fn(() => ({
+    mode: mockPerpsModeValue,
+    setMode: mockSetPerpsMode,
+  })),
+  usePerpsMarketAboutTracking: jest.fn(() => ({
+    hasDescription: false,
+    handleAboutLayout: jest.fn(),
+    handleAboutScroll: jest.fn(),
+  })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
@@ -597,6 +600,7 @@ jest.mock('../../hooks', () => ({
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
     navigateToMarketList: mockNavigateToMarketList,
+    navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     navigateBack: mockNavigateBack,
     canGoBack: mockCanGoBack(),
   })),
@@ -766,12 +770,6 @@ jest.mock('../../components/PerpsNotificationTooltip', () => ({
   },
 }));
 
-// Mock PerpsOpenOrderCard
-jest.mock('../../components/PerpsOpenOrderCard', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
 // Mock PerpsBottomSheetTooltip to avoid SafeAreaProvider issues
 jest.mock(
   '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip',
@@ -835,6 +833,7 @@ describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPerpsModeValue = 'lite';
     jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
 
     mockUsePerpsAccount.mockReturnValue({
@@ -889,6 +888,14 @@ describe('PerpsMarketDetailsView', () => {
 
     // Reset navigation mocks
     mockCanGoBack.mockReturnValue(true);
+    // Default stack shape for this screen: reached from Perps Home.
+    mockGetState.mockReturnValue({
+      index: 1,
+      routes: [
+        { name: Routes.PERPS.PERPS_HOME, key: 'home-1' },
+        { name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' },
+      ],
+    });
 
     // Default eligibility mock
     const { useSelector } = jest.requireMock('react-redux');
@@ -941,6 +948,9 @@ describe('PerpsMarketDetailsView', () => {
     mockRefreshMarketStats.mockClear();
     mockNavigate.mockClear();
     mockGoBack.mockClear();
+    mockSetPerpsMode.mockClear();
+    mockNavigateToHome.mockClear();
+    mockPerpsModeValue = 'lite';
   });
 
   it('renders correctly', () => {
@@ -976,6 +986,124 @@ describe('PerpsMarketDetailsView', () => {
     // The component fires the controller's own optimistic-update/revert toggle
     // (fire-and-forget) rather than maintaining a separate local optimistic copy.
     expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
+  });
+
+  const enableProModeFlag = () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsProModeEnabledFlag) {
+        return true;
+      }
+      return undefined;
+    });
+  };
+
+  it('shows the active-mode pill next to the star when the Pro mode flag is enabled', () => {
+    enableProModeFlag();
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    // Watchlist star remains, and the active-mode pill (Lite, from the mocked
+    // usePerpsMode) is appended next to it.
+    expect(
+      getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
+    ).toBeOnTheScreen();
+  });
+
+  it('flips to Pro and stays on the current market when the active-mode pill is pressed', () => {
+    enableProModeFlag();
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    // Mocked mode is Lite, so pressing the pill flips to Pro.
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    // Switching mode persists and flashes, but does not leave the market page.
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+  });
+
+  it('drops Perps Home from history when flipping to Pro so back does not reveal the Lite hub', () => {
+    enableProModeFlag();
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    // Home → market is the default mocked stack; only the market survives, and
+    // it stays focused.
+    expect(mockReset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        index: 0,
+        routes: [{ name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' }],
+      }),
+    );
+  });
+
+  it('flips to Lite and stays on the current market when the active-mode pill is pressed', () => {
+    enableProModeFlag();
+    mockPerpsModeValue = PerpsMode.Pro;
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    // Mocked mode is Pro, so pressing the pill flips to Lite.
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    // Switching mode persists and flashes, but does not leave the market page.
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    // Lite keeps its hub reachable, so history is left untouched.
+    expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it('does not show the active-mode pill when the Pro mode flag is disabled', () => {
+    const { queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
   });
 
   it('renders statistics items', () => {
@@ -3699,7 +3827,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       fireEvent.press(marketListButton);
 
-      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
         source: 'perp_asset_screen',
       });
     });

@@ -220,132 +220,6 @@ loadBuildConfig() {
 	return 0
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Legacy env remapping. Used only when GITHUB_ACTIONS is not set.
-# GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
-# ─────────────────────────────────────────────────────────────────────────────
-# Remap legacy per-env vars (*_DEV, *_PROD) to canonical names. Skip when source is unset
-# (local / builds.yml use canonical names in .js.env; no _DEV/_PROD needed).
-# Legacy path (not GHA, not builds.yml): missing source var fails fast. Local: set BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY in .js.env to use builds.yml and skip.
-remapEnvVariable() {
-	local old_var_name="$1"
-	local new_var_name="$2"
-	if [ -z "${!old_var_name}" ]; then
-		if [ -z "${GITHUB_ACTIONS:-}" ] && [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" != "true" ]; then
-			echo "❌ Required legacy secret is missing: $old_var_name"
-			return 1
-		fi
-		return 0
-	fi
-	export $new_var_name="${!old_var_name}"
-	unset $old_var_name
-	echo "Successfully remapped $old_var_name to $new_var_name."
-}
-
-# Mapping for Main env variables in the dev environment
-remapMainDevEnvVariables() {
-  	echo "Remapping Main target environment variables for the dev environment"
-	remapEnvVariable "SEGMENT_WRITE_KEY_DEV" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_DEV" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	# Only dev environment uses the dev DSN, this is for the Sentry project test-metamask-mobile
-  	remapEnvVariable "MM_SENTRY_DSN_DEV" "MM_SENTRY_DSN"
-
-		remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_DEV" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the e2e environment
-remapMainE2EEnvVariables() {
-  	echo "Remapping Main target environment variables for the e2e environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the test environment
-remapMainTestEnvVariables() {
-  	echo "Remapping Main target environment variables for the test environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the production environment
-remapMainProdEnvVariables() {
-  	echo "Remapping release env variable names to match production values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Flask env variables in the production environment
-remapFlaskProdEnvVariables() {
-  	echo "Remapping Flask target environment variables for the production environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_FLASK" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Flask env variables in the test environment
-remapFlaskTestEnvVariables() {
-  	echo "Remapping Flask target environment variables for the test environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Flask env variables in the e2e environment
-remapFlaskE2EEnvVariables() {
-  	echo "Remapping Flask target environment variables for the e2e environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the beta environment
-remapMainBetaEnvVariables() {
-  	echo "Remapping Main target environment variables for the beta environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_BETA" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_BETA" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the release candidate environment
-remapMainReleaseCandidateEnvVariables() {
-  	echo "Remapping Main target environment variables for the release candidate environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_PROD" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
-# Mapping for Main env variables in the experimental environment
-remapMainExperimentalEnvVariables() {
-  	echo "Remapping Main target environment variables for the experimental environment"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
-  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
-  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
-	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
-	remapEnvVariable "MM_CARD_BAANX_API_CLIENT_KEY_UAT" "MM_CARD_BAANX_API_CLIENT_KEY"
-}
-
 prebuild_ios(){
 	# Generate xcconfig files for CircleCI
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -885,27 +759,14 @@ printTitle
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Load build configuration from builds.yml (all platforms including expo-update).
-# Gated by BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:
-#   true  = GHA (set by workflow) and local (set in .js.env) → use builds.yml
-#   false = unset → skip builds.yml, use legacy remap only
+# GHA sets secrets via the workflow; local dev sources .js.env for overrides.
 # Local: .js.env is applied after loadBuildConfig so it overrides (see below).
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Non-GHA: source .js.env early so BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is set for the gate (local can opt in)
-if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
-	source "$JS_ENV_FILE"
-fi
-
 BUILD_TYPE_FOR_CONFIG=$(echo "$METAMASK_BUILD_TYPE" | tr '[:upper:]' '[:lower:]')
-if [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" = "true" ]; then
-	# builds.yml path: GHA or local with flag.
-	if ! loadBuildConfig "$BUILD_TYPE_FOR_CONFIG" "$METAMASK_ENVIRONMENT"; then
-		echo "❌ Build configuration failed. Exiting."
-		exit 1
-	fi
-else
-	echo "⚠️  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is not true; skipping builds.yml, using legacy remap / .js.env"
-	echo ""
+if ! loadBuildConfig "$BUILD_TYPE_FOR_CONFIG" "$METAMASK_ENVIRONMENT"; then
+	echo "❌ Build configuration failed. Exiting."
+	exit 1
 fi
 
 # Local builds: .js.env overrides builds.yml (takes precedence)
@@ -913,41 +774,12 @@ if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
 	source "$JS_ENV_FILE"
 fi
 
-# Native-build-specific flags and legacy env remap (not needed for expo-update)
+# Native-build-specific flags (not needed for expo-update)
 if [ "$PLATFORM" != "expo-update" ]; then
 	# Set flags for main builds
 	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 		export GENERATE_BUNDLE=true # Used only for Android
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-	fi
-
-	# Non-GHA CI / local: legacy env remapping (secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
-	if [ -z "${GITHUB_ACTIONS:-}" ]; then
-		if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
-			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-				remapMainProdEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "beta" ]; then
-				remapMainBetaEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "rc" ]; then
-				remapMainReleaseCandidateEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "exp" ]; then
-				remapMainExperimentalEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-				remapMainTestEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-				remapMainE2EEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "dev" ]; then
-				remapMainDevEnvVariables
-			fi
-		elif [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
-			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
-				remapFlaskProdEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "test" ]; then
-				remapFlaskTestEnvVariables
-			elif [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-				remapFlaskE2EEnvVariables
-			fi
-		fi
 	fi
 fi
 

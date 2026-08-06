@@ -1,14 +1,8 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -19,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectTransactions } from '../../../../../selectors/transactionController';
+import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
@@ -44,7 +38,7 @@ type TransferAction = 'withdraw' | 'perps' | 'predict';
 
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const { isEnabled: isPerpsEnabled, initiatePerpsDeposit } =
@@ -60,15 +54,7 @@ const MoneyTransferSheet = () => {
 
   useMountEffect(trackBottomSheetViewed);
 
-  const transactions = useSelector(selectTransactions);
-
-  const hasPendingTransaction = useMemo(
-    () =>
-      (transactions ?? []).some(
-        (tx) => tx.status === TransactionStatus.unapproved,
-      ),
-    [transactions],
-  );
+  const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
 
   const [deferredAction, setDeferredAction] = useState<TransferAction | null>(
     null,
@@ -108,13 +94,13 @@ const MoneyTransferSheet = () => {
   const startAction = useCallback(
     (action: TransferAction) => {
       if (hasPendingTransaction) {
-        rejectPendingTransactions(transactions ?? []);
+        rejectPendingTransactions();
         setDeferredAction(action);
         return;
       }
       closeAndStart(action);
     },
-    [hasPendingTransaction, transactions, closeAndStart],
+    [hasPendingTransaction, closeAndStart],
   );
 
   useEffect(() => {

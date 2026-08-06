@@ -12,7 +12,7 @@ import {
   RWA_STOCK_ASSET_ID,
 } from '../../api-mocking/mock-responses/trending-api-mocks.js';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers.js';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.js';
+import { getDecodedProxiedURL } from '../notifications/utils/helpers.js';
 import {
   remoteFeatureFlagTrendingTokensEnabled,
   remoteFeatureFlagPredictEnabled,
@@ -41,10 +41,6 @@ appiumTest.describe(
         ...remoteFeatureFlagPredictEnabled(),
         // TODO: Fix this test to support the FF-enabled What's Happening Explore section.
         aiSocialWhatsHappeningEnabled: {
-          enabled: false,
-          minimumVersion: '0.0.0',
-        },
-        predictWorldCup: {
           enabled: false,
           minimumVersion: '0.0.0',
         },

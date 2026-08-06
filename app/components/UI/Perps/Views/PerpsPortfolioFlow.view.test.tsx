@@ -2,11 +2,11 @@
  * Portfolio & Account Flow — E2E-like view test.
  *
  * Simulates a trader browsing their portfolio, reviewing positions
- * (empty and populated), encountering geo-restrictions, seeing the
- * first-time empty state, and selecting margin adjustment actions.
+ * (empty and populated), encountering geo-restrictions, and selecting
+ * margin adjustment actions.
  *
  * Components covered: PerpsHomeView, PerpsPositionsView,
- * PerpsEmptyState, PerpsSelectAdjustMarginActionView
+ * PerpsSelectAdjustMarginActionView
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
@@ -17,11 +17,9 @@ import {
   renderPerpsHomeView,
   renderPerpsPositionsView,
   renderPerpsSelectAdjustMarginActionView,
-  renderPerpsView,
   defaultPositionForViews,
 } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsPositionsViewSelectorsIDs } from '../Perps.testIds';
-import { PerpsEmptyState } from './PerpsEmptyState/PerpsEmptyState';
 
 const TIMEOUT_MS = 3000;
 
@@ -29,7 +27,6 @@ describe('Portfolio & Account Flow', () => {
   let POSITIONS: string;
   let ACCOUNT_SUMMARY_TITLE: string;
   let EMPTY_TITLE: string;
-  let FIRST_TIME_DESCRIPTION: string;
   let ADD_MARGIN: string;
   let REDUCE_MARGIN: string;
 
@@ -37,9 +34,6 @@ describe('Portfolio & Account Flow', () => {
     POSITIONS = strings('perps.home.positions');
     ACCOUNT_SUMMARY_TITLE = strings('perps.position.account.summary_title');
     EMPTY_TITLE = strings('perps.position.list.empty_title');
-    FIRST_TIME_DESCRIPTION = strings(
-      'perps.position.list.first_time_description',
-    );
     ADD_MARGIN = strings('perps.adjust_margin.add_margin');
     REDUCE_MARGIN = strings('perps.adjust_margin.reduce_margin');
   });
@@ -138,26 +132,7 @@ describe('Portfolio & Account Flow', () => {
     ).toBeOnTheScreen();
     expect(screen.queryByText(EMPTY_TITLE)).not.toBeOnTheScreen();
 
-    // ── PHASE 3: First-time empty state — start trading ──────────────────
-    await act(async () => {
-      cleanup();
-    });
-    const onAction = jest.fn();
-    const EmptyScreen = () => <PerpsEmptyState onAction={onAction} />;
-    renderPerpsView(
-      EmptyScreen as unknown as React.ComponentType,
-      'PerpsEmptyState',
-    );
-    expect(await screen.findByText(FIRST_TIME_DESCRIPTION)).toBeOnTheScreen();
-    const startButton = screen.getByText(
-      strings('perps.position.list.start_trading'),
-    );
-    fireEvent.press(startButton);
-    expect(onAction).toHaveBeenCalledTimes(1);
-    // UI remains stable after pressing start trading
-    expect(screen.getByText(FIRST_TIME_DESCRIPTION)).toBeOnTheScreen();
-
-    // ── PHASE 4: Adjust margin action selection ──────────────────────────
+    // ── PHASE 3: Adjust margin action selection ──────────────────────────
     await act(async () => {
       cleanup();
     });

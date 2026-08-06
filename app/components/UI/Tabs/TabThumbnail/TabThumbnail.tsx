@@ -66,7 +66,14 @@ const TabThumbnail = ({
     <Container style={styles.checkWrapper} elevation={8}>
       <TouchableOpacity
         accessible
-        accessibilityLabel={strings('browser.switch_tab')}
+        accessibilityRole="button"
+        // Host on the tab node itself — iOS flattens children out of the a11y
+        // tree; Android Appium matches content-desc from this label.
+        accessibilityLabel={
+          tabTitle
+            ? `${tabTitle}, ${strings('browser.switch_tab')}`
+            : strings('browser.switch_tab')
+        }
         onPress={() => onSwitch(tab)}
         style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
         testID={`browser-tab-${tab.id}`}

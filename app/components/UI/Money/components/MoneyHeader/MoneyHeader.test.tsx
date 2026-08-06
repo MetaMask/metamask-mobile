@@ -29,4 +29,13 @@ describe('MoneyHeader', () => {
 
     expect(mockOnMenuPress).toHaveBeenCalledTimes(1);
   });
+
+  it('uses the same horizontal padding as the Home page header', () => {
+    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
+
+    expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toHaveStyle({
+      paddingLeft: 16,
+      paddingRight: 12,
+    });
+  });
 });

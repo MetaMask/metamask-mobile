@@ -245,6 +245,12 @@ export const selectTransactions = createDeepEqualSelector(
   },
 );
 
+export const selectHasUnapprovedTransactions = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    transactions.some((tx) => tx.status === TransactionStatus.unapproved),
+);
+
 /**
  * A transaction is "replaced" once its speed-up/cancel replacement has fully
  * committed: the controller sets `replacedBy` (replacement hash) and
@@ -456,6 +462,26 @@ export const selectTransactionMetadataById = createDeepEqualSelector(
   selectTransactionsStrict,
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
+);
+
+export const makeSelectTransactionMetadataById =
+  (id: string) => (state: RootState) =>
+    selectTransactionMetadataById(state, id);
+
+/**
+ * Local `TransactionMeta` for an on-chain hash. Needed by callers that only
+ * hold a hash — e.g. provider-backed activity rows (Perps) whose feed entry
+ * carries the tx hash but none of the local metadata.
+ */
+export const selectTransactionMetadataByHash = createSelector(
+  selectTransactionsStrict,
+  (_: RootState, hash: string | undefined) => hash,
+  (transactions, hash) =>
+    hash
+      ? transactions.find(
+          (tx) => tx.hash?.toLowerCase() === hash?.toLowerCase(),
+        )
+      : undefined,
 );
 
 export const selectTransactionBatchMetadataById = createDeepEqualSelector(

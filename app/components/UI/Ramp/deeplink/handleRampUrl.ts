@@ -1,4 +1,5 @@
 import handleRedirection from './handleRedirection';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import getRedirectPathsAndParams from '../utils/getRedirectPathAndParams';
 import { RampType } from '../Aggregator/types';
 import parseRampIntent from '../utils/parseRampIntent';
@@ -25,6 +26,8 @@ import { isRampsServiceDisruptionActive } from '../utils/rampsServiceDisruption'
 import { createRampsServiceDisruptionModalNavigationDetails } from '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal';
 import { selectRampsServiceDisruptionRegions } from '../../../../selectors/featureFlagController/rampsServiceDisruption';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
+import { startRampsBuyCufTrace } from '../utils/rampsBuyCufTrace';
+import { RAMPS_BUY_CUF_SURFACE } from '../constants/rampsBuyCufTags';
 import Engine from '../../../../core/Engine';
 
 interface RampUrlOptions {
@@ -70,15 +73,17 @@ async function navigateUnifiedV2Buy(
       location,
     )
   ) {
-    NavigationService.navigation.navigate(
-      ...createRampsServiceDisruptionModalNavigationDetails(),
+    navigateWithDetails(
+      NavigationService.navigation,
+      createRampsServiceDisruptionModalNavigationDetails(),
     );
     return;
   }
 
   if (!location || location === UNKNOWN_LOCATION) {
-    NavigationService.navigation.navigate(
-      ...createEligibilityFailedModalNavigationDetails(),
+    navigateWithDetails(
+      NavigationService.navigation,
+      createEligibilityFailedModalNavigationDetails(),
     );
     return;
   }
@@ -87,11 +92,14 @@ async function navigateUnifiedV2Buy(
   const userRegion = selectUserRegion(state);
   const countries = selectCountries(state).data;
   if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-    NavigationService.navigation.navigate(
-      ...createRampUnsupportedModalNavigationDetails(),
+    navigateWithDetails(
+      NavigationService.navigation,
+      createRampUnsupportedModalNavigationDetails(),
     );
     return;
   }
+
+  startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK });
 
   if (rampIntent?.assetId) {
     const allTokens = selectTokens(state).data?.allTokens ?? [];
@@ -111,13 +119,17 @@ async function navigateUnifiedV2Buy(
     if (amount !== undefined) {
       buildQuoteParams.amount = amount;
     }
-    NavigationService.navigation.navigate(
-      ...createBuildQuoteNavDetails(buildQuoteParams),
+    navigateWithDetails(
+      NavigationService.navigation,
+      createBuildQuoteNavDetails(buildQuoteParams),
     );
     return;
   }
 
-  NavigationService.navigation.navigate(...createTokenSelectionNavDetails());
+  navigateWithDetails(
+    NavigationService.navigation,
+    createTokenSelectionNavDetails(),
+  );
 }
 
 export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
@@ -137,8 +149,9 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
       case RampType.BUY:
         return navigateUnifiedV2Buy(rampIntent);
       case RampType.SELL:
-        NavigationService.navigation.navigate(
-          ...createSellNavigationDetails(rampIntent),
+        navigateWithDetails(
+          NavigationService.navigation,
+          createSellNavigationDetails(rampIntent),
         );
         break;
     }

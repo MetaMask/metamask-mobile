@@ -1,8 +1,9 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import {
   Button,
-  ButtonVariant,
   ButtonBaseSize,
+  ButtonVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
@@ -11,6 +12,8 @@ import {
   selectBridgeFeatureFlags,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
+  selectIsSlippageUserOverride,
+  selectSlippage,
   selectSourceAmount,
   selectSourceToken,
   selectDestToken,
@@ -31,6 +34,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   exceedsPriceImpactErrorThreshold,
   parsePriceImpact,
@@ -41,6 +45,16 @@ import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
+import { useABTest } from '../../../../../hooks';
+import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+} from './abTestConfig';
+import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+
+const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -56,13 +70,25 @@ export const SwapsConfirmButton = ({
   location,
   transactionActiveAbTests,
 }: Props) => {
-  const navigation = useNavigation();
+  const { variant: ctaButtonColorVariant } = useABTest(
+    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  );
+  const { themeAppearance } = useTheme();
+  const treatmentBackground =
+    themeAppearance === AppThemeKey.light
+      ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
+      : 'bg-success-default';
+  const navigation = useNavigation<AppNavigationProp>();
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
+  const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const selectedAddress = useSelector(
@@ -139,6 +165,7 @@ export const SwapsConfirmButton = ({
   // The ref only updates when loading finishes (quote arrived / error)
   // so it stays stale during the debounce window after the user edits.
   const settledAmountRef = useRef(sourceAmount);
+  const settledSlippageRef = useRef(slippage);
   const wasLoadingRef = useRef(isLoading);
 
   const hasError = !!blockaidError || !!quoteFetchError || isNoQuotesAvailable;
@@ -147,11 +174,16 @@ export const SwapsConfirmButton = ({
     const loadingJustFinished = wasLoadingRef.current && !isLoading;
     if (loadingJustFinished || hasError || needsNewQuote) {
       settledAmountRef.current = sourceAmount;
+      settledSlippageRef.current = slippage;
     }
     wasLoadingRef.current = isLoading;
-  }, [isLoading, sourceAmount, hasError, needsNewQuote]);
+  }, [isLoading, sourceAmount, slippage, hasError, needsNewQuote]);
 
   const isSourceAmountChanged = sourceAmount !== settledAmountRef.current;
+  const isActiveQuoteSlippageMismatch =
+    slippage !== undefined &&
+    activeQuote != null &&
+    Number(slippage) !== Number(activeQuote.quote.slippage);
 
   // True when user has entered a valid amount but the quote fetch hasn't
   // started yet (e.g. during the debounce window after typing).
@@ -161,12 +193,16 @@ export const SwapsConfirmButton = ({
   // True when the sourceAmount changed from what the current quote was
   // fetched for (stale quote during debounce window).
   const isPendingQuoteRefresh = isSourceAmountChanged && hasNonZeroSourceAmount;
+  const isPendingSlippageRefresh =
+    Boolean(isSlippageUserOverride) &&
+    (slippage !== settledSlippageRef.current || isActiveQuoteSlippageMismatch);
 
   const isSubmitDisabled =
     !hasNonZeroSourceAmount ||
     isAwaitingQuote ||
     (activeQuote && !isActiveQuoteForCurrentTokenPair) ||
     isPendingQuoteRefresh ||
+    isPendingSlippageRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
     hasInsufficientNativeReserveError ||
@@ -241,7 +277,11 @@ export const SwapsConfirmButton = ({
   const buttonIsInLoadingState =
     !needsNewQuote &&
     !hasError &&
-    (isLoading || isSubmittingTx || isAwaitingQuote || isPendingQuoteRefresh) &&
+    (isLoading ||
+      isSubmittingTx ||
+      isAwaitingQuote ||
+      isPendingQuoteRefresh ||
+      isPendingSlippageRefresh) &&
     isSubmitDisabled;
 
   const label = useMemo(() => {
@@ -278,6 +318,12 @@ export const SwapsConfirmButton = ({
   return (
     <Button
       variant={ButtonVariant.Primary}
+      twClassName={
+        ctaButtonColorVariant.hasSuccessColor ? treatmentBackground : undefined
+      }
+      textProps={
+        ctaButtonColorVariant.hasSuccessColor ? SUCCESS_TEXT_PROPS : undefined
+      }
       size={ButtonBaseSize.Lg}
       isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}

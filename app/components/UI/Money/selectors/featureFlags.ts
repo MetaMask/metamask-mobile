@@ -16,6 +16,10 @@ import {
   WildcardTokenList,
 } from '../../Earn/utils/wildcardTokenList';
 import {
+  Erc20TokenAddressList,
+  getErc20TokenAddressListFromConfig,
+} from '../utils/erc20TokenAddressList';
+import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
   ensureMonadMusdListed,
 } from '../utils/depositFaqTokens';
@@ -128,17 +132,61 @@ export const selectIsMoneyTokenListItemCtaEnabledFlag = createSelector(
 );
 
 /**
- * Selects stablecoins that can display the Money account deposit CTA.
+ * Selects whether the Money deposit CTA replaces Asset Overview footer
+ * actions. The Money account feature must be enabled before this CTA appears.
+ */
+export const selectIsMoneyAssetOverviewFooterCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag =
+      process.env.MM_MONEY_ASSET_OVERVIEW_FOOTER_CTA_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyAssetOverviewFooterCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Money deposit CTA is displayed in Asset Overview's
+ * balance section. The Money account feature must be enabled before it appears.
+ */
+export const selectIsMoneyAssetOverviewBalanceCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag =
+      process.env.MM_MONEY_ASSET_OVERVIEW_BALANCE_CTA_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyAssetOverviewBalanceCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects the explicit EVM token contracts that can display Money account
+ * deposit CTAs.
+ *
  * Remote config takes precedence over the local environment override.
  */
-export const selectMoneyDepositCtaTokens = createSelector(
+export const selectMoneyDepositCtaTokenAddresses = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList =>
-    getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyDepositCtaTokens,
-      'earnMoneyDepositCtaTokens',
-      process.env.MM_MONEY_DEPOSIT_CTA_TOKENS,
-      'MM_MONEY_DEPOSIT_CTA_TOKENS',
+  (remoteFeatureFlags): Erc20TokenAddressList =>
+    getErc20TokenAddressListFromConfig(
+      remoteFeatureFlags?.earnMoneyDepositCtaTokenAddresses,
+      'earnMoneyDepositCtaTokenAddresses',
+      process.env.MM_MONEY_DEPOSIT_CTA_TOKEN_ADDRESSES,
+      'MM_MONEY_DEPOSIT_CTA_TOKEN_ADDRESSES',
     ),
 );
 
@@ -148,6 +196,22 @@ export const selectMoneyHubEnabledFlag = createSelector(
     const localFlag = process.env.MM_MONEY_HUB_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyHubEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the realized earnings section is shown on Money Home.
+ * The remote version-gated flag takes precedence over the local environment
+ * fallback.
+ */
+export const selectMoneyEarningSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_EARNING_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarningSectionEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
@@ -164,6 +228,34 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
       remoteFeatureFlags?.earnMoneyFirstTimeDepositAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local =
       process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Kill-switch for the link-card sheet Rive card flip animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardFlipAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardFlipAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_CARD_FLIP_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
+ * Kill-switch for the tilt-driven Rive card thumbnail animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardTiltAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_CARD_TILT_ANIMATION_ENABLED !== 'false';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );
@@ -290,6 +382,27 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       Object.keys(catalog).length > 0 ? catalog : MONEY_NO_FEE_TOKENS_FALLBACK;
 
     return ensureMonadMusdListed(result);
+  },
+);
+
+/**
+ * Selects whether the "Earn with Money account" banner can be displayed on
+ * token detail pages. The Money account feature must be enabled before the
+ * banner can appear.
+ */
+export const selectIsMoneyEarnBannerEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MONEY_EARN_BANNER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarnBannerEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 

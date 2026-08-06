@@ -249,4 +249,60 @@ describe('PredictDetails', () => {
     expect(getByText('Add funds')).toBeOnTheScreen();
     expect(getByText('Fund again')).toBeOnTheScreen();
   });
+
+  it('renders MetaMask Pay network fee, bridge fee and total for a funded account', () => {
+    const { getByText } = renderWithProvider(
+      <PredictDetails
+        item={addFundsItemWithPayMetadata({
+          networkFeeFiat: '0',
+          bridgeFeeFiat: '0.04',
+          totalFiat: '0.14',
+        })}
+      />,
+    );
+
+    expect(getByText('Network fee')).toBeOnTheScreen();
+    // A sponsored network fee is recorded as zero and must still show.
+    expect(getByText('$0')).toBeOnTheScreen();
+    expect(getByText('Bridge fee')).toBeOnTheScreen();
+    expect(getByText('$0.04')).toBeOnTheScreen();
+    expect(getByText('Total amount')).toBeOnTheScreen();
+    expect(getByText('$0.14')).toBeOnTheScreen();
+  });
+
+  it('omits the fee section when the funding transaction has no MetaMask Pay metadata', () => {
+    const { queryByText } = renderWithProvider(
+      <PredictDetails item={addFundsItemWithPayMetadata(undefined)} />,
+    );
+
+    expect(queryByText('Network fee')).toBeNull();
+    expect(queryByText('Total amount')).toBeNull();
+    // The step timeline still renders without a fee section above it.
+    expect(queryByText('Steps (2 completed)')).not.toBeNull();
+  });
 });
+
+function addFundsItemWithPayMetadata(
+  metamaskPay: Record<string, string> | undefined,
+): ActivityListItem {
+  return predictItem({
+    type: 'predictionsAddFunds',
+    hash: '0xfund',
+    data: {
+      token: {
+        amount: '100000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    },
+    raw: {
+      type: 'localTransaction',
+      data: {
+        primaryTransaction: { id: 'tx-1', chainId: '0x89', metamaskPay },
+        initialTransaction: { id: 'tx-1', chainId: '0x89' },
+        transactions: [],
+      },
+    },
+  } as unknown as Partial<ActivityListItem>);
+}

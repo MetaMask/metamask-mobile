@@ -31,6 +31,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -43,6 +44,7 @@ import {
   selectCardHomeDataStatus,
   selectCardRedemptionDestinationIsMoneyAccount,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
@@ -54,6 +56,7 @@ import {
 import {
   CardStatus,
   FundingAssetStatus,
+  CardProviderIds,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -74,7 +77,11 @@ import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { CardType, CardMessageBoxType } from '../../types';
-import { isSpendingLimitSupportedToken } from '../../constants';
+import {
+  isSpendingLimitSupportedToken,
+  IMMERSVE_SUPPORT_EMAIL,
+  IMMERSVE_TERMS_URL,
+} from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -88,6 +95,8 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
@@ -112,7 +121,7 @@ const CardHome = () => {
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const theme = useTheme();
@@ -128,13 +137,36 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
+  const isImmersve =
+    useSelector(selectCardActiveProviderId) === CardProviderIds.Immersve;
+  const cardRegionCode = data?.card?.regionCode;
+  const {
+    permanentDocuments: immersveLegalDocuments,
+    isLoading: isImmersveLegalDocsLoading,
+    error: immersveLegalDocsError,
+    refetch: refetchImmersveLegalDocs,
+  } = useImmersveSupportedRegions(cardRegionCode, {
+    enabled: isImmersve && Boolean(cardRegionCode),
+  });
+  const immersveLegalDocsUnavailable = Boolean(
+    isImmersve &&
+      Boolean(cardRegionCode) &&
+      !isImmersveLegalDocsLoading &&
+      (immersveLegalDocsError || immersveLegalDocuments.length === 0),
+  );
   const cardTermsAndConditionsUrl = useMemo(
-    () => getCardTermsAndConditionsUrl(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
+    () =>
+      isImmersve
+        ? IMMERSVE_TERMS_URL
+        : getCardTermsAndConditionsUrl(registrationSettings, userLocation),
+    [isImmersve, registrationSettings, userLocation],
   );
   const supportEmail = useMemo(
-    () => getCardSupportEmail(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
+    () =>
+      isImmersve
+        ? IMMERSVE_SUPPORT_EMAIL
+        : getCardSupportEmail(registrationSettings, userLocation),
+    [isImmersve, registrationSettings, userLocation],
   );
 
   // --- Extracted hooks ---
@@ -143,10 +175,19 @@ const CardHome = () => {
     primaryToken,
     isFrozen,
     cardTermsAndConditionsUrl,
+    capabilities,
   });
+
+  const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
     useCardProvisioning(data);
+
+  const {
+    pendingAction: immersvePendingAction,
+    resumePendingAction,
+    isReconciling: isReconcilingImmersveProvisioning,
+  } = useImmersveCardProvisioning(data);
 
   // --- Money Account linkage ---
   const {
@@ -201,14 +242,10 @@ const CardHome = () => {
   }, [refetch]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
-  const refetched = useRef(false);
   useFocusEffect(
     useCallback(() => {
-      if (!refetched.current) {
-        refetched.current = true;
-        refetch();
-      }
-    }, [refetch]),
+      Engine.context.CardController.fetchCardHomeData();
+    }, []),
   );
 
   // --- Auth state transition: navigate to auth screen on logout ---
@@ -516,18 +553,32 @@ const CardHome = () => {
             onDismissSpendingLimitWarning={() =>
               setIsSpendingLimitWarningDismissed(true)
             }
+            hasPendingVerification={Boolean(immersvePendingAction)}
+            onContinueVerification={resumePendingAction}
+            isReconcilingProvisioning={isReconcilingImmersveProvisioning}
           />
         </Box>
+
+        {isBlocked && (
+          <Box twClassName="mx-4 mt-2">
+            <CardMessageBox messageType={CardMessageBoxType.Blocked} />
+          </Box>
+        )}
 
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Box twClassName="w-full relative">
             <CardImageSection
               isLoading={isLoading}
-              isCardDetailsLoading={actions.isCardDetailsLoading}
+              isCardDetailsLoading={
+                actions.isCardDetailsLoading ||
+                actions.isSensitiveDetailsLoading
+              }
               cardDetailsImageUrl={actions.cardDetailsImageUrl}
               isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
               onImageLoad={actions.onCardDetailsImageLoad}
               onImageError={actions.onCardDetailsImageError}
+              cardSensitiveDetails={actions.cardSensitiveDetails}
+              onCopyDetail={actions.copyCardDetail}
               cardType={data?.card?.type}
               cardStatus={data?.card?.status}
               walletAddress={
@@ -630,7 +681,6 @@ const CardHome = () => {
                 showMetalCard={hasMetalCard}
                 isLinkDisabled={isMoneyAccountLinkInProgress}
                 onGetNowPress={handleLinkMoneyAccountCard}
-                onHeaderPress={handleLinkMoneyAccountCard}
                 onLinkPress={handleLinkMoneyAccountCard}
                 analyticsScreen={CardScreens.HOME}
                 analyticsEntryPoint={
@@ -648,38 +698,44 @@ const CardHome = () => {
           </>
         )}
 
-        <ManageCardOptions
-          card={data?.card}
-          account={data?.account}
-          capabilities={capabilities}
-          isSpendingLimitActive={isSpendingLimitActive}
-          isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-          isAuthenticated={isAuthenticated}
-          isLoading={isLoading}
-          hasSetupActions={hasSetupActions}
-          hasAlertOnlyState={hasAlertOnlyState}
-          hasSetupAlerts={hasSetupAlerts}
-          userLocation={userLocation}
-          isFrozen={isFrozen}
-          isFreezeLoading={
-            actions.freeze.isPending || actions.unfreeze.isPending
-          }
-          isPinLoading={actions.isPinLoading}
-          cardDetailsImageUrl={actions.cardDetailsImageUrl}
-          onViewCardDetails={actions.viewCardDetailsAction}
-          onViewPin={actions.viewPinAction}
-          onToggleFreeze={actions.handleToggleFreeze}
-          onManageSpendingLimit={actions.manageSpendingLimitAction}
-          showUnlinkMoneyAccount={canUnlinkMoneyAccount}
-          onUnlinkMoneyAccount={() =>
-            actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
-          }
-          onOrderMetalCard={actions.orderMetalCardAction}
-          onChangeAsset={actions.changeAssetAction}
-          hasPriorityTokenBalance={hasPriorityTokenBalance}
-          onCashback={actions.cashbackAction}
-          onTravel={actions.navigateToTravelPage}
-        />
+        {!isBlocked && (
+          <ManageCardOptions
+            card={data?.card}
+            account={data?.account}
+            capabilities={capabilities}
+            isSpendingLimitActive={isSpendingLimitActive}
+            isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
+            isAuthenticated={isAuthenticated}
+            isLoading={isLoading}
+            hasSetupActions={hasSetupActions}
+            hasAlertOnlyState={hasAlertOnlyState}
+            hasSetupAlerts={hasSetupAlerts}
+            userLocation={userLocation}
+            isFrozen={isFrozen}
+            isFreezeLoading={
+              actions.freeze.isPending || actions.unfreeze.isPending
+            }
+            isPinLoading={actions.isPinLoading}
+            cardDetailsVisible={
+              (!!actions.cardDetailsImageUrl ||
+                !!actions.cardSensitiveDetails) &&
+              isAuthenticated
+            }
+            onViewCardDetails={actions.viewCardDetailsAction}
+            onViewPin={actions.viewPinAction}
+            onToggleFreeze={actions.handleToggleFreeze}
+            onManageSpendingLimit={actions.manageSpendingLimitAction}
+            showUnlinkMoneyAccount={canUnlinkMoneyAccount}
+            onUnlinkMoneyAccount={() =>
+              actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
+            }
+            onOrderMetalCard={actions.orderMetalCardAction}
+            onChangeAsset={actions.changeAssetAction}
+            hasPriorityTokenBalance={hasPriorityTokenBalance}
+            onCashback={actions.cashbackAction}
+            onTravel={actions.navigateToTravelPage}
+          />
+        )}
 
         <CardHomeFooter
           isAuthenticated={isAuthenticated}
@@ -687,11 +743,31 @@ const CardHome = () => {
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
           supportEmail={supportEmail}
+          legalDocuments={
+            isImmersve && immersveLegalDocuments.length > 0
+              ? immersveLegalDocuments
+              : undefined
+          }
+          hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+          showLegalDocumentsError={immersveLegalDocsUnavailable}
+          onRetryLegalDocuments={
+            immersveLegalDocsUnavailable
+              ? () => {
+                  refetchImmersveLegalDocs().catch(() => {
+                    // Error surfaces via hook state / footer retry UI.
+                  });
+                }
+              : undefined
+          }
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />
 
-        <CardScreenshotDeterrent enabled={!!actions.cardDetailsImageUrl} />
+        <CardScreenshotDeterrent
+          enabled={
+            !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
+          }
+        />
       </ScrollView>
     </Box>
   );

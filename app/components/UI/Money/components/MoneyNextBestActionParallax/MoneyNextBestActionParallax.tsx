@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -9,18 +9,15 @@ import {
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Rive, {
-  AutoBind,
-  Fit,
-  RNRiveError,
-  useRive,
-  useRiveNumber,
-} from 'rive-react-native';
+import Rive, { AutoBind, Fit, RNRiveError, RiveRef } from 'rive-react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import { tiltToParallaxValue } from './parallax';
+import {
+  pitchToParallaxValue,
+  tiltToParallaxValue,
+} from '../../utils/parallax';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
 import styles from './MoneyNextBestActionParallax.styles';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
@@ -59,28 +56,33 @@ const MoneyNextBestActionParallax = ({
 }: MoneyNextBestActionParallaxProps) => {
   const flagEnabled = useSelector(selectMoneyParallaxAnimationEnabledFlag);
   const reduceMotion = useReduceMotion();
-  const [hasRiveError, setHasRiveError] = useState(false);
-  const [riveRef, riveInstance] = useRive();
-  const [, setXValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_X);
-  const [, setYValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_Y);
+  const [erroredArtboard, setErroredArtboard] = useState<string | null>(null);
+  const hasRiveError = erroredArtboard === artboardName;
+  // Written to via a plain ref rather than `useRiveNumber`: that hook echoes
+  // every value back to JS through setState, re-rendering at the accelerometer
+  // sample rate for values this component never reads.
+  const riveRef = useRef<RiveRef>(null);
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
-  const applyTilt = useCallback(
-    (x: number, y: number) => {
-      if (!riveInstance) return;
-      setXValue(tiltToParallaxValue(x));
-      setYValue(tiltToParallaxValue(y));
-    },
-    [riveInstance, setXValue, setYValue],
-  );
+  const applyTilt = useCallback((x: number, y: number) => {
+    const rive = riveRef.current;
+    // viewTag() is null while the native Rive view is detached; dispatching
+    // then throws "found null reactTag".
+    if (!rive || rive.viewTag() === null) return;
+    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
+    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
+  }, []);
 
   useDeviceOrientation(applyTilt, { enabled: animate });
 
-  const handleError = useCallback((riveError: RNRiveError) => {
-    log(`Rive error: ${riveError.message}`);
-    setHasRiveError(true);
-  }, []);
+  const handleError = useCallback(
+    (riveError: RNRiveError) => {
+      log(`Rive error: ${riveError.message}`);
+      setErroredArtboard(artboardName);
+    },
+    [artboardName],
+  );
 
   let content: React.ReactNode;
   if (animate) {
@@ -92,6 +94,9 @@ const MoneyNextBestActionParallax = ({
           testID={MoneyNextBestActionParallaxTestIds.BACKGROUND}
         />
         <Rive
+          // Remount per artboard: swapping `artboardName` in place reloads the
+          // artboard but leaves data binding pointing at the previous one.
+          key={artboardName}
           ref={riveRef}
           source={NextBestActionParallaxAnimation}
           artboardName={artboardName}

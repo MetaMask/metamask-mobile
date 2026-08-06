@@ -33,7 +33,14 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  TraceContext,
+  trace,
+  endTrace,
+  getTraceContext,
+} from '../../util/trace';
 import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
@@ -95,6 +102,7 @@ import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
+import { clearBrazeUser } from '../Braze';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -158,6 +166,17 @@ class AuthenticationService {
     await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
     if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
       ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
+  };
+
+  private clearSessionScopedProviderTokens = async (): Promise<void> => {
+    try {
+      await depositResetProviderToken();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to clear deposit provider token during wallet setup',
+      );
     }
   };
 
@@ -562,6 +581,7 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
+      await this.clearSessionScopedProviderTokens();
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -603,6 +623,8 @@ class AuthenticationService {
         parsedSeed,
         clearEngine,
       );
+
+      await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
         Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
@@ -761,10 +783,15 @@ class AuthenticationService {
       password,
       authPreference,
       onBeforeNavigate,
+      // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
+      // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
+      // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
+      parentContext,
     }: {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
+      parentContext?: TraceContext;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -791,8 +818,9 @@ class AuthenticationService {
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
           if (authPreference?.oauth2Login) {
-            // if seedless flow - rehydrate
-            await this.rehydrateSeedPhrase(passwordToUse);
+            // If seedless flow, rehydrate and nest OnboardingFetchSrps under
+            // the onboarding journey when a parent context is supplied.
+            await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({
@@ -1000,10 +1028,16 @@ class AuthenticationService {
       );
 
       let createKeyAndBackupSrpSuccess = false;
+      // Nest under the open New Social Create Wallet journey span when present so
+      // this security op appears in the onboarding waterfall (not as a root span).
+      const parentContext = getTraceContext({
+        name: TraceName.OnboardingNewSocialCreateWallet,
+      });
       try {
         trace({
           name: TraceName.OnboardingCreateKeyAndBackupSrp,
           op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
         });
         await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
           password,
@@ -1019,6 +1053,7 @@ class AuthenticationService {
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
+          parentContext,
         });
         endTrace({
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,
@@ -1260,7 +1295,13 @@ class AuthenticationService {
     return true;
   };
 
-  rehydrateSeedPhrase = async (password: string): Promise<void> => {
+  rehydrateSeedPhrase = async (
+    password: string,
+    // Optional so existing callers are unaffected. When provided (from the onboarding UI), it
+    // nests OnboardingFetchSrps under the overall-journey span instead of emitting it as a
+    // disconnected root transaction in Sentry.
+    parentContext?: TraceContext,
+  ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
       let allSRPs: Awaited<
@@ -1271,6 +1312,7 @@ class AuthenticationService {
         trace({
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
         });
         allSRPs =
           await SeedlessOnboardingController.fetchAllSecretData(password);
@@ -1651,6 +1693,7 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
+    clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state

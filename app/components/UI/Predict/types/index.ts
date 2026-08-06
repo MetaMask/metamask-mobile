@@ -2,6 +2,7 @@
 
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PredictMarketListOrder } from '../constants/flags';
 
 export enum Side {
   BUY = 'BUY',
@@ -153,16 +154,24 @@ export type PredictCategory =
   | 'crypto'
   | 'politics'
   | 'hot'
-  | 'world-cup'
   | 'wimbledon';
 
 // Sports league types
 export type PredictSportsLeague =
   | 'nfl'
+  | 'cfb'
+  | 'cfl'
   | 'nba'
   | 'wnba'
   | 'mlb'
+  | 'kbo'
+  | 'npb'
+  | 'cpbl'
   | 'nhl'
+  | 'shl'
+  | 'khl'
+  | 'cehl'
+  | 'dehl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -175,6 +184,8 @@ export type PredictSportsLeague =
   | 'bun'
   | 'chi'
   | 'epl'
+  | 'elc'
+  | 'bel1'
   | 'cze1'
   | 'j1100'
   | 'j2100'
@@ -204,7 +215,12 @@ export type PredictSportsLeague =
   | 'fifwc'
   | 'atp'
   | 'wta'
-  | 'itf';
+  | 'itf'
+  | 'cs2'
+  | 'lol'
+  | 'dota2'
+  | 'val'
+  | 'r6siege';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -636,16 +652,23 @@ export interface GetMarketsResult {
 export interface PredictMarketListParams {
   tags?: string[]; // tag IDs -> tag_id (multi).
   tagSlugs?: string[]; // tag slugs -> tag_slug (multi). Parallel to `tags` (IDs); both ride /events/keyset.
+  excludedTags?: string[]; // tag IDs -> exclude_tag_id (multi).
   series?: string[]; // series IDs -> series_id (multi)
-  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  order?: PredictMarketListOrder;
   // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
   status?: 'open' | 'closed' | 'resolved';
   live?: boolean;
+  // Raw query string override for `/events/keyset` without a leading `?`.
+  queryParams?: string;
+  // Relative lower bound computed in minutes when the request is built -> start_time_min.
+  startTimeMinMinutesAgo?: number;
   // Free-text title filter. The provider maps this to Polymarket's
   // `title_search` query param, which composes with cursor pagination, so
   // search stays on the same feed endpoint (handled in the provider layer, not
   // the UI). Blank/whitespace is ignored (browse mode).
   search?: string;
+  /** Raw Polymarket query params that override matching generated params. */
+  customQueryParams?: string;
   limit?: number;
   afterCursor?: string | null;
 }
@@ -787,6 +810,8 @@ export interface ConnectionStatus {
   marketConnected: boolean;
   rtdsConnected: boolean;
 }
+
+export type ConnectionStatusCallback = (status: ConnectionStatus) => void;
 
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;

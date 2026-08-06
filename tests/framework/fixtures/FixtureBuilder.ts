@@ -1433,6 +1433,21 @@ class FixtureBuilder {
   }
 
   /**
+   * Disables auto-lock (`settings.lockTime = -1`).
+   * Needed for flows that background MetaMask (e.g. Chrome MM Connect) so a
+   * pending connect deeplink is not blocked behind the lock screen long enough
+   * for the dapp SDK transport to time out.
+   * @returns The current instance for method chaining.
+   */
+  withAutoLockDisabled() {
+    merge(this.fixture.state.settings, {
+      lockTime: -1,
+    });
+
+    return this;
+  }
+
+  /**
    * Disables profile syncing in the fixture.
    * @returns The current instance for method chaining.
    */

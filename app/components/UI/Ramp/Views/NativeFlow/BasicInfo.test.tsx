@@ -31,6 +31,14 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     (..._args: unknown[]) =>
     (params: unknown) => ['MockRoute', params],
   useParams: () => mockUseParamsReturn,
+  navigateWithDetails: (
+    navigation: { navigate: (...args: unknown[]) => void },
+    details: unknown[],
+  ) => navigation.navigate(...details),
+  resetWithRoutes: (
+    navigation: { reset: (state: unknown) => void },
+    state: unknown,
+  ) => navigation.reset(state),
 }));
 
 const mockPatchUser = jest.fn();

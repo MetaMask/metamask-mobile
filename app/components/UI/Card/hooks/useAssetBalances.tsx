@@ -417,6 +417,25 @@ export const useAssetBalances = (
         );
       }
 
+      // Must run before the filteredToken/walletAsset paths: without market
+      // data those report "$0.00" for a real balance, so a USD-pegged token
+      // falls back to 1 token = 1 USD instead.
+      if (_token.assumeUsdParity) {
+        const parityBalance = parseFloat(balanceToUse.replace(',', '.'));
+        if (!isNaN(parityBalance)) {
+          const balanceFiat = formatWithThreshold(
+            parityBalance,
+            0.01,
+            I18n.locale,
+            {
+              style: 'currency',
+              currency: 'USD',
+            },
+          );
+          return { balanceFiat, rawFiatNumber: parityBalance };
+        }
+      }
+
       // Use pre-calculated fiat from filtered token
       if (balanceSource === 'filteredToken' && filteredToken?.balanceFiat) {
         // Handle special strings like "tokenRateUndefined" or "tokenBalanceLoading"

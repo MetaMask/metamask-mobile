@@ -67,6 +67,8 @@ export const WalletViewSelectorsIDs = {
   PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
     'profile-button-avatar-network-subtitle-container',
   HOMEPAGE_CONTAINER: 'homepage-container',
+  HOMEPAGE_BANNER_CONTAINER: 'homepage-banner-container',
+  HOMEPAGE_BANNER_CONTENT: 'homepage-banner-content',
   HOMEPAGE_MORE_SECTION: 'homepage-more-section',
   HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON: 'homepage-more-contact-support-button',
   CAROUSEL_CONTAINER: 'carousel-container',
@@ -95,6 +97,7 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
   WALLET_ACTIVITY_BUTTON: 'wallet-activity-button',
+  WALLET_SEARCH_BUTTON: 'wallet-search-button',
   WALLET_HEADER_ROOT: 'wallet-header-root',
   WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',

@@ -114,10 +114,20 @@ jest.mock('../../../../selectors/networkController', () => ({
 
 let mockBottomSheetEnabled = false;
 let mockProviderMounted = false;
+let mockTransactionsRedesignEnabled = false;
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/activityRedesign',
+  () => ({
+    selectIsTransactionsRedesignEnabled: jest.fn(
+      () => mockTransactionsRedesignEnabled,
+    ),
+  }),
+);
 
 jest.mock('../contexts/PredictPreviewSheetContext', () => ({
   shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
@@ -138,6 +148,7 @@ describe('usePredictToastRegistrations', () => {
 
     mockBottomSheetEnabled = false;
     mockProviderMounted = false;
+    mockTransactionsRedesignEnabled = false;
     mockWithdrawTransaction = { amount: 123.45 };
 
     mockDeposit.mockResolvedValue(undefined);
@@ -192,6 +203,37 @@ describe('usePredictToastRegistrations', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: 'tx-1',
       });
+    });
+
+    it('tracks to the redesigned details screen when the redesign is enabled', () => {
+      mockTransactionsRedesignEnabled = true;
+      jest
+        .mocked(selectTransactionMetadataById)
+        .mockReturnValue({ chainId: '0x89' } as unknown as ReturnType<
+          typeof selectTransactionMetadataById
+        >);
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-1',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      showToast.mock.calls[0][0].closeButtonOptions.onPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+        chainId: 'eip155:137',
+        txIdentifier: 'tx-1',
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.TRANSACTION_DETAILS,
+        expect.anything(),
+      );
     });
 
     it('shows success toast on confirmed status', () => {
@@ -988,7 +1030,7 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: 'Icon',
-          iconName: 'Check',
+          iconName: 'Confirmation',
           hasNoTimeout: false,
         }),
       );

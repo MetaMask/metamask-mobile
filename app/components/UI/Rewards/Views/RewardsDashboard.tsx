@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   ButtonIcon,
@@ -59,7 +60,7 @@ const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const pendingDeeplink = useSelector(selectPendingDeeplink);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
