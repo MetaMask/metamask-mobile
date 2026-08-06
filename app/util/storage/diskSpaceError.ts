@@ -86,8 +86,8 @@ export function reportStorageWriteError(
   });
 }
 
-/** Resets session state. For unit tests only. */
-export function resetDiskSpaceErrorSessionStateForTesting(): void {
+/** Resets in-memory session dedup flags (unit tests / developer options). */
+export function resetDiskSpaceErrorSessionState(): void {
   sessionState.sentryReported = false;
   sessionState.alertShown = false;
 }

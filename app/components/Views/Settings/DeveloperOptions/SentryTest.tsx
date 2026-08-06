@@ -15,7 +15,7 @@ import { sleep } from '../../../../util/testUtils';
 import { useStyles } from '../../../../component-library/hooks';
 import {
   reportStorageWriteError,
-  resetDiskSpaceErrorSessionStateForTesting,
+  resetDiskSpaceErrorSessionState,
 } from '../../../../util/storage/diskSpaceError';
 import styleSheet from './DeveloperOptions.styles';
 
@@ -102,7 +102,7 @@ function SimulateDiskFull() {
   }, []);
 
   const handleResetDiskFullSession = useCallback(() => {
-    resetDiskSpaceErrorSessionStateForTesting();
+    resetDiskSpaceErrorSessionState();
   }, []);
 
   return (

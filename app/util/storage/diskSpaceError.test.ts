@@ -3,7 +3,7 @@ import Logger from '../Logger';
 import {
   isDiskSpaceError,
   reportStorageWriteError,
-  resetDiskSpaceErrorSessionStateForTesting,
+  resetDiskSpaceErrorSessionState,
 } from './diskSpaceError';
 
 jest.mock('../../actions/alert', () => ({
@@ -24,7 +24,7 @@ jest.mock('../Logger');
 describe('diskSpaceError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetDiskSpaceErrorSessionStateForTesting();
+    resetDiskSpaceErrorSessionState();
   });
 
   describe('isDiskSpaceError', () => {
