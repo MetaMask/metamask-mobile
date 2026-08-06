@@ -12,6 +12,7 @@ import {
   PerpsRelatedMarketsSelectorsIDs,
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchPill';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -213,13 +214,6 @@ const mockGetState = jest.fn();
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
-const mockHasCompletedPerpsModeSelection = jest.fn(() =>
-  Promise.resolve(false),
-);
-jest.mock('../../utils/perpsModeSelectionStorage', () => ({
-  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
-}));
-
 // usePerpsNavigation mock functions
 const mockNavigateToHome = jest.fn();
 const mockNavigateToActivity = jest.fn();
@@ -952,7 +946,7 @@ describe('PerpsMarketDetailsView', () => {
     mockSetPerpsMode.mockClear();
     mockNavigateToHome.mockClear();
     mockPerpsModeValue = 'lite';
-    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
+    jest.useRealTimers();
   });
 
   it('renders correctly', () => {
@@ -1027,7 +1021,8 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the mode selection sheet when the active-mode pill is pressed from Lite', async () => {
+  it('plays the shimmer before switching from Lite to Pro', () => {
+    jest.useFakeTimers();
     enableProModeFlag();
 
     const { getByTestId } = renderWithProvider(
@@ -1041,20 +1036,22 @@ describe('PerpsMarketDetailsView', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
 
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-        screen: Routes.PERPS.MODALS.MODE_SELECTION,
-        params: {
-          entry: 'market',
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-        },
-      });
-    });
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
-    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
+
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      }),
+    );
   });
 
-  it('opens the mode selection sheet when the active-mode pill is pressed from Pro', async () => {
+  it('plays the shimmer before switching from Pro to Lite', () => {
+    jest.useFakeTimers();
     enableProModeFlag();
     mockPerpsModeValue = PerpsMode.Pro;
 
@@ -1069,46 +1066,13 @@ describe('PerpsMarketDetailsView', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-        screen: Routes.PERPS.MODALS.MODE_SELECTION,
-        params: {
-          entry: 'market',
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-        },
-      });
-    });
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
-    expect(mockNavigateToHome).not.toHaveBeenCalled();
-    // Pill only opens the chooser; Home-stack cleanup on Pro runs after select
-    // in PerpsModeSelectionView (TAT-3612).
-    expect(mockReset).not.toHaveBeenCalled();
-  });
-
-  it('does not open the mode selection sheet when selection is already completed', async () => {
-    enableProModeFlag();
-    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
-
-    const { getByTestId } = renderWithProvider(
-      <PerpsConnectionProvider>
-        <PerpsMarketDetailsView />
-      </PerpsConnectionProvider>,
-      {
-        state: initialState,
-      },
-    );
-
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
-
-    await waitFor(() => {
-      expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    act(() => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
     });
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MODALS.ROOT,
-      expect.objectContaining({
-        screen: Routes.PERPS.MODALS.MODE_SELECTION,
-      }),
-    );
+
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('does not show the active-mode pill when the Pro mode flag is disabled', () => {

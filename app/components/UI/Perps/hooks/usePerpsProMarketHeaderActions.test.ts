@@ -5,7 +5,6 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsProMarketHeaderActions } from './usePerpsProMarketHeaderActions';
 
 const mockNavigateBack = jest.fn();
@@ -49,21 +48,6 @@ jest.mock('./usePerpsWatchlistActions', () => ({
   })),
 }));
 
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
-
-const mockHasCompletedPerpsModeSelection = jest.fn(() =>
-  Promise.resolve(false),
-);
-jest.mock('../utils/perpsModeSelectionStorage', () => ({
-  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
-}));
-
 const mockDropPerpsHomeFromStackHistory = jest.fn();
 jest.mock('../utils/perpsModeSwitch', () => ({
   useDropPerpsHomeFromStackHistory: () => mockDropPerpsHomeFromStackHistory,
@@ -80,7 +64,6 @@ describe('usePerpsProMarketHeaderActions', () => {
     jest.clearAllMocks();
     mockCanGoBack = true;
     mockIsWatchlist = false;
-    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
   });
 
   it('navigates back when the stack can go back', () => {
@@ -186,50 +169,28 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
   });
 
-  it('opens the mode selection sheet instead of switching immediately', async () => {
+  it('switches mode directly after the pill animation completes', () => {
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
 
-    await act(async () => {
+    act(() => {
       result.current.handlePerpsModeChange(PerpsMode.Lite);
     });
 
-    expect(mockSetPerpsMode).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.MODE_SELECTION,
-      params: {
-        entry: 'market',
-        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      },
-    });
-  });
-
-  it('does not open the mode selection sheet when selection is already completed', async () => {
-    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
-    const { result } = renderHook(() =>
-      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
-    );
-
-    await act(async () => {
-      result.current.handlePerpsModeChange(PerpsMode.Lite);
-    });
-
-    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockDropPerpsHomeFromStackHistory).not.toHaveBeenCalled();
   });
 
-  it('drops Perps Home from history when directly switching to Pro after chooser completion', async () => {
-    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+  it('drops Perps Home from history when switching to Pro', () => {
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
 
-    await act(async () => {
+    act(() => {
       result.current.handlePerpsModeChange(PerpsMode.Pro);
     });
 
-    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
     expect(mockDropPerpsHomeFromStackHistory).toHaveBeenCalledTimes(1);
   });

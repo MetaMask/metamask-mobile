@@ -83,7 +83,6 @@ import PerpsMarketHeader, {
 } from '../../components/PerpsMarketHeader';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
-import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
 import { useDropPerpsHomeFromStackHistory } from '../../utils/perpsModeSwitch';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
@@ -360,30 +359,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
   const isWatchlist = useSelector(selectIsWatchlist);
 
-  // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Opens the
-  // one-time Lite/Pro chooser until completed, then flips mode in place.
+  // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3).
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
-      // eslint-disable-next-line no-void
-      void (async () => {
-        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
-          entry: 'market',
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-        });
-        if (openedChooser) {
-          return;
-        }
-
-        setPerpsMode(nextMode);
-        if (nextMode === PerpsMode.Pro) {
-          dropPerpsHomeFromStackHistory();
-        }
-      })();
+      // PerpsModeSwitchPill runs the shimmer before invoking this callback.
+      setPerpsMode(nextMode);
+      if (nextMode === PerpsMode.Pro) {
+        dropPerpsHomeFromStackHistory();
+      }
     },
-    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
+    [setPerpsMode, dropPerpsHomeFromStackHistory],
   );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks

@@ -1,7 +1,5 @@
 import React, { useCallback } from 'react';
 import {
-  ButtonBase,
-  ButtonBaseSize,
   FilterButton,
   SegmentedControl,
   SegmentedControlSize,
@@ -13,12 +11,11 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useTheme } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
 import PerpsProGradientLabel from './PerpsProGradientLabel';
+import PerpsModeSwitchPill from './PerpsModeSwitchPill';
 
 /**
  * Selected "Pro" segment fill from Figma — `accent/02/normal` at ~18% over
@@ -26,12 +23,6 @@ import PerpsProGradientLabel from './PerpsProGradientLabel';
  */
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const PERPS_PRO_ACCENT_SELECTED_BG = '#382b43';
-
-// Figma node 10857:46178 defines solid Pro label/border colors per theme.
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const PERPS_PRO_ACTIVE_COLOR_LIGHT = '#CF8D00';
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const PERPS_PRO_ACTIVE_COLOR_DARK = '#DDC598';
 
 /**
  * Reusable Lite ⇄ Pro mode toggle for Perps entry points (TAT-3551).
@@ -51,7 +42,6 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   testID = PerpsModeToggleSelectorsIDs.CONTAINER,
 }) => {
   const { track } = usePerpsEventTracking();
-  const { themeAppearance } = useTheme();
 
   const handleChange = useCallback(
     (value: string) => {
@@ -84,23 +74,13 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
     const isPro = mode === PerpsMode.Pro;
     const nextModeLabel = isPro ? liteLabel : proLabel;
     const currentModeLabel = isPro ? proLabel : liteLabel;
-    const activeProColor =
-      themeAppearance === AppThemeKey.dark
-        ? PERPS_PRO_ACTIVE_COLOR_DARK
-        : PERPS_PRO_ACTIVE_COLOR_LIGHT;
     return (
-      <ButtonBase
-        size={ButtonBaseSize.Sm}
-        twClassName="border border-border-muted bg-default"
-        style={isPro ? { borderColor: activeProColor } : undefined}
-        textProps={
-          isPro
-            ? {
-                style: { color: activeProColor },
-              }
-            : undefined
+      <PerpsModeSwitchPill
+        currentModeLabel={currentModeLabel}
+        isPro={isPro}
+        onSwitchRequest={() =>
+          handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)
         }
-        onPress={() => handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)}
         accessibilityLabel={strings(
           'perps.mode.active_pill_accessibility_label',
           { mode: currentModeLabel },
@@ -114,9 +94,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
             ? PerpsModeToggleSelectorsIDs.PRO_SEGMENT
             : PerpsModeToggleSelectorsIDs.LITE_SEGMENT
         }
-      >
-        {currentModeLabel}
-      </ButtonBase>
+      />
     );
   }
 
