@@ -50,7 +50,11 @@ import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardLinkageInProgressError,
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
 import { CardFundingToken } from '../types';
@@ -260,12 +264,12 @@ export const useMoneyAccountCardLinkage =
     );
 
     const showErrorToast = useCallback(
-      (action: LinkageAction = 'link') => {
+      (action: LinkageAction = 'link', labelKey?: string) => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
             {
-              label: strings(ERROR_TITLE_BY_ACTION[action]),
+              label: strings(labelKey ?? ERROR_TITLE_BY_ACTION[action]),
             },
           ],
           iconName: IconName.Error,
@@ -614,7 +618,19 @@ export const useMoneyAccountCardLinkage =
           Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
           setError(linkageError);
           setStatus('error');
-          showErrorToast(action);
+          // Cross-device conflict: the Money Account is already delegated to
+          // another card account, so the generic "something went wrong" copy
+          // would mislead — name the actual reason.
+          const isLinkedToDifferentCard =
+            linkageError instanceof CardProviderError &&
+            linkageError.code ===
+              CardProviderErrorCode.MoneyAccountLinkedToDifferentCard;
+          showErrorToast(
+            action,
+            isLinkedToDifferentCard
+              ? 'money.metamask_card.link_error_different_card'
+              : undefined,
+          );
           return false;
         }
       },

@@ -58,6 +58,8 @@ import {
 } from '../../../../../selectors/featureFlagController/card';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
+import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -193,6 +195,15 @@ const SignUp = () => {
       (cardFeatureFlag.immersveCountries ?? []).includes(selectedCountry.key),
   );
 
+  const {
+    onboardingDocuments,
+    isLoading: isLegalDocsLoading,
+    error: legalDocsError,
+    refetch: refetchLegalDocs,
+  } = useImmersveSupportedRegions(
+    isImmersveCountry ? selectedCountry?.key : undefined,
+  );
+
   const isWaitlistMode = Boolean(
     selectedCountry && !selectedCountry.canSignUp && !isImmersveCountry,
   );
@@ -207,8 +218,15 @@ const SignUp = () => {
     }
     if (isImmersveCountry) {
       // Email + phone are collected; SIWE binds to the selected account.
+      // Legal docs must be loaded before Continue (clickwrap agreement).
       return (
-        !email || !isPhoneValid || !immersveAddress || isImmersveSubmitting
+        !email ||
+        !isPhoneValid ||
+        !immersveAddress ||
+        isImmersveSubmitting ||
+        isLegalDocsLoading ||
+        Boolean(legalDocsError) ||
+        onboardingDocuments.length === 0
       );
     }
     return (
@@ -225,6 +243,9 @@ const SignUp = () => {
     isImmersveCountry,
     immersveAddress,
     isImmersveSubmitting,
+    isLegalDocsLoading,
+    legalDocsError,
+    onboardingDocuments.length,
     email,
     isPhoneValid,
     password,
@@ -526,7 +547,7 @@ const SignUp = () => {
           </Box>
           <Box>
             <Label>
-              {strings('card.card_onboarding.sign_up.account_label')}
+              {strings('card.card_onboarding.sign_up.account_label_immersve')}
             </Label>
             <SelectField
               value={accountName ?? undefined}
@@ -537,7 +558,9 @@ const SignUp = () => {
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative mt-1"
             >
-              {strings('card.card_onboarding.sign_up.account_description')}
+              {strings(
+                'card.card_onboarding.sign_up.account_description_immersve',
+              )}
             </Text>
             {immersveError ? (
               <Text
@@ -605,6 +628,19 @@ const SignUp = () => {
 
   const renderActions = () => (
     <>
+      {isImmersveCountry ? (
+        <Box twClassName="mb-6">
+          <ImmersveLegalClickwrap
+            documents={onboardingDocuments}
+            isLoading={isLegalDocsLoading}
+            error={legalDocsError}
+            treatEmptyAsError
+            onRetry={() => {
+              void refetchLegalDocs();
+            }}
+          />
+        </Box>
+      ) : null}
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
@@ -635,7 +671,11 @@ const SignUp = () => {
           fontWeight={FontWeight.Medium}
           twClassName="text-default text-center p-4"
         >
-          {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
+          {strings(
+            isImmersveCountry
+              ? 'card.card_onboarding.sign_up.i_already_have_an_account_immersve'
+              : 'card.card_onboarding.sign_up.i_already_have_an_account',
+          )}
         </Text>
       </TouchableOpacity>
     </>
@@ -644,7 +684,11 @@ const SignUp = () => {
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.sign_up.title')}
-      description={strings('card.card_onboarding.sign_up.description')}
+      description={strings(
+        isImmersveCountry
+          ? 'card.card_onboarding.sign_up.description_immersve'
+          : 'card.card_onboarding.sign_up.description',
+      )}
       formFields={renderFormFields()}
       actions={renderActions()}
       headerMode="back"

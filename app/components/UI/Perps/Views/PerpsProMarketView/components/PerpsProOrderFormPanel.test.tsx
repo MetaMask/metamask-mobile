@@ -6,6 +6,10 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+import type {
+  PerpsProSizeInputModel,
+  PerpsProSizeSliderModel,
+} from './PerpsProOrderForm/PerpsProOrderForm.types';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -14,11 +18,31 @@ import {
 jest.mock('../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
 
+const host = (name: string) => name as unknown as React.ComponentType<unknown>;
+
 // Provider is a passthrough; the orchestration hook is mocked below so the
 // container test focuses purely on prop/sheet wiring.
 jest.mock('../../../contexts/PerpsOrderContext', () => ({
   PerpsOrderProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
+
+const DEFAULT_SIZE_INPUT: PerpsProSizeInputModel = {
+  value: '100',
+  denomination: { unit: 'usd' },
+  canToggleDenomination: true,
+  onChange: jest.fn(),
+  onFocus: jest.fn(),
+  onBlur: jest.fn(),
+  onToggleDenomination: jest.fn(),
+};
+
+const DEFAULT_SIZE_SLIDER: PerpsProSizeSliderModel = {
+  value: 100,
+  maximumValue: 500,
+  onValueChange: jest.fn(),
+  onDragEnd: jest.fn(),
+  onDragCancel: jest.fn(),
+};
 
 const DEFAULT_MOCK_HOOK_RESULT = {
   direction: 'long' as 'long' | 'short',
@@ -29,11 +53,10 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onOrderTypeButtonPress: jest.fn(),
   limitPrice: '',
   onLimitPriceChange: jest.fn(),
+  onLimitPriceBlur: jest.fn(),
   onUseMidPricePress: jest.fn(),
-  size: '100',
-  onSizeChange: jest.fn(),
-  balancePercentage: 20,
-  onBalancePercentageChange: jest.fn(),
+  sizeInput: DEFAULT_SIZE_INPUT,
+  sizeSlider: DEFAULT_SIZE_SLIDER,
   availableBalance: '$500 available',
   onAddFundsPress: jest.fn(),
   reduceOnly: false,
@@ -239,6 +262,34 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(mockHookResult.onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the size denomination returned by the hook', () => {
+    mockHookResult.sizeInput = {
+      ...mockHookResult.sizeInput,
+      denomination: { unit: 'asset', symbol: 'BTC' },
+    };
+
+    renderPanel();
+
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_UNIT_LABEL),
+    ).toHaveTextContent('Size (BTC)');
+    expect(
+      screen.queryByTestId(PerpsProOrderFormSelectorsIDs.SIZE_PREFIX),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('wires size slider drag completion to the hook', () => {
+    renderPanel();
+    const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
+
+    expect(slider).toHaveProp('value', 100);
+    expect(slider).toHaveProp('maximumValue', 500);
+
+    slider.props.onDragEnd(20);
+
+    expect(mockHookResult.sizeSlider.onDragEnd).toHaveBeenCalledTimes(1);
   });
 
   it('wires the TP/SL row to the hook', () => {

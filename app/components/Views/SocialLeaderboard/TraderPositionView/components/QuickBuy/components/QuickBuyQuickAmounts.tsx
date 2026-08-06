@@ -17,6 +17,30 @@ import {
 } from '../utils/quickBuyQuickAmounts';
 
 /**
+ * Pill labels use compact magnitudes ("$1K", "$1.5M"), and ButtonBase renders
+ * labels with `numberOfLines: 1` and `ellipsizeMode: 'clip'` — overflow is cut
+ * off with no ellipsis. At large OS font scales that drops the suffix, so a
+ * "$10K" pill reads as "$10": a 1000x wrong amount on a button that spends
+ * money.
+ *
+ * `maxFontSizeMultiplier: 1` pins the label to the size the four-pill row was
+ * designed around, so the OS text-size setting can no longer overflow it. The
+ * cap is deliberately one-directional: a user who picks a *smaller* system
+ * font still gets a smaller label, which only ever helps the fit.
+ *
+ * Per-`Text` auto-shrink (`adjustsFontSizeToFit`) is intentionally not used
+ * here — it sizes each label against its own pill, so one long amount in the
+ * row would render visibly smaller than its neighbours. `tail` replaces the
+ * inherited `clip` instead, so a label that somehow still overflows shows an
+ * ellipsis rather than a plausible-looking wrong number.
+ */
+const QUICK_AMOUNT_PILL_TEXT_PROPS = {
+  maxFontSizeMultiplier: 1,
+  numberOfLines: 1,
+  ellipsizeMode: 'tail',
+} as const;
+
+/**
  * Shared pill chrome.
  * ButtonSize.Md (40px) matches the Figma height; px-2 overrides the default
  * 16px horizontal padding so all four labels fit on one row without clipping.
@@ -24,6 +48,7 @@ import {
 const QUICK_AMOUNT_PILL_PROPS = {
   variant: ButtonVariant.Secondary,
   size: ButtonSize.Md,
+  textProps: QUICK_AMOUNT_PILL_TEXT_PROPS,
 } as const;
 
 const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
@@ -113,6 +138,7 @@ const QuickBuyQuickAmounts: React.FC<QuickBuyQuickAmountsProps> = ({
         size={ButtonSize.Md}
         onPress={onDonePress}
         twClassName={QUICK_AMOUNT_PILL_TW_CLASS}
+        textProps={QUICK_AMOUNT_PILL_TEXT_PROPS}
         testID="quick-buy-keypad-done"
       >
         Done

@@ -36,6 +36,7 @@ import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
+import { usePerpsMarketData } from '../../hooks';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
@@ -83,6 +84,9 @@ const PerpsProOrderBookColumn = ({
   onCollapse,
 }: PerpsProOrderBookColumnProps) => {
   const { setLimitPrice, setOrderType } = usePerpsOrderContext();
+  // Drives the ladder's price precision and base-size decimals — without it
+  // every price falls back to magnitude-based formatting.
+  const { marketData } = usePerpsMarketData({ asset: symbol });
 
   const handleSelectPrice = useCallback(
     (price: string) => {
@@ -98,6 +102,7 @@ const PerpsProOrderBookColumn = ({
     <PerpsProOrderBookPanel
       symbol={symbol}
       marketPrice={marketPrice}
+      szDecimals={marketData?.szDecimals}
       onCollapse={onCollapse}
       onSelectPrice={handleSelectPrice}
     />
@@ -122,6 +127,9 @@ const PerpsProMarketView = () => {
   const routeMarket = route.params?.market;
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  // Set by entry points that already carry a trade intent (e.g. spot token
+  // details Long/Short), so the inline form opens on the right side.
+  const initialDirection = route.params?.direction;
 
   // Some navigation sources (e.g. Recent Activity, deep links) pass minimal
   // market data without `maxLeverage` — fetch the full markets list to
@@ -146,7 +154,7 @@ const PerpsProMarketView = () => {
   const handleSelectMarket = useCallback(
     (
       nextMarket: PerpsMarketData | Partial<PerpsMarketData>,
-      sourceSection:
+      panelSourceSection:
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     ) => {
@@ -156,10 +164,14 @@ const PerpsProMarketView = () => {
 
       // POSITION_TAB is the panel-level source; source_section distinguishes
       // which tab the row came from (same pattern as Perps home).
+      // `direction` is cleared because `setParams` merges: the side belongs to
+      // the entry point that opened this screen, and keeping it would reseed
+      // the remounted order form with the previous market's trade intent.
       navigation.setParams({
         market: nextMarket,
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
-        source_section: sourceSection,
+        source_section: panelSourceSection,
+        direction: undefined,
       });
     },
     [navigation, routeMarket?.symbol],
@@ -350,7 +362,9 @@ const PerpsProMarketView = () => {
           <PerpsOrderProvider
             key={market.symbol}
             initialAsset={market.symbol}
+            initialDirection={initialDirection}
             initialType="market"
+            fallbackAmount=""
           >
             <PerpsProMarketLayout
               isOrderBookCollapsed={isOrderBookCollapsed}

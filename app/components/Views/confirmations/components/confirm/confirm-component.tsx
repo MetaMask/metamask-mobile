@@ -12,7 +12,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
@@ -205,7 +205,6 @@ export const Confirm = ({
   return (
     <BottomSheet
       onClose={() => onReject()}
-      shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
       testID={ConfirmationUIType.MODAL}
     >
