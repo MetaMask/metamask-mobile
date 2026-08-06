@@ -130,4 +130,112 @@ describe('restoreAndroidAnimations', () => {
 
     expect(run).not.toHaveBeenCalled();
   });
+
+  it('attempts all settings even when one throws and rethrows that single error', () => {
+    const run = jest.fn((serial: string, args: string[]): string => {
+      const setting = args[4];
+      if (setting === 'transition_animation_scale') {
+        throw new Error('settings unavailable');
+      }
+      return '';
+    });
+
+    expect(() =>
+      restoreAndroidAnimations(
+        {
+          serial: SERIAL,
+          previous: new Map([
+            ['window_animation_scale', '1'],
+            ['transition_animation_scale', '0.5'],
+            ['animator_duration_scale', 'null'],
+          ]),
+        },
+        run,
+      ),
+    ).toThrow('settings unavailable');
+
+    expect(run).toHaveBeenCalledWith(SERIAL, [
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'window_animation_scale',
+      '1',
+    ]);
+    expect(run).toHaveBeenCalledWith(SERIAL, [
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'transition_animation_scale',
+      '0.5',
+    ]);
+    expect(run).toHaveBeenCalledWith(SERIAL, [
+      'shell',
+      'settings',
+      'delete',
+      'global',
+      'animator_duration_scale',
+    ]);
+  });
+
+  it('aggregates multiple failures into an AggregateError after attempting all settings', () => {
+    const run = jest.fn((serial: string, args: string[]): string => {
+      const setting = args[4];
+      if (
+        setting === 'transition_animation_scale' ||
+        setting === 'animator_duration_scale'
+      ) {
+        throw new Error(`restore ${setting} failed`);
+      }
+      return '';
+    });
+
+    let thrown: unknown;
+    try {
+      restoreAndroidAnimations(
+        {
+          serial: SERIAL,
+          previous: new Map([
+            ['window_animation_scale', '1'],
+            ['transition_animation_scale', '0.5'],
+            ['animator_duration_scale', 'null'],
+          ]),
+        },
+        run,
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(AggregateError);
+    const agg = thrown as AggregateError;
+    expect(agg.errors).toHaveLength(2);
+    expect(agg.errors[0]).toBeInstanceOf(Error);
+    expect(agg.errors[1]).toBeInstanceOf(Error);
+
+    expect(run).toHaveBeenCalledWith(SERIAL, [
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'window_animation_scale',
+      '1',
+    ]);
+    expect(run).toHaveBeenCalledWith(SERIAL, [
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'transition_animation_scale',
+      '0.5',
+    ]);
+    expect(run).toHaveBeenCalledWith(SERIAL, [
+      'shell',
+      'settings',
+      'delete',
+      'global',
+      'animator_duration_scale',
+    ]);
+  });
 });

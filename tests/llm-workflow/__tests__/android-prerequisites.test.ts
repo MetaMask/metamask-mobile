@@ -9,6 +9,7 @@ import {
   selectAndroidEmulator,
   validateAndroidPrerequisites,
 } from '../android/prerequisites';
+import { AndroidLaunchError } from '../launcher-types';
 
 jest.mock('node:child_process', () => ({ execFileSync: jest.fn() }));
 jest.mock('node:fs', () => ({ existsSync: jest.fn() }));
@@ -225,7 +226,13 @@ describe('Android prerequisites', () => {
         platform: 'android',
         extensionPath: '/tmp/metamask.apk',
       }),
-    ).toThrow('extensionPath (--extension-path)');
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MM_INVALID_CONFIG',
+        message:
+          'Android reuses the installed io.metamask app. Unsupported APK lifecycle option(s): extensionPath (--extension-path).',
+      }),
+    );
     expect(mockExecFileSync).not.toHaveBeenCalled();
   });
 
@@ -233,6 +240,23 @@ describe('Android prerequisites', () => {
     mockExistsSync.mockImplementation(
       (candidate) => candidate === '/repo/.device-session',
     );
-    expect(() => assertNoDeviceSessionOverride()).toThrow('.device-session');
+    expect(() => assertNoDeviceSessionOverride()).toThrow(
+      expect.objectContaining({
+        code: 'MM_INVALID_CONFIG',
+        message: expect.stringContaining(
+          'Remediation: Remove or move .device-session',
+        ),
+      }),
+    );
+  });
+
+  it('classifies unavailable emulators as device failures', () => {
+    try {
+      selectAndroidEmulator([]);
+      throw new Error('Expected selectAndroidEmulator to throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(AndroidLaunchError);
+      expect(error).toMatchObject({ code: 'MM_DEVICE_NOT_AVAILABLE' });
+    }
   });
 });

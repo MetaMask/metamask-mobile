@@ -7,7 +7,10 @@ import { probeHermesHealthy } from '../ios/hermes-health';
 import { createIOSPlatformDriver } from '../ios/platform-driver-factory';
 import { attachToMetroWatchMode } from '../ios/metro-watch-attach';
 import { validateIOSPrerequisites } from '../ios/prerequisites';
-import type { ResolvedIOSLaunchOptions } from '../launcher-types';
+import {
+  IOSLaunchError,
+  type ResolvedIOSLaunchOptions,
+} from '../launcher-types';
 
 jest.mock('node:child_process', () => ({ execFileSync: jest.fn() }));
 jest.mock('../ios/prerequisites', () => ({
@@ -229,6 +232,142 @@ describe('IOSPlatformAdapter', () => {
       appBundleId: 'io.metamask.MetaMask',
     });
     expect(backend.openApp).not.toHaveBeenCalled();
+  });
+
+  it('purely attaches to Metro when the app is running with a healthy Hermes connection', async () => {
+    mockValidate.mockResolvedValueOnce({ ...resolved, metroPort: 8081 });
+    backend.getAppState.mockResolvedValueOnce({ state: 'Running' });
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' }, 8081);
+
+    await adapter.launch(options);
+
+    expect(mockProbeHermes).toHaveBeenCalledWith({
+      port: 8081,
+      appId: 'io.metamask.MetaMask',
+      intervalMs: 500,
+      ceilingMs: 3_000,
+    });
+    expect(attachToMetroWatchMode).not.toHaveBeenCalled();
+    expect(backend.openApp).not.toHaveBeenCalled();
+    expect(mockExecFileSync).not.toHaveBeenCalledWith(
+      'xcrun',
+      ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+      expect.anything(),
+    );
+  });
+
+  it('relaunches Metro when the running app has an unhealthy Hermes connection', async () => {
+    mockValidate.mockResolvedValueOnce({ ...resolved, metroPort: 8081 });
+    backend.getAppState.mockResolvedValueOnce({ state: 'Running' });
+    mockProbeHermes.mockResolvedValueOnce({
+      healthy: false,
+      reason: 'No Hermes target found',
+    });
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' }, 8081);
+
+    await adapter.launch(options);
+
+    expect(mockProbeHermes).toHaveBeenCalled();
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'xcrun',
+      ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+      expect.anything(),
+    );
+    expect(attachToMetroWatchMode).toHaveBeenCalledWith({
+      simulatorUdid: 'SIM-UDID',
+      metroPort: 8081,
+      appBundleId: 'io.metamask.MetaMask',
+    });
+  });
+
+  it('relaunches Metro when enabling the accessibility bridge flips its state', async () => {
+    mockValidate.mockResolvedValueOnce({ ...resolved, metroPort: 8081 });
+    mockEnsureBridge.mockReturnValueOnce({ wasAlreadyOn: false });
+    backend.getAppState.mockResolvedValueOnce({ state: 'Running' });
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' }, 8081);
+
+    await adapter.launch(options);
+
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'xcrun',
+      ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+      expect.anything(),
+    );
+    expect(attachToMetroWatchMode).toHaveBeenCalledWith({
+      simulatorUdid: 'SIM-UDID',
+      metroPort: 8081,
+      appBundleId: 'io.metamask.MetaMask',
+    });
+  });
+
+  it('purely attaches in prod when the app is running with the accessibility bridge already on', async () => {
+    backend.getAppState.mockResolvedValueOnce({ state: 'Running' });
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' });
+
+    await adapter.launch(options);
+
+    expect(backend.openApp).not.toHaveBeenCalled();
+    expect(mockExecFileSync).not.toHaveBeenCalledWith(
+      'xcrun',
+      ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+      expect.anything(),
+    );
+  });
+
+  it('relaunches in prod when enabling the accessibility bridge flips its state', async () => {
+    mockEnsureBridge.mockReturnValueOnce({ wasAlreadyOn: false });
+    backend.getAppState.mockResolvedValueOnce({ state: 'Running' });
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' });
+
+    await adapter.launch(options);
+
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'xcrun',
+      ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+      expect.anything(),
+    );
+    expect(backend.openApp).toHaveBeenCalledWith('io.metamask.MetaMask');
+  });
+
+  it('rejects reuse of an app that is no longer installed', async () => {
+    backend.getAppState.mockResolvedValueOnce({ state: 'Not Installed' });
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' });
+    const launch = adapter.launch(options);
+
+    await expect(launch).rejects.toBeInstanceOf(IOSLaunchError);
+    await expect(launch).rejects.toMatchObject({
+      code: 'MM_INVALID_CONFIG',
+    });
+  });
+
+  it('terminates an explicitly installed app before its Metro launch without reading app state', async () => {
+    mockValidate.mockResolvedValueOnce({
+      ...resolved,
+      installAction: 'install-explicit',
+      metroPort: 8081,
+    });
+    const adapter = new IOSPlatformAdapter();
+    const options = await adapter.resolve({ platform: 'ios' }, 8081);
+
+    await adapter.launch(options);
+
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'xcrun',
+      ['simctl', 'terminate', 'SIM-UDID', 'io.metamask.MetaMask'],
+      expect.anything(),
+    );
+    expect(backend.getAppState).not.toHaveBeenCalled();
+    expect(attachToMetroWatchMode).toHaveBeenCalledWith({
+      simulatorUdid: 'SIM-UDID',
+      metroPort: 8081,
+      appBundleId: 'io.metamask.MetaMask',
+    });
   });
 
   it('preserves backend close and simctl termination cleanup', async () => {

@@ -36,18 +36,27 @@ import {
   type SnapshotBackendOptions,
 } from './snapshot-backend';
 
-const ANDROID_APP_ROOT_TEST_ID = 'metamask-app-root';
-// A cold Metro bundle on a memory-constrained emulator can take more than a
-// minute before the React root first mounts. Warm launches return well before
-// this deadline, while cold launches need enough time to finish native and JS
-// initialization without being force-stopped by partial-launch cleanup.
-const DEFAULT_READINESS_TIMEOUT_MS = 120_000;
-const DEFAULT_READINESS_INTERVAL_MS = 250;
+// MetaMask exposes no universal React-root test ID, so readiness observes any
+// canonical startup-screen container instead. These IDs also distinguish the
+// MetaMask UI from the Expo dev launcher, which shares the package/activity but
+// exposes none of them.
+const LOCKED_SCREEN_TEST_IDS = new Set([
+  'login',
+  'onboarding-screen',
+  'onboarding-carousel-screen',
+]);
 const UNLOCKED_SCREEN_TEST_IDS = new Set([
   'wallet-screen',
   'tab-bar-item-Wallet',
   'account-overview',
 ]);
+// getTestIds() defaults to 50 depth-first ids; a deeper walk avoids missing a
+// top-level marker on a large screen.
+const READINESS_TEST_ID_LIMIT = 150;
+// Kept below the CLI's 120s request timeout (and the daemon's 180s watchdog) so
+// a real failure surfaces as MM_LAUNCH_FAILED, not a bare timeout.
+const DEFAULT_READINESS_TIMEOUT_MS = 90_000;
+const DEFAULT_READINESS_INTERVAL_MS = 250;
 
 interface ResolvedAndroidAdapterOptions extends ResolvedMobileLaunchOptions {
   readonly platform: 'android';
@@ -72,11 +81,18 @@ interface AndroidPlatformAdapterDependencies {
   readonly readinessIntervalMs?: number;
 }
 
+interface AndroidBackendConstructorDependencies {
+  readonly resolvePackageJson?: () => string;
+  readonly requireModule?: (modulePath: string) => unknown;
+}
+
+type AdbBackendConstructor = new (serial: string) => DeviceBackend;
+
 const nodeRequire = createRequire(__filename);
-const { AdbBackend } = getAndroidBackendConstructor();
+let cachedAdbBackendConstructor: AdbBackendConstructor | undefined;
 
 export function isAdbBackend(backend: DeviceBackend): boolean {
-  return backend instanceof AdbBackend;
+  return backend instanceof getAndroidBackendConstructor().AdbBackend;
 }
 
 export class AndroidPlatformAdapter implements MobilePlatformAdapter {
@@ -140,7 +156,7 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
     );
     if (!this.dependencies.isAdbBackend(rawBackend)) {
       throw new AndroidLaunchError({
-        code: 'MM_ANDROID_BACKEND_INTEGRITY',
+        code: 'MM_INVALID_CONFIG',
         message:
           'createBackend did not return the required ADB backend for the Android emulator.',
         remediation: 'Remove .device-session and retry from this worktree.',
@@ -175,29 +191,48 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
   }
 
   async cleanup(): Promise<void> {
-    const resolved = this.resolved;
-    const backend = this.backend;
-    const metroAttachment = this.metroAttachment;
-    const animationState = this.animationState;
-    const appLaunchAttempted = this.appLaunchAttempted;
-    this.resolved = undefined;
-    this.backend = undefined;
-    this.metroAttachment = undefined;
-    this.animationState = undefined;
-    this.appLaunchAttempted = false;
+    const errors: Error[] = [];
 
     try {
-      if (resolved && appLaunchAttempted) {
-        await closeAndroidApp(resolved.serial, backend);
+      if (this.resolved && this.appLaunchAttempted) {
+        await closeAndroidApp(this.resolved.serial, this.backend);
       }
-    } finally {
-      try {
-        if (metroAttachment) cleanupAndroidMetro(metroAttachment);
-      } finally {
-        if (animationState) {
-          restoreAndroidAnimations(animationState, this.dependencies.runDeviceAdb);
-        }
+      this.resolved = undefined;
+      this.backend = undefined;
+      this.appLaunchAttempted = false;
+    } catch (error) {
+      errors.push(error instanceof Error ? error : new Error(String(error)));
+    }
+
+    try {
+      if (this.metroAttachment) {
+        cleanupAndroidMetro(this.metroAttachment);
       }
+      this.metroAttachment = undefined;
+    } catch (error) {
+      errors.push(error instanceof Error ? error : new Error(String(error)));
+    }
+
+    try {
+      if (this.animationState) {
+        restoreAndroidAnimations(
+          this.animationState,
+          this.dependencies.runDeviceAdb,
+        );
+      }
+      this.animationState = undefined;
+    } catch (error) {
+      errors.push(error instanceof Error ? error : new Error(String(error)));
+    }
+
+    if (errors.length === 1) {
+      throw errors[0];
+    }
+    if (errors.length > 1) {
+      throw new AggregateError(
+        errors,
+        'Android cleanup failed for multiple resources',
+      );
     }
   }
 
@@ -230,20 +265,29 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
           if (!state.isLoaded) {
             lastFailure = `${ANDROID_APP_ID} process is not running.`;
           } else {
-            const testIds = await mobileDriver.getTestIds();
+            const testIds = await mobileDriver.getTestIds(
+              READINESS_TEST_ID_LIMIT,
+            );
             const testIdValues = new Set(testIds.map(({ testId }) => testId));
-            if (!testIdValues.has(ANDROID_APP_ROOT_TEST_ID)) {
-              lastFailure = `React Native root marker ${ANDROID_APP_ROOT_TEST_ID} is not mounted.`;
+            const hasLockedMarker = [...LOCKED_SCREEN_TEST_IDS].some((testId) =>
+              testIdValues.has(testId),
+            );
+            const hasUnlockedMarker = [...UNLOCKED_SCREEN_TEST_IDS].some(
+              (testId) => testIdValues.has(testId),
+            );
+            if (!hasLockedMarker && !hasUnlockedMarker) {
+              lastFailure = 'No recognized MetaMask startup screen is mounted.';
             } else if (
               android.metroPort !== undefined &&
               !(await hasExactHermesTarget(mobileDriver, android.metroPort))
             ) {
-              lastFailure = `Metro does not expose one unambiguous ${ANDROID_APP_ID} Hermes target.`;
+              lastFailure = `Metro does not expose an unambiguous ${ANDROID_APP_ID} Hermes target.`;
             } else {
-              const isUnlocked = [...UNLOCKED_SCREEN_TEST_IDS].some((testId) =>
-                testIdValues.has(testId),
-              );
-              return { ...state, isLoaded: true, isUnlocked };
+              return {
+                ...state,
+                isLoaded: true,
+                isUnlocked: hasUnlockedMarker && !hasLockedMarker,
+              };
             }
           }
         }
@@ -251,18 +295,24 @@ export class AndroidPlatformAdapter implements MobilePlatformAdapter {
         lastFailure = error instanceof Error ? error.message : String(error);
       }
 
-      if (this.dependencies.now() >= deadline) {
+      const remainingMs =
+        this.dependencies.now() >= deadline
+          ? 0
+          : deadline - this.dependencies.now();
+      if (remainingMs <= 0) {
         break;
       }
-      await this.dependencies.delay(this.dependencies.readinessIntervalMs);
+      await this.dependencies.delay(
+        Math.min(this.dependencies.readinessIntervalMs, remainingMs),
+      );
     }
 
     const metroRemediation =
       android.metroPort === undefined
         ? ''
-        : ' Ensure Metro has bundled MetaMask, dismiss the Expo Dev Launcher if it remains visible, and verify exactly one io.metamask Hermes target is registered.';
+        : ' Ensure Metro has bundled MetaMask, dismiss the Expo Dev Launcher if it remains visible, and verify Metro can select an unambiguous io.metamask Hermes target from one logical device.';
     throw new AndroidLaunchError({
-      code: 'MM_ANDROID_RUNNER_NOT_READY',
+      code: 'MM_LAUNCH_FAILED',
       message: `${ANDROID_APP_ID} did not become ready: ${lastFailure}`,
       remediation: `Open MetaMask on the emulator and resolve any system prompt.${metroRemediation}`,
     });
@@ -294,13 +344,41 @@ async function hasExactHermesTarget(
     metroPort,
     appId: ANDROID_APP_ID,
   });
+
+  const chosen = result.chosen;
+
+  if (
+    result.metroDown ||
+    result.filterBypassed ||
+    result.expectedAppId !== ANDROID_APP_ID ||
+    result.ambiguous !== undefined ||
+    result.noTargetReason !== undefined ||
+    chosen === undefined
+  ) {
+    return false;
+  }
+
+  const chosenLogicalDeviceId = chosen.logicalDeviceId;
+  if (!chosenLogicalDeviceId) {
+    return false;
+  }
+
+  const matchingCandidates = result.candidates.filter((candidate) => {
+    if (chosen.id !== undefined) {
+      return (
+        candidate.id === chosen.id &&
+        candidate.logicalDeviceId === chosenLogicalDeviceId
+      );
+    }
+
+    return candidate.logicalDeviceId === chosenLogicalDeviceId;
+  });
+
   return (
-    !result.metroDown &&
-    result.ambiguous === undefined &&
-    result.noTargetReason === undefined &&
-    result.chosen !== undefined &&
-    result.candidates.length === 1 &&
-    result.candidates[0]?.appId === ANDROID_APP_ID
+    matchingCandidates.length > 0 &&
+    matchingCandidates.every(
+      (candidate) => candidate.appId === ANDROID_APP_ID,
+    )
   );
 }
 
@@ -336,14 +414,69 @@ function sleep(milliseconds: number): Promise<void> {
 }
 
 export function getAndroidBackendConstructor(): {
-  AdbBackend: new (serial: string) => DeviceBackend;
-} {
-  const packageJsonPath = nodeRequire.resolve('@metamask/device-mcp/package.json');
-  const modulePath = packageJsonPath.replace(
-    /package\.json$/u,
-    'dist/backends/adb-backend.cjs',
-  );
-  return nodeRequire(modulePath) as {
-    AdbBackend: new (serial: string) => DeviceBackend;
-  };
+  AdbBackend: AdbBackendConstructor;
+};
+export function getAndroidBackendConstructor(
+  dependencies: AndroidBackendConstructorDependencies,
+): { AdbBackend: AdbBackendConstructor };
+export function getAndroidBackendConstructor(
+  dependencies?: AndroidBackendConstructorDependencies,
+): { AdbBackend: AdbBackendConstructor } {
+  if (dependencies) {
+    return loadAndroidBackendConstructor(dependencies);
+  }
+
+  cachedAdbBackendConstructor ??= loadAndroidBackendConstructor({}).AdbBackend;
+  return { AdbBackend: cachedAdbBackendConstructor };
+}
+
+function loadAndroidBackendConstructor(
+  dependencies: AndroidBackendConstructorDependencies,
+): { AdbBackend: AdbBackendConstructor } {
+  try {
+    const packageJsonPath =
+      dependencies.resolvePackageJson?.() ??
+      nodeRequire.resolve('@metamask/device-mcp/package.json');
+    // device-mcp has no public AdbBackend export. This path couples us to its
+    // current CJS build layout solely to verify the backend created for Android.
+    const modulePath = packageJsonPath.replace(
+      /package\.json$/u,
+      'dist/backends/adb-backend.cjs',
+    );
+    const moduleExports: unknown =
+      dependencies.requireModule?.(modulePath) ?? nodeRequire(modulePath);
+    const adbBackend = getAdbBackendExport(moduleExports);
+
+    if (typeof adbBackend !== 'function') {
+      throw new Error('The module does not export an AdbBackend constructor.');
+    }
+
+    return { AdbBackend: adbBackend as AdbBackendConstructor };
+  } catch (error) {
+    if (error instanceof AndroidLaunchError) {
+      throw error;
+    }
+
+    const detail = error instanceof Error ? ` ${error.message}` : '';
+    throw new AndroidLaunchError({
+      code: 'MM_INVALID_CONFIG',
+      message:
+        'Android ADB backend is unavailable because this workflow assumes @metamask/device-mcp provides its internal dist/backends/adb-backend.cjs module.' +
+        detail,
+      remediation:
+        'Install a compatible @metamask/device-mcp version or update this workflow for its public backend API.',
+    });
+  }
+}
+
+function getAdbBackendExport(moduleExports: unknown): unknown {
+  if (
+    typeof moduleExports !== 'object' ||
+    moduleExports === null ||
+    !('AdbBackend' in moduleExports)
+  ) {
+    return undefined;
+  }
+
+  return moduleExports.AdbBackend;
 }

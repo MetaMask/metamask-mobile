@@ -3,17 +3,21 @@ import { execFileSync, type ExecFileSyncOptionsWithStringEncoding } from 'node:c
 
 import { AndroidLaunchError } from '../launcher-types';
 
+// A hung emulator must not block beyond the readiness and daemon watchdogs.
+const ADB_COMMAND_TIMEOUT_MS = 10_000;
+
 const ADB_OPTIONS: ExecFileSyncOptionsWithStringEncoding = {
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'pipe'],
+  timeout: ADB_COMMAND_TIMEOUT_MS,
 };
 
 export function runAdb(args: string[]): string {
-  return runAdbCommand(args, 'MM_ANDROID_RUNNER_NOT_READY');
+  return runAdbCommand(args, 'MM_DEVICE_NOT_AVAILABLE');
 }
 
 export function runDeviceAdb(serial: string, args: string[]): string {
-  return runAdbCommand(['-s', serial, ...args], 'MM_ANDROID_RUNNER_NOT_READY');
+  return runAdbCommand(['-s', serial, ...args], 'MM_DEVICE_NOT_AVAILABLE');
 }
 
 export function validateAdbAvailable(): void {
@@ -21,7 +25,7 @@ export function validateAdbAvailable(): void {
     execFileSync('adb', ['version'], ADB_OPTIONS);
   } catch (error) {
     throw new AndroidLaunchError({
-      code: 'MM_ANDROID_DEPENDENCY_MISSING',
+      code: 'MM_DEPENDENCIES_MISSING',
       message: `adb is unavailable: ${commandErrorMessage(error)}`,
       remediation:
         'Install Android SDK Platform-Tools and ensure `adb` is available on PATH.',
@@ -31,7 +35,7 @@ export function validateAdbAvailable(): void {
 
 function runAdbCommand(
   args: string[],
-  code: 'MM_ANDROID_RUNNER_NOT_READY',
+  code: 'MM_DEVICE_NOT_AVAILABLE',
 ): string {
   try {
     return execFileSync('adb', args, ADB_OPTIONS).trim();

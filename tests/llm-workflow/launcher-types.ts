@@ -72,12 +72,14 @@ export type IOSLaunchErrorCode = Extract<
 
 export type MobileLaunchErrorCode = IOSLaunchErrorCode | AndroidLaunchErrorCode;
 
-export type AndroidLaunchErrorCode =
-  | 'MM_ANDROID_DEPENDENCY_MISSING'
-  | 'MM_ANDROID_RUNNER_NOT_READY'
-  | 'MM_ANDROID_BACKEND_INTEGRITY'
+export type AndroidLaunchErrorCode = Extract<
+  ErrorCode,
   | 'MM_LAUNCH_FAILED'
-  | 'MM_SESSION_ALREADY_RUNNING';
+  | 'MM_SESSION_ALREADY_RUNNING'
+  | 'MM_DEPENDENCIES_MISSING'
+  | 'MM_DEVICE_NOT_AVAILABLE'
+  | 'MM_INVALID_CONFIG'
+>;
 
 export class MobileLaunchError<
   TCode extends MobileLaunchErrorCode = MobileLaunchErrorCode,
@@ -88,7 +90,11 @@ export class MobileLaunchError<
   readonly remediation?: string;
 
   constructor(args: { code: TCode; message: string; remediation?: string }) {
-    super(args.message);
+    super(
+      args.remediation
+        ? `${args.message}\nRemediation: ${args.remediation}`
+        : args.message,
+    );
     this.name = 'MobileLaunchError';
     this.code = args.code;
     this.remediation = args.remediation;
