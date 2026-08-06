@@ -9,8 +9,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
+// Use a plain function (not jest.fn()) so jest.clearAllMocks() cannot wipe its implementation
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: (key: string) => {
     const translations: Record<string, string> = {
       'perps.margin_mode.title': 'Choose margin mode',
       'perps.margin_mode.isolated_title': 'Isolated',
@@ -21,17 +22,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Your full account balance is shared across all positions.',
     };
     return translations[key] || key;
-  }),
+  },
 }));
 
 describe('PerpsMarginModeBottomSheet', () => {
-  const defaultProps = {
-    isVisible: true,
-    onClose: jest.fn(),
-  };
+  // Declare inside beforeEach so each test gets a fresh jest.fn() instance
+  let defaultProps: { isVisible: boolean; onClose: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    defaultProps = {
+      isVisible: true,
+      onClose: jest.fn(),
+    };
   });
 
   it('renders Isolated and Cross rows when visible', () => {
