@@ -5,7 +5,6 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook';
-import { PRO_ORDER_BOOK_COLLAPSE_GUTTER_OFFSET } from './PerpsProOrderBookPanel.styles';
 
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
@@ -245,7 +244,7 @@ describe('PerpsProOrderBookPanel', () => {
     expect(onCollapse).toHaveBeenCalledTimes(1);
   });
 
-  it('positions collapse in the leading gutter and settings at the trailing edge', () => {
+  it('positions collapse at the leading edge and settings at the trailing edge', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsProOrderBookPanel
         symbol="BTC"
@@ -262,9 +261,6 @@ describe('PerpsProOrderBookPanel', () => {
     expect(header).toHaveStyle({
       flexDirection: 'row',
       justifyContent: 'space-between',
-    });
-    expect(leading).toHaveStyle({
-      marginLeft: -PRO_ORDER_BOOK_COLLAPSE_GUTTER_OFFSET,
     });
     expect(
       within(leading).getByTestId(

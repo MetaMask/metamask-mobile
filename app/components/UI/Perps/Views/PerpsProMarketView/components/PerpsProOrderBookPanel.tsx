@@ -576,8 +576,8 @@ const PerpsProOrderBookPanel = ({
       collapsable={false}
       twClassName="w-full py-2"
     >
-      {/* Header: collapse extends into the separator gutter on the left while
-          settings stays flush with the ladder's trailing edge. */}
+      {/* Header: collapse stays on the leading edge while settings stays flush
+          with the ladder's trailing edge. */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -608,11 +608,7 @@ const PerpsProOrderBookPanel = ({
             />
           </Pressable>
         )}
-        <Box
-          style={styles.headerCollapseControl}
-          testID={`${testID}-header-leading`}
-          accessible={false}
-        >
+        <Box testID={`${testID}-header-leading`} accessible={false}>
           {onCollapse ? (
             <ButtonIcon
               iconName={IconName.Collapse}

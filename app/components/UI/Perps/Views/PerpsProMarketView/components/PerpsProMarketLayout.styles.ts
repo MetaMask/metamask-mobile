@@ -5,14 +5,13 @@ export const PRO_SCREEN_HORIZONTAL_INSET = 8;
 export const PRO_TRADING_AREA_BOTTOM_INSET = 16;
 export const PRO_ORDER_BOOK_SEPARATOR_INSET = 16;
 /**
- * Ladder width from Figma: two 62px value columns plus an 8px gutter. The
- * separator inset sits outside it, so the column reserves both — previously
- * the inset ate into this budget and left only 116px, which crowded the
- * spread row and the wider size/total values.
+ * The order-book column keeps the existing 148pt reservation, with an 8pt
+ * leading inset matching the screen inset on its trailing side. This leaves
+ * 140pt for the ladder and avoids the visibly larger gap on its left.
  */
-export const PRO_ORDER_BOOK_CONTENT_WIDTH = 132;
+export const PRO_ORDER_BOOK_CONTENT_WIDTH = 140;
 export const PRO_ORDER_BOOK_COLUMN_WIDTH =
-  PRO_ORDER_BOOK_CONTENT_WIDTH + PRO_ORDER_BOOK_SEPARATOR_INSET;
+  PRO_ORDER_BOOK_CONTENT_WIDTH + PRO_SCREEN_HORIZONTAL_INSET;
 
 const styles = StyleSheet.create({
   container: {
@@ -28,7 +27,7 @@ const styles = StyleSheet.create({
   orderBookColumn: {
     width: PRO_ORDER_BOOK_COLUMN_WIDTH,
     alignSelf: 'flex-start',
-    paddingLeft: PRO_ORDER_BOOK_SEPARATOR_INSET,
+    paddingLeft: PRO_SCREEN_HORIZONTAL_INSET,
   },
 });
 

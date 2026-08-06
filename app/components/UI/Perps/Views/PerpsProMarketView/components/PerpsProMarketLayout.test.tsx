@@ -6,7 +6,7 @@ import PerpsProMarketLayout from './PerpsProMarketLayout';
 import {
   PRO_ORDER_BOOK_COLUMN_WIDTH,
   PRO_ORDER_BOOK_CONTENT_WIDTH,
-  PRO_ORDER_BOOK_SEPARATOR_INSET,
+  PRO_SCREEN_HORIZONTAL_INSET,
 } from './PerpsProMarketLayout.styles';
 
 const renderLayout = (
@@ -37,19 +37,17 @@ describe('PerpsProMarketLayout', () => {
     expect(rightColumn).toHaveStyle({ width: 148 });
   });
 
-  it('reserves the full Figma ladder width inside the separator inset', () => {
+  it('uses matching insets on both sides of the order book', () => {
     const { getByTestId } = renderLayout();
 
-    // The ladder needs 132pt of usable space; the separator inset must be
-    // added on top rather than carved out of it.
-    expect(PRO_ORDER_BOOK_COLUMN_WIDTH - PRO_ORDER_BOOK_SEPARATOR_INSET).toBe(
+    expect(PRO_ORDER_BOOK_COLUMN_WIDTH - PRO_SCREEN_HORIZONTAL_INSET).toBe(
       PRO_ORDER_BOOK_CONTENT_WIDTH,
     );
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
     ).toHaveStyle({
       width: PRO_ORDER_BOOK_COLUMN_WIDTH,
-      paddingLeft: PRO_ORDER_BOOK_SEPARATOR_INSET,
+      paddingLeft: PRO_SCREEN_HORIZONTAL_INSET,
     });
   });
 
@@ -70,7 +68,7 @@ describe('PerpsProMarketLayout', () => {
     ).toHaveStyle({
       width: 148,
       alignSelf: 'flex-start',
-      paddingLeft: 16,
+      paddingLeft: 8,
     });
   });
 
