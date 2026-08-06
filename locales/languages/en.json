@@ -10384,12 +10384,12 @@
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
-      "title": "Turn on notifications",
-      "description": "Get alerts for transactions from your CLI session.",
-      "turn_on_button": "Turn on",
-      "loading_title": "Turning on notifications",
-      "loading_description": "Give us a moment while we set things up.",
-      "enable_error": "Couldn't turn on notifications. Try again from Settings."
+      "title": "Never miss a transaction",
+      "description": "Get real-time alerts to review and approve transactions from your CLI session.",
+      "turn_on_button": "Enable notifications",
+      "preview_title": "Transaction request",
+      "preview_message": "Your agent needs approval on a new limit.",
+      "preview_timestamp": "now"
     },
     "show_otp": {
       "title": "Enter this code",

@@ -346,7 +346,7 @@ const PerpsProOrderForm = ({
             ) : null}
           </Box>
           <Box
-            twClassName="flex-row items-center gap-2"
+            twClassName="flex-row items-center gap-4"
             testID={ids.MARGIN_SETTINGS_ROW}
           >
             <ButtonBase
