@@ -15,9 +15,9 @@ and sequenced against [migration/kalshi-first.md](../migration/kalshi-first.md).
   demoable outcome. Foundation work (types, fixtures, scaffolding) is built
   inside the slice that first needs it, not as standalone "foundations" epics.
 - **Read-only before authenticated, authenticated before regulated.** The
-  externally gated work (legal ruling on KYC posture, Kalshi session-key
-  endpoint, transfer-status shape, step-up mechanism) is isolated in its own
-  epics so nothing upstream waits on it.
+  externally gated work (legal ruling on KYC posture, Kalshi encryption
+  public-key mechanism, transfer-status/reconciliation support, step-up
+  mechanism) is isolated in its own epics so nothing upstream waits on it.
 - **Backend is ours.** The same team builds the Predict API. Backend stories
   live in the same epics as their mobile counterparts.
 
@@ -27,7 +27,7 @@ and sequenced against [migration/kalshi-first.md](../migration/kalshi-first.md).
 | --- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | 1   | [Walking Skeleton — Read-Only Market Data](./epic-1-walking-skeleton.md) | Browse Kalshi events/prices end to end through the Predict API            | none                                                                       |
 | 2   | [Identity & Authenticated Reads](./epic-2-identity-auth.md)              | Authenticated user resolves to canonical profile ID; readiness read works | none (identity docs published)                                             |
-| 3   | [Account Setup & KYC](./epic-3-account-setup-kyc.md)                     | New user completes Kalshi onboarding + KYC from the app                   | legal ruling, Kalshi session-key endpoint, Socure SDK access               |
+| 3   | [Account Setup & KYC](./epic-3-account-setup-kyc.md)                     | New user completes Kalshi onboarding + KYC from the app                   | legal ruling, Kalshi encryption public-key mechanism, Socure SDK access    |
 | 4   | [Deposits & Balance](./epic-4-deposits-balance.md)                       | Base USDC deposit lands in the venue account; balance visible             | demo crypto-rail enablement                                                |
 | 5   | [Trading & Portfolio](./epic-5-trading-portfolio.md)                     | Immediate order placed; positions/activity reconcile from fills           | KYC'd demo account                                                         |
 | 6   | [Withdrawals & High-Risk Authorization](./epic-6-withdrawals.md)         | Withdrawal to a proven payout wallet with honest status UX                | transfer-status shape, step-up mechanism (AppSec), ambiguous-commit answer |
@@ -47,7 +47,7 @@ PRED-1209 (Epic 6), PRED-1201…1204 + spike PRED-1205 (Epic 7).
 ```text
 Epic 1 ──► Epic 2 ──┬──► Epic 3 (gated lane: KYC)
                     ├──► Epic 4 ──► Epic 5 ──► Epic 6
-                    └──► spikes (re-link, encryption scheme, demo validation)
+                    └──► spikes (encryption scheme, demo validation, step-up)
 Epic 7 runs as gates against every epic's exit, concentrated at the end.
 ```
 
@@ -63,7 +63,7 @@ Unblocked today, in order:
    semantics are documented).
 3. Epic 3: consent screen design, setup workflow skeleton, OTP/step UI against
    demo — everything except the encrypted-PII path itself.
-4. Spikes: demo re-link semantics, demo API validation, contract tooling choice.
+4. Spikes: demo API validation, contract tooling, encryption scheme, and step-up-factor evaluation.
 
 ## Ported context from superseded epics
 
@@ -96,6 +96,10 @@ SDK embed (KYC rejection returns failed-field enums only), while the
 `kalshi-kyc-pii-flow` ADR specifies client-direct Socure SDK for L2 step-up
 when triggered. Product and ADR need to reconcile whether L2 is launch scope
 (tracked in Epic 3.7).
+
+## Delivery expectation
+
+September was the product goal, but the regulated onboarding/funding/trading path is not a realistic engineering commitment while the external gates above remain open. If September remains a milestone, scope it explicitly as browse/read-only. October is the current engineering target for the money path, subject to those gates.
 
 ## Working assumptions (flag if wrong)
 

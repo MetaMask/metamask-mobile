@@ -8,13 +8,14 @@ renders readiness-driven UI states.
 
 **Why second:** every regulated slice (setup, funding, trading, withdraw)
 sits on this. It lands trust-model invariant 3 (identity from the session
-only) and the `kalshi-identity` ADR decision (Canonical Profile ID as
-`external_user_id`) as working code before any money or PII is involved.
+only) and the `kalshi-identity` ADR decision (Canonical Profile ID as the
+internal identity anchor) as working code before any money or PII is involved.
 
-**External gates:** none — the identity-platform docs (authentication,
-profile management, canonical profile ID) are published. Privacy sign-off on
-sharing the profile ID with Kalshi gates _Epic 3's_ link/create calls, not
-this epic (nothing leaves for Kalshi here).
+**External gates:** none for this internal slice — the identity-platform docs
+(authentication, profile management, canonical profile ID) are published.
+Before Kalshi link/create, Identity must specify and ship the planned
+email/social conflict guardrails and Privacy/Legal must select raw profile ID
+vs. a deterministic per-ISV pseudonym; nothing leaves for Kalshi in this epic.
 
 **ADR anchors:** `kalshi-identity`, `kalshi-security-trust-model`
 (invariant 3), identity-platform docs (profile pairing, canonical election,

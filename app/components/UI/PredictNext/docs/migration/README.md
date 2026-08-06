@@ -23,7 +23,7 @@ The Kalshi POC and ISV specification changed the evidence:
 - Kalshi identity is person/ISV-sub-account scoped, not equivalent to a selected wallet address.
 - Account Setup, one-time deposit addresses, deposit indication, API withdrawal, and automatic Settlement exercise the new seams more strongly than another Polymarket extraction.
 - The documented adapter was too broad and had no actual Account Setup interface.
-- Money operations require durable idempotency and recovery that cannot live only in transient mobile workflow state.
+- Money operations require durable backend operation identity and reconciliation state that cannot live only in transient mobile workflow state; backend durability does not imply Venue idempotency.
 - Waiting for the full Polymarket rewrite would put roughly two dozen or more PRs ahead of the urgent Venue integration.
 
 Kalshi should therefore shape the new interfaces now. Polymarket can move after those interfaces have production evidence.
@@ -48,7 +48,7 @@ Track A delivers behavior vertically rather than completing horizontal architect
 - Public market data is separate from account-scoped Venue sessions.
 - Every account/cache/operation identifier is Venue-qualified.
 - The Predict User, Funding Wallet, and Venue Account remain distinct.
-- Funding and Order writes use prepare/confirm/commit, idempotency keys, durable operation references, and reconciliation.
+- Funding and Order writes use prepare/confirm/commit, stable backend operation identities, durable references, and Venue-verified safe retry/reconciliation.
 - New modules are built only when a vertical slice needs them.
 - Polymarket behavior stays on the current production path during Kalshi launch.
 - A Kalshi failure or rollback must not modify the Polymarket path.
@@ -101,8 +101,8 @@ Both tracks follow these rules.
 - Preparing a Funding Plan does not move funds.
 - A short-lived Order Preview is identified by an opaque preview ID and expiry.
 - User confirmation occurs before commit.
-- Every commit has an idempotency key and durable operation reference.
-- Reads may retry automatically; writes retry only when their idempotency/reconciliation contract permits it.
+- Every commit has a stable backend operation/idempotency key and durable operation reference; this does not by itself make the external Venue call idempotent.
+- Reads may retry automatically; writes retry only when verified Venue idempotency/reconciliation semantics permit it.
 - App teardown may stop local observation but must not erase the backend operation.
 
 ### Shippable increments
@@ -136,7 +136,7 @@ Required for each slice/capability:
 - mobile/backend contract fixtures and runtime response validation,
 - integration tests through the owning module interface,
 - component-view tests for visible behavior,
-- idempotency, duplicate-submit, app-restart, and lost-response coverage for writes,
+- safe-retry, duplicate-submit, app-restart, ambiguous-response, and lost-response coverage for writes,
 - secret and PII redaction tests,
 - structured errors and observability,
 - rollout/rollback verification.

@@ -8,8 +8,8 @@ creating.
 **External gates (why this is its own lane):**
 
 - **Legal ruling** on the cryptographically-blind ciphertext-relay posture — gates the PII path entirely.
-- **Kalshi session-key endpoint** (spec, scheme, rotation, timeline).
-- **Privacy sign-off** on sharing the canonical profile ID with Kalshi.
+- **Kalshi encryption public-key mechanism** (provenance, scheme, rotation/versioning, timeline); no per-session key is required.
+- **Privacy sign-off** on raw canonical profile ID vs. a deterministic per-ISV pseudonym for Kalshi.
 - **Socure SDK** access/credentials for client-direct L2.
 
 The stories are ordered so everything _around_ the encrypted-PII path builds
@@ -39,8 +39,8 @@ Metric targets: education completion ≥60%, KYC completion ≥50%.
 - Backend: durable Account Setup operation records; canonical step
   projection (`AccountSetupStep`); new-user vs existing-user-link branching;
   the two 409 variants (flat `account_exists` → link; nested duplicate
-  `external_user_id` → error) distinguished; lost-response resume via
-  specified idempotency (F5).
+  `external_user_id` → error) distinguished; lost-response resume uses the
+  documented durable response where available and otherwise enters support.
 - Mobile: setup capability on the adapter; `AccountSetupState` projection;
   step-driven setup UI shell (`status_wait`, `complete`, error states);
   resume after app restart.
@@ -71,9 +71,11 @@ Metric targets: education completion ≥60%, KYC completion ≥50%.
 
 ### 3.5 — Encrypted Passthrough core (Story, cross-stack) — **gated**
 
-- Mobile: fetch + authenticate the Kalshi session public key (attributable to
-  Kalshi — pinning/attestation), on-device encryption, ciphertext binding
+- Mobile: fetch + authenticate the Kalshi encryption public key (attributable
+  to Kalshi — pinning/attestation), on-device encryption, ciphertext binding
   (user/endpoint/freshness, replay + cross-user substitution resistance).
+  Evaluate native vs. JavaScript-level encryption for sensitive-buffer
+  handling and representative-device performance.
 - Backend: ciphertext relay (sizes/status logging only, no ciphertext
   persistence beyond delivery), orchestration IDs injected server-side from
   the JWT-derived canonical profile ID, admin-signed calls to Kalshi.
@@ -94,7 +96,9 @@ Metric targets: education completion ≥60%, KYC completion ≥50%.
 ### 3.7 — Socure L2 client-direct integration (Story, mobile) — **gated**
 
 - Socure SDK integration for document/selfie capture, client → Socure
-  directly; verified not to transit any MetaMask-controlled proxy/logging.
+  directly; validate binary/bundle size, React Native compatibility,
+  permissions, telemetry/logging defaults, and verify traffic does not transit
+  any MetaMask-controlled proxy/logging.
 - Trigger handling at signup and (later) withdrawal; consent copy names
   Socure.
 - **Scope conflict to resolve first:** PRED-842 declared no document upload /

@@ -512,8 +512,8 @@ Rules:
 - `FundingExecutor` obtains user confirmation and performs wallet signing/submission where required.
 - A Venue API withdrawal is committed only after confirmation; it is never executed during plan creation.
 - The durable backend operation survives mobile teardown.
-- Retrying with the same idempotency key returns/reconciles the same operation.
-- A wallet transfer followed by a failed Venue indication remains resumable.
+- A stable backend operation/idempotency key prevents local recreation but does not make a Venue endpoint idempotent. Retry only where the Venue exposes verified idempotency or reconciliation semantics.
+- A wallet transfer followed by an ambiguous Venue indication remains visible and blocks automatic re-submission until reconciled.
 - Unsupported operations are absent from `supportedOperations` and product capability metadata. There is no fake `unsupported` Funding Plan.
 - Kalshi automatic Settlement means `claim` is absent.
 

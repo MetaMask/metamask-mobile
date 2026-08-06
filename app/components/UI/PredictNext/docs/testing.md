@@ -152,9 +152,9 @@ Treat each service as a deep module. Use a fake immediate dependency, not mocks 
 - the decoded wallet payload matches `ExpectedAssetTransfer` before confirmation,
 - explicit confirmation occurs before commit,
 - wallet transaction uses the exact validated plan,
-- commit reuses operation/idempotency references,
-- transfer-submitted/indication-failed can resume,
-- withdrawal lost response reconciles without duplicate commit,
+- repeated local commit reuses operation/idempotency references while external retry requires verified Venue semantics,
+- transfer-submitted/indication-ambiguous remains observable and blocks automatic resubmit,
+- withdrawal lost response blocks for reconciliation without duplicate commit,
 - local cancel/teardown stops observation but not backend operation,
 - unsupported Claim is absent for Kalshi,
 - receipt remains submitted/processing when final status is unavailable.
@@ -235,8 +235,8 @@ Use existing runtime schema tooling; do not add a new validation dependency sole
 
 - one-time amount-specific address mapping,
 - Base network/token/address mapping from Venue response/config,
-- prepare idempotency,
-- indication idempotency and failure recovery,
+- prepare duplicate-request handling without assuming Venue idempotency,
+- indication ambiguous-response handling with no automatic resubmit,
 - payout method register/reuse,
 - Withdraw prepare/commit separation,
 - no-status reconciliation behavior,
@@ -275,7 +275,8 @@ These are launch gates.
 - Funding Wallet policy is enforced independently of person identity,
 - cross-user operation IDs cannot be read or committed,
 - withdrawal, payout registration, key minting, and identity remap reject a bearer-only session (step-up required); expired/replayed step-up factors are rejected,
-- proof-of-control challenges are bound to profile ID + chain + address + expiry and cannot be replayed across profiles or addresses,
+- destination-wallet proof challenges are bound to canonical profile ID + chain + address + purpose + expiry and cannot be replayed across profiles, addresses, or operations,
+- destination-wallet proof alone cannot authorize payout registration; the separate Predict User step-up is bound to the destination and unavailable from a stolen bearer token,
 - action eligibility is enforced server-side: a modified client declaring a different venue/geolocation cannot act, while browsing remains available,
 - standing per-user keys cannot execute a withdrawal (`write::transfer` absent); the ephemeral transfer key is revoked after use.
 
@@ -290,16 +291,18 @@ These are launch gates.
 ### KYC / Encrypted Passthrough
 
 - PII fields are encrypted on-device before leaving the client; the backend relay carries ciphertext only,
-- a substituted/non-attributable session public key fails closed before encryption,
+- a substituted/non-attributable Kalshi encryption public key fails closed before encryption,
 - ciphertext is bound to user/endpoint/freshness; replayed or cross-user blobs are rejected,
 - status readback persists only the bounded non-PII projection (`last_step`, `digital_verification_status`, `digital_verification_result`, derived approval),
-- the L2 Socure SDK path does not route through any MetaMask-controlled proxy or logging layer,
+- native vs. JavaScript encryption performance/sensitive-buffer behavior is validated on representative devices,
+- Socure SDK bundle size, compatibility, permissions, and telemetry defaults are reviewed, and its L2 path does not route through any MetaMask-controlled proxy or logging layer,
 - the consent screen naming Kalshi and Socure precedes any PII collection.
 
 ### Recovery
 
 - reinstall + re-authenticate restores access with no user-visible recovery,
-- a changed profile ID drives the re-link flow with an explicit, audited backend remap — never a silent overwrite,
+- a changed profile ID enters `ACCOUNT_RECOVERY_REQUIRED`; no programmatic re-link or second-user creation is attempted,
+- the MetaMask Customer Success + Kalshi manual procedure verifies liveness/identity, records privileged audit events, and confirms preservation of the existing user/sub-account before the backend mapping changes,
 - remap events produce user-visible alerts and an audit trail.
 
 ### PII

@@ -229,7 +229,7 @@ It never exposes or logs credential material or raw KYC values.
 - mobile may persist a non-secret operation reference,
 - app teardown stops local observation only,
 - resume queries the backend operation,
-- a repeated commit reuses the same idempotency key,
+- a repeated local commit request reuses the same backend operation/idempotency key, but the external Venue call repeats only with verified safe semantics,
 - a conflicting request with a reused key fails explicitly,
 - no local `reset()` implies an external operation was cancelled.
 

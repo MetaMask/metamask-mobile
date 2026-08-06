@@ -4,19 +4,6 @@ Time-boxed investigations that feed the epics. All unblocked today unless
 noted. Each produces a written result (ADR update, doc note, or fixture set),
 not code destined for production.
 
-## S1 — Demo re-link semantics (feeds Epic 7 recovery, `kalshi-account-recovery` ADR)
-
-The recovery ADR's named acceptance criteria, on the demo environment:
-
-- Can `/users/link` + `/link/verify` with a **new** `external_user_id`
-  succeed for a user whose sub-account already exists? Does it remap cleanly
-  without a second Kalshi user/balance? What does the 409 path return?
-- Confirm the create-flow 409 variants (flat `account_exists` vs nested
-  duplicate `external_user_id`) are distinguishable enough to drive automated
-  flow decisions.
-
-Output: ADR Open Questions resolved; recovery option confirmed or revisited.
-
 ## S2 — Demo API validation & fixture capture (feeds Epics 1–5)
 
 Systematic pass over the Kalshi demo APIs used by our slices: market data
@@ -45,15 +32,18 @@ negotiation. Output: short decision note in `docs/planning/` or a local ADR.
 Draft the encryption scheme proposal to bring **to** Kalshi rather than
 waiting for one: candidate construction (e.g., HPKE), key attestation,
 blob binding (user/endpoint/freshness), response-path treatment, versioning.
-Pre-review with AppSec. Output: proposal document for the Kalshi session-key
-endpoint discussion.
+Pre-review with AppSec. Output: proposal document for the Kalshi encryption
+public-key mechanism discussion; no per-session key is required.
 
 ## S5 — Step-up factor evaluation (feeds Epic 6.1, AppSec)
 
-Compare fresh re-auth vs wallet-signed challenge vs OTP for the step-up
-factor: server verifiability, UX cost, replay resistance, availability on
-all account types (hardware wallets?). Output: recommendation to take into
-the AppSec design session.
+Compare fresh re-auth, passkey assertion, and OTP for the Predict User step-up
+factor: server verifiability, UX cost, replay resistance, and availability on
+all account types. A destination-wallet signature is evaluated separately as
+proof of wallet control, not as the user step-up. The selected factor must be
+unavailable from a stolen bearer token and bind payout registration to the
+destination address and operation. Output: recommendation to take into the
+AppSec design session.
 
 ## S6 — Geolocation/venue-default integration (feeds Epic 1.7/2.5)
 

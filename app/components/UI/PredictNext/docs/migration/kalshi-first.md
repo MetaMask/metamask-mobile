@@ -30,8 +30,8 @@ Do not:
 
 Most preconditions are now owned by the ADR set; track their status there:
 
-1. **Predict User identity** → `kalshi-identity` ADR: Canonical Profile ID as `external_user_id` (privacy sign-off pending). The identity model — profile pairing, aliases, canonical election — is documented by the identity platform ([Canonical Profile ID](https://docs.cx.metamask.io/docs/apis/user-services/authentication/canonical-profile-id/)); the backend must resolve canonical IDs through alias chains.
-2. **KYC/PII path** → `kalshi-kyc-pii-flow` ADR: Encrypted Passthrough (legal ruling on cryptographic blindness and Kalshi session-key endpoint are gating).
+1. **Predict User identity** → `kalshi-identity` ADR: Canonical Profile ID is the internal identity anchor; raw ID vs. deterministic per-ISV pseudonym for Kalshi is pending Privacy/Legal. The identity model — profile pairing, aliases, canonical election — is documented by the identity platform ([Canonical Profile ID](https://docs.cx.metamask.io/docs/apis/user-services/authentication/canonical-profile-id/)); the backend must resolve canonical IDs through alias chains. Planned email/social conflict guardrails are launch dependencies, not assumed shipped behavior.
+2. **KYC/PII path** → `kalshi-kyc-pii-flow` ADR: Encrypted Passthrough (legal ruling on cryptographic blindness and a Kalshi encryption public-key mechanism are gating; no per-session key is required).
 3. **Funding rail** → `kalshi-funding-rails` ADR: Base USDC only, both directions (sign-off pending).
 4. **Backend ownership** → `kalshi-integration-overview` ADR open questions: production team, SLO, on-call, static egress/IP allowlisting, secret operations, and reconciliation support.
 
@@ -54,7 +54,7 @@ Kalshi route / reusable presentation
       -> authenticated MetaMask API client
         -> MetaMask Predict backend
           -> durable user/setup/operation store
-          -> KMS/encrypted Kalshi credential store
+          -> managed encrypted Kalshi credential custody
           -> backend Kalshi adapter
             -> Kalshi ISV and trading APIs
 
@@ -107,9 +107,9 @@ Prove one authenticated mobile request can traverse the owned backend and return
 ### Backend
 
 - derive the authoritative Predict User from the bearer token,
-- send the Canonical Profile ID verbatim as the Kalshi `external_user_id` (per `kalshi-identity`; the identical server-derived value on `/users/link` and `/users/link/verify`), keeping the durable `profile_id ↔ kalshi_user_id` mapping,
+- derive the Kalshi `external_user_id` from the Canonical Profile ID (raw ID or deterministic per-ISV pseudonym, per the Privacy/Legal decision), sending the same server-derived value on `/users/link` and `/users/link/verify`, and keep the durable `profile_id ↔ kalshi_user_id` mapping,
 - add static egress for Kalshi production IP allowlisting,
-- store the admin and per-user PEMs in a managed secret/KMS design,
+- store admin and per-user PEMs under backend-controlled managed encrypted custody; select direct KMS/HSM signing or envelope-encrypted PEM use after validating key-format support, in-memory policy, RPS, latency, and quotas,
 - add durable user, setup, and operation records,
 - add contract-version negotiation, structured redacted logging, metrics, and a kill switch,
 - implement one public market-data read through the backend Kalshi adapter.
@@ -135,14 +135,15 @@ Account Setup -> Account Readiness -> Deposit -> Balance
 
 - new-user and existing-user-link setup paths,
 - consent screen naming Kalshi and Socure before any PII collection,
-- Encrypted Passthrough KYC entry (per `kalshi-kyc-pii-flow`): fetch/authenticate the Kalshi session public key, encrypt PII on-device, relay ciphertext only; bounded non-PII status readback,
-- client-direct Socure SDK integration for L2 step-up (documents/selfie never touch MetaMask infrastructure),
+- Encrypted Passthrough KYC entry (per `kalshi-kyc-pii-flow`): fetch/authenticate the Kalshi encryption public key, encrypt PII on-device, relay ciphertext only; bounded non-PII status readback,
+- native-vs-JavaScript encryption evaluation for sensitive-buffer handling and representative-device performance,
+- client-direct Socure SDK integration for L2 step-up (documents/selfie never touch MetaMask infrastructure), including bundle size, compatibility, permission, telemetry, and traffic-path validation,
 - email/phone verification and KYC status handling,
 - durable setup resume after app/backend restart,
 - correct distinction between Kalshi's flat account-exists response and duplicate external-user-ID error,
 - one-time, amount-specific Base USDC deposit plan,
 - app-native transfer confirmation and submission,
-- idempotent deposit indication,
+- deposit indication with no assumed Venue idempotency: ambiguous outcomes remain blocked pending reconciliation rather than auto-resubmitted,
 - durable operation status and balance refresh.
 
 ### Required failure scenarios
@@ -158,9 +159,9 @@ Account Setup -> Account Readiness -> Deposit -> Balance
 
 ### Exit criteria
 
-- users can resume without repeating irreversible work,
-- a duplicate request cannot create a duplicate user, key, deposit, or credit,
-- balance and operation state reconcile after restart.
+- users can resume observation without blindly repeating irreversible work,
+- local duplicate requests reuse the backend operation identity; external retry occurs only with verified Venue safety semantics,
+- balance and operation state reconcile after restart where Kalshi exposes enough evidence, otherwise remain explicitly blocked for support.
 
 ## Stage 3 — Trading and Portfolio Slice
 
@@ -199,13 +200,13 @@ If Resting Orders are required, this stage also needs:
 ### Scope
 
 - side-effect-free withdrawal preparation,
-- explicit user confirmation **plus server-verifiable step-up authorization** before withdrawal commit and payout-method registration (trust-model invariant 3),
-- payout-method registration behind the backend adapter with **proof of wallet control** (backend-issued challenge nonce signed by the wallet; only proven user-owned addresses registrable),
-- idempotent withdrawal commit; a lost commit response **blocks retry pending manual reconciliation** — never an automatic re-submit (per `kalshi-funding-rails` ambiguous-commit rule),
+- explicit user confirmation **plus server-verifiable Predict User step-up authorization** before withdrawal commit and payout-method registration (trust-model invariant 3); the factor must be unavailable from a stolen bearer token and bound to the destination/operation,
+- payout-method registration behind the backend adapter with **proof of destination-wallet control** (backend-issued challenge nonce bound to canonical profile ID + chain + address + purpose + expiry). This creates a profile↔wallet association but is separate from Predict User authorization,
+- no assumed withdrawal idempotency; a lost commit response **blocks retry pending manual reconciliation** — never an automatic re-submit (per `kalshi-funding-rails` ambiguous-commit rule),
 - honest `submitted`/`processing` UX until Kalshi's transfer-status endpoint (confirmed for launch; shape unconfirmed) reports a terminal status,
 - ephemeral transfer-scoped key usage on the backend (standing per-user keys have no `write::transfer` scope),
 - operation reference surfaced for support reconciliation,
-- recovery behaviors per `kalshi-account-recovery`: reinstall is a non-event; a broken profile↔Kalshi mapping surfaces as an explicit “your account needs recovery” state (never an empty portfolio); re-link via email + 2FA with an audited backend remap,
+- recovery behaviors per `kalshi-account-recovery`: reinstall is a non-event; a broken profile↔Kalshi mapping surfaces as an explicit “your account needs recovery” state (never an empty portfolio); launch recovery routes through MetaMask Customer Success + Kalshi manual remap with liveness/identity verification, audit, and preservation confirmation for the existing user/sub-account; programmatic recovery remains a post-launch goal,
 - security, privacy, compliance, observability, support, and rollback reviews,
 - cohort rollout and per-venue disable/read-only controls.
 
@@ -237,7 +238,7 @@ Every stage must include:
 - mobile/backend contract fixtures and runtime validation,
 - integration tests at each deep module interface,
 - component-view tests for user-visible behavior,
-- explicit idempotency and lost-response tests for writes,
+- explicit safe-retry, ambiguous-response, and lost-response tests for writes,
 - secret/PII redaction tests,
 - structured observability with operation references but no sensitive payloads,
 - a feature flag, kill switch, and rollback path.
@@ -270,10 +271,14 @@ Treat these as schedule risks, not follow-up polish:
 - current market-data/trading contract confirmation,
 - Kalshi-supported recovery for a lost successful link/verification response where the participant ID is absent,
 - one-time per-user key mint recovery/list/revoke/remint behavior,
-- Kalshi session-key endpoint for Encrypted Passthrough KYC (specification, scheme, timeline),
+- Kalshi encryption public-key mechanism for Encrypted Passthrough KYC (provenance, scheme, rotation/versioning, timeline),
 - legal ruling on the ciphertext-relay posture (gates the KYC flow),
-- transfer-status endpoint shape and ambiguous-commit disambiguation (idempotency key or per-user transfer listing),
-- re-link semantics spike results (recovery ADR acceptance criteria),
+- native encryption and Socure SDK feasibility/impact checks,
+- transfer-status endpoint shape and safe retry/reconciliation support for deposit indication and withdrawal,
+- formal MetaMask Customer Success + Kalshi manual recovery procedure, liveness/identity evidence, audit, preservation confirmation, and SLA,
+- future programmatic recovery API/delegated workflow,
+- raw Canonical Profile ID vs. deterministic per-ISV pseudonym Privacy/Legal decision,
+- backend credential-custody implementation/capacity decision,
 - backend staffing and on-call ownership.
 
 The authoritative list lives in each ADR's **Open Questions / External Dependencies** section.

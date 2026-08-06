@@ -70,7 +70,7 @@ PredictNext explicitly pushes operational complexity into the service layer.
 Services absorb:
 
 - bounded read retry policies
-- idempotent write/reconciliation policy
+- Venue-verified safe-retry/reconciliation policy
 - cache invalidation
 - concurrency control
 - request deduplication
@@ -82,7 +82,7 @@ Services absorb:
 - transaction orchestration
 - transaction executor lifecycle and teardown
 
-That means higher layers do not coordinate retries, reconcile partial state, or interpret low-level failures. They ask for intent-level operations and receive intent-level results. Reads may retry automatically; a write retries only when its idempotency and lost-response contract makes that safe.
+That means higher layers do not coordinate retries, reconcile partial state, or interpret low-level failures. They ask for intent-level operations and receive intent-level results. Reads may retry automatically; a write retries only when the Venue exposes verified idempotency or reconciliation semantics. A backend operation key alone does not make the external side effect idempotent.
 
 ### Define errors out of existence
 
@@ -93,7 +93,7 @@ Examples:
 - transient read failures are retried inside data services
 - repeated WebSocket disconnects are handled by reconnection policy in `LiveDataService`
 - optional Deposit-before-Order sequencing is hidden inside `TradingService` when enabled by product policy
-- funding and Order commits carry idempotency keys and durable Venue Operation references
+- funding and Order commits carry stable backend operation identities and durable Venue Operation references; external retry still requires verified Venue semantics
 - venue-specific transaction failures are normalized into a single Predict error model
 
 The UI should rarely need to reason about raw transport failures. It should primarily render user-meaningful states:
@@ -420,7 +420,7 @@ Key properties of this flow:
 - `scope` includes Venue and authenticated Predict User context,
 - the hook addresses `TradingService` directly; `PredictController` is not on the path,
 - the backend/adapter treats `previewId`, not a mutable echoed preview, as authority,
-- the idempotency key makes lost-response reconciliation safe,
+- for Orders, the stable key/client-order semantics make lost-response reconciliation safe where the Venue contract verifies them,
 - explicit Deposit-before-Order is the Kalshi v1 policy; optional automatic funding can be added inside `TradingService` later,
 - cache-relevant milestones use direct semantic writer calls; Service Events remain observation-only.
 

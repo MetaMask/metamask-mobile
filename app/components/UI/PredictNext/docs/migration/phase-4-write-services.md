@@ -11,7 +11,7 @@ Move legacy Polymarket Order, funding/Claim, and live behavior into the deep Pre
 - corresponding Polymarket adapter capability exists,
 - `PredictAccountScope` and Account Readiness are available,
 - portfolio/market read-model writer interfaces are agreed,
-- every write has idempotency and lost-response semantics,
+- every write has explicit lost-response semantics and retries only with verified Venue idempotency/reconciliation support,
 - current behavior has characterization coverage and rollback.
 
 ## TradingService
@@ -111,7 +111,7 @@ Do not make the old controller a second workflow owner.
 
 - `PredictAccountScope` is explicit,
 - user confirmation precedes irreversible funding commit,
-- writes are idempotent and reconcilable,
+- writes are durably tracked and reconcilable; retry behavior matches verified Venue semantics,
 - durable remote operation state does not depend on mobile memory,
 - adapter/service/UI responsibilities remain separated,
 - old callers retain behavior during delegation,

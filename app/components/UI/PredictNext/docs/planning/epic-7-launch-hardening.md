@@ -6,9 +6,10 @@ rollout executes per the rollout plan.
 Runs as a gate lane against every epic's exit rather than a phase at the end;
 concentrated stories below are the residue that isn't inside another epic.
 
-**External gates:** AppSec threat model engagement; privacy sign-off
-(profile ID sharing); Kalshi support-commitment formalization; backend
-SLO/on-call staffing.
+**External gates:** AppSec threat model engagement; Privacy/Legal decision
+(raw profile ID vs. deterministic per-ISV pseudonym); formal MetaMask
+Customer Success + Kalshi manual recovery procedure; backend SLO/on-call
+staffing.
 
 **ADR anchors:** `kalshi-account-recovery`, `kalshi-security-trust-model`,
 `kalshi-integration-overview` (rollout).
@@ -21,11 +22,18 @@ SLO/on-call staffing.
 
 - Reinstall = non-event (verify at every epic; assert here end to end).
 - Pairing-time canonical change (F1): backend detects a stored ID that became
-  an alias; audited, rate-limited, alarmed remap via the re-link ceremony
-  (email + 2FA), gated by step-up; user-visible remap alerts.
-- Honest broken-mapping UX: `ACCOUNT_RECOVERY_REQUIRED` state with guided
-  path — never an empty portfolio.
-- SRP-loss messaging (F2) documenting the Kalshi-direct/support path.
+  an alias and enters `ACCOUNT_RECOVERY_REQUIRED`; there is no programmatic
+  ISV remap or re-link ceremony for an already assigned `external_user_id`.
+- Launch recovery routes through MetaMask Customer Success + Kalshi: agreed
+  liveness/identity evidence, privileged audited manual remap, confirmation
+  that the existing Kalshi user/sub-account and funds were preserved, target
+  SLA, and user-visible remap alerts.
+- Honest broken-mapping UX with a guided support path — never an empty
+  portfolio or an attempt to create a second Kalshi user.
+- SRP-loss messaging (F2) documents MetaMask identity recovery when available
+  and the manual support path otherwise.
+- Track a programmatic Kalshi recovery API/delegated workflow as a post-launch
+  UX improvement without weakening verification or audit.
 
 ### 7.2 — Security test battery & threat-model remediation (Story, cross-stack)
 
@@ -54,5 +62,6 @@ drill before the first external cohort.
 ## Exit criteria
 
 - Every trust-model invariant has an enforcing test or control in CI/infra.
-- Recovery paths demonstrated on demo (re-link spike results incorporated).
+- Manual recovery procedure is documented, approved, and exercised as an
+  operational drill; programmatic re-link is not presented as available.
 - Rollback drill: Kalshi disabled without touching Polymarket.

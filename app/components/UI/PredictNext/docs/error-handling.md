@@ -7,7 +7,7 @@ Canonical codes and public shape are owned by [interface-ledger.md](./interface-
 ## Principles
 
 1. **Absorb safe transient failures.** Retry reads, reconnect streams, and use safe cached data according to freshness policy.
-2. **Never blind-retry writes.** Account Setup, Order, Deposit, Withdraw, Claim, and indication retries require an idempotency key and reconciliation contract.
+2. **Never blind-retry writes.** A backend operation/idempotency key prevents local recreation but does not make a Venue endpoint idempotent. Account Setup, Order, Deposit, Withdraw, Claim, and indication retry only when the Venue exposes verified idempotency or reconciliation semantics.
 3. **Preserve uncertainty honestly.** A lost response is not a failure or success until the durable operation is reconciled.
 4. **Do not invent Venue facts.** If Kalshi reports “OTP invalid or expired,” surface the combined condition.
 5. **Fail closed at trust boundaries.** Invalid auth, account scope, contract shape, preview expiry, or amount/context mismatch blocks the action.
@@ -121,18 +121,18 @@ Note on OTP codes: Kalshi returns a combined invalid-or-expired condition; `OTP_
 
 ## Retry Matrix
 
-| Operation                 | Automatic retry?             | Requirement                                                                                                |
-| ------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Public GET/read           | bounded yes                  | backoff, rate-limit handling, freshness policy                                                             |
-| Account-scoped GET/read   | bounded yes                  | valid authenticated session; refresh once on auth expiry                                                   |
-| WebSocket/SSE connect     | yes                          | bounded exponential backoff; polling/cache fallback                                                        |
-| Account Setup step        | only with idempotency        | same operation/key; resume before repeating                                                                |
-| Order preview             | safe to request again        | new preview ID; old preview expires                                                                        |
-| Order submit              | only with idempotency        | same preview ID/key; reconcile operation                                                                   |
-| Funding prepare           | only with idempotency        | avoid duplicate one-time address/preflight                                                                 |
-| Wallet transaction submit | wallet infrastructure policy | never silently request a second user signature                                                             |
-| Funding commit/indication | only with idempotency        | same operation/key/transaction hash                                                                        |
-| Withdraw commit           | no                           | lost response blocks retry pending manual reconciliation; never auto-resubmit (see `kalshi-funding-rails`) |
+| Operation                 | Automatic retry?             | Requirement                                                                                                  |
+| ------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Public GET/read           | bounded yes                  | backoff, rate-limit handling, freshness policy                                                               |
+| Account-scoped GET/read   | bounded yes                  | valid authenticated session; refresh once on auth expiry                                                     |
+| WebSocket/SSE connect     | yes                          | bounded exponential backoff; polling/cache fallback                                                          |
+| Account Setup step        | only with verified safety    | resume the same operation; repeat externally only with documented durable/idempotent semantics               |
+| Order preview             | safe to request again        | new preview ID; old preview expires                                                                          |
+| Order submit              | only with verified safety    | same preview ID/key; reconcile through Venue-supported client-order/idempotency semantics                    |
+| Funding prepare           | only with verified safety    | reuse backend operation; do not repeat Venue preflight without idempotency/lookup support                    |
+| Wallet transaction submit | wallet infrastructure policy | never silently request a second user signature                                                               |
+| Deposit indication        | no by current Kalshi spec    | ambiguous response blocks automatic retry pending reconciliation; preserve operation ID and transaction hash |
+| Withdraw commit           | no by current Kalshi spec    | lost response blocks retry pending manual reconciliation; never auto-resubmit (see `kalshi-funding-rails`)   |
 
 A 429 without `Retry-After` uses bounded exponential backoff owned by the backend adapter. Mobile should not create independent retry storms.
 
@@ -211,15 +211,16 @@ submit(previewId, idempotencyKey)
 
 A new client order ID is never generated for the retry.
 
-### Deposit transfer succeeds, indication fails
+### Deposit transfer succeeds, indication outcome is ambiguous
 
 ```text
 wallet transfer submitted -> txHash
   -> funding commit/indication times out
   -> DEPOSIT_FAILED with operationId, recoverable=true
-  -> backend operation remains pending
-  -> resume reuses operationId + txHash + idempotencyKey
-  -> indication reconciles to prefunded/processing
+  -> backend operation remains blocked/reconciling
+  -> resume observes operationId + txHash; it does not automatically
+     resubmit the indication because the Kalshi spec does not state idempotency
+  -> backend reconciles only from authoritative evidence or support
 ```
 
 Mobile teardown does not discard the external operation.
@@ -256,7 +257,7 @@ Examples:
 - one Venue unavailable in a merged feed → preserve other Venue data and label partial results,
 - cached price is stale → browsing may continue, Order preview/submit remains disabled until fresh backend validation,
 - withdrawal status unavailable → keep submitted operation visible; do not report failure or completion without evidence,
-- broken profile↔Kalshi identity mapping → explicit “your account needs recovery” state with the re-link path (`kalshi-account-recovery`), never an empty portfolio implying funds are gone.
+- broken profile↔Kalshi identity mapping → explicit “your account needs recovery” state routing to the MetaMask Customer Success + Kalshi manual process (`kalshi-account-recovery`), never an empty portfolio or a programmatic re-link claim.
 
 A local Kalshi credential fallback is never a degraded mode.
 

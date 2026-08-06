@@ -8,7 +8,7 @@ The contested architecture and delivery decisions for the Kalshi integration are
 
 - `kalshi-integration-overview` — topology, Kalshi-first strangler, venue-selection policy
 - `kalshi-security-trust-model` — the four binding security invariants
-- `kalshi-identity` — Canonical Profile ID as the Kalshi `external_user_id`
+- `kalshi-identity` — Canonical Profile ID as the internal identity anchor; raw ID vs. deterministic per-ISV pseudonym for Kalshi pending Privacy/Legal
 - `kalshi-kyc-pii-flow` — Encrypted Passthrough KYC design
 - `kalshi-funding-rails` — Base USDC rails and write-safety semantics
 - `kalshi-account-recovery` — recovery when the identity chain breaks
@@ -90,7 +90,7 @@ Bootstrap is fail-closed for required write/security modules and may degrade opt
 
 ### Hooks and Product UI
 
-Hooks stay organized by domain. Query hooks trigger one Venue-qualified query. Imperative hooks wrap service-owned workflows without recreating idempotency, retry, or state transitions.
+Hooks stay organized by domain. Query hooks trigger one Venue-qualified query. Imperative hooks wrap service-owned workflows without recreating safe-retry, reconciliation, or state transitions.
 
 Product UI modules use primitives → widgets → views as a long-term organization. Kalshi delivery may reuse existing venue-neutral presentation and the app design system; rebuilding every Predict primitive and screen is not a launch prerequisite.
 
@@ -101,7 +101,7 @@ Product UI modules use primitives → widgets → views as a long-term organizat
 - Sensitive Venue Sessions, credentials, and KYC inputs never enter Redux.
 - Durable Account Setup and financial operation state lives on the owned backend for remote Venues.
 - Funding and Orders use prepare → user confirmation → commit → reconciliation.
-- Reads may retry with bounded policy; writes retry only with explicit idempotency semantics.
+- Reads may retry with bounded policy; writes retry only when the Venue exposes verified idempotency or reconciliation semantics.
 
 ## Target Directory Structure
 
@@ -166,7 +166,7 @@ PredictNext/
 - Venue-qualified data and account state
 - Person identity distinct from wallet execution
 - Backend-held Venue credentials for remote Venues
-- Explicit user confirmation and idempotent writes
+- Explicit user confirmation and Venue-verified safe retry
 - Runtime validation at remote boundaries
 - No speculative capability completeness
 - Replacement tests before legacy deletion

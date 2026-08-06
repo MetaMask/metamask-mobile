@@ -590,10 +590,10 @@ Rules:
 
 1. Preparation may reserve a one-time address but never moves funds.
 2. User confirmation precedes commit.
-3. Commit includes an idempotency key.
+3. Commit includes a stable backend operation/idempotency key; this prevents local recreation but does not make the external Venue endpoint idempotent.
 4. Wallet transfer commit includes the submitted transaction hash.
 5. The backend operation survives mobile teardown.
-6. Repeated commit returns/reconciles the same operation.
+6. Repeated external commit is permitted only where the Venue exposes verified idempotency or reconciliation semantics; otherwise an ambiguous operation remains blocked.
 7. Unsupported operations are absent from Venue funding capability metadata; no `unsupported` plan is returned.
 8. A receipt may remain `submitted` or `processing` when the Venue has no final status endpoint.
 

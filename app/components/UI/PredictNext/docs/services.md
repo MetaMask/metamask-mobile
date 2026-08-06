@@ -802,7 +802,7 @@ Preparing may reserve a one-time address or durable preflight record. It must no
 
 - expose only funding operations present in the active Venue capability,
 - obtain `PredictClient` from `PredictAccountScope`,
-- create/reuse idempotency keys,
+- create/reuse stable backend operation/idempotency keys without treating them as proof of Venue idempotency,
 - prepare the plan,
 - request explicit user confirmation,
 - invoke `FundingExecutor`,
@@ -816,10 +816,10 @@ Kalshi v1 exposes Deposit and Withdraw, not Claim. Polymarket may later expose C
 ### Durability and retry
 
 - Reads and status checks may use bounded retry.
-- Prepare/commit retries reuse the same idempotency key.
+- Repeated local prepare/commit requests reuse the same backend operation/idempotency key; the external Venue call repeats only with verified idempotency or reconciliation semantics.
 - The backend stores the operation before calling an irreversible Venue endpoint.
-- A wallet transfer whose indication fails remains resumable by `operationId` and transaction hash.
-- A lost withdrawal response is reconciled; it is not submitted again with a new key.
+- A wallet transfer whose indication outcome is ambiguous remains visible by `operationId` and transaction hash but is not automatically resubmitted under the current Kalshi spec.
+- A lost withdrawal response blocks pending reconciliation; it is not submitted again with either the same or a new key.
 - Safe operation references may persist in a focused mobile state projection when cross-screen/app-restart resume requires it.
 - Raw plan details, credentials, signatures, OTP, and KYC fields do not persist.
 - A Kalshi withdrawal receipt remains `submitted`/`processing` until authoritative completion exists.

@@ -9,8 +9,9 @@ a terminal state.
 
 **External gates:**
 
-- **Step-up mechanism selection with AppSec** (fresh re-auth / wallet-signed
-  challenge / OTP) — gates 6.1 design, not scaffolding.
+- **Step-up mechanism selection with AppSec** (fresh re-auth / passkey /
+  OTP) — gates 6.1 design, not scaffolding. Destination-wallet signatures
+  prove wallet control separately; they are not the Predict User step-up.
 - **Transfer-status endpoint shape** (Kalshi confirmed availability, shape
   unconfirmed) — gates 6.4 reconciliation details.
 - **Ambiguous-commit disambiguation** (idempotency key on withdraw or
@@ -28,25 +29,34 @@ a terminal state.
 
 - Backend: step-up challenge issue/verify for high-risk operations
   (withdraw commit, payout registration, key mint, identity remap); bearer-
-  only sessions rejected (`STEP_UP_REQUIRED`); expiry + replay resistance.
+  only sessions rejected (`STEP_UP_REQUIRED`); factor unavailable from a
+  stolen bearer token; expiry + replay resistance. Payout registration binds
+  the step-up to destination address and operation.
 - Mobile: step-up UX rendering the selected factor; wired into the withdraw
   confirmation flow.
-- Reused by Epic 7 recovery remap.
+- Manual recovery uses its separately approved Customer Success + Kalshi
+  liveness/identity ceremony rather than assuming this self-service factor is
+  sufficient.
 
-### 6.2 — Payout-method registration with proof of wallet control (Story, cross-stack)
+### 6.2 — Payout-method registration with wallet proof + user authorization (Story, cross-stack)
 
-- Backend: challenge nonce bound to profile ID + chain + address + expiry;
-  verify wallet signature; register only proven addresses with Kalshi
-  (Stripe-validated); payout allowlist is the only withdrawal destination
-  set.
-- Mobile: wallet-sign the challenge via existing signing infra; destination
-  selection limited to the user's own wallets.
+- Backend: destination-wallet challenge nonce bound to canonical profile ID +
+  chain + address + purpose + expiry; verify wallet signature and create the
+  profile↔wallet association. This proves control, not authorization by the
+  real Predict User.
+- Require the separate destination-bound Predict User step-up from 6.1 before
+  registering the proven address with Kalshi (Stripe-validated); the payout
+  allowlist is the only withdrawal destination set.
+- Mobile: wallet-sign the proof challenge via existing signing infra, perform
+  the separate user step-up, and limit destination selection to the user's
+  own wallets.
 
 ### 6.3 — Withdraw prepare/confirm/commit vertical (Story, cross-stack)
 
 - Backend: side-effect-free prepare; commit under step-up using an
   **ephemeral transfer-scoped key** (minted under step-up, used once,
-  revoked); `transfer_id` stored durably; idempotent commit.
+  revoked); `transfer_id` stored durably. Do not assume the Kalshi withdrawal
+  endpoint is idempotent.
 - Mobile: amount/destination UI, explicit confirmation + step-up, submitted/
   processing receipt states.
 - **Lost commit response → operation blocked pending manual reconciliation,
@@ -61,10 +71,12 @@ a terminal state.
 
 ### 6.5 — Withdrawal failure-scenario tests (Task, cross-stack)
 
-- Step-up rejected/expired/replayed blocks commit; cross-profile challenge
-  replay fails; standing key cannot withdraw (`write::transfer` absent);
-  ephemeral key revoked after use; lost commit blocks retry; repeated tap
-  cannot double-withdraw; UI never claims completion early.
+- Step-up rejected/expired/replayed blocks commit; destination-wallet proof
+  alone cannot authorize registration; cross-profile/address/operation
+  challenge replay fails; standing key cannot withdraw (`write::transfer`
+  absent); ephemeral key revoked after use; lost commit blocks retry; repeated
+  tap reuses the blocked backend operation and does not auto-resubmit; UI never
+  claims completion early.
 
 ---
 

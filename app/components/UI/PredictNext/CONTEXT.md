@@ -113,7 +113,7 @@ A short-lived, venue-produced plan prepared before a Predict User confirms a Dep
 _Avoid_: TransactionBatch as a product term, tx builder, completed transfer
 
 **Venue Operation**:
-A durable, idempotent Venue-side operation created for a write such as a Deposit, Withdraw, or Order. Its reference lets the system resume or reconcile after retries, app restarts, or lost responses.
+A durable Venue-side operation reference for a write such as a Deposit, Withdraw, or Order. It lets the system resume observation or reconcile after app restarts and lost responses. The reference does not itself make an external Venue call idempotent; retry requires verified Venue semantics.
 _Avoid_: UI request, transient loading state
 
 **Balance**:

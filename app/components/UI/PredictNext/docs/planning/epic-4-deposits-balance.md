@@ -22,7 +22,8 @@ build).
 ### 4.1 — Funding operation store & write-safety plumbing (Story, backend)
 
 - Durable operation records (deposit_id, tx_hash, status) stored **before**
-  any external irreversible call; idempotency keys on prepare/commit;
+  any external irreversible call; stable backend operation/idempotency keys
+  prevent local recreation but do not imply Kalshi endpoint idempotency;
   conflicting key reuse fails explicitly; operations survive restart and are
   traceable by support without secrets.
 - This is the reusable write-safety substrate for orders (Epic 5) and
@@ -36,17 +37,20 @@ build).
 - Mobile: `TransactionService` + `FundingExecutor` skeletons; plan validation
   against local intent (venue/operation/amount/network/asset/recipient/
   expiry) failing closed before signing; deposit amount UI.
-- Repeated prepare with the same key does not reserve twice.
+- Repeated local requests reuse the same backend operation. Do not retry the
+  external prepare call unless Kalshi confirms a safe idempotency or lookup
+  contract.
 
 ### 4.3 — Wallet transfer & commit vertical (Story, cross-stack)
 
 - Mobile: hand the validated plan to the app's native transaction
   confirmation infra; display the exact backend-bound recipient; broadcast;
   report tx_hash via `funding/commit`.
-- Backend: idempotent deposit indication (deposit_id + tx_hash); prefunded
-  receipt.
-- Transfer-succeeds/indication-fails stays resumable; teardown never erases
-  or duplicates a committed operation.
+- Backend: submit deposit indication (`deposit_id + tx_hash`) without assuming
+  Venue idempotency; persist the known or ambiguous outcome.
+- Transfer-succeeds/indication-response-lost stays visible but is not
+  auto-resubmitted without verified Kalshi retry/reconciliation semantics;
+  teardown never erases the operation.
 
 ### 4.4 — Balance & operation status (Story, cross-stack)
 
@@ -58,8 +62,9 @@ build).
 ### 4.5 — Deposit failure-scenario test suite (Task, cross-stack)
 
 The `kalshi-funding-rails` required scenarios, each an explicit test: app
-death before/after broadcast, double indication, backend timeout after Kalshi
-accepted, expired unused address/plan, transfer-succeeds/indication-fails.
+death before/after broadcast, repeated local indication request, backend
+timeout after Kalshi may have accepted, expired unused address/plan, and
+transfer-succeeds/indication-outcome-ambiguous.
 
 ---
 
@@ -67,4 +72,6 @@ accepted, expired unused address/plan, transfer-succeeds/indication-fails.
 
 - Deposit lands and balance reflects it on demo, end to end from the app.
 - Every required failure scenario has a passing test.
-- A duplicate request cannot double-credit; restart resumes cleanly.
+- A duplicate local request cannot silently cause an external retry; restart
+  resumes observation and either reconciles from evidence or remains blocked
+  for support.
