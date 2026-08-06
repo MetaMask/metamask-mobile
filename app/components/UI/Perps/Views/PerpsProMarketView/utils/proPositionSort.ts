@@ -1,11 +1,12 @@
 import type { Position } from '@metamask/perps-controller';
+import { compareProSortValues, type ProSortDirection } from './proSortCompare';
 
 export type ProPositionSortField =
   | 'positionValue'
   | 'unrealizedPnl'
   | 'fundingRate';
 
-export type ProPositionSortDirection = 'asc' | 'desc';
+export type ProPositionSortDirection = ProSortDirection;
 
 export interface ProPositionSortConfig {
   field: ProPositionSortField;
@@ -60,17 +61,12 @@ export const sortProPositions = (
   positions: Position[],
   config: ProPositionSortConfig,
   fundingRatesBySymbol?: Readonly<Record<string, number | undefined>>,
-): Position[] => {
-  const multiplier = config.direction === 'asc' ? 1 : -1;
-
-  return [...positions].sort((left, right) => {
-    const leftValue = getSortValue(left, config.field, fundingRatesBySymbol);
-    const rightValue = getSortValue(right, config.field, fundingRatesBySymbol);
-
-    if (leftValue === rightValue) {
-      return left.symbol.localeCompare(right.symbol);
-    }
-
-    return (leftValue - rightValue) * multiplier;
-  });
-};
+): Position[] =>
+  [...positions].sort((left, right) =>
+    compareProSortValues(
+      getSortValue(left, config.field, fundingRatesBySymbol),
+      getSortValue(right, config.field, fundingRatesBySymbol),
+      config.direction,
+      () => left.symbol.localeCompare(right.symbol),
+    ),
+  );

@@ -35,10 +35,10 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
-import PerpsSlider from '../../../../components/PerpsSlider';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
 } from './PerpsProCompactInput';
+import PerpsProSizeInput from './PerpsProSizeInput';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderFormProps,
@@ -226,38 +226,6 @@ const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
   </Pressable>
 );
 
-interface AvailableBalanceRowProps {
-  value: string;
-  onPress?: () => void;
-}
-
-const AvailableBalanceRow = ({ value, onPress }: AvailableBalanceRowProps) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ disabled: !onPress }}
-    accessibilityLabel={value}
-    accessibilityHint={onPress ? strings('perps.add_funds') : undefined}
-    disabled={!onPress}
-    onPress={onPress}
-    testID={ids.ADD_FUNDS_BUTTON}
-  >
-    <Box twClassName="flex-row items-center gap-1">
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        testID={ids.AVAILABLE_BALANCE}
-      >
-        {value}
-      </Text>
-      <Icon
-        name={IconName.AddCircle}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-  </Pressable>
-);
-
 const OrderSummary = ({
   margin,
   liquidationPrice,
@@ -335,12 +303,10 @@ const PerpsProOrderForm = ({
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
+  onLimitPriceBlur,
   onUseMidPricePress,
-  size,
-  onSizeChange,
-  onSizeUnitPress,
-  balancePercentage,
-  onBalancePercentageChange,
+  sizeInput,
+  sizeSlider,
   availableBalance,
   onAddFundsPress,
   reduceOnly,
@@ -423,7 +389,10 @@ const PerpsProOrderForm = ({
               />
             ) : null}
           </Box>
-          <Box twClassName="flex-row items-center justify-between">
+          <Box
+            twClassName="flex-row items-center gap-4"
+            testID={ids.MARGIN_SETTINGS_ROW}
+          >
             <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
               <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
                 {marginModeLabel}
@@ -439,13 +408,13 @@ const PerpsProOrderForm = ({
               {leverageLabel}
             </ButtonBase>
           </Box>
-          <Box twClassName="overflow-hidden rounded-xl bg-muted">
+          <Box twClassName="overflow-hidden rounded-xl border border-muted bg-muted">
             <ButtonBase
               onPress={onOrderTypeButtonPress}
               twClassName="h-12 w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
-              endIconName={IconName.ArrowRight}
+              endIconName={IconName.ArrowDown}
               endIconProps={{
                 size: IconSize.Sm,
                 testID: `${ids.ORDER_TYPE_BUTTON}-chevron`,
@@ -461,64 +430,52 @@ const PerpsProOrderForm = ({
                 label={strings('perps.order.limit_price_modal.title')}
                 value={limitPrice}
                 onChangeText={onLimitPriceChange}
+                onBlur={onLimitPriceBlur}
                 testID={ids.LIMIT_PRICE_INPUT}
                 variant="inline"
                 placeholder={strings('perps.order.limit_price_modal.title')}
-                endAccessory={
-                  <ButtonBase
-                    size={ButtonBaseSize.Sm}
-                    onPress={onUseMidPricePress}
-                    isDisabled={!onUseMidPricePress}
-                    twClassName="h-12 bg-transparent px-0"
-                    testID={ids.MID_PRICE_BUTTON}
+                startAccessory={
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="mr-1"
+                    testID={ids.LIMIT_PRICE_PREFIX}
                   >
-                    {strings('perps.order.limit_price_modal.mid_price')}
-                  </ButtonBase>
+                    $
+                  </Text>
+                }
+                endAccessory={
+                  <Box twClassName="h-full shrink-0 justify-center">
+                    <ButtonBase
+                      size={ButtonBaseSize.Sm}
+                      onPress={onUseMidPricePress}
+                      isDisabled={!onUseMidPricePress}
+                      twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+                      contentWrapperProps={{ twClassName: 'justify-end' }}
+                      textProps={{
+                        variant: TextVariant.BodySm,
+                        fontWeight: FontWeight.Medium,
+                      }}
+                      testID={ids.MID_PRICE_BUTTON}
+                    >
+                      {strings('perps.order.limit_price_modal.mid_price')}
+                    </ButtonBase>
+                  </Box>
                 }
               />
             ) : null}
           </Box>
-          <Box twClassName="gap-2">
-            <PerpsProCompactInput
-              label={strings('perps.pro_order_form.size_usd')}
-              value={size}
-              onChangeText={onSizeChange}
-              testID={ids.SIZE_INPUT}
-              placeholder="0.00"
-              placeholderColor="default"
-              endAccessory={
-                <ButtonIcon
-                  iconName={IconName.SwapHorizontal}
-                  size={ButtonIconSize.Xs}
-                  isDisabled={!onSizeUnitPress}
-                  onPress={onSizeUnitPress}
-                  testID={ids.SIZE_UNIT_BUTTON}
-                  accessibilityLabel={strings(
-                    'perps.pro_order_form.toggle_size_unit',
-                  )}
-                />
-              }
-              footer={
-                <PerpsSlider
-                  value={balancePercentage}
-                  onValueChange={onBalancePercentageChange}
-                  minimumValue={0}
-                  maximumValue={100}
-                  showPercentageLabels={false}
-                  showPercentageMarkers
-                  variant="compact"
-                  testID={ids.SIZE_SLIDER}
-                  accessibilityLabel={strings(
-                    'perps.pro_order_form.size_percentage',
-                  )}
-                />
-              }
-            />
-            <AvailableBalanceRow
-              value={availableBalance}
-              onPress={onAddFundsPress}
-            />
-          </Box>
+          <PerpsProSizeInput
+            value={sizeInput.value}
+            onChangeText={sizeInput.onChange}
+            denomination={sizeInput.denomination}
+            canToggleDenomination={sizeInput.canToggleDenomination}
+            onFocus={sizeInput.onFocus}
+            onBlur={sizeInput.onBlur}
+            onToggleDenomination={sizeInput.onToggleDenomination}
+            sizeSlider={sizeSlider}
+            availableBalance={availableBalance}
+            onAddFundsPress={onAddFundsPress}
+          />
           <ReduceOnlyRow
             label={strings('perps.order.reduce_only')}
             isSelected={reduceOnly}
