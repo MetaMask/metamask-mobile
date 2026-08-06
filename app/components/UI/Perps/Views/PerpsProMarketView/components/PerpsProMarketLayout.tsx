@@ -36,7 +36,7 @@ const PerpsProMarketLayout = ({
   orderBook,
   isOrderBookCollapsed = false,
 }: PerpsProMarketLayoutProps) => {
-  const { styles } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles);
 
   return (
     <View

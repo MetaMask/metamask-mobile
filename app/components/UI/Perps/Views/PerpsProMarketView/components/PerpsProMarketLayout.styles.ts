@@ -7,7 +7,7 @@ export const PRO_TRADING_AREA_BOTTOM_INSET = 16;
 export const PRO_ORDER_BOOK_COLUMN_WIDTH = 132;
 export const PRO_ORDER_BOOK_SEPARATOR_INSET = 16;
 
-const createStyles = (colors: Theme['colors']) =>
+const createStyles = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
     container: {
       flexDirection: 'row',
@@ -22,7 +22,7 @@ const createStyles = (colors: Theme['colors']) =>
     columnDivider: {
       width: StyleSheet.hairlineWidth,
       alignSelf: 'stretch',
-      backgroundColor: colors.border.muted,
+      backgroundColor: theme.colors.border.muted,
       marginHorizontal: 8,
     },
     orderBookColumn: {
