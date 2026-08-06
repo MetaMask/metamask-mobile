@@ -153,6 +153,12 @@ export const TokenConversionAssetHeader = ({
 
   const inputNetworkName = useNetworkName(inputToken?.chainId as Hex);
   const outputNetworkName = useNetworkName(outputToken?.chainId as Hex);
+  const inputNetworkImageSource = getNetworkImageSource({
+    chainId: inputToken?.chainId ?? '',
+  });
+  const outputNetworkImageSource = getNetworkImageSource({
+    chainId: outputToken?.chainId ?? '',
+  });
 
   const formatAmount = (amount?: string) => {
     if (!amount) {
@@ -209,12 +215,12 @@ export const TokenConversionAssetHeader = ({
         <BadgeWrapper
           position={BadgeWrapperPosition.BottomRight}
           badge={
-            <BadgeNetwork
-              name={inputNetworkName}
-              src={getNetworkImageSource({
-                chainId: inputToken?.chainId ?? '',
-              })}
-            />
+            inputNetworkImageSource ? (
+              <BadgeNetwork
+                name={inputNetworkName}
+                src={inputNetworkImageSource}
+              />
+            ) : null
           }
         >
           <AvatarToken
@@ -269,12 +275,12 @@ export const TokenConversionAssetHeader = ({
         <BadgeWrapper
           position={BadgeWrapperPosition.BottomRight}
           badge={
-            <BadgeNetwork
-              name={outputNetworkName}
-              src={getNetworkImageSource({
-                chainId: outputToken?.chainId ?? '',
-              })}
-            />
+            outputNetworkImageSource ? (
+              <BadgeNetwork
+                name={outputNetworkName}
+                src={outputNetworkImageSource}
+              />
+            ) : null
           }
         >
           <AvatarToken

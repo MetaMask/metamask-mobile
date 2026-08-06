@@ -9,9 +9,9 @@ import { Hex } from '@metamask/utils';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
 import styleSheet from './token-icon.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import { useTokenWithBalance } from '../../hooks/tokens/useTokenWithBalance';
 import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import useNetworkInfo from '../../hooks/useNetworkInfo';
 
 export interface TokenIconProps {
   address: Hex;
@@ -38,6 +38,7 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
 
   const token = useTokenWithBalance(address, chainId);
   const symbol = token?.symbol ?? symbolProp;
+  const { networkImage, networkName } = useNetworkInfo(chainId);
 
   if (!token && !symbol) {
     return null;
@@ -45,18 +46,15 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
 
   const icon = token?.image ?? getTokenIconUrl(address, chainId);
 
-  const networkImageSource = getNetworkImageSource({
-    chainId,
-  });
-
   return (
     <BadgeWrapper
       style={styles.container}
       position={BadgeWrapperPosition.BottomRight}
       badge={
-        showNetwork && networkImageSource ? (
+        showNetwork && networkImage ? (
           <BadgeNetwork
-            src={networkImageSource}
+            src={networkImage}
+            name={networkName}
             testID="token-icon-network-badge"
           />
         ) : null

@@ -58,15 +58,19 @@ const AddressElement: React.FC<AddressElementProps> = ({
 
   const renderIdenticon = useCallback(() => {
     if (shouldDisplayNetworkBadge) {
+      const networkImageSource = NetworkBadgeSource(chainId as Hex);
+
       return (
         <BadgeWrapper
           position={BadgeWrapperPosition.BottomRight}
           badge={
-            <BadgeNetwork
-              src={NetworkBadgeSource(chainId as Hex)}
-              name={addressElementNetwork?.name}
-              testID="address-element-network-badge"
-            />
+            networkImageSource ? (
+              <BadgeNetwork
+                src={networkImageSource}
+                name={addressElementNetwork?.name}
+                testID="address-element-network-badge"
+              />
+            ) : null
           }
         >
           <Identicon address={address} diameter={28} />

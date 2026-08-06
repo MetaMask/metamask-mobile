@@ -119,7 +119,7 @@ describe('AddressFrom', () => {
       networkName: MOCK_NETWORK_NAME,
       networkImage: undefined,
       networkNativeCurrency: 'ETH',
-    });
+    } as ReturnType<typeof useNetworkInfo>);
 
     const { queryByTestId, getByText } = renderAddressFrom();
 
