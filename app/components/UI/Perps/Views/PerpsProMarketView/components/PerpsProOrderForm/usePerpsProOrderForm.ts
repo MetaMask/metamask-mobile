@@ -119,7 +119,13 @@ const getBlockingNotices = ({
   isReduceOnlyStreamLoading: boolean;
   filteredErrors: string[];
 }): PerpsProOrderNotice[] => {
-  if (reduceOnlyErrorCode && !isReduceOnlyStreamLoading) {
+  // Streams are unresolved — skipValidation retains prior errors, so hide all
+  // blocking notices until live reduce-only state can be evaluated.
+  if (isReduceOnlyStreamLoading) {
+    return [];
+  }
+
+  if (reduceOnlyErrorCode) {
     return [
       {
         id: 'reduce-only',

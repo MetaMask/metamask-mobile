@@ -366,6 +366,28 @@ describe('usePerpsProOrderForm', () => {
         'Reduce-only orders can only reduce an existing position. Switch to the opposite side.',
       );
     });
+
+    it('suppresses stale validation notices while reduce-only streams are loading', () => {
+      // Arrange: retain a prior margin error (skipValidation freezes errors)
+      // while position streams are still loading after Reduce Only is enabled.
+      mockValidation.isValid = false;
+      mockValidation.errors = ['Insufficient funds'];
+      mockPositionStreamLoading = true;
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      // Assert: no stale margin/limit banner, and Place Order stays disabled.
+      expect(
+        result.current.notices.find((n) => n.id === 'margin'),
+      ).toBeUndefined();
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only'),
+      ).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
   });
 
   describe('handlePlaceOrder', () => {
