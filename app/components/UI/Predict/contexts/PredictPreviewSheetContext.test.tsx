@@ -18,6 +18,7 @@ import { predictBuyPreviewOrderInitiatedRef } from '../views/PredictBuyPreview/P
 const mockNavigate = jest.fn();
 const mockTrackBetslipDismissed = jest.fn();
 const mockTrackPredictOrderEvent = jest.fn();
+const mockTrackPredictBuyTerminalEvent = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -26,6 +27,8 @@ jest.mock('../../../../core/Engine', () => ({
         mockTrackBetslipDismissed(...args),
       trackPredictOrderEvent: (...args: unknown[]) =>
         mockTrackPredictOrderEvent(...args),
+      trackPredictBuyTerminalEvent: (...args: unknown[]) =>
+        mockTrackPredictBuyTerminalEvent(...args),
     },
   },
 }));
