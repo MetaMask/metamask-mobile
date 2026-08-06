@@ -151,4 +151,17 @@ describe('PhaseTimer', () => {
 
     expect(getPhaseTimer()).toBeUndefined();
   });
+
+  it('nested bindPhaseTimer restores the previous active timer', () => {
+    const outer = createPhaseTimer();
+    const inner = createPhaseTimer();
+    const unbindOuter = bindPhaseTimer(outer);
+    const unbindInner = bindPhaseTimer(inner);
+
+    expect(getPhaseTimer()).toBe(inner);
+    unbindInner();
+    expect(getPhaseTimer()).toBe(outer);
+    unbindOuter();
+    expect(getPhaseTimer()).toBeUndefined();
+  });
 });

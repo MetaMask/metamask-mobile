@@ -34,13 +34,18 @@ export interface CreatePhaseTimerOptions {
 }
 
 const storage = new AsyncLocalStorage<PhaseTimer>();
+/**
+ * Fallback when Playwright's `use()` resumes the test outside the ALS store.
+ * Meta is written on the timer object directly; phases go through getPhaseTimer().
+ */
 let activeTimer: PhaseTimer | undefined;
 
 export function bindPhaseTimer(timer: PhaseTimer): () => void {
+  const previous = activeTimer;
   activeTimer = timer;
   return () => {
     if (activeTimer === timer) {
-      activeTimer = undefined;
+      activeTimer = previous;
     }
   };
 }
