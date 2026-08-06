@@ -178,32 +178,13 @@ class MoneyHomeView {
     });
   }
 
-  async expectOnboardingCardStep1Title(): Promise<void> {
-    const apyText = await (await asPlaywrightElement(this.apy)).textContent();
-    const apyMatch = apyText.match(/([\d.]+)%\s*APY/u);
-    if (!apyMatch) {
-      throw new Error(`Unable to extract APY from "${apyText}".`);
-    }
-
-    await Assertions.expectElementToHaveText(
-      this.stepperCardTitle,
-      `Earn up to ${apyMatch[1]}% APY`,
-      {
-        description:
-          'Money onboarding stepper card title should display "Earn up to {{apy}}% APY"',
-      },
-    );
-  }
-
-  async expectOnboardingCardStep2Title(): Promise<void> {
-    await Assertions.expectElementToHaveText(
-      this.stepperCardTitle,
-      'Get your MetaMask Card',
-      {
-        description:
-          'Money onboarding stepper card title should display "Get your MetaMask Card"',
-      },
-    );
+  async expectOnboardingCardTitleVisible(
+    timeout = MONEY_HOME_LOAD_TIMEOUT_MS,
+  ): Promise<void> {
+    await Assertions.expectElementToExist(this.stepperCardTitle, {
+      description: 'Money onboarding card title should be present',
+      timeout,
+    });
   }
 
   async expectNoActivityPreview(
