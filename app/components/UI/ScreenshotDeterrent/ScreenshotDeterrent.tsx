@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Linking, InteractionManager } from 'react-native';
+import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import PreventScreenshot from '../../../core/PreventScreenshot';
@@ -10,22 +10,34 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
+let activeScreenCaptureBlocks = 0;
+
+const useScreenCaptureBlock = (enabled: boolean) => {
+  useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
+
+    activeScreenCaptureBlocks += 1;
+    if (activeScreenCaptureBlocks === 1) {
+      PreventScreenshot.forbid();
+    }
+
+    return () => {
+      activeScreenCaptureBlocks -= 1;
+      if (activeScreenCaptureBlocks === 0) {
+        PreventScreenshot.allow();
+      }
+    };
+  }, [enabled]);
+};
+
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
 }: {
   enabled: boolean;
 }) => {
-  useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.forbid();
-    });
-
-    return () => {
-      InteractionManager.runAfterInteractions(() => {
-        PreventScreenshot.allow();
-      });
-    };
-  }, [enabled]);
+  useScreenCaptureBlock(enabled);
 
   return <View />;
 };
@@ -84,17 +96,10 @@ const ScreenshotDeterrentWithNavigation = ({
 
   const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
+  useScreenCaptureBlock(enabled);
+
   useEffect(() => {
     enableScreenshotWarning(enabled && !alertPresent);
-    InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.forbid();
-    });
-
-    return () => {
-      InteractionManager.runAfterInteractions(() => {
-        PreventScreenshot.allow();
-      });
-    };
   }, [alertPresent, enableScreenshotWarning, enabled]);
 
   return <View />;

@@ -80,6 +80,7 @@ import {
   RESET_PASSWORD_GUIDE_URL,
   RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -808,6 +809,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           ? renderResetPassword()
           : renderConfirmPassword()}
       </Box>
+      <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
     </SafeAreaView>
   );
 };

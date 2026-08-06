@@ -80,20 +80,21 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
   });
 
   describe('Component props handling', () => {
-    it('render matches snapshot when enabled = false, isSRP = true, hasNavigation = true', () => {
+    it('does not block capture when disabled', () => {
       const { toJSON } = render(
         <ScreenshotDeterrent enabled={false} isSRP hasNavigation />,
       );
-      // expect to be snapshot
+
       expect(toJSON()).not.toBeNull();
-      expect(PreventScreenshot.forbid).toHaveBeenCalled();
+      expect(PreventScreenshot.forbid).not.toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('render matches snapshot when enabled = true, isSRP = true, hasNavigation = true', () => {
+    it('blocks capture when enabled', () => {
       const { toJSON } = render(
         <ScreenshotDeterrent enabled isSRP hasNavigation />,
       );
+
       expect(toJSON()).not.toBeNull();
       expect(PreventScreenshot.forbid).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalled();
