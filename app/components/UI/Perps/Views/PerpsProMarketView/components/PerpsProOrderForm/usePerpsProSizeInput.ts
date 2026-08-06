@@ -44,7 +44,7 @@ const getUsdFromAsset = (
 ): string => {
   const finalizedAmount = finalizeNumericTextInput(assetAmount);
   if (!finalizedAmount) {
-    return '0';
+    return '';
   }
 
   return new BigNumber(finalizedAmount)
@@ -249,7 +249,7 @@ export const usePerpsProSizeInput = ({
       if (canToggleDenomination) {
         const nextUsdAmount = getUsdFromAsset(result.value, effectivePrice);
         setUsdDraft(nextUsdAmount);
-        commitUsdAmount(nextUsdAmount);
+        commitUsdAmount(nextUsdAmount || '0');
       }
     },
     [
@@ -306,7 +306,7 @@ export const usePerpsProSizeInput = ({
       value: snappedAssetAmount,
       source: 'canonical',
     });
-    commitUsdAmount(nextUsdAmount);
+    commitUsdAmount(nextUsdAmount || '0');
   }, [
     assetDraft,
     assetDraftState.source,
@@ -342,7 +342,7 @@ export const usePerpsProSizeInput = ({
 
     const nextUsdAmount = getUsdFromAsset(assetDraft, effectivePrice);
     setUsdDraft(nextUsdAmount);
-    commitUsdAmount(nextUsdAmount);
+    commitUsdAmount(nextUsdAmount || '0');
     setDenominationUnit('usd');
   }, [
     assetDraft,
@@ -372,7 +372,7 @@ export const usePerpsProSizeInput = ({
     // blur snap), use the committed USD so szDecimals snap does not re-round
     // cents and change order sizing.
     if (assetDraftState.source === 'user') {
-      return getUsdFromAsset(assetDraft, effectivePrice);
+      return getUsdFromAsset(assetDraft, effectivePrice) || '0';
     }
 
     return finalizeNumericTextInput(usdDraft) || '0';

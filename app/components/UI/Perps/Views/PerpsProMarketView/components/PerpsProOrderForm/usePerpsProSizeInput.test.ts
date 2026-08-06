@@ -201,6 +201,27 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.value).toBe('');
   });
 
+  it('keeps the USD draft empty when toggling from an empty asset draft', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '', effectivePrice: 100 }),
+      ),
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+    expect(result.current.sizeInput.value).toBe('');
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+    expect(result.current.sizeInput.value).toBe('');
+    expect(mockSetAmount).not.toHaveBeenCalled();
+  });
+
   it('does not reconvert an unchanged canonical asset draft on blur', () => {
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
