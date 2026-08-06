@@ -36,12 +36,7 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
    * Otherwise it delegates directly to `handleConfirm`.
    */
   handleBuy: () => Promise<void>;
-  /**
-   * Keyboard vs slider A/B assignment (`socialAiTSA905AbtestQuickBuyKeyboard`).
-   * When true (treatment), the numeric keypad replaces the percentage slider.
-   */
-  useKeyboard: boolean;
-  /** Whether the numeric keypad is currently shown (treatment only). */
+  /** Whether the numeric keypad is currently shown. */
   isKeypadOpen: boolean;
   setIsKeypadOpen: (open: boolean) => void;
 }
@@ -55,8 +50,6 @@ interface QuickBuyProviderProps {
   analyticsContext?: QuickBuyAnalyticsContext;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
-  /** A/B assignment: true renders the keypad, false keeps the slider. */
-  useKeyboard?: boolean;
   children: React.ReactNode;
 }
 
@@ -67,19 +60,12 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   analyticsContext,
   activeScreen,
   setActiveScreen,
-  useKeyboard = false,
   children,
 }) => {
-  const controller = useQuickBuyController(
-    target,
-    onClose,
-    analyticsContext,
-    useKeyboard,
-  );
-  // Keyboard treatment opens the keypad by default so the sheet matches the
-  // taller Figma layout (footer + keypad visible together). Control keeps the
-  // slider and never uses this flag.
-  const [isKeypadOpen, setIsKeypadOpen] = useState(useKeyboard);
+  const controller = useQuickBuyController(target, onClose, analyticsContext);
+  // Open the keypad by default so the sheet matches the taller Figma layout
+  // (footer + keypad visible together).
+  const [isKeypadOpen, setIsKeypadOpen] = useState(true);
   const {
     currentCurrency,
     usdToCurrentCurrencyRate,
@@ -137,7 +123,6 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     isQuickAmountPreferencesLoaded,
     saveQuickAmountPreferences,
     handleBuy,
-    useKeyboard,
     isKeypadOpen,
     setIsKeypadOpen,
   };

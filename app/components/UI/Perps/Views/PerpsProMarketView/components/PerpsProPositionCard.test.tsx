@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProPositionCard from './PerpsProPositionCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -62,6 +63,128 @@ describe('PerpsProPositionCard', () => {
 
     expect(screen.getByText(/1\.5 ETH • \$4,500/)).toBeOnTheScreen();
     expect(screen.getByText('$3,000')).toBeOnTheScreen();
+  });
+
+  it('renders TP/SL edit control when handler is provided', () => {
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditTpSl={onEditTpSl} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders margin edit control for isolated positions when handler is provided', () => {
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditMargin={onEditMargin} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
+    ).toBeOnTheScreen();
+  });
+
+  it('invokes edit TP/SL when the TP/SL value text is pressed', () => {
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditTpSl={onEditTpSl} />,
+    );
+
+    fireEvent.press(screen.getByText(/\$3,500.*\$2,000/));
+
+    expect(onEditTpSl).toHaveBeenCalledWith(position);
+  });
+
+  it('invokes the market switch handler when the card is pressed', () => {
+    const onPress = jest.fn();
+
+    render(<PerpsProPositionCard position={position} onPress={onPress} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_ROW),
+    );
+
+    expect(onPress).toHaveBeenCalledWith(position);
+  });
+
+  it('exposes the market switch as a labelled action for screen readers', () => {
+    render(<PerpsProPositionCard position={position} onPress={jest.fn()} />);
+
+    expect(screen.getByLabelText('Switch to the ETH market')).toBeOnTheScreen();
+  });
+
+  it('keeps action buttons scoped to their own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onClose = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_CLOSE),
+    );
+
+    expect(onClose).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps margin edit scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onEditMargin={onEditMargin}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('$1,450'));
+
+    expect(onEditMargin).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps TP/SL edit scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onEditTpSl={onEditTpSl}
+      />,
+    );
+
+    fireEvent.press(screen.getByText(/\$3,500.*\$2,000/));
+
+    expect(onEditTpSl).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('invokes edit margin when the margin value text is pressed', () => {
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditMargin={onEditMargin} />,
+    );
+
+    fireEvent.press(screen.getByText('$1,450'));
+
+    expect(onEditMargin).toHaveBeenCalledWith(position);
   });
 
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {

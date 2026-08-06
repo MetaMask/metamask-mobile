@@ -2,16 +2,20 @@ package io.metamask.nativeModules
 
 import android.content.Intent
 import android.os.Bundle
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.WritableNativeMap
+import java.lang.ref.WeakReference
 
 class NotificationModule(context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
 
   companion object {
+    private const val NOTIFICATION_OPENED_EVENT = "metamask.notification_opened"
     private var savedNotificationData: Bundle? = null
+    private var moduleReference: WeakReference<NotificationModule>? = null
 
     private val FCM_KEYS = setOf(
       "google.message_id", "google.sent_time", "google.ttl",
@@ -26,6 +30,11 @@ class NotificationModule(context: ReactApplicationContext) : ReactContextBaseJav
       "gcm.notification.click_action"
     )
 
+    internal fun shouldEmitNotificationOpened(extras: Bundle): Boolean =
+      extras.containsKey("google.message_id") ||
+        extras.containsKey("message_id") ||
+        extras.getBundle("notification")?.getBundle("data") != null
+
     fun saveNotificationIntent(intent: Intent?) {
       intent?.extras?.let { extras ->
         val hasFCMData = extras.keySet().any { key ->
@@ -37,9 +46,16 @@ class NotificationModule(context: ReactApplicationContext) : ReactContextBaseJav
 
         if (hasFCMData) {
           savedNotificationData = Bundle(extras)
+          if (shouldEmitNotificationOpened(extras)) {
+            moduleReference?.get()?.emitNotificationOpened(extras)
+          }
         }
       }
     }
+  }
+
+  init {
+    moduleReference = WeakReference(this)
   }
 
   override fun getName(): String = "NotificationModule"
@@ -58,10 +74,24 @@ class NotificationModule(context: ReactApplicationContext) : ReactContextBaseJav
     }
   }
 
+  private fun emitNotificationOpened(data: Bundle) {
+    if (reactApplicationContext.hasActiveReactInstance()) {
+      reactApplicationContext.emitDeviceEvent(
+        NOTIFICATION_OPENED_EVENT,
+        createRemoteMessageStructure(data),
+      )
+    }
+  }
+
   private fun createRemoteMessageStructure(data: Bundle): WritableNativeMap {
     val result = WritableNativeMap()
     val dataMap = WritableNativeMap()
     val notificationMap = WritableNativeMap()
+
+    data.getBundle("notification")?.getBundle("data")?.let {
+      result.putMap("data", Arguments.fromBundle(it))
+      return result
+    }
 
     data.keySet()
       .filterNot { it == "profile" || it.contains("UserHandle") }

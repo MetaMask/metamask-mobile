@@ -11,7 +11,7 @@ import { AvatarSize } from '../../../../../../../component-library/components/Av
 import Badge, {
   BadgeVariant,
 } from '../../../../../../../component-library/components/Badges/Badge';
-import Text from '../../../../../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';

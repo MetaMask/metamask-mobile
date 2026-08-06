@@ -39,10 +39,15 @@ export interface PerpsMarketIdentityProps {
   nameStyle?: StyleProp<TextStyle>;
   /**
    * When provided, the identity becomes a content-hugging pressable that opens
-   * the market list and shows a trailing caret.
+   * the market list and shows a trailing down chevron.
    */
   onPress?: () => void;
   testIDs?: PerpsMarketIdentityTestIDs;
+  /**
+   * When provided, replaces the default `[Ticker]-[collateral] perp`
+   * subtitle row entirely (e.g. Pro's scroll-linked live price crossfade).
+   */
+  subtitleContent?: React.ReactNode;
 }
 
 /**
@@ -60,6 +65,7 @@ const PerpsMarketIdentity = ({
   nameStyle,
   onPress,
   testIDs,
+  subtitleContent,
 }: PerpsMarketIdentityProps) => {
   const displaySymbol = getPerpsDisplaySymbol(symbol);
   const displayTitle = name || displaySymbol;
@@ -94,21 +100,23 @@ const PerpsMarketIdentity = ({
           {maxLeverage ? <PerpsLeverage maxLeverage={maxLeverage} /> : null}
           {onPress ? (
             <Icon
-              name={IconName.ArrowRight}
+              name={IconName.ArrowDown}
               size={IconSize.Xs}
               color={IconColor.IconAlternative}
             />
           ) : null}
         </Box>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          testID={testIDs?.subtitle}
-        >
-          {subtitle}
-        </Text>
+        {subtitleContent ?? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            testID={testIDs?.subtitle}
+          >
+            {subtitle}
+          </Text>
+        )}
       </Box>
     </Box>
   );
