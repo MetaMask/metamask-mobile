@@ -2,6 +2,7 @@ import { MoneyActionButtonRowTestIds } from '../../../app/components/UI/Money/co
 import { MoneyActivityListTestIds } from '../../../app/components/UI/Money/components/MoneyActivityList/MoneyActivityList.testIds';
 import { MoneyActivityLoadingTestIds } from '../../../app/components/UI/Money/components/MoneyActivityLoading/MoneyActivityLoading.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../../app/components/UI/Money/components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
+import { MoneyEarningsTestIds } from '../../../app/components/UI/Money/components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../../app/components/UI/Money/components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
 import { MoneyHomeViewTestIds } from '../../../app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView.testIds';
 import Assertions from '../../framework/Assertions';
@@ -66,8 +67,28 @@ class MoneyHomeView {
     return Matchers.getElementByID(MoneyActivityListTestIds.CONTAINER);
   }
 
-  get onboardingStepCta(): EncapsulatedElementType {
-    return Matchers.getElementByID(MoneyOnboardingCardTestIds.CTA_BUTTON);
+  get stepperCardTitle(): EncapsulatedElementType {
+    return Matchers.getElementByID(MoneyOnboardingCardTestIds.TITLE);
+  }
+
+  get earnings(): EncapsulatedElementType {
+    return Matchers.getElementByID(MoneyEarningsTestIds.CONTAINER);
+  }
+
+  get monthlyEarningsLabel(): EncapsulatedElementType {
+    return Matchers.getElementByID(MoneyEarningsTestIds.MONTHLY_LABEL);
+  }
+
+  get monthlyEarningsValue(): EncapsulatedElementType {
+    return Matchers.getElementByID(MoneyEarningsTestIds.LAST_30_DAYS_VALUE);
+  }
+
+  get lifetimeEarningsLabel(): EncapsulatedElementType {
+    return Matchers.getElementByID(MoneyEarningsTestIds.LIFETIME_LABEL);
+  }
+
+  get lifetimeEarningsValue(): EncapsulatedElementType {
+    return Matchers.getElementByID(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE);
   }
 
   get sendButton(): EncapsulatedElementType {
@@ -132,12 +153,55 @@ class MoneyHomeView {
     });
   }
 
-  async expectOnboardingCardStep1Cta(): Promise<void> {
+  async expectEarningsLoaded(
+    timeout = MONEY_HOME_LOAD_TIMEOUT_MS,
+  ): Promise<void> {
+    await Assertions.expectElementToExist(this.earnings, {
+      description: 'Money Home Earnings section should exist',
+      timeout,
+    });
+    await Assertions.expectElementToExist(this.monthlyEarningsLabel, {
+      description: 'Money Home Monthly earnings label should exist',
+      timeout,
+    });
+    await Assertions.expectElementToExist(this.monthlyEarningsValue, {
+      description: 'Money Home Monthly earnings value should be populated',
+      timeout,
+    });
+    await Assertions.expectElementToExist(this.lifetimeEarningsLabel, {
+      description: 'Money Home Lifetime earnings label should exist',
+      timeout,
+    });
+    await Assertions.expectElementToExist(this.lifetimeEarningsValue, {
+      description: 'Money Home Lifetime earnings value should be populated',
+      timeout,
+    });
+  }
+
+  async expectOnboardingCardStep1Title(): Promise<void> {
+    const apyText = await (await asPlaywrightElement(this.apy)).textContent();
+    const apyMatch = apyText.match(/([\d.]+)%\s*APY/u);
+    if (!apyMatch) {
+      throw new Error(`Unable to extract APY from "${apyText}".`);
+    }
+
     await Assertions.expectElementToHaveText(
-      this.onboardingStepCta,
-      'Add funds',
+      this.stepperCardTitle,
+      `Earn up to ${apyMatch[1]}% APY`,
       {
-        description: 'Money onboarding step 1 CTA should display Add funds',
+        description:
+          'Money onboarding stepper card title should display "Earn up to {{apy}}% APY"',
+      },
+    );
+  }
+
+  async expectOnboardingCardStep2Title(): Promise<void> {
+    await Assertions.expectElementToHaveText(
+      this.stepperCardTitle,
+      'Get your MetaMask Card',
+      {
+        description:
+          'Money onboarding stepper card title should display "Get your MetaMask Card"',
       },
     );
   }

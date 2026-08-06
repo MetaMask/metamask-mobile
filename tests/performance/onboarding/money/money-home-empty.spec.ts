@@ -56,7 +56,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
         await MoneyHomeView.expectApyVisible();
       });
       await ctaTimer.measure(async () => {
-        await MoneyHomeView.expectOnboardingCardStep1Cta();
+        await MoneyHomeView.expectOnboardingCardStep1Title();
       });
       await sendButtonTimer.measure(async () => {
         await MoneyHomeView.expectSendButtonDisabled();
