@@ -6,7 +6,6 @@ import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
 import type { PredictBuyPreviewProps } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { predictBuyAttemptRef } from './predictBuyAttemptRefs';
 
 const mockHandleConfirm = jest.fn();
 const mockPlaceOrder = jest.fn();
@@ -20,13 +19,21 @@ const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockHandleRetryWithBestPrice = jest.fn();
-const mockTrackPredictBuyTerminalEvent = jest.fn();
+const mockCancelRetryablePredictBuyAttempt = jest.fn();
+let mockRetryableAttempt:
+  | {
+      attemptId: string;
+      amountUsd: number;
+      paymentMethod: 'pay_with_any_token' | 'predict_balance';
+    }
+  | undefined;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      trackPredictBuyTerminalEvent: (...args: unknown[]) =>
-        mockTrackPredictBuyTerminalEvent(...args),
+      getRetryablePredictBuyAttempt: () => mockRetryableAttempt,
+      cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
+        mockCancelRetryablePredictBuyAttempt(...args),
     },
   },
 }));
@@ -122,13 +129,16 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   }),
 }));
 
+const mockUsePredictOrderRetry = jest.fn((..._args: unknown[]) => ({
+  retrySheetRef: { current: null },
+  retrySheetVariant: 'busy',
+  isRetrying: false,
+  handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
+}));
+
 jest.mock('../../hooks/usePredictOrderRetry', () => ({
-  usePredictOrderRetry: () => ({
-    retrySheetRef: { current: null },
-    retrySheetVariant: 'busy',
-    isRetrying: false,
-    handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
-  }),
+  usePredictOrderRetry: (...args: unknown[]) =>
+    mockUsePredictOrderRetry(...args),
 }));
 
 jest.mock('../../hooks/usePredictPlaceOrder', () => ({
@@ -465,7 +475,7 @@ describe('PredictBuyWithAnyToken', () => {
     mockHasBlockingPayAlerts = false;
     mockCurrentValue = 20;
     mockIsOrderNotFilled = false;
-    predictBuyAttemptRef.current = undefined;
+    mockRetryableAttempt = undefined;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -509,7 +519,7 @@ describe('PredictBuyWithAnyToken', () => {
 
   it('cancels a retryable attempt when the user changes the amount', () => {
     mockIsOrderNotFilled = true;
-    predictBuyAttemptRef.current = {
+    mockRetryableAttempt = {
       attemptId: 'attempt-1',
       amountUsd: 20,
       paymentMethod: 'pay_with_any_token',
@@ -519,13 +529,20 @@ describe('PredictBuyWithAnyToken', () => {
     mockCurrentValue = 21;
     rerender(<PredictBuyWithAnyToken />);
 
-    expect(mockTrackPredictBuyTerminalEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 'cancelled',
-        attemptId: 'attempt-1',
-        amountUsd: 20,
-        failureCategory: 'user_rejected',
-      }),
+    expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes the controller retryable attempt to the retry hook', () => {
+    mockRetryableAttempt = {
+      attemptId: 'attempt-1',
+      amountUsd: 20,
+      paymentMethod: 'pay_with_any_token',
+    };
+
+    renderWithProvider(<PredictBuyWithAnyToken />);
+
+    expect(mockUsePredictOrderRetry).toHaveBeenCalledWith(
+      expect.objectContaining({ attempt: mockRetryableAttempt }),
     );
   });
 

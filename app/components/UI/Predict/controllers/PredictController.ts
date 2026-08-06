@@ -1,8 +1,9 @@
 import { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
+import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import {
   BaseController,
   ControllerGetStateAction,
-  ControllerStateChangedEvent,
+  ControllerStateChangeEvent,
   StateMetadata,
 } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -95,6 +96,7 @@ import {
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
+  PredictBuyAttempt,
   PredictClaim,
   PredictClaimStatus,
   PredictFilterOption,
@@ -126,6 +128,7 @@ import {
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
+import { generateOrderId } from '../utils/orders';
 import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
@@ -317,7 +320,9 @@ export type PredictTransactionStatusChangedPayload =
   PredictControllerTransactionStatusChangedEvent['payload'][0];
 
 export type PredictControllerEvents =
-  | ControllerStateChangedEvent<'PredictController', PredictControllerState>
+  // EngineService still subscribes to the legacy `stateChange` event.
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  | ControllerStateChangeEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
 
 interface TransactionReceiptLog {
@@ -358,6 +363,9 @@ export type PredictControllerActions =
  * External actions the PredictController can call
  */
 type AllowedActions =
+  // Keep the legacy action in the messenger contract until its delegation is removed separately.
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  | AccountsControllerGetSelectedAccountAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | NetworkControllerGetStateAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
@@ -482,6 +490,32 @@ const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
  */
 export const OPTIMISTIC_BALANCE_MAX_AGE_MS = 30 * 1000;
 
+const MAX_TRACKED_PREDICT_BUY_TERMINALS = 500;
+
+type PredictBuyTerminalStatus =
+  | typeof PredictTradeStatus.SUCCEEDED
+  | typeof PredictTradeStatus.FAILED_SWAP
+  | typeof PredictTradeStatus.FAILED_ORDER
+  | typeof PredictTradeStatus.CANCELLED;
+
+interface PredictBuyAttemptContext {
+  attempt: PredictBuyAttempt;
+  address: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+}
+
+interface StartPredictBuyAttemptArgs {
+  amountUsd: number;
+  paymentMethod: PredictBuyAttempt['paymentMethod'];
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+}
+
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
@@ -531,6 +565,12 @@ export class PredictController extends BaseController<
   private flowTerminalMetricEmitted = new Set<string>();
 
   private predictBuyTerminalEmitted = new Set<string>();
+
+  private predictBuyTerminalEmissionOrder: string[] = [];
+
+  private predictBuyAttempts = new Map<string, PredictBuyAttemptContext>();
+
+  private retryablePredictBuyAttemptIdsByAddress = new Map<string, string>();
 
   private readonly traceable: TraceableController = {
     update: (updater) => this.update(updater),
@@ -1286,8 +1326,99 @@ export class PredictController extends BaseController<
     this.analytics.trackTradeConsidered();
   }
 
+  public startPredictBuyAttempt({
+    amountUsd,
+    paymentMethod,
+    analyticsProperties,
+    sharePrice,
+    orderType,
+    activeAbTests,
+  }: StartPredictBuyAttemptArgs): PredictBuyAttempt {
+    this.cancelRetryablePredictBuyAttempt(
+      'User started a new attempt after a retryable order failure',
+    );
+
+    const address = this.requireEvmAccountAddress().toLowerCase();
+    const attempt: PredictBuyAttempt = {
+      attemptId: generateOrderId(),
+      amountUsd,
+      paymentMethod,
+    };
+
+    this.predictBuyAttempts.set(attempt.attemptId, {
+      attempt,
+      address,
+      analyticsProperties,
+      sharePrice,
+      orderType,
+      activeAbTests,
+    });
+
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.ATTEMPT_STARTED,
+      amountUsd,
+      analyticsProperties,
+      sharePrice,
+      orderType,
+      attemptId: attempt.attemptId,
+      paymentMethod,
+      activeAbTests,
+    });
+
+    return attempt;
+  }
+
+  public getRetryablePredictBuyAttempt(): PredictBuyAttempt | undefined {
+    const address = this.getEvmAccountAddress()?.toLowerCase();
+    if (!address) {
+      return undefined;
+    }
+
+    const attemptId = this.retryablePredictBuyAttemptIdsByAddress.get(address);
+    return attemptId
+      ? this.predictBuyAttempts.get(attemptId)?.attempt
+      : undefined;
+  }
+
+  public cancelRetryablePredictBuyAttempt(
+    failureReason = 'User cancelled after a retryable order failure',
+  ): boolean {
+    const address = this.getEvmAccountAddress()?.toLowerCase();
+    if (!address) {
+      return false;
+    }
+
+    const attemptId = this.retryablePredictBuyAttemptIdsByAddress.get(address);
+    const context = attemptId
+      ? this.predictBuyAttempts.get(attemptId)
+      : undefined;
+    if (!context) {
+      return false;
+    }
+
+    this.trackPredictBuyTerminalEvent({
+      status: PredictTradeStatus.CANCELLED,
+      amountUsd: context.attempt.amountUsd,
+      analyticsProperties: context.analyticsProperties,
+      sharePrice: context.sharePrice,
+      orderType: context.orderType,
+      attemptId: context.attempt.attemptId,
+      paymentMethod: context.attempt.paymentMethod,
+      failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
+      failureCategory: PredictEventValues.FAILURE_CATEGORY.USER_REJECTED,
+      failureReason,
+      activeAbTests: context.activeAbTests,
+    });
+
+    return true;
+  }
+
   public trackPredictBuyTerminalEvent(
-    args: Parameters<PredictAnalytics['trackPredictOrderEvent']>[0] & {
+    args: Omit<
+      Parameters<PredictAnalytics['trackPredictOrderEvent']>[0],
+      'status'
+    > & {
+      status: PredictBuyTerminalStatus;
       attemptId: string;
     },
   ): void {
@@ -1296,7 +1427,42 @@ export class PredictController extends BaseController<
     }
 
     this.predictBuyTerminalEmitted.add(args.attemptId);
+    this.predictBuyTerminalEmissionOrder.push(args.attemptId);
+    if (
+      this.predictBuyTerminalEmissionOrder.length >
+      MAX_TRACKED_PREDICT_BUY_TERMINALS
+    ) {
+      const oldestAttemptId = this.predictBuyTerminalEmissionOrder.shift();
+      if (oldestAttemptId) {
+        this.predictBuyTerminalEmitted.delete(oldestAttemptId);
+      }
+    }
+
+    const context = this.predictBuyAttempts.get(args.attemptId);
+    if (
+      context &&
+      this.retryablePredictBuyAttemptIdsByAddress.get(context.address) ===
+        args.attemptId
+    ) {
+      this.retryablePredictBuyAttemptIdsByAddress.delete(context.address);
+    }
+    this.predictBuyAttempts.delete(args.attemptId);
+
     this.trackPredictOrderEvent(args);
+  }
+
+  private markPredictBuyAttemptRetryable(
+    attemptId: string,
+    address: string,
+  ): void {
+    if (!this.predictBuyAttempts.has(attemptId)) {
+      return;
+    }
+
+    this.retryablePredictBuyAttemptIdsByAddress.set(
+      address.toLowerCase(),
+      attemptId,
+    );
   }
 
   private trackPredictFlowMetric({
@@ -1944,6 +2110,7 @@ export class PredictController extends BaseController<
         orderType: preview.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
+        tradeCompletedAmountUsd: realAmountUsd,
         attemptId: params.attempt?.attemptId,
         paymentMethod: params.attempt?.paymentMethod,
         activeAbTests: params.activeAbTests,
@@ -1972,14 +2139,7 @@ export class PredictController extends BaseController<
           error,
           PredictEventValues.FAILURE_STAGE.ORDER,
         );
-        let status: PredictTradeStatusValue = PredictTradeStatus.FAILED_ORDER;
-        if (failure.isUserRejected) {
-          status = PredictTradeStatus.CANCELLED;
-        } else if (failure.isRetryable) {
-          status = PredictTradeStatus.ORDER_FAILED;
-        }
         const failureEvent = {
-          status,
           amountUsd: params.attempt.amountUsd,
           analyticsProperties,
           sharePrice,
@@ -1996,9 +2156,21 @@ export class PredictController extends BaseController<
         };
 
         if (failure.isRetryable) {
-          this.trackPredictOrderEvent(failureEvent);
+          this.markPredictBuyAttemptRetryable(
+            params.attempt.attemptId,
+            activeOrderAddress,
+          );
+          this.trackPredictOrderEvent({
+            ...failureEvent,
+            status: PredictTradeStatus.ORDER_FAILED,
+          });
         } else {
-          this.trackPredictBuyTerminalEvent(failureEvent);
+          this.trackPredictBuyTerminalEvent({
+            ...failureEvent,
+            status: failure.isUserRejected
+              ? PredictTradeStatus.CANCELLED
+              : PredictTradeStatus.FAILED_ORDER,
+          });
         }
       } else {
         this.trackPredictOrderEvent({
@@ -2783,6 +2955,10 @@ export class PredictController extends BaseController<
   public selectPaymentToken(token: AssetType | null): void {
     const isBalanceToken =
       !token || token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
+
+    this.cancelRetryablePredictBuyAttempt(
+      'User changed payment method after a retryable order failure',
+    );
 
     this.setSelectedPaymentToken(
       isBalanceToken
@@ -4250,6 +4426,9 @@ export class PredictController extends BaseController<
         // Only update gas if estimation succeeded
         if (updatedGas) {
           transaction.txParams.gas = updatedGas;
+          // Keep the legacy field synchronized for existing transaction consumers.
+          // eslint-disable-next-line @typescript-eslint/no-deprecated
+          transaction.txParams.gasLimit = updatedGas;
         }
       },
     };

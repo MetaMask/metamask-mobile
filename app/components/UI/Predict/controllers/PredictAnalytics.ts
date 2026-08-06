@@ -28,6 +28,7 @@ export interface PredictAnalyticsContext {
 export interface TrackPredictOrderEventArgs {
   status: PredictTradeStatusValue;
   amountUsd?: number;
+  tradeCompletedAmountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   completionDuration?: number;
   failureReason?: string;
@@ -220,6 +221,7 @@ export class PredictAnalytics {
   public async trackPredictOrderEvent({
     status,
     amountUsd,
+    tradeCompletedAmountUsd,
     analyticsProperties,
     completionDuration,
     failureReason,
@@ -375,9 +377,10 @@ export class PredictAnalytics {
       this.trackTradeConsidered();
     }
 
+    const completedAmountUsd = tradeCompletedAmountUsd ?? amountUsd;
     if (
       status === PredictTradeStatus.SUCCEEDED &&
-      amountUsd !== undefined &&
+      completedAmountUsd !== undefined &&
       (analyticsProperties.transactionType ===
         PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY ||
         analyticsProperties.transactionType ===
@@ -396,7 +399,7 @@ export class PredictAnalytics {
           })
           .addSensitiveProperties({
             ...sensitiveProperties,
-            [PredictEventProperties.USD_TRADE_VALUE]: amountUsd,
+            [PredictEventProperties.USD_TRADE_VALUE]: completedAmountUsd,
           })
           .build(),
       );

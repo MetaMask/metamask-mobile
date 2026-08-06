@@ -16,15 +16,15 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockTrackBetslipDismissed = jest.fn();
-const mockTrackPredictBuyTerminalEvent = jest.fn();
+const mockCancelRetryablePredictBuyAttempt = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackBetslipDismissed: (...args: unknown[]) =>
         mockTrackBetslipDismissed(...args),
-      trackPredictBuyTerminalEvent: (...args: unknown[]) =>
-        mockTrackPredictBuyTerminalEvent(...args),
+      cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
+        mockCancelRetryablePredictBuyAttempt(...args),
     },
   },
 }));
@@ -289,6 +289,7 @@ describe('PredictPreviewSheetContext', () => {
     mockToastCloseToast.mockReset();
     mockClearOrderError.mockReset();
     mockTrackBetslipDismissed.mockReset();
+    mockCancelRetryablePredictBuyAttempt.mockReset();
   });
 
   it('provides openBuySheet and openSellSheet to consumers', () => {
@@ -516,6 +517,8 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+    expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByTestId('predict-buy-preview-sheet'),
     ).not.toBeOnTheScreen();

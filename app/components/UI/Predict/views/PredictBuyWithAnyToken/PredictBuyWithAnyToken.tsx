@@ -62,17 +62,9 @@ import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import {
-  PredictEventValues,
-  PredictTradeStatus,
-} from '../../constants/eventNames';
-import {
   predictBuyPreviewDismissedViaBackRef,
   predictBuyPreviewSessionRef,
 } from '../PredictBuyPreview/PredictBuyPreview';
-import {
-  predictBuyAttemptRef,
-  predictBuyHasRetryableFailureRef,
-} from './predictBuyAttemptRefs';
 
 interface BuyActionButtonStateParams {
   isPaymentSelectorNavigationLocked: boolean;
@@ -326,10 +318,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
   }, [currentValue]);
 
-  useEffect(() => {
-    predictBuyHasRetryableFailureRef.current = isOrderNotFilled;
-  }, [isOrderNotFilled]);
-
   const {
     retrySheetRef,
     retrySheetVariant,
@@ -342,30 +330,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isOrderNotFilled,
     resetOrderNotFilled,
     isSheetMode,
+    attempt: Engine.context.PredictController.getRetryablePredictBuyAttempt(),
   });
 
   const handleRetryDismiss = useCallback(() => {
-    const attempt = predictBuyAttemptRef.current;
-    if (isOrderNotFilled && attempt) {
-      Engine.context.PredictController.trackPredictBuyTerminalEvent({
-        status: PredictTradeStatus.CANCELLED,
-        amountUsd: attempt.amountUsd,
-        analyticsProperties,
-        attemptId: attempt.attemptId,
-        paymentMethod: attempt.paymentMethod,
-        failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
-        failureCategory: PredictEventValues.FAILURE_CATEGORY.USER_REJECTED,
-        failureReason: 'User cancelled after a retryable order failure',
-        activeAbTests: transactionActiveAbTests,
-      });
+    if (isOrderNotFilled) {
+      Engine.context.PredictController.cancelRetryablePredictBuyAttempt();
     }
     resetOrderNotFilled();
-  }, [
-    analyticsProperties,
-    isOrderNotFilled,
-    resetOrderNotFilled,
-    transactionActiveAbTests,
-  ]);
+  }, [isOrderNotFilled, resetOrderNotFilled]);
 
   const isBannerActive = !!buyErrorBanner;
   const previousValueRef = useRef(currentValue);
