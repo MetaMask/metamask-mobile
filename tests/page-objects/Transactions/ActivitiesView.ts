@@ -294,14 +294,20 @@ class ActivitiesView {
         );
       },
       appium: async () => {
+        let pollCount = 0;
         await PlaywrightAssertions.expectConditionWithRetry(
           async () => {
+            pollCount += 1;
             const statusEl = await PlaywrightMatchers.getElementById(
               `transaction-status-${rowIndex}`,
               { exact: true },
             );
             const label = await statusEl.textContent();
             if (label !== ActivitiesViewSelectorsText.CONFIRM_TEXT) {
+              // Forked mainnet txs can sit at Submitted until Activity refreshes.
+              if (pollCount % 3 === 0) {
+                await this.swipeDown();
+              }
               throw new Error(
                 `Row ${rowIndex} status: "${label}" (waiting for "${ActivitiesViewSelectorsText.CONFIRM_TEXT}")`,
               );

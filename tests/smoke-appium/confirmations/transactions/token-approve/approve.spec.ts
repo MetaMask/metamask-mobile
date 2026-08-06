@@ -195,6 +195,17 @@ appiumTest.describe.skip(
               'Approve ERC-721 button',
             );
 
+            // Existence: BottomSheet children report isDisplayed=false on iOS.
+            await Assertions.expectElementToExist(
+              RowComponents.AccountNetwork,
+              {
+                description: 'Account Network',
+              },
+            );
+            await Assertions.expectElementToExist(RowComponents.ApproveRow, {
+              description: 'Approve Row',
+            });
+
             // #1 means the token id for ERC 721
             await Assertions.expectElementToHaveText(
               TokenApproveConfirmation.SpendingCapValue,
