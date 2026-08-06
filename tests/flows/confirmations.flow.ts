@@ -38,6 +38,9 @@ export {
 
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
+ *
+ * Android: CDP can report a successful DOM click without MetaMask opening
+ * the confirmation sheet. Retry the click when confirm-button never appears.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -49,6 +52,8 @@ const tapTestDappButtonAndWaitForConfirm = async (
   if (PlatformDetector.isAndroidAppium()) {
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
     const maxAttempts = 3;
+    // Short per-attempt wait so we can re-click within a reasonable budget.
+    const perAttemptConfirmTimeoutMs = 12_000;
     let lastError: unknown;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       if (attempt > 1) {
@@ -64,15 +69,17 @@ const tapTestDappButtonAndWaitForConfirm = async (
         );
         continue;
       }
-      // DOM click landed — wait the full confirm timeout (do not re-tap while
-      // the sheet may still be opening).
-      await FooterActions.waitForConfirmButton(confirmTimeoutMs);
-      return;
+      try {
+        await FooterActions.waitForConfirmButton(perAttemptConfirmTimeoutMs);
+        return;
+      } catch (error) {
+        lastError = error;
+      }
     }
     throw lastError instanceof Error
       ? lastError
       : new Error(
-          `CDP could not click #${buttonId} (${description}) after ${maxAttempts} attempts`,
+          `Confirmation sheet did not open after clicking #${buttonId} (${description}) in ${maxAttempts} attempts`,
         );
   }
 
