@@ -2,6 +2,7 @@ import Assertions from '../framework/Assertions';
 import ChromeCdpHelpers from '../framework/ChromeCdpHelpers';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
+import Utilities from '../framework/Utilities';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
 import FooterActions from '../page-objects/Browser/Confirmations/FooterActions';
@@ -10,6 +11,7 @@ import TestDApp from '../page-objects/Browser/TestDApp';
 import NetworkListModal from '../page-objects/Network/NetworkListModal';
 import AccountDetails from '../page-objects/MultichainAccounts/AccountDetails';
 import SmartAccount from '../page-objects/MultichainAccounts/SmartAccount';
+import SendView from '../page-objects/Send/RedesignedSendView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import NetworkManager from '../page-objects/wallet/NetworkManager';
 import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
@@ -141,6 +143,75 @@ export const switchToLocalNetworkFromNetworkManager =
     await NetworkListModal.tapOnCustomTab();
     await NetworkListModal.changeNetworkTo(LOCAL_CHAIN_NAME);
     await NetworkManager.navigateBackFromTokensFullView();
+  };
+
+/**
+ * Wallet → Network Manager → select a popular/default network by name.
+ */
+export const changeNetworkFromNetworkManager = async (
+  networkName: string,
+): Promise<void> => {
+  await TabBarComponent.tapWallet();
+  await NetworkManager.navigateToTokensFullView();
+  await NetworkManager.openNetworkManager();
+  await NetworkListModal.changeNetworkTo(networkName);
+  await NetworkManager.navigateBackFromTokensFullView();
+};
+
+/**
+ * Wallet → Network Manager → Custom tab → select network by name.
+ */
+export const selectCustomNetworkFromNetworkManager = async (
+  networkName: string,
+): Promise<void> => {
+  await TabBarComponent.tapWallet();
+  await NetworkManager.navigateToTokensFullView();
+  await NetworkManager.openNetworkManager();
+  await NetworkListModal.tapOnCustomTab();
+  await NetworkListModal.selectNetworkInCustomTab(networkName);
+  await NetworkManager.navigateBackFromTokensFullView();
+};
+
+/**
+ * Starts a redesigned Send of native ETH amount "5" through the review screen.
+ */
+export const startRedesignedNativeSendFiveEthToReview = async (
+  recipientAddress: string,
+): Promise<void> => {
+  await WalletView.tapWalletSendButton();
+  await SendView.selectEthereumToken();
+  await SendView.pressAmountFiveButton();
+  await SendView.pressContinueButton();
+  await SendView.inputRecipientAddress(recipientAddress);
+  await SendView.pressReviewButton();
+};
+
+/**
+ * Sponsored EIP-7702 native send: review → MetaMask-paid gas → confirm → Activity.
+ * Caller must already be logged in.
+ */
+export const confirmSponsoredNativeSendAndOpenActivity =
+  async (): Promise<void> => {
+    await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails, {
+      description: 'gas fees row is present on review screen',
+      timeout: 30000,
+    });
+    await Assertions.expectElementToBeVisible(
+      RowComponents.NetworkFeePaidByMetaMask,
+      {
+        description:
+          'network fee shows MetaMask-sponsored gas after relay + simulation settle',
+        timeout: 60000,
+      },
+    );
+    await Utilities.waitForElementToBeVisible(FooterActions.confirmButton);
+    await Utilities.waitForElementToStopMoving(FooterActions.confirmButton, {
+      timeout: 5000,
+      interval: 500,
+      stableCount: 6,
+    });
+    await FooterActions.tapConfirmButton();
+    await TabBarComponent.tapActivity();
   };
 
 /**
