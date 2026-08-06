@@ -57,17 +57,24 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../components/Onboarding/OnboardingStep', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
   return ({
     title,
     formFields,
     actions,
+    onBackPress,
   }: {
     title: string;
     formFields: React.ReactNode;
     actions: React.ReactNode;
+    onBackPress?: () => void;
   }) => (
     <View>
+      {onBackPress ? (
+        <Pressable testID="onboarding-step-back" onPress={onBackPress}>
+          <Text>Back</Text>
+        </Pressable>
+      ) : null}
       <Text>{title}</Text>
       {formFields}
       {actions}
@@ -169,13 +176,15 @@ describe('SetCardPin', () => {
   });
 
   it('returns to set step with cleared fields on PIN mismatch', async () => {
-    const { getByTestId, getByText } = renderWithProvider(<SetCardPin />);
+    const { getByTestId } = renderWithProvider(<SetCardPin />);
 
     fireEvent.changeText(getByTestId(SetCardPinSelectors.PIN_FIELD), '1337');
     fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
 
     await waitFor(() => {
-      expect(getByText('Confirm your card PIN')).toBeOnTheScreen();
+      expect(
+        getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      ).toBeOnTheScreen();
     });
 
     fireEvent.changeText(
@@ -185,14 +194,36 @@ describe('SetCardPin', () => {
     fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
 
     await waitFor(() => {
-      expect(getByText('Set your card PIN')).toBeOnTheScreen();
+      expect(getByTestId(SetCardPinSelectors.PIN_FIELD)).toBeOnTheScreen();
       expect(getByTestId(SetCardPinSelectors.INLINE_ERROR)).toBeOnTheScreen();
     });
     expect(mockSetCardPin).not.toHaveBeenCalled();
   });
 
+  it('returns to set step when confirm header back is pressed', async () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(<SetCardPin />);
+
+    fireEvent.changeText(getByTestId(SetCardPinSelectors.PIN_FIELD), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
+
+    await waitFor(() => {
+      expect(
+        getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      ).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('onboarding-step-back'));
+
+    await waitFor(() => {
+      expect(getByTestId(SetCardPinSelectors.PIN_FIELD)).toBeOnTheScreen();
+      expect(
+        queryByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   it('submits matching PINs and shows success', async () => {
-    const { getByTestId, getByText } = renderWithProvider(<SetCardPin />);
+    const { getByTestId } = renderWithProvider(<SetCardPin />);
 
     fireEvent.changeText(getByTestId(SetCardPinSelectors.PIN_FIELD), '1337');
     fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
@@ -211,7 +242,7 @@ describe('SetCardPin', () => {
 
     await waitFor(() => {
       expect(mockSetCardPin).toHaveBeenCalledWith('card-1', '1337');
-      expect(getByText('PIN set')).toBeOnTheScreen();
+      expect(getByTestId(SetCardPinSelectors.SUCCESS_TITLE)).toBeOnTheScreen();
     });
 
     fireEvent.press(getByTestId(SetCardPinSelectors.DONE_BUTTON));

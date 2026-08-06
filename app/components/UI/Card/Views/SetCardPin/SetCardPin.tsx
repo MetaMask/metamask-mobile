@@ -128,6 +128,12 @@ const SetCardPin: React.FC = () => {
     setStep('confirm');
   }, [pin, trackEvent, createEventBuilder]);
 
+  const handleBackFromConfirm = useCallback(() => {
+    setConfirmPin('');
+    setInlineError(null);
+    setStep('set');
+  }, []);
+
   const handleAuthFailure = useCallback(async () => {
     clearPins();
     try {
@@ -177,7 +183,7 @@ const SetCardPin: React.FC = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties({
-            action: CardActions.SET_PIN_SUCCESS_DONE,
+            action: CardActions.CONFIRM_PIN_SUBMIT,
             provider: PROVIDER,
             status: 'succeeded',
           })
@@ -300,6 +306,7 @@ const SetCardPin: React.FC = () => {
           title={strings('card.set_pin.confirm_title')}
           description={strings('card.set_pin.confirm_description')}
           headerMode="back"
+          onBackPress={handleBackFromConfirm}
           stickyActions
           formFields={
             <Box>
