@@ -18,15 +18,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../utils/quickBuyQuickAmounts', () => {
-  const actual = jest.requireActual('../utils/quickBuyQuickAmounts');
-  return {
-    ...actual,
-    formatQuickBuyPillLabel: (value: number, currency: string) =>
-      `${currency}:${value}`,
-  };
-});
-
 const mockPlayImpact = jest.fn();
 
 jest.mock('../../../../../../../util/haptics', () => ({
@@ -47,7 +38,6 @@ const baseContext = {
   handleQuickAmountPress: jest.fn(),
   handleSliderChange: jest.fn(),
   handleSliderDragEnd: jest.fn(),
-  useKeyboard: false,
   setIsKeypadOpen: jest.fn(),
 };
 
@@ -129,11 +119,10 @@ describe('QuickBuyQuickAmounts', () => {
     });
   });
 
-  it('dismisses the keypad when a buy pill is tapped on the keyboard treatment', async () => {
+  it('dismisses the keypad when a buy pill is tapped', async () => {
     const setIsKeypadOpen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
-      useKeyboard: true,
       setIsKeypadOpen,
     });
 
@@ -147,12 +136,11 @@ describe('QuickBuyQuickAmounts', () => {
     expect(setIsKeypadOpen).toHaveBeenCalledWith(false);
   });
 
-  it('dismisses the keypad when a sell pill is tapped on the keyboard treatment', async () => {
+  it('dismisses the keypad when a sell pill is tapped', async () => {
     const setIsKeypadOpen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       tradeMode: 'sell',
-      useKeyboard: true,
       setIsKeypadOpen,
     });
 
@@ -178,14 +166,54 @@ describe('QuickBuyQuickAmounts', () => {
     expect(onDonePress).toHaveBeenCalledTimes(1);
   });
 
-  it('does not toggle the keypad on the slider control variant', async () => {
+  it('keeps the compact suffix of a custom buy amount readable at large OS font sizes', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      buyQuickAmounts: [10, 50, 100, 25000] as [number, number, number, number],
+    });
+
     renderWithProvider(<QuickBuyQuickAmounts />);
 
-    fireEvent.press(screen.getByTestId('quick-buy-buy-pill-50'));
+    // Without the cap ButtonBase clips the label (numberOfLines: 1 +
+    // ellipsizeMode: 'clip'), turning "$25K" into "$25".
+    const label = screen.getByText('$25K');
+    expect(label.props.maxFontSizeMultiplier).toBe(1);
+    expect(label.props.numberOfLines).toBe(1);
+    expect(label.props.ellipsizeMode).toBe('tail');
+  });
 
-    await waitFor(() => {
-      expect(baseContext.handleQuickAmountPress).toHaveBeenCalledWith(50, 50);
+  it('sizes every pill in the row identically regardless of label length', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      buyQuickAmounts: [10, 50, 100, 25000] as [number, number, number, number],
     });
-    expect(baseContext.setIsKeypadOpen).not.toHaveBeenCalled();
+
+    renderWithProvider(
+      <QuickBuyQuickAmounts showDone onDonePress={jest.fn()} />,
+    );
+
+    // Per-label auto-shrink would size "$25K" down while "$10" stays put,
+    // leaving a ragged row.
+    for (const text of ['$10', '$50', '$100', '$25K', 'Done']) {
+      const label = screen.getByText(text);
+      expect(label.props.adjustsFontSizeToFit).toBeUndefined();
+      expect(label.props.maxFontSizeMultiplier).toBe(1);
+    }
+  });
+
+  it('applies the same font-scaling guards to sell pills and the Done button', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      tradeMode: 'sell',
+    });
+
+    renderWithProvider(
+      <QuickBuyQuickAmounts showDone onDonePress={jest.fn()} />,
+    );
+
+    for (const label of [screen.getByText('75%'), screen.getByText('Done')]) {
+      expect(label.props.maxFontSizeMultiplier).toBe(1);
+      expect(label.props.ellipsizeMode).toBe('tail');
+    }
   });
 });

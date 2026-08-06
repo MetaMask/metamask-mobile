@@ -70,6 +70,7 @@ import {
   type DelegationChallengeResponse,
   emptyCardHomeData,
   isCardAuthTokenError,
+  CardProviderIds,
 } from '../provider-types';
 import AppConstants from '../../../../AppConstants';
 
@@ -204,6 +205,13 @@ function mapApiError(error: unknown, operation: string): CardProviderError {
         408,
       );
     }
+    if (error.statusCode === 429) {
+      return new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Rate limited on ${operation}`,
+        429,
+      );
+    }
     if (error.statusCode === 0) {
       return new CardProviderError(
         CardProviderErrorCode.Network,
@@ -227,7 +235,7 @@ function mapAllowanceToFundingStatus(
 }
 
 export class BaanxProvider implements ICardProvider {
-  readonly id = 'baanx' as const;
+  readonly id = CardProviderIds.Baanx;
 
   readonly capabilities: CardProviderCapabilities = {
     authMethod: 'email_password',
@@ -415,6 +423,9 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
+        if (err instanceof CardApiError && err.statusCode === 429) {
+          throw mapApiError(err, logContext);
+        }
         Logger.error(err as Error, getErrorContext(logContext));
         return null;
       };
@@ -510,6 +521,14 @@ export class BaanxProvider implements ICardProvider {
     } catch (error) {
       if (isCardAuthTokenError(error)) {
         throw error;
+      }
+      if (
+        (error instanceof CardApiError || error instanceof CardProviderError) &&
+        error.statusCode === 429
+      ) {
+        throw error instanceof CardApiError
+          ? mapApiError(error, 'getCardHomeData')
+          : error;
       }
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();

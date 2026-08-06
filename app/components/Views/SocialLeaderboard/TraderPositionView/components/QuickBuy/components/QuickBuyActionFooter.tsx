@@ -18,17 +18,12 @@ import { strings } from '../../../../../../../../locales/i18n';
 import QuickBuyBanners from '../QuickBuyBanners';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
-import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
-    sliderPercent,
-    isSliderDisabled,
-    handleSliderChange,
-    handleSliderDragEnd,
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
@@ -45,7 +40,6 @@ const QuickBuyActionFooter: React.FC = () => {
     totalAmountFiat,
     isPriceImpactError,
     setActiveScreen,
-    useKeyboard,
   } = useQuickBuyContext();
 
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
@@ -54,19 +48,6 @@ const QuickBuyActionFooter: React.FC = () => {
 
   return (
     <Box twClassName="px-4">
-      {/* Slider — control variant only. The keyboard treatment replaces it with
-          the numeric keypad rendered below the CTA. */}
-      {useKeyboard ? null : (
-        <Box twClassName="pt-2 pb-3">
-          <QuickBuyPercentageSlider
-            value={sliderPercent}
-            onValueChange={handleSliderChange}
-            disabled={isSliderDisabled}
-            onDragEnd={handleSliderDragEnd}
-          />
-        </Box>
-      )}
-
       <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 
       {features.quickAmountPills ? (

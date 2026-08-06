@@ -2,7 +2,7 @@ import { cloneDeep, merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
-import { Severity } from '../../types/alerts';
+import { Alert, Severity } from '../../types/alerts';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
@@ -15,6 +15,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayQuoteError,
   useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
 } from '../pay/useTransactionPayData';
@@ -77,13 +78,21 @@ describe('useNoPayTokenQuotesAlert', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayQuotesRawMock.mockReturnValue(undefined);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
-    useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        amountRaw: '10000',
+        skipIfBalance: false,
+      } as TransactionPayRequiredToken,
+    ]);
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
       canSelectWithdrawToken: false,
     });
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
+    jest.mocked(useTransactionPayQuoteError).mockReturnValue(undefined);
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -99,6 +108,29 @@ describe('useNoPayTokenQuotesAlert', () => {
         isBlocking: true,
       },
     ]);
+  });
+
+  it('uses quoteError message and detail when present', () => {
+    const quoteError = {
+      message: 'Insufficient balance',
+      reason: 'insufficient-source-balance' as const,
+      detail: ['Required: 1.5 USDC', 'Current: 1 USDC', 'Missing: 0.5 USDC'],
+    };
+    jest.mocked(useTransactionPayQuoteError).mockReturnValue(quoteError);
+
+    const { result } = runHook();
+
+    expect(result.current).toHaveLength(1);
+    const resultAlert = result.current[0] as Alert;
+    expect(resultAlert.key).toBe(AlertKeys.NoPayTokenQuotes);
+    expect(resultAlert.field).toBe(RowAlertKey.PayWith);
+    expect(resultAlert.content).toBeDefined();
+    expect(resultAlert.message).toBe('Insufficient balance');
+    expect(resultAlert.title).toBe(
+      strings('alert_system.no_pay_token_quotes.title'),
+    );
+    expect(resultAlert.severity).toBe(Severity.Danger);
+    expect(resultAlert.isBlocking).toBe(true);
   });
 
   it('returns no alerts if quotes available', () => {
@@ -173,6 +205,105 @@ describe('useNoPayTokenQuotesAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  describe('non-fiat input gating', () => {
+    it('returns no alert when no required token amount has reached the controller', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when the required token amount is zero', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when the only required token is skipped by balance', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: true,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert once a positive required token amount has reached the controller', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('returns no alert when isMaxAmount is set but the amount has not yet reached the controller', () => {
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert when isMaxAmount is set and a positive amount has reached the controller', () => {
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
   });
 
   it('returns alert for post-quote when a required token has a positive amount and no quotes', () => {

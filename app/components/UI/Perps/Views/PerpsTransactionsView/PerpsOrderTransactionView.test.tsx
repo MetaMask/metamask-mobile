@@ -52,11 +52,6 @@ jest.mock('../../hooks', () => ({
   usePerpsBlockExplorerUrl: jest.fn(),
 }));
 
-// Add the missing navbar mock
-jest.mock('../../../Navbar', () => ({
-  getPerpsTransactionsDetailsNavbar: jest.fn().mockReturnValue({}),
-}));
-
 describe('PerpsOrderTransactionView', () => {
   const mockUsePerpsNetwork = usePerpsNetwork as jest.MockedFunction<
     typeof usePerpsNetwork
