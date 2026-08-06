@@ -129,10 +129,14 @@ const SetCardPin: React.FC = () => {
   }, [pin, trackEvent, createEventBuilder]);
 
   const handleBackFromConfirm = useCallback(() => {
+    if (submittingRef.current || isPending) {
+      return;
+    }
     setConfirmPin('');
     setInlineError(null);
+    setIsTerminalForbidden(false);
     setStep('set');
-  }, []);
+  }, [isPending]);
 
   const handleAuthFailure = useCallback(async () => {
     clearPins();

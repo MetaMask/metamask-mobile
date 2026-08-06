@@ -222,6 +222,100 @@ describe('SetCardPin', () => {
     });
   });
 
+  it('clears terminal forbidden state when confirm header back is pressed', async () => {
+    mockSetCardPin.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        'Forbidden',
+        403,
+        'CARD_SET_PIN_FORBIDDEN',
+      ),
+    );
+    const { getByTestId } = renderWithProvider(<SetCardPin />);
+
+    fireEvent.changeText(getByTestId(SetCardPinSelectors.PIN_FIELD), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
+    await waitFor(() =>
+      expect(
+        getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      ).toBeOnTheScreen(),
+    );
+    fireEvent.changeText(
+      getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      '1337',
+    );
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
+
+    await waitFor(() => {
+      expect(getByTestId(SetCardPinSelectors.INLINE_ERROR)).toBeOnTheScreen();
+      expect(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON)).toBeDisabled();
+    });
+
+    fireEvent.press(getByTestId('onboarding-step-back'));
+
+    await waitFor(() => {
+      expect(getByTestId(SetCardPinSelectors.PIN_FIELD)).toBeOnTheScreen();
+    });
+
+    mockSetCardPin.mockResolvedValue(undefined);
+    fireEvent.changeText(getByTestId(SetCardPinSelectors.PIN_FIELD), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
+    await waitFor(() =>
+      expect(
+        getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      ).toBeOnTheScreen(),
+    );
+    fireEvent.changeText(
+      getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      '1337',
+    );
+
+    expect(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON)).toBeEnabled();
+  });
+
+  it('ignores confirm header back while set-PIN request is pending', async () => {
+    let resolveSetCardPin: (() => void) | undefined;
+    mockSetCardPin.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSetCardPin = resolve;
+        }),
+    );
+    const { getByTestId, queryByTestId } = renderWithProvider(<SetCardPin />);
+
+    fireEvent.changeText(getByTestId(SetCardPinSelectors.PIN_FIELD), '1337');
+    fireEvent.press(getByTestId(SetCardPinSelectors.CONTINUE_BUTTON));
+    await waitFor(() =>
+      expect(
+        getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      ).toBeOnTheScreen(),
+    );
+    fireEvent.changeText(
+      getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+      '1337',
+    );
+    fireEvent.press(getByTestId(SetCardPinSelectors.SUBMIT_BUTTON));
+
+    await waitFor(() => {
+      expect(mockSetCardPin).toHaveBeenCalled();
+    });
+
+    fireEvent.press(getByTestId('onboarding-step-back'));
+
+    expect(
+      getByTestId(SetCardPinSelectors.CONFIRM_PIN_FIELD),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(SetCardPinSelectors.PIN_FIELD)).not.toBeOnTheScreen();
+
+    await act(async () => {
+      resolveSetCardPin?.();
+    });
+
+    await waitFor(() => {
+      expect(getByTestId(SetCardPinSelectors.SUCCESS_TITLE)).toBeOnTheScreen();
+    });
+  });
+
   it('submits matching PINs and shows success', async () => {
     const { getByTestId } = renderWithProvider(<SetCardPin />);
 
