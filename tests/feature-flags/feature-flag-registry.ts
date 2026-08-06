@@ -5160,7 +5160,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-swapsSWAPS4784AbtestCTAButtonColor: {
+  swapsSWAPS4784AbtestCTAButtonColor: {
     name: 'swapsSWAPS4784AbtestCTAButtonColor',
     type: FeatureFlagType.Remote,
     inProd: true,
@@ -5203,6 +5203,16 @@ swapsSWAPS4784AbtestCTAButtonColor: {
         },
       },
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsChainValueOrderOverride: {
+    name: 'swapsChainValueOrderOverride',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      positionOverrides: [],
+    },
     status: FeatureFlagStatus.Active,
   },
 
