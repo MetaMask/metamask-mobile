@@ -41,30 +41,44 @@ const tapTestDappButtonAndWaitForConfirm = async (
   description: string,
 ): Promise<void> => {
   const pageUrl = getDappUrl(0);
+  const confirmTimeoutMs = 30_000;
 
   if (PlatformDetector.isAndroidAppium()) {
-    const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-      pageUrl,
-      buttonId,
-    );
-    if (!clicked) {
-      await WebView.tapById(buttonId, {
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    const maxAttempts = 3;
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        ChromeCdpHelpers.resetMetaMaskWebViewCache();
+      }
+      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
         pageUrl,
-        description: `${description} (native fallback after CDP miss)`,
-      });
+        buttonId,
+      );
+      if (!clicked) {
+        lastError = new Error(
+          `CDP could not click #${buttonId} (${description}) on attempt ${attempt}/${maxAttempts}`,
+        );
+        continue;
+      }
+      // DOM click landed — wait the full confirm timeout (do not re-tap while
+      // the sheet may still be opening).
+      await FooterActions.waitForConfirmButton(confirmTimeoutMs);
+      return;
     }
-  } else {
-    await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
-      pageUrl,
-      buttonId,
-    );
-    await WebView.tapById(buttonId, {
-      pageUrl,
-      description,
-    });
+    throw lastError instanceof Error
+      ? lastError
+      : new Error(
+          `CDP could not click #${buttonId} (${description}) after ${maxAttempts} attempts`,
+        );
   }
 
-  await FooterActions.waitForConfirmButton();
+  await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(pageUrl, buttonId);
+  await WebView.tapById(buttonId, {
+    pageUrl,
+    description,
+  });
+  await FooterActions.waitForConfirmButton(confirmTimeoutMs);
 };
 
 export const navigateToContractAndTap = async (
@@ -75,6 +89,7 @@ export const navigateToContractAndTap = async (
   await navigateToBrowserView();
   await TestDApp.navigateToTestDappWithContract({
     contractAddress,
+    scrollTo: buttonId,
   });
   await waitForTestDappToLoad();
   await tapTestDappButtonAndWaitForConfirm(buttonId, description);

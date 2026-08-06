@@ -820,7 +820,13 @@ export default class ChromeCdpHelpers {
           ],
           { stdio: 'pipe' },
         );
-        return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+        const endpoint = `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+        // adb forward succeeds even when the abstract socket is gone — probe CDP.
+        const response = await fetch(`${endpoint}/json/version`);
+        if (response.ok) {
+          return endpoint;
+        }
+        this.cachedMmWebViewSocket = null;
       } catch {
         this.cachedMmWebViewSocket = null;
       }
@@ -859,18 +865,25 @@ export default class ChromeCdpHelpers {
     dappUrl: string,
     fn: (session: CdpSession) => Promise<T>,
   ): Promise<T> {
-    const endpoint = await this.resolveMetaMaskWebViewEndpoint();
-    const target = await this.waitForCdpTarget(endpoint, dappUrl);
-    if (!target.webSocketDebuggerUrl) {
-      throw new Error(
-        `MetaMask WebView CDP target for ${dappUrl} has no webSocketDebuggerUrl`,
-      );
-    }
-    const session = await CdpSession.connect(target.webSocketDebuggerUrl);
     try {
-      return await fn(session);
-    } finally {
-      session.close();
+      const endpoint = await this.resolveMetaMaskWebViewEndpoint();
+      const target = await this.waitForCdpTarget(endpoint, dappUrl);
+      if (!target.webSocketDebuggerUrl) {
+        throw new Error(
+          `MetaMask WebView CDP target for ${dappUrl} has no webSocketDebuggerUrl`,
+        );
+      }
+      const session = await CdpSession.connect(target.webSocketDebuggerUrl);
+      try {
+        return await fn(session);
+      } finally {
+        session.close();
+      }
+    } catch (error) {
+      // Stale webview_devtools_remote_<pid> after app restart / fixture reuse
+      // otherwise burns the full CDP target timeout on a dead socket.
+      this.resetMetaMaskWebViewCache();
+      throw error;
     }
   }
 
