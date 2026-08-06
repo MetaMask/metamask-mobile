@@ -37,6 +37,7 @@ import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import { parseCaipAssetType } from '@metamask/utils';
+import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -279,9 +280,9 @@ export const useBridgeQuoteData = ({
     isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   const shouldShowPriceImpactWarning = Boolean(
-    activeQuote?.quote.priceData?.priceImpact !== undefined &&
+    activeQuote?.quote.priceData?.priceImpact?.amount !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      Number(activeQuote?.quote.priceData?.priceImpact) >=
+      parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount) >=
         (bridgeFeatureFlags.priceImpactThreshold.warning ??
           AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
   );
