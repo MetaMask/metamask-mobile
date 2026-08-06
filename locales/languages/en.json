@@ -1310,6 +1310,9 @@
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
+      "selection_title": "Choose how you trade",
+      "lite_description": "One-tap longs or shorts. Simple by design.",
+      "pro_description": "Order book, advanced order types, and leverage.",
       "lite_transition_title": "Lite Mode",
       "pro_transition_title": "Pro Mode",
       "active_pill_accessibility_label": "Currently {{mode}} mode",

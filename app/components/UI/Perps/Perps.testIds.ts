@@ -1040,6 +1040,16 @@ export const PerpsModeToggleSelectorsIDs = {
   PRO_SEGMENT: 'perps-mode-toggle-pro',
 } as const;
 
+export const PerpsModeSelectionBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-mode-selection-bottom-sheet',
+  TITLE: 'perps-mode-selection-bottom-sheet-title',
+  LITE_OPTION: 'perps-mode-selection-lite-option',
+  PRO_OPTION: 'perps-mode-selection-pro-option',
+  LITE_ICON: 'perps-mode-selection-lite-icon',
+  PRO_ICON: 'perps-mode-selection-pro-icon',
+  SELECTED_INDICATOR: 'perps-mode-selection-selected-indicator',
+} as const;
+
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
