@@ -72,7 +72,7 @@ import {
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
-import { openPerpsModeSelection } from '../../utils/openPerpsModeSelection';
+import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -161,10 +161,10 @@ const PerpsHomeView = () => {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode } = usePerpsMode();
   const handleModeChange = useCallback(() => {
-    // Open the Lite/Pro chooser instead of flipping immediately. Post-select
-    // navigation (tutorial / Pro BTC market reset) lives in
-    // PerpsModeSelectionView.
-    openPerpsModeSelection(navigation, {
+    // One-time chooser shared with Trade → Perps. Direct toggle after the
+    // user has completed selection lands in a follow-up change.
+    // eslint-disable-next-line no-void
+    void openPerpsModeSelectionIfNeeded(navigation, {
       entry: 'home',
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     });

@@ -13,7 +13,7 @@ import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import { openPerpsModeSelection } from '../utils/openPerpsModeSelection';
+import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
@@ -112,9 +112,10 @@ export const usePerpsMarketHeaderActions = ({
 
   const handlePerpsModeChange = useCallback(
     (_nextMode: PerpsMode) => {
-      // Ignore the toggle's suggested next mode — the chooser bottom sheet
-      // owns persistence and any post-select remount of Lite/Pro layouts.
-      openPerpsModeSelection(navigation, {
+      // One-time chooser shared with Trade → Perps. Direct toggle after the
+      // user has completed selection lands in a follow-up change.
+      // eslint-disable-next-line no-void
+      void openPerpsModeSelectionIfNeeded(navigation, {
         entry: 'market',
         source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       });

@@ -213,6 +213,12 @@ const mockGetState = jest.fn();
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
+const mockHasCompletedPerpsModeSelection = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../../utils/perpsModeSelectionStorage', () => ({
+  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
+}));
 
 // usePerpsNavigation mock functions
 const mockNavigateToHome = jest.fn();
@@ -946,6 +952,7 @@ describe('PerpsMarketDetailsView', () => {
     mockSetPerpsMode.mockClear();
     mockNavigateToHome.mockClear();
     mockPerpsModeValue = 'lite';
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
   });
 
   it('renders correctly', () => {
@@ -1020,7 +1027,7 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the mode selection sheet when the active-mode pill is pressed from Lite', () => {
+  it('opens the mode selection sheet when the active-mode pill is pressed from Lite', async () => {
     enableProModeFlag();
 
     const { getByTestId } = renderWithProvider(
@@ -1034,18 +1041,20 @@ describe('PerpsMarketDetailsView', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
 
-    expect(mockSetPerpsMode).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.MODE_SELECTION,
-      params: {
-        entry: 'market',
-        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      },
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'market',
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        },
+      });
     });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockNavigateToHome).not.toHaveBeenCalled();
   });
 
-  it('opens the mode selection sheet when the active-mode pill is pressed from Pro', () => {
+  it('opens the mode selection sheet when the active-mode pill is pressed from Pro', async () => {
     enableProModeFlag();
     mockPerpsModeValue = PerpsMode.Pro;
 
@@ -1060,18 +1069,47 @@ describe('PerpsMarketDetailsView', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    expect(mockSetPerpsMode).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.MODE_SELECTION,
-      params: {
-        entry: 'market',
-        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      },
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'market',
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        },
+      });
     });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockNavigateToHome).not.toHaveBeenCalled();
     // Pill only opens the chooser; Home-stack cleanup on Pro runs after select
     // in PerpsModeSelectionView (TAT-3612).
     expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it('does not open the mode selection sheet when selection is already completed', async () => {
+    enableProModeFlag();
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      }),
+    );
   });
 
   it('does not show the active-mode pill when the Pro mode flag is disabled', () => {

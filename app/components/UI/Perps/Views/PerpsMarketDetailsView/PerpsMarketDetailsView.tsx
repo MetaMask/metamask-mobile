@@ -83,7 +83,7 @@ import PerpsMarketHeader, {
 } from '../../components/PerpsMarketHeader';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
-import { openPerpsModeSelection } from '../../utils/openPerpsModeSelection';
+import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -365,7 +365,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode } = usePerpsMode();
   const handlePerpsModeChange = useCallback(() => {
-    openPerpsModeSelection(navigation, {
+    // One-time chooser shared with Trade → Perps. Direct toggle after the
+    // user has completed selection lands in a follow-up change.
+    // eslint-disable-next-line no-void
+    void openPerpsModeSelectionIfNeeded(navigation, {
       entry: 'market',
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     });

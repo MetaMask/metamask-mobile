@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
@@ -148,6 +148,13 @@ jest.mock('../../hooks', () => ({
     mode: 'lite',
     setMode: mockSetPerpsMode,
   })),
+}));
+
+const mockHasCompletedPerpsModeSelection = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../../utils/perpsModeSelectionStorage', () => ({
+  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
 }));
 
 // Mock direct import of usePerpsCategories (used for sections_displayed gating)
@@ -536,6 +543,7 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
@@ -619,7 +627,7 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
   });
 
-  it('opens the mode selection sheet when the header toggle is pressed', () => {
+  it('opens the mode selection sheet when the header toggle is pressed', async () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -629,19 +637,42 @@ describe('PerpsHomeView', () => {
     // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert — chooser owns mode persistence and Pro market reset
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.MODE_SELECTION,
-      params: {
-        entry: 'home',
-        source: 'perps_home',
-      },
+    // Assert — chooser opens once while selection is incomplete
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
     });
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
   });
 
-  it('opens the mode selection sheet for first-time users from the header toggle', () => {
+  it('does not open the mode selection sheet when the user has already completed it', async () => {
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      }),
+    );
+  });
+
+  it('opens the mode selection sheet for first-time users from the header toggle', async () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) =>
@@ -654,12 +685,14 @@ describe('PerpsHomeView', () => {
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
     // Assert — first-time tutorial continues from the chooser after select
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.MODE_SELECTION,
-      params: {
-        entry: 'home',
-        source: 'perps_home',
-      },
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'home',
+          source: 'perps_home',
+        },
+      });
     });
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(

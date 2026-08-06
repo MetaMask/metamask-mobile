@@ -1,5 +1,6 @@
 import Routes from '../../../../constants/navigation/Routes';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import { hasCompletedPerpsModeSelection } from './perpsModeSelectionStorage';
 
 /**
  * Where the Lite/Pro chooser was opened from. Drives post-selection navigation.
@@ -27,6 +28,10 @@ export interface OpenPerpsModeSelectionNavigation {
   navigate(name: string, params?: object): void;
 }
 
+/**
+ * Opens the Lite/Pro chooser modal unconditionally (e.g. Trade menu first
+ * entry, which already gates on {@link hasCompletedPerpsModeSelection}).
+ */
 export const openPerpsModeSelection = (
   navigation: OpenPerpsModeSelectionNavigation,
   params: PerpsModeSelectionRouteParams = {},
@@ -38,4 +43,23 @@ export const openPerpsModeSelection = (
       source: params.source ?? PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
     },
   });
+};
+
+/**
+ * Opens the one-time Lite/Pro chooser when the user has not completed it yet
+ * (shared with Trade → Perps). Returns whether the sheet was opened.
+ *
+ * Header toggles use this so the sheet appears at most once across Trade and
+ * nav-bar entry points.
+ */
+export const openPerpsModeSelectionIfNeeded = async (
+  navigation: OpenPerpsModeSelectionNavigation,
+  params: PerpsModeSelectionRouteParams = {},
+): Promise<boolean> => {
+  if (await hasCompletedPerpsModeSelection()) {
+    return false;
+  }
+
+  openPerpsModeSelection(navigation, params);
+  return true;
 };

@@ -57,6 +57,13 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const mockHasCompletedPerpsModeSelection = jest.fn(() =>
+  Promise.resolve(false),
+);
+jest.mock('../utils/perpsModeSelectionStorage', () => ({
+  hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
+}));
+
 let mockIsWatchlist = false;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -68,6 +75,7 @@ describe('usePerpsProMarketHeaderActions', () => {
     jest.clearAllMocks();
     mockCanGoBack = true;
     mockIsWatchlist = false;
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
   });
 
   it('navigates back when the stack can go back', () => {
@@ -173,12 +181,12 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
   });
 
-  it('opens the mode selection sheet instead of switching immediately', () => {
+  it('opens the mode selection sheet instead of switching immediately', async () => {
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
 
-    act(() => {
+    await act(async () => {
       result.current.handlePerpsModeChange(PerpsMode.Lite);
     });
 
@@ -190,6 +198,20 @@ describe('usePerpsProMarketHeaderActions', () => {
         source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       },
     });
+  });
+
+  it('does not open the mode selection sheet when selection is already completed', async () => {
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    await act(async () => {
+      result.current.handlePerpsModeChange(PerpsMode.Lite);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
   });
 
   it('exposes the current mode and watchlist state', () => {
