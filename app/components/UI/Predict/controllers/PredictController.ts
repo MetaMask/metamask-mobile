@@ -1,9 +1,8 @@
 import { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
-import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import {
   BaseController,
   ControllerGetStateAction,
-  ControllerStateChangeEvent,
+  ControllerStateChangedEvent,
   StateMetadata,
 } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -121,7 +120,10 @@ import {
 } from '../types';
 import { PredictFeatureFlags } from '../types/flags';
 
-import { mapClaimFailureReason } from '../utils/analytics';
+import {
+  classifyPredictBuyFailure,
+  mapClaimFailureReason,
+} from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
 import { ensureError } from '../utils/predictErrorHandler';
@@ -315,7 +317,7 @@ export type PredictTransactionStatusChangedPayload =
   PredictControllerTransactionStatusChangedEvent['payload'][0];
 
 export type PredictControllerEvents =
-  | ControllerStateChangeEvent<'PredictController', PredictControllerState>
+  | ControllerStateChangedEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
 
 interface TransactionReceiptLog {
@@ -356,7 +358,6 @@ export type PredictControllerActions =
  * External actions the PredictController can call
  */
 type AllowedActions =
-  | AccountsControllerGetSelectedAccountAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | NetworkControllerGetStateAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
@@ -502,6 +503,7 @@ export class PredictController extends BaseController<
       signerAddress: string;
       analyticsProperties?: PlaceOrderParams['analyticsProperties'];
       activeAbTests?: PlaceOrderParams['activeAbTests'];
+      attempt?: PlaceOrderParams['attempt'];
     };
   } = {};
 
@@ -527,6 +529,8 @@ export class PredictController extends BaseController<
   private claimTerminalEmitted = new Set<string>();
 
   private flowTerminalMetricEmitted = new Set<string>();
+
+  private predictBuyTerminalEmitted = new Set<string>();
 
   private readonly traceable: TraceableController = {
     update: (updater) => this.update(updater),
@@ -1278,6 +1282,23 @@ export class PredictController extends BaseController<
     return this.analytics.trackPredictOrderEvent(args);
   }
 
+  public trackTradeConsidered(): void {
+    this.analytics.trackTradeConsidered();
+  }
+
+  public trackPredictBuyTerminalEvent(
+    args: Parameters<PredictAnalytics['trackPredictOrderEvent']>[0] & {
+      attemptId: string;
+    },
+  ): void {
+    if (this.predictBuyTerminalEmitted.has(args.attemptId)) {
+      return;
+    }
+
+    this.predictBuyTerminalEmitted.add(args.attemptId);
+    this.trackPredictOrderEvent(args);
+  }
+
   private trackPredictFlowMetric({
     transactionType,
     status,
@@ -1640,6 +1661,26 @@ export class PredictController extends BaseController<
         });
       }
 
+      if (params.attempt && params.preview.side === Side.BUY) {
+        const failure = classifyPredictBuyFailure(
+          errorMessage,
+          PredictEventValues.FAILURE_STAGE.ORDER,
+        );
+        this.trackPredictBuyTerminalEvent({
+          status: PredictTradeStatus.FAILED_ORDER,
+          amountUsd: params.attempt.amountUsd,
+          analyticsProperties: params.analyticsProperties,
+          sharePrice: params.preview.sharePrice,
+          orderType: params.preview.orderType,
+          attemptId: params.attempt.attemptId,
+          paymentMethod: params.attempt.paymentMethod,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          failureReason: failure.failureReason,
+          activeAbTests: params.activeAbTests,
+        });
+      }
+
       if (
         params.transactionId &&
         this.pendingOrderPreviews[params.transactionId]
@@ -1663,6 +1704,7 @@ export class PredictController extends BaseController<
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
           activeAbTests: params.activeAbTests,
+          attempt: params.attempt,
         };
       }
       this.update((state) => {
@@ -1691,8 +1733,10 @@ export class PredictController extends BaseController<
       }
 
       this.trackPredictOrderEvent({
-        status: PredictTradeStatus.SWAP_INITIATED,
-        amountUsd: params.preview?.maxAmountSpent,
+        status: params.attempt
+          ? PredictTradeStatus.SWAP_STARTED
+          : PredictTradeStatus.SWAP_INITIATED,
+        amountUsd: params.attempt?.amountUsd ?? params.preview?.maxAmountSpent,
         analyticsProperties: params.analyticsProperties,
         sharePrice: params.preview?.sharePrice,
         orderType: params.preview.orderType,
@@ -1705,6 +1749,8 @@ export class PredictController extends BaseController<
           params.preview.side === Side.BUY
             ? this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol
             : undefined,
+        attemptId: params.attempt?.attemptId,
+        paymentMethod: params.attempt?.paymentMethod,
         activeAbTests: params.activeAbTests,
       });
 
@@ -1751,9 +1797,10 @@ export class PredictController extends BaseController<
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
-      preview.side === Side.BUY
+      params.attempt?.amountUsd ??
+      (preview.side === Side.BUY
         ? preview?.maxAmountSpent
-        : preview?.minAmountReceived;
+        : preview?.minAmountReceived);
 
     // Start Sentry trace for place order operation
     const traceId = `place-order-${Date.now()}`;
@@ -1784,13 +1831,17 @@ export class PredictController extends BaseController<
 
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
-        status: PredictTradeStatus.SUBMITTED,
+        status: params.attempt
+          ? PredictTradeStatus.ORDER_SUBMITTED
+          : PredictTradeStatus.SUBMITTED,
         amountUsd,
         analyticsProperties,
         sharePrice,
         orderType: preview.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
+        attemptId: params.attempt?.attemptId,
+        paymentMethod: params.attempt?.paymentMethod,
         activeAbTests: params.activeAbTests,
       });
 
@@ -1884,17 +1935,28 @@ export class PredictController extends BaseController<
       }
 
       // Track Predict Trade Transaction with succeeded status (fire and forget)
-      this.trackPredictOrderEvent({
+      const successEvent = {
         status: PredictTradeStatus.SUCCEEDED,
-        amountUsd: realAmountUsd,
+        amountUsd: params.attempt?.amountUsd ?? realAmountUsd,
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
+        attemptId: params.attempt?.attemptId,
+        paymentMethod: params.attempt?.paymentMethod,
         activeAbTests: params.activeAbTests,
-      });
+      };
+
+      if (params.attempt) {
+        this.trackPredictBuyTerminalEvent({
+          ...successEvent,
+          attemptId: params.attempt.attemptId,
+        });
+      } else {
+        this.trackPredictOrderEvent(successEvent);
+      }
 
       traceData = { success: true, side: preview.side };
       return result as unknown as Result;
@@ -1905,19 +1967,53 @@ export class PredictController extends BaseController<
           ? error.message
           : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
 
-      // Track Predict Trade Transaction with failed status (fire and forget)
-      this.trackPredictOrderEvent({
-        status: PredictTradeStatus.FAILED,
-        amountUsd,
-        analyticsProperties,
-        sharePrice,
-        completionDuration,
-        failureReason: errorMessage,
-        orderType: preview.orderType,
-        paymentTokenAddress,
-        paymentTokenSymbol,
-        activeAbTests: params.activeAbTests,
-      });
+      if (params.attempt && preview.side === Side.BUY) {
+        const failure = classifyPredictBuyFailure(
+          error,
+          PredictEventValues.FAILURE_STAGE.ORDER,
+        );
+        let status: PredictTradeStatusValue = PredictTradeStatus.FAILED_ORDER;
+        if (failure.isUserRejected) {
+          status = PredictTradeStatus.CANCELLED;
+        } else if (failure.isRetryable) {
+          status = PredictTradeStatus.ORDER_FAILED;
+        }
+        const failureEvent = {
+          status,
+          amountUsd: params.attempt.amountUsd,
+          analyticsProperties,
+          sharePrice,
+          completionDuration,
+          failureReason: failure.failureReason,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          orderType: preview.orderType,
+          paymentTokenAddress,
+          paymentTokenSymbol,
+          attemptId: params.attempt.attemptId,
+          paymentMethod: params.attempt.paymentMethod,
+          activeAbTests: params.activeAbTests,
+        };
+
+        if (failure.isRetryable) {
+          this.trackPredictOrderEvent(failureEvent);
+        } else {
+          this.trackPredictBuyTerminalEvent(failureEvent);
+        }
+      } else {
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          amountUsd,
+          analyticsProperties,
+          sharePrice,
+          completionDuration,
+          failureReason: errorMessage,
+          orderType: preview.orderType,
+          paymentTokenAddress,
+          paymentTokenSymbol,
+          activeAbTests: params.activeAbTests,
+        });
+      }
 
       // Update error state for Sentry integration
       this.update((state) => {
@@ -3270,13 +3366,18 @@ export class PredictController extends BaseController<
 
       // Track swap/deposit success — the token swap confirmed, order placement begins
       this.trackPredictOrderEvent({
-        status: PredictTradeStatus.SWAP_SUCCESS,
+        status: pendingOrder.attempt
+          ? PredictTradeStatus.SWAP_SUCCEEDED
+          : PredictTradeStatus.SWAP_SUCCESS,
+        amountUsd: pendingOrder.attempt?.amountUsd,
         analyticsProperties: pendingOrder.analyticsProperties,
         paymentTokenAddress:
           this.state.activeBuyOrders[address]?.paymentTokenAddress,
         paymentTokenSymbol:
           this.state.activeBuyOrders[address]?.paymentTokenSymbol,
         orderType: pendingOrder.preview?.orderType,
+        attemptId: pendingOrder.attempt?.attemptId,
+        paymentMethod: pendingOrder.attempt?.paymentMethod,
         activeAbTests: pendingOrder.activeAbTests,
       });
 
@@ -3285,6 +3386,7 @@ export class PredictController extends BaseController<
         signerAddress,
         analyticsProperties: pendingAnalytics,
         activeAbTests: pendingActiveAbTests,
+        attempt,
       } = pendingOrder;
 
       (depositWalletSyncPromise ?? Promise.resolve())
@@ -3295,6 +3397,7 @@ export class PredictController extends BaseController<
             preview,
             address: signerAddress,
             transactionId,
+            attempt,
           }),
         )
         .catch((error) => {
@@ -3333,11 +3436,33 @@ export class PredictController extends BaseController<
         this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
-      if (failedActiveOrder) {
-        const errorMessage =
-          transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      const swapError =
+        transactionMeta.error ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      const errorMessage =
+        transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
-        // PWAT active order: swap/deposit step failed before order placement
+      if (pendingOrder?.attempt) {
+        const failure = classifyPredictBuyFailure(
+          swapError,
+          PredictEventValues.FAILURE_STAGE.SWAP,
+        );
+        this.trackPredictBuyTerminalEvent({
+          status: failure.isUserRejected
+            ? PredictTradeStatus.CANCELLED
+            : PredictTradeStatus.FAILED_SWAP,
+          amountUsd: pendingOrder.attempt.amountUsd,
+          analyticsProperties: pendingOrder.analyticsProperties,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          failureReason: failure.failureReason,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          orderType: pendingOrder.preview.orderType,
+          attemptId: pendingOrder.attempt.attemptId,
+          paymentMethod: pendingOrder.attempt.paymentMethod,
+          activeAbTests: pendingOrder.activeAbTests,
+        });
+      } else if (failedActiveOrder) {
         this.trackPredictOrderEvent({
           status: PredictTradeStatus.SWAP_FAILED,
           analyticsProperties: pendingOrder?.analyticsProperties,
@@ -3346,7 +3471,20 @@ export class PredictController extends BaseController<
           failureReason: errorMessage,
           activeAbTests: pendingOrder?.activeAbTests,
         });
+      } else {
+        // Background deposit with no active PWAT order — track as a generic failure
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          failureReason: errorMessage,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          orderType: pendingOrder?.preview?.orderType,
+          activeAbTests: pendingOrder?.activeAbTests,
+        });
+      }
 
+      if (failedActiveOrder) {
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state =
@@ -3362,19 +3500,6 @@ export class PredictController extends BaseController<
               operation: 'initPayWithAnyToken',
             }),
           );
-        });
-      } else {
-        // Background deposit with no active PWAT order — track as a generic failure
-        this.trackPredictOrderEvent({
-          status: PredictTradeStatus.FAILED,
-          analyticsProperties: pendingOrder?.analyticsProperties,
-          failureReason:
-            transactionMeta.error?.message ??
-            PREDICT_ERROR_CODES.DEPOSIT_FAILED,
-          paymentTokenAddress: failedPaymentTokenAddress,
-          paymentTokenSymbol: failedPaymentTokenSymbol,
-          orderType: pendingOrder?.preview?.orderType,
-          activeAbTests: pendingOrder?.activeAbTests,
         });
       }
 
@@ -3398,17 +3523,41 @@ export class PredictController extends BaseController<
         delete this.pendingOrderPreviews[transactionId];
       }
 
-      if (this.state.activeBuyOrders[address]) {
+      const rejectedActiveOrder = this.state.activeBuyOrders[address];
+      if (rejectedPendingOrder?.attempt) {
+        const failure = classifyPredictBuyFailure(
+          {
+            code: errorCodes.provider.userRejectedRequest,
+            message:
+              transactionMeta.error?.message ?? 'User rejected transaction',
+          },
+          PredictEventValues.FAILURE_STAGE.SWAP,
+        );
+        this.trackPredictBuyTerminalEvent({
+          status: PredictTradeStatus.CANCELLED,
+          amountUsd: rejectedPendingOrder.attempt.amountUsd,
+          analyticsProperties: rejectedPendingOrder.analyticsProperties,
+          paymentTokenAddress: rejectedActiveOrder?.paymentTokenAddress,
+          paymentTokenSymbol: rejectedActiveOrder?.paymentTokenSymbol,
+          failureReason: failure.failureReason,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          orderType: rejectedPendingOrder.preview.orderType,
+          attemptId: rejectedPendingOrder.attempt.attemptId,
+          paymentMethod: rejectedPendingOrder.attempt.paymentMethod,
+          activeAbTests: rejectedPendingOrder.activeAbTests,
+        });
+      } else if (rejectedActiveOrder) {
         this.trackPredictOrderEvent({
           status: PredictTradeStatus.CANCELLED,
           analyticsProperties: rejectedPendingOrder?.analyticsProperties,
-          paymentTokenAddress:
-            this.state.activeBuyOrders[address]?.paymentTokenAddress,
-          paymentTokenSymbol:
-            this.state.activeBuyOrders[address]?.paymentTokenSymbol,
+          paymentTokenAddress: rejectedActiveOrder.paymentTokenAddress,
+          paymentTokenSymbol: rejectedActiveOrder.paymentTokenSymbol,
           activeAbTests: rejectedPendingOrder?.activeAbTests,
         });
+      }
 
+      if (this.state.activeBuyOrders[address]) {
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state = ActiveOrderState.PREVIEW;
@@ -4101,7 +4250,6 @@ export class PredictController extends BaseController<
         // Only update gas if estimation succeeded
         if (updatedGas) {
           transaction.txParams.gas = updatedGas;
-          transaction.txParams.gasLimit = updatedGas;
         }
       },
     };

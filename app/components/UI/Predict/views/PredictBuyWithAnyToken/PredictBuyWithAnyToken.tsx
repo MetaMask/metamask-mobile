@@ -18,6 +18,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
@@ -61,9 +62,17 @@ import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../../constants/eventNames';
+import {
   predictBuyPreviewDismissedViaBackRef,
   predictBuyPreviewSessionRef,
 } from '../PredictBuyPreview/PredictBuyPreview';
+import {
+  predictBuyAttemptRef,
+  predictBuyHasRetryableFailureRef,
+} from './predictBuyAttemptRefs';
 
 interface BuyActionButtonStateParams {
   isPaymentSelectorNavigationLocked: boolean;
@@ -296,6 +305,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const { handleConfirm, placeOrder } = usePredictBuyActions({
     analyticsProperties,
     preview,
+    amountUsd: currentValue,
     setIsConfirming,
     isSheetMode,
     onClose,
@@ -316,6 +326,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
   }, [currentValue]);
 
+  useEffect(() => {
+    predictBuyHasRetryableFailureRef.current = isOrderNotFilled;
+  }, [isOrderNotFilled]);
+
   const {
     retrySheetRef,
     retrySheetVariant,
@@ -330,14 +344,46 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isSheetMode,
   });
 
+  const handleRetryDismiss = useCallback(() => {
+    const attempt = predictBuyAttemptRef.current;
+    if (isOrderNotFilled && attempt) {
+      Engine.context.PredictController.trackPredictBuyTerminalEvent({
+        status: PredictTradeStatus.CANCELLED,
+        amountUsd: attempt.amountUsd,
+        analyticsProperties,
+        attemptId: attempt.attemptId,
+        paymentMethod: attempt.paymentMethod,
+        failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
+        failureCategory: PredictEventValues.FAILURE_CATEGORY.USER_REJECTED,
+        failureReason: 'User cancelled after a retryable order failure',
+        activeAbTests: transactionActiveAbTests,
+      });
+    }
+    resetOrderNotFilled();
+  }, [
+    analyticsProperties,
+    isOrderNotFilled,
+    resetOrderNotFilled,
+    transactionActiveAbTests,
+  ]);
+
   const isBannerActive = !!buyErrorBanner;
   const previousValueRef = useRef(currentValue);
   useEffect(() => {
     if (previousValueRef.current !== currentValue && isUserInputChange) {
+      if (isOrderNotFilled) {
+        handleRetryDismiss();
+      }
       clearBuyErrorBanner();
     }
     previousValueRef.current = currentValue;
-  }, [currentValue, isUserInputChange, clearBuyErrorBanner]);
+  }, [
+    currentValue,
+    isUserInputChange,
+    isOrderNotFilled,
+    handleRetryDismiss,
+    clearBuyErrorBanner,
+  ]);
 
   // When the banner appears in sheet mode, close the keypad so the Retry CTA
   // + banner are immediately visible without the user having to dismiss the
@@ -589,7 +635,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
-        onDismiss={resetOrderNotFilled}
+        onDismiss={handleRetryDismiss}
         isRetrying={isRetrying}
       />
       <PredictPayWithAnyTokenInfo

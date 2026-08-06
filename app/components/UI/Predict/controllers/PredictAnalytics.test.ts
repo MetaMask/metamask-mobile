@@ -154,6 +154,52 @@ describe('PredictAnalytics', () => {
       expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
     });
 
+    it('tracks attempt properties on a Predict buy lifecycle event', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED_ORDER,
+        amountUsd: 42,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+        attemptId: 'attempt-1',
+        paymentMethod: PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN,
+        failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
+        failureCategory: PredictEventValues.FAILURE_CATEGORY.NETWORK,
+        failureReason: 'Network request failed',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        status: 'failed_order',
+        attempt_id: 'attempt-1',
+        payment_method: 'pay_with_any_token',
+        failure_stage: 'order',
+        failure_category: 'network',
+        failure_reason: 'Network request failed',
+      });
+      expect(event.sensitiveProperties).toMatchObject({ amount_usd: 42 });
+    });
+  });
+
+  describe('trackTradeConsidered', () => {
+    it('tracks Trade Considered independently from trade status', () => {
+      predictAnalytics.trackTradeConsidered();
+
+      const tradeConsideredEvent = getTrackedEvent();
+
+      expect(tradeConsideredEvent.name).toBe(
+        MetaMetricsEvents.TRADE_CONSIDERED.category,
+      );
+      expect(tradeConsideredEvent.properties).toEqual({
+        trade_type: 'predict',
+        implementation_type: 'native',
+      });
+    });
+  });
+
+  describe('trackPredictOrderEvent completion events', () => {
     it('tracks Trade Completed after Predict Trade Transaction with matching properties', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUCCEEDED,

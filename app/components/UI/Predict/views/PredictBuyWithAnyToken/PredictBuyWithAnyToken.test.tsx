@@ -6,6 +6,7 @@ import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
 import type { PredictBuyPreviewProps } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { predictBuyAttemptRef } from './predictBuyAttemptRefs';
 
 const mockHandleConfirm = jest.fn();
 const mockPlaceOrder = jest.fn();
@@ -19,6 +20,16 @@ const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockHandleRetryWithBestPrice = jest.fn();
+const mockTrackPredictBuyTerminalEvent = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictBuyTerminalEvent: (...args: unknown[]) =>
+        mockTrackPredictBuyTerminalEvent(...args),
+    },
+  },
+}));
 
 let mockPayWithAnyTokenEnabled = true;
 let mockFakOrdersEnabled = false;
@@ -134,8 +145,11 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
+let mockCurrentValue = 20;
+let mockIsOrderNotFilled = false;
+
 const mockUsePredictBuyInputState = jest.fn((..._args: unknown[]) => ({
-  currentValue: 20,
+  currentValue: mockCurrentValue,
   setCurrentValue: mockSetCurrentValue,
   currentValueUSDString: '$20.00',
   setCurrentValueUSDString: mockSetCurrentValueUSDString,
@@ -195,7 +209,7 @@ const mockUsePredictBuyError = jest.fn((..._args: unknown[]) => ({
   errorMessage: mockErrorMessage,
   errorMessageSource: mockErrorMessageSource,
   buyErrorBanner: mockBuyErrorBanner,
-  isOrderNotFilled: false,
+  isOrderNotFilled: mockIsOrderNotFilled,
   resetOrderNotFilled: mockResetOrderNotFilled,
   clearBuyErrorBanner: mockClearBuyErrorBanner,
 }));
@@ -449,6 +463,9 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsPaymentSelectorNavigationLocked = false;
     mockBlockingPayAlertMessage = null;
     mockHasBlockingPayAlerts = false;
+    mockCurrentValue = 20;
+    mockIsOrderNotFilled = false;
+    predictBuyAttemptRef.current = undefined;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -488,6 +505,28 @@ describe('PredictBuyWithAnyToken', () => {
     expect(
       screen.queryByTestId('predict-fee-breakdown-sheet'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('cancels a retryable attempt when the user changes the amount', () => {
+    mockIsOrderNotFilled = true;
+    predictBuyAttemptRef.current = {
+      attemptId: 'attempt-1',
+      amountUsd: 20,
+      paymentMethod: 'pay_with_any_token',
+    };
+    const { rerender } = renderWithProvider(<PredictBuyWithAnyToken />);
+
+    mockCurrentValue = 21;
+    rerender(<PredictBuyWithAnyToken />);
+
+    expect(mockTrackPredictBuyTerminalEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'cancelled',
+        attemptId: 'attempt-1',
+        amountUsd: 20,
+        failureCategory: 'user_rejected',
+      }),
+    );
   });
 
   it('hides the pay with row when the feature flag is disabled', () => {

@@ -3,6 +3,7 @@
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
+import type { PredictPaymentMethodValue } from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -773,12 +774,19 @@ export type OrderResult = Result<{
   txHashes?: string[];
 }>;
 
+export interface PredictBuyAttempt {
+  attemptId: string;
+  amountUsd: number;
+  paymentMethod: PredictPaymentMethodValue;
+}
+
 export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: PredictTradeAnalyticsProperties;
+  attempt?: PredictBuyAttempt;
 }
 
 export interface PreviewOrderParams {

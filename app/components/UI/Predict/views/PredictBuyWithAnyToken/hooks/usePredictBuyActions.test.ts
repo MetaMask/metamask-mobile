@@ -18,6 +18,8 @@ const mockUnsubscribe = jest.fn();
 const mockSetSelectedPaymentToken = jest.fn();
 const mockOnPlaceOrderSuccess = jest.fn();
 const mockTrackPredictOrderEvent = jest.fn();
+const mockTrackTradeConsidered = jest.fn();
+const mockTrackPredictBuyTerminalEvent = jest.fn();
 const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
 const mockOnOrderCancelled = jest.fn();
 const mockInitPayWithAnyToken = jest.fn();
@@ -124,6 +126,10 @@ jest.mock('../../../../../../core/Engine', () => ({
       onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       trackPredictOrderEvent: (...args: unknown[]) =>
         mockTrackPredictOrderEvent(...args),
+      trackTradeConsidered: (...args: unknown[]) =>
+        mockTrackTradeConsidered(...args),
+      trackPredictBuyTerminalEvent: (...args: unknown[]) =>
+        mockTrackPredictBuyTerminalEvent(...args),
       trackBetslipDismissed: (...args: unknown[]) =>
         mockTrackBetslipDismissed(...args),
       initPayWithAnyToken: (...args: unknown[]) =>
@@ -164,6 +170,7 @@ const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
     negRisk: false,
     fees: { totalFee: 5 },
   } as OrderPreview,
+  amountUsd: 175,
   analyticsProperties: { marketId: 'market-1' },
   setIsConfirming: mockSetIsConfirming,
 });
@@ -184,14 +191,11 @@ describe('usePredictBuyActions', () => {
   });
 
   describe('mount effect', () => {
-    it('tracks an initiated order event on mount', () => {
+    it('tracks Trade Considered on mount', () => {
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
-      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
-        status: 'initiated',
-        analyticsProperties: { marketId: 'market-1' },
-        sharePrice: undefined,
-      });
+      expect(mockTrackTradeConsidered).toHaveBeenCalledTimes(1);
+      expect(mockTrackPredictOrderEvent).not.toHaveBeenCalled();
     });
 
     it('calls initPayWithAnyToken on mount when pay with any token is enabled', () => {
@@ -325,10 +329,36 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockPlaceOrder).toHaveBeenCalledWith({
-        analyticsProperties: { marketId: 'market-1' },
-        preview: params.preview,
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: { marketId: 'market-1' },
+          preview: params.preview,
+          attempt: {
+            attemptId: expect.any(String),
+            amountUsd: 175,
+            paymentMethod: 'predict_balance',
+          },
+        }),
+      );
+    });
+
+    it('tracks one attempt started event on confirm', async () => {
+      const params = createDefaultParams();
+      const { result } = renderHook(() => usePredictBuyActions(params));
+
+      await act(async () => {
+        await result.current.handleConfirm();
       });
+
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'attempt_started',
+          amountUsd: 175,
+          attemptId: expect.any(String),
+          paymentMethod: 'predict_balance',
+        }),
+      );
     });
 
     it('calls approval confirm when the order is paying with any token', async () => {

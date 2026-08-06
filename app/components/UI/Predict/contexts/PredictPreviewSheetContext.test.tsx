@@ -16,12 +16,15 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockTrackBetslipDismissed = jest.fn();
+const mockTrackPredictBuyTerminalEvent = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackBetslipDismissed: (...args: unknown[]) =>
         mockTrackBetslipDismissed(...args),
+      trackPredictBuyTerminalEvent: (...args: unknown[]) =>
+        mockTrackPredictBuyTerminalEvent(...args),
     },
   },
 }));
