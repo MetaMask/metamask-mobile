@@ -333,7 +333,6 @@ describe('eth_sendTransaction', () => {
       async () =>
         await eth_sendTransaction({
           hostname: 'example.metamask.io',
-          // @ts-expect-error - intentionally injecting extraneous key for test
           req: constructSendTransactionRequest([maliciousParams]),
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({ returnValue: 'fake-hash' }),
@@ -352,7 +351,6 @@ describe('eth_sendTransaction', () => {
       async () =>
         await eth_sendTransaction({
           hostname: 'example.metamask.io',
-          // @ts-expect-error - intentionally oversized param for test
           req: constructSendTransactionRequest([oversizedParams]),
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({ returnValue: 'fake-hash' }),
@@ -373,7 +371,6 @@ describe('eth_sendTransaction', () => {
       async () =>
         await eth_sendTransaction({
           hostname: 'example.metamask.io',
-          // @ts-expect-error - intentionally injecting extraneous key for test
           req: constructSendTransactionRequest([maliciousParams]),
           res: constructPendingJsonRpcResponse(),
           sendTransaction: mockSendTransaction,

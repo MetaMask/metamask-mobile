@@ -1102,6 +1102,13 @@ describe('WalletConnect2Session', () => {
     });
 
     it('rejects eth_sendTransaction with extraneous top-level param key', async () => {
+      jest.mock('../../util/transaction-controller', () => ({
+        addTransaction: jest.fn().mockResolvedValue({
+          result: Promise.resolve('0xhash'),
+          transactionMeta: { id: 'mock-id' },
+        }),
+      }));
+
       const requestId = Math.floor(Math.random() * 1000000);
       const request: WalletKitTypes.SessionRequest = {
         id: requestId,
@@ -1132,11 +1139,23 @@ describe('WalletConnect2Session', () => {
       await buildCase(request, testChainId, testChainCaip);
 
       expect(rejectRequestSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ id: requestId + '' }),
+        expect.objectContaining({
+          id: requestId + '',
+          error: expect.objectContaining({
+            message: expect.stringMatching(/invalid/i),
+          }),
+        }),
       );
     });
 
     it('rejects eth_sendTransaction when params exceed max serialized size', async () => {
+      jest.mock('../../util/transaction-controller', () => ({
+        addTransaction: jest.fn().mockResolvedValue({
+          result: Promise.resolve('0xhash'),
+          transactionMeta: { id: 'mock-id' },
+        }),
+      }));
+
       const requestId = Math.floor(Math.random() * 1000000);
       const oversizedData = '0x' + 'aa'.repeat(105 * 1024);
       const request: WalletKitTypes.SessionRequest = {
@@ -1167,7 +1186,10 @@ describe('WalletConnect2Session', () => {
       await buildCase(request, testChainId, testChainCaip);
 
       expect(rejectRequestSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ id: requestId + '' }),
+        expect.objectContaining({
+          id: requestId + '',
+          error: expect.objectContaining({ message: 'Request too large' }),
+        }),
       );
     });
 
