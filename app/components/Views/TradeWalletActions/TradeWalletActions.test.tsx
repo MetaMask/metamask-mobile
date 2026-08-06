@@ -1163,6 +1163,10 @@ describe('TradeWalletActions', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'trade',
+          source: 'trade_menu_action',
+        },
       });
     });
 
@@ -1201,6 +1205,10 @@ describe('TradeWalletActions', () => {
       });
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        params: {
+          entry: 'trade',
+          source: 'trade_menu_action',
+        },
       });
     });
 

@@ -5,6 +5,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsProMarketHeaderActions } from './usePerpsProMarketHeaderActions';
 
 const mockNavigateBack = jest.fn();
@@ -48,9 +49,12 @@ jest.mock('./usePerpsWatchlistActions', () => ({
   })),
 }));
 
-const mockShowPerpsModeFlash = jest.fn();
-jest.mock('../utils/perpsModeFlash', () => ({
-  showPerpsModeFlash: (...args: unknown[]) => mockShowPerpsModeFlash(...args),
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
 }));
 
 let mockIsWatchlist = false;
@@ -169,7 +173,7 @@ describe('usePerpsProMarketHeaderActions', () => {
     expect(mockRemoveFromWatchlist).not.toHaveBeenCalled();
   });
 
-  it('switches mode and flashes the mode transition', () => {
+  it('opens the mode selection sheet instead of switching immediately', () => {
     const { result } = renderHook(() =>
       usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
     );
@@ -178,8 +182,14 @@ describe('usePerpsProMarketHeaderActions', () => {
       result.current.handlePerpsModeChange(PerpsMode.Lite);
     });
 
-    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
-    expect(mockShowPerpsModeFlash).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      params: {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      },
+    });
   });
 
   it('exposes the current mode and watchlist state', () => {

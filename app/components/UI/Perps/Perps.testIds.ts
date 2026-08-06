@@ -1053,8 +1053,3 @@ export const PerpsModeSelectionBottomSheetSelectorsIDs = {
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================
-
-export const PerpsModeFlashSelectorsIDs = {
-  CONTAINER: 'perps-mode-flash',
-  TITLE: 'perps-mode-flash-title',
-} as const;

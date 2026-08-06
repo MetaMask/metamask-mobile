@@ -1,17 +1,19 @@
 import { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   PerpsMode,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import { showPerpsModeFlash } from '../utils/perpsModeFlash';
+import { openPerpsModeSelection } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
@@ -41,13 +43,14 @@ export interface UsePerpsMarketHeaderActionsResult {
 export const usePerpsMarketHeaderActions = ({
   symbol,
 }: UsePerpsMarketHeaderActionsParams): UsePerpsMarketHeaderActionsResult => {
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     navigateBack,
     navigateToWallet,
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
-  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const { mode: perpsMode } = usePerpsMode();
   const { track } = usePerpsEventTracking();
   const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -108,11 +111,15 @@ export const usePerpsMarketHeaderActions = ({
   }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
 
   const handlePerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
-      setPerpsMode(nextMode);
-      showPerpsModeFlash(nextMode);
+    (_nextMode: PerpsMode) => {
+      // Ignore the toggle's suggested next mode — the chooser bottom sheet
+      // owns persistence and any post-select remount of Lite/Pro layouts.
+      openPerpsModeSelection(navigation, {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      });
     },
-    [setPerpsMode],
+    [navigation],
   );
 
   return {

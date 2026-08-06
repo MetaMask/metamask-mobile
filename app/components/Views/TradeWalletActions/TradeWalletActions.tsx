@@ -86,6 +86,7 @@ import {
   toPerpsNavigatorScreenParams,
   useGetPerpsHomeNavigationTarget,
 } from '../../UI/Perps/utils/perpsModeSwitch';
+import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelection';
 import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
@@ -248,9 +249,7 @@ function TradeWalletActions() {
         const hasCompletedModeSelection =
           await hasCompletedPerpsModeSelection();
         if (!hasCompletedModeSelection) {
-          navigate(Routes.PERPS.MODALS.ROOT, {
-            screen: Routes.PERPS.MODALS.MODE_SELECTION,
-          });
+          openPerpsModeSelection(navigation, { entry: 'trade' });
           return;
         }
       }
@@ -268,6 +267,7 @@ function TradeWalletActions() {
   }, [
     handleNavigateBack,
     navigate,
+    navigation,
     isFirstTimePerpsUser,
     isPerpsProModeEnabled,
     getPerpsHomeNavigationTarget,

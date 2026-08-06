@@ -619,38 +619,29 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
   });
 
-  it('navigates to the default Pro market when the header toggle switches to Pro', () => {
+  it('opens the mode selection sheet when the header toggle is pressed', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
     );
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Act - stubbed toggle switches to Pro on press
+    // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - persists the new mode and resets onto the default (BTC)
-    // market, discarding Perps Home from history so it stays unreachable
-    // via back navigation while Pro mode is active.
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [
-        expect.objectContaining({
-          name: Routes.PERPS.MARKET_DETAILS,
-          params: expect.objectContaining({
-            market: expect.objectContaining({ symbol: 'BTC' }),
-          }),
-        }),
-      ],
+    // Assert — chooser owns mode persistence and Pro market reset
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      params: {
+        entry: 'home',
+        source: 'perps_home',
+      },
     });
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
-      expect.anything(),
-    );
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
-  it('routes first-time users to the Perps tutorial when the header toggle switches mode', () => {
+  it('opens the mode selection sheet for first-time users from the header toggle', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) =>
@@ -662,24 +653,19 @@ describe('PerpsHomeView', () => {
     // Act
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert - mode is persisted, but onboarding is not skipped. The
-    // tutorial redirect still points at the default Pro market (not Perps
-    // Home) so completing onboarding doesn't violate the Pro-mode invariant
-    // (TAT-3612).
-    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
-      source: 'perps_home',
-      redirectScreen: Routes.PERPS.MARKET_DETAILS,
-      redirectParams: {
-        market: { symbol: 'BTC' },
+    // Assert — first-time tutorial continues from the chooser after select
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      params: {
+        entry: 'home',
         source: 'perps_home',
       },
     });
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.PERPS.MARKET_DETAILS,
+      Routes.PERPS.TUTORIAL,
       expect.anything(),
     );
-    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {

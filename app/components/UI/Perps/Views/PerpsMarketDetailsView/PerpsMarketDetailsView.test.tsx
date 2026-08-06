@@ -990,7 +990,7 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('flips to Pro and stays on the current market when the active-mode pill is pressed', () => {
+  it('opens the mode selection sheet when the active-mode pill is pressed from Lite', () => {
     enableProModeFlag();
 
     const { getByTestId } = renderWithProvider(
@@ -1002,15 +1002,20 @@ describe('PerpsMarketDetailsView', () => {
       },
     );
 
-    // Mocked mode is Lite, so pressing the pill flips to Pro.
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
 
-    // Switching mode persists and flashes, but does not leave the market page.
-    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      params: {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      },
+    });
     expect(mockNavigateToHome).not.toHaveBeenCalled();
   });
 
-  it('flips to Lite and stays on the current market when the active-mode pill is pressed', () => {
+  it('opens the mode selection sheet when the active-mode pill is pressed from Pro', () => {
     enableProModeFlag();
     mockPerpsModeValue = PerpsMode.Pro;
 
@@ -1023,11 +1028,16 @@ describe('PerpsMarketDetailsView', () => {
       },
     );
 
-    // Mocked mode is Pro, so pressing the pill flips to Lite.
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    // Switching mode persists and flashes, but does not leave the market page.
-    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.MODE_SELECTION,
+      params: {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      },
+    });
     expect(mockNavigateToHome).not.toHaveBeenCalled();
   });
 

@@ -42,7 +42,6 @@ import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   CandlePeriod,
-  PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
   type Position,
@@ -84,7 +83,7 @@ import PerpsMarketHeader, {
 } from '../../components/PerpsMarketHeader';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
+import { openPerpsModeSelection } from '../../utils/openPerpsModeSelection';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -360,18 +359,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
   const isWatchlist = useSelector(selectIsWatchlist);
 
-  // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Pressing it
-  // flips the shared mode and flashes the switch on top of the current market
-  // screen — no navigation either direction.
+  // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Opens the
+  // Lite/Pro chooser; selecting a mode remounts Lite/Pro via the market router.
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
-  const handlePerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
-      setPerpsMode(nextMode);
-      showPerpsModeFlash(nextMode);
-    },
-    [setPerpsMode],
-  );
+  const { mode: perpsMode } = usePerpsMode();
+  const handlePerpsModeChange = useCallback(() => {
+    openPerpsModeSelection(navigation, {
+      entry: 'market',
+      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    });
+  }, [navigation]);
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {

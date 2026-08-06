@@ -71,9 +71,8 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
-import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../utils/perpsModeFlash';
-import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
+import PerpsModeToggle from '../../components/PerpsModeToggle';
+import { openPerpsModeSelection } from '../../utils/openPerpsModeSelection';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -87,7 +86,6 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import {
-  selectIsFirstTimePerpsUser,
   selectPerpsNetwork,
   selectPerpsWatchlistMarkets,
 } from '../../selectors/perpsController';
@@ -161,55 +159,16 @@ const PerpsHomeView = () => {
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
-  const handleModeChange = useCallback(
-    (nextMode: PerpsMode) => {
-      setPerpsMode(nextMode);
-      // First-time users must still go through onboarding (same as Trade sheet):
-      // routing straight into the Pro market would skip the tutorial otherwise,
-      // so no mode-switch flash is shown here. The redirect mirrors the Pro
-      // branch below so completing the tutorial doesn't land back on Perps
-      // Home while Pro mode is active (TAT-3612).
-      if (isFirstTimePerpsUser) {
-        navigation.navigate(
-          Routes.PERPS.TUTORIAL,
-          nextMode === PerpsMode.Pro
-            ? {
-                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-                redirectScreen: Routes.PERPS.MARKET_DETAILS,
-                redirectParams: {
-                  market: buildDefaultProMarket(),
-                  source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-                },
-              }
-            : undefined,
-        );
-        return;
-      }
-      // Flash the destination mode on top of the current screen.
-      showPerpsModeFlash(nextMode);
-      // Pro lands on the default (BTC) market screen; Lite stays on Perps
-      // home. Home is reset out of history (rather than pushed under the
-      // market screen) so Perps Home is never reachable while Pro mode is
-      // active, including via the back button (TAT-3612).
-      if (nextMode === PerpsMode.Pro) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: buildDefaultProMarket(),
-                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-              },
-            },
-          ],
-        });
-      }
-    },
-    [isFirstTimePerpsUser, navigation, setPerpsMode],
-  );
+  const { mode: perpsMode } = usePerpsMode();
+  const handleModeChange = useCallback(() => {
+    // Open the Lite/Pro chooser instead of flipping immediately. Post-select
+    // navigation (tutorial / Pro BTC market reset) lives in
+    // PerpsModeSelectionView.
+    openPerpsModeSelection(navigation, {
+      entry: 'home',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    });
+  }, [navigation]);
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
   // one recently listed market — see useHasNewMarkets).
