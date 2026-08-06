@@ -1550,6 +1550,9 @@
       "positions_empty_long": "No long positions.",
       "positions_empty_short": "No short positions.",
       "orders_empty": "Your open orders will appear here.",
+      "orders_empty_filtered": "No open {{ticker}} orders.",
+      "orders_empty_long": "No long orders.",
+      "orders_empty_short": "No short orders.",
       "side_filter": {
         "all_sides": "All sides",
         "long": "Long",
@@ -1559,7 +1562,12 @@
         "position_value": "Position value",
         "unrealized_pnl": "Unrealized P&L",
         "funding_rate": "Funding rate",
-        "settings_accessibility": "Sort positions"
+        "order_value": "Order value",
+        "size": "Size",
+        "price": "Price",
+        "time": "Time",
+        "settings_accessibility": "Sort positions",
+        "orders_settings_accessibility": "Sort orders"
       },
       "card": {
         "entry_price": "Entry price",
