@@ -365,25 +365,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const handlePerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode) => {
       // PerpsModeSwitchPill runs the shimmer before invoking this callback. The
       // one-time chooser gates every header toggle, so show it here when the
       // user has not completed it and let the sheet own the switch.
-      // eslint-disable-next-line no-void
-      void (async () => {
-        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
-          entry: 'market',
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-        });
-        if (openedChooser) {
-          return;
-        }
+      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      });
+      if (openedChooser) {
+        return;
+      }
 
-        setPerpsMode(nextMode);
-        if (nextMode === PerpsMode.Pro) {
-          dropPerpsHomeFromStackHistory();
-        }
-      })();
+      setPerpsMode(nextMode);
+      if (nextMode === PerpsMode.Pro) {
+        dropPerpsHomeFromStackHistory();
+      }
     },
     [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );

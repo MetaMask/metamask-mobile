@@ -165,35 +165,32 @@ const PerpsHomeView = () => {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
-    (nextMode: PerpsMode) => {
-      // eslint-disable-next-line no-void
-      void (async () => {
-        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
-          entry: 'home',
-          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-        });
-        if (openedChooser) {
-          return;
-        }
+    async (nextMode: PerpsMode) => {
+      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+        entry: 'home',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
+      if (openedChooser) {
+        return;
+      }
 
-        // Chooser already completed — flip immediately without the sheet.
-        setPerpsMode(nextMode);
-        // Discard Perps Home while Pro is active (TAT-3612).
-        if (nextMode === PerpsMode.Pro) {
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.PERPS.MARKET_DETAILS,
-                params: {
-                  market: buildDefaultProMarket(),
-                  source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-                },
+      // Chooser already completed — flip immediately without the sheet.
+      setPerpsMode(nextMode);
+      // Discard Perps Home while Pro is active (TAT-3612).
+      if (nextMode === PerpsMode.Pro) {
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.PERPS.MARKET_DETAILS,
+              params: {
+                market: buildDefaultProMarket(),
+                source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
               },
-            ],
-          });
-        }
-      })();
+            },
+          ],
+        });
+      }
     },
     [navigation, setPerpsMode],
   );

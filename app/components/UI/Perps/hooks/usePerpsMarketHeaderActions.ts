@@ -28,7 +28,7 @@ export interface UsePerpsMarketHeaderActionsResult {
   handleBackPress: () => void;
   handleMarketListPress: () => void;
   handleFavoritePress: () => void;
-  handlePerpsModeChange: (nextMode: PerpsMode) => void;
+  handlePerpsModeChange: (nextMode: PerpsMode) => void | Promise<void>;
 }
 
 /**
@@ -112,28 +112,25 @@ export const usePerpsMarketHeaderActions = ({
   }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
 
   const handlePerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
+    async (nextMode: PerpsMode) => {
       // The market-header pill owns the shimmer delay; this fires once it ends.
       // The chooser gates every header toggle, so a user who reaches a market
       // without ever seeing it gets the sheet here and it owns the switch.
-      // eslint-disable-next-line no-void
-      void (async () => {
-        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
-          entry: 'market',
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-        });
-        if (openedChooser) {
-          return;
-        }
+      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+        entry: 'market',
+        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      });
+      if (openedChooser) {
+        return;
+      }
 
-        // Chooser already completed — flip immediately without the sheet.
-        setPerpsMode(nextMode);
-        // Drop Home so back cannot reveal the Lite hub while Pro is active
-        // (TAT-3612).
-        if (nextMode === PerpsMode.Pro) {
-          dropPerpsHomeFromStackHistory();
-        }
-      })();
+      // Chooser already completed — flip immediately without the sheet.
+      setPerpsMode(nextMode);
+      // Drop Home so back cannot reveal the Lite hub while Pro is active
+      // (TAT-3612).
+      if (nextMode === PerpsMode.Pro) {
+        dropPerpsHomeFromStackHistory();
+      }
     },
     [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );

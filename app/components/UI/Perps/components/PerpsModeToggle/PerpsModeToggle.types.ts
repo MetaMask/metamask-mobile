@@ -22,7 +22,7 @@ export interface PerpsModeToggleProps {
    * Called when the user selects a different mode. In the `'active'` variant,
    * this fires with the opposite mode when the pill is pressed.
    */
-  onChange?: (mode: PerpsMode) => void;
+  onChange?: (mode: PerpsMode) => void | Promise<void>;
 
   /**
    * @default 'toggle'
