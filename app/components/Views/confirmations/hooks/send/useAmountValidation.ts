@@ -1,4 +1,5 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
+import { debounce } from 'lodash';
 import BN from 'bnjs4';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -16,12 +17,15 @@ import {
   type SnapOnAmountInputResult,
 } from './useSnapAmountOnInput';
 
+const AMOUNT_VALIDATION_DEBOUNCE_MS = 300;
+
 export const useAmountValidation = () => {
   const { asset, value } = useSendContext();
   const { decimals, rawBalanceBN } = useBalance();
   const { isNonEvmSendType } = useSendType();
   const { validateAmountWithSnap } = useSnapAmountOnInput();
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
+  const unmountedRef = useRef(false);
 
   const setAndReturnError = useCallback((errorMessage: string | undefined) => {
     setAmountError(errorMessage);
@@ -94,9 +98,29 @@ export const useAmountValidation = () => {
     return setAndReturnError(error);
   }, [value, validateNonEvmAmount, setAndReturnError]);
 
+  const validateAmountAsyncRef = useRef(validateAmountAsync);
+  validateAmountAsyncRef.current = validateAmountAsync;
+
+  const debouncedValidateAmount = useMemo(
+    () =>
+      debounce(() => {
+        validateAmountAsyncRef.current();
+      }, AMOUNT_VALIDATION_DEBOUNCE_MS),
+    [],
+  );
+
   useEffect(() => {
-    validateAmountAsync();
-  }, [validateAmountAsync]);
+    debouncedValidateAmount();
+    return () => debouncedValidateAmount.cancel();
+  }, [debouncedValidateAmount, validateAmountAsync]);
+
+  useEffect(
+    () => () => {
+      unmountedRef.current = true;
+      debouncedValidateAmount.cancel();
+    },
+    [debouncedValidateAmount],
+  );
 
   return { amountError, validateNonEvmAmountAsync };
 };
