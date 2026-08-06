@@ -1,3 +1,11 @@
+export const SCAM_QUESTIONNAIRE_FLAG_KEY =
+  'productSafetyScamQuestionnaireEnabled';
+
+export const SCAM_QUESTIONNAIRE_VARIANTS = {
+  control: { showQuestionnaire: false },
+  treatment: { showQuestionnaire: true },
+} as const;
+
 export const TOTAL_QUESTIONS = 3;
 
 // Bump when the questions, answer options, or red-flag verdicts change.

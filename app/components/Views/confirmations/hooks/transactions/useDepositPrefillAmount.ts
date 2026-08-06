@@ -24,6 +24,16 @@ function formatFiatAmount(value: BigNumber): string {
 
 export interface DepositPrefillResult {
   prefillAmount: string | undefined;
+  /**
+   * Percentage of balance used for the prefill (100 for stablecoins, 50
+   * otherwise). Undefined when there is no prefill amount.
+   */
+  percentage: number | undefined;
+  /**
+   * True when the computed percentage amount was reduced by a deposit limit.
+   * Limit-capped prefills must not go through the Max/percentage path.
+   */
+  isLimitCapped: boolean;
   enabled: boolean;
   isLoading: boolean;
   hasPrefilled: boolean;
@@ -67,25 +77,36 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   const tokenKey = `${payToken?.address}:${payToken?.chainId}:${accountOverride}`;
   const [committedKey, setCommittedKey] = useState<string | null>(null);
 
-  const prefillAmount = useMemo(() => {
+  const { prefillAmount, percentage, isLimitCapped } = useMemo(() => {
     if (!enabled || !balanceUsd || balanceUsd <= 0 || !payToken) {
-      return undefined;
+      return {
+        prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
     }
 
     const stable = isRouteToken(relayFixedSpread, {
       chainId: payToken.chainId,
       address: payToken.address,
     });
-    const percentage = stable ? 100 : 50;
+    const nextPercentage = stable ? 100 : 50;
 
-    const raw = new BigNumber(percentage)
+    const raw = new BigNumber(nextPercentage)
       .dividedBy(100)
       .multipliedBy(balanceUsd)
       .decimalPlaces(2, BigNumber.ROUND_DOWN);
 
-    return formatFiatAmount(
-      depositLimit !== undefined ? BigNumber.min(raw, depositLimit) : raw,
-    );
+    const capped =
+      depositLimit !== undefined && raw.isGreaterThan(depositLimit);
+
+    return {
+      prefillAmount: formatFiatAmount(
+        capped ? new BigNumber(depositLimit) : raw,
+      ),
+      percentage: nextPercentage,
+      isLimitCapped: capped,
+    };
   }, [enabled, balanceUsd, payToken, depositLimit, relayFixedSpread]);
 
   useEffect(() => {
@@ -106,5 +127,12 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   const hasPrefilled = committedKey === tokenKey;
   const isLoading = enabled && !hasPrefilled;
 
-  return { prefillAmount, isLoading, hasPrefilled, enabled };
+  return {
+    prefillAmount,
+    percentage,
+    isLimitCapped,
+    isLoading,
+    hasPrefilled,
+    enabled,
+  };
 }
