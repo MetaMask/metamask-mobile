@@ -379,7 +379,7 @@ const PerpsProPositionsPanel = ({
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets()}
+      {renderActionSheets(sideFilteredPositions)}
       <PerpsProPositionsSortSheet
         isVisible={isSortSheetOpen}
         sortConfig={sortConfig}
