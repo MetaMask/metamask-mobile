@@ -725,30 +725,19 @@ class TestDApp {
     networkName: string,
     { exactMatch = false }: { exactMatch?: boolean } = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      // Honor exactMatch on both platforms (e.g. Sepolia vs Linea Sepolia).
-      const networkItem = await PlaywrightMatchers.getElementByText(
-        networkName,
-        exactMatch,
-      );
-      const webview = await PlaywrightMatchers.getElementById(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      );
-      await PlaywrightGestures.scrollIntoView(networkItem, {
-        scrollableElement: webview,
-        scrollParams: { direction: 'up' },
-        maxScrolls: 20,
-      });
-      await PlaywrightGestures.tap(networkItem);
-      return;
-    }
-
-    await this.tapButton(
-      this.getNetworkItemByName(networkName, { exactMatch }),
-      {
-        elemDescription: `tap ${networkName} network`,
-      },
+    const networkItem = await PlaywrightMatchers.getElementByText(
+      networkName,
+      exactMatch,
     );
+    const webview = await PlaywrightMatchers.getElementById(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
+    await PlaywrightGestures.scrollIntoView(networkItem, {
+      scrollableElement: webview,
+      scrollParams: { direction: 'up' },
+      maxScrolls: 20,
+    });
+    await PlaywrightGestures.tap(networkItem);
   }
 }
 

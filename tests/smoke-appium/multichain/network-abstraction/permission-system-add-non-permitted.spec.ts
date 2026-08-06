@@ -47,7 +47,6 @@ appiumTest.describe(
             // Exact match: "Sepolia" is a substring of "Linea Sepolia"
             await TestDApp.tapNetworkByName(SEPOLIA, { exactMatch: true });
 
-            // RN a11y joins sibling Text nodes with ", "
             const expectedText = `Use your enabled networks, Requesting for ${SEPOLIA}`;
             await Assertions.expectElementToHaveLabel(
               ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,

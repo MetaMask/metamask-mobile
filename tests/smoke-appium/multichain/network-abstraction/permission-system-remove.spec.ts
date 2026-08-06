@@ -53,17 +53,12 @@ appiumTest.describe(
             await TestDApp.tapDappConnectButton();
             await ConnectBottomSheet.tapConnectButton();
 
-            // Browser fullscreen hides the app tab bar — leave browser first.
             await Browser.tapCloseBrowserButton();
 
-            // Remove network using NetworkManager (replaces dead nav-bar
-            // network button + long-press delete from the Detox original).
             await TabBarComponent.tapWallet();
             await WalletView.tapOnNewTokensSection();
             await WalletView.tapTokenNetworkFilter();
 
-            // NetworkManager refuses Delete on the active network — switch
-            // away from Optimism first (selecting dismisses the sheet).
             await NetworkListModal.changeNetworkTo(
               NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
             );
@@ -77,8 +72,6 @@ appiumTest.describe(
             await ToastModal.waitForToastToDismiss();
             await NetworkManager.navigateBackFromTokensFullView();
 
-            // Closing the browser drops the Detox-era auto permission sheet.
-            // Verify cleanup by inspecting remaining dapp chain permissions.
             await navigateToBrowserView();
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
