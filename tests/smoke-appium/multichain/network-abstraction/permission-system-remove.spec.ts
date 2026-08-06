@@ -2,6 +2,7 @@ import { test as appiumTest } from '../../../framework/fixtures/playwright/index
 import { SmokeNetworkAbstractions } from '../../../tags.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import {
+  connectToTestDapp,
   navigateToBrowserView,
   waitForTestDappToLoad,
 } from '../../../flows/browser.flow.js';
@@ -12,8 +13,6 @@ import Matchers from '../../../framework/Matchers.js';
 import { DappVariants } from '../../../framework/Constants.js';
 import { PopularNetworksList } from '../../../resources/networks.e2e.js';
 import Browser from '../../../page-objects/Browser/BrowserView.js';
-import TestDApp from '../../../page-objects/Browser/TestDApp.js';
-import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet.js';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal.js';
 import NetworkListModal from '../../../page-objects/Network/NetworkListModal.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
@@ -48,10 +47,7 @@ appiumTest.describe(
             await navigateToBrowserView();
 
             // Connect to DApp (current network Optimism is permitted by default)
-            await Browser.navigateToTestDApp();
-            await waitForTestDappToLoad();
-            await TestDApp.tapDappConnectButton();
-            await ConnectBottomSheet.tapConnectButton();
+            await connectToTestDapp();
 
             await Browser.tapCloseBrowserButton();
 
