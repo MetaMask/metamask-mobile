@@ -1,4 +1,3 @@
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 
@@ -16,8 +15,20 @@ export interface PerpsModeSelectionRouteParams {
   source?: string;
 }
 
+/**
+ * Minimal navigation surface so callers can pass `AppNavigationProp`, root
+ * `useNavigation()` results, or test doubles without fighting the
+ * `getState(): State | undefined` override on MetaMask's navigation types.
+ *
+ * Method syntax (not a property) keeps `navigate` parameter-bivariant so
+ * strongly typed navigators remain assignable under `strictFunctionTypes`.
+ */
+export interface OpenPerpsModeSelectionNavigation {
+  navigate(name: string, params?: object): void;
+}
+
 export const openPerpsModeSelection = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: OpenPerpsModeSelectionNavigation,
   params: PerpsModeSelectionRouteParams = {},
 ): void => {
   navigation.navigate(Routes.PERPS.MODALS.ROOT, {

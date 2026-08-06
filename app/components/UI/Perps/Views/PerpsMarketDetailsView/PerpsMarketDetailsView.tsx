@@ -1641,7 +1641,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         market={market}
         testIDs={createLiteMarketHeaderTestIDs()}
         onBackPress={handleBackPress}
-        showMarketIdentity={false}
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
         endAccessory={liteHeaderEndAccessory}
