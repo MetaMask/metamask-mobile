@@ -53,6 +53,11 @@ import {
   navigateWithDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
+import { useTrackFilterClicked } from '../../hooks/useTrackFilterClicked';
+import {
+  FilterLocation,
+  FilterType,
+} from '../../../core/Analytics/events/filters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -80,6 +85,7 @@ const ActivityScreen = () => {
     redirectToPerpsTransactions: redirectToPerpsParam,
     redirectToOrders: redirectToOrdersParam,
     initialPerpsFilter: initialPerpsFilterParam,
+    entryPoint,
   } = params;
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
     resolveInitialActivityTypeFilter(params),
@@ -92,6 +98,7 @@ const ActivityScreen = () => {
   );
 
   const networkOptions = useNetworkFilterOptions();
+  const trackFilterClicked = useTrackFilterClicked();
 
   // TODO(activity-redesign): restore with the search input.
   // const handleClearSearch = useCallback(() => {
@@ -165,9 +172,25 @@ const ActivityScreen = () => {
     PERPS_ACTIVITY_FILTER_LABEL_KEY[perpsFilter],
   );
 
-  const handleSelectNetwork = useCallback((chainIds: CaipChainId[] | null) => {
-    setNetworkFilter(chainIds);
-  }, []);
+  // Fires only from an explicit selection in the network filter sheet, never on
+  // load. `networkFilter` is the selection the sheet was opened with, so it is
+  // the `from_network` for this change.
+  const handleSelectNetwork = useCallback(
+    (chainIds: CaipChainId[] | null) => {
+      const fromNetwork = networkFilter?.[0];
+      const toNetwork = chainIds?.[0];
+
+      trackFilterClicked({
+        location: FilterLocation.Activity,
+        filter_type: FilterType.Network,
+        ...(fromNetwork ? { from_network: fromNetwork } : {}),
+        ...(toNetwork ? { to_network: toNetwork } : {}),
+      });
+
+      setNetworkFilter(chainIds);
+    },
+    [networkFilter, trackFilterClicked],
+  );
 
   const handleSelectPerpsFilter = useCallback((filter: PerpsActivityFilter) => {
     setPerpsFilter(filter);
@@ -330,6 +353,8 @@ const ActivityScreen = () => {
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
               subFilterKinds={subFilterKinds}
+              trackScreenViewed
+              entryPoint={entryPoint}
             />
 
             {isFilterBarPinned ? (

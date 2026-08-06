@@ -2,6 +2,7 @@ import {
   PERPS_ORDER_KINDS,
   type ActivityKind,
 } from '../../../util/activity-adapters';
+import type { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 
 export type { ActivityKind };
 
@@ -183,6 +184,12 @@ export interface ActivityScreenParams {
    * (e.g. Perps → Perps, Predict → Predictions).
    */
   initialTypeFilter?: ActivityTypeFilter;
+  /**
+   * Attributes the `Activity Screen Viewed` event to where the user came from.
+   * Callers that cannot attribute an entry point leave it unset rather than
+   * guessing — see `ActivityScreenEntryPoint`.
+   */
+  entryPoint?: ActivityScreenEntryPoint;
   initialPerpsFilter?: PerpsActivityFilter;
   /** Legacy redirect hints, mapped to a Type filter for back-compat. */
   redirectToPerpsTransactions?: boolean;

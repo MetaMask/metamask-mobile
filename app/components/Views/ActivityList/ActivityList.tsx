@@ -100,6 +100,9 @@ import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusCo
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ActivityEmptyState from '../ActivityScreen/components/ActivityEmptyState';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useActivityScreenViewed } from '../ActivityScreen/hooks/useActivityScreenViewed';
+import type { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
@@ -212,6 +215,14 @@ interface ActivityListProps {
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
+  /**
+   * Emits `Activity Screen Viewed` for this list. Only the standalone Activity
+   * screen sets it; embedded lists must leave it off so they don't report
+   * screen views.
+   */
+  trackScreenViewed?: boolean;
+  /** Where the user came from, for `Activity Screen Viewed` attribution. */
+  entryPoint?: ActivityScreenEntryPoint;
 }
 
 export interface ActivityListHandle {
@@ -221,7 +232,16 @@ export interface ActivityListHandle {
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
   (
-    { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
+    {
+      header,
+      chainId,
+      scrollY,
+      typeFilter,
+      networkFilter,
+      subFilterKinds,
+      trackScreenViewed = false,
+      entryPoint,
+    },
     ref,
   ) => {
     const navigation = useNavigation<AppNavigationProp>();
@@ -561,6 +581,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       rampActivityItems,
     ]);
     const groupedData = useMemo(() => groupActivityListItems(data), [data]);
+
+    const pendingActivityCount = useMemo(
+      () => data.filter((item) => item.status === 'pending').length,
+      [data],
+    );
 
     const hasConfiguredEvmChains = configuredEVMChainIds.length > 0;
     const popularListBlockExplorer = useBlockExplorer(
@@ -1253,6 +1278,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const shouldShowTransactionList = data.length > 0;
     const items = shouldShowTransactionList ? groupedData : [];
+
+    useActivityScreenViewed({
+      enabled: trackScreenViewed,
+      isSettled: !isRelevantActivityLoading,
+      isEmpty: !shouldShowTransactionList,
+      pendingCount: pendingActivityCount,
+      typeFilter,
+      networkFilter,
+      entryPoint,
+    });
 
     const renderItem = ({
       item: groupedItem,
