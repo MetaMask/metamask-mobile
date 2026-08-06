@@ -1539,6 +1539,7 @@
       "close_keyboard": "Close keyboard"
     },
     "pro_positions_panel": {
+      "order_history": "Order history",
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",

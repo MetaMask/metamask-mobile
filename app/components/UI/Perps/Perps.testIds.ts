@@ -502,6 +502,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
   POSITIONS_PANEL_TABS: 'perps-pro-market-positions-panel-tabs',
+  POSITIONS_HISTORY_BUTTON: 'perps-pro-market-positions-history',
   POSITIONS_PANEL_TAB_POSITIONS:
     'perps-pro-market-positions-panel-tab-positions',
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',

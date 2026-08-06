@@ -31,7 +31,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -209,6 +211,14 @@ const PerpsProMarketView = () => {
     setIsBalanceSheetVisible(true);
   }, []);
 
+  const appNavigation = useNavigation<AppNavigationProp>();
+
+  const handleHistoryPress = useCallback(() => {
+    appNavigation.navigate(Routes.PERPS.ACTIVITY, {
+      redirectToPerpsTransactions: true,
+    });
+  }, [appNavigation]);
+
   const handleBalanceSheetClose = useCallback(() => {
     setIsBalanceSheetVisible(false);
   }, []);
@@ -380,6 +390,7 @@ const PerpsProMarketView = () => {
           <PerpsProPositionsPanel
             symbol={market.symbol}
             onSelectMarket={handleSelectMarket}
+            onHistoryPress={handleHistoryPress}
           />
         </Animated.View>
       </Animated.ScrollView>
