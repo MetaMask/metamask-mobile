@@ -3,6 +3,7 @@ import { execFileSync } from 'child_process';
 import AndroidWebViewCdpHelpers, {
   isAndroidWebViewCdpEnabled,
   pickMetaMaskWebViewDebuggerUrl,
+  pickPageTargetFromContexts,
   urlsReferToSameDapp,
   type RawAppiumWebViewContext,
 } from './AndroidWebViewCdpHelpers';
@@ -85,16 +86,10 @@ jest.mock('ws', () => {
         } else if (expression.includes('activeElement')) {
           value = true;
         } else if (
-          expression.includes('options') &&
-          expression.includes('getElementById')
-        ) {
-          value = true;
-        } else if (
           expression.includes('el.click') ||
           expression.includes('.click(')
         ) {
-          // Simulate disabled controls: evaluate returns false so native
-          // wait-until-enabled can run.
+          // Disabled controls return false → native wait-until-enabled.
           value =
             expression.includes('getElementById') &&
             !expression.includes('"disabled-id"');
@@ -103,7 +98,7 @@ jest.mock('ws', () => {
           (expression.includes("dispatchEvent(new Event('input'") ||
             expression.includes('dispatchEvent(new Event("input"'))
         ) {
-          // Fill/select must use React-friendly value setting.
+          // Require `_valueTracker` path (do not match on `options` alone).
           value = expression.includes('getElementById');
         } else if (
           expression.includes('innerText') ||
@@ -114,6 +109,11 @@ jest.mock('ws', () => {
             : null;
         } else if (expression.includes('scrollIntoView')) {
           value = expression.includes('getElementById');
+        } else if (
+          expression === 'location.href' ||
+          expression.includes('location.href')
+        ) {
+          value = 'https://metamask.github.io/snaps/test-snaps/3.5.2/';
         } else {
           value = false;
         }
@@ -215,6 +215,15 @@ describe('urlsReferToSameDapp', () => {
       ),
     ).toBe(false);
   });
+
+  it('treats index.html as the same path', () => {
+    expect(
+      urlsReferToSameDapp(
+        'https://metamask.github.io/snaps/test-snaps/3.5.2/index.html',
+        'https://metamask.github.io/snaps/test-snaps/3.5.2/',
+      ),
+    ).toBe(true);
+  });
 });
 
 describe('pickMetaMaskWebViewDebuggerUrl', () => {
@@ -271,19 +280,95 @@ describe('pickMetaMaskWebViewDebuggerUrl', () => {
   });
 });
 
+describe('pickPageTargetFromContexts', () => {
+  const packageId = 'io.metamask';
+  const pageUrl = 'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+
+  it('returns the matching page from Appium pages[]', () => {
+    const page = {
+      type: 'page',
+      url: pageUrl,
+      webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/snaps',
+    };
+    const contexts: RawAppiumWebViewContext[] = [
+      {
+        webviewName: 'WEBVIEW_io.metamask',
+        info: {
+          webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/browser/b',
+        },
+        pages: [page],
+      },
+    ];
+
+    expect(pickPageTargetFromContexts(contexts, packageId, pageUrl)).toEqual(
+      page,
+    );
+  });
+
+  it('returns undefined when pages do not match pageUrl', () => {
+    const contexts: RawAppiumWebViewContext[] = [
+      {
+        webviewName: 'WEBVIEW_io.metamask',
+        pages: [
+          {
+            url: 'https://other.example/',
+            webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/other',
+          },
+        ],
+      },
+    ];
+
+    expect(
+      pickPageTargetFromContexts(contexts, packageId, pageUrl),
+    ).toBeUndefined();
+  });
+});
+
 const pageUrl = 'https://metamask.github.io/snaps/test-snaps/3.5.2/';
 const originalFetch = global.fetch;
 
+describe('AndroidWebViewCdpHelpers.primePage', () => {
+  beforeEach(installCdpHappyPathMocks);
+  afterEach(restoreCdpMocks);
+
+  it('caches a verified page WebSocket when location matches', async () => {
+    await expect(AndroidWebViewCdpHelpers.primePage(pageUrl)).resolves.toBe(
+      true,
+    );
+
+    const execute = (getDriver as jest.Mock)().execute as jest.Mock;
+    execute.mockClear();
+
+    await AndroidWebViewCdpHelpers.tapElementById('connectbip32', { pageUrl });
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('returns false when ANDROID_WEBVIEW_CDP is disabled', async () => {
+    setCdpEnv('0');
+    await expect(AndroidWebViewCdpHelpers.primePage(pageUrl)).resolves.toBe(
+      false,
+    );
+  });
+});
+
 function installCdpHappyPathMocks(): void {
   clearCdpEnv();
+  AndroidWebViewCdpHelpers.resetCache();
   execFileSyncMock.mockReset();
   (getDriver as jest.Mock).mockReturnValue({
     execute: jest.fn().mockResolvedValue([
       {
         webviewName: 'WEBVIEW_io.metamask',
         info: {
-          webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/mm',
+          webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/browser/b',
         },
+        pages: [
+          {
+            type: 'page',
+            url: pageUrl,
+            webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/mm',
+          },
+        ],
       },
     ]),
   });
@@ -312,6 +397,7 @@ function installCdpHappyPathMocks(): void {
 function restoreCdpMocks(): void {
   global.fetch = originalFetch;
   clearCdpEnv();
+  AndroidWebViewCdpHelpers.resetCache();
   jest.clearAllMocks();
 }
 
@@ -326,6 +412,41 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
     );
 
     expect(result).toBe(true);
+  });
+
+  it('uses Appium pages[] and can skip waiting on empty /json/list', async () => {
+    const result = await AndroidWebViewCdpHelpers.scrollElementByIdIntoView(
+      'connectbip32',
+      { pageUrl },
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('reuses a cached page WebSocket on the next action', async () => {
+    const execute = jest.fn().mockResolvedValue([
+      {
+        webviewName: 'WEBVIEW_io.metamask',
+        info: {
+          webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/browser/b',
+        },
+        pages: [
+          {
+            type: 'page',
+            url: pageUrl,
+            webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/page/mm',
+          },
+        ],
+      },
+    ]);
+    (getDriver as jest.Mock).mockReturnValue({ execute });
+
+    await AndroidWebViewCdpHelpers.scrollElementByIdIntoView('connectbip32', {
+      pageUrl,
+    });
+    await AndroidWebViewCdpHelpers.tapElementById('connectbip32', { pageUrl });
+
+    expect(execute).toHaveBeenCalledTimes(1);
   });
 
   it('returns false when element id is missing in the page', async () => {
@@ -360,7 +481,6 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
         },
       ]),
     });
-    // Avoid hanging on adb forward fallback in unit tests.
     execFileSyncMock.mockImplementation(() => {
       throw new Error('adb unavailable in unit test');
     });
@@ -376,6 +496,17 @@ describe('AndroidWebViewCdpHelpers.scrollElementByIdIntoView', () => {
   it('returns false when CDP WebSocket connect never opens', async () => {
     jest.useFakeTimers();
     try {
+      // No pages[] → fall through to /json/list hang URL.
+      (getDriver as jest.Mock).mockReturnValue({
+        execute: jest.fn().mockResolvedValue([
+          {
+            webviewName: 'WEBVIEW_io.metamask',
+            info: {
+              webSocketDebuggerUrl: 'ws://127.0.0.1:9223/devtools/browser/b',
+            },
+          },
+        ]),
+      });
       global.fetch = jest.fn(async (input: RequestInfo | URL) => {
         const url = String(input);
         if (url.endsWith('/json/version')) {

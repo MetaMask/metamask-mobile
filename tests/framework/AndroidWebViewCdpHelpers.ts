@@ -9,25 +9,29 @@ const logger = createPlaywrightLogger('AndroidWebViewCdp');
 
 /** Host port for `adb forward` to MetaMask `@webview_devtools_remote_<pid>`. */
 const WEBVIEW_CDP_FORWARD_PORT = 9223;
-const CDP_READY_TIMEOUT_MS = 15_000;
-const PAGE_TIMEOUT_MS = 15_000;
-/** Cap stuck WebSocket handshakes so native scroll fallback can start. */
+const CDP_READY_TIMEOUT_MS = 10_000;
+/** Short `/json/list` poll when Appium `pages[]` has no match. */
+const PAGE_TIMEOUT_MS = 3_000;
+/** Cap stuck WebSocket handshakes. */
 const CDP_CONNECT_TIMEOUT_MS = 5_000;
 const POLL_MS = 400;
 
-export interface RawAppiumWebViewContext {
-  webviewName?: string;
-  webview?: string;
-  packageName?: string;
-  info?: { webSocketDebuggerUrl?: string };
-}
-
-interface CdpTarget {
+export interface CdpTarget {
   id?: string;
   type?: string;
   url?: string;
   title?: string;
   webSocketDebuggerUrl?: string;
+}
+
+export interface RawAppiumWebViewContext {
+  webviewName?: string;
+  webview?: string;
+  packageName?: string;
+  proc?: string;
+  info?: { webSocketDebuggerUrl?: string };
+  /** Appium page targets; preferred over `/json/list`. */
+  pages?: CdpTarget[];
 }
 
 interface CdpEvaluateResult {
@@ -160,13 +164,7 @@ class CdpSession {
   }
 }
 
-/**
- * Kill switch for Android WebView CDP actions. Default on; set
- * `ANDROID_WEBVIEW_CDP=0` (or `false` / `off` / `no`) to force native-only.
- *
- * Dynamic env key — babel `transform-inline-environment-variables` must not
- * bake this at transform time so local/CI can disable CDP at runtime.
- */
+/** Default on. Dynamic env read (do not inline). Disable: 0|false|off|no. */
 export function isAndroidWebViewCdpEnabled(): boolean {
   const envKey = 'ANDROID_WEBVIEW_CDP';
   const raw = process.env[envKey]?.trim().toLowerCase();
@@ -197,16 +195,23 @@ export function urlsReferToSameDapp(
     const samePort =
       (candidate.port || defaultPort(candidate.protocol)) ===
       (target.port || defaultPort(target.protocol));
-    const samePath =
-      candidate.pathname.replace(/\/$/, '') ===
-      target.pathname.replace(/\/$/, '');
-    return sameHostFamily && samePort && samePath;
+    return (
+      sameHostFamily &&
+      samePort &&
+      samePathname(candidate.pathname, target.pathname)
+    );
   } catch {
     return false;
   }
 
   function defaultPort(protocol: string): string {
     return protocol === 'https:' ? '443' : '80';
+  }
+
+  function samePathname(a: string, b: string): boolean {
+    const norm = (p: string) =>
+      p.replace(/\/index\.html$/i, '').replace(/\/$/, '');
+    return norm(a) === norm(b);
   }
 }
 
@@ -238,9 +243,7 @@ function isMetaMaskWebViewContext(
   );
 }
 
-/**
- * Prefer MetaMask in-app WebView debugger URL; never return Chrome's.
- */
+/** MetaMask WebView debugger URL (often browser-level, not page). */
 export function pickMetaMaskWebViewDebuggerUrl(
   rawContexts: RawAppiumWebViewContext[],
   packageId: string,
@@ -255,6 +258,50 @@ export function pickMetaMaskWebViewDebuggerUrl(
   return undefined;
 }
 
+/**
+ * MetaMask page targets from Appium `pages[]`.
+ * URL matches first; other page targets follow (Appium url metadata can be stale —
+ * callers must verify with location.href).
+ */
+export function listPageTargetsFromContexts(
+  rawContexts: RawAppiumWebViewContext[],
+  packageId: string,
+  pageUrl: string,
+): CdpTarget[] {
+  const matched: CdpTarget[] = [];
+  const other: CdpTarget[] = [];
+  for (const ctx of rawContexts) {
+    if (!isMetaMaskWebViewContext(ctx, packageId)) {
+      continue;
+    }
+    for (const page of ctx.pages ?? []) {
+      if (!page.webSocketDebuggerUrl) {
+        continue;
+      }
+      if (page.type && page.type !== 'page') {
+        continue;
+      }
+      if (urlsReferToSameDapp(page.url ?? '', pageUrl)) {
+        matched.push(page);
+      } else {
+        other.push(page);
+      }
+    }
+  }
+  return [...matched, ...other];
+}
+
+/** First Appium `pages[]` entry whose reported url matches `pageUrl`. */
+export function pickPageTargetFromContexts(
+  rawContexts: RawAppiumWebViewContext[],
+  packageId: string,
+  pageUrl: string,
+): CdpTarget | undefined {
+  return listPageTargetsFromContexts(rawContexts, packageId, pageUrl).find(
+    (page) => urlsReferToSameDapp(page.url ?? '', pageUrl),
+  );
+}
+
 export function httpEndpointFromWebSocketUrl(
   wsUrl: string,
 ): string | undefined {
@@ -267,10 +314,28 @@ export function httpEndpointFromWebSocketUrl(
   }
 }
 
-/**
- * Drive MetaMask in-app WebView actions via CDP (bypasses Chromedriver).
- */
+/** MetaMask in-app WebView actions via CDP. */
 export default class AndroidWebViewCdpHelpers {
+  private static readonly cachedPageWsByUrl = new Map<string, string>();
+
+  /** Drop cached page sockets (soft-reload / relaunch). */
+  static resetCache(): void {
+    this.cachedPageWsByUrl.clear();
+  }
+
+  /**
+   * Warm + verify the page WS for `pageUrl` (location.href match).
+   * Call after Test Snaps is visible so later actions skip rediscovery.
+   */
+  static async primePage(pageUrl: string): Promise<boolean> {
+    if (!isAndroidWebViewCdpEnabled() || !pageUrl?.trim()) {
+      return false;
+    }
+    this.cachedPageWsByUrl.delete(pageUrl);
+    const href = await this.withEvaluate<string>(pageUrl, 'location.href');
+    return typeof href === 'string' && urlsReferToSameDapp(href, pageUrl);
+  }
+
   private static async withEvaluate<T>(
     pageUrl: string,
     expression: string,
@@ -282,34 +347,146 @@ export default class AndroidWebViewCdpHelpers {
       return undefined;
     }
 
-    try {
-      const endpoint = await this.resolveCdpHttpEndpoint();
-      const target = await this.waitForCdpTarget(endpoint, pageUrl);
-      if (!target.webSocketDebuggerUrl) {
-        return undefined;
-      }
-
-      const session = await CdpSession.connect(target.webSocketDebuggerUrl);
+    let lastError = '';
+    const attempt = async (
+      wsUrl: string,
+      verifyLocation: boolean,
+    ): Promise<{ ok: true; value: T } | { ok: false }> => {
       try {
-        return await session.evaluate<T>(expression);
-      } finally {
-        session.close();
+        const session = await CdpSession.connect(wsUrl);
+        try {
+          if (verifyLocation) {
+            const href = await session.evaluate<string>('location.href');
+            if (
+              typeof href !== 'string' ||
+              !urlsReferToSameDapp(href, pageUrl)
+            ) {
+              logger.debug(`CDP skip WS (href=${String(href)}) for ${pageUrl}`);
+              return { ok: false };
+            }
+          }
+          const value = await session.evaluate<T>(expression);
+          this.cachedPageWsByUrl.set(pageUrl, wsUrl);
+          return { ok: true, value };
+        } finally {
+          session.close();
+        }
+      } catch (error) {
+        this.cachedPageWsByUrl.delete(pageUrl);
+        lastError = error instanceof Error ? error.message : String(error);
+        return { ok: false };
       }
-    } catch (error) {
-      logger.debug(
-        `CDP evaluate failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-      return undefined;
+    };
+
+    const cached = this.cachedPageWsByUrl.get(pageUrl);
+    if (cached) {
+      const cachedResult = await attempt(cached, false);
+      if (cachedResult.ok) {
+        return cachedResult.value;
+      }
     }
+
+    for (const wsUrl of await this.listPageDebuggerUrls(pageUrl)) {
+      if (wsUrl === cached) {
+        continue;
+      }
+      const result = await attempt(wsUrl, true);
+      if (result.ok) {
+        return result.value;
+      }
+    }
+
+    if (lastError) {
+      logger.debug(`CDP evaluate failed: ${lastError}`);
+    }
+    return undefined;
   }
 
   /**
-   * Scroll `#webId` into view via CDP. Returns true when evaluate reports the
-   * element existed and scroll ran; false on any discovery/connect/evaluate miss
-   * so callers can fall back to native UiScrollable.
+   * Candidate page WS URLs: Appium `pages[]` (url-match first) + `/json/list`.
+   * Always merge `/json/list` — Appium page.url metadata is often wrong/stale.
    */
+  private static async listPageDebuggerUrls(
+    pageUrl: string,
+  ): Promise<string[]> {
+    const packageId = APP_PACKAGE_IDS.ANDROID;
+    const seen = new Set<string>();
+    const preferred: string[] = [];
+    const rest: string[] = [];
+    const add = (wsUrl: string | undefined, toPreferred: boolean) => {
+      if (!wsUrl || seen.has(wsUrl)) {
+        return;
+      }
+      seen.add(wsUrl);
+      (toPreferred ? preferred : rest).push(wsUrl);
+    };
+
+    let rawContexts: RawAppiumWebViewContext[] | undefined;
+    try {
+      rawContexts = (await getDriver().execute(
+        'mobile: getContexts',
+      )) as RawAppiumWebViewContext[];
+      for (const page of listPageTargetsFromContexts(
+        rawContexts,
+        packageId,
+        pageUrl,
+      )) {
+        add(
+          page.webSocketDebuggerUrl,
+          urlsReferToSameDapp(page.url ?? '', pageUrl),
+        );
+      }
+    } catch (error) {
+      logger.debug(
+        'Could not read Appium WebView pages for CDP:',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
+    try {
+      const endpoint = await this.resolveCdpHttpEndpoint(rawContexts);
+      const deadline = Date.now() + PAGE_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        try {
+          const response = await fetch(`${endpoint}/json/list`);
+          if (response.ok) {
+            const targets = (await response.json()) as CdpTarget[];
+            for (const t of targets) {
+              if (
+                (t.type === 'page' || !t.type) &&
+                t.webSocketDebuggerUrl &&
+                urlsReferToSameDapp(t.url ?? '', pageUrl)
+              ) {
+                add(t.webSocketDebuggerUrl, true);
+              }
+            }
+            if (preferred.length > 0) {
+              break;
+            }
+          }
+        } catch {
+          // Keep polling
+        }
+        await new Promise((r) => setTimeout(r, POLL_MS));
+      }
+    } catch (error) {
+      logger.debug(
+        `CDP /json/list miss for ${pageUrl}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+
+    const urls = [...preferred, ...rest];
+    if (urls.length > 0) {
+      logger.debug(
+        `CDP page WS candidates for ${pageUrl}: ${urls.length} (preferred=${preferred.length})`,
+      );
+    }
+    return urls;
+  }
+
+  /** Scroll `#webId` into view. False → native fallback. */
   static async scrollElementByIdIntoView(
     webId: string,
     options: { pageUrl: string },
@@ -368,9 +545,7 @@ export default class AndroidWebViewCdpHelpers {
       return false;
     }
 
-    // React controlled inputs ignore bare `el.value = …`. Use the native
-    // prototype setter + `_valueTracker` reset (same idea as Detox
-    // Gestures.typeInWebElement) so `input`/`change` update React state.
+    // Native value setter + `_valueTracker` (React controlled inputs).
     const filled = await this.withEvaluate<boolean>(
       options.pageUrl,
       `(() => {
@@ -493,8 +668,10 @@ export default class AndroidWebViewCdpHelpers {
     return Boolean(blurred);
   }
 
-  private static async resolveCdpHttpEndpoint(): Promise<string> {
-    const fromContexts = await this.tryEndpointFromAppiumContexts();
+  private static async resolveCdpHttpEndpoint(
+    rawContexts?: RawAppiumWebViewContext[],
+  ): Promise<string> {
+    const fromContexts = await this.tryEndpointFromAppiumContexts(rawContexts);
     if (fromContexts) {
       return fromContexts;
     }
@@ -505,15 +682,17 @@ export default class AndroidWebViewCdpHelpers {
     return endpoint;
   }
 
-  private static async tryEndpointFromAppiumContexts(): Promise<
-    string | undefined
-  > {
+  private static async tryEndpointFromAppiumContexts(
+    rawContexts?: RawAppiumWebViewContext[],
+  ): Promise<string | undefined> {
     try {
       const packageId = APP_PACKAGE_IDS.ANDROID;
-      const rawContexts = (await getDriver().execute(
-        'mobile: getContexts',
-      )) as RawAppiumWebViewContext[];
-      const wsUrl = pickMetaMaskWebViewDebuggerUrl(rawContexts, packageId);
+      const contexts =
+        rawContexts ??
+        ((await getDriver().execute(
+          'mobile: getContexts',
+        )) as RawAppiumWebViewContext[]);
+      const wsUrl = pickMetaMaskWebViewDebuggerUrl(contexts, packageId);
       if (!wsUrl) {
         return undefined;
       }
@@ -582,36 +761,6 @@ export default class AndroidWebViewCdpHelpers {
     }
     throw new Error(
       `WebView CDP endpoint ${endpoint} not ready within ${CDP_READY_TIMEOUT_MS}ms: ${lastError}`,
-    );
-  }
-
-  private static async waitForCdpTarget(
-    endpoint: string,
-    pageUrl: string,
-  ): Promise<CdpTarget> {
-    const deadline = Date.now() + PAGE_TIMEOUT_MS;
-    while (Date.now() < deadline) {
-      try {
-        const response = await fetch(`${endpoint}/json/list`);
-        if (response.ok) {
-          const targets = (await response.json()) as CdpTarget[];
-          const match = targets.find(
-            (t) =>
-              (t.type === 'page' || !t.type) &&
-              t.webSocketDebuggerUrl &&
-              urlsReferToSameDapp(t.url ?? '', pageUrl),
-          );
-          if (match?.webSocketDebuggerUrl) {
-            return match;
-          }
-        }
-      } catch {
-        // Keep polling
-      }
-      await new Promise((r) => setTimeout(r, POLL_MS));
-    }
-    throw new Error(
-      `No MetaMask WebView CDP target matched ${pageUrl} within ${PAGE_TIMEOUT_MS}ms`,
     );
   }
 }

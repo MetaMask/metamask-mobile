@@ -1,9 +1,11 @@
 import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Assertions from '../../../framework/Assertions';
+import AndroidWebViewCdpHelpers from '../../../framework/AndroidWebViewCdpHelpers';
 import Matchers from '../../../framework/Matchers';
 import { createPlaywrightLogger } from '../../../framework/playwrightLogger';
 import {
   TEST_SNAPS_ANDROID_SCROLL_LABELS,
+  TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../../selectors/Browser/TestSnaps.selectors';
 
@@ -20,7 +22,7 @@ export async function logAndroidTestSnapsNativeBridgeOnce(): Promise<void> {
   loggedNativeBridgeMode = true;
 
   logger.info(
-    'Test Snaps Android bridge: native UiAutomator (resource-id + WebView scroll)',
+    'Test Snaps Android bridge: CDP-first WebView actions with native fallback',
   );
 }
 
@@ -39,4 +41,6 @@ export async function waitForAndroidTestSnapsNativeLoad(): Promise<void> {
   await Assertions.expectTextDisplayed(ANDROID_TEST_SNAPS_LOAD_LABEL, {
     timeout: 30_000,
   });
+  // Best-effort: warm verified page WS so fill/tap/scroll are fast.
+  await AndroidWebViewCdpHelpers.primePage(TEST_SNAPS_URL);
 }
