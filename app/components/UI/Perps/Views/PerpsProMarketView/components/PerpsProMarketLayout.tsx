@@ -6,8 +6,9 @@ import Animated, {
   FadeOut,
   LinearTransition,
 } from 'react-native-reanimated';
+import { useStyles } from '../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import styles from './PerpsProMarketLayout.styles';
+import { createStyles } from './PerpsProMarketLayout.styles';
 
 interface PerpsProMarketLayoutProps {
   orderForm: ReactNode;
@@ -34,26 +35,36 @@ const PerpsProMarketLayout = ({
   orderForm,
   orderBook,
   isOrderBookCollapsed = false,
-}: PerpsProMarketLayoutProps) => (
-  <View testID={PerpsProMarketViewSelectorsIDs.LAYOUT} style={styles.container}>
-    <Animated.View
-      testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
-      style={styles.orderFormColumn}
-      layout={LinearTransition.duration(AnimationDuration.Fast)}
+}: PerpsProMarketLayoutProps) => {
+  const { styles } = useStyles(createStyles, {});
+
+  return (
+    <View
+      testID={PerpsProMarketViewSelectorsIDs.LAYOUT}
+      style={styles.container}
     >
-      {orderForm}
-    </Animated.View>
-    {!isOrderBookCollapsed ? (
       <Animated.View
-        testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
-        style={styles.orderBookColumn}
-        entering={FadeIn.duration(AnimationDuration.Fast)}
-        exiting={FadeOut.duration(AnimationDuration.Fast)}
+        testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
+        style={styles.orderFormColumn}
+        layout={LinearTransition.duration(AnimationDuration.Fast)}
       >
-        {orderBook}
+        {orderForm}
       </Animated.View>
-    ) : null}
-  </View>
-);
+      {!isOrderBookCollapsed ? (
+        <>
+          <View style={styles.columnDivider} />
+          <Animated.View
+            testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
+            style={styles.orderBookColumn}
+            entering={FadeIn.duration(AnimationDuration.Fast)}
+            exiting={FadeOut.duration(AnimationDuration.Fast)}
+          >
+            {orderBook}
+          </Animated.View>
+        </>
+      ) : null}
+    </View>
+  );
+};
 
 export default PerpsProMarketLayout;
