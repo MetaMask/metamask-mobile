@@ -29,6 +29,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { useABTest } from '../../../../../hooks';
+import { useChainValueOrder } from '../../hooks/useChainValueOrder';
+import {
+  CHAIN_VALUE_ORDER_AB_KEY,
+  CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
+  CHAIN_VALUE_ORDER_VARIANTS,
+} from './abTestConfig';
 
 /** Maximum number of network pills visible in the horizontal list */
 export const MAX_VISIBLE_PILLS = 4;
@@ -53,6 +60,10 @@ interface ChainRankingEntry {
   name: string;
 }
 
+interface NetworkPillsContentProps extends NetworkPillsProps {
+  chainRanking: ChainRankingEntry[];
+}
+
 /**
  * Returns the first MAX_VISIBLE_PILLS chain IDs from chainRanking.
  * The ranking order is determined by the feature flag, so the first entries
@@ -61,7 +72,8 @@ interface ChainRankingEntry {
 const getVisibleChainIds = (chainRanking: ChainRankingEntry[]): CaipChainId[] =>
   chainRanking.slice(0, MAX_VISIBLE_PILLS).map((c) => c.chainId);
 
-export const NetworkPills: React.FC<NetworkPillsProps> = ({
+const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
+  chainRanking,
   selectedChainId,
   onChainSelect,
   onMorePress,
@@ -73,9 +85,6 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   const theme = useTheme();
   const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
-  const chainRanking: ChainRankingEntry[] = useSelector(
-    selectAllowedChainRanking,
-  );
 
   // Visible pill chain IDs from Redux (shared across source/dest pickers).
   // Falls back to first N from chainRanking on initial mount.
@@ -221,4 +230,30 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       )}
     </ScrollView>
   );
+};
+
+const NetworkValueOrderedPills: React.FC<NetworkPillsContentProps> = ({
+  chainRanking,
+  ...props
+}) => {
+  const orderedChainRanking = useChainValueOrder(chainRanking);
+
+  return <NetworkPillsContent {...props} chainRanking={orderedChainRanking} />;
+};
+
+export const NetworkPills: React.FC<NetworkPillsProps> = (props) => {
+  const chainRanking: ChainRankingEntry[] = useSelector(
+    selectAllowedChainRanking,
+  );
+  const { variant } = useABTest(
+    CHAIN_VALUE_ORDER_AB_KEY,
+    CHAIN_VALUE_ORDER_VARIANTS,
+    CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
+  );
+
+  if (variant.orderByValue) {
+    return <NetworkValueOrderedPills {...props} chainRanking={chainRanking} />;
+  }
+
+  return <NetworkPillsContent {...props} chainRanking={chainRanking} />;
 };

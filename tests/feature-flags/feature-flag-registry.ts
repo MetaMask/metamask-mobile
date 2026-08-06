@@ -5160,7 +5160,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  swapsSWAPS4784AbtestCTAButtonColor: {
+swapsSWAPS4784AbtestCTAButtonColor: {
     name: 'swapsSWAPS4784AbtestCTAButtonColor',
     type: FeatureFlagType.Remote,
     inProd: true,
@@ -5170,6 +5170,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         scope: {
           type: 'percentage_rollout',
           value: 0.5,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS4825AbtestChainValueOrder: {
+    name: 'swapsSWAPS4825AbtestChainValueOrder',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 0.5,
+          type: 'percentage_rollout',
         },
       },
       {
