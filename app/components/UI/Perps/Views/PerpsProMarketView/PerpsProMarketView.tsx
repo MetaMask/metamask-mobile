@@ -39,7 +39,7 @@ import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { usePerpsProMarketHeaderActions } from '../../hooks/usePerpsProMarketHeaderActions';
+import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -52,12 +52,14 @@ import {
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
-import PerpsProMarketHeader from './components/PerpsProMarketHeader';
+import PerpsMarketHeader, {
+  createProMarketHeaderTestIDs,
+} from '../../components/PerpsMarketHeader';
+import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
-import { PRICE_SECTION_HEIGHT } from './components/PerpsProMarketSummary';
 import { createStyles } from './PerpsProMarketView.styles';
 
 interface PerpsProOrderBookColumnProps {
@@ -120,6 +122,9 @@ const PerpsProMarketView = () => {
   const routeMarket = route.params?.market;
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  // Set by entry points that already carry a trade intent (e.g. spot token
+  // details Long/Short), so the inline form opens on the right side.
+  const initialDirection = route.params?.direction;
 
   // Some navigation sources (e.g. Recent Activity, deep links) pass minimal
   // market data without `maxLeverage` — fetch the full markets list to
@@ -144,7 +149,7 @@ const PerpsProMarketView = () => {
   const handleSelectMarket = useCallback(
     (
       nextMarket: PerpsMarketData | Partial<PerpsMarketData>,
-      sourceSection:
+      panelSourceSection:
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     ) => {
@@ -154,10 +159,14 @@ const PerpsProMarketView = () => {
 
       // POSITION_TAB is the panel-level source; source_section distinguishes
       // which tab the row came from (same pattern as Perps home).
+      // `direction` is cleared because `setParams` merges: the side belongs to
+      // the entry point that opened this screen, and keeping it would reseed
+      // the remounted order form with the previous market's trade intent.
       navigation.setParams({
         market: nextMarket,
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
-        source_section: sourceSection,
+        source_section: panelSourceSection,
+        direction: undefined,
       });
     },
     [navigation, routeMarket?.symbol],
@@ -262,7 +271,7 @@ const PerpsProMarketView = () => {
     handleMarketListPress,
     handleFavoritePress,
     handlePerpsModeChange,
-  } = usePerpsProMarketHeaderActions({ symbol: market?.symbol });
+  } = usePerpsMarketHeaderActions({ symbol: market?.symbol });
 
   if (!market?.symbol) {
     return (
@@ -297,8 +306,9 @@ const PerpsProMarketView = () => {
       edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
-      <PerpsProMarketHeader
+      <PerpsMarketHeader
         market={{ ...market, symbol: market.symbol }}
+        testIDs={createProMarketHeaderTestIDs()}
         mode={perpsMode}
         onBackPress={handleBackPress}
         onIdentityPress={handleMarketListPress}
@@ -347,6 +357,7 @@ const PerpsProMarketView = () => {
           <PerpsOrderProvider
             key={market.symbol}
             initialAsset={market.symbol}
+            initialDirection={initialDirection}
             initialType="market"
           >
             <PerpsProMarketLayout
