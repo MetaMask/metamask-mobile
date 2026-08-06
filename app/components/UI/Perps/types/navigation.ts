@@ -152,6 +152,12 @@ export type PerpsStackParamList = {
   PerpsMarketDetails: {
     /** Full market when available; Partial is accepted for trade-details deep entries. */
     market: PerpsMarketData | Partial<PerpsMarketData>;
+    /**
+     * Preselects a side in Pro mode's inline order form. Set by entry points
+     * that already express a trade intent, e.g. the spot token details
+     * Long/Short buttons. Ignored by the Lite market screen.
+     */
+    direction?: 'long' | 'short';
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
@@ -240,7 +246,7 @@ export type PerpsStackParamList = {
     initialTakeProfitPrice?: string;
     initialStopLossPrice?: string;
     leverage?: number;
-    orderType?: 'market' | 'limit';
+    orderType?: OrderType;
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L

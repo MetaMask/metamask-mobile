@@ -4,6 +4,7 @@ import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import WebView from '../framework/WebView';
 import Browser from '../page-objects/Browser/BrowserView';
+import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import FooterActions from '../page-objects/Browser/Confirmations/FooterActions';
 import TestDApp from '../page-objects/Browser/TestDApp';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
@@ -28,6 +29,9 @@ export const navigateToContractAndTap = async (
     contractAddress,
   });
   await waitForTestDappToLoad();
+
+  await TestDApp.tapDappConnectButton();
+  await ConnectBottomSheet.tapConnectButton();
 
   const pageUrl = getDappUrl(0);
   if (PlatformDetector.isAndroidAppium()) {

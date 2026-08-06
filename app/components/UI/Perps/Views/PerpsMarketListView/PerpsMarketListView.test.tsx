@@ -11,6 +11,7 @@ import {
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -487,6 +488,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   twFn.color = () => 'black';
   return {
     useTailwind: () => twFn,
+    // MMDS Input (via TextFieldSearch) reads theme for placeholder color.
+    useTheme: () => 'light',
+    Theme: { Light: 'light', Dark: 'dark' },
   };
 });
 
@@ -1084,6 +1088,7 @@ describe('PerpsMarketListView', () => {
       expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
       expect(mockNavigation.dispatch).toHaveBeenCalledWith(
         expect.objectContaining({
+          type: 'PUSH',
           payload: expect.objectContaining({
             params: expect.objectContaining({
               market: watchlistMarket,
