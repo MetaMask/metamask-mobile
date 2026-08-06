@@ -95,7 +95,7 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
           {label}
         </Text>
         <Icon
-          name={IconName.ArrowRight}
+          name={IconName.ArrowDown}
           size={IconSize.Sm}
           color={IconColor.IconDefault}
           testID={`${testID}-arrow`}
@@ -346,7 +346,7 @@ const PerpsProOrderForm = ({
             ) : null}
           </Box>
           <Box
-            twClassName="flex-row items-center gap-4"
+            twClassName="flex-row items-center gap-2"
             testID={ids.MARGIN_SETTINGS_ROW}
           >
             <ButtonBase
@@ -442,11 +442,12 @@ const PerpsProOrderForm = ({
               labelProps={{
                 variant: TextVariant.BodySm,
                 fontWeight: FontWeight.Medium,
+                style: { marginLeft: 0, flex: 1 },
               }}
               isSelected={reduceOnly}
               onChange={onReduceOnlyChange}
               testID={ids.REDUCE_ONLY}
-              twClassName="w-full"
+              twClassName="w-full flex-row-reverse justify-between"
             />
           </Box>
           <TPSLRow
