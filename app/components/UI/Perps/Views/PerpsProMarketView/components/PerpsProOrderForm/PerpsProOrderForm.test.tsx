@@ -511,11 +511,11 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
     });
 
-    it('left-aligns margin mode and leverage with 16-point spacing', () => {
+    it('left-aligns margin mode and leverage with 8-point spacing', () => {
       renderForm();
 
       expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).toHaveStyle({
-        gap: 16,
+        gap: 8,
       });
       expect(screen.getByTestId(ids.MARGIN_SETTINGS_ROW)).not.toHaveStyle({
         justifyContent: 'space-between',
