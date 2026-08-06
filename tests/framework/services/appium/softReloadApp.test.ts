@@ -4,6 +4,8 @@ import {
   type SoftReloadFixtureServer,
 } from './softReloadApp.ts';
 import type { CurrentDeviceDetails } from '../../fixtures/playwright';
+import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
+import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
 import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
 import { shouldHandleMetroDevLauncherLocally } from '../../Constants.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
@@ -12,6 +14,20 @@ import {
   consumeSharedSessionRecreate,
   resetSharedSessionRecreateState,
 } from './sessionRecovery.ts';
+
+jest.mock('../../AndroidWebViewCdpHelpers.ts', () => ({
+  __esModule: true,
+  default: {
+    resetCache: jest.fn(),
+  },
+}));
+
+jest.mock('../../ChromeCdpHelpers.ts', () => ({
+  __esModule: true,
+  default: {
+    resetMetaMaskWebViewCache: jest.fn(),
+  },
+}));
 
 jest.mock('../../PlaywrightUtilities.ts', () => ({
   __esModule: true,
@@ -95,6 +111,8 @@ describe('softReloadAppForFixtures', () => {
       drv,
     });
 
+    expect(AndroidWebViewCdpHelpers.resetCache).toHaveBeenCalled();
+    expect(ChromeCdpHelpers.resetMetaMaskWebViewCache).toHaveBeenCalled();
     expect(clearAppData).toHaveBeenCalledTimes(1);
     expect(switchToNativeContextMock).toHaveBeenCalledWith(drv);
     expect(waitForNextStateRequest).toHaveBeenCalledWith(5_000);
