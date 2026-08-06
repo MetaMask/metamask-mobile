@@ -65,7 +65,10 @@ import {
   validateReduceOnlyOrder,
   type ReduceOnlyValidationCode,
 } from '../../../../utils/reduceOnlyValidation';
-import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
+import {
+  getPerpsOrderTpSlWarnings,
+  type PerpsOrderTpSlWarnings,
+} from '../../../../utils/tpslValidation';
 import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
 import {
   finalizeNumericTextInput,
@@ -106,6 +109,105 @@ const isLimitPriceValidationError = (message: string): boolean =>
     strings(
       'perps.order.validation.limit_price_must_be_set_before_configuring_tpsl',
     );
+
+const getBlockingNotices = ({
+  reduceOnlyErrorCode,
+  isReduceOnlyStreamLoading,
+  filteredErrors,
+}: {
+  reduceOnlyErrorCode?: ReduceOnlyValidationCode;
+  isReduceOnlyStreamLoading: boolean;
+  filteredErrors: string[];
+}): PerpsProOrderNotice[] => {
+  if (reduceOnlyErrorCode && !isReduceOnlyStreamLoading) {
+    return [
+      {
+        id: 'reduce-only',
+        variant: 'banner',
+        message: strings(REDUCE_ONLY_ERROR_I18N_KEYS[reduceOnlyErrorCode]),
+      },
+    ];
+  }
+
+  const marginError = filteredErrors.find(isMarginValidationError);
+  if (marginError) {
+    return [{ id: 'margin', variant: 'banner', message: marginError }];
+  }
+
+  const limitPriceError = filteredErrors.find(isLimitPriceValidationError);
+  if (limitPriceError) {
+    return [
+      {
+        id: 'limit-price',
+        variant: 'banner',
+        message: limitPriceError,
+      },
+    ];
+  }
+
+  return filteredErrors.map((message, index) => ({
+    id: `validation-${index}`,
+    variant: 'inline',
+    message,
+  }));
+};
+
+const getTpslNotices = ({
+  reduceOnly,
+  direction,
+  doesStopLossRiskLiquidation,
+  isTakeProfitPriceInvalid,
+  isStopLossPriceInvalid,
+  tpslPriceType,
+}: {
+  reduceOnly: boolean;
+  direction: PerpsProOrderDirection;
+  doesStopLossRiskLiquidation: boolean;
+  isTakeProfitPriceInvalid: boolean;
+  isStopLossPriceInvalid: boolean;
+  tpslPriceType: PerpsOrderTpSlWarnings['tpslPriceType'];
+}): PerpsProOrderNotice[] => {
+  if (reduceOnly) {
+    return [];
+  }
+
+  const notices: PerpsProOrderNotice[] = [];
+  const isLong = direction === 'long';
+
+  if (doesStopLossRiskLiquidation) {
+    notices.push({
+      id: 'sl-liq-risk',
+      variant: 'inline',
+      message: strings('perps.tpsl.stop_loss_order_view_warning', {
+        direction: strings(isLong ? 'perps.tpsl.below' : 'perps.tpsl.above'),
+      }),
+    });
+  }
+
+  if (isTakeProfitPriceInvalid) {
+    notices.push({
+      id: 'tp-invalid',
+      variant: 'inline',
+      message: strings('perps.tpsl.take_profit_wrong_side_warning', {
+        direction: strings(isLong ? 'perps.tpsl.above' : 'perps.tpsl.below'),
+        priceType: tpslPriceType,
+      }),
+    });
+  }
+
+  if (isStopLossPriceInvalid) {
+    notices.push({
+      id: 'sl-invalid',
+      variant: 'inline',
+      message: strings('perps.tpsl.stop_loss_wrong_side_warning', {
+        direction: strings(isLong ? 'perps.tpsl.below' : 'perps.tpsl.above'),
+        priceType: tpslPriceType,
+      }),
+    });
+  }
+
+  return notices;
+};
 
 export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
@@ -851,85 +953,24 @@ export const usePerpsProOrderForm = ({
   }, [isInitialized, spendableBalance]);
 
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
-    const list: PerpsProOrderNotice[] = [];
+    const list = [
+      ...getBlockingNotices({
+        reduceOnlyErrorCode: reduceOnly
+          ? reduceOnlyValidation.errorCode
+          : undefined,
+        isReduceOnlyStreamLoading,
+        filteredErrors,
+      }),
+      ...getTpslNotices({
+        reduceOnly,
+        direction: orderForm.direction,
+        doesStopLossRiskLiquidation,
+        isTakeProfitPriceInvalid,
+        isStopLossPriceInvalid,
+        tpslPriceType,
+      }),
+    ];
 
-    // Blocking banners (one at a time): reduce-only → margin → limit price.
-    if (
-      reduceOnly &&
-      !isReduceOnlyStreamLoading &&
-      reduceOnlyValidation.errorCode
-    ) {
-      list.push({
-        id: 'reduce-only',
-        variant: 'banner',
-        message: strings(
-          REDUCE_ONLY_ERROR_I18N_KEYS[reduceOnlyValidation.errorCode],
-        ),
-      });
-    } else {
-      const marginError = filteredErrors.find(isMarginValidationError);
-      const limitPriceError = filteredErrors.find(isLimitPriceValidationError);
-
-      if (marginError) {
-        list.push({
-          id: 'margin',
-          variant: 'banner',
-          message: marginError,
-        });
-      } else if (limitPriceError) {
-        list.push({
-          id: 'limit-price',
-          variant: 'banner',
-          message: limitPriceError,
-        });
-      } else {
-        filteredErrors.forEach((message, index) => {
-          list.push({ id: `validation-${index}`, variant: 'inline', message });
-        });
-      }
-    }
-
-    // TP/SL warnings are irrelevant while Reduce Only is on (row is hidden).
-    if (!reduceOnly) {
-      if (doesStopLossRiskLiquidation) {
-        list.push({
-          id: 'sl-liq-risk',
-          variant: 'inline',
-          message: strings('perps.tpsl.stop_loss_order_view_warning', {
-            direction:
-              orderForm.direction === 'long'
-                ? strings('perps.tpsl.below')
-                : strings('perps.tpsl.above'),
-          }),
-        });
-      }
-      if (isTakeProfitPriceInvalid) {
-        list.push({
-          id: 'tp-invalid',
-          variant: 'inline',
-          message: strings('perps.tpsl.take_profit_wrong_side_warning', {
-            direction:
-              orderForm.direction === 'long'
-                ? strings('perps.tpsl.above')
-                : strings('perps.tpsl.below'),
-            priceType: tpslPriceType,
-          }),
-        });
-      }
-      if (isStopLossPriceInvalid) {
-        list.push({
-          id: 'sl-invalid',
-          variant: 'inline',
-          message: strings('perps.tpsl.stop_loss_wrong_side_warning', {
-            direction:
-              orderForm.direction === 'long'
-                ? strings('perps.tpsl.below')
-                : strings('perps.tpsl.above'),
-            priceType: tpslPriceType,
-          }),
-        });
-      }
-    }
     if (isAtCap) {
       list.push({
         id: 'oi-cap',
