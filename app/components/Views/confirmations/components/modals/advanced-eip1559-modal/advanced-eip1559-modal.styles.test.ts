@@ -25,14 +25,14 @@ describe('advanced-eip1559-modal.styles', () => {
     expect(styles.container.borderColor).toBeUndefined();
   });
 
-  it('uses section background and muted border in pure black mode', () => {
+  it('uses alternative background and muted border in pure black mode', () => {
     const styles = styleSheet({
       theme: darkThemeModel,
       vars: { isPureBlack: true },
     });
 
     expect(styles.container.backgroundColor).toBe(
-      darkThemeModel.colors.background.section,
+      darkThemeModel.colors.background.alternative,
     );
     expect(styles.container.borderWidth).toBe(1);
     expect(styles.container.borderColor).toBe(

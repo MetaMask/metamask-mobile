@@ -14,7 +14,7 @@ const styleSheet = (params: {
     // Drop usePureBlack() and the isPureBlack var. Use: backgroundColor: theme.colors.background.default
     container: {
       backgroundColor: isPureBlack
-        ? theme.colors.background.section
+        ? theme.colors.background.alternative
         : theme.colors.background.default,
       borderWidth: isPureBlack ? 1 : 0,
       borderColor: isPureBlack ? colors.border.muted : undefined,

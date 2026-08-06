@@ -32,12 +32,12 @@ describe('CustomNonceModal styles', () => {
       expect(styles.modal.borderColor).toBeUndefined();
     });
 
-    it('uses section surface and muted borders in pure black mode', () => {
+    it('uses alternative surface and muted borders in pure black mode', () => {
       const theme = createTheme(AppThemeKey.dark);
       const styles = createStyles(theme, true);
 
       expect(styles.modal.backgroundColor).toBe(
-        theme.colors.background.section,
+        theme.colors.background.alternative,
       );
       expect(styles.modal.borderTopWidth).toBe(1);
       expect(styles.modal.borderLeftWidth).toBe(1);

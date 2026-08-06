@@ -34,7 +34,7 @@ export const createStyles = (theme, isPureBlack = false) => {
     modal: {
       minHeight: 200,
       backgroundColor: isPureBlack
-        ? colors.background.section
+        ? colors.background.alternative
         : colors.background.default,
       ...(isPureBlack
         ? {

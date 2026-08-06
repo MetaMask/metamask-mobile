@@ -66,14 +66,11 @@ const styleSheet = (theme: Theme, isPureBlack = false) => {
     // Drop usePureBlack() and the isPureBlack param. Use: backgroundColor: theme.colors.background.default
     valueModal: {
       backgroundColor: isPureBlack
-        ? theme.colors.background.section
-        : theme.colors.background.default,
-      ...(isPureBlack
-        ? {
-            borderWidth: 1,
-            borderColor: colors.border.muted,
-          }
-        : null),
+        ? colors.background.alternative
+        : colors.background.default,
+      borderWidth: isPureBlack ? 1 : 0,
+      borderColor: isPureBlack ? colors.border.muted : undefined,
+      borderBottomWidth: 0,
       paddingTop: 24,
       paddingBottom: 34,
       paddingHorizontal: 16,
