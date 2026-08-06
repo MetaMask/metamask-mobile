@@ -11,13 +11,8 @@ export interface UnmountOnTabBlurProps {
 }
 
 /**
- * Renders children only while this screen is the selected route of its own
- * (closest) navigator, ignoring the focus state of parent navigators.
- *
- * This deliberately differs from `useIsFocused`, which reports `false` as soon
- * as any ancestor navigator pushes a screen or modal on top. For a bottom tab
- * that would mean unmounting on every root-level modal, whereas a tab switch is
- * the only thing we want to react to.
+ * Renders children only while this screen is the selected tab.
+ * Unlike `useIsFocused`, parent modals do not count as a blur.
  */
 const UnmountOnSelectedRouteChange: React.FC<UnmountOnTabBlurProps> = ({
   children,
@@ -35,13 +30,8 @@ const UnmountOnSelectedRouteChange: React.FC<UnmountOnTabBlurProps> = ({
 };
 
 /**
- * Unmounts its children while another tab is selected.
- *
- * Replaces the `unmountOnBlur` bottom-tab option, which React Navigation
- * removes in v7. It reproduces that option's condition exactly — v6's
- * `BottomTabView` renders `null` for a tab when `state.index !== index` — so
- * behaviour is unchanged on v6 and stays unchanged once we move to v7, where
- * the option is silently ignored.
+ * Unmounts children while another tab is selected.
+ * Drop-in for the `unmountOnBlur` tab option removed in React Navigation v7.
  */
 export const UnmountOnTabBlur: React.FC<UnmountOnTabBlurProps> = ({
   children,
@@ -49,8 +39,7 @@ export const UnmountOnTabBlur: React.FC<UnmountOnTabBlurProps> = ({
   const route = useContext(NavigationRouteContext);
   const navigation = useContext(NavigationContext);
 
-  // Rendered outside a navigator, e.g. a unit test mounting a tab's component
-  // directly. There is no blur state to read, so leave the children alone.
+  // Outside a navigator (e.g. unit tests) there is no blur state — render as-is.
   if (!route || !navigation) {
     return children;
   }
@@ -61,9 +50,11 @@ export const UnmountOnTabBlur: React.FC<UnmountOnTabBlurProps> = ({
 };
 
 /**
- * Wraps a tab screen component so its subtree is unmounted while another tab is
- * selected. Apply at module scope so the wrapped component keeps a stable
- * identity across renders of the navigator.
+ * Wraps a tab screen so it unmounts when another tab is selected.
+ * Define at module scope to keep a stable component identity.
+ *
+ * Pair with `freezeOnBlur: false` on the tab options — this wrapper unmounts
+ * from inside the screen, and a frozen screen blocks that unmount.
  *
  * @param TabScreen - The tab screen component to wrap.
  * @returns The wrapped tab screen component.

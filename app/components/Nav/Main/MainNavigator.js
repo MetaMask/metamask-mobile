@@ -576,10 +576,7 @@ const SettingsFlow = () => {
   );
 };
 
-// Tabs that must not stay mounted while another tab is selected. This replaces
-// the `unmountOnBlur` tab option, which React Navigation removes in v7 — see
-// `withUnmountOnTabBlur` for why the wrapper is scoped to the tab navigator
-// rather than using `useIsFocused`.
+// Replaces `unmountOnBlur` (removed in React Navigation v7).
 const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
@@ -646,6 +643,8 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
+      // Required with `withUnmountOnTabBlur` — freezing blocks the unmount.
+      freezeOnBlur: false,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
@@ -657,6 +656,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
+      freezeOnBlur: false,
     },
     money: {
       tabBarIconKey: TabBarIconKey.Money,
@@ -673,6 +673,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
+      freezeOnBlur: false,
     },
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
