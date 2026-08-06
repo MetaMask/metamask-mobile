@@ -180,6 +180,18 @@ export default class ChromeCdpHelpers {
    * Forward host → device Chrome DevTools abstract socket.
    */
   private static ensureAdbForward(port = CDP_FORWARD_PORT): void {
+    this.ensureAdbForwardToAbstractSocket(port, 'chrome_devtools_remote');
+    logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
+  }
+
+  /**
+   * Replace any existing `adb forward` for `port` so rediscovery cannot leave
+   * the host port pointed at a dead abstract socket ("already forwarded").
+   */
+  private static ensureAdbForwardToAbstractSocket(
+    port: number,
+    abstractSocket: string,
+  ): void {
     try {
       execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
         stdio: 'pipe',
@@ -189,10 +201,9 @@ export default class ChromeCdpHelpers {
     }
     execFileSync(
       'adb',
-      ['forward', `tcp:${port}`, 'localabstract:chrome_devtools_remote'],
+      ['forward', `tcp:${port}`, `localabstract:${abstractSocket}`],
       { stdio: 'pipe' },
     );
-    logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
   }
 
   /**
@@ -811,14 +822,9 @@ export default class ChromeCdpHelpers {
   private static async resolveMetaMaskWebViewEndpoint(): Promise<string> {
     if (this.cachedMmWebViewSocket) {
       try {
-        execFileSync(
-          'adb',
-          [
-            'forward',
-            `tcp:${this.MM_WV_CDP_PORT}`,
-            `localabstract:${this.cachedMmWebViewSocket}`,
-          ],
-          { stdio: 'pipe' },
+        this.ensureAdbForwardToAbstractSocket(
+          this.MM_WV_CDP_PORT,
+          this.cachedMmWebViewSocket,
         );
         const endpoint = `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
         // adb forward succeeds even when the abstract socket is gone — probe CDP.
@@ -844,19 +850,7 @@ export default class ChromeCdpHelpers {
     if (!mmCtx?.proc) throw new Error('MetaMask WebView CDP context not found');
 
     const socketName = mmCtx.proc.replace(/^@/, '');
-    try {
-      execFileSync(
-        'adb',
-        [
-          'forward',
-          `tcp:${this.MM_WV_CDP_PORT}`,
-          `localabstract:${socketName}`,
-        ],
-        { stdio: 'pipe' },
-      );
-    } catch {
-      // may already be forwarded
-    }
+    this.ensureAdbForwardToAbstractSocket(this.MM_WV_CDP_PORT, socketName);
     this.cachedMmWebViewSocket = socketName;
     return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
   }
