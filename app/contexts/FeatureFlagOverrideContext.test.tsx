@@ -16,7 +16,7 @@ import { FeatureFlagType, getFeatureFlagType } from '../util/feature-flags';
 import {
   selectRemoteFeatureFlagsUnfiltered,
   selectLocalOverrides,
-  selectRawFeatureFlags,
+  selectRawRemoteFeatureFlags,
 } from '../selectors/featureFlagController';
 
 jest.mock('react-redux', () => ({
@@ -45,7 +45,7 @@ jest.mock('../core/Engine', () => ({
 jest.mock('../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlagsUnfiltered: jest.fn(),
   selectLocalOverrides: jest.fn(),
-  selectRawFeatureFlags: jest.fn(),
+  selectRawRemoteFeatureFlags: jest.fn(),
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
@@ -131,7 +131,7 @@ describe('FeatureFlagOverrideContext', () => {
       if (selector === selectLocalOverrides) {
         return { ...currentOverrides };
       }
-      if (selector === selectRawFeatureFlags) {
+      if (selector === selectRawRemoteFeatureFlags) {
         return currentRawFlags;
       }
       return undefined;

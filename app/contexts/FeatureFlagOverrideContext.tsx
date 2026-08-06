@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import {
   selectRemoteFeatureFlagsUnfiltered,
   selectLocalOverrides,
-  selectRawFeatureFlags,
+  selectRawRemoteFeatureFlags,
 } from '../selectors/featureFlagController';
 import { FeatureFlagInfo, getFeatureFlagType } from '../util/feature-flags';
 import Engine from '../core/Engine';
@@ -45,7 +45,7 @@ export const FeatureFlagOverrideProvider: React.FC<
   const featureFlagsWithOverrides = useSelector(
     selectRemoteFeatureFlagsUnfiltered,
   );
-  const rawFeatureFlags = useSelector(selectRawFeatureFlags);
+  const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
 
   const overrides = useSelector(selectLocalOverrides);
 
@@ -71,13 +71,13 @@ export const FeatureFlagOverrideProvider: React.FC<
 
   const featureFlags = useMemo(() => {
     const allKeys = new Set([
-      ...Object.keys(rawFeatureFlags || {}),
+      ...Object.keys(rawRemoteFeatureFlags || {}),
       ...Object.keys(featureFlagsWithOverrides || {}),
     ]);
     const allFlags: { [key: string]: FeatureFlagInfo } = {};
 
     Array.from(allKeys).forEach((key: string) => {
-      const originalValue = rawFeatureFlags?.[key];
+      const originalValue = rawRemoteFeatureFlags?.[key];
       const currentValue = featureFlagsWithOverrides?.[key];
       const isOverridden = hasOverride(key);
 
@@ -91,7 +91,7 @@ export const FeatureFlagOverrideProvider: React.FC<
       allFlags[key] = flagValue;
     });
     return allFlags;
-  }, [rawFeatureFlags, featureFlagsWithOverrides, hasOverride]);
+  }, [rawRemoteFeatureFlags, featureFlagsWithOverrides, hasOverride]);
 
   const featureFlagsList = useMemo(
     () =>
@@ -107,7 +107,7 @@ export const FeatureFlagOverrideProvider: React.FC<
   const contextValue: FeatureFlagOverrideContextType = useMemo(
     () => ({
       featureFlags,
-      originalFlags: rawFeatureFlags,
+      originalFlags: rawRemoteFeatureFlags,
       featureFlagsList,
       overrides,
       setOverride,
@@ -118,7 +118,7 @@ export const FeatureFlagOverrideProvider: React.FC<
     }),
     [
       featureFlags,
-      rawFeatureFlags,
+      rawRemoteFeatureFlags,
       featureFlagsList,
       overrides,
       setOverride,
