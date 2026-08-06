@@ -19,7 +19,9 @@ const mockSetSelectedPaymentToken = jest.fn();
 const mockOnPlaceOrderSuccess = jest.fn();
 const mockTrackPredictOrderEvent = jest.fn();
 const mockTrackTradeConsidered = jest.fn();
-const mockTrackPredictBuyTerminalEvent = jest.fn();
+const mockStartPredictBuyAttempt = jest.fn();
+const mockGetRetryablePredictBuyAttempt = jest.fn();
+const mockCancelRetryablePredictBuyAttempt = jest.fn();
 const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
 const mockOnOrderCancelled = jest.fn();
 const mockInitPayWithAnyToken = jest.fn();
@@ -128,8 +130,12 @@ jest.mock('../../../../../../core/Engine', () => ({
         mockTrackPredictOrderEvent(...args),
       trackTradeConsidered: (...args: unknown[]) =>
         mockTrackTradeConsidered(...args),
-      trackPredictBuyTerminalEvent: (...args: unknown[]) =>
-        mockTrackPredictBuyTerminalEvent(...args),
+      startPredictBuyAttempt: (...args: unknown[]) =>
+        mockStartPredictBuyAttempt(...args),
+      getRetryablePredictBuyAttempt: (...args: unknown[]) =>
+        mockGetRetryablePredictBuyAttempt(...args),
+      cancelRetryablePredictBuyAttempt: (...args: unknown[]) =>
+        mockCancelRetryablePredictBuyAttempt(...args),
       trackBetslipDismissed: (...args: unknown[]) =>
         mockTrackBetslipDismissed(...args),
       initPayWithAnyToken: (...args: unknown[]) =>
@@ -188,6 +194,20 @@ describe('usePredictBuyActions', () => {
     mockBeforeRemoveCallbacks.length = 0;
     mockAddListener.mockImplementation(createAddListenerMock());
     mockTransactions.length = 0;
+    mockStartPredictBuyAttempt.mockImplementation(
+      ({
+        amountUsd,
+        paymentMethod,
+      }: {
+        amountUsd: number;
+        paymentMethod: 'pay_with_any_token' | 'predict_balance';
+      }) => ({
+        attemptId: 'attempt-1',
+        amountUsd,
+        paymentMethod,
+      }),
+    );
+    mockGetRetryablePredictBuyAttempt.mockReturnValue(undefined);
   });
 
   describe('mount effect', () => {
@@ -349,7 +369,7 @@ describe('usePredictBuyActions', () => {
           analyticsProperties: { marketId: 'market-1' },
           preview: params.preview,
           attempt: {
-            attemptId: expect.any(String),
+            attemptId: 'attempt-1',
             amountUsd: 175,
             paymentMethod: 'predict_balance',
           },
@@ -357,7 +377,7 @@ describe('usePredictBuyActions', () => {
       );
     });
 
-    it('tracks one attempt started event on confirm', async () => {
+    it('starts one attempt on confirm', async () => {
       const params = createDefaultParams();
       const { result } = renderHook(() => usePredictBuyActions(params));
 
@@ -365,15 +385,15 @@ describe('usePredictBuyActions', () => {
         await result.current.handleConfirm();
       });
 
-      expect(mockTrackPredictOrderEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          status: 'attempt_started',
-          amountUsd: 175,
-          attemptId: expect.any(String),
-          paymentMethod: 'predict_balance',
-        }),
-      );
+      expect(mockStartPredictBuyAttempt).toHaveBeenCalledTimes(1);
+      expect(mockStartPredictBuyAttempt).toHaveBeenCalledWith({
+        amountUsd: 175,
+        paymentMethod: 'predict_balance',
+        analyticsProperties: { marketId: 'market-1' },
+        sharePrice: 0.5,
+        orderType: undefined,
+        activeAbTests: undefined,
+      });
     });
 
     it('calls approval confirm when the order is paying with any token', async () => {
@@ -578,6 +598,29 @@ describe('usePredictBuyActions', () => {
   });
 
   describe('placeOrder helper', () => {
+    it('uses the controller retryable attempt after the sheet remounts', async () => {
+      const retryableAttempt = {
+        attemptId: 'retryable-attempt',
+        amountUsd: 175,
+        paymentMethod: 'pay_with_any_token' as const,
+      };
+      mockGetRetryablePredictBuyAttempt.mockReturnValue(retryableAttempt);
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview: createDefaultParams().preview as OrderPreview,
+        });
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ attempt: retryableAttempt }),
+      );
+    });
+
     it('returns a success result when placeOrder resolves', async () => {
       const placeOrderResult = { success: true };
       mockPlaceOrder.mockResolvedValue(placeOrderResult);
@@ -851,6 +894,7 @@ describe('usePredictBuyActions', () => {
       unmount();
 
       expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+      expect(mockCancelRetryablePredictBuyAttempt).toHaveBeenCalledTimes(1);
       expect(mockOnConfirmActionsReject).toHaveBeenCalledWith(undefined, true);
       expect(mockClearActiveOrderTransactionId).toHaveBeenCalled();
     });

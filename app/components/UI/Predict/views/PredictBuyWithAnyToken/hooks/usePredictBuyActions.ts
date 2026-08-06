@@ -5,7 +5,6 @@ import {
   ActiveOrderState,
   OrderPreview,
   PlaceOrderParams,
-  PredictBuyAttempt,
 } from '../../../types';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -17,7 +16,6 @@ import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/feature
 import {
   PredictDismissalMethod,
   PredictEventValues,
-  PredictTradeStatus,
 } from '../../../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
@@ -26,16 +24,11 @@ import {
   predictBuyPreviewOrderInitiatedRef,
   predictBuyPreviewSessionRef,
 } from '../../PredictBuyPreview/PredictBuyPreview';
-import {
-  predictBuyAttemptRef,
-  predictBuyHasRetryableFailureRef,
-} from '../predictBuyAttemptRefs';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import Logger from '../../../../../../util/Logger';
-import { generateOrderId } from '../../../utils/orders';
 
 /**
  * Rejects all unapproved transactions to prevent stale approvals from
@@ -94,7 +87,6 @@ export const usePredictBuyActions = ({
   const hasInitializedPayWithAnyTokenRef = useRef(false);
   const didInitiateOrderRef = useRef(false);
   const batchIdRef = useRef<string | undefined>(undefined);
-  const attemptRef = useRef<PredictBuyAttempt | undefined>(undefined);
   const onRejectRef = useRef(onReject);
   const clearActiveOrderTransactionIdRef = useRef(
     clearActiveOrderTransactionId,
@@ -112,8 +104,6 @@ export const usePredictBuyActions = ({
     predictBuyPreviewSessionRef.hadEnteredAmount = false;
     predictBuyPreviewDismissedViaBackRef.current = false;
     predictBuyPreviewOrderInitiatedRef.current = false;
-    predictBuyAttemptRef.current = undefined;
-    predictBuyHasRetryableFailureRef.current = false;
 
     controller.trackTradeConsidered();
     // eslint-disable-next-line react-compiler/react-compiler
@@ -175,29 +165,15 @@ export const usePredictBuyActions = ({
     if (isSheetMode) {
       return () => {
         resetSelectedPaymentToken();
+        PredictController.cancelRetryablePredictBuyAttempt();
         onRejectRef.current(undefined, true);
         clearActiveOrderTransactionIdRef.current();
       };
     }
 
     return navigation.addListener('beforeRemove', () => {
-      const attempt = attemptRef.current;
-      if (
-        didInitiateOrderRef.current &&
-        predictBuyHasRetryableFailureRef.current &&
-        attempt
-      ) {
-        Engine.context.PredictController.trackPredictBuyTerminalEvent({
-          status: PredictTradeStatus.CANCELLED,
-          amountUsd: attempt.amountUsd,
-          analyticsProperties,
-          attemptId: attempt.attemptId,
-          paymentMethod: attempt.paymentMethod,
-          failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
-          failureCategory: PredictEventValues.FAILURE_CATEGORY.USER_REJECTED,
-          failureReason: 'User cancelled after a retryable order failure',
-          activeAbTests: transactionActiveAbTests,
-        });
+      if (didInitiateOrderRef.current) {
+        PredictController.cancelRetryablePredictBuyAttempt();
       }
 
       // Only fire dismiss if the user didn't confirm an order. StackActions.pop()
@@ -227,6 +203,7 @@ export const usePredictBuyActions = ({
     payWithAnyTokenEnabled,
     isSheetMode,
     analyticsProperties,
+    PredictController,
     transactionActiveAbTests,
     resetSelectedPaymentToken,
   ]);
@@ -236,7 +213,9 @@ export const usePredictBuyActions = ({
       try {
         const result = await placeOrder({
           ...orderParams,
-          attempt: orderParams.attempt ?? attemptRef.current,
+          attempt:
+            orderParams.attempt ??
+            PredictController.getRetryablePredictBuyAttempt(),
           activeAbTests: orderParams.activeAbTests ?? transactionActiveAbTests,
         });
         return { status: 'success', result };
@@ -250,7 +229,7 @@ export const usePredictBuyActions = ({
         };
       }
     },
-    [placeOrder, transactionActiveAbTests],
+    [placeOrder, PredictController, transactionActiveAbTests],
   );
 
   const stopConfirming = useCallback(() => {
@@ -308,25 +287,15 @@ export const usePredictBuyActions = ({
       };
     }
 
-    const attempt: PredictBuyAttempt = {
-      attemptId: generateOrderId(),
+    const attempt = PredictController.startPredictBuyAttempt({
       amountUsd,
       paymentMethod:
         currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
           ? PredictEventValues.PAYMENT_METHOD.PAY_WITH_ANY_TOKEN
           : PredictEventValues.PAYMENT_METHOD.PREDICT_BALANCE,
-    };
-    attemptRef.current = attempt;
-    predictBuyAttemptRef.current = attempt;
-
-    PredictController.trackPredictOrderEvent({
-      status: PredictTradeStatus.ATTEMPT_STARTED,
-      amountUsd: attempt.amountUsd,
       analyticsProperties,
       sharePrice: preview.sharePrice,
       orderType: preview.orderType,
-      attemptId: attempt.attemptId,
-      paymentMethod: attempt.paymentMethod,
       activeAbTests: transactionActiveAbTests,
     });
 

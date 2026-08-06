@@ -237,6 +237,27 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('uses executed value for Trade Completed and requested value for lifecycle', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: 150,
+        tradeCompletedAmountUsd: 125,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+        },
+      });
+
+      const predictTradeEvent = getTrackedEvent();
+      const tradeCompletedEvent = getTrackedEvent(1);
+
+      expect(predictTradeEvent.sensitiveProperties?.amount_usd).toBe(150);
+      expect(tradeCompletedEvent.sensitiveProperties).toMatchObject({
+        amount_usd: 150,
+        usd_trade_value: 125,
+      });
+    });
+
     it('does not track Trade Completed for a succeeded Predict deposit', async () => {
       await predictAnalytics.trackPredictOrderEvent({
         status: PredictTradeStatus.SUCCEEDED,

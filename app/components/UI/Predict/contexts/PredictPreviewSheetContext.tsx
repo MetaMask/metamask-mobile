@@ -52,10 +52,6 @@ import PredictBuyPreview, {
   predictBuyPreviewSessionRef,
 } from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
-import {
-  predictBuyAttemptRef,
-  predictBuyHasRetryableFailureRef,
-} from '../views/PredictBuyWithAnyToken/predictBuyAttemptRefs';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
@@ -518,29 +514,7 @@ export const PredictPreviewSheetProvider: React.FC<
       activeOrder?.state === ActiveOrderState.DEPOSITING ||
       activeOrder?.state === ActiveOrderState.PLACING_ORDER;
 
-    const attempt = predictBuyAttemptRef.current;
-    if (
-      orderWasInitiated &&
-      predictBuyHasRetryableFailureRef.current &&
-      attempt &&
-      buyParams
-    ) {
-      Engine.context.PredictController.trackPredictBuyTerminalEvent({
-        status: PredictTradeStatus.CANCELLED,
-        amountUsd: attempt.amountUsd,
-        analyticsProperties: parseAnalyticsProperties(
-          buyParams.market,
-          buyParams.outcomeToken,
-          buyParams.entryPoint,
-        ),
-        attemptId: attempt.attemptId,
-        paymentMethod: attempt.paymentMethod,
-        failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
-        failureCategory: PredictEventValues.FAILURE_CATEGORY.USER_REJECTED,
-        failureReason: 'User cancelled after a retryable order failure',
-        activeAbTests: buyParams.transactionActiveAbTests,
-      });
-    }
+    Engine.context.PredictController.cancelRetryablePredictBuyAttempt();
 
     // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
     // Skip if: the back-button handler already fired it, or the sheet is
@@ -565,8 +539,6 @@ export const PredictPreviewSheetProvider: React.FC<
     }
     predictBuyPreviewDismissedViaBackRef.current = false;
     predictBuyPreviewOrderInitiatedRef.current = false;
-    predictBuyAttemptRef.current = undefined;
-    predictBuyHasRetryableFailureRef.current = false;
 
     setBuyParams(null);
     const orderMayStartAfterDismiss = orderWasInitiated && !activeOrder?.error;
