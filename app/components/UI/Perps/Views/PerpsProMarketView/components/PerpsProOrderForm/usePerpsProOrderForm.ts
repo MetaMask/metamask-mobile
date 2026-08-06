@@ -38,7 +38,6 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
-  usePerpsLiveOrders,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
@@ -112,16 +111,16 @@ const isLimitPriceValidationError = (message: string): boolean =>
 
 const getBlockingNotices = ({
   reduceOnlyErrorCode,
-  isReduceOnlyStreamLoading,
+  isReduceOnlyPositionLoading,
   filteredErrors,
 }: {
   reduceOnlyErrorCode?: ReduceOnlyValidationCode;
-  isReduceOnlyStreamLoading: boolean;
+  isReduceOnlyPositionLoading: boolean;
   filteredErrors: string[];
 }): PerpsProOrderNotice[] => {
-  // Streams are unresolved — skipValidation retains prior errors, so hide all
-  // blocking notices until live reduce-only state can be evaluated.
-  if (isReduceOnlyStreamLoading) {
+  // Position data is unresolved — skipValidation retains prior errors, so hide
+  // blocking notices until the live reduce-only state can be evaluated.
+  if (isReduceOnlyPositionLoading) {
     return [];
   }
 
@@ -359,9 +358,6 @@ export const usePerpsProOrderForm = ({
     loadOnMount: true,
   });
 
-  const { orders: openOrders, isInitialLoading: isOrdersStreamLoading } =
-    usePerpsLiveOrders();
-
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
   const currentTopOfBook = usePerpsTopOfBook({ symbol });
@@ -492,8 +488,7 @@ export const usePerpsProOrderForm = ({
     [effectiveUsdAmount, orderForm],
   );
 
-  const isReduceOnlyStreamLoading =
-    reduceOnly && (isPositionStreamLoading || isOrdersStreamLoading);
+  const isReduceOnlyPositionLoading = reduceOnly && isPositionStreamLoading;
 
   const reduceOnlyValidation = useMemo(
     () =>
@@ -502,17 +497,8 @@ export const usePerpsProOrderForm = ({
         direction: orderForm.direction,
         orderSize: positionSize,
         position: currentMarketPosition,
-        openOrders,
-        symbol,
       }),
-    [
-      reduceOnly,
-      orderForm.direction,
-      positionSize,
-      currentMarketPosition,
-      openOrders,
-      symbol,
-    ],
+    [reduceOnly, orderForm.direction, positionSize, currentMarketPosition],
   );
 
   const orderValidation = usePerpsOrderValidation({
@@ -525,9 +511,9 @@ export const usePerpsProOrderForm = ({
     // for a valid close/reduce when free collateral is low.
     marginRequired: reduceOnly ? '0' : marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    // Skip protocol validation until streams are ready so we don't flash
-    // unrelated errors while waiting for position/order snapshots.
-    skipValidation: isReduceOnlyStreamLoading,
+    // Skip protocol validation until position data is ready so we don't flash
+    // unrelated errors while waiting for the position snapshot.
+    skipValidation: isReduceOnlyPositionLoading,
     originalUsdAmount: effectiveUsdAmount,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose,
@@ -623,7 +609,7 @@ export const usePerpsProOrderForm = ({
     }
 
     if (
-      isReduceOnlyStreamLoading ||
+      isReduceOnlyPositionLoading ||
       (reduceOnly && !reduceOnlyValidation.isValid)
     ) {
       return;
@@ -781,7 +767,7 @@ export const usePerpsProOrderForm = ({
     maxSlippageBps,
     maxSlippageSource,
     hasTpslBlocker,
-    isReduceOnlyStreamLoading,
+    isReduceOnlyPositionLoading,
     reduceOnlyValidation.isValid,
     reduceOnlyValidation.isFullClose,
     directionTrackingValue,
@@ -964,7 +950,7 @@ export const usePerpsProOrderForm = ({
         reduceOnlyErrorCode: reduceOnly
           ? reduceOnlyValidation.errorCode
           : undefined,
-        isReduceOnlyStreamLoading,
+        isReduceOnlyPositionLoading,
         filteredErrors,
       }),
       ...getTpslNotices({
@@ -988,7 +974,7 @@ export const usePerpsProOrderForm = ({
     return list;
   }, [
     reduceOnly,
-    isReduceOnlyStreamLoading,
+    isReduceOnlyPositionLoading,
     reduceOnlyValidation.errorCode,
     filteredErrors,
     doesStopLossRiskLiquidation,
@@ -1051,7 +1037,7 @@ export const usePerpsProOrderForm = ({
     isAtCap ||
     isPlacing ||
     isLoadingMarketData ||
-    isReduceOnlyStreamLoading ||
+    isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
     hasTpslBlocker;
 

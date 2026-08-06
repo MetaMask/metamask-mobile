@@ -98,8 +98,6 @@ jest.mock('../../../../contexts/PerpsOrderContext', () => ({
 }));
 
 let mockPositionStreamLoading = false;
-let mockOrdersStreamLoading = false;
-let mockOpenOrders: unknown[] = [];
 
 jest.mock('../../../../hooks', () => ({
   useHasExistingPosition: () => ({
@@ -146,10 +144,6 @@ jest.mock('../../../../hooks/stream', () => ({
     BTC: { price: '90000', markPrice: '90000', percentChange24h: '1' },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
-  usePerpsLiveOrders: () => ({
-    orders: mockOpenOrders,
-    isInitialLoading: mockOrdersStreamLoading,
-  }),
 }));
 
 let mockIsInitialized = true;
@@ -224,8 +218,6 @@ describe('usePerpsProOrderForm', () => {
     mockEstimatedSlippageBps = 50;
     mockIsInitialized = true;
     mockPositionStreamLoading = false;
-    mockOrdersStreamLoading = false;
-    mockOpenOrders = [];
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
   });
 
@@ -367,9 +359,9 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('suppresses stale validation notices while reduce-only streams are loading', () => {
+    it('suppresses stale validation notices while the position is loading', () => {
       // Arrange: retain a prior margin error (skipValidation freezes errors)
-      // while position streams are still loading after Reduce Only is enabled.
+      // while the position is still loading after Reduce Only is enabled.
       mockValidation.isValid = false;
       mockValidation.errors = ['Insufficient funds'];
       mockPositionStreamLoading = true;
@@ -814,7 +806,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(false);
     });
 
-    it('disables Place Order while reduce-only position streams are loading', () => {
+    it('disables Place Order while the reduce-only position is loading', () => {
       mockPositionStreamLoading = true;
       mockExistingPosition = {
         size: '-1',

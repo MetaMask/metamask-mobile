@@ -104,7 +104,7 @@ export interface BuildPerpsOrderParamsInput {
   /** Reduce-only flag (Pro only); omitted for lite. */
   reduceOnly?: boolean;
   /**
-   * True when the order consumes the full remaining closable position.
+   * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
    */
   isFullClose?: boolean;
