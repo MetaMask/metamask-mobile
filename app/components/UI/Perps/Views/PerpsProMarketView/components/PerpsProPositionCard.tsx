@@ -167,7 +167,6 @@ const PerpsProPositionCard = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
   const roe = (parseFloat(position.returnOnEquity) || 0) * 100;
-  const pnlSeverity = pnlNum >= 0 ? TagSeverity.Success : TagSeverity.Danger;
 
   const directionLabel = isLong
     ? strings('perps.market.long')
@@ -308,16 +307,21 @@ const PerpsProPositionCard = ({
                 </SensitiveText>
               </Box>
             </Box>
-            <Tag severity={privacyMode ? TagSeverity.Neutral : pnlSeverity}>
-              <SensitiveText
-                variant={TextVariant.BodyXs}
-                fontWeight={FontWeight.Medium}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-              >
-                {`${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`}
-              </SensitiveText>
-            </Tag>
+            <SensitiveText
+              variant={TextVariant.BodyMdMedium}
+              color={
+                privacyMode
+                  ? TextColor.TextDefault
+                  : pnlNum >= 0
+                    ? TextColor.SuccessDefault
+                    : TextColor.ErrorDefault
+              }
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID="pnl-text"
+            >
+              {`${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`}
+            </SensitiveText>
           </Box>
         </Pressable>
 
