@@ -6,7 +6,7 @@ import Animated, {
   FadeOut,
   LinearTransition,
 } from 'react-native-reanimated';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { createStyles } from './PerpsProMarketLayout.styles';
 
