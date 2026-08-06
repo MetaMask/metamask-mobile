@@ -25,12 +25,14 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
+import { useTransactionCustomAmount } from '../transactions/useTransactionCustomAmount';
 import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayWithdraw');
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../transactions/useTransactionCustomAmount');
 
 const STATE_MOCK = merge(
   {},
@@ -64,6 +66,9 @@ describe('useNoPayTokenQuotesAlert', () => {
     useTransactionPayRequiredTokens,
   );
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
+  const useTransactionCustomAmountMock = jest.mocked(
+    useTransactionCustomAmount,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -86,6 +91,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
     jest.mocked(useTransactionPayQuoteError).mockReturnValue(undefined);
+    useTransactionCustomAmountMock.mockReturnValue({
+      hasInput: true,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+    } as ReturnType<typeof useTransactionCustomAmount>);
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -200,6 +210,62 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
+  describe('non-fiat input gating', () => {
+    it('returns no alert when no amount has been entered', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        hasInput: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+      } as ReturnType<typeof useTransactionCustomAmount>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert while a deposit prefill is pending', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        hasInput: true,
+        isPrefillPending: true,
+        isDepositPrefillLoading: false,
+      } as ReturnType<typeof useTransactionCustomAmount>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert while a deposit prefill amount is loading', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        hasInput: true,
+        isPrefillPending: false,
+        isDepositPrefillLoading: true,
+      } as ReturnType<typeof useTransactionCustomAmount>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert once input is present and the prefill has settled', () => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        hasInput: true,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+      } as ReturnType<typeof useTransactionCustomAmount>);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
+  });
+
   it('returns alert for post-quote when a required token has a positive amount and no quotes', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
     useTransactionPayQuotesRawMock.mockReturnValue([]);
@@ -298,6 +364,11 @@ describe('useNoPayTokenQuotesAlert', () => {
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
       } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        hasInput: true,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+      } as ReturnType<typeof useTransactionCustomAmount>);
     });
 
     it('returns alert for moneyAccountDeposit with no quotes and positive required amount', () => {
