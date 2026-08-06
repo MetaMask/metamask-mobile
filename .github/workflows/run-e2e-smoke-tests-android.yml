@@ -26,26 +26,8 @@ permissions:
 jobs:
   # SmokeWalletPlatform Detox job removed — tag fully migrated to Appium
   # (run-appium-smoke-tests-android.yml / appium-wallet-platform-android-smoke).
-
-  # SmokeConfirmations Detox job removed — tag fully migrated to Appium
-  # (run-appium-smoke-tests-android.yml / appium-confirmations-android-smoke).
-
-  network-abstraction-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions')
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: network-abstraction-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeNetworkAbstractions'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # SmokeNetworkAbstractions Detox job removed — tag fully migrated to Appium
+  # (run-appium-smoke-tests-android.yml / appium-network-abstractions-android-smoke).
 
   report-android-smoke-tests:
     name: Report Android Smoke Tests
@@ -61,7 +43,7 @@ jobs:
         )
       }}
     needs:
-      - network-abstraction-android-smoke
+      - confirmations-android-smoke
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
