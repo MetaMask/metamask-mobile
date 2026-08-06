@@ -4,6 +4,7 @@ import {
   resolveE2EFixtureBootstrapTimeoutMs,
   shouldHandleMetroDevLauncherLocally,
 } from '../../Constants.ts';
+import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
@@ -85,6 +86,8 @@ export async function softReloadAppForFixtures(
     bootstrapTimeoutMs = resolveE2EFixtureBootstrapTimeoutMs(),
     drv = globalThis.driver,
   } = options;
+
+  AndroidWebViewCdpHelpers.resetCache();
 
   let clearAppDataMs = 0;
   if (deviceCommands) {
