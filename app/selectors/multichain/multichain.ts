@@ -320,14 +320,11 @@ export const selectMultichainTokenListForAccountsAnyChain =
  * active networks (e.g. TRON) from causing `selectSelectedInternalAccount` to
  * resolve to a non-EVM address that has no EVM balance data.
  */
-const selectAccountTokensAcrossChainsForEvmScope = createSelector(
-  (state: RootState) => state,
-  selectSelectedInternalAccountByScope,
-  (state, accountByScope) => {
-    const evmAddress = accountByScope(EVM_SCOPE)?.address;
-    return selectAccountTokensAcrossChainsForAddress(state, evmAddress);
-  },
-);
+const selectAccountTokensAcrossChainsForEvmScope = (state: RootState) =>
+  selectAccountTokensAcrossChainsForAddress(
+    state,
+    selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
+  );
 
 /**
  * Unified selector: EVM tokens (native + ERC20) for the selected EVM address

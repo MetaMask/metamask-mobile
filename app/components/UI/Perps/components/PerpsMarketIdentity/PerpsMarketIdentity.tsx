@@ -39,7 +39,7 @@ export interface PerpsMarketIdentityProps {
   nameStyle?: StyleProp<TextStyle>;
   /**
    * When provided, the identity becomes a content-hugging pressable that opens
-   * the market list and shows a trailing caret.
+   * the market list and shows a trailing down chevron.
    */
   onPress?: () => void;
   testIDs?: PerpsMarketIdentityTestIDs;
@@ -100,7 +100,7 @@ const PerpsMarketIdentity = ({
           {maxLeverage ? <PerpsLeverage maxLeverage={maxLeverage} /> : null}
           {onPress ? (
             <Icon
-              name={IconName.ArrowRight}
+              name={IconName.ArrowDown}
               size={IconSize.Xs}
               color={IconColor.IconAlternative}
             />

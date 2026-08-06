@@ -130,6 +130,7 @@ describe('WatchlistStarButton', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'token_details',
+        asset_id: 'eip155:1/erc20:0xabc',
         asset_type: 'erc20',
         has_balance: true,
       }),
@@ -163,6 +164,7 @@ describe('WatchlistStarButton', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'token_details',
+        asset_id: 'eip155:1/erc20:0xabc',
         asset_type: 'erc20',
       }),
     );
@@ -189,6 +191,7 @@ describe('WatchlistStarButton', () => {
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'watchlist_homepage',
+        asset_id: 'eip155:1/slip44:60',
         asset_type: 'native',
       }),
     );

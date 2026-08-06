@@ -81,6 +81,9 @@ jest.mock('./useCardDelegation', () => {
 jest.mock(
   '../../../../core/Engine/controllers/card-controller/provider-types',
   () => {
+    const actual = jest.requireActual(
+      '../../../../core/Engine/controllers/card-controller/provider-types',
+    );
     class MockCardLinkageInProgressError extends Error {
       constructor(
         message = 'A Money Account to Card linkage is already in progress',
@@ -89,7 +92,10 @@ jest.mock(
         this.name = 'CardLinkageInProgressError';
       }
     }
-    return { CardLinkageInProgressError: MockCardLinkageInProgressError };
+    return {
+      ...actual,
+      CardLinkageInProgressError: MockCardLinkageInProgressError,
+    };
   },
 );
 
