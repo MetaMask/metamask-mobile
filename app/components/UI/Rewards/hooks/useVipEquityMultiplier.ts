@@ -52,6 +52,7 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
     holdingsUsd,
     isLoading: isHoldingsLoading,
     hasError: hasHoldingsError,
+    retry: retryHoldings,
   } = useSubscriptionLinkedMusdHoldings();
 
   const [snapshot, setSnapshot] = useState<VipEquityMultiplierSnapshot | null>(
@@ -59,6 +60,12 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
   );
   const [isUnavailable, setIsUnavailable] = useState(false);
   const [hasFetchError, setHasFetchError] = useState(false);
+  /**
+   * True from the moment `retry` is invoked until the resulting request
+   * settles. Without it, clearing `hasFetchError` would immediately re-expose
+   * the previous snapshot and flash a stale multiplier mid-retry.
+   */
+  const [isRetryPending, setIsRetryPending] = useState(false);
   const [debouncedHoldings, setDebouncedHoldings] = useState<
     string | undefined
   >(undefined);
@@ -86,9 +93,12 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
   const fetchMultiplier = useCallback(async (): Promise<void> => {
     if (!subscriptionId || !isVipProgramEnabled) {
       setIsUnavailable(true);
+      setIsRetryPending(false);
       return;
     }
     if (debouncedHoldings === undefined) {
+      // Holdings are still unresolved — a retry stays pending until they
+      // either arrive (triggering this again) or fail.
       return;
     }
     // Dedupe re-entrant calls for the same holdings (focus + mount effect).
@@ -110,6 +120,7 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
         return;
       }
       setHasFetchError(false);
+      setIsRetryPending(false);
       if (result?.available === true) {
         setIsUnavailable(false);
         setSnapshot({ payload: result, holdingsUsd: debouncedHoldings });
@@ -122,6 +133,7 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
     } catch {
       if (requestId === requestIdRef.current) {
         setHasFetchError(true);
+        setIsRetryPending(false);
       }
     } finally {
       if (requestId === requestIdRef.current) {
@@ -142,9 +154,14 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
 
   const retry = useCallback(() => {
     inFlightHoldingsRef.current = undefined;
+    setIsRetryPending(true);
     setHasFetchError(false);
+    // Holdings can be the failing input, in which case re-requesting the
+    // multiplier alone would never recover. Refetching them re-runs this
+    // effect chain once a new value lands.
+    retryHoldings();
     fetchMultiplier().then();
-  }, [fetchMultiplier]);
+  }, [retryHoldings, fetchMultiplier]);
 
   let status: VipEquityMultiplierStatus = 'loading';
   if (!subscriptionId || !isVipProgramEnabled || isUnavailable) {
@@ -153,7 +170,7 @@ export const useVipEquityMultiplier = (): UseVipEquityMultiplierResult => {
     // Prefer an explicit error over a stale estimate: the previous snapshot
     // describes a balance we can no longer confirm.
     status = 'error';
-  } else if (snapshot && !isHoldingsLoading) {
+  } else if (snapshot && !isHoldingsLoading && !isRetryPending) {
     status = 'ready';
   }
 

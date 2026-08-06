@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { Hex, parseCaipAccountId } from '@metamask/utils';
@@ -24,6 +24,11 @@ export interface UseSubscriptionLinkedMusdHoldingsResult {
   isLoading: boolean;
   /** True when a required input failed and holdings cannot be determined. */
   hasError: boolean;
+  /**
+   * Re-runs the inputs that can fail. Only the Money Account balance is
+   * fetched; wallet balances come from Redux and need no refetch.
+   */
+  retry: () => void;
 }
 
 /**
@@ -87,8 +92,12 @@ export const useSubscriptionLinkedMusdHoldings =
       moneyAccountAddress !== undefined &&
       linkedEvmAddresses.has(moneyAccountAddress);
 
-    const { totalFiatRaw, isBalanceLoading, isBalanceFetchError } =
-      useMoneyAccountBalance({ enabled: includeMoneyAccountBalance });
+    const {
+      totalFiatRaw,
+      isBalanceLoading,
+      isBalanceFetchError,
+      refetchBalance,
+    } = useMoneyAccountBalance({ enabled: includeMoneyAccountBalance });
 
     const walletMusdTotal = useMemo(() => {
       let total = new BigNumber(0);
@@ -161,7 +170,13 @@ export const useSubscriptionLinkedMusdHoldings =
       walletMusdTotal,
     ]);
 
-    return { holdingsUsd, isLoading, hasError };
+    const retry = useCallback(() => {
+      if (includeMoneyAccountBalance) {
+        refetchBalance();
+      }
+    }, [includeMoneyAccountBalance, refetchBalance]);
+
+    return { holdingsUsd, isLoading, hasError, retry };
   };
 
 export default useSubscriptionLinkedMusdHoldings;

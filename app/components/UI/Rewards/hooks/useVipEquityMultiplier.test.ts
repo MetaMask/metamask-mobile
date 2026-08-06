@@ -23,8 +23,10 @@ interface MockHoldings {
   holdingsUsd: string | undefined;
   isLoading: boolean;
   hasError: boolean;
+  retry: () => void;
 }
 
+const mockRetryHoldings = jest.fn();
 const mockHoldings = jest.fn<MockHoldings, []>();
 
 jest.mock('./useSubscriptionLinkedMusdHoldings', () => ({
@@ -69,6 +71,7 @@ describe('useVipEquityMultiplier', () => {
       holdingsUsd: '5000000',
       isLoading: false,
       hasError: false,
+      retry: mockRetryHoldings,
     });
     mockUseFocusEffect.mockImplementation(() => undefined);
   });
@@ -157,6 +160,7 @@ describe('useVipEquityMultiplier', () => {
       holdingsUsd: undefined,
       isLoading: true,
       hasError: false,
+      retry: mockRetryHoldings,
     });
 
     const { result } = renderHook(() => useVipEquityMultiplier());
@@ -175,6 +179,7 @@ describe('useVipEquityMultiplier', () => {
       holdingsUsd: undefined,
       isLoading: false,
       hasError: true,
+      retry: mockRetryHoldings,
     });
 
     const { result } = renderHook(() => useVipEquityMultiplier());
@@ -217,6 +222,90 @@ describe('useVipEquityMultiplier', () => {
     expect(result.current.data?.capUsd).toBe('10000000');
   });
 
+  it('refetches holdings on retry so a holdings failure can recover', async () => {
+    mockHoldings.mockReturnValue({
+      holdingsUsd: undefined,
+      isLoading: false,
+      hasError: true,
+      retry: mockRetryHoldings,
+    });
+
+    const { result } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+    });
+    expect(result.current.status).toBe('error');
+
+    await act(async () => {
+      result.current.retry();
+      await Promise.resolve();
+    });
+
+    // The multiplier request alone could never clear this path.
+    expect(mockRetryHoldings).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not flash a stale snapshot between retry and its response', async () => {
+    (Engine.controllerMessenger.call as jest.Mock).mockResolvedValueOnce(
+      buildAvailableResult('10000000'),
+    );
+
+    const { result, rerender } = renderHook(() => useVipEquityMultiplier());
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current.status).toBe('ready');
+
+    // A later holdings change fails, leaving the earlier snapshot in place.
+    (Engine.controllerMessenger.call as jest.Mock).mockRejectedValueOnce(
+      new Error('boom'),
+    );
+    mockHoldings.mockReturnValue({
+      holdingsUsd: '7000000',
+      isLoading: false,
+      hasError: false,
+      retry: mockRetryHoldings,
+    });
+    rerender();
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(result.current.status).toBe('error');
+
+    let resolveRetry: (() => void) | undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRetry = () => resolve(buildAvailableResult('7000000'));
+        }),
+    );
+
+    await act(async () => {
+      result.current.retry();
+      await Promise.resolve();
+    });
+
+    // Must not revert to the stale $10M snapshot while the retry is in flight.
+    expect(result.current.status).toBe('loading');
+    expect(result.current.data).toBeNull();
+
+    await act(async () => {
+      resolveRetry?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.status).toBe('ready');
+    expect(result.current.data?.capUsd).toBe('7000000');
+  });
+
   it('fetches again for holdings that change while a request is in flight', async () => {
     const deferred: ((value: unknown) => void)[] = [];
     (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
@@ -238,6 +327,7 @@ describe('useVipEquityMultiplier', () => {
       holdingsUsd: '7000000',
       isLoading: false,
       hasError: false,
+      retry: mockRetryHoldings,
     });
     rerender();
     await act(async () => {
@@ -285,6 +375,7 @@ describe('useVipEquityMultiplier', () => {
       holdingsUsd: '7000000',
       isLoading: false,
       hasError: false,
+      retry: mockRetryHoldings,
     });
     rerender();
     await act(async () => {

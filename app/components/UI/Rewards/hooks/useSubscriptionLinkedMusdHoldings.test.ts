@@ -50,6 +50,7 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockMoneyAccountInfo = jest.fn();
+const mockRefetchBalance = jest.fn();
 const mockMoneyAccountBalance = jest.fn();
 
 jest.mock('../../Money/hooks/useMoneyAccountInfo', () => ({
@@ -86,6 +87,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
       totalFiatRaw: undefined,
       isBalanceLoading: false,
       isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
     });
   });
 
@@ -228,6 +230,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
       totalFiatRaw: '250.5',
       isBalanceLoading: false,
       isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
     });
 
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
@@ -261,6 +264,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
       totalFiatRaw: '900',
       isBalanceLoading: false,
       isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
     });
 
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
@@ -285,6 +289,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
       totalFiatRaw: '999',
       isBalanceLoading: false,
       isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
     });
 
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
@@ -304,6 +309,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
       totalFiatRaw: undefined,
       isBalanceLoading: true,
       isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
     });
 
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
@@ -324,6 +330,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
       totalFiatRaw: undefined,
       isBalanceLoading: false,
       isBalanceFetchError: true,
+      refetchBalance: mockRefetchBalance,
     });
 
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
@@ -348,6 +355,7 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
       totalFiatRaw: '999',
       isBalanceLoading: false,
       isBalanceFetchError: false,
+      refetchBalance: mockRefetchBalance,
     });
 
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
@@ -365,6 +373,40 @@ describe('useSubscriptionLinkedMusdHoldings', () => {
     const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
 
     expect(result.current.holdingsUsd).toBe('233');
+  });
+
+  it('refetches the Money Account balance on retry when it is linked', () => {
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(MONEY_ACCOUNT)]);
+    mockMoneyAccountInfo.mockReturnValue({
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: true,
+      primaryMoneyAccount: { address: MONEY_ACCOUNT },
+    });
+    mockMoneyAccountBalance.mockReturnValue({
+      totalFiatRaw: undefined,
+      isBalanceLoading: false,
+      isBalanceFetchError: true,
+      refetchBalance: mockRefetchBalance,
+    });
+
+    const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
+    result.current.retry();
+
+    expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refetch the Money Account balance when it is not counted', () => {
+    mockSubscriptionAccounts.mockReturnValue([linkedAccount(ACCOUNT_A)]);
+    mockMoneyAccountInfo.mockReturnValue({
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: true,
+      primaryMoneyAccount: { address: MONEY_ACCOUNT },
+    });
+
+    const { result } = renderHook(() => useSubscriptionLinkedMusdHoldings());
+    result.current.retry();
+
+    expect(mockRefetchBalance).not.toHaveBeenCalled();
   });
 
   it('skips zero balances and missing balance entries', () => {
