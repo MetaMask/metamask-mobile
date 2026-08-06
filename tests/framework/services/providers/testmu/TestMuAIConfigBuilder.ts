@@ -69,7 +69,8 @@ export class TestMuAIConfigBuilder {
     logger.info(
       `TestMu AI tunnel: ${isLocal}, geoLocation: ${isLocal ? 'disabled for tunnel sessions' : geoLocation}`,
     );
-    const appiumVersion = process.env.TESTMU_APPIUM_VERSION?.trim() || 'latest';
+    const appiumVersion =
+      process.env.TESTMU_APPIUM_VERSION?.trim() || '3.0.2';
 
     logger.info(
       `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, appiumVersion=${appiumVersion}, isRealMobile=true` +

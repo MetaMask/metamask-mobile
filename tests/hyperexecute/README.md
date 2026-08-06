@@ -73,9 +73,9 @@ Notes:
 - Do **not** set `playwrightRD: true` or `defaultReports: false` for this PoC —
   those target Playwright Real Device (CDP). We use Playwright only as the test
   runner and connect to Appium via `TestMuAIProvider`.
-- Sessions request `appiumVersion: "latest"` in `LT:Options` (override with
-  `TESTMU_APPIUM_VERSION`) so TestMu selects its latest supported Appium
-  version instead of the platform default.
+- Sessions request `appiumVersion: "3.0.2"` in `LT:Options` (override with
+  `TESTMU_APPIUM_VERSION`) because this is the supported Appium version for
+  the TestMu organization used by the PoC.
 - Appium sessions enable TestMu Smart Heal with `smartHeal: true`; this
   requires the eligible Real Device plan and a successful baseline run.
 - Discovery is **static** (0.2 drops dynamic/matrix discovery): the CLI host
