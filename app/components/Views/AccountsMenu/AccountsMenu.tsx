@@ -35,6 +35,7 @@ import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClick
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import {
   getMetamaskNotificationsReadCount,
@@ -77,7 +78,7 @@ const AccountsMenu = () => {
         })
         .build(),
     );
-    goToBuy();
+    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACCOUNTS_MENU });
   }, [
     goToBuy,
     createEventBuilder,

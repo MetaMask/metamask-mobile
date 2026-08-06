@@ -311,7 +311,7 @@
     "warning_text_2": "supprimés",
     "warning_text_3": "si vous poursuivez.",
     "warning_text_4": "Vous pouvez UNIQUEMENT les récupérer à l’aide de la phrase secrète de récupération de votre portefeuille. MetaMask ne peut pas vous aider à la récupérer.",
-    "warning_proceed": "Supprimer le portefeuille et continuer",
+    "warning_proceed": "Remove wallet and proceed",
     "warning_cancel": "Annuler",
     "step1": "Configuration du portefeuille",
     "step2": "Créer un mot de passe",
@@ -421,7 +421,7 @@
     "step4": {
       "title": "Menu principal",
       "content1": "Ce menu vous permet d’accéder à l’historique des transactions, aux paramètres et au service d’assistance.",
-      "content2": "Vous pouvez effectuer d’autres actions sur vos comptes et accéder aux paramètres de MetaMask."
+      "content2": "You can take more actions with your accounts and access MetaMask settings."
     },
     "step5": {
       "title": "Explorer le navigateur",
@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "Type",
+      "placeholder": "Type",
       "all": "Tous les types",
       "tokens": "Jetons",
       "perps": "Perps"
+    },
+    "timeframe_filter": {
+      "title": "Période",
+      "7d": "7 j",
+      "30d": "30J"
+    },
+    "sort_filter": {
+      "title": "Trier par",
+      "pnl": "Résultat",
+      "roi": "Résultat %",
+      "win_rate": "Taux de réussite"
     },
     "feed": {
       "title": "Meilleurs traders",
@@ -1266,7 +1279,7 @@
       "get_new_quote": "Obtenir une nouvelle cotation",
       "available_balance": "{{amount}} disponible(s)",
       "toggle_amount_display": "Passer du montant en jetons au montant en dollars",
-      "includes_mm_fee": "Comprend {{fee}} % de frais MM",
+      "includes_mm_fee": "Comprend {{fee}} % de frais MetaMask",
       "pay_with_no_tokens": "Pas de jeton disponible pour payer",
       "receive_with_no_tokens": "Aucun jeton disponible à recevoir",
       "pay_with_filter_all": "Tous",
@@ -1281,14 +1294,14 @@
       "toast_complete_sell": "A vendu {{amount}} {{symbol}} contre {{counter}}",
       "toast_failed_buy": "Impossible d’acheter des {{symbol}}",
       "toast_failed_sell": "Impossible de vendre des {{symbol}}",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "Confirmer",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "edit_quick_amounts_title": "Modifier les montants par défaut",
+      "edit_quick_amounts_set_buy": "Acheter",
+      "edit_quick_amounts_set_sell": "Vendre",
+      "edit_quick_amounts_confirm": "Sauvegarder",
+      "edit_quick_amounts_buy_above_zero": "Le montant d’achat doit être supérieur à {{min}}",
+      "edit_quick_amounts_buy_below_max": "Le montant d’achat doit être inférieur à {{max}}",
+      "edit_quick_amounts_sell_above_zero": "Le montant de vente doit être supérieur à 0 %",
+      "edit_quick_amounts_sell_below_max": "Le montant de vente doit être inférieur à 100 %"
     }
   },
   "perps": {
@@ -1358,7 +1371,8 @@
       "add_margin_button": "Ajouter",
       "protect_losses_title": "Protégez-vous contre des pertes supplémentaires",
       "set_stop_loss_subtitle": "Fixez un stop loss à {{price}} ({{percent}})",
-      "set_button": "Définir"
+      "set_button": "Définir",
+      "success_title": "Stop loss défini"
     },
     "confirm": "Confirmer",
     "deposit": {
@@ -1510,9 +1524,10 @@
     "pro_order_form": {
       "isolated": "Isolée",
       "choose_order_type": "Choisissez le type d’ordre",
-      "size_usd": "Taille en USD",
+      "size_usd": "Size (USD)",
       "size_percentage": "Pourcentage de la taille de l’ordre",
       "toggle_size_unit": "Changer la dénomination de la taille",
+      "available_balance": "{{amount}} disponible(s)",
       "available_balance_unavailable": "-- disponible ",
       "est_liquidation": "Liquidation estimée",
       "tpsl": "TP/SL",
@@ -1523,11 +1538,25 @@
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Ordres",
-      "orders_with_count": "Orders ({{count}})",
+      "orders_with_count": "Ordres ({{count}})",
       "ticker_only": "{{ticker}} uniquement",
-      "positions_empty": "Your open positions will appear here.",
-      "positions_empty_filtered": "No open {{ticker}} positions.",
-      "orders_empty": "Your open orders will appear here.",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
+      "positions_empty": "Vos positions ouvertes apparaîtront ici.",
+      "positions_empty_filtered": "Aucune position {{ticker}}.",
+      "positions_empty_long": "Aucune position longue.",
+      "positions_empty_short": "Aucune position courte.",
+      "orders_empty": "Vos ordres ouverts apparaîtront ici.",
+      "side_filter": {
+        "all_sides": "Tous côtés",
+        "long": "Long",
+        "short": "Courte"
+      },
+      "sort": {
+        "position_value": "Valeur de position",
+        "unrealized_pnl": "Profits et pertes non réalisés",
+        "funding_rate": "Taux de financement",
+        "settings_accessibility": "Trier les positions"
+      },
       "card": {
         "entry_price": "Prix d’ouverture",
         "margin": "Marge",
@@ -1536,7 +1565,7 @@
         "liq_price": "Prix de liquidation",
         "funding": "Approvisionnement",
         "isolated": "Isolée",
-        "cross": "Cross",
+        "cross": "Croiser",
         "close": "Fermer",
         "reverse": "Inverser",
         "share": "Partager"
@@ -1548,10 +1577,6 @@
         "reduce_only": "Réduire uniquement",
         "tp_sl": "TP/SL",
         "trigger_condition": "Condition d’exécution",
-        "take_profit": "Take profit",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
         "cancel": "Annuler"
       }
     },
@@ -1835,7 +1860,8 @@
       "margin_available_to_remove": "Marge disponible à supprimer",
       "perps_balance": "Solde des contrats à terme",
       "liquidation_price": "Prix de liquidation",
-      "liquidation_distance": "Distance de liquidation"
+      "liquidation_distance": "Distance de liquidation",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "Fermeture automatique",
@@ -2041,11 +2067,18 @@
       },
       "statistics": "Aperçu",
       "stats": "Statistiques",
+      "about": "À propos",
+      "about_asset": "À propos de {{assetName}}",
+      "read_more": "En savoir plus",
+      "read_more_about": "En savoir plus sur {{assetName}}",
       "24h_high": "Prix le plus élevé atteint au cours des 24 dernières heures",
       "24h_low": "Prix le plus bas atteint au cours des 24 dernières heures",
       "24h_volume": "Volume sur 24 heures",
+      "24h_vol": "Volume/24 h",
       "open_interest": "Intérêts ouverts",
+      "funding": "Approvisionnement",
       "funding_rate": "Taux de financement",
+      "mark_price": "Prix de référence",
       "oracle_price": "Prix de l’oracle",
       "order_book": "Carnet d’ordres",
       "countdown": "Compte à rebours",
@@ -2547,8 +2580,19 @@
     },
     "market_details": {
       "fullscreen_chart": "Graphique en plein écran",
+      "collapse_chart": "Réduire le graphique",
+      "expand_chart": "Développer le graphique",
       "market_list": "Explorer les marchés",
-      "perp_pair": "{{ticker}}-{{collateral}} perp"
+      "perp_pair": "{{ticker}}-{{collateral}} perp",
+      "back": "Retour",
+      "wallet": "Solde des contrats à terme",
+      "add_to_watchlist": "Ajouter à la liste de suivi",
+      "remove_from_watchlist": "Supprimer de la liste de suivi"
+    },
+    "balance_bottom_sheet": {
+      "close_button": "Fermer",
+      "history_button": "Voir l’activité",
+      "available": "Disponible "
     }
   },
   "market_insights": {
@@ -2602,47 +2646,9 @@
       "events_in_total": "{{count}} évènements au total",
       "events_in_total_overflow": "Plus de {{count}} marchés au total",
       "props_pill": "Props",
-      "championship_unavailable": "Il n’y a pas encore de marché à afficher pour le championnat.",
-      "mens_world_cup_title": "Coupe du monde masculine",
-      "mens_world_cup_events": "{{count}} évènements de la coupe du monde masculine",
-      "mens_world_cup_events_overflow": "{{count}} + évènements de la coupe du monde masculine",
-      "winner_unavailable": "Il n’y a pas encore de marchés à afficher pour la coupe du monde."
+      "championship_unavailable": "Il n’y a pas encore de marché à afficher pour le championnat."
     },
     "world_cup": {
-      "title": "Coupe du monde",
-      "predictions_title": "Prédictions pour la Coupe du monde",
-      "banner_title": "Coupe du monde 2026",
-      "banner_description": "Tradez à chaque match, à chaque instant.",
-      "hub_banner_title": "75 000 $ à gagner",
-      "hub_banner_description": "Prédisez les matchs à élimination directe de la Coupe du monde pour gagner — inscrivez-vous dès maintenant",
-      "tabs": {
-        "all": "Tous",
-        "props": "Props",
-        "live": "Active",
-        "games": "Matchs"
-      },
-      "who_will_win": "Qui remportera la Coupe du monde ?",
-      "stages": {
-        "group_stage": "Phase de groupes",
-        "round_of_32": "Seizièmes de finale",
-        "round_of_16": "Huitièmes de finale",
-        "quarterfinals": "Quarts de finale",
-        "semifinals": "Demi-finales",
-        "third_place": "Troisième place",
-        "final": "Finale",
-        "group_a": "Groupe A",
-        "group_b": "Groupe B",
-        "group_c": "Groupe C",
-        "group_d": "Groupe D",
-        "group_e": "Groupe E",
-        "group_f": "Groupe F",
-        "group_g": "Groupe G",
-        "group_h": "Groupe H",
-        "group_i": "Groupe I",
-        "group_j": "Groupe J",
-        "group_k": "Groupe K",
-        "group_l": "Groupe L"
-      },
       "market_info": {
         "regulation_time_winner": {
           "title": "Vainqueur à la fin du temps réglementaire"
@@ -2714,6 +2720,16 @@
     },
     "outcome_groups": {
       "game_lines": "Cotes du match",
+      "map_1": "Carte 1",
+      "map_2": "Carte 2",
+      "map_3": "Carte 3",
+      "map_4": "Carte 4",
+      "map_5": "Carte 5",
+      "game_1": "Jeu 1",
+      "game_2": "Jeu 2",
+      "game_3": "Jeu 3",
+      "game_4": "Jeu 4",
+      "game_5": "Jeu 5",
       "halves": "Mi-temps",
       "first_half": "1ʳᵉ mi-temps",
       "first_set": "1er set",
@@ -2778,7 +2794,27 @@
       "tennis_match_totals": "Total de jeux",
       "tennis_first_set_totals": "Total des jeux du 1er set",
       "tennis_first_set_winner": "Vainqueur du 1er set",
-      "tennis_completed_match": "Match terminé"
+      "tennis_completed_match": "Match terminé",
+      "child_moneyline": "Gagnant",
+      "map_handicap": "Handicap",
+      "round_handicap_game": "Handicap par manche",
+      "round_over_under_game": "Total de manches",
+      "first_blood_game": "FirstBlood",
+      "kill_over_under_game": "Nombre total de victimes",
+      "map_participant_win_total": "Cartes gagnées",
+      "cs2_odd_even_total_kills": "Nombre total pair/impair de victimes",
+      "cs2_odd_even_total_rounds": "Nombre total pair/impair de tours",
+      "lol_both_teams_baron": "Les deux équipes ont vaincu le Baron Nashor",
+      "lol_both_teams_dragon": "Les deux équipes terrassent un dragon",
+      "lol_both_teams_inhibitors": "Les deux équipes détruisent les inhibiteurs",
+      "lol_odd_even_total_kills": "Nombre total pair/impair de victimes",
+      "lol_penta_kill": "Un joueur fait un Penta Kill",
+      "lol_quadra_kill": "Un joueur fait un Quadra Kill",
+      "dota2_both_teams_barracks": "Les deux équipes détruisent les casernes",
+      "dota2_both_teams_roshan": "Les deux équipes ont battu Roshan",
+      "dota2_game_ends_daytime": "Se termine en journée",
+      "dota2_rampage": "Un joueur fait un Rampage",
+      "dota2_ultra_kill": "Un joueur fait un Ultra Kill"
     },
     "sell_position": "Position de vente",
     "odds": "Cotes",
@@ -2824,15 +2860,63 @@
       "live": "Active",
       "popular_today": "Populaires aujourd’hui",
       "tabs": {
+        "all": "Tous",
         "basketball": "Basket-ball",
         "tennis": "Tennis",
         "soccer": "Football",
         "baseball": "Baseball",
-        "football": "Football américain"
+        "football": "Football américain",
+        "esports": "Esports",
+        "cricket": "Cricket",
+        "golf": "Golf",
+        "combat": "Combat",
+        "hockey": "Hockey"
       },
       "filters": {
         "all": "Tous",
-        "live": "Active"
+        "live": "Active",
+        "games": "Matchs",
+        "tournaments": "Tournois",
+        "fights": "Combats",
+        "props": "Props",
+        "mls": "MLS",
+        "champions-league": "UCL",
+        "EPL": "EPL",
+        "uel": "Europa League",
+        "la-liga": "La Liga",
+        "serie-a": "Série A",
+        "bundesliga": "Bundesliga",
+        "ligue-1": "Ligue 1",
+        "lib": "Copa Libertadores",
+        "mlb": "MLB",
+        "kbo": "KBO",
+        "npb": "NPB",
+        "cpbl": "CPBL",
+        "awards": "MLB Awards",
+        "nfl": "NFL",
+        "nfl-team-futures": "Paris à terme NFL",
+        "nfl-free-agency": "Intersaison NFL",
+        "cfb": "Université",
+        "cfl": "CFL",
+        "nba": "NBA",
+        "nba-free-agency": "Intersaison NBA",
+        "wnba": "WNBA",
+        "ncaa": "NCAA",
+        "league-of-legends": "LoL",
+        "counter-strike-2": "CS2",
+        "valorant": "Valorant",
+        "dota-2": "Dota 2",
+        "rainbow-six-siege": "R6 Siege",
+        "atp": "ATP",
+        "wta": "WTA",
+        "itf": "ITF",
+        "international-cricket": "International",
+        "t20-blast": "T20 Blast",
+        "pga-tour": "PGA Tour",
+        "liv-golf": "LIV",
+        "ufc": "UFC",
+        "boxing": "Boxe",
+        "nhl": "NHL"
       }
     },
     "search_placeholder": "Rechercher les marchés prédictifs",
@@ -3299,7 +3383,8 @@
       "view_on_portfolio": "Voir sur Portfolio",
       "view_on_block": "Afficher sur l’explorateur de blocs",
       "token_details": "Détails du jeton",
-      "remove_token": "Supprimer ce jeton"
+      "remove_token": "Supprimer ce jeton",
+      "deactivate_asset": "Désactiver les actifs"
     }
   },
   "nft_details": {
@@ -3463,7 +3548,7 @@
     "description_content_1_legacy": "MetaMask souhaite recueillir des données d’utilisation de base afin de mieux comprendre comment nos utilisateurs interagissent avec MetaMask. Ces données seront utilisées pour améliorer les services que nous proposons et l’expérience utilisateur.",
     "description_content_2_legacy": "MetaMask…",
     "action_description_1_legacy": "Vous permettra toujours de vous désengager via les Paramètres",
-    "action_description_2_legacy": "enverra des événements de clics et de pages vues anonymisés",
+    "action_description_2_legacy": "Send anonymized click and pageview events",
     "action_description_3_legacy": "Enverra des données sur le pays, la région, la ville (sans localisation spécifique)",
     "action_description_4_legacy": "Ne collectera jamais vos clés, adresses, transactions, soldes, hachages ou toute autre information personnelle",
     "action_description_5_legacy": "Ne collectera jamais votre adresse IP",
@@ -3802,9 +3887,9 @@
     "privacy_mode": "Mode de confidentialité",
     "privacy_mode_desc": "Les sites web doivent demander un accès pour consulter les informations de votre compte.",
     "nft_opensea_mode": "Activer l’API OpenSea",
-    "nft_opensea_desc": "L’affichage des médias et des données des NFT peut exposer votre adresse IP à des serveurs centralisés. Utilisez l’API d’OpenSea pour récupérer les données sur les NFT. La détection automatique de NFT repose sur l’API d’OpenSea, et ne sera pas disponible si l’option est désactivée. Sachez que l’activation de la détection automatique de NFT peut vous exposer à l’envoi de faux NFT sur votre portefeuille par quiconque, et peut amener un pirate à découvrir votre adresse IP à partir de votre adresse Ethereum.",
+    "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "Détection automatique des NFT",
-    "nft_autodetect_desc": "L’affichage des médias et des données des NFT peut exposer votre adresse IP à des serveurs centralisés. Des API tierces (comme OpenSea) sont utilisées pour détecter les NFT dans votre portefeuille. Cela expose donc l’adresse de votre compte à ces services. Désactivez cette option si vous ne souhaitez pas que l’application récupère des données auprès de ces services.",
+    "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Afficher la conversion sur les réseaux de test",
     "show_fiat_on_testnets_desc": "Sélectionnez cette option pour afficher la conversion des monnaies fiduciaires sur les réseaux de test.",
     "show_fiat_on_testnets_modal_title": "Soyez prudent",
@@ -4021,7 +4106,7 @@
     "manage_sdk_connections_text": "Supprimer les connexions aux sites et/ou au SDK MetaMask.",
     "fiat_on_ramp": {
       "title": "Acheter et vendre des crypto-monnaies",
-      "description": "Région et plus encore...",
+      "description": "Region and more...",
       "current_region": "Région actuelle",
       "reset_region": "Réinitialiser la région",
       "change_region": "Changer de région",
@@ -4095,7 +4180,7 @@
         "quote_tag_most_reliable": "Le plus fiable",
         "quote_unknown_provider": "Fournisseur inconnu",
         "start_headless_buy": "Lancer un achat en mode headless",
-        "replace_and_start_headless_buy": "Remplacer et effectuer un achat sans interface",
+        "replace_and_start_headless_buy": "Replace and start headless buy",
         "start_headless_buy_disabled_hint": "Saisissez un montant valide pour activer cette fonctionnalité",
         "start_headless_buy_pending": "Session headless active — ouvrir BuildQuote",
         "cancel_headless_buy": "Annuler la session headless",
@@ -5509,6 +5594,11 @@
     "enable_biometrics": "Déverrouiller grâce à la reconnaissance biométrique ?",
     "enable_device_passcode_ios": "Déverrouiller avec le code secret de l’appareil ?",
     "enable_device_passcode_android": "Déverrouiller avec le code PIN de l’appareil ?"
+  },
+  "balance_breakdown": {
+    "allocation": "Affectation",
+    "hide_balance": "Masquer le solde total",
+    "show_balance": "Afficher le solde total"
   },
   "authentication": {
     "auth_prompt_desc": "Veuillez vous authentifier afin d’utiliser MetaMask",
@@ -7067,11 +7157,11 @@
     "bluetooth_off": "Le Bluetooth est désactivé",
     "bluetooth_off_message": "Veuillez activer le Bluetooth sur votre appareil",
     "bluetooth_access_blocked": "Ledger requiert l’accès au Bluetooth pour être couplé à votre appareil mobile.",
-    "bluetooth_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, activez-le dans « Settings » (Paramètres), puis réessayez.",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "MetaMask a besoin d’une autorisation d’accès à vos données de localisation pour se coupler à votre appareil Ledger.",
-    "location_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, vous devez activer l’accès à la localisation dans « Settings » (Paramètres), puis réessayer.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
     "nearbyDevices_access_blocked": "MetaMask a besoin d’une autorisation « Appareils à proximité » pour se coupler à votre appareil Ledger.",
-    "nearbyDevices_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, vous devez activer l’accès aux appareils à proximité dans les « Paramètres », puis réessayer.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Erreur lors du scan de l’appareil",
     "bluetooth_scanning_error_message": "Veuillez vous assurer que votre appareil est débloqué et que l’application Ethereum est en cours d’exécution.",
     "bluetooth_connection_failed": "Échec de la connexion Bluetooth",
@@ -7265,13 +7355,6 @@
     "your_bonus_tooltip_lifetime_bonus": "Bonus à vie réclamé : ",
     "your_bonus_tooltip_lifetime_bonus_desc": "Le montant total des bonus que vous avez réclamés depuis le début.",
     "learn_more": "En savoir plus",
-    "empty_state_cta": {
-      "heading": "Prêtez des {{tokenSymbol}} et gagnez",
-      "body": "Prêtez vos {{tokenSymbol}} avec {{protocol}} et touchez un revenu",
-      "annually": "par an.",
-      "learn_more": "En savoir plus.",
-      "earn": "Gagner"
-    },
     "service_interruption_banner": {
       "maintenance_message": "Maintenance en cours. Le service sera bientôt rétabli !"
     },
@@ -7317,8 +7400,10 @@
       }
     },
     "withdraw": "Retirer",
+    "withdraw_from_aave": "Effectuer un retrait depuis Aave",
     "deposit_more": "Déposer plus",
     "earning": "Revenus",
+    "lending_earnings": "Revenus des prêts",
     "withdrawal_time": "Délai de retrait",
     "withdrawing_to": "Retrait vers",
     "network": "Réseau",
@@ -7489,14 +7574,27 @@
       "card": "Carte"
     },
     "token_list_cta": {
-      "get_apy": "Obtenez rendement annuel de {{apy}} %"
+      "get_apy": "Get {{apy}}% APY"
+    },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "APY {{apy}} %",
+        "start_earning": "Commencez à générer des revenus",
+        "current_apy_disclaimer": "Le taux de rendement annuel est variable et n’est pas garanti."
+      },
+      "balance_cta": {
+        "description_prefix": "Ajoutez vos {{symbol}} sur Money Account et gagnez and earn up to ",
+        "description_suffix": " en un an.",
+        "earn_apy": "Obtenez un taux de rendement annuel de {{apy}} %",
+        "earnings_tooltip_accessibility_label": "En savoir plus sur les revenus prévisionnels"
+      }
     },
     "earnings": {
       "title": "Bénéfices",
       "estimated_monthly": "Mensuelle",
-      "estimated_lifetime": "Lifetime",
-      "monthly_info_label": "Monthly earnings info",
-      "lifetime_info_label": "Lifetime earnings info"
+      "estimated_lifetime": "À ce jour",
+      "monthly_info_label": "Informations sur les gains mensuels",
+      "lifetime_info_label": "Informations sur les gains cumulés"
     },
     "how_it_works": {
       "title": "Comment ça marche ",
@@ -7533,7 +7631,7 @@
       "virtual_card": "Carte virtuelle",
       "metal_card": "Carte Metal",
       "cashback": "{{percentage}} % de cashback en mUSD",
-      "get_now": "Get",
+      "get_now": "Obtenir",
       "link_title": "Associer une carte",
       "link_subtitle": "Utilisez votre solde pour effectuer des achats et gagnez de l’argent.",
       "link_subtitle_no_apy": "Utilisez votre solde pour effectuer des achats et gagnez de l’argent.",
@@ -7643,18 +7741,19 @@
     },
     "earnings_tooltip": {
       "monthly": {
-        "title": "Monthly earnings",
-        "body": "The total you've earned on your Money account balance in the last 30 days."
+        "title": "Gains mensuels",
+        "body": "Le montant total que vous avez gagné sur votre solde Money Account au cours des 30 derniers jours."
       },
       "lifetime": {
         "title": "Gains cumulés",
-        "body": "The total you've earned on your Money account balance over time."
+        "body": "Le montant total que vous avez gagné sur votre solde Money Account au fil du temps."
       }
     },
     "earn_crypto_info_sheet": {
       "title": "Gagnez de l’argent grâce à vos crypto-monnaies",
       "deposit_title": "Solde prévu au bout de 1 ans ",
-      "body": "La projection suppose que le taux de rendement annuel de {{percentage}} % restera inchangé pendant un an. Le taux de rendement annuel est variable et n’est pas garanti."
+      "body": "La projection part du principe que le taux de rendement annuel de {{percentage}} % restera identique pendant un an. Il est variable, sans être garanti. Il n’y a aucune garantie de rendement.",
+      "go_to_money_account": "Accéder à Money Account"
     },
     "activity": {
       "title": "Activité",
@@ -7670,8 +7769,8 @@
       "filter_purchases": "Achats"
     },
     "condensed_cards": {
-      "how_it_works_title": "How your money grows",
-      "musd_title": "Meet mUSD",
+      "how_it_works_title": "Comment votre argent fructifie",
+      "musd_title": "Découvrir les mUSD",
       "what_you_get_title": "Découvrez vos avantages"
     },
     "transaction": {
@@ -8300,6 +8399,8 @@
     "sort_balance": "Solde",
     "next": "Suivant",
     "explore_tokens": "Découvrir les jetons",
+    "robinhood_banner_title": "Robinhood Chain est là",
+    "robinhood_banner_subtitle": "Explorer les jetons tendance",
     "no_tokens_found": "Aucun jeton trouvé",
     "no_tokens_found_description": "Nous n’avons trouvé aucun jeton portant ce nom. Veuillez essayer un autre critère de recherche.",
     "select_network": "Sélectionnez le réseau",
@@ -8896,8 +8997,7 @@
         "country_not_available": "L’inscription à la carte n’est pas encore disponible dans votre pays.",
         "account_label": "Compte",
         "account_description": "Votre carte MetaMask Card sera associée à ce compte.",
-        "account_exists_toast": "Vous possédez déjà un compte Card.",
-        "card_program_label": "Programme Card (évaluation)"
+        "account_exists_toast": "Vous possédez déjà un compte Card."
       },
       "confirm_email": {
         "title": "Confirmez votre adresse e-mail",
@@ -9070,8 +9170,8 @@
         "title": "S’inscrire sur la liste d’attente",
         "load_error": "Une erreur s’est produite lors du chargement du formulaire. Veuillez réessayer.",
         "try_again": "Réessayez",
-        "success_toast": "You're on the waitlist!",
-        "success_toast_description": "We'll let you know when the card is available in your country."
+        "success_toast": "Vous êtes sur la liste d’attente !",
+        "success_toast_description": "Nous vous informerons lorsque la carte sera disponible dans votre pays."
       },
       "region_selector": {
         "title": "Sélectionnez votre région"
@@ -9562,6 +9662,8 @@
       "retry_button": "Réessayer",
       "tiers_title": "Niveaux",
       "tier_thresholds": "{{points}} points",
+      "maintain_threshold_label": "Conserver le seuil",
+      "maintain_this_tier": "{{points}} points pour conserver ce niveau",
       "bps_value": "{{bps}} points de base",
       "referee_splash_continue": "Continuer",
       "referee_referred_by": "Parrainé par {{code}}",
@@ -10070,7 +10172,7 @@
     "earn_rewards": {
       "title": "Gagner des récompenses",
       "musd_money_title": "Obtenez jusqu’à {{percentage}} % de rendement annuel",
-      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
+      "musd_disclaimer_accessibility_label": "Avertissement relatif au taux de rendement annuel en mUSD",
       "musd_subtitle": "Les Money Accounts sont disponibles",
       "card_title": "Jusqu’à 3 % de remise sur vos dépenses",
       "card_subtitle": "Obtenez votre carte MetaMask Card dès maintenant",
@@ -10327,7 +10429,7 @@
     "low_to_high": "Du plus bas au plus élevé",
     "apply": "Appliquer",
     "search_placeholder": "Rechercher des jetons, des sites et des URL",
-    "quick_trade": "Achat et vente rapides",
+    "quick_trade": "Quick Buy and Sell",
     "cancel": "Annuler",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
@@ -10524,7 +10626,7 @@
       "related_assets": "Actifs associés",
       "perpetuals": "Contrats perpétuels",
       "predictions": "Prédictions",
-      "top_traders": "Meilleurs traders de la semaine",
+      "top_traders": "Meilleurs traders",
       "defi": "DeFi",
       "nfts": "NFT",
       "watchlist": "Liste de surveillance",
@@ -10552,6 +10654,7 @@
   "whats_happening": {
     "title": "Actualités",
     "ai": "IA",
+    "ai_generated": "Généré par l’IA",
     "outdated": "Obsolète",
     "impact": {
       "bullish": "Haussier",
@@ -10582,5 +10685,19 @@
     "empty_add_tokens_cta": "Ajouter {{count}} jetons",
     "empty_add_tokens_cta_plural": "Ajouter {{count}} jetons",
     "search_placeholder": "Rechercher un actif à ajouter"
+  },
+  "asset_spendable_balance": {
+    "spendable": "Disponible",
+    "base_reserved": "Réservée (verrouillée)",
+    "fiat_value": "Valeur",
+    "total_balance": "Solde total"
+  },
+  "asset_activation": {
+    "activate": "Activer",
+    "activate_description": "Activer {{symbol}} sur {{chainName}} pour démarrer.",
+    "inactive": "Inactif",
+    "activate_error": "Une erreur s’est produite lors l’ajout de cette ligne de confiance. Veuillez réessayer.",
+    "deactivate_error": "Une erreur s’est produite lors de la suppression de cette ligne de confiance. Veuillez réessayer.",
+    "deactivate_error_non_zero_balance_stellar": "Vous avez encore {{balance}} {{symbol}} dans ce portefeuille. Vous devez tout envoyer ou échanger avant de désactiver cet actif sur Stellar."
   }
 }

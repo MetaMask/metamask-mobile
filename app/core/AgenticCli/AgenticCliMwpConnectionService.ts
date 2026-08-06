@@ -27,6 +27,8 @@ import {
   waitForKeyringUnlock,
 } from './AgenticCliQrLoginService';
 
+const AGENTIC_CLI_DISPLAY_NAME = 'Agent CLI';
+
 export interface AgenticCliMwpConnectionDeps {
   relayURL: string;
   keymanager: IKeyManager;
@@ -123,7 +125,15 @@ export async function handleAgenticCliConnectDeeplink(
 
     connInfo = {
       id: connReq.sessionRequest.id,
-      metadata: connReq.metadata,
+      metadata: {
+        ...connReq.metadata,
+        dapp: {
+          ...connReq.metadata.dapp,
+          // The Agent CLI is a known first-party flow, so do not surface the
+          // self-reported "MM CLI" name in product UI.
+          name: AGENTIC_CLI_DISPLAY_NAME,
+        },
+      },
       expiresAt: Date.now() + DEFAULT_SESSION_TTL,
     };
 

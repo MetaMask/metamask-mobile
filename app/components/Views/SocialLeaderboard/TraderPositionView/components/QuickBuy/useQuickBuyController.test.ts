@@ -601,7 +601,7 @@ describe('useQuickBuyController', () => {
   });
 
   describe('sheet open defaults', () => {
-    it('defaults the slider to 50% when spendable balance is available', () => {
+    it('starts with an empty amount instead of auto-selecting 50%', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
@@ -615,8 +615,8 @@ describe('useQuickBuyController', () => {
         useQuickBuyController(createTarget(), jest.fn()),
       );
 
-      expect(result.current.sliderPercent).toBe(50);
-      expect(Number(result.current.fiatAmount)).toBe(50);
+      expect(result.current.sliderPercent).toBe(0);
+      expect(result.current.fiatAmount).toBe('');
     });
   });
 
