@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track. Must be one of: exp, beta, rc, prod.'
+        description: 'Build environment / track. Must be one of: exp, rc, prod.'
         required: true
         type: string
       upload_to_sentry:
@@ -45,7 +45,6 @@ on:
         options:
           - prod
           - rc
-          - beta
           - exp
         default: rc
       upload_to_sentry:
@@ -76,8 +75,8 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
           case "$ENVIRONMENT" in
-            exp|beta|rc|prod) echo "✅ environment=$ENVIRONMENT is allowed" ;;
-            *) echo "::error::Invalid environment '$ENVIRONMENT'. Must be one of: exp, beta, rc, prod"; exit 1 ;;
+            exp|rc|prod) echo "✅ environment=$ENVIRONMENT is allowed" ;;
+            *) echo "::error::Invalid environment '$ENVIRONMENT'. Must be one of: exp, rc, prod"; exit 1 ;;
           esac
 
   generate-build-version:

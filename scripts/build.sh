@@ -140,9 +140,9 @@ checkParameters(){
 	fi
 
 	# Check if the METAMASK_ENVIRONMENT is valid
-	VALID_METAMASK_ENVIRONMENTS="production|beta|rc|exp|test|e2e|dev"
+	VALID_METAMASK_ENVIRONMENTS="production|rc|exp|test|e2e|dev"
 	case "${METAMASK_ENVIRONMENT}" in
-		production|beta|rc|exp|test|e2e|dev)
+		production|rc|exp|test|e2e|dev)
 			# Valid environment - continue
 			;;
 		*)
@@ -434,7 +434,7 @@ generateAndroidBinary() {
 	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
 
 	# Only build the AAB for production (Play Store distribution).
-	# All non-prod environments (rc, beta, exp, test, e2e, dev) skip the AAB to
+	# All non-prod environments (rc, exp, test, e2e, dev) skip the AAB to
 	# save CI time — they are distributed via APK or BrowserStack, not Play Store.
 	if [ "$configuration" = "Release" ] && [ "$METAMASK_ENVIRONMENT" = "production" ] ; then
 		# Generate AAB bundle

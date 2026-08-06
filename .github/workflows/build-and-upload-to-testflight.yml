@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track (exp, beta, rc)'
+        description: 'Build environment / track (exp, rc)'
         required: true
         type: string
       testflight_group:
@@ -41,7 +41,6 @@ on:
         type: choice
         options:
           - exp
-          - beta
           - rc
         default: rc
       testflight_group:

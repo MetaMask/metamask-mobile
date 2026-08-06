@@ -77,7 +77,6 @@ on:
         type: choice
         options:
           - main-prod
-          - main-beta
           - main-rc
           - main-test
           - main-e2e
