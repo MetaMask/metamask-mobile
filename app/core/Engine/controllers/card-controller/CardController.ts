@@ -1558,13 +1558,19 @@ export class CardController extends BaseController<
     const providerId = this.state.activeProviderId;
     if (!providerId) return;
 
+    const providerData = this.state.providerData[providerId] ?? {};
+    const nextProviderData: CardControllerState['providerData'] = {
+      ...this.state.providerData,
+      [providerId]: {
+        ...providerData,
+        [PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY]: {
+          cardId,
+          moneyAccountAddress,
+        },
+      },
+    };
     this.update((state) => {
-      const providerData = state.providerData[providerId] ?? {};
-      providerData[PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY] = {
-        cardId,
-        moneyAccountAddress,
-      };
-      state.providerData[providerId] = providerData;
+      state.providerData = nextProviderData;
     });
   }
 
@@ -1572,11 +1578,19 @@ export class CardController extends BaseController<
     const providerId = this.state.activeProviderId;
     if (!providerId) return;
 
+    const providerData = this.state.providerData[providerId];
+    if (!providerData) return;
+
+    const {
+      [PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY]: _pendingRegistration,
+      ...remainingProviderData
+    } = providerData;
+    const nextProviderData: CardControllerState['providerData'] = {
+      ...this.state.providerData,
+      [providerId]: remainingProviderData,
+    };
     this.update((state) => {
-      const providerData = state.providerData[providerId];
-      if (providerData) {
-        delete providerData[PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY];
-      }
+      state.providerData = nextProviderData;
     });
   }
 
