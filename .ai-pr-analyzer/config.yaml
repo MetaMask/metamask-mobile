@@ -7,7 +7,6 @@ critical:
     - babel.config.js
     - tsconfig.json
     - metro.config.js
-    - metro.transform.js
     - react-native.config.js
     - index.js
     - app.config.js

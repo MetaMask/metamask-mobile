@@ -62,9 +62,6 @@ scripts/upload-to-testflight.sh                             @MetaMask/mobile-adm
 scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
 
 
-# Platform & Snaps Code Fencing File
-metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
-
 # Money Movement Team (formerly Ramps)
 app/components/UI/Ramp/                                @MetaMask/money-movement
 app/reducers/fiatOrders/                               @MetaMask/money-movement
