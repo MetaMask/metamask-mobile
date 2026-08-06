@@ -11,6 +11,7 @@ import PPOMUtil, {
 // eslint-disable-next-line import-x/no-namespace
 import * as securityAlertAPI from './security-alerts-api';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import { scanUnvalidatedSignatureAddresses } from '../address-scanning/scan-unvalidated-signature';
 import { Hex } from '@metamask/utils';
 import {
   NetworkClientType,
@@ -39,6 +40,9 @@ const SIGN_TYPED_DATA_PARAMS_MOCK_2 =
 
 jest.mock('./security-alerts-api');
 jest.mock('../../util/blockaid');
+jest.mock('../address-scanning/scan-unvalidated-signature', () => ({
+  scanUnvalidatedSignatureAddresses: jest.fn(),
+}));
 
 jest.mock('../../util/transaction-controller', () => ({
   __esModule: true,
@@ -487,6 +491,55 @@ describe('PPOM Utils', () => {
             params: firstTwoParams,
           },
         );
+      },
+    );
+  });
+
+  describe('layered signature address scan', () => {
+    const mockScan = jest.mocked(scanUnvalidatedSignatureAddresses);
+
+    const signatureRequest = {
+      ...mockRequest,
+      method: METHOD_SIGN_TYPED_DATA_V4,
+      params: [
+        '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        SIGN_TYPED_DATA_PARAMS_MOCK_2,
+      ],
+    };
+
+    it.each([ResultType.Benign, ResultType.Failed])(
+      'runs the address scan when PPOM verdict is %s',
+      async (resultType) => {
+        validateWithSecurityAlertsAPIMock.mockResolvedValue({
+          ...mockSecurityAlertResponse,
+          result_type: resultType,
+        });
+
+        await PPOMUtil.validateRequest(signatureRequest);
+
+        expect(mockScan).toHaveBeenCalledTimes(1);
+        expect(mockScan).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainId: CHAIN_ID_REQUEST_MOCK,
+            request: expect.objectContaining({
+              method: METHOD_SIGN_TYPED_DATA_V4,
+            }),
+          }),
+        );
+      },
+    );
+
+    it.each([ResultType.Malicious, ResultType.Warning])(
+      'skips the address scan when PPOM already flags the request as %s',
+      async (resultType) => {
+        validateWithSecurityAlertsAPIMock.mockResolvedValue({
+          ...mockSecurityAlertResponse,
+          result_type: resultType,
+        });
+
+        await PPOMUtil.validateRequest(signatureRequest);
+
+        expect(mockScan).not.toHaveBeenCalled();
       },
     );
   });

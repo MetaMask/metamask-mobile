@@ -36,6 +36,9 @@ jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
 jest.mock('./useGasSponsorshipWarningAlert');
 jest.mock('./useDomainMismatchAlerts');
+jest.mock('./useSignatureAddressAlerts', () => ({
+  useSignatureAddressAlerts: jest.fn(() => []),
+}));
 jest.mock('./useInsufficientBalanceAlert');
 jest.mock('./useAccountTypeUpgrade');
 jest.mock('./useSignedOrSubmittedAlert');

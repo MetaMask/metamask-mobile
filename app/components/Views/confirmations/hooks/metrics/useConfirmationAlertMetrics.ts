@@ -131,6 +131,12 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.PendingTransaction]: 'pending_transaction',
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
   [AlertKeys.MMPayHardwareAccount]: 'mmpay_hardware_account',
+  [AlertKeys.SignatureAddressScanIncomplete]:
+    'signature_address_scan_incomplete',
+  [AlertKeys.SignatureAddressTrustSignalMalicious]:
+    'signature_address_trust_signal_malicious',
+  [AlertKeys.SignatureAddressTrustSignalWarning]:
+    'signature_address_trust_signal_warning',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
   [AlertKeys.TokenContractAddress]: 'token_contract_address',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
