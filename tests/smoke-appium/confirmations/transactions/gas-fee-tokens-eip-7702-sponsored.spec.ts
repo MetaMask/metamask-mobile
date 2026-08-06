@@ -22,19 +22,15 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { Mockttp } from 'mockttp';
 import {
+  getLocalhostSentinelUrl,
   TRANSACTION_RELAY_STATUS_NETWORKS_MOCK,
   TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/transaction-relay-mocks.js';
 import { RelayStatus } from '../../../../app/util/transactions/transaction-relay.js';
-import { PlatformDetector } from '../../../framework/PlatformLocator.js';
 
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
-/** Match {@link gas-fee-tokens-eip-7702.spec.ts} and {@link transaction-relay-mocks} for proxy URL matching. */
-const LOCALHOST_SENTINEL_URL = PlatformDetector.isAndroid()
-  ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io'
-  : 'https://tx-sentinel-localhost.api.cx.metamask.io';
 
 const SEND_ETH_TRANSACTION_MOCK = {
   data: '0x',
@@ -128,14 +124,14 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: `${LOCALHOST_SENTINEL_URL}/network`,
+    url: `${getLocalhostSentinelUrl()}/network`,
     response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
     responseCode: 200,
   });
 
   await setupMockPostRequest(
     mockServer,
-    LOCALHOST_SENTINEL_URL,
+    getLocalhostSentinelUrl(),
     SIMULATION_SPONSORED_REQUEST_BODY,
     SIMULATION_RESPONSE,
     {
@@ -223,7 +219,7 @@ appiumTest.describe.skip(
 
               await setupMockPostRequest(
                 mockServer,
-                LOCALHOST_SENTINEL_URL,
+                getLocalhostSentinelUrl(),
                 {
                   jsonrpc: '2.0',
                   method: 'eth_sendRelayTransaction',
@@ -238,7 +234,7 @@ appiumTest.describe.skip(
 
               await setupMockRequest(mockServer, {
                 requestMethod: 'GET',
-                url: `${LOCALHOST_SENTINEL_URL}/smart-transactions/${TRANSACTION_UUID_MOCK}`,
+                url: `${getLocalhostSentinelUrl()}/smart-transactions/${TRANSACTION_UUID_MOCK}`,
                 response: {
                   transactions: [
                     {
