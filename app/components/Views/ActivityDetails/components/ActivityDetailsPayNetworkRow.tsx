@@ -16,8 +16,11 @@ import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
  * Arbitrum for HyperLiquid, Polygon for Polymarket — which is a constant, not
  * the network the user transacted on. So:
  *
- * Deposits render no row at all, per the Activity redesign: Pay can source the
- * funds from any combination of chains, so no single network describes it.
+ * Deposits render no row at all, per the Activity redesign. A Pay deposit spans
+ * two chains (the payment chain, then the provider's settlement chain), so one
+ * network can't name it, and `item.chainId` is the less informative of the two.
+ * The step timeline already names both legs.
+ *
  * Everything else reads `metamaskPay.chainId` — the chain Pay actually moved the
  * funds on — falling back to the row's own chain when Pay didn't route it (a
  * direct, same-chain funds movement).
