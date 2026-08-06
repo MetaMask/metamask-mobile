@@ -25,7 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { exitRewardsFlow, getBetaSupportUrl } from '../utils';
+import { exitRewardsFlow } from '../utils';
 import {
   buildVipPrioritySupportUrl,
   METAMASK_SUPPORT_URL,
@@ -143,16 +143,6 @@ const RewardsVipRefereeViewContent: React.FC = () => {
           title: strings('app_settings.contact_support'),
         },
       });
-
-    const betaSupportUrl = getBetaSupportUrl();
-
-    if (betaSupportUrl) {
-      openWebview(buildVipPrioritySupportUrl(accountAddress, betaSupportUrl));
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
-      );
-      return;
-    }
 
     const vipSupportUrl = buildVipPrioritySupportUrl(
       accountAddress,

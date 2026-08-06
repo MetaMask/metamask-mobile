@@ -31,7 +31,6 @@ import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
-import { getBetaSupportUrl } from '../../utils';
 
 const styles = StyleSheet.create({
   list: {
@@ -70,8 +69,6 @@ const LinkedOffDeviceAccountsSheet: React.FC<
   const { openSupportWithConsent } = useSupportConsent();
 
   const handleContactSupport = useCallback(() => {
-    const betaSupportUrl = getBetaSupportUrl();
-
     const openWebview = (url: string) =>
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
@@ -80,11 +77,6 @@ const LinkedOffDeviceAccountsSheet: React.FC<
           title: strings('app_settings.contact_support'),
         },
       });
-
-    if (betaSupportUrl) {
-      openWebview(betaSupportUrl);
-      return;
-    }
 
     openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL);
   }, [navigation, openSupportWithConsent]);

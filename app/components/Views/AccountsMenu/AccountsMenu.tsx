@@ -43,7 +43,6 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
-import { getBetaSupportUrl } from './AccountsMenu.utils';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -163,16 +162,6 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    const betaSupportUrl = getBetaSupportUrl();
-
-    if (betaSupportUrl) {
-      trackEvent(
-        createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
-      );
-      goToBrowserUrl(betaSupportUrl, strings('app_settings.contact_support'));
-      return;
-    }
-
     // Defer tracking to when support actually opens (consent confirm/reject),
     // not the mere press that only shows the consent sheet.
     openSupportWithConsent(
@@ -242,10 +231,6 @@ const AccountsMenu = () => {
 
     ///: BEGIN:ONLY_INCLUDE_IF(flask)
     title = strings('app_settings.info_title_flask');
-    ///: END:ONLY_INCLUDE_IF
-
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    title = strings('app_settings.info_title_beta');
     ///: END:ONLY_INCLUDE_IF
 
     return title;

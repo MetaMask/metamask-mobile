@@ -4006,7 +4006,6 @@
     "remove_network": "Kaldır",
     "cancel_remove_network": "İptal",
     "info_title": "MetaMask Hakkında",
-    "info_title_beta": "MetaMask Beta Hakkında",
     "info_title_flask": "MetaMask Flask Hakkında",
     "experimental_title": "Deneysel",
     "experimental_desc": "WalletConnect ve daha fazlası...",

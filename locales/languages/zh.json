@@ -4006,7 +4006,6 @@
     "remove_network": "删除",
     "cancel_remove_network": "取消",
     "info_title": "MetaMask 简介",
-    "info_title_beta": "关于 MetaMask Beta",
     "info_title_flask": "关于 MetaMask Flask",
     "experimental_title": "实验性",
     "experimental_desc": "WalletConnect 及更多……",

@@ -155,13 +155,6 @@ jest.mock('../../../../hooks/useSupportConsent', () => ({
   }),
 }));
 
-const mockGetBetaSupportUrl = jest.fn(
-  () => 'https://intercom.help/internal-beta-testing/en/',
-);
-jest.mock('../../utils', () => ({
-  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
-}));
-
 // ─── Test fixtures ────────────────────────────────────────────────────────────
 
 const mockAccount1: OffDeviceAccount = {
@@ -318,34 +311,7 @@ describe('LinkedOffDeviceAccountsSheet', () => {
   });
 
   describe('Interactions', () => {
-    // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
-    // "let us know" opens it directly rather than through the consent flow.
-    it('navigates to the SimpleWebview with the beta support URL when "let us know" is pressed on a beta build', () => {
-      const { getByText } = render(
-        <LinkedOffDeviceAccountsSheet
-          accounts={[mockAccount1]}
-          onClose={mockOnClose}
-        />,
-      );
-      fireEvent.press(
-        getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://intercom.help/internal-beta-testing/en/',
-          title: 'app_settings.contact_support',
-        },
-      });
-      expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
-    });
-
-    // On a non-beta (main) build, getBetaSupportUrl() resolves to an empty string,
-    // so "let us know" opens the support consent modal instead of a direct link.
-    it('opens the support consent modal when "let us know" is pressed on a non-beta build', () => {
-      mockGetBetaSupportUrl.mockReturnValueOnce('');
-
+    it('opens the support consent modal when "let us know" is pressed', () => {
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
@@ -367,8 +333,6 @@ describe('LinkedOffDeviceAccountsSheet', () => {
     // openSupportWithConsent navigates to the webview. Modal behavior itself
     // is covered by the core support-consent tests.
     it('navigates to the support webview when the provided opener is invoked', () => {
-      mockGetBetaSupportUrl.mockReturnValueOnce('');
-
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
