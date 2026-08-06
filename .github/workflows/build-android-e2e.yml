@@ -138,6 +138,14 @@ jobs:
             echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
             exit 1
           fi
+          # Captured here, pre-setup, so the reuse summary can print the same APK
+          # cache keys the restore steps below actually used. `hashFiles` is
+          # evaluated wherever it is written, and the summary now runs after the
+          # build — by then jetify has rewritten `*.gradle` files under
+          # `node_modules/*/android/`, so an inline `hashFiles` there would render
+          # keys that were never used, in exactly the row someone is reading to
+          # debug a cache miss.
+          echo "gradle-files-hash=${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}" >> "$GITHUB_OUTPUT"
 
       - name: Check Namespace E2E APK cache
         id: namespace-apk-cache
@@ -348,79 +356,6 @@ jobs:
             echo "No reuse path; full native build + setup will run."
           fi
         shell: bash
-
-      - name: Write Android E2E reuse summary
-        if: ${{ always() }}
-        shell: bash
-        env:
-          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
-          BUILD_TYPE: ${{ inputs.build_type }}
-          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
-          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
-          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
-          METADATA_VALID: ${{ steps.validate-reusable-metadata.outputs.valid }}
-          APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-apk.outcome }}
-          TEST_APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-test-apk.outcome }}
-          NAMESPACE_CACHE_HIT: ${{ steps.namespace-apk-cache.outputs.cache-hit }}
-          BRANCH_CACHE_HIT: ${{ steps.apk-cache-restore.outputs.cache-hit }}
-          MAIN_CACHE_HIT: ${{ steps.apk-cache-restore-main.outputs.cache-hit }}
-          BRANCH_CACHE_KEY: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          MAIN_CACHE_KEY: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          value() {
-            if [[ -n "${1:-}" ]]; then
-              printf '%s' "$1"
-            else
-              printf 'n/a'
-            fi
-          }
-
-          yes_no() {
-            case "${1:-}" in
-              true) printf 'yes' ;;
-              *) printf 'no' ;;
-            esac
-          }
-
-          github_candidate="$(yes_no "$REUSABLE_FOUND")"
-          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
-            github_candidate="yes ([https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID))"
-          fi
-
-          decision="Fresh native build"
-          if [[ "${NAMESPACE_CACHE_HIT:-}" == "true" ]]; then
-            decision="Namespace APK cache"
-          elif [[ "${REUSABLE_FOUND:-}" == "true" && "${METADATA_VALID:-}" == "true" && "${APK_DOWNLOAD_OUTCOME:-}" == "success" && "${TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
-            decision="GitHub artifact reuse"
-          elif [[ "${BRANCH_CACHE_HIT:-}" == "true" || "${MAIN_CACHE_HIT:-}" == "true" ]]; then
-            decision="Cirrus APK cache"
-          elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
-            decision="reuse/cache hit"
-          fi
-
-          branch_cache="$(yes_no "$BRANCH_CACHE_HIT")"
-          main_cache="$(yes_no "$MAIN_CACHE_HIT")"
-          if [[ "${BRANCH_CACHE_HIT:-}" == "true" ]]; then
-            branch_cache="yes (\`$BRANCH_CACHE_KEY\`)"
-          elif [[ "${MAIN_CACHE_HIT:-}" == "true" ]]; then
-            main_cache="yes (\`$MAIN_CACHE_KEY\`)"
-          fi
-
-          {
-            echo "### Android E2E build reuse"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| Decision | $decision |"
-            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
-            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
-            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
-            echo "| Branch APK cache hit | $branch_cache |"
-            echo "| Main APK cache hit | $main_cache |"
-            echo "| GitHub artifact candidate | $github_candidate |"
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Android Build Environment
         timeout-minutes: 15
@@ -769,6 +704,118 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      # Deliberately placed after the build and repack rather than next to the gate,
+      # where it used to sit. The gate is computed before the late re-check exists,
+      # so from up there a late reuse still reported "Fresh native build" — the row
+      # someone reads first when a run looks wrong. Here every input to the decision
+      # is final. `always()` runs on failure and on cancellation, so a failed or
+      # cancelled compile still gets its summary.
+      - name: Write Android E2E reuse summary
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
+          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          METADATA_VALID: ${{ steps.validate-reusable-metadata.outputs.valid }}
+          APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-apk.outcome }}
+          TEST_APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-test-apk.outcome }}
+          LATE_LOOKUP_OUTCOME: ${{ steps.find-reusable-build-late.outcome }}
+          LATE_REUSABLE_FOUND: ${{ steps.find-reusable-build-late.outputs.found }}
+          LATE_REUSABLE_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
+          LATE_METADATA_VALID: ${{ steps.validate-late-metadata.outputs.valid }}
+          LATE_APK_DOWNLOAD_OUTCOME: ${{ steps.download-late-apk.outcome }}
+          LATE_TEST_APK_DOWNLOAD_OUTCOME: ${{ steps.download-late-test-apk.outcome }}
+          NAMESPACE_CACHE_HIT: ${{ steps.namespace-apk-cache.outputs.cache-hit }}
+          BRANCH_CACHE_HIT: ${{ steps.apk-cache-restore.outputs.cache-hit }}
+          MAIN_CACHE_HIT: ${{ steps.apk-cache-restore-main.outputs.cache-hit }}
+          # Uses the hash captured pre-setup by `determine-target-paths`, not an
+          # inline `hashFiles`: this step now runs after jetify, which rewrites
+          # `*.gradle` files under `node_modules/*/android/`, so an inline call here
+          # would render keys the restore steps never used.
+          BRANCH_CACHE_KEY: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ steps.determine-target-paths.outputs.gradle-files-hash }}
+          MAIN_CACHE_KEY: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ steps.determine-target-paths.outputs.gradle-files-hash }}
+          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          value() {
+            if [[ -n "${1:-}" ]]; then
+              printf '%s' "$1"
+            else
+              printf 'n/a'
+            fi
+          }
+
+          yes_no() {
+            case "${1:-}" in
+              true) printf 'yes' ;;
+              *) printf 'no' ;;
+            esac
+          }
+
+          run_link() {
+            printf '[https://github.com/%s/actions/runs/%s](https://github.com/%s/actions/runs/%s)' \
+              "$REPOSITORY" "$1" "$REPOSITORY" "$1"
+          }
+
+          github_candidate="$(yes_no "$REUSABLE_FOUND")"
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            github_candidate="yes ($(run_link "$REUSABLE_RUN_ID"))"
+          fi
+
+          # Three states, so "the re-check never ran" reads differently from "it ran
+          # and found nothing" — the two have very different causes.
+          late_candidate="n/a (not reached)"
+          if [[ -n "${LATE_LOOKUP_OUTCOME:-}" && "${LATE_LOOKUP_OUTCOME}" != "skipped" ]]; then
+            late_candidate="$(yes_no "$LATE_REUSABLE_FOUND")"
+            if [[ -n "${LATE_REUSABLE_RUN_ID:-}" ]]; then
+              late_candidate="yes ($(run_link "$LATE_REUSABLE_RUN_ID"))"
+            fi
+          fi
+
+          # The late branch is checked first: on a late reuse the gate still says
+          # `needs-native-build=true`, because it was computed before the re-check.
+          # A late reuse is mutually exclusive with every other branch below — it
+          # requires a non-Namespace runner and a `true` gate, so no Namespace hit,
+          # no early GitHub reuse and no Cirrus hit can coexist with it.
+          decision="Fresh native build"
+          if [[ "${LATE_APK_DOWNLOAD_OUTCOME:-}" == "success" && "${LATE_TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
+            decision="GitHub artifact reuse (late — donor appeared during setup)"
+          elif [[ "${NAMESPACE_CACHE_HIT:-}" == "true" ]]; then
+            decision="Namespace APK cache"
+          elif [[ "${REUSABLE_FOUND:-}" == "true" && "${METADATA_VALID:-}" == "true" && "${APK_DOWNLOAD_OUTCOME:-}" == "success" && "${TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
+            decision="GitHub artifact reuse"
+          elif [[ "${BRANCH_CACHE_HIT:-}" == "true" || "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            decision="Cirrus APK cache"
+          elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            decision="reuse/cache hit"
+          fi
+
+          branch_cache="$(yes_no "$BRANCH_CACHE_HIT")"
+          main_cache="$(yes_no "$MAIN_CACHE_HIT")"
+          if [[ "${BRANCH_CACHE_HIT:-}" == "true" ]]; then
+            branch_cache="yes (\`$BRANCH_CACHE_KEY\`)"
+          elif [[ "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            main_cache="yes (\`$MAIN_CACHE_KEY\`)"
+          fi
+
+          {
+            echo "### Android E2E build reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | $decision |"
+            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
+            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| Branch APK cache hit | $branch_cache |"
+            echo "| Main APK cache hit | $main_cache |"
+            echo "| GitHub artifact candidate | $github_candidate |"
+            echo "| Late re-check candidate | $late_candidate |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Write Android E2E build metadata
         shell: bash
