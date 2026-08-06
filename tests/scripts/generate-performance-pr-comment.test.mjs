@@ -2,8 +2,24 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   buildPassedTestsSection,
+  buildFailedTestApiCallsSection,
   resolvePassedTestApiCalls,
 } from './generate-performance-pr-comment.mjs';
+
+test('buildFailedTestApiCallsSection renders calls without a profiling baseline', () => {
+  const md = buildFailedTestApiCallsSection(
+    {
+      testName: 'Cold Start Login',
+      platform: 'Android',
+      device: 'Google Pixel 8 Pro+14.0',
+      apiCalls: [{ url: 'https://api.example.com/tokens' }],
+    },
+    [],
+  );
+
+  assert.match(md, /API calls \(1\)/);
+  assert.match(md, /https:\/\/api\.example\.com\/tokens -> 1/);
+});
 
 test('buildPassedTestsSection includes collapsed API calls for each passed scenario', () => {
   const md = buildPassedTestsSection([

@@ -112,6 +112,18 @@ function resolvePassedTestApiCalls(test, profilingArtifacts) {
   return artifact?.apiCalls ?? test.apiCalls ?? null;
 }
 
+/**
+ * Render API calls for a failed test independently of baseline enrichment.
+ * @param {{ testName: string, device?: string|object, deviceKey?: string, apiCalls?: Array<{ url?: string }>|null }} test
+ * @param {Array<{ data: object }>} profilingArtifacts
+ * @returns {string}
+ */
+function buildFailedTestApiCallsSection(test, profilingArtifacts) {
+  return buildApiCallsDetails(
+    resolvePassedTestApiCalls(test, profilingArtifacts),
+  );
+}
+
 async function main() {
   if (!fs.existsSync(SUMMARY_FILE)) {
     console.log(
@@ -145,6 +157,7 @@ async function main() {
   const failedStats = summary.failedTestsStats ?? {};
   const uniqueFailedTests = failedStats.uniqueFailedTests ?? 0;
   const failedByTeam = failedStats.failedTestsByTeam ?? {};
+  const profilingArtifacts = findProfilingArtifacts(reportsDir);
 
   const overallPassed =
     uniqueFailedTests === 0 && !summary.error && !summary.warning;
@@ -273,8 +286,6 @@ async function main() {
     const workRoot = fs.mkdtempSync(
       path.join(os.tmpdir(), 'perf-pr-profiling-'),
     );
-    const currentArtifacts = findProfilingArtifacts(reportsDir);
-
     console.log(
       `🔬 Enriching failed scenarios with app profiling vs \`${DEFAULT_BASELINE_BRANCH}\`...`,
     );
@@ -284,13 +295,13 @@ async function main() {
         const device = parseDeviceKey(test.device);
         const key = `${test.platform}|${getDeviceKey(test.device)}|${test.testName}`;
 
-        let currentArtifact = findMatchingArtifact(currentArtifacts, {
+        let currentArtifact = findMatchingArtifact(profilingArtifacts, {
           testName: test.testName,
           device,
         })?.data;
 
         if (!currentArtifact && !device.name) {
-          currentArtifact = currentArtifacts.find(
+          currentArtifact = profilingArtifacts.find(
             ({ data }) => data.testName === test.testName,
           )?.data;
         }
@@ -380,6 +391,14 @@ async function main() {
 
   const allTestRuns = getAllTestRuns();
   const passedTestRuns = allTestRuns.filter((test) => test.passed);
+  const failedTestRunsByKey = new Map(
+    allTestRuns
+      .filter((test) => !test.passed)
+      .map((test) => [
+        `${test.platform}|${test.deviceKey}|${test.testName}`,
+        test,
+      ]),
+  );
 
   // Failed tests — compact row + inline app profiling (when available)
   if (uniqueFailedTests > 0) {
@@ -421,6 +440,16 @@ async function main() {
 
         if (profilingSection) {
           md += `${profilingSection}\n`;
+        } else {
+          const failedTestRun = failedTestRunsByKey.get(key);
+          md += `${buildFailedTestApiCallsSection(
+            {
+              ...t,
+              apiCalls: failedTestRun?.apiCalls ?? t.apiCalls,
+              deviceKey: failedTestRun?.deviceKey ?? getDeviceKey(t.device),
+            },
+            profilingArtifacts,
+          )}\n`;
         }
       }
     }
@@ -428,7 +457,6 @@ async function main() {
 
   // Prefer apiCalls from performance-results; fall back to device-matched
   // app-profiling sidecars (no cross-device testName fallback when device is known).
-  const profilingArtifacts = findProfilingArtifacts(reportsDir);
   const passedWithApiCalls = passedTestRuns.map((test) => ({
     ...test,
     apiCalls: resolvePassedTestApiCalls(test, profilingArtifacts),
@@ -454,6 +482,7 @@ async function main() {
 }
 
 export {
+  buildFailedTestApiCallsSection,
   buildPassedTestsSection,
   escapeMarkdownTable,
   resolvePassedTestApiCalls,
