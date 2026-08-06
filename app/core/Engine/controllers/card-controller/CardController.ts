@@ -45,6 +45,8 @@ import {
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type CardTransactionListParams,
+  type CardTransactionPage,
   type CreditWalletResponse,
   type CreditWithdrawEstimationResponse,
   type CreditWithdrawParams,
@@ -128,6 +130,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
+  authSessionId: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
   lastUnauthenticatedReason: {
     persist: false,
     includeInDebugSnapshot: true,
@@ -170,6 +178,7 @@ export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
+  authSessionId: null,
   lastUnauthenticatedReason: null,
   cardholderAccounts: [],
   providerData: {},
@@ -200,6 +209,7 @@ export class CardController extends BaseController<
   private fetchGeneration = 0;
   private previousEvmAddress: string | null = null;
   private resetInProgress = false;
+  private authSessionGeneration = 0;
   #lastFetchedAt = 0;
 
   constructor({
@@ -517,8 +527,14 @@ export class CardController extends BaseController<
   ): void {
     this.update((s) => {
       s.isAuthenticated = false;
+      s.authSessionId = null;
       s.lastUnauthenticatedReason = reason;
     });
+  }
+
+  #createAuthSessionId(): string {
+    this.authSessionGeneration += 1;
+    return `${Date.now()}:${this.authSessionGeneration}`;
   }
 
   clearLastUnauthenticatedReason(): void {
@@ -682,6 +698,7 @@ export class CardController extends BaseController<
       }
       this.update((s) => {
         s.isAuthenticated = true;
+        s.authSessionId = this.#createAuthSessionId();
         s.lastUnauthenticatedReason = null;
         s.cardHomeData = null;
         s.cardHomeDataStatus = 'idle';
@@ -740,6 +757,7 @@ export class CardController extends BaseController<
     this.invalidateFetch();
     this.update((s) => {
       s.isAuthenticated = false;
+      s.authSessionId = null;
       s.lastUnauthenticatedReason = reason;
       s.cardHomeData = null;
       s.cardHomeDataStatus = 'idle';
@@ -980,6 +998,7 @@ export class CardController extends BaseController<
   #markAuthenticatedWithLocation(pid: string, location: string): void {
     this.update((s) => {
       s.isAuthenticated = true;
+      s.authSessionId ??= this.#createAuthSessionId();
       s.lastUnauthenticatedReason = null;
       (s.providerData as unknown as Record<string, Record<string, string>>)[
         pid
@@ -2051,5 +2070,26 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => withdrawCredit(params, tokens));
+  }
+
+  // -- Transactions --
+
+  /**
+   * Lists card transactions from the active provider, newest first. Results
+   * are not stored in controller state — callers (React Query hooks) own
+   * caching. Pass `cursor` from the previous page's `nextCursor` to paginate.
+   */
+  async listTransactions(
+    params: CardTransactionListParams = {},
+  ): Promise<CardTransactionPage> {
+    const provider = this.getActiveProvider();
+    const listTransactions = provider.listTransactions?.bind(provider);
+    if (!listTransactions) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Transaction history not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => listTransactions(params, tokens));
   }
 }
