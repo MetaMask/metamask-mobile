@@ -87,6 +87,7 @@ import {
   PERPS_CONSTANTS,
   calculatePositionSize,
   getPerpsDisplaySymbol,
+  getTriggerExecution,
   type InputMethod,
   type OrderParams,
   type OrderType,
@@ -148,10 +149,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import {
-  resolveOrderExecution,
-  willFlipPosition,
-} from '../../utils/orderUtils';
+import { willFlipPosition } from '../../utils/orderUtils';
 import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { getPerpsChartLibrary } from '../../utils/chartAnalytics';
 import {
@@ -1007,7 +1005,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[
-            resolveOrderExecution(orderForm.type)
+            getTriggerExecution(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset),
         );
       },
@@ -1016,7 +1014,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // No need to capture again here to avoid duplicate Sentry reports
         showToast(
           PerpsToastOptions.orderManagement[
-            resolveOrderExecution(orderForm.type)
+            getTriggerExecution(orderForm.type)
           ].creationFailed(error),
         );
       },
@@ -1513,7 +1511,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         showToast(
           PerpsToastOptions.orderManagement[
-            resolveOrderExecution(orderForm.type)
+            getTriggerExecution(orderForm.type)
           ].submitted(orderForm.direction, positionSize, orderForm.asset),
         );
 

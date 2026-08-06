@@ -1,6 +1,7 @@
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
+  getTriggerExecution,
   type OrderType,
   type PerpsMarketData,
   type Position,
@@ -58,10 +59,7 @@ import {
   buildPerpsOrderTrackingData,
 } from '../../../../utils/orderParams';
 import { deriveOrderSizing } from '../../../../utils/orderSizing';
-import {
-  resolveOrderExecution,
-  willFlipPosition,
-} from '../../../../utils/orderUtils';
+import { willFlipPosition } from '../../../../utils/orderUtils';
 import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
 import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
@@ -355,14 +353,14 @@ export const usePerpsProOrderForm = ({
     onSuccess: () => {
       showToast(
         PerpsToastOptions.orderManagement[
-          resolveOrderExecution(orderForm.type)
+          getTriggerExecution(orderForm.type)
         ].confirmed(orderForm.direction, positionSize, orderForm.asset),
       );
     },
     onError: (error) => {
       showToast(
         PerpsToastOptions.orderManagement[
-          resolveOrderExecution(orderForm.type)
+          getTriggerExecution(orderForm.type)
         ].creationFailed(error),
       );
     },
@@ -489,7 +487,7 @@ export const usePerpsProOrderForm = ({
 
       showToast(
         PerpsToastOptions.orderManagement[
-          resolveOrderExecution(orderForm.type)
+          getTriggerExecution(orderForm.type)
         ].submitted(orderForm.direction, positionSize, orderForm.asset),
       );
 

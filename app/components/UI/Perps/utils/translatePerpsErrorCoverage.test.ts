@@ -62,9 +62,6 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
       .map((code) => ERROR_CODE_TO_I18N_KEY[code])
       .filter((i18nKey) => i18nKey && !resolveTranslation(i18nKey));
 
-    expect(unresolved).toStrictEqual([
-      // Pre-existing gap, unrelated to the controller upgrade.
-      'perps.errors.subscriptionClientNotAvailable',
-    ]);
+    expect(unresolved).toStrictEqual([]);
   });
 });

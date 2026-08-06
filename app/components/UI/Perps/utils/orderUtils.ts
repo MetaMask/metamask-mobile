@@ -2,7 +2,6 @@ import { capitalize } from 'lodash';
 import {
   isLimitExecutionOrderType,
   isTPSLOrder,
-  type OrderExecution,
   type OrderParams,
   type Order,
   type OrderDirection,
@@ -686,21 +685,6 @@ export const getOrderLabelDirection = (order: Order): string => {
 
   return direction;
 };
-
-/**
- * Resolves an order placement type onto how it executes.
- *
- * `OrderType` covers six placement types, but the copy and toasts a user sees
- * only distinguish two outcomes: an order that fills against the book, and one
- * that rests on it. Trigger placements follow their suffix — `stop_limit` and
- * `take_profit_limit` execute as limit orders, `stop_market` and
- * `take_profit_market` as market orders.
- *
- * @param orderType - The order placement type
- * @returns How the order executes once it is live
- */
-export const resolveOrderExecution = (orderType: OrderType): OrderExecution =>
-  isLimitExecutionOrderType(orderType) ? 'limit' : 'market';
 
 /**
  * Determines if a limit order will likely be a maker or taker.

@@ -1925,6 +1925,7 @@
       "exchangeMultiSigRequired": "This account needs its multi-signature signers to trade",
       "exchangeInvalidNonce": "Something went wrong. Please try again.",
       "infoClientNotAvailable": "InfoClient not available after initialization",
+      "subscriptionClientNotAvailable": "SubscriptionClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
       "failedToSubscribePosition": "Failed to subscribe to position updates",
       "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",

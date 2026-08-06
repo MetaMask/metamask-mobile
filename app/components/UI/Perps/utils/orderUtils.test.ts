@@ -16,7 +16,6 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
-  resolveOrderExecution,
 } from './orderUtils';
 import { Order, OrderParams } from '@metamask/perps-controller';
 import { Position } from '../hooks';
@@ -1447,6 +1446,11 @@ describe('orderUtils', () => {
       });
     });
 
+    // These cover the widened OrderType contract, not a reachable regression.
+    // HyperLiquid's adapter resolves Order.orderType through getTriggerExecution
+    // before it reaches this function, so today only 'market' and 'limit' arrive
+    // at runtime; these pin the behaviour for the trigger types the signature
+    // now accepts.
     describe('Trigger Orders', () => {
       it('treats a stop market trigger as taker', () => {
         const result = determineMakerStatus({
@@ -1499,24 +1503,6 @@ describe('orderUtils', () => {
 
         expect(result).toBe(false);
       });
-    });
-  });
-
-  describe('resolveOrderExecution', () => {
-    it.each([
-      ['market', 'market'],
-      ['stop_market', 'market'],
-      ['take_profit_market', 'market'],
-    ] as const)('resolves %s to market execution', (orderType, expected) => {
-      expect(resolveOrderExecution(orderType)).toBe(expected);
-    });
-
-    it.each([
-      ['limit', 'limit'],
-      ['stop_limit', 'limit'],
-      ['take_profit_limit', 'limit'],
-    ] as const)('resolves %s to limit execution', (orderType, expected) => {
-      expect(resolveOrderExecution(orderType)).toBe(expected);
     });
   });
 
