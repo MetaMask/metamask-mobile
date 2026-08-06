@@ -48,6 +48,7 @@ const PerpsProTabEmptyState = ({
           source={perpsImage}
           resizeMode="contain"
           style={tw.style('w-[72px] h-[72px]')}
+          accessible={false}
         />
       }
       description={description}

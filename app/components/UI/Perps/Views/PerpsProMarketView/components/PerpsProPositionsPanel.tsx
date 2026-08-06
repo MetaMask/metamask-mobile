@@ -385,6 +385,7 @@ const PerpsProPositionsPanel = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="gap-3 px-2 pt-3"
+        accessible={false}
       >
         <ButtonIcon
           iconName={IconName.Customize}

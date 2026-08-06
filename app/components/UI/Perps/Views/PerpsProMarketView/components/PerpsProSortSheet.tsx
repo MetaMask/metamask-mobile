@@ -95,7 +95,10 @@ const PerpsProSortSheet = <TField extends string>({
             onPress={() => handleOptionPress(option.id)}
             endAccessory={
               isSelected ? (
-                <Box twClassName="flex-row items-center gap-2">
+                <Box
+                  twClassName="flex-row items-center gap-2"
+                  accessible={false}
+                >
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
