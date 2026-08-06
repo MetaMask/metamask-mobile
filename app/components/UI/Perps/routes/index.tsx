@@ -46,6 +46,7 @@ import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
+import PerpsModeSelectionView from '../Views/PerpsModeSelectionView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -186,6 +187,13 @@ const PerpsModalStack = () => {
             component={PerpsSelectProviderView}
             options={{
               title: strings('perps.provider_selector.title'),
+            }}
+          />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.MODE_SELECTION}
+            component={PerpsModeSelectionView}
+            options={{
+              title: strings('perps.mode.selection_title'),
             }}
           />
           {/* Action Selection Modals */}

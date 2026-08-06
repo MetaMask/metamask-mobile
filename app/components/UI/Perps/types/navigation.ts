@@ -24,6 +24,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsCancelAllOrders: undefined;
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
+  PerpsModeSelection: undefined;
   PerpsSelectModifyAction: {
     position: Position;
   };

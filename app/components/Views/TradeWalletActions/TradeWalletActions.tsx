@@ -86,6 +86,7 @@ import {
   toPerpsNavigatorScreenParams,
   useGetPerpsHomeNavigationTarget,
 } from '../../UI/Perps/utils/perpsModeSwitch';
+import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -121,7 +122,9 @@ function TradeWalletActions() {
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
-  const postCallback = useRef<(() => void) | undefined>(undefined);
+  const postCallback = useRef<(() => void | Promise<void>) | undefined>(
+    undefined,
+  );
   const [visible, setIsVisible] = useState(true);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { height: screenHeight } = useSafeAreaFrame();
@@ -240,7 +243,18 @@ function TradeWalletActions() {
   }, [handleNavigateBack, navigate]);
 
   const onPerps = useCallback(() => {
-    postCallback.current = () => {
+    postCallback.current = async () => {
+      if (isPerpsProModeEnabled) {
+        const hasCompletedModeSelection =
+          await hasCompletedPerpsModeSelection();
+        if (!hasCompletedModeSelection) {
+          navigate(Routes.PERPS.MODALS.ROOT, {
+            screen: Routes.PERPS.MODALS.MODE_SELECTION,
+          });
+          return;
+        }
+      }
+
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
@@ -255,6 +269,7 @@ function TradeWalletActions() {
     handleNavigateBack,
     navigate,
     isFirstTimePerpsUser,
+    isPerpsProModeEnabled,
     getPerpsHomeNavigationTarget,
   ]);
 
