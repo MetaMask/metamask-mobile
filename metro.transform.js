@@ -17,7 +17,6 @@ const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
 const availableFeatures = new Set([
   'flask',
   'snaps',
-  'beta',
   'keyring-snaps',
   'multi-srp',
   'bitcoin',
@@ -29,15 +28,6 @@ const availableFeatures = new Set([
 
 // Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. local dev)
 const mainFeatureSet = new Set([
-  'snaps',
-  'keyring-snaps',
-  'multi-srp',
-  'solana',
-  'bitcoin',
-  'tron',
-]);
-const betaFeatureSet = new Set([
-  'beta',
   'snaps',
   'keyring-snaps',
   'multi-srp',
@@ -73,11 +63,7 @@ function getBuildTypeFeaturesFromEnv() {
         features = new Set(experimentalFeatureSet);
         break;
       }
-      features =
-        envType === 'beta' ? new Set(betaFeatureSet) : new Set(mainFeatureSet);
-      break;
-    case 'beta':
-      features = new Set(betaFeatureSet);
+      features = new Set(mainFeatureSet);
       break;
     case 'flask':
       features = new Set(flaskFeatureSet);
