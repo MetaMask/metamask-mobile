@@ -38,6 +38,7 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
+  usePerpsLiveOrders,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
@@ -60,6 +61,10 @@ import {
 } from '../../../../utils/orderParams';
 import { deriveOrderSizing } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
+import {
+  validateReduceOnlyOrder,
+  type ReduceOnlyValidationCode,
+} from '../../../../utils/reduceOnlyValidation';
 import { getPerpsOrderTpSlWarnings } from '../../../../utils/tpslValidation';
 import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
 import {
@@ -75,6 +80,32 @@ import type {
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
+
+const REDUCE_ONLY_ERROR_I18N_KEYS: Record<ReduceOnlyValidationCode, string> = {
+  no_position: 'perps.order.validation.reduce_only_no_position',
+  wrong_side: 'perps.order.validation.reduce_only_wrong_side',
+  too_large: 'perps.order.validation.reduce_only_too_large',
+};
+
+/** Prefix of the interpolated insufficient-balance message (stable across amounts). */
+const INSUFFICIENT_BALANCE_PREFIX = strings(
+  'perps.order.validation.insufficient_balance',
+  { required: '__REQ__', available: '__AVAIL__' },
+).split('__REQ__')[0];
+
+const isMarginValidationError = (message: string): boolean =>
+  message.startsWith(INSUFFICIENT_BALANCE_PREFIX) ||
+  message === strings('perps.order.validation.insufficient_funds') ||
+  message ===
+    strings('perps.order.validation.insufficient_funds_to_cover_trade');
+
+const isLimitPriceValidationError = (message: string): boolean =>
+  message === strings('perps.order.validation.limit_price_required') ||
+  message === strings('perps.order.validation.please_set_a_limit_price') ||
+  message ===
+    strings(
+      'perps.order.validation.limit_price_must_be_set_before_configuring_tpsl',
+    );
 
 export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
@@ -212,10 +243,16 @@ export const usePerpsProOrderForm = ({
     marketData?.maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage;
   const isLoadingMarketData = isMarketDataLoading && marketData === null;
 
-  const { existingPosition: currentMarketPosition } = useHasExistingPosition({
+  const {
+    existingPosition: currentMarketPosition,
+    isLoading: isPositionStreamLoading,
+  } = useHasExistingPosition({
     asset: symbol,
     loadOnMount: true,
   });
+
+  const { orders: openOrders, isInitialLoading: isOrdersStreamLoading } =
+    usePerpsLiveOrders();
 
   const prices = usePerpsLivePrices({ symbols: [symbol], throttleMs: 1000 });
   const currentPrice = prices[symbol];
@@ -347,6 +384,29 @@ export const usePerpsProOrderForm = ({
     [effectiveUsdAmount, orderForm],
   );
 
+  const isReduceOnlyStreamLoading =
+    reduceOnly && (isPositionStreamLoading || isOrdersStreamLoading);
+
+  const reduceOnlyValidation = useMemo(
+    () =>
+      validateReduceOnlyOrder({
+        reduceOnly,
+        direction: orderForm.direction,
+        orderSize: positionSize,
+        position: currentMarketPosition,
+        openOrders,
+        symbol,
+      }),
+    [
+      reduceOnly,
+      orderForm.direction,
+      positionSize,
+      currentMarketPosition,
+      openOrders,
+      symbol,
+    ],
+  );
+
   const orderValidation = usePerpsOrderValidation({
     orderForm: effectiveOrderForm,
     positionSize,
@@ -357,8 +417,12 @@ export const usePerpsProOrderForm = ({
     // for a valid close/reduce when free collateral is low.
     marginRequired: reduceOnly ? '0' : marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
-    skipValidation: false,
+    // Skip protocol validation until streams are ready so we don't flash
+    // unrelated errors while waiting for position/order snapshots.
+    skipValidation: isReduceOnlyStreamLoading,
     originalUsdAmount: effectiveUsdAmount,
+    reduceOnly,
+    isFullClose: reduceOnlyValidation.isFullClose,
   });
 
   const filteredErrors = useMemo(() => {
@@ -401,9 +465,10 @@ export const usePerpsProOrderForm = ({
   });
 
   const hasTpslBlocker =
-    doesStopLossRiskLiquidation ||
-    isTakeProfitPriceInvalid ||
-    isStopLossPriceInvalid;
+    !reduceOnly &&
+    (doesStopLossRiskLiquidation ||
+      isTakeProfitPriceInvalid ||
+      isStopLossPriceInvalid);
   const directionTrackingValue =
     orderForm.direction === 'long'
       ? PERPS_EVENT_VALUE.DIRECTION.LONG
@@ -446,6 +511,13 @@ export const usePerpsProOrderForm = ({
     }
 
     if (hasTpslBlocker) {
+      return;
+    }
+
+    if (
+      isReduceOnlyStreamLoading ||
+      (reduceOnly && !reduceOnlyValidation.isValid)
+    ) {
       return;
     }
 
@@ -510,6 +582,7 @@ export const usePerpsProOrderForm = ({
         takeProfitPrice: orderForm.takeProfitPrice,
         stopLossPrice: orderForm.stopLossPrice,
         reduceOnly,
+        isFullClose: reduceOnly ? reduceOnlyValidation.isFullClose : undefined,
         trackingData: buildPerpsOrderTrackingData({
           marginRequired,
           feeResults,
@@ -531,6 +604,7 @@ export const usePerpsProOrderForm = ({
       );
 
       const shouldHandleTPSLSeparately =
+        !reduceOnly &&
         (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
         ((!currentMarketPosition && orderForm.type === 'market') ||
           (currentMarketPosition &&
@@ -599,6 +673,9 @@ export const usePerpsProOrderForm = ({
     maxSlippageBps,
     maxSlippageSource,
     hasTpslBlocker,
+    isReduceOnlyStreamLoading,
+    reduceOnlyValidation.isValid,
+    reduceOnlyValidation.isFullClose,
     directionTrackingValue,
     orderValidation.isValid,
     orderValidation.errors,
@@ -776,47 +853,82 @@ export const usePerpsProOrderForm = ({
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list: PerpsProOrderNotice[] = [];
 
-    filteredErrors.forEach((message, index) => {
-      list.push({ id: `validation-${index}`, variant: 'inline', message });
-    });
+    // Blocking banners (one at a time): reduce-only → margin → limit price.
+    if (
+      reduceOnly &&
+      !isReduceOnlyStreamLoading &&
+      reduceOnlyValidation.errorCode
+    ) {
+      list.push({
+        id: 'reduce-only',
+        variant: 'banner',
+        message: strings(
+          REDUCE_ONLY_ERROR_I18N_KEYS[reduceOnlyValidation.errorCode],
+        ),
+      });
+    } else {
+      const marginError = filteredErrors.find(isMarginValidationError);
+      const limitPriceError = filteredErrors.find(isLimitPriceValidationError);
 
-    if (doesStopLossRiskLiquidation) {
-      list.push({
-        id: 'sl-liq-risk',
-        variant: 'inline',
-        message: strings('perps.tpsl.stop_loss_order_view_warning', {
-          direction:
-            orderForm.direction === 'long'
-              ? strings('perps.tpsl.below')
-              : strings('perps.tpsl.above'),
-        }),
-      });
+      if (marginError) {
+        list.push({
+          id: 'margin',
+          variant: 'banner',
+          message: marginError,
+        });
+      } else if (limitPriceError) {
+        list.push({
+          id: 'limit-price',
+          variant: 'banner',
+          message: limitPriceError,
+        });
+      } else {
+        filteredErrors.forEach((message, index) => {
+          list.push({ id: `validation-${index}`, variant: 'inline', message });
+        });
+      }
     }
-    if (isTakeProfitPriceInvalid) {
-      list.push({
-        id: 'tp-invalid',
-        variant: 'inline',
-        message: strings('perps.tpsl.take_profit_wrong_side_warning', {
-          direction:
-            orderForm.direction === 'long'
-              ? strings('perps.tpsl.above')
-              : strings('perps.tpsl.below'),
-          priceType: tpslPriceType,
-        }),
-      });
-    }
-    if (isStopLossPriceInvalid) {
-      list.push({
-        id: 'sl-invalid',
-        variant: 'inline',
-        message: strings('perps.tpsl.stop_loss_wrong_side_warning', {
-          direction:
-            orderForm.direction === 'long'
-              ? strings('perps.tpsl.below')
-              : strings('perps.tpsl.above'),
-          priceType: tpslPriceType,
-        }),
-      });
+
+    // TP/SL warnings are irrelevant while Reduce Only is on (row is hidden).
+    if (!reduceOnly) {
+      if (doesStopLossRiskLiquidation) {
+        list.push({
+          id: 'sl-liq-risk',
+          variant: 'inline',
+          message: strings('perps.tpsl.stop_loss_order_view_warning', {
+            direction:
+              orderForm.direction === 'long'
+                ? strings('perps.tpsl.below')
+                : strings('perps.tpsl.above'),
+          }),
+        });
+      }
+      if (isTakeProfitPriceInvalid) {
+        list.push({
+          id: 'tp-invalid',
+          variant: 'inline',
+          message: strings('perps.tpsl.take_profit_wrong_side_warning', {
+            direction:
+              orderForm.direction === 'long'
+                ? strings('perps.tpsl.above')
+                : strings('perps.tpsl.below'),
+            priceType: tpslPriceType,
+          }),
+        });
+      }
+      if (isStopLossPriceInvalid) {
+        list.push({
+          id: 'sl-invalid',
+          variant: 'inline',
+          message: strings('perps.tpsl.stop_loss_wrong_side_warning', {
+            direction:
+              orderForm.direction === 'long'
+                ? strings('perps.tpsl.below')
+                : strings('perps.tpsl.above'),
+            priceType: tpslPriceType,
+          }),
+        });
+      }
     }
     if (isAtCap) {
       list.push({
@@ -828,6 +940,9 @@ export const usePerpsProOrderForm = ({
 
     return list;
   }, [
+    reduceOnly,
+    isReduceOnlyStreamLoading,
+    reduceOnlyValidation.errorCode,
     filteredErrors,
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -889,9 +1004,9 @@ export const usePerpsProOrderForm = ({
     isAtCap ||
     isPlacing ||
     isLoadingMarketData ||
-    doesStopLossRiskLiquidation ||
-    isTakeProfitPriceInvalid ||
-    isStopLossPriceInvalid;
+    isReduceOnlyStreamLoading ||
+    (reduceOnly && !reduceOnlyValidation.isValid) ||
+    hasTpslBlocker;
 
   const onDirectionChange = useCallback(
     (direction: PerpsProOrderDirection) => {
@@ -954,7 +1069,13 @@ export const usePerpsProOrderForm = ({
     availableBalance,
     onAddFundsPress: handleAddFunds,
     reduceOnly,
-    onReduceOnlyChange: setReduceOnly,
+    onReduceOnlyChange: (value: boolean) => {
+      setReduceOnly(value);
+      if (value) {
+        setTakeProfitPrice(undefined);
+        setStopLossPrice(undefined);
+      }
+    },
     isTPSLConfigured: Boolean(
       orderForm.takeProfitPrice || orderForm.stopLossPrice,
     ),

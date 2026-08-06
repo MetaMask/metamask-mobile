@@ -97,8 +97,15 @@ jest.mock('../../../../contexts/PerpsOrderContext', () => ({
   usePerpsOrderContext: () => mockContextValue,
 }));
 
+let mockPositionStreamLoading = false;
+let mockOrdersStreamLoading = false;
+let mockOpenOrders: unknown[] = [];
+
 jest.mock('../../../../hooks', () => ({
-  useHasExistingPosition: () => ({ existingPosition: mockExistingPosition }),
+  useHasExistingPosition: () => ({
+    existingPosition: mockExistingPosition,
+    isLoading: mockPositionStreamLoading,
+  }),
   usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
   usePerpsMarketData: () => ({
     marketData: { szDecimals: 3, maxLeverage: 40 },
@@ -139,6 +146,10 @@ jest.mock('../../../../hooks/stream', () => ({
     BTC: { price: '90000', markPrice: '90000', percentChange24h: '1' },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
+  usePerpsLiveOrders: () => ({
+    orders: mockOpenOrders,
+    isInitialLoading: mockOrdersStreamLoading,
+  }),
 }));
 
 let mockIsInitialized = true;
@@ -212,6 +223,9 @@ describe('usePerpsProOrderForm', () => {
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockIsInitialized = true;
+    mockPositionStreamLoading = false;
+    mockOrdersStreamLoading = false;
+    mockOpenOrders = [];
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
   });
 
@@ -258,7 +272,7 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('notices', () => {
-    it('maps a validation error to an inline notice', () => {
+    it('maps a margin validation error to a priority banner', () => {
       // Arrange
       mockValidation.isValid = false;
       mockValidation.errors = ['Insufficient funds'];
@@ -267,8 +281,9 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
 
       // Assert
-      const inline = result.current.notices.find((n) => n.variant === 'inline');
-      expect(inline?.message).toBe('Insufficient funds');
+      const banner = result.current.notices.find((n) => n.id === 'margin');
+      expect(banner?.variant).toBe('banner');
+      expect(banner?.message).toBe('Insufficient funds');
     });
 
     it('maps an OI cap to a banner notice', () => {
@@ -315,11 +330,52 @@ describe('usePerpsProOrderForm', () => {
         result.current.notices.find((n) => n.id === 'sl-invalid'),
       ).toBeDefined();
     });
+
+    it('shows the reduce-only no-position banner and suppresses TP/SL notices', () => {
+      mockOrderForm.takeProfitPrice = '85000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only')?.message,
+      ).toBe(
+        'You need to have an open position in this market to place reduce-only orders',
+      );
+      expect(
+        result.current.notices.find((n) => n.id === 'tp-invalid'),
+      ).toBeUndefined();
+    });
+
+    it('shows the reduce-only wrong-side banner for same-direction orders', () => {
+      mockExistingPosition = {
+        size: '1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only')?.message,
+      ).toBe(
+        'Reduce-only orders can only reduce an existing position. Switch to the opposite side.',
+      );
+    });
   });
 
   describe('handlePlaceOrder', () => {
     it('builds OrderParams including reduceOnly and calls executeOrder', async () => {
-      // Arrange
+      // Arrange: long form reduces a short position; stale TP must be ignored.
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.takeProfitPrice = '95000';
       const { result } = renderProForm();
       act(() => {
         result.current.onReduceOnlyChange(true);
@@ -340,6 +396,8 @@ describe('usePerpsProOrderForm', () => {
         usdAmount: '100',
         reduceOnly: true,
       });
+      expect(params).not.toHaveProperty('takeProfitPrice');
+      expect(mockUpdatePositionTPSL).not.toHaveBeenCalled();
       expect(submitted).toHaveBeenCalled();
       expect(mockClearPendingTradeConfiguration).toHaveBeenCalledWith('BTC');
       expect(mockUpdateOrderForm).toHaveBeenCalledWith({
@@ -407,6 +465,20 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder.mock.calls[0][0]).toMatchObject({
         usdAmount: '100',
       });
+    });
+
+    it('blocks reduce-only submit when there is no open position', async () => {
+      const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('blocks submit and shows a toast when validation is invalid', async () => {
@@ -490,7 +562,11 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it('skips clearPendingConfig when the order fails (plain else path)', async () => {
-      // Arrange: no TP/SL, controller returns failure
+      // Arrange: valid reduce-only order with no TP/SL; controller returns failure
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
       mockExecuteOrder.mockResolvedValueOnce({
         success: false,
         error: 'rejected',
@@ -699,6 +775,52 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('ignores TP/SL blockers while Reduce Only is on with a valid closing side', () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.takeProfitPrice = '85000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('disables Place Order while reduce-only position streams are loading', () => {
+      mockPositionStreamLoading = true;
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+  });
+
+  describe('reduceOnly toggle', () => {
+    it('clears TP/SL state when Reduce Only turns on', () => {
+      mockOrderForm.takeProfitPrice = '95000';
+      mockOrderForm.stopLossPrice = '80000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(mockSetTakeProfitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetStopLossPrice).toHaveBeenCalledWith(undefined);
+      expect(result.current.reduceOnly).toBe(true);
     });
   });
 
