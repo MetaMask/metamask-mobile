@@ -101,6 +101,13 @@ import type { CardApiSupportedRegionsResponse } from './services/card-supported-
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
+const PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY =
+  'pendingMoneyAccountCardRegistration';
+
+interface PendingMoneyAccountCardRegistration {
+  cardId: string;
+  moneyAccountAddress: string;
+}
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
@@ -1401,7 +1408,10 @@ export class CardController extends BaseController<
    * allowance from the Money Account to the delegation contract, however, is
    * globally observable. A non-zero allowance combined with the Money Account
    * being absent from this session's funding wallets means the Money Account
-   * is delegated to another card account.
+   * is delegated to another card account, unless this controller recorded
+   * that the same card confirmed the approval but failed to complete provider
+   * registration. That card-bound marker allows a safe retry without letting
+   * a different card bypass the guardrail.
    *
    * Fail-open by design: any error in the check (RPC unreachable, wallet
    * fetch failure) resolves to `false` so a degraded network never blocks
@@ -1416,7 +1426,7 @@ export class CardController extends BaseController<
    */
   async #detectMoneyAccountCardConflict(
     tokens: CardAuthTokens,
-  ): Promise<boolean> {
+  ): Promise<{ hasConflict: boolean; cardId?: string }> {
     let stage = 'select_money_account';
     try {
       const moneyAccountAddress = selectPrimaryMoneyAccount(
@@ -1426,7 +1436,7 @@ export class CardController extends BaseController<
         Logger.log(
           'CardController: Money Account card conflict check skipped — no primary Money Account',
         );
-        return false;
+        return { hasConflict: false };
       }
 
       stage = 'fetch_card_home_data';
@@ -1435,6 +1445,7 @@ export class CardController extends BaseController<
         moneyAccountAddress,
         tokens,
       );
+      const cardId = homeData.card?.id;
 
       stage = 'resolve_veda_config';
       const vedaConfig = getVedaTokenConfig(homeData.delegationSettings);
@@ -1443,7 +1454,7 @@ export class CardController extends BaseController<
           'CardController: Money Account card conflict check skipped — no Monad delegation config',
           { hasDelegationSettings: Boolean(homeData.delegationSettings) },
         );
-        return false;
+        return { hasConflict: false, cardId };
       }
 
       // Money Account registered on THIS card session — same card owns the
@@ -1461,7 +1472,20 @@ export class CardController extends BaseController<
         Logger.log(
           'CardController: Money Account card conflict check — delegated to this card session, no conflict',
         );
-        return false;
+        return { hasConflict: false, cardId };
+      }
+
+      if (
+        cardId &&
+        this.#isPendingRegistrationForCurrentCard(
+          cardId,
+          moneyAccountAddress,
+        )
+      ) {
+        Logger.log(
+          'CardController: Money Account card conflict check — retrying pending registration for this card, no conflict',
+        );
+        return { hasConflict: false, cardId };
       }
 
       stage = 'read_on_chain_allowance';
@@ -1485,7 +1509,7 @@ export class CardController extends BaseController<
           spender: vedaConfig.delegationContract,
         },
       );
-      return hasConflict;
+      return { hasConflict, cardId };
     } catch (error) {
       Logger.error(error as Error, {
         tags: { feature: 'card' },
@@ -1494,8 +1518,66 @@ export class CardController extends BaseController<
           data: { method: 'detectMoneyAccountCardConflict', stage },
         },
       });
+      return { hasConflict: false };
+    }
+  }
+
+  #isPendingRegistrationForCurrentCard(
+    cardId: string,
+    moneyAccountAddress: string,
+  ): boolean {
+    const providerId = this.state.activeProviderId;
+    if (!providerId) return false;
+
+    const pendingValue =
+      this.state.providerData[providerId]?.[
+        PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY
+      ];
+    if (
+      !pendingValue ||
+      typeof pendingValue !== 'object' ||
+      Array.isArray(pendingValue)
+    ) {
       return false;
     }
+    const pending =
+      pendingValue as unknown as PendingMoneyAccountCardRegistration;
+    return (
+      typeof pending.cardId === 'string' &&
+      typeof pending.moneyAccountAddress === 'string' &&
+      pending.cardId === cardId &&
+      pending.moneyAccountAddress.toLowerCase() ===
+        moneyAccountAddress.toLowerCase()
+    );
+  }
+
+  #setPendingRegistrationForCurrentCard(
+    cardId: string,
+    moneyAccountAddress: string,
+  ): void {
+    const providerId = this.state.activeProviderId;
+    if (!providerId) return;
+
+    this.update((state) => {
+      const providerData = state.providerData[providerId] ?? {};
+      providerData[PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY] = {
+        cardId,
+        moneyAccountAddress,
+      };
+      state.providerData[providerId] = providerData;
+    });
+  }
+
+  #clearPendingRegistrationForCurrentCard(): void {
+    const providerId = this.state.activeProviderId;
+    if (!providerId) return;
+
+    this.update((state) => {
+      const providerData = state.providerData[providerId];
+      if (providerData) {
+        delete providerData[PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY];
+      }
+    });
   }
 
   /**
@@ -1621,16 +1703,19 @@ export class CardController extends BaseController<
     // another card login). Never blocks unlink/revoke (amount "0") so users
     // can always take an allowance down.
     const delegationAmountFloat = parseFloat(delegationAmountHuman);
+    let currentCardId: string | undefined;
     if (Number.isFinite(delegationAmountFloat) && delegationAmountFloat > 0) {
       Logger.log(
         'CardController: running Money Account card conflict check (link)',
       );
-      const hasConflict = await this.#detectMoneyAccountCardConflict(tokens);
+      const conflictResult =
+        await this.#detectMoneyAccountCardConflict(tokens);
+      currentCardId = conflictResult.cardId;
       Logger.log(
         'CardController: Money Account card conflict check (link) result',
-        { hasConflict },
+        { hasConflict: conflictResult.hasConflict },
       );
-      if (hasConflict) {
+      if (conflictResult.hasConflict) {
         throw new CardProviderError(
           CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
           'Money Account is already linked to a different card account',
@@ -1753,6 +1838,17 @@ export class CardController extends BaseController<
 
     const txHash = confirmedMeta.hash ?? '';
 
+    // The approval is now globally visible on-chain, but the provider has not
+    // registered it yet. Persist which card initiated it so a failed
+    // post-approval can be retried by this card without being mistaken for a
+    // cross-device conflict. A different card ID cannot use this exception.
+    if (currentCardId) {
+      this.#setPendingRegistrationForCurrentCard(
+        currentCardId,
+        moneyAccountAddress,
+      );
+    }
+
     await this.approveFunding({
       address: fromAddress,
       network: MONEY_ACCOUNT_DELEGATION_NETWORK,
@@ -1763,6 +1859,7 @@ export class CardController extends BaseController<
       sigMessage: signatureMessage,
       token: delegationToken,
     });
+    this.#clearPendingRegistrationForCurrentCard();
 
     try {
       await this.fetchCardHomeData({ force: true });
