@@ -4,10 +4,22 @@ import {
   type SoftReloadFixtureServer,
 } from './softReloadApp.ts';
 import type { CurrentDeviceDetails } from '../../fixtures/playwright';
+import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
 import { shouldHandleMetroDevLauncherLocally } from '../../Constants.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
+import {
+  consumeSharedSessionRecreate,
+  resetSharedSessionRecreateState,
+} from './sessionRecovery.ts';
+
+jest.mock('../../AndroidWebViewCdpHelpers.ts', () => ({
+  __esModule: true,
+  default: {
+    resetCache: jest.fn(),
+  },
+}));
 
 jest.mock('../../PlaywrightUtilities.ts', () => ({
   __esModule: true,
@@ -71,10 +83,12 @@ describe('softReloadAppForFixtures', () => {
     switchToNativeContextMock.mockResolvedValue(true);
     launchAppMock.mockResolvedValue(undefined);
     dismissMetroMock.mockResolvedValue(undefined);
+    resetSharedSessionRecreateState();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    resetSharedSessionRecreateState();
   });
 
   it('clears app data, resets NATIVE_APP context, launches, and waits for bootstrap', async () => {
@@ -89,6 +103,7 @@ describe('softReloadAppForFixtures', () => {
       drv,
     });
 
+    expect(AndroidWebViewCdpHelpers.resetCache).toHaveBeenCalled();
     expect(clearAppData).toHaveBeenCalledTimes(1);
     expect(switchToNativeContextMock).toHaveBeenCalledWith(drv);
     expect(waitForNextStateRequest).toHaveBeenCalledWith(5_000);
@@ -147,5 +162,41 @@ describe('softReloadAppForFixtures', () => {
 
     expect(result.attemptedMetroDevLauncherDismissal).toBe(true);
     expect(dismissMetroMock).toHaveBeenCalled();
+  });
+
+  it('retries clearAppData once then continues', async () => {
+    clearAppData
+      .mockRejectedValueOnce(new Error('Command failed: adb shell pm clear'))
+      .mockResolvedValueOnce(undefined);
+
+    await softReloadAppForFixtures({
+      currentDeviceDetails,
+      deviceCommands,
+      launchArgs: {},
+      fixtureServer,
+      drv: {} as WebdriverIO.Browser,
+    });
+
+    expect(clearAppData).toHaveBeenCalledTimes(2);
+    expect(consumeSharedSessionRecreate()).toBe(false);
+  });
+
+  it('requests shared session recreate when clearAppData keeps failing', async () => {
+    clearAppData.mockRejectedValue(
+      new Error('Command failed: adb shell pm clear io.metamask'),
+    );
+
+    await expect(
+      softReloadAppForFixtures({
+        currentDeviceDetails,
+        deviceCommands,
+        launchArgs: {},
+        fixtureServer,
+        drv: {} as WebdriverIO.Browser,
+      }),
+    ).rejects.toThrow(/pm clear/);
+
+    expect(clearAppData).toHaveBeenCalledTimes(2);
+    expect(consumeSharedSessionRecreate()).toBe(true);
   });
 });

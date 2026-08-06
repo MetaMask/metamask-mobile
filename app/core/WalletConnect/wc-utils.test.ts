@@ -12,6 +12,7 @@ import {
   isValidUrl,
   getUnverifiedRequestOrigin,
   isEIP155RedirectMethodForChain,
+  isWalletConnectPermissionOrigin,
 } from './wc-utils';
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import {
@@ -632,6 +633,33 @@ describe('WalletConnect Utils', () => {
           defaultOrigin,
         ),
       ).toBe(defaultOrigin);
+    });
+  });
+
+  describe('isWalletConnectPermissionOrigin', () => {
+    it('returns true when origin matches wc2Metadata pairing topic', () => {
+      const result = isWalletConnectPermissionOrigin('pairing-topic-1', {
+        id: 'pairing-topic-1',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when stale wc2Metadata does not match in-app browser origin', () => {
+      const result = isWalletConnectPermissionOrigin('app.uniswap.org', {
+        id: 'stale-pairing-topic',
+        url: 'https://chikn.farm',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when wc2Metadata id is empty', () => {
+      const result = isWalletConnectPermissionOrigin('pairing-topic-1', {
+        id: '',
+      });
+
+      expect(result).toBe(false);
     });
   });
 });
