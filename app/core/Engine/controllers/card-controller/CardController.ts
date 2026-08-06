@@ -53,6 +53,8 @@ import {
   type FundingApprovalParams,
   type ICardProvider,
   isCardAuthTokenError,
+  CardProviderIds,
+  type CardProviderId,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
@@ -92,6 +94,9 @@ import {
   ImmersveProvider,
   type CardResumeInfo,
 } from './providers/ImmersveProvider';
+import { CardService } from './services/CardService';
+import { CardApiError } from './services/BaanxService';
+import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -179,7 +184,8 @@ export class CardController extends BaseController<
   CardControllerState,
   CardControllerMessenger
 > {
-  private readonly providers: Record<string, ICardProvider>;
+  private readonly providers: Partial<Record<CardProviderId, ICardProvider>>;
+  private readonly cardService: CardService;
   private currentSession: CardAuthSession | null = null;
   private refreshPromise: Promise<CardAuthTokens | null> | null = null;
   #cardholderCheckTimer: ReturnType<typeof setTimeout> | undefined;
@@ -193,10 +199,12 @@ export class CardController extends BaseController<
     messenger,
     state,
     providers,
+    cardService,
   }: {
     messenger: CardControllerMessenger;
     state?: Partial<CardControllerState>;
-    providers: Record<string, ICardProvider>;
+    providers: Partial<Record<CardProviderId, ICardProvider>>;
+    cardService: CardService;
   }) {
     super({
       name: CARD_CONTROLLER_NAME,
@@ -208,6 +216,7 @@ export class CardController extends BaseController<
       },
     });
     this.providers = providers;
+    this.cardService = cardService;
     try {
       this.previousEvmAddress = this.#getSelectedEvmAddress();
     } catch {
@@ -383,7 +392,7 @@ export class CardController extends BaseController<
     }
   }
 
-  #resolveProviderForCountry(country: string): string {
+  #resolveProviderForCountry(country: string): CardProviderId {
     const featureState = this.messenger.call(
       'RemoteFeatureFlagController:getState',
     );
@@ -400,7 +409,7 @@ export class CardController extends BaseController<
         Object.fromEntries(
           immersveCountries.map((c) => [c, true] as [string, boolean]),
         ),
-        'immersve',
+        CardProviderIds.Immersve,
       );
       const provider = getProviderForCountry(country, map);
       if (provider) {
@@ -630,7 +639,13 @@ export class CardController extends BaseController<
     }
 
     const provider = this.getActiveProvider();
-    const pid = this.state.activeProviderId as string;
+    const pid = this.state.activeProviderId;
+    if (!pid) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'submitCredentials: no active provider',
+      );
+    }
     const result = await provider.submitCredentials(
       this.currentSession,
       credentials,
@@ -755,12 +770,13 @@ export class CardController extends BaseController<
    */
   async resetAll(): Promise<void> {
     try {
-      for (const pid of Object.keys(this.providers)) {
+      const providerIds = Object.keys(this.providers) as CardProviderId[];
+      for (const pid of providerIds) {
         try {
           const tokens = await CardTokenStore.get(pid);
           if (tokens) {
             try {
-              await this.providers[pid].logout(tokens);
+              await this.providers[pid]?.logout(tokens);
             } catch (error) {
               Logger.error(error as Error, {
                 tags: { feature: 'card', provider: pid },
@@ -1151,11 +1167,41 @@ export class CardController extends BaseController<
   }
 
   async getResumeCardInfo(): Promise<CardResumeInfo | null> {
-    const provider = this.providers.immersve;
+    const provider = this.providers[CardProviderIds.Immersve];
     if (!(provider instanceof ImmersveProvider)) {
       return null;
     }
     return this.#withAuthRetry((tokens) => provider.getResumeCardInfo(tokens));
+  }
+
+  /**
+   * Fetches supported regions + legal documents via MetaMask Card API.
+   * Unauthenticated; usable during SignUp before provider SIWE/login.
+   */
+  async getSupportedRegions(
+    providerId: CardProviderId,
+  ): Promise<CardApiSupportedRegionsResponse> {
+    try {
+      return await this.cardService.getSupportedRegions(providerId);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 502) {
+        throw new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'Supported regions are temporarily unavailable',
+          502,
+        );
+      }
+      if (error instanceof CardApiError) {
+        throw new CardProviderError(
+          error.statusCode === 0
+            ? CardProviderErrorCode.Network
+            : CardProviderErrorCode.Unknown,
+          error.message,
+          error.statusCode,
+        );
+      }
+      throw error;
+    }
   }
 
   async getSpendingPrerequisites(

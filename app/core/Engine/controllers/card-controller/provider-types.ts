@@ -60,7 +60,13 @@ export class CardLinkageInProgressError extends Error {
 
 // -- Provider Identity --
 
-export type CardProviderId = string;
+export const CardProviderIds = {
+  Baanx: 'baanx',
+  Immersve: 'immersve',
+} as const;
+
+export type CardProviderId =
+  (typeof CardProviderIds)[keyof typeof CardProviderIds];
 
 export type CardAuthMethod = 'email_password' | 'siwe';
 
@@ -170,6 +176,8 @@ export interface CardDetails {
   lastFour: string;
   holderName?: string;
   isFreezable?: boolean;
+  /** ISO region code from Immersve LIST/detail (e.g. "GB"). */
+  regionCode?: string;
 }
 
 export interface CardSecureViewParams {

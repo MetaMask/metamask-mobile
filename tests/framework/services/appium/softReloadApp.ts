@@ -8,6 +8,10 @@ import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
 import { switchToNativeContext } from './sessionHealth.ts';
+import {
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+} from './sessionRecovery.ts';
 
 const logger = createPlaywrightLogger('softReloadApp');
 
@@ -84,7 +88,22 @@ export async function softReloadAppForFixtures(
 
   let clearAppDataMs = 0;
   if (deviceCommands) {
-    clearAppDataMs = await measureMs(() => deviceCommands.clearAppData());
+    try {
+      clearAppDataMs = await measureMs(async () => {
+        try {
+          await deviceCommands.clearAppData();
+        } catch (firstError) {
+          logger.warn('clearAppData failed; retrying once:', firstError);
+          await sleep(1000);
+          await deviceCommands.clearAppData();
+        }
+      });
+    } catch (error) {
+      if (isDeviceHealthError(error)) {
+        requestSharedSessionRecreate();
+      }
+      throw error;
+    }
   }
 
   const contextResetMs = await measureMs(async () => {
@@ -131,6 +150,9 @@ export async function softReloadAppForFixtures(
     fixtureBootstrapMs = Date.now() - bootstrapStart;
   } catch (error) {
     appStateRequest.catch(() => undefined);
+    if (isDeviceHealthError(error)) {
+      requestSharedSessionRecreate();
+    }
     throw error;
   }
 
