@@ -1101,6 +1101,76 @@ describe('WalletConnect2Session', () => {
       expect(handleSwitchToChainSpy).toHaveBeenCalled();
     });
 
+    it('rejects eth_sendTransaction with extraneous top-level param key', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'eth_sendTransaction',
+            params: [
+              {
+                from: '0x1234567890abcdef1234567890abcdef12345678',
+                to: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+                evil: { nested: { deeply: 'junk' } },
+              },
+            ],
+          },
+          chainId: testChainCaip,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://example.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      const rejectRequestSpy = jest.spyOn(session, 'rejectRequest');
+      await buildCase(request, testChainId, testChainCaip);
+
+      expect(rejectRequestSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ id: requestId + '' }),
+      );
+    });
+
+    it('rejects eth_sendTransaction when params exceed max serialized size', async () => {
+      const requestId = Math.floor(Math.random() * 1000000);
+      const oversizedData = '0x' + 'aa'.repeat(105 * 1024);
+      const request: WalletKitTypes.SessionRequest = {
+        id: requestId,
+        topic: mockSession.topic,
+        params: {
+          request: {
+            method: 'eth_sendTransaction',
+            params: [
+              {
+                from: '0x1234567890abcdef1234567890abcdef12345678',
+                data: oversizedData,
+              },
+            ],
+          },
+          chainId: testChainCaip,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://example.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      };
+
+      const rejectRequestSpy = jest.spyOn(session, 'rejectRequest');
+      await buildCase(request, testChainId, testChainCaip);
+
+      expect(rejectRequestSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ id: requestId + '' }),
+      );
+    });
+
     it('handles eth_signTypedData_v3 correctly with valid chainId that it has permissions for', async () => {
       jest.mock('./wc-utils', () => jest.requireActual('./wc-utils'));
       const requestId = Math.floor(Math.random() * 1000000);
