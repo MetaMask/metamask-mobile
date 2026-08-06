@@ -26,24 +26,17 @@ permissions:
 jobs:
   # SmokeWalletPlatform Detox job removed — tag fully migrated to Appium
   # (run-appium-smoke-tests-android.yml / appium-wallet-platform-android-smoke).
+  # SmokeConfirmations Detox job removed — tag fully migrated to Appium
+  # (run-appium-smoke-tests-android.yml / appium-confirmations-android-smoke).
   # SmokeNetworkAbstractions Detox job removed — tag fully migrated to Appium
   # (run-appium-smoke-tests-android.yml / appium-network-abstractions-android-smoke).
 
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
-    # an Appium-only tag like SmokeAccounts / SmokeSwap / SmokeStake / SmokeBrowser). Non-empty tags still trigger this workflow.
-    if: >-
-      ${{
-        !cancelled() &&
-        (
-          contains(toJSON(needs), '"result":"success"') ||
-          contains(toJSON(needs), '"result":"failure"')
-        )
-      }}
-    needs:
-      - confirmations-android-smoke
+    # No Detox smoke jobs remain; omit `needs` (empty/stale needs fail workflow validation).
+    # Keep the report job for artifact rollup if Detox shards are reintroduced.
+    if: ${{ !cancelled() }}
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
