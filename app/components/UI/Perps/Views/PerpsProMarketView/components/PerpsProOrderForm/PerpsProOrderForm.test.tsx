@@ -540,4 +540,21 @@ describe('PerpsProOrderForm', () => {
       });
     });
   });
+
+  describe('margin mode chip', () => {
+    it('calls onMarginModePress when Isolated chip is pressed', () => {
+      const onMarginModePress = jest.fn();
+      renderForm({ onMarginModePress });
+
+      fireEvent.press(screen.getByTestId(ids.MARGIN_MODE_BUTTON));
+
+      expect(onMarginModePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders the margin mode chip with the provided label', () => {
+      renderForm({ marginModeLabel: 'Isolated', onMarginModePress: jest.fn() });
+
+      expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeTruthy();
+    });
+  });
 });

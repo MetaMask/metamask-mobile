@@ -297,6 +297,7 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  onMarginModePress,
   leverageLabel,
   onLeveragePress,
   orderType,
@@ -393,11 +394,15 @@ const PerpsProOrderForm = ({
             twClassName="flex-row items-center gap-4"
             testID={ids.MARGIN_SETTINGS_ROW}
           >
-            <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
-              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-                {marginModeLabel}
-              </Text>
-            </Box>
+            <ButtonBase
+              size={ButtonBaseSize.Sm}
+              onPress={onMarginModePress}
+              isDisabled={!onMarginModePress}
+              twClassName="h-8 rounded-lg bg-muted px-2"
+              testID={ids.MARGIN_MODE_BUTTON}
+            >
+              {marginModeLabel}
+            </ButtonBase>
             <ButtonBase
               size={ButtonBaseSize.Sm}
               onPress={onLeveragePress}

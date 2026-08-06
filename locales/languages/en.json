@@ -2367,6 +2367,13 @@
       "error_title": "Failed to cancel orders",
       "error_message": "Failed to cancel {{count}} order(s)"
     },
+    "margin_mode": {
+      "title": "Choose margin mode",
+      "isolated_title": "Isolated",
+      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "cross_title": "Cross",
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
     "crossMargin": {
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",

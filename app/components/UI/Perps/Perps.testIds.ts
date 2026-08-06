@@ -540,6 +540,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   DIRECTION_LONG: 'perps-pro-order-form-direction-long',
   DIRECTION_SHORT: 'perps-pro-order-form-direction-short',
   LEVERAGE_BUTTON: 'perps-pro-order-form-leverage',
+  MARGIN_MODE_BUTTON: 'perps-pro-order-form-margin-mode',
   ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
   LIMIT_PRICE_PREFIX: 'perps-pro-order-form-limit-price-prefix',
