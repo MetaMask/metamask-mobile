@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   PerpsMode,
@@ -12,6 +13,7 @@ import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
 import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
+import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
@@ -47,6 +49,7 @@ export const usePerpsMarketHeaderActions = ({
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
+  const navigation = useNavigation();
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const { track } = usePerpsEventTracking();
@@ -110,16 +113,29 @@ export const usePerpsMarketHeaderActions = ({
 
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
-      // The market-header pill owns the shimmer delay. Once it completes,
-      // switch directly without opening the mode chooser.
-      setPerpsMode(nextMode);
-      // Drop Home so back cannot reveal the Lite hub while Pro is active
-      // (TAT-3612).
-      if (nextMode === PerpsMode.Pro) {
-        dropPerpsHomeFromStackHistory();
-      }
+      // The market-header pill owns the shimmer delay; this fires once it ends.
+      // The chooser gates every header toggle, so a user who reaches a market
+      // without ever seeing it gets the sheet here and it owns the switch.
+      // eslint-disable-next-line no-void
+      void (async () => {
+        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+          entry: 'market',
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        });
+        if (openedChooser) {
+          return;
+        }
+
+        // Chooser already completed — flip immediately without the sheet.
+        setPerpsMode(nextMode);
+        // Drop Home so back cannot reveal the Lite hub while Pro is active
+        // (TAT-3612).
+        if (nextMode === PerpsMode.Pro) {
+          dropPerpsHomeFromStackHistory();
+        }
+      })();
     },
-    [setPerpsMode, dropPerpsHomeFromStackHistory],
+    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );
 
   return {

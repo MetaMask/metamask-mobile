@@ -84,6 +84,7 @@ import PerpsMarketHeader, {
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
 import { useDropPerpsHomeFromStackHistory } from '../../utils/perpsModeSwitch';
+import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -365,13 +366,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const handlePerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
-      // PerpsModeSwitchPill runs the shimmer before invoking this callback.
-      setPerpsMode(nextMode);
-      if (nextMode === PerpsMode.Pro) {
-        dropPerpsHomeFromStackHistory();
-      }
+      // PerpsModeSwitchPill runs the shimmer before invoking this callback. The
+      // one-time chooser gates every header toggle, so show it here when the
+      // user has not completed it and let the sheet own the switch.
+      // eslint-disable-next-line no-void
+      void (async () => {
+        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+          entry: 'market',
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        });
+        if (openedChooser) {
+          return;
+        }
+
+        setPerpsMode(nextMode);
+        if (nextMode === PerpsMode.Pro) {
+          dropPerpsHomeFromStackHistory();
+        }
+      })();
     },
-    [setPerpsMode, dropPerpsHomeFromStackHistory],
+    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks

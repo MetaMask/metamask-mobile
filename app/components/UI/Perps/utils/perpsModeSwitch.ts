@@ -60,13 +60,17 @@ export interface PerpsHomeNavigationTarget {
  * Resolves where a "go to Perps home" action should actually land, given
  * whether Pro mode is currently active.
  *
+ * Takes `isProModeActive` explicitly so callers that just changed the mode can
+ * pass the mode they selected rather than reading it back from a selector that
+ * has not re-rendered yet.
+ *
  * While Pro mode is active, `PerpsHomeView` must never be shown (TAT-3612):
  * every entry point instead lands on the default Pro market, so the user
  * only ever moves between a market page and the market list. Centralizing
  * this here keeps every entry point (Trade sheet, Wallet actions, Homepage
  * grid/pill, deeplinks, etc.) consistent.
  */
-const resolvePerpsHomeNavigationTarget = (
+export const resolvePerpsHomeNavigationTarget = (
   isProModeActive: boolean,
   extraParams: Record<string, unknown> = {},
 ): PerpsHomeNavigationTarget => {

@@ -17,6 +17,7 @@ import PerpsModeSelectionBottomSheet from '../../components/PerpsModeSelectionBo
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMode } from '../../hooks/usePerpsMode';
 import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
+import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
 import { markPerpsModeSelectionCompleted } from '../../utils/perpsModeSelectionStorage';
 import {
   type PerpsModeSelectionEntry,
@@ -25,8 +26,8 @@ import {
 import {
   buildDefaultProMarket,
   dropPerpsHomeFromStackHistory,
+  resolvePerpsHomeNavigationTarget,
   toPerpsNavigatorScreenParams,
-  useGetPerpsHomeNavigationTarget,
 } from '../../utils/perpsModeSwitch';
 
 type ModeSelectionRoute = RouteProp<
@@ -51,7 +52,7 @@ const PerpsModeSelectionView: React.FC = () => {
   const { track } = usePerpsEventTracking();
   const { mode: selectedMode, setMode } = usePerpsMode();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const isProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -96,9 +97,18 @@ const PerpsModeSelectionView: React.FC = () => {
       }
 
       if (entry === 'trade') {
+        // Derive the destination from the mode just selected, not from the
+        // Pro-mode selector: `setMode` has run but this closure still holds the
+        // pre-selection render's value, so reading it back would send a user who
+        // picked Pro to Lite Home.
         navigation.navigate(
           Routes.PERPS.ROOT,
-          toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
+          toPerpsNavigatorScreenParams(
+            resolvePerpsHomeNavigationTarget(
+              isProModeEnabled && mode === PerpsMode.Pro,
+              { source },
+            ),
+          ),
         );
         return;
       }
@@ -115,13 +125,7 @@ const PerpsModeSelectionView: React.FC = () => {
 
       // `home` + Lite: dismiss only — already on Perps Home.
     },
-    [
-      entry,
-      getPerpsHomeNavigationTarget,
-      isFirstTimePerpsUser,
-      navigation,
-      source,
-    ],
+    [entry, isFirstTimePerpsUser, isProModeEnabled, navigation, source],
   );
 
   const handleSelect = useCallback(
