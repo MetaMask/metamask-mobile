@@ -1085,6 +1085,17 @@ export const usePerpsProOrderForm = ({
     handlePlaceOrder();
   }, [commitPendingSliderPreview, handlePlaceOrder]);
 
+  const onReduceOnlyChange = useCallback(
+    (value: boolean) => {
+      setReduceOnly(value);
+      if (value) {
+        setTakeProfitPrice(undefined);
+        setStopLossPrice(undefined);
+      }
+    },
+    [setTakeProfitPrice, setStopLossPrice],
+  );
+
   return {
     direction: orderForm.direction,
     onDirectionChange,
@@ -1102,13 +1113,7 @@ export const usePerpsProOrderForm = ({
     availableBalance,
     onAddFundsPress: handleAddFunds,
     reduceOnly,
-    onReduceOnlyChange: (value: boolean) => {
-      setReduceOnly(value);
-      if (value) {
-        setTakeProfitPrice(undefined);
-        setStopLossPrice(undefined);
-      }
-    },
+    onReduceOnlyChange,
     isTPSLConfigured: Boolean(
       orderForm.takeProfitPrice || orderForm.stopLossPrice,
     ),

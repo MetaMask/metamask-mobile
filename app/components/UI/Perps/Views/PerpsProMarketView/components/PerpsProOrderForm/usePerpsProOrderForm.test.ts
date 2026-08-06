@@ -359,6 +359,24 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('shows the reduce-only too-large banner and disables submit when size exceeds position', () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.amount = '100000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(
+        result.current.notices.find((n) => n.id === 'reduce-only')?.message,
+      ).toBe('Reduce only order is larger than your open position');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
     it('suppresses stale validation notices while the position is loading', () => {
       // Arrange: retain a prior margin error (skipValidation freezes errors)
       // while the position is still loading after Reduce Only is enabled.
@@ -483,6 +501,26 @@ describe('usePerpsProOrderForm', () => {
 
     it('blocks reduce-only submit when there is no open position', async () => {
       const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('blocks reduce-only submit when size exceeds the open position', async () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.amount = '100000';
+      const { result } = renderProForm();
+
       act(() => {
         result.current.onReduceOnlyChange(true);
       });

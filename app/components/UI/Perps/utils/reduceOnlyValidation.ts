@@ -75,6 +75,8 @@ export const validateReduceOnlyOrder = ({
   const absolutePositionSize = Math.abs(Number.parseFloat(position.size));
 
   const parsedOrderSize = Number.parseFloat(orderSize);
+  // Empty/zero size is not `too_large`; usePerpsOrderValidation already marks
+  // the form invalid when positionSize <= 0 before controller validation runs.
   const orderSizeValue =
     Number.isFinite(parsedOrderSize) && parsedOrderSize > 0
       ? parsedOrderSize

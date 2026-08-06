@@ -168,4 +168,31 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       });
     },
   );
+
+  itForPlatforms(
+    'blocks reduce-only orders when size exceeds the open position',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('100000'),
+          positions: [createLongPositionForViews({ size: '-1' })],
+          orders: [],
+        },
+      });
+      const sizeInput = await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+      fireEvent.changeText(sizeInput, '3000');
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`${ids.NOTICE}-reduce-only`),
+        ).toHaveTextContent(
+          strings('perps.order.validation.reduce_only_too_large'),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      });
+    },
+  );
 });
