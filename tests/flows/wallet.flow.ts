@@ -57,7 +57,7 @@ import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/Experience
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
-import { startPhase } from '../framework/telemetry/PhaseTimer';
+import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
