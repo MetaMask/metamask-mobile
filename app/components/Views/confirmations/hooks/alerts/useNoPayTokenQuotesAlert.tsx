@@ -22,12 +22,9 @@ import {
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
-import { useTransactionCustomAmount } from '../transactions/useTransactionCustomAmount';
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
-  const { hasInput, isDepositPrefillLoading, isPrefillPending } =
-    useTransactionCustomAmount();
   const fiatPayment = useTransactionPayFiatPayment();
   const quotes = useTransactionPayQuotesRaw();
   const isQuotesLoading = useIsTransactionPayLoading();
@@ -44,18 +41,23 @@ export function useNoPayTokenQuotesAlert() {
     fiatPayment?.selectedPaymentMethodId,
   );
 
-  // Only alert once the user (or prefill) has actually committed a positive
-  // input AND any deposit prefill has settled. This closes the mount-time
-  // window where payToken is auto-selected and quotes are still empty simply
-  // because no amount has been pushed to the controller yet — previously this
-  // surfaced NoPayTokenQuotes unintentionally on nearly every deposit.
+  // Controller-backed (not UI-local keypad state), so every hook instance sees
+  // the same value. True once a positive amount has reached the controller via
+  // keypad input, prefill, or Max.
+  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
+    (t) =>
+      !t.skipIfBalance &&
+      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
+  );
+
+  // hasPositiveRequiredAmount keeps the alert quiet during the mount-time
+  // window where payToken is auto-selected and quotes are empty only because
+  // no amount has reached the controller yet.
   const shouldShowNonFiatNoQuotesAlert =
     payToken &&
     !isQuotesLoading &&
     !quotes?.length &&
-    hasInput &&
-    !isPrefillPending &&
-    !isDepositPrefillLoading;
+    hasPositiveRequiredAmount;
 
   const shouldShowFiatNoQuotesAlert =
     hasSelectedFiatPaymentMethod &&
@@ -63,16 +65,6 @@ export function useNoPayTokenQuotesAlert() {
     !isQuotesLoading &&
     !fiatPayment?.rampsQuote &&
     quotes?.length === 0;
-
-  // Post-quote flows (e.g. money account withdraw) where `sourceAmounts` is
-  // non-empty but no quote was returned. The non-fiat branch above may not
-  // fire, so we also emit the alert when the user has entered a positive
-  // input amount but no quote is available.
-  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
-    (t) =>
-      !t.skipIfBalance &&
-      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
-  );
 
   const shouldShowPostQuoteNoQuotesAlert =
     isPostQuote &&
