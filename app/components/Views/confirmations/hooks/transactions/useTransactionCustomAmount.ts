@@ -404,6 +404,12 @@ export function useTransactionCustomAmount({
           .decimalPlaces(2, BigNumber.ROUND_DOWN),
       );
 
+      // Sub-cent / dust balances ROUND_DOWN to $0. Treat that like no balance
+      // so Max does not arm auto-submit and strand the page on Loading.
+      if (new BigNumber(newAmount).lte(0)) {
+        return false;
+      }
+
       lastAmountInputTypeRef.current = `${percentage}%`;
       amountChangeTimeRef.current = Date.now();
 

@@ -19,8 +19,8 @@ import {
   AvatarAccount,
   AvatarAccountSize,
   BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
-  HeaderStandard,
   Skeleton,
   Text,
   TextColor,
@@ -224,10 +224,9 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <HeaderStandard
-              title={selectorTitle}
-              onClose={() => closeAccountSheet()}
-            />
+            <BottomSheetHeader onClose={() => closeAccountSheet()}>
+              {selectorTitle}
+            </BottomSheetHeader>
             <View style={styles.modalSheetBody}>
               <MultichainAccountSelectorList
                 selectedAccountGroups={

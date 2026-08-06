@@ -78,7 +78,14 @@ describe('useNoPayTokenQuotesAlert', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayQuotesRawMock.mockReturnValue(undefined);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
-    useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        amountRaw: '10000',
+        skipIfBalance: false,
+      } as TransactionPayRequiredToken,
+    ]);
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
       canSelectWithdrawToken: false,
@@ -198,6 +205,105 @@ describe('useNoPayTokenQuotesAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  describe('non-fiat input gating', () => {
+    it('returns no alert when no required token amount has reached the controller', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when the required token amount is zero', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when the only required token is skipped by balance', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: true,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert once a positive required token amount has reached the controller', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('returns no alert when isMaxAmount is set but the amount has not yet reached the controller', () => {
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns alert when isMaxAmount is set and a positive amount has reached the controller', () => {
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
   });
 
   it('returns alert for post-quote when a required token has a positive amount and no quotes', () => {

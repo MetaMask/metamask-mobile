@@ -51,6 +51,15 @@ import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import {
+  endOpenRampsBuyCufChildrenByName,
+  endRampsBuyCufTrace,
+} from '../utils/rampsBuyCufTrace';
+import {
+  RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_TAG,
+} from '../constants/rampsBuyCufTags';
+import { TraceName } from '../../../../util/trace';
 
 // The native provider code must match the environment that `refreshOrder` /
 // `getOrderFromCallback` poll (from `getRampsEnvironment()`). Dev/UAT expose
@@ -437,6 +446,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
+      // Native child CUF ends when the order is created (before Order Details).
+      endOpenRampsBuyCufChildrenByName(TraceName.RampBuyNativeToOrderCreated, {
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        orderId,
+      });
+
       // Headless mode: fire `onOrderCreated`, close the session, and pop
       // out of the ramp stack so the caller regains foreground. The
       // consumer drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
@@ -450,6 +465,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             'useTransakRouting: onOrderCreated callback threw',
           );
         }
+        // Parent Buy E2E CUF expects Order Details; headless never shows it.
+        endRampsBuyCufTrace({
+          data: {
+            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.HEADLESS,
+            orderId,
+          },
+        });
         closeSession(headlessSessionId, { reason: 'completed' });
         dismissActiveHeadlessFlow();
         return;
