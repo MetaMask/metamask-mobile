@@ -1767,7 +1767,7 @@ describe('BridgeView', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {
