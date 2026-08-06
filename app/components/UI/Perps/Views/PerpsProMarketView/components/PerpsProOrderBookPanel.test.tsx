@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook';
+import { PRO_ORDER_BOOK_SEPARATOR_INSET } from './PerpsProMarketLayout.styles';
 
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
@@ -242,6 +243,37 @@ describe('PerpsProOrderBookPanel', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
     );
     expect(onCollapse).toHaveBeenCalledTimes(1);
+  });
+
+  it('positions collapse in the leading gutter and settings at the trailing edge', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onCollapse={jest.fn()}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const header = getByTestId(`${testID}-header`);
+    const leading = getByTestId(`${testID}-header-leading`);
+    const trailing = getByTestId(`${testID}-header-trailing`);
+
+    expect(header).toHaveStyle({
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    });
+    expect(leading).toHaveStyle({
+      marginLeft: -PRO_ORDER_BOOK_SEPARATOR_INSET,
+    });
+    expect(
+      within(leading).getByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(trailing).getByTestId(`${testID}-grouping-trigger`),
+    ).toBeOnTheScreen();
   });
 
   it('opens settings and saves currency, metric, and grouping', () => {

@@ -576,14 +576,15 @@ const PerpsProOrderBookPanel = ({
       collapsable={false}
       twClassName="w-full py-2"
     >
-      {/* Header: flush with the ladder rows below (no inset — Figma's column
-          is px-0; the screen/divider edges come from PerpsProMarketLayout's
-          outer px-2), settings sit flush on the right */}
+      {/* Header: collapse extends into the separator gutter on the left while
+          settings stays flush with the ladder's trailing edge. */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.End}
+        justifyContent={BoxJustifyContent.Between}
         twClassName="pb-1"
+        testID={`${testID}-header`}
+        accessible={false}
       >
         {/* Buy/sell-only view-toggle hidden for now (2026-07-30): the ladder
             only ever shows ~5 rows/side today, so filtering to one side adds
@@ -608,9 +609,9 @@ const PerpsProOrderBookPanel = ({
           </Pressable>
         )}
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="-mr-1 gap-1"
+          style={styles.headerCollapseControl}
+          testID={`${testID}-header-leading`}
+          accessible={false}
         >
           {onCollapse ? (
             <ButtonIcon
@@ -621,6 +622,12 @@ const PerpsProOrderBookPanel = ({
               testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON}
             />
           ) : null}
+        </Box>
+        <Box
+          twClassName="-mr-1"
+          testID={`${testID}-header-trailing`}
+          accessible={false}
+        >
           <ButtonIcon
             iconName={IconName.Setting}
             accessibilityLabel={strings('perps.order_book.config_title')}

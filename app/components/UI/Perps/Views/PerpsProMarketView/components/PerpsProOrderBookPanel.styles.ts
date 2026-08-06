@@ -1,6 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { PRO_ORDER_BOOK_SEPARATOR_INSET } from './PerpsProMarketLayout.styles';
 
 const styleSheet = StyleSheet.create({
+  headerCollapseControl: {
+    marginLeft: -PRO_ORDER_BOOK_SEPARATOR_INSET,
+  },
   depthBar: {
     position: 'absolute',
     top: 0,
