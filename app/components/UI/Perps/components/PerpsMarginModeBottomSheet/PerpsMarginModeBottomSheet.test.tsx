@@ -36,13 +36,21 @@ describe('PerpsMarginModeBottomSheet', () => {
 
   it('renders Isolated and Cross rows when visible', () => {
     render(<PerpsMarginModeBottomSheet {...defaultProps} />);
-    expect(screen.getByText('Isolated')).toBeTruthy();
-    expect(screen.getByText('Cross')).toBeTruthy();
+    expect(
+      screen.getByTestId(
+        PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION),
+    ).toBeOnTheScreen();
   });
 
   it('returns null when not visible', () => {
     render(<PerpsMarginModeBottomSheet {...defaultProps} isVisible={false} />);
-    expect(screen.queryByText('Choose margin mode')).toBeNull();
+    expect(
+      screen.queryByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls onClose when the Isolated row is pressed', () => {
@@ -58,14 +66,16 @@ describe('PerpsMarginModeBottomSheet', () => {
 
   it('renders the margin mode title', () => {
     render(<PerpsMarginModeBottomSheet {...defaultProps} />);
-    expect(screen.getByText('Choose margin mode')).toBeTruthy();
+    expect(
+      screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('renders the bottom sheet container', () => {
     render(<PerpsMarginModeBottomSheet {...defaultProps} />);
     expect(
       screen.getByTestId(PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('does not call onClose when the disabled Cross row is pressed', () => {

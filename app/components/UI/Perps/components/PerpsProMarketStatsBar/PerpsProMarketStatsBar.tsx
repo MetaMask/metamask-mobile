@@ -146,11 +146,11 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const fundingValue = `${fundingRateDisplay} / ${fundingCountdown}`;
 
   const fundingValueColor: TextColor = useMemo(() => {
-    if (liveFunding === undefined) return TextColor.TextDefault;
-    if (liveFunding > 0) return TextColor.SuccessDefault;
-    if (liveFunding < 0) return TextColor.ErrorDefault;
-    return TextColor.TextDefault;
-  }, [liveFunding]);
+    const rate = liveFunding ?? parseFloat(marketStats.fundingRate ?? '');
+    if (isNaN(rate) || rate === 0) return TextColor.TextDefault;
+    if (rate > 0) return TextColor.SuccessDefault;
+    return TextColor.ErrorDefault;
+  }, [liveFunding, marketStats.fundingRate]);
 
   // PriceUpdate exposes a single markPrice field. Lite's statistics card uses
   // it as "Oracle price"; Pro Figma shows both Mark and Oracle, so both read

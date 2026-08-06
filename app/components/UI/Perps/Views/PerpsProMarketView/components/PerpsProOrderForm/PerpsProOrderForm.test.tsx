@@ -74,6 +74,10 @@ const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
 describe('PerpsProOrderForm', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('inputs', () => {
     it('passes raw size text to sizeInput.onChange', () => {
       const onChange = jest.fn();
@@ -231,7 +235,6 @@ describe('PerpsProOrderForm', () => {
       );
 
       expect(dismissSpy).toHaveBeenCalledTimes(1);
-      dismissSpy.mockRestore();
     });
   });
 
@@ -349,7 +352,7 @@ describe('PerpsProOrderForm', () => {
         'accessibilityRole',
         'button',
       );
-      expect(screen.getByTestId(`${ids.TPSL}-arrow`)).toBeTruthy();
+      expect(screen.getByTestId(`${ids.TPSL}-arrow`)).toBeOnTheScreen();
     });
 
     it('calls onTPSLPress when TP/SL is pressed', () => {
@@ -555,7 +558,7 @@ describe('PerpsProOrderForm', () => {
     it('renders the margin mode chip with the provided label', () => {
       renderForm({ marginModeLabel: 'Isolated', onMarginModePress: jest.fn() });
 
-      expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeTruthy();
+      expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeOnTheScreen();
     });
   });
 });
