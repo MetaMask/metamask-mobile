@@ -4006,6 +4006,7 @@
     "remove_network": "Hapus",
     "cancel_remove_network": "Batal",
     "info_title": "Seputar MetaMask",
+    "info_title_beta": "Tentang MetaMask Beta",
     "info_title_flask": "Tentang MetaMask Flask",
     "experimental_title": "Eksperimental",
     "experimental_desc": "WalletConnect dan lainnya...",

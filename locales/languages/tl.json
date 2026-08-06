@@ -4006,6 +4006,7 @@
     "remove_network": "Alisin",
     "cancel_remove_network": "Kanselahin",
     "info_title": "Tungkol sa MetaMask",
+    "info_title_beta": "Tungkol sa MetaMask Beta",
     "info_title_flask": "Tungkol sa MetaMask Flask",
     "experimental_title": "Eksperimental",
     "experimental_desc": "WalletConnect and at iba pa...",

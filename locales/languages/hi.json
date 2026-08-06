@@ -4006,6 +4006,7 @@
     "remove_network": "हटाएं",
     "cancel_remove_network": "रद्द करें",
     "info_title": "MetaMask के बारे में",
+    "info_title_beta": "MetaMask Beta के बारे में",
     "info_title_flask": "MetaMask Flask के बारे में",
     "experimental_title": "प्रायोगिक",
     "experimental_desc": "WalletConnect और अन्य...",

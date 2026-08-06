@@ -4006,6 +4006,7 @@
     "remove_network": "Gỡ bỏ",
     "cancel_remove_network": "Hủy",
     "info_title": "Giới thiệu về MetaMask",
+    "info_title_beta": "Giới thiệu về MetaMask Beta",
     "info_title_flask": "Giới thiệu về MetaMask Flask",
     "experimental_title": "Thử nghiệm",
     "experimental_desc": "WalletConnect và các tùy chọn khác...",
