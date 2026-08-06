@@ -309,7 +309,8 @@ const PerpsProPositionCard = ({
             </Box>
             <Box twClassName="items-end gap-0">
               <SensitiveText
-                variant={TextVariant.BodyMdMedium}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 color={
                   privacyMode
                     ? TextColor.TextDefault

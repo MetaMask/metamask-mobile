@@ -14,23 +14,6 @@ interface PerpsMarginModeBottomSheetProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
-const marginModes = [
-  {
-    id: 'isolated' as const,
-    titleKey: 'perps.margin_mode.isolated_title',
-    descriptionKey: 'perps.margin_mode.isolated_description',
-    testID: PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
-    isDisabled: false,
-  },
-  {
-    id: 'cross' as const,
-    titleKey: 'perps.margin_mode.cross_title',
-    descriptionKey: 'perps.margin_mode.cross_description',
-    testID: PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION,
-    isDisabled: true,
-  },
-] as const;
-
 const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   isVisible = true,
   onClose,
@@ -72,18 +55,22 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
       >
         {strings('perps.margin_mode.title')}
       </BottomSheetHeader>
-      {marginModes.map((mode) => (
-        <ListItemSelect
-          key={mode.id}
-          title={strings(mode.titleKey)}
-          description={strings(mode.descriptionKey)}
-          isSelected={mode.id === 'isolated'}
-          showSelectedIcon
-          isDisabled={mode.isDisabled}
-          onPress={mode.id === 'isolated' ? handleIsolatedPress : undefined}
-          testID={mode.testID}
-        />
-      ))}
+      <ListItemSelect
+        title={strings('perps.margin_mode.isolated_title')}
+        description={strings('perps.margin_mode.isolated_description')}
+        isSelected
+        showSelectedIcon
+        onPress={handleIsolatedPress}
+        testID={PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION}
+      />
+      <ListItemSelect
+        title={strings('perps.margin_mode.cross_title')}
+        description={strings('perps.margin_mode.cross_description')}
+        isSelected={false}
+        showSelectedIcon
+        isDisabled
+        testID={PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION}
+      />
     </BottomSheet>
   );
 };
