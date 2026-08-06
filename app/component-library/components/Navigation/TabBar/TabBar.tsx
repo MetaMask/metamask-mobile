@@ -33,7 +33,6 @@ import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMon
 const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
   [TabBarIconKey.Activity]: IconName.ClockFilled,
-  [TabBarIconKey.Trending]: IconName.Search,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
   [TabBarIconKey.Money]: IconName.MusdFilled,
 };
