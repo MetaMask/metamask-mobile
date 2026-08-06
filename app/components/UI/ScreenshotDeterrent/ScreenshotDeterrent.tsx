@@ -70,9 +70,11 @@ const ScreenshotDeterrentWithoutNavigation = ({
 const ScreenshotDeterrentWithNavigation = ({
   enabled,
   isSRP,
+  warnOnScreenshot,
 }: {
   enabled: boolean;
   isSRP: boolean;
+  warnOnScreenshot: boolean;
 }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
@@ -124,8 +126,8 @@ const ScreenshotDeterrentWithNavigation = ({
   useScreenCaptureBlock(enabled);
 
   useEffect(() => {
-    enableScreenshotWarning(enabled && !alertPresent);
-  }, [alertPresent, enableScreenshotWarning, enabled]);
+    enableScreenshotWarning(warnOnScreenshot && !alertPresent);
+  }, [alertPresent, enableScreenshotWarning, warnOnScreenshot]);
 
   return <View />;
 };
@@ -134,13 +136,24 @@ const ScreenshotDeterrent = ({
   enabled,
   isSRP,
   hasNavigation = true,
+  warnOnScreenshot = enabled,
 }: {
   enabled: boolean;
   isSRP: boolean;
   hasNavigation?: boolean;
+  /**
+   * Whether a screenshot raises the iOS safety alert. Defaults to `enabled`.
+   * Set separately when a screen must block Android capture before it holds
+   * anything worth warning about, such as a password prompt preceding a reveal.
+   */
+  warnOnScreenshot?: boolean;
 }) =>
   hasNavigation ? (
-    <ScreenshotDeterrentWithNavigation enabled={enabled} isSRP={isSRP} />
+    <ScreenshotDeterrentWithNavigation
+      enabled={enabled}
+      isSRP={isSRP}
+      warnOnScreenshot={warnOnScreenshot}
+    />
   ) : (
     <ScreenshotDeterrentWithoutNavigation enabled={enabled} />
   );
