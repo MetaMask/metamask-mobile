@@ -55,7 +55,7 @@ export const enableNotifications = async (
   await Engine.context.NotificationServicesController.enableMetamaskNotifications(
     options,
   );
-  await syncPushNotificationOsPermission();
+  await syncPushNotificationOsPermission('helper:enableNotifications');
 };
 
 /**
@@ -103,7 +103,7 @@ export const setMarketingNotificationPreferencesEnabled = async (
 export const disableNotifications = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.disableNotificationServices();
-  await syncPushNotificationOsPermission();
+  await syncPushNotificationOsPermission('helper:disableNotifications');
 };
 
 /**
@@ -114,7 +114,7 @@ export const disableNotifications = async () => {
 export const enablePushNotifications = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.enablePushNotifications();
-  await syncPushNotificationOsPermission();
+  await syncPushNotificationOsPermission('helper:enablePushNotifications');
 };
 
 /**
@@ -124,7 +124,7 @@ export const enablePushNotifications = async () => {
 export const disablePushNotifications = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.disablePushNotifications();
-  await syncPushNotificationOsPermission();
+  await syncPushNotificationOsPermission('helper:disablePushNotifications');
 };
 
 /**

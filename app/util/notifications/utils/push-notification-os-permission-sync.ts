@@ -8,6 +8,9 @@ import { isNotificationsFeatureEnabled } from '../constants';
 import { isPushPermissionGranted } from '../services/NotificationService';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
+import { pushSyncDebugLog } from './push-sync-debug-log';
+
+let syncRunCounter = 0;
 
 /**
  * Persisted snapshot of the last observed "push is effectively enabled" state:
@@ -35,21 +38,38 @@ const isControllerPushEnabled = (): boolean =>
     Engine.context.NotificationServicesPushController?.state?.isPushEnabled,
   );
 
-const trackPushNotificationsDisabled = (): void => {
-  analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.PUSH_NOTIFICATIONS_DISABLED,
-    ).build(),
-  );
+const trackPushNotificationsDisabled = (runId: number): void => {
+  const event = AnalyticsEventBuilder.createEventBuilder(
+    MetaMetricsEvents.PUSH_NOTIFICATIONS_DISABLED,
+  ).build();
+
+  pushSyncDebugLog('trackEvent:about-to-call', () => ({
+    runId,
+    eventName: event.name,
+    analyticsIsEnabled: analytics.isEnabled(),
+  }));
+
+  analytics.trackEvent(event);
   // Without OS permission push can no longer be delivered, so the user is
   // effectively opted out of push.
   analytics.identify({
     [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: false,
   });
+
+  pushSyncDebugLog('trackEvent:called', () => ({
+    runId,
+    eventName: event.name,
+  }));
 };
 
 const runSync = async (): Promise<void> => {
-  if (!isNotificationsFeatureEnabled()) {
+  const runId = ++syncRunCounter;
+  const featureEnabled = isNotificationsFeatureEnabled();
+
+  pushSyncDebugLog('runSync:start', () => ({ runId, featureEnabled }));
+
+  if (!featureEnabled) {
+    pushSyncDebugLog('runSync:abort-feature-disabled', () => ({ runId }));
     return;
   }
 
@@ -59,7 +79,29 @@ const runSync = async (): Promise<void> => {
     const wasEffectivelyEnabled = readStoredEffectivePushState();
     const isEffectivelyEnabled = pushEnabledInApp && osPermissionGranted;
 
+    pushSyncDebugLog('runSync:state', () => ({
+      runId,
+      pushEnabledInApp,
+      rawControllerIsPushEnabled:
+        Engine.context.NotificationServicesPushController?.state?.isPushEnabled,
+      hasPushController: Boolean(
+        Engine.context.NotificationServicesPushController,
+      ),
+      osPermissionGranted,
+      rawStoredSnapshot: mmStorage.getLocal(
+        STORAGE_IDS.PUSH_OS_PERMISSION_GRANTED_LAST_RESULT,
+      ),
+      wasEffectivelyEnabled,
+      isEffectivelyEnabled,
+      willReturnEarly: wasEffectivelyEnabled === isEffectivelyEnabled,
+    }));
+
     if (wasEffectivelyEnabled === isEffectivelyEnabled) {
+      pushSyncDebugLog('runSync:abort-no-transition', () => ({
+        runId,
+        wasEffectivelyEnabled,
+        isEffectivelyEnabled,
+      }));
       return;
     }
     writeStoredEffectivePushState(isEffectivelyEnabled);
@@ -69,15 +111,30 @@ const runSync = async (): Promise<void> => {
       // revoked it from the system settings. An in-app disable also flips the
       // snapshot to false but lands in neither branch (pushEnabledInApp is
       // false by the time the disable helper syncs), so no event fires for it.
-      trackPushNotificationsDisabled();
+      pushSyncDebugLog('runSync:branch-revoked', () => ({ runId }));
+      trackPushNotificationsDisabled(runId);
     } else if (isEffectivelyEnabled) {
       // Enabled or re-granted: restore the profile trait, which a previous
       // revocation may have set to false.
+      pushSyncDebugLog('runSync:branch-enabled-identify-only', () => ({
+        runId,
+      }));
       analytics.identify({
         [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: true,
       });
+    } else {
+      pushSyncDebugLog('runSync:branch-none', () => ({
+        runId,
+        wasEffectivelyEnabled,
+        pushEnabledInApp,
+        isEffectivelyEnabled,
+      }));
     }
   } catch (error) {
+    pushSyncDebugLog('runSync:error', () => ({
+      runId,
+      message: (error as Error)?.message,
+    }));
     Logger.error(
       error as Error,
       'Failed to sync push notification OS permission state',
@@ -108,7 +165,10 @@ let inFlight: Promise<void> = Promise.resolve();
  * enable/disable helpers, on mount (cold start after a settings change), and
  * on background -> active transitions.
  */
-export const syncPushNotificationOsPermission = (): Promise<void> => {
+export const syncPushNotificationOsPermission = (
+  caller = 'unknown',
+): Promise<void> => {
+  pushSyncDebugLog('sync:queued', () => ({ caller }));
   inFlight = inFlight.then(runSync, runSync);
   return inFlight;
 };

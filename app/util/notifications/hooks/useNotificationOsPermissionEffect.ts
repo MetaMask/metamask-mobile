@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { syncPushNotificationOsPermission } from '../utils/push-notification-os-permission-sync';
+import { pushSyncDebugLog } from '../utils/push-sync-debug-log';
 
 /**
  * Syncs the push OS-permission state after changes made while the app was away.
@@ -15,12 +16,26 @@ export function useNotificationOsPermissionEffect() {
   const lastAppState = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
+    pushSyncDebugLog('hook:mount', () => ({
+      initialAppState: lastAppState.current,
+    }));
+
     // Cold-start / mount check.
-    syncPushNotificationOsPermission();
+    syncPushNotificationOsPermission('hook:mount');
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active' && lastAppState.current === 'background') {
-        syncPushNotificationOsPermission();
+      const previousAppState = lastAppState.current;
+      const willSync =
+        nextAppState === 'active' && previousAppState === 'background';
+
+      pushSyncDebugLog('hook:appStateChange', () => ({
+        previousAppState,
+        nextAppState,
+        willSync,
+      }));
+
+      if (willSync) {
+        syncPushNotificationOsPermission('hook:background->active');
       }
 
       // Don't overwrite 'background' with the intermediate 'inactive' state so
