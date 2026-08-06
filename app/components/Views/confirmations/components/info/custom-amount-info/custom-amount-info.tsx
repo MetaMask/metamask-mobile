@@ -181,13 +181,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
 
-    const {
-      beginAmountUpdate,
-      endAmountUpdate,
-      isAmountUpdating,
-      stage,
-      setStage,
-    } = useCustomAmountStage({
+    const { isAmountUpdating, stage, setStage } = useCustomAmountStage({
       amountFiat,
       disablePay,
       hasAccountNoFunds,
@@ -198,6 +192,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       skipDepositPrefill,
     });
 
+    // React batches rapid presses before the state update rerenders, so keep a
+    // synchronous guard separate from the render state.
+    const isAmountUpdateInProgressRef = useRef(false);
     useMMPayNavigation(stage, setStage);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
@@ -227,11 +224,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAutoSubmittedPrefill = useRef(false);
 
     const handleDone = useCallback(async () => {
-      // Enter the loading stage synchronously so rapid presses cannot start
-      // duplicate amount updates before React rerenders.
-      if (!beginAmountUpdate()) {
+      if (isAmountUpdateInProgressRef.current) {
         return;
       }
+
+      isAmountUpdateInProgressRef.current = true;
+      // Enter the loading stage: keyboard hidden, totals skeletons shown.
+      setStage(CustomAmountStage.Loading);
 
       try {
         await updateTokenAmount();
@@ -268,7 +267,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         setStage(CustomAmountStage.AmountInput);
         return;
       } finally {
-        endAmountUpdate();
+        isAmountUpdateInProgressRef.current = false;
       }
       EngineService.flushState();
       hasAutoSubmittedPrefill.current = true;
@@ -279,8 +278,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
-      beginAmountUpdate,
-      endAmountUpdate,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       setStage,

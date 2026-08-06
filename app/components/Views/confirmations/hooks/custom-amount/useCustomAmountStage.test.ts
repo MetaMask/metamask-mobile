@@ -241,19 +241,12 @@ describe('useCustomAmountStage', () => {
       expect(result.current.isAmountUpdating).toBe(true);
     });
 
-    it('keeps the current amount update active while an older quote request is loading', () => {
+    it('reports quote fetching rather than an amount update when quotes are already loading', () => {
       setupState({ isQuotesLoading: true });
       const { result } = runHook();
 
       act(() => {
-        result.current.beginAmountUpdate();
-      });
-
-      expect(result.current.stage).toBe(CustomAmountStage.Loading);
-      expect(result.current.isAmountUpdating).toBe(true);
-
-      act(() => {
-        result.current.endAmountUpdate();
+        result.current.setStage(CustomAmountStage.Loading);
       });
 
       expect(result.current.stage).toBe(CustomAmountStage.Loading);
@@ -379,29 +372,6 @@ describe('useCustomAmountStage', () => {
 
       expect(view.result.current.stage).not.toBe(CustomAmountStage.NoQuote);
       expect(view.result.current.stage).toBe(CustomAmountStage.ShowTotals);
-    });
-
-    it('keeps Loading until a direct-transfer amount commit resolves', () => {
-      setupState({
-        isQuotesLoading: false,
-        quotes: [],
-        amountRaw: undefined,
-      });
-      const { result } = runHook({ disablePay: true });
-
-      act(() => {
-        result.current.beginAmountUpdate();
-      });
-
-      expect(result.current.stage).toBe(CustomAmountStage.Loading);
-      expect(result.current.isAmountUpdating).toBe(true);
-
-      act(() => {
-        result.current.endAmountUpdate();
-      });
-
-      expect(result.current.stage).toBe(CustomAmountStage.ShowTotals);
-      expect(result.current.isAmountUpdating).toBe(false);
     });
 
     it('settles the commit Loading override on the arm frame, with no quote and no resolved amount', () => {

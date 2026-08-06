@@ -817,6 +817,11 @@ describe('CustomAmountInfo', () => {
         deferred.resolve();
         await deferred.promise;
       });
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
       expect(view.queryByTestId('bridge-fee-row')).not.toBeOnTheScreen();
@@ -988,7 +993,7 @@ describe('CustomAmountInfo', () => {
       expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
 
-    it('keeps preparation active while the amount update is pending', async () => {
+    it('unblocks review rows when quote loading starts before the amount update settles', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -1009,7 +1014,7 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
-      ).toBe('none');
+      ).toBe('auto');
 
       await act(async () => {
         deferred.resolve();
