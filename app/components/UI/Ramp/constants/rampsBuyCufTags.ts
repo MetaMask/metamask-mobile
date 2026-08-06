@@ -8,6 +8,8 @@ export const RAMPS_BUY_CUF_TAG = {
   REASON: 'reason',
   BOUNDARY: 'boundary',
   RAMP_TYPE: 'ramp_type',
+  PROVIDER: 'provider',
+  CUSTOM_ACTION: 'custom_action',
 } as const;
 
 export const RAMPS_BUY_CUF_FEATURE = 'buy';
@@ -35,6 +37,7 @@ export type RampsBuyCufSurface =
 export const RAMPS_BUY_CUF_PATH = {
   WIDGET: 'widget',
   NATIVE: 'native',
+  CUSTOM_ACTION: 'custom_action',
 } as const;
 export const RAMPS_BUY_CUF_BOUNDARY = {
   ORDER_DETAILS: 'order_details',
@@ -47,6 +50,7 @@ export const RAMPS_BUY_CUF_END_REASON = {
   CANCELLED: 'cancelled',
   ABANDONED: 'abandoned',
   HEADLESS: 'headless',
+  NO_QUOTE: 'no_quote',
 } as const;
 /** Must not exceed `TRACES_CLEANUP_INTERVAL` or Sentry ends the span first. */
 export const RAMPS_BUY_CUF_TIMEOUT_MS = TRACES_CLEANUP_INTERVAL;

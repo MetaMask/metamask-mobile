@@ -12,6 +12,8 @@ import {
   endOpenRampsBuyCufChildrenByName,
   startRampsBuyQuoteFetchTrace,
   endRampsBuyQuoteFetchTrace,
+  buildRampsBuyQuoteFetchStartTags,
+  buildRampsBuyQuoteFetchCufCompletion,
   getRampsBuyCufParentContext,
   hasActiveRampsBuyCufTrace,
   surfaceFromBuyFlowOrigin,
@@ -20,6 +22,7 @@ import {
 import {
   RAMPS_BUY_CUF_FEATURE,
   RAMPS_BUY_CUF_SURFACE,
+  RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_TAG,
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TIMEOUT_MS,
@@ -259,6 +262,106 @@ describe('rampsBuyCufTrace', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('Buy Quote Fetch provider attribution (TRAM-3805)', () => {
+    it('tags a single-provider start with the provider id', () => {
+      const result = buildRampsBuyQuoteFetchStartTags(['/providers/paypal']);
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
+    });
+
+    it.each([undefined, [], ['/providers/paypal', '/providers/transak']])(
+      'omits provider tags when the start is not single-provider',
+      (input) => {
+        const result = buildRampsBuyQuoteFetchStartTags(input);
+
+        expect(result).toBeUndefined();
+      },
+    );
+
+    it('marks a PayPal custom-action quote as a custom-action success', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal'],
+        response: {
+          success: [
+            {
+              provider: '/providers/paypal',
+              quote: { isCustomAction: true },
+            },
+          ],
+        },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+        [RAMPS_BUY_CUF_TAG.PATH]: RAMPS_BUY_CUF_PATH.CUSTOM_ACTION,
+        [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: true,
+      });
+    });
+
+    it('marks an HTTP-ok PayPal miss as a no-quote failure', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal'],
+        response: { success: [] },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
+    });
+
+    it('ignores quotes returned for a provider other than the requested one', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal'],
+        response: {
+          success: [{ provider: '/providers/transak', quote: {} }],
+        },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.NO_QUOTE,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
+    });
+
+    it('keeps transport errors separate from provider-level misses', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: true,
+        requestedProviders: ['/providers/paypal'],
+        response: null,
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+        [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
+        [RAMPS_BUY_CUF_TAG.PROVIDER]: '/providers/paypal',
+      });
+    });
+
+    it('does not attribute a multi-provider success to the first quote', () => {
+      const result = buildRampsBuyQuoteFetchCufCompletion({
+        isQueryError: false,
+        requestedProviders: ['/providers/paypal', '/providers/transak'],
+        response: {
+          success: [{ provider: '/providers/transak', quote: {} }],
+        },
+      });
+
+      expect(result).toEqual({
+        [RAMPS_BUY_CUF_TAG.SUCCESS]: true,
+        [RAMPS_BUY_CUF_TAG.CUSTOM_ACTION]: false,
+      });
     });
   });
 });
