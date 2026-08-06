@@ -6,6 +6,8 @@ import {
   applyResponseCurve,
   normalizeReading,
   trackNeutralAngle,
+  trackAngularSpeed,
+  neutralTrackingSeconds,
   useDeviceOrientation,
 } from './useDeviceOrientation';
 
@@ -344,16 +346,18 @@ describe('accelerationToTilt', () => {
 });
 
 describe('trackNeutralAngle', () => {
+  const MOVING_SECONDS = 4;
+
   it('adopts the measured angle when there is no neutral yet', () => {
     const angle = 0.42;
 
-    const neutral = trackNeutralAngle(null, angle, 60);
+    const neutral = trackNeutralAngle(null, angle, 60, MOVING_SECONDS);
 
     expect(neutral).toBe(angle);
   });
 
   it('moves a small fraction of the way from the neutral towards the angle', () => {
-    const neutral = trackNeutralAngle(0, 1, 60);
+    const neutral = trackNeutralAngle(0, 1, 60, MOVING_SECONDS);
 
     expect(neutral).toBeGreaterThan(0);
     expect(neutral).toBeLessThan(1);
@@ -365,8 +369,9 @@ describe('trackNeutralAngle', () => {
     let atSixtyHz = 0;
 
     for (let i = 0; i < 2; i++)
-      atThirtyHz = trackNeutralAngle(atThirtyHz, 1, 30);
-    for (let i = 0; i < 4; i++) atSixtyHz = trackNeutralAngle(atSixtyHz, 1, 60);
+      atThirtyHz = trackNeutralAngle(atThirtyHz, 1, 30, MOVING_SECONDS);
+    for (let i = 0; i < 4; i++)
+      atSixtyHz = trackNeutralAngle(atSixtyHz, 1, 60, MOVING_SECONDS);
 
     expect(atThirtyHz).toBeCloseTo(atSixtyHz, 3);
   });
@@ -374,9 +379,85 @@ describe('trackNeutralAngle', () => {
   it('converges on the angle when applied repeatedly', () => {
     let neutral = 0;
 
-    for (let i = 0; i < 5000; i++) neutral = trackNeutralAngle(neutral, 1, 60);
+    for (let i = 0; i < 5000; i++)
+      neutral = trackNeutralAngle(neutral, 1, 60, MOVING_SECONDS);
 
     expect(neutral).toBeCloseTo(1, 5);
+  });
+
+  it('catches up faster with a shorter tracking time', () => {
+    const slow = trackNeutralAngle(0, 1, 60, 4);
+    const fast = trackNeutralAngle(0, 1, 60, 0.6);
+
+    expect(fast).toBeGreaterThan(slow);
+  });
+});
+
+describe('trackAngularSpeed', () => {
+  it('reports no speed for the first sample', () => {
+    expect(trackAngularSpeed(0, null, 1.2, 60)).toBe(0);
+  });
+
+  it('reports no speed while the angle is unchanged', () => {
+    expect(trackAngularSpeed(0, 0.5, 0.5, 60)).toBe(0);
+  });
+
+  it('reports speed regardless of the direction of rotation', () => {
+    const rising = trackAngularSpeed(0, 0.5, 0.6, 60);
+    const falling = trackAngularSpeed(0, 0.6, 0.5, 60);
+
+    expect(rising).toBeGreaterThan(0);
+    expect(rising).toBeCloseTo(falling, 10);
+  });
+
+  it('converges on the true speed of a steady rotation', () => {
+    const hz = 60;
+    const radiansPerSecond = 0.5;
+    const step = radiansPerSecond / hz;
+    let speed = 0;
+    let angle = 0;
+
+    for (let i = 0; i < 500; i++) {
+      const next = angle + step;
+      speed = trackAngularSpeed(speed, angle, next, hz);
+      angle = next;
+    }
+
+    expect(speed).toBeCloseTo(radiansPerSecond, 3);
+  });
+
+  it('decays towards zero once rotation stops', () => {
+    let speed = 1;
+
+    for (let i = 0; i < 200; i++)
+      speed = trackAngularSpeed(speed, 0.5, 0.5, 60);
+
+    expect(speed).toBeLessThan(0.01);
+  });
+});
+
+describe('neutralTrackingSeconds', () => {
+  it('tracks quickly when the device is still, so a new resting angle settles', () => {
+    expect(neutralTrackingSeconds(0)).toBeLessThan(1);
+  });
+
+  it('holds the neutral still during a deliberate rotation', () => {
+    // 0.5 rad/s is roughly a deliberate tilt, well past the hold threshold.
+    expect(neutralTrackingSeconds(0.5)).toBe(4);
+  });
+
+  it('never exceeds the moving time constant however fast the rotation', () => {
+    expect(neutralTrackingSeconds(1000)).toBe(4);
+  });
+
+  it('increases monotonically with rotation speed', () => {
+    const speeds = [0, 0.05, 0.1, 0.15, 0.2, 0.25];
+
+    const tracked = speeds.map(neutralTrackingSeconds);
+
+    for (let i = 1; i < tracked.length; i++) {
+      expect(tracked[i]).toBeGreaterThan(tracked[i - 1]);
+    }
   });
 });
 
@@ -490,6 +571,21 @@ describe('useDeviceOrientation', () => {
     const [x, y] = lastEmission(onOrientation);
     expect(x).toBeCloseTo(0);
     expect(y).toBeCloseTo(0);
+  });
+
+  it('settles back to centre after the device is set down at a new angle', () => {
+    const onOrientation = jest.fn();
+    renderHook(() => useDeviceOrientation(onOrientation, { enabled: true }));
+    const observer = mockSubscribe.mock.calls[0][0];
+
+    // Held at a typical reading posture long enough for the neutral to settle.
+    for (let i = 0; i < 300; i++) observer.next(pitchedAt(75));
+    // Then laid flat on a table and left alone: a 75 degree change, far past
+    // the travel that saturates the axis.
+    for (let i = 0; i < 240; i++) observer.next(pitchedAt(0));
+
+    const [, y] = lastEmission(onOrientation);
+    expect(Math.abs(y)).toBeLessThan(0.05);
   });
 
   it('keeps a hand tremor around a held posture close to centred', () => {
