@@ -36584,7 +36584,7 @@ __metadata:
     react-native-inappbrowser-reborn: "npm:^3.7.0"
     react-native-jazzicon: "npm:^0.1.2"
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
-    react-native-keyboard-controller: "npm:1.20.7"
+    react-native-keyboard-controller: "npm:1.21.14"
     react-native-keychain: "npm:^9.0.0"
     react-native-launch-arguments: "npm:^4.0.1"
     react-native-level-fs: "npm:3.0.1"
@@ -40938,16 +40938,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-keyboard-controller@npm:1.20.7":
-  version: 1.20.7
-  resolution: "react-native-keyboard-controller@npm:1.20.7"
+"react-native-keyboard-controller@npm:1.21.14":
+  version: 1.21.14
+  resolution: "react-native-keyboard-controller@npm:1.21.14"
   dependencies:
     react-native-is-edge-to-edge: "npm:^1.2.1"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-reanimated: ">=3.0.0"
-  checksum: 10/675cc1b9ce4eb2f8f6c8bc8f4d4673dd1563bff8f393d6ff8d6e656a9779c931dc778d07eb6501973a04c3757b13da1166962af4bd4b2b60669cb63e855e48ec
+  checksum: 10/6067852f6f76cd2298af9345bfd8bf01dc07d5c57825cb8e979fcc04853c26cf5a77f23f8455abb97d330418ceb5a7b3a0b30ab286d1ac03e1d6a1e2bc3ce3c1
   languageName: node
   linkType: hard
 
