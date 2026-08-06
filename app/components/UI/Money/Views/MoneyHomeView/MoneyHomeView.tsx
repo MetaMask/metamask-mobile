@@ -200,6 +200,15 @@ const MoneyHomeView = () => {
     },
   });
   const activityItems = buckets[MoneyActivityFilter.All];
+  // TODO: Replace nested ternary
+  // Differentiate between activity states in test environments.
+  const activityStatusTestId = isActivitySettling
+    ? MoneyHomeViewTestIds.ACTIVITY_LOADING
+    : activityError
+      ? MoneyHomeViewTestIds.ACTIVITY_ERROR
+      : activityItems.length > 0
+        ? MoneyHomeViewTestIds.ACTIVITY_RESOLVED_FILLED
+        : MoneyHomeViewTestIds.ACTIVITY_RESOLVED_EMPTY;
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
@@ -873,7 +882,7 @@ const MoneyHomeView = () => {
     >
       <MoneyHeader onMenuPress={handleMenuPress} />
       <ScrollView
-        testID={MoneyHomeViewTestIds.SCROLL_VIEW}
+        testID={activityStatusTestId}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={

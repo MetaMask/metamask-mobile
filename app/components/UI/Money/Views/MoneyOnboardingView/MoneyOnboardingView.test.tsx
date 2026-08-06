@@ -21,6 +21,7 @@ const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 let mockIsUsUnauthenticatedNonCardholder = false;
+let mockIsE2EOrPerformanceTest = false;
 let mockRouteParams:
   | {
       postOnboardingRedirect?: {
@@ -97,6 +98,12 @@ jest.mock('../../../../../util/haptics', () => ({
   playImpact: jest.fn(),
 }));
 
+jest.mock('../../../../../util/test/utils', () => ({
+  get isE2EOrPerformanceTest() {
+    return mockIsE2EOrPerformanceTest;
+  },
+}));
+
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
 
@@ -166,6 +173,7 @@ describe('MoneyOnboardingView', () => {
     mockTriggerCallbacks = {};
     mockApy = { apyPercent: 4, apyPercentFormatted: '4%' };
     mockIsUsUnauthenticatedNonCardholder = false;
+    mockIsE2EOrPerformanceTest = false;
     mockRouteParams = undefined;
     mockInitiateDeposit.mockResolvedValue(undefined);
     jest.mocked(useMoneyAccountDeposit).mockReturnValue({
@@ -240,6 +248,37 @@ describe('MoneyOnboardingView', () => {
           getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.style,
         ).fontSize,
       ).toBe(10);
+    });
+  });
+
+  describe('Onboarding view gate', () => {
+    it('renders the standard onboarding view outside E2E and performance tests', () => {
+      mockIsE2EOrPerformanceTest = false;
+
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
+      ).toBeOnTheScreen();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('completes onboarding and redirects to Money home during E2E and performance tests', () => {
+      mockIsE2EOrPerformanceTest = true;
+
+      renderMoneyOnboardingView();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
   });
 
