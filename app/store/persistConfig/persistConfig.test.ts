@@ -130,6 +130,10 @@ describe('persistConfig', () => {
     (Device.isIos as jest.Mock).mockReturnValue(true);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('configuration', () => {
     it('have correct basic configuration', () => {
       expect(persistConfig.key).toBe('root');
@@ -375,7 +379,6 @@ describe('persistConfig', () => {
     });
 
     it('handles overall method failure gracefully', async () => {
-      const originalPromiseAll = Promise.all;
       jest
         .spyOn(Promise, 'all')
         .mockRejectedValueOnce(new Error('Promise.all failed'));
@@ -389,8 +392,6 @@ describe('persistConfig', () => {
           message: 'Failed to gather controller states',
         }),
       );
-
-      Promise.all = originalPromiseAll;
     });
   });
 
