@@ -13,7 +13,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -178,7 +178,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -195,7 +195,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -224,7 +224,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -241,7 +241,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -270,7 +270,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -287,7 +287,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -316,7 +316,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -333,7 +333,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -362,7 +362,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -379,7 +379,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -414,7 +414,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -431,7 +431,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -464,7 +464,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -481,7 +481,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -509,7 +509,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -526,7 +526,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -551,7 +551,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -568,7 +568,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -590,7 +590,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -607,7 +607,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -630,7 +630,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -647,7 +647,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -673,7 +673,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -690,7 +690,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -715,7 +715,7 @@ describe('Browser - Component Rendering', () => {
 
       const { getByTestId } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -732,7 +732,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -758,7 +758,7 @@ describe('Browser - Component Rendering', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -775,7 +775,7 @@ describe('Browser - Component Rendering', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
