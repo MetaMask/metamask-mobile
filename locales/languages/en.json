@@ -4321,9 +4321,6 @@
       "title": "Developer options",
       "generate_trace_test": "Generate trace test",
       "generate_trace_test_desc": "Generate a developer test Sentry trace.",
-      "simulate_disk_full": "Simulate disk-full persist error",
-      "simulate_disk_full_desc": "Triggers reportStorageWriteError twice with different persist keys. Expect one storage-full alert (session dedup). Sentry is sent via Logger.error (skipped in __DEV__ / without metrics opt-in).",
-      "reset_disk_full_session": "Reset disk-full session state",
       "navigate_to_sample_feature": "Navigate to sample feature",
       "sample_feature_desc": "A sample feature as a template for developers.",
       "card": {
