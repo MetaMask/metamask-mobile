@@ -14,6 +14,7 @@ import React, { useCallback, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
 import {
+  DEFAULT_PRO_POSITION_SORT,
   PRO_POSITION_SORT_OPTIONS,
   type ProPositionSortConfig,
   type ProPositionSortDirection,
@@ -73,6 +74,7 @@ const PerpsProPositionsSortSheet = ({
       title={strings('perps.sort.sort_by')}
       onClose={onClose}
       onApply={handleApply}
+      onClear={() => onApply(DEFAULT_PRO_POSITION_SORT)}
       onOpen={resetDraft}
       testID={testID}
     >

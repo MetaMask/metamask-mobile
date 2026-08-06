@@ -4,6 +4,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
 import ProPositionSideFilterIcon from './ProPositionSideFilterIcon';
 import {
+  DEFAULT_PRO_POSITION_SIDE_FILTER,
   PRO_POSITION_SIDE_FILTER_OPTIONS,
   type ProPositionSideFilter,
 } from '../utils/proPositionSideFilter';
@@ -43,6 +44,7 @@ const PerpsProPositionsSideFilterSheet = ({
       title={strings('perps.market_type.filter_by')}
       onClose={onClose}
       onApply={handleApply}
+      onClear={() => onApply(DEFAULT_PRO_POSITION_SIDE_FILTER)}
       onOpen={resetDraft}
       testID={testID}
     >
