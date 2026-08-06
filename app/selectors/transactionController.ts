@@ -468,6 +468,22 @@ export const makeSelectTransactionMetadataById =
   (id: string) => (state: RootState) =>
     selectTransactionMetadataById(state, id);
 
+/**
+ * Local `TransactionMeta` for an on-chain hash. Needed by callers that only
+ * hold a hash — e.g. provider-backed activity rows (Perps) whose feed entry
+ * carries the tx hash but none of the local metadata.
+ */
+export const selectTransactionMetadataByHash = createSelector(
+  selectTransactionsStrict,
+  (_: RootState, hash: string | undefined) => hash,
+  (transactions, hash) =>
+    hash
+      ? transactions.find(
+          (tx) => tx.hash?.toLowerCase() === hash?.toLowerCase(),
+        )
+      : undefined,
+);
+
 export const selectTransactionBatchMetadataById = createDeepEqualSelector(
   selectTransactionBatchesStrict,
   (_: RootState, id: string) => id,
