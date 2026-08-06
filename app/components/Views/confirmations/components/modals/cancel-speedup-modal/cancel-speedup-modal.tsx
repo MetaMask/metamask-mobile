@@ -11,17 +11,13 @@ import { Hex } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import BottomSheet, {
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
-import {
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import {
-  HeaderStandard,
+  ButtonsAlignment,
   Icon,
   IconColor,
   IconName,
@@ -262,16 +258,6 @@ export function CancelSpeedupModal({
 
   const chainId = (tx?.chainId ?? '') as Hex;
 
-  const buttons = [
-    {
-      variant: ButtonVariants.Primary,
-      label: strings('transaction.confirm'),
-      size: ButtonSize.Lg,
-      onPress: handleConfirm,
-      isDisabled: effectiveConfirmDisabled,
-    },
-  ];
-
   return (
     <Modal
       isVisible={isVisible}
@@ -286,11 +272,10 @@ export function CancelSpeedupModal({
     >
       <BottomSheet
         ref={bottomSheetRef}
-        shouldNavigateBack={false}
         onClose={onClose}
         style={styles.bottomSheetDialogSheet}
       >
-        <HeaderStandard title={title} onClose={close} />
+        <BottomSheetHeader onClose={close}>{title}</BottomSheetHeader>
         <Box style={tw.style('px-3')}>
           <Box gap={4}>
             <InfoSection>
@@ -307,7 +292,12 @@ export function CancelSpeedupModal({
           </Box>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Vertical}
-            buttonPropsArray={buttons}
+            primaryButtonProps={{
+              children: strings('transaction.confirm'),
+              size: ButtonSize.Lg,
+              onPress: handleConfirm,
+              isDisabled: effectiveConfirmDisabled,
+            }}
             style={tw.style('px-0')}
           />
         </Box>
