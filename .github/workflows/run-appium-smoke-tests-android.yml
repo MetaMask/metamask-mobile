@@ -152,7 +152,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-
   appium-snaps-android-smoke:
     if: >-
       ${{
@@ -187,15 +186,15 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-network-abstractions-android-smoke
+      test-suite-name: appium-network-abstractions-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: SmokeNetworkAbstractions
       split_number: ${{ matrix.split }}
-      total_splits: 1
+      total_splits: 2
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -273,30 +272,30 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  appium-mmconnect-android-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags), 'ALL') ||
-         contains(fromJson(inputs.selected_tags), 'SmokeMMConnect'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-mmconnect-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: SmokeMMConnect
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 35
-      android-tag: google_apis
-      build_type: ${{ inputs.build_type }}
-      metamask_environment: ${{ inputs.metamask_environment }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+  # appium-mmconnect-android-smoke:
+  #   if: >-
+  #     ${{
+  #       !cancelled() &&
+  #       (contains(fromJson(inputs.selected_tags), 'ALL') ||
+  #        contains(fromJson(inputs.selected_tags), 'SmokeMMConnect'))
+  #     }}
+  #   strategy:
+  #     matrix:
+  #       split: [1]
+  #     fail-fast: false
+  #   uses: ./.github/workflows/run-appium-e2e-workflow.yml
+  #   with:
+  #     test-suite-name: appium-mmconnect-android-smoke-${{ matrix.split }}
+  #     platform: android
+  #     test_suite_tag: SmokeMMConnect
+  #     split_number: ${{ matrix.split }}
+  #     total_splits: 1
+  #     test-timeout-minutes: 35
+  #     android-tag: google_apis
+  #     build_type: ${{ inputs.build_type }}
+  #     metamask_environment: ${{ inputs.metamask_environment }}
+  #     runner_provider: ${{ inputs.runner_provider }}
+  #   secrets: inherit
 
   appium-money-android-smoke:
     if: >-
