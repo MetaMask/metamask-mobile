@@ -26,21 +26,25 @@ export const PRO_POSITION_SIDE_FILTER_OPTIONS: {
 const getPositionSide = (position: Position): 'long' | 'short' =>
   parseFloat(position.size) >= 0 ? 'long' : 'short';
 
+const filterProItemsBySide = <T>(
+  items: T[],
+  sideFilter: ProPositionSideFilter,
+  getSide: (item: T) => 'long' | 'short',
+): T[] => {
+  if (sideFilter === 'all') {
+    return items;
+  }
+
+  return items.filter((item) => getSide(item) === sideFilter);
+};
+
 /**
  * Filters positions by direction. Returns the original array when filter is `all`.
  */
 export const filterProPositionsBySide = (
   positions: Position[],
   sideFilter: ProPositionSideFilter,
-): Position[] => {
-  if (sideFilter === 'all') {
-    return positions;
-  }
-
-  return positions.filter(
-    (position) => getPositionSide(position) === sideFilter,
-  );
-};
+): Position[] => filterProItemsBySide(positions, sideFilter, getPositionSide);
 
 /**
  * Filters orders by the position direction they create or reduce.
@@ -49,15 +53,8 @@ export const filterProPositionsBySide = (
 export const filterProOrdersBySide = (
   orders: Order[],
   sideFilter: ProPositionSideFilter,
-): Order[] => {
-  if (sideFilter === 'all') {
-    return orders;
-  }
-
-  return orders.filter(
-    (order) => getOrderPositionDirection(order) === sideFilter,
-  );
-};
+): Order[] =>
+  filterProItemsBySide(orders, sideFilter, getOrderPositionDirection);
 
 export const getProPositionSideFilterButtonLabelKey = (
   sideFilter: ProPositionSideFilter,
@@ -72,28 +69,34 @@ export const getProPositionSideFilterButtonLabelKey = (
   }
 };
 
+const SIDE_FILTER_EMPTY_DESCRIPTION_KEYS = {
+  positions: {
+    long: 'perps.pro_positions_panel.positions_empty_long',
+    short: 'perps.pro_positions_panel.positions_empty_short',
+  },
+  orders: {
+    long: 'perps.pro_positions_panel.orders_empty_long',
+    short: 'perps.pro_positions_panel.orders_empty_short',
+  },
+} as const;
+
+export const getProSideFilterEmptyDescriptionKey = (
+  sideFilter: ProPositionSideFilter,
+  entity: keyof typeof SIDE_FILTER_EMPTY_DESCRIPTION_KEYS,
+): string | undefined => {
+  if (sideFilter === 'all') {
+    return undefined;
+  }
+
+  return SIDE_FILTER_EMPTY_DESCRIPTION_KEYS[entity][sideFilter];
+};
+
 export const getProPositionSideFilterEmptyDescriptionKey = (
   sideFilter: ProPositionSideFilter,
-): string | undefined => {
-  switch (sideFilter) {
-    case 'long':
-      return 'perps.pro_positions_panel.positions_empty_long';
-    case 'short':
-      return 'perps.pro_positions_panel.positions_empty_short';
-    default:
-      return undefined;
-  }
-};
+): string | undefined =>
+  getProSideFilterEmptyDescriptionKey(sideFilter, 'positions');
 
 export const getProOrderSideFilterEmptyDescriptionKey = (
   sideFilter: ProPositionSideFilter,
-): string | undefined => {
-  switch (sideFilter) {
-    case 'long':
-      return 'perps.pro_positions_panel.orders_empty_long';
-    case 'short':
-      return 'perps.pro_positions_panel.orders_empty_short';
-    default:
-      return undefined;
-  }
-};
+): string | undefined =>
+  getProSideFilterEmptyDescriptionKey(sideFilter, 'orders');

@@ -1,9 +1,10 @@
 import type { Order } from '@metamask/perps-controller';
 import { resolveOrderDisplayPriceAndLabel } from '../../../utils/orderUtils';
+import { compareProSortValues, type ProSortDirection } from './proSortCompare';
 
 export type ProOrderSortField = 'orderValue' | 'size' | 'price' | 'time';
 
-export type ProOrderSortDirection = 'asc' | 'desc';
+export type ProOrderSortDirection = ProSortDirection;
 
 export interface ProOrderSortConfig {
   field: ProOrderSortField;
@@ -64,17 +65,12 @@ const getSortValue = (order: Order, field: ProOrderSortField): number => {
 export const sortProOrders = (
   orders: Order[],
   config: ProOrderSortConfig,
-): Order[] => {
-  const multiplier = config.direction === 'asc' ? 1 : -1;
-
-  return [...orders].sort((left, right) => {
-    const leftValue = getSortValue(left, config.field);
-    const rightValue = getSortValue(right, config.field);
-
-    if (leftValue === rightValue) {
-      return left.orderId.localeCompare(right.orderId);
-    }
-
-    return (leftValue - rightValue) * multiplier;
-  });
-};
+): Order[] =>
+  [...orders].sort((left, right) =>
+    compareProSortValues(
+      getSortValue(left, config.field),
+      getSortValue(right, config.field),
+      config.direction,
+      () => left.orderId.localeCompare(right.orderId),
+    ),
+  );
