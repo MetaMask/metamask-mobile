@@ -6,7 +6,7 @@ import {
   isStrictHexString,
   toCaipChainId,
 } from '@metamask/utils';
-import type { NetworkPositionOverrides } from '../../../../selectors/featureFlagController/swapsNetworkValueOrder';
+import type { PromotedChain } from '../../../../selectors/featureFlagController/swapsChainValueOrderOverride';
 
 export interface ChainRankingEntry {
   chainId: CaipChainId;
@@ -26,11 +26,6 @@ interface RankedChain {
   chain: ChainRankingEntry;
   holdingsValue: number;
   rankingIndex: number;
-}
-
-interface OverrideBlock {
-  startIndex: number;
-  chains: RankedChain[];
 }
 
 function normalizeChainId(chainId: string): CaipChainId | undefined {
@@ -83,139 +78,50 @@ function compareRankedChains(first: RankedChain, second: RankedChain): number {
   );
 }
 
-function clampBlockStart(
-  startIndex: number,
-  blockLength: number,
-  chainCount: number,
-): number {
-  return Math.min(startIndex, Math.max(0, chainCount - blockLength));
-}
-
-function mergeOverrideBlocks(
-  overrideBlocks: OverrideBlock[],
-  chainCount: number,
-): OverrideBlock[] {
-  let blocks = overrideBlocks.map((block) => ({
-    ...block,
-    startIndex: clampBlockStart(
-      block.startIndex,
-      block.chains.length,
-      chainCount,
-    ),
-  }));
-
-  while (true) {
-    const mergedBlocks: OverrideBlock[] = [];
-    let didMerge = false;
-
-    for (const block of [...blocks].sort(
-      (first, second) => first.startIndex - second.startIndex,
-    )) {
-      const previousBlock = mergedBlocks.at(-1);
-      const previousEndIndex = previousBlock
-        ? previousBlock.startIndex + previousBlock.chains.length - 1
-        : -1;
-
-      if (previousBlock && block.startIndex <= previousEndIndex) {
-        previousBlock.chains = [...previousBlock.chains, ...block.chains].sort(
-          compareRankedChains,
-        );
-        previousBlock.startIndex = clampBlockStart(
-          Math.min(previousBlock.startIndex, block.startIndex),
-          previousBlock.chains.length,
-          chainCount,
-        );
-        didMerge = true;
-        continue;
-      }
-
-      mergedBlocks.push({
-        ...block,
-        chains: [...block.chains],
-      });
-    }
-
-    if (!didMerge) return mergedBlocks;
-    blocks = mergedBlocks;
-  }
-}
-
-function applyPositionOverrides(
+function promoteChainsToFront(
   rankedChains: RankedChain[],
-  positionOverrides: NetworkPositionOverrides,
+  promotedChains: readonly PromotedChain[],
 ): RankedChain[] {
+  if (promotedChains.length === 0) return rankedChains;
+
   const chainsByChainId = new Map(
     rankedChains.map((rankedChain) => [rankedChain.chain.chainId, rankedChain]),
   );
-  const groupedOverrides = Object.entries(positionOverrides).reduce<
-    Map<number, RankedChain[]>
-  >((overridesByPosition, [chainId, positionOverride]) => {
-    if (
-      !isCaipChainId(chainId) ||
-      !positionOverride ||
-      positionOverride.position >= rankedChains.length
-    ) {
-      return overridesByPosition;
-    }
+  const promotedPrefix: RankedChain[] = [];
+  const promotedChainIds = new Set<CaipChainId>();
 
-    const rankedChain = chainsByChainId.get(chainId);
-    if (!rankedChain) return overridesByPosition;
+  for (const promotedChain of promotedChains) {
+    if (promotedChainIds.has(promotedChain.chainId)) continue;
 
-    const chainsAtPosition =
-      overridesByPosition.get(positionOverride.position) ?? [];
-    overridesByPosition.set(positionOverride.position, [
-      ...chainsAtPosition,
-      rankedChain,
-    ]);
-    return overridesByPosition;
-  }, new Map());
+    const rankedChain = chainsByChainId.get(promotedChain.chainId);
+    if (!rankedChain) continue;
 
-  if (groupedOverrides.size === 0) return rankedChains;
-
-  const overrideBlocks = mergeOverrideBlocks(
-    [...groupedOverrides.entries()].map(([startIndex, chains]) => ({
-      startIndex,
-      chains: [...chains].sort(compareRankedChains),
-    })),
-    rankedChains.length,
-  );
-  const overriddenChainIds = new Set(
-    overrideBlocks.flatMap((block) =>
-      block.chains.map((rankedChain) => rankedChain.chain.chainId),
-    ),
-  );
-  const remainingChains = rankedChains.filter(
-    (rankedChain) => !overriddenChainIds.has(rankedChain.chain.chainId),
-  );
-  const orderedChains: (RankedChain | undefined)[] = Array.from({
-    length: rankedChains.length,
-  });
-
-  for (const block of overrideBlocks) {
-    block.chains.forEach((rankedChain, index) => {
-      orderedChains[block.startIndex + index] = rankedChain;
-    });
+    promotedPrefix.push(rankedChain);
+    promotedChainIds.add(promotedChain.chainId);
   }
 
-  let remainingIndex = 0;
-  return orderedChains.map(
-    (rankedChain) => rankedChain ?? remainingChains[remainingIndex++],
+  if (promotedPrefix.length === 0) return rankedChains;
+
+  const remainingChains = rankedChains.filter(
+    (rankedChain) => !promotedChainIds.has(rankedChain.chain.chainId),
   );
+
+  return [...promotedPrefix, ...remainingChains];
 }
 
 /**
- * Orders allowed chains by holdings value and applies remote position
- * overrides without removing any chain.
+ * Orders allowed chains by holdings value and promotes remote override chains
+ * to the front in array order without removing any chain.
  *
  * @param chainRanking - Allowed chains in LaunchDarkly ranking order.
  * @param assetsByChain - Selected-account-group assets grouped by chain.
- * @param positionOverrides - Zero-based remote position overrides.
+ * @param promotedChains - Ordered remote promotion list.
  * @returns A new ordered chain array.
  */
 export function getChainValueOrder(
   chainRanking: readonly ChainRankingEntry[],
   assetsByChain: HoldingAssetsByChain,
-  positionOverrides: NetworkPositionOverrides,
+  promotedChains: readonly PromotedChain[],
 ): ChainRankingEntry[] {
   const holdingsByChain = getHoldingsByChain(assetsByChain);
   const rankedChains = chainRanking
@@ -226,7 +132,7 @@ export function getChainValueOrder(
     }))
     .sort(compareRankedChains);
 
-  return applyPositionOverrides(rankedChains, positionOverrides).map(
+  return promoteChainsToFront(rankedChains, promotedChains).map(
     ({ chain }) => chain,
   );
 }

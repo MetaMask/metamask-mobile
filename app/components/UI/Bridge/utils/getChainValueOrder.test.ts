@@ -1,5 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
-import type { NetworkPositionOverrides } from '../../../../selectors/featureFlagController/swapsNetworkValueOrder';
+import type { PromotedChain } from '../../../../selectors/featureFlagController/swapsChainValueOrderOverride';
 import {
   getHoldingsByChain,
   getChainValueOrder,
@@ -93,7 +93,7 @@ describe('getChainValueOrder', () => {
       [SOLANA]: 200,
     });
 
-    const result = getChainValueOrder(CHAIN_RANKING, assetsByChain, {});
+    const result = getChainValueOrder(CHAIN_RANKING, assetsByChain, []);
 
     expect(getChainIds(result)).toEqual([
       BASE,
@@ -111,7 +111,7 @@ describe('getChainValueOrder', () => {
       [ETHEREUM]: 0,
     });
 
-    const result = getChainValueOrder(CHAIN_RANKING, assetsByChain, {});
+    const result = getChainValueOrder(CHAIN_RANKING, assetsByChain, []);
 
     expect(getChainIds(result)).toEqual([
       BASE,
@@ -122,7 +122,7 @@ describe('getChainValueOrder', () => {
     ]);
   });
 
-  it('places a chain at its zero-based override position', () => {
+  it('promotes a single chain to the front and keeps holdings order for the rest', () => {
     const assetsByChain = createAssets({
       [ROBINHOOD]: 500,
       [BASE]: 400,
@@ -130,39 +130,65 @@ describe('getChainValueOrder', () => {
       [ETHEREUM]: 200,
       [SOLANA]: 100,
     });
-    const positionOverrides: NetworkPositionOverrides = {
-      [SOLANA]: { name: 'Solana', position: 1 },
-    };
+    const promotedChains: PromotedChain[] = [
+      { chainId: SOLANA, name: 'Solana' },
+    ];
 
     const result = getChainValueOrder(
       CHAIN_RANKING,
       assetsByChain,
-      positionOverrides,
+      promotedChains,
     );
 
     expect(getChainIds(result)).toEqual([
-      ROBINHOOD,
       SOLANA,
+      ROBINHOOD,
       BASE,
       OPTIMISM,
       ETHEREUM,
     ]);
   });
 
-  it('leaves a chain in holdings order when its position exceeds the list', () => {
+  it('promotes multiple chains to the front in array order', () => {
+    const assetsByChain = createAssets({
+      [ROBINHOOD]: 500,
+      [BASE]: 400,
+      [OPTIMISM]: 300,
+      [ETHEREUM]: 200,
+      [SOLANA]: 100,
+    });
+    const promotedChains: PromotedChain[] = [
+      { chainId: SOLANA, name: 'Solana' },
+      { chainId: ETHEREUM, name: 'Ethereum' },
+    ];
+
+    const result = getChainValueOrder(
+      CHAIN_RANKING,
+      assetsByChain,
+      promotedChains,
+    );
+
+    expect(getChainIds(result)).toEqual([
+      SOLANA,
+      ETHEREUM,
+      ROBINHOOD,
+      BASE,
+      OPTIMISM,
+    ]);
+  });
+
+  it('leaves holdings order unchanged when the promoted chain is already first', () => {
     const assetsByChain = createAssets({
       [BASE]: 300,
       [SOLANA]: 200,
       [ETHEREUM]: 100,
     });
-    const positionOverrides: NetworkPositionOverrides = {
-      [ETHEREUM]: { name: 'Ethereum', position: 5 },
-    };
+    const promotedChains: PromotedChain[] = [{ chainId: BASE, name: 'Base' }];
 
     const result = getChainValueOrder(
       CHAIN_RANKING,
       assetsByChain,
-      positionOverrides,
+      promotedChains,
     );
 
     expect(getChainIds(result)).toEqual([
@@ -174,133 +200,62 @@ describe('getChainValueOrder', () => {
     ]);
   });
 
-  it('keeps unsupported override chains out of the allowed chain list', () => {
+  it('skips unsupported promoted chains and still promotes later valid entries', () => {
     const assetsByChain = createAssets({
       [BASE]: 300,
       [SOLANA]: 200,
     });
-    const positionOverrides: NetworkPositionOverrides = {
-      ['eip155:999999' as CaipChainId]: {
-        name: 'Unsupported',
-        position: 0,
-      },
-    };
+    const promotedChains: PromotedChain[] = [
+      { chainId: 'eip155:999999' as CaipChainId, name: 'Unsupported' },
+      { chainId: SOLANA, name: 'Solana' },
+    ];
 
     const result = getChainValueOrder(
       CHAIN_RANKING,
       assetsByChain,
-      positionOverrides,
+      promotedChains,
     );
 
     expect(getChainIds(result)).toEqual([
-      BASE,
       SOLANA,
+      BASE,
       ROBINHOOD,
       OPTIMISM,
       ETHEREUM,
     ]);
   });
 
-  it('groups same-position overrides by holdings value', () => {
+  it('leaves holdings order unchanged for an empty promotion list', () => {
     const assetsByChain = createAssets({
-      [ROBINHOOD]: 500,
-      [BASE]: 400,
-      [OPTIMISM]: 300,
-      [ETHEREUM]: 100,
+      [BASE]: 300,
       [SOLANA]: 200,
+      [ETHEREUM]: 100,
     });
-    const positionOverrides: NetworkPositionOverrides = {
-      [ETHEREUM]: { name: 'Ethereum', position: 1 },
-      [SOLANA]: { name: 'Solana', position: 1 },
-    };
 
-    const result = getChainValueOrder(
-      CHAIN_RANKING,
-      assetsByChain,
-      positionOverrides,
-    );
+    const result = getChainValueOrder(CHAIN_RANKING, assetsByChain, []);
 
     expect(getChainIds(result)).toEqual([
-      ROBINHOOD,
+      BASE,
       SOLANA,
       ETHEREUM,
-      BASE,
+      ROBINHOOD,
       OPTIMISM,
     ]);
   });
 
-  it('merges an override that overlaps another override group', () => {
-    const assetsByChain = createAssets({
-      [ROBINHOOD]: 500,
-      [BASE]: 150,
-      [OPTIMISM]: 300,
-      [ETHEREUM]: 100,
-      [SOLANA]: 200,
-    });
-    const positionOverrides: NetworkPositionOverrides = {
-      [ETHEREUM]: { name: 'Ethereum', position: 1 },
-      [SOLANA]: { name: 'Solana', position: 1 },
-      [BASE]: { name: 'Base', position: 2 },
-    };
-
-    const result = getChainValueOrder(
-      CHAIN_RANKING,
-      assetsByChain,
-      positionOverrides,
-    );
-
-    expect(getChainIds(result)).toEqual([
-      ROBINHOOD,
-      SOLANA,
-      BASE,
-      ETHEREUM,
-      OPTIMISM,
-    ]);
-  });
-
-  it('shifts an override group left when it extends beyond the list', () => {
-    const assetsByChain = createAssets({
-      [ROBINHOOD]: 500,
-      [BASE]: 400,
-      [OPTIMISM]: 300,
-      [ETHEREUM]: 100,
-      [SOLANA]: 200,
-    });
-    const positionOverrides: NetworkPositionOverrides = {
-      [ETHEREUM]: { name: 'Ethereum', position: 4 },
-      [SOLANA]: { name: 'Solana', position: 4 },
-    };
-
-    const result = getChainValueOrder(
-      CHAIN_RANKING,
-      assetsByChain,
-      positionOverrides,
-    );
-
-    expect(getChainIds(result)).toEqual([
-      ROBINHOOD,
-      BASE,
-      OPTIMISM,
-      SOLANA,
-      ETHEREUM,
-    ]);
-  });
-
-  it('does not mutate chain ranking or position overrides', () => {
+  it('does not mutate chain ranking or promoted chains', () => {
     const chainRanking = CHAIN_RANKING.map((chain) => ({ ...chain }));
-    const positionOverrides: NetworkPositionOverrides = {
-      [SOLANA]: { name: 'Solana', position: 0 },
-    };
+    const promotedChains: PromotedChain[] = [
+      { chainId: SOLANA, name: 'Solana' },
+    ];
     const originalChainRanking = CHAIN_RANKING.map((chain) => ({
       ...chain,
     }));
-    const originalPositionOverrides = {
-      [SOLANA]: { name: 'Solana', position: 0 },
-    };
+    const originalPromotedChains = [{ chainId: SOLANA, name: 'Solana' }];
 
-    getChainValueOrder(chainRanking, {}, positionOverrides);
+    getChainValueOrder(chainRanking, {}, promotedChains);
 
     expect(chainRanking).toEqual(originalChainRanking);
-    expect(positionOverrides).toEqual(originalPositionOverrides);
+    expect(promotedChains).toEqual(originalPromotedChains);
   });
 });
