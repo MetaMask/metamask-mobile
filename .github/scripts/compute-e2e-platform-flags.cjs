@@ -3,6 +3,43 @@
  */
 
 /**
+ * Android-first gate for whether Build iOS Apps should run.
+ * Feature PRs to main skip iOS when Android also runs, unless opted in.
+ *
+ * @param {object} input
+ * @returns {boolean}
+ */
+function shouldBuildIosApps(input) {
+  const {
+    githubEventName,
+    pullRequestBase = '',
+    iosE2eNeeded,
+    androidE2eNeeded,
+    iosPathChanges = false,
+    forceIosE2E = false,
+    runAppiumIos = false,
+  } = input;
+
+  if (!iosE2eNeeded) {
+    return false;
+  }
+
+  if (githubEventName !== 'pull_request') {
+    return true;
+  }
+
+  if (pullRequestBase !== 'main') {
+    return true;
+  }
+
+  if (!androidE2eNeeded) {
+    return true;
+  }
+
+  return iosPathChanges || forceIosE2E || runAppiumIos;
+}
+
+/**
  * @param {object} input
  * @returns {object}
  */
@@ -44,8 +81,6 @@ function computeE2EPlatformFlags(input) {
     message = 'E2E for both platforms (scheduled or push to main)';
     android = true;
     ios = true;
-  } else if (githubEventName === 'merge_group') {
-    message = 'Skipping E2E (merge queue)';
   } else if (isFork) {
     message = 'Skipping E2E (fork PR)';
   } else if (shouldSkipE2E) {
@@ -84,6 +119,18 @@ function computeE2EPlatformFlags(input) {
     changed = changedSpecFiles;
   }
 
+  // Merge queue: Android already ran on the PR. Keep iOS only when path logic selected it.
+  if (githubEventName === 'merge_group' && (android || ios)) {
+    android = false;
+    if (ios) {
+      message = nativeBuildNeeded
+        ? 'E2E iOS only (merge queue)'
+        : 'E2E iOS only (merge queue — reuse main native builds)';
+    } else {
+      message = 'Skipping E2E (merge queue — Android covered on PR)';
+    }
+  }
+
   const e2eNeeded = android || ios;
 
   const runSmartE2ESelection =
@@ -105,4 +152,5 @@ function computeE2EPlatformFlags(input) {
 
 module.exports = {
   computeE2EPlatformFlags,
+  shouldBuildIosApps,
 };
