@@ -5,7 +5,6 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useState,
 } from 'react';
 import { View } from 'react-native';
 import {
@@ -43,10 +42,7 @@ import {
   CustomAmount,
   CustomAmountSkeleton,
 } from '../../transactions/custom-amount';
-import {
-  useIsTransactionPayQuoteLoading,
-  useTransactionPayFiatPayment,
-} from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayFiatPayment } from '../../../hooks/pay/useTransactionPayData';
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
@@ -185,7 +181,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
 
-    const { stage, setStage } = useCustomAmountStage({
+    const {
+      beginAmountUpdate,
+      endAmountUpdate,
+      isAmountUpdating,
+      stage,
+      setStage,
+    } = useCustomAmountStage({
       amountFiat,
       disablePay,
       hasAccountNoFunds,
@@ -196,11 +198,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       skipDepositPrefill,
     });
 
-    // React batches rapid presses before the state update rerenders, so keep a
-    // synchronous guard separate from the render state.
-    const isAmountUpdateInProgressRef = useRef(false);
-    const [isAmountUpdatePending, setIsAmountUpdatePending] = useState(false);
-    const isQuotesLoading = useIsTransactionPayQuoteLoading();
     useMMPayNavigation(stage, setStage);
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
@@ -230,14 +227,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAutoSubmittedPrefill = useRef(false);
 
     const handleDone = useCallback(async () => {
-      if (isAmountUpdateInProgressRef.current) {
+      // Enter the loading stage synchronously so rapid presses cannot start
+      // duplicate amount updates before React rerenders.
+      if (!beginAmountUpdate()) {
         return;
       }
-
-      isAmountUpdateInProgressRef.current = true;
-      setIsAmountUpdatePending(true);
-      // Enter the loading stage: keyboard hidden, totals skeletons shown.
-      setStage(CustomAmountStage.Loading);
 
       try {
         await updateTokenAmount();
@@ -274,8 +268,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         setStage(CustomAmountStage.AmountInput);
         return;
       } finally {
-        isAmountUpdateInProgressRef.current = false;
-        setIsAmountUpdatePending(false);
+        endAmountUpdate();
       }
       EngineService.flushState();
       hasAutoSubmittedPrefill.current = true;
@@ -286,6 +279,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
+      beginAmountUpdate,
+      endAmountUpdate,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       setStage,
@@ -374,7 +369,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     // is safe and keeps the loading screen responsive.
     const shouldBlockReviewRows =
       stage === CustomAmountStage.Loading &&
-      (isAmountUpdatePending || !isMoneyAccountDeposit || !isQuotesLoading);
+      (!isMoneyAccountDeposit || isAmountUpdating);
 
     const { headlessBuyError } = useConfirmationContext();
 
