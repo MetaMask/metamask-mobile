@@ -41,6 +41,20 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
+// The capture block is module state shared by every deterrent in this file, and
+// releasing it is deferred by a timer. Every test therefore runs on fake timers
+// and unmounts and flushes before the next one, so a release scheduled by one
+// test can never fire partway through another.
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
+afterEach(() => {
+  cleanup();
+  jest.runOnlyPendingTimers();
+  jest.useRealTimers();
+});
+
 describe('ScreenshotDeterrent with isSRP = true', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -85,15 +99,6 @@ describe('ScreenshotDeterrent screen capture blocking', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  // The block counter is module state shared by every mounted deterrent, so
-  // every screen is unmounted and its pending release flushed between tests.
-  afterEach(() => {
-    cleanup();
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
   });
 
   it('blocks capture once when several protected screens are mounted', () => {
