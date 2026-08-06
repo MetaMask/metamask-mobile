@@ -71,8 +71,9 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
-import PerpsModeToggle from '../../components/PerpsModeToggle';
+import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
 import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
+import { buildDefaultProMarket } from '../../utils/perpsModeSwitch';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -159,16 +160,40 @@ const PerpsHomeView = () => {
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const { mode: perpsMode } = usePerpsMode();
-  const handleModeChange = useCallback(() => {
-    // One-time chooser shared with Trade → Perps. Direct toggle after the
-    // user has completed selection lands in a follow-up change.
-    // eslint-disable-next-line no-void
-    void openPerpsModeSelectionIfNeeded(navigation, {
-      entry: 'home',
-      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-    });
-  }, [navigation]);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const handleModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      // eslint-disable-next-line no-void
+      void (async () => {
+        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+          entry: 'home',
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        });
+        if (openedChooser) {
+          return;
+        }
+
+        // Chooser already completed — flip immediately without the sheet.
+        setPerpsMode(nextMode);
+        // Discard Perps Home while Pro is active (TAT-3612).
+        if (nextMode === PerpsMode.Pro) {
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.PERPS.MARKET_DETAILS,
+                params: {
+                  market: buildDefaultProMarket(),
+                  source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                },
+              },
+            ],
+          });
+        }
+      })();
+    },
+    [navigation, setPerpsMode],
+  );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories,
   // or a "New" pill on its own when there are no categories but at least
   // one recently listed market — see useHasNewMarkets).

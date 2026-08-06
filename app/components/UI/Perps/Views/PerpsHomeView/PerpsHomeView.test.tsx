@@ -660,16 +660,26 @@ describe('PerpsHomeView', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
     });
-
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MODALS.ROOT,
       expect.objectContaining({
         screen: Routes.PERPS.MODALS.MODE_SELECTION,
       }),
     );
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        expect.objectContaining({
+          name: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'BTC' }),
+          }),
+        }),
+      ],
+    });
   });
 
   it('opens the mode selection sheet for first-time users from the header toggle', async () => {

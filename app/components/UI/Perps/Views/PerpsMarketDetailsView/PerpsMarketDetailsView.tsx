@@ -42,6 +42,7 @@ import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   CandlePeriod,
+  PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
   type Position,
@@ -84,6 +85,7 @@ import PerpsMarketHeader, {
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsModeToggle from '../../components/PerpsModeToggle';
 import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
+import { useDropPerpsHomeFromStackHistory } from '../../utils/perpsModeSwitch';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -360,19 +362,30 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isWatchlist = useSelector(selectIsWatchlist);
 
   // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Opens the
-  // Lite/Pro chooser; selecting a mode remounts Lite/Pro via the market router.
-  // Home-stack cleanup on Pro (TAT-3612) runs in PerpsModeSelectionView.
+  // one-time Lite/Pro chooser until completed, then flips mode in place.
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const { mode: perpsMode } = usePerpsMode();
-  const handlePerpsModeChange = useCallback(() => {
-    // One-time chooser shared with Trade → Perps. Direct toggle after the
-    // user has completed selection lands in a follow-up change.
-    // eslint-disable-next-line no-void
-    void openPerpsModeSelectionIfNeeded(navigation, {
-      entry: 'market',
-      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    });
-  }, [navigation]);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
+  const handlePerpsModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      // eslint-disable-next-line no-void
+      void (async () => {
+        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+          entry: 'market',
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        });
+        if (openedChooser) {
+          return;
+        }
+
+        setPerpsMode(nextMode);
+        if (nextMode === PerpsMode.Pro) {
+          dropPerpsHomeFromStackHistory();
+        }
+      })();
+    },
+    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
+  );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {

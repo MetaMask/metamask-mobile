@@ -64,6 +64,11 @@ jest.mock('../utils/perpsModeSelectionStorage', () => ({
   hasCompletedPerpsModeSelection: () => mockHasCompletedPerpsModeSelection(),
 }));
 
+const mockDropPerpsHomeFromStackHistory = jest.fn();
+jest.mock('../utils/perpsModeSwitch', () => ({
+  useDropPerpsHomeFromStackHistory: () => mockDropPerpsHomeFromStackHistory,
+}));
+
 let mockIsWatchlist = false;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -211,7 +216,22 @@ describe('usePerpsProMarketHeaderActions', () => {
     });
 
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
+  });
+
+  it('drops Perps Home from history when directly switching to Pro after chooser completion', async () => {
+    mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    await act(async () => {
+      result.current.handlePerpsModeChange(PerpsMode.Pro);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockDropPerpsHomeFromStackHistory).toHaveBeenCalledTimes(1);
   });
 
   it('exposes the current mode and watchlist state', () => {

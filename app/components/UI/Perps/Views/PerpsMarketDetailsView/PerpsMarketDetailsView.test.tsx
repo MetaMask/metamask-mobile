@@ -1100,10 +1100,9 @@ describe('PerpsMarketDetailsView', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
     });
-
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MODALS.ROOT,
       expect.objectContaining({

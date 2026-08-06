@@ -14,6 +14,7 @@ import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
 import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
+import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
 
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
@@ -50,7 +51,8 @@ export const usePerpsMarketHeaderActions = ({
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
-  const { mode: perpsMode } = usePerpsMode();
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
   const { track } = usePerpsEventTracking();
   const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -111,16 +113,27 @@ export const usePerpsMarketHeaderActions = ({
   }, [symbol, isWatchlist, addToWatchlist, removeFromWatchlist]);
 
   const handlePerpsModeChange = useCallback(
-    (_nextMode: PerpsMode) => {
-      // One-time chooser shared with Trade → Perps. Direct toggle after the
-      // user has completed selection lands in a follow-up change.
+    (nextMode: PerpsMode) => {
       // eslint-disable-next-line no-void
-      void openPerpsModeSelectionIfNeeded(navigation, {
-        entry: 'market',
-        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      });
+      void (async () => {
+        const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
+          entry: 'market',
+          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        });
+        if (openedChooser) {
+          return;
+        }
+
+        // Chooser already completed — flip in place without the sheet.
+        setPerpsMode(nextMode);
+        // Drop Home so back cannot reveal the Lite hub while Pro is active
+        // (TAT-3612).
+        if (nextMode === PerpsMode.Pro) {
+          dropPerpsHomeFromStackHistory();
+        }
+      })();
     },
-    [navigation],
+    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
   );
 
   return {
