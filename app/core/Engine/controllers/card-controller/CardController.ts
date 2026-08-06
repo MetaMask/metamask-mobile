@@ -1477,10 +1477,7 @@ export class CardController extends BaseController<
 
       if (
         cardId &&
-        this.#isPendingRegistrationForCurrentCard(
-          cardId,
-          moneyAccountAddress,
-        )
+        this.#isPendingRegistrationForCurrentCard(cardId, moneyAccountAddress)
       ) {
         Logger.log(
           'CardController: Money Account card conflict check — retrying pending registration for this card, no conflict',
@@ -1569,9 +1566,10 @@ export class CardController extends BaseController<
         },
       },
     };
-    this.update((state) => {
-      state.providerData = nextProviderData;
-    });
+    this.update(() => ({
+      ...this.state,
+      providerData: nextProviderData,
+    }));
   }
 
   #clearPendingRegistrationForCurrentCard(): void {
@@ -1589,9 +1587,10 @@ export class CardController extends BaseController<
       ...this.state.providerData,
       [providerId]: remainingProviderData,
     };
-    this.update((state) => {
-      state.providerData = nextProviderData;
-    });
+    this.update(() => ({
+      ...this.state,
+      providerData: nextProviderData,
+    }));
   }
 
   /**
@@ -1722,8 +1721,7 @@ export class CardController extends BaseController<
       Logger.log(
         'CardController: running Money Account card conflict check (link)',
       );
-      const conflictResult =
-        await this.#detectMoneyAccountCardConflict(tokens);
+      const conflictResult = await this.#detectMoneyAccountCardConflict(tokens);
       currentCardId = conflictResult.cardId;
       Logger.log(
         'CardController: Money Account card conflict check (link) result',
