@@ -15,7 +15,7 @@ describe('getDefaultImmersveSecureApiBaseUrlForMetaMaskEnv', () => {
 
   it('returns the PRD secure host for production', () => {
     expect(getDefaultImmersveSecureApiBaseUrlForMetaMaskEnv('production')).toBe(
-      'https://sec.immersve.com',
+      'https://api-sec.immersve.com',
     );
   });
 });

@@ -275,8 +275,7 @@ export default {
   },
   IMMERSVE_SECURE_API_URL: {
     DEV: 'https://test-sec.immersve.com',
-    // Production secure host — override via immersve.secureApiBaseUrl FF if needed.
-    PRD: 'https://sec.immersve.com',
+    PRD: 'https://api-sec.immersve.com',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
