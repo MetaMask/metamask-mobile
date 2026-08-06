@@ -23,16 +23,19 @@ import {
  * "$10K" pill reads as "$10": a 1000x wrong amount on a button that spends
  * money.
  *
- * `maxFontSizeMultiplier` caps how far the OS text-size setting can push the
- * label, `adjustsFontSizeToFit` shrinks whatever still overflows (long labels
- * in suffix-symbol currencies, or the five-pill keypad row), and `tail`
- * replaces the inherited `clip` so a label that exhausts both budgets shows an
- * ellipsis instead of a plausible-looking wrong number.
+ * `maxFontSizeMultiplier: 1` pins the label to the size the four-pill row was
+ * designed around, so the OS text-size setting can no longer overflow it. The
+ * cap is deliberately one-directional: a user who picks a *smaller* system
+ * font still gets a smaller label, which only ever helps the fit.
+ *
+ * Per-`Text` auto-shrink (`adjustsFontSizeToFit`) is intentionally not used
+ * here — it sizes each label against its own pill, so one long amount in the
+ * row would render visibly smaller than its neighbours. `tail` replaces the
+ * inherited `clip` instead, so a label that somehow still overflows shows an
+ * ellipsis rather than a plausible-looking wrong number.
  */
 const QUICK_AMOUNT_PILL_TEXT_PROPS = {
-  maxFontSizeMultiplier: 1.2,
-  adjustsFontSizeToFit: true,
-  minimumFontScale: 0.7,
+  maxFontSizeMultiplier: 1,
   numberOfLines: 1,
   ellipsizeMode: 'tail',
 } as const;
