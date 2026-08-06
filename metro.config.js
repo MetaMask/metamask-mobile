@@ -126,8 +126,21 @@ module.exports = function (baseConfig) {
             ),
           );
 
+      // Isolate Metro transform cache between with-SRP and without-SRP dual
+      // repacks. Expo export:embed forces resetCache=false in CI, so babel
+      // inlines of PREDEFINED_PASSWORD / ADDITIONAL_SRP_* from the first pack
+      // would otherwise be reused from /tmp/metro-cache by the second pack.
+      // Prefer an explicit METRO_TRANSFORM_PROFILE; fall back to presence-only
+      // detection (never put secret values into cacheVersion).
+      const metroTransformProfile =
+        process.env.METRO_TRANSFORM_PROFILE ||
+        (process.env.PREDEFINED_PASSWORD || process.env.ADDITIONAL_SRP_1
+          ? 'with-srp'
+          : 'without-srp');
+
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
+          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
           resolver: {
             // Exclude mm CLI daemon artifacts from the file watcher so that
             // log writes, state updates and test-artifact captures don't

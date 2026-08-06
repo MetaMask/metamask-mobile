@@ -7,6 +7,7 @@ import {
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
+import { strings } from '../../../../../locales/i18n';
 import { Position } from '../hooks';
 import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 
@@ -362,6 +363,61 @@ export const isSyntheticOrderCancelable = (order: Order): boolean => {
   return !isSyntheticPlaceholderOrderId(order.orderId);
 };
 
+/**
+ * Whether an open limit order has attached take-profit / stop-loss children
+ * that were set at placement. Size edits do not resize those children, so
+ * size editing is blocked when either is present.
+ */
+export const orderHasAttachedTpSl = (order: Order): boolean => {
+  const takeProfit = order.takeProfitPrice?.trim();
+  const stopLoss = order.stopLossPrice?.trim();
+  return Boolean(takeProfit) || Boolean(stopLoss);
+};
+
+/**
+ * Whether an open limit order can be edited in place (price) in Pro mode.
+ * Trigger/TP-SL rows and partially filled limits are excluded.
+ */
+export const isLimitOrderEditable = (order: Order): boolean => {
+  if (!isSyntheticOrderCancelable(order)) {
+    return false;
+  }
+
+  if (order.status !== 'open' || order.orderType !== 'limit') {
+    return false;
+  }
+
+  if (isTriggerOrder(order)) {
+    return false;
+  }
+
+  const filledSize = parseFloat(order.filledSize ?? '0');
+  if (Number.isFinite(filledSize) && filledSize > 0) {
+    return false;
+  }
+
+  const originalSize = parseFloat(order.originalSize ?? order.size ?? '0');
+  const remainingSize = parseFloat(order.remainingSize ?? order.size ?? '0');
+  if (
+    Number.isFinite(originalSize) &&
+    Number.isFinite(remainingSize) &&
+    remainingSize < originalSize
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Whether an open limit order's size can be edited in place in Pro mode.
+ * Orders with attached TP/SL are excluded: a size change would leave child
+ * trigger orders at the old size (trading-safety gap; TP/SL edit is out of
+ * scope for this flow).
+ */
+export const isLimitOrderSizeEditable = (order: Order): boolean =>
+  isLimitOrderEditable(order) && !orderHasAttachedTpSl(order);
+
 const buildSyntheticTriggerOrder = (
   parentOrder: Order,
   triggerType: 'tp' | 'sl',
@@ -541,6 +597,36 @@ export const getOrderPositionDirection = (order: Order): OrderDirection =>
   resolveOrderDirection(order.side, isClosingOrder(order));
 
 /**
+ * Resolves the raw order type token from provider data before i18n or
+ * title-casing. Prefers `detailedOrderType` when present; otherwise maps
+ * `orderType` to canonical limit/market tokens shared by label formatters.
+ */
+const resolveOrderTypeString = (order: Order): string => {
+  const detailedType = order.detailedOrderType?.trim();
+  if (detailedType) {
+    return detailedType;
+  }
+
+  return order.orderType === 'limit' ? 'limit' : 'market';
+};
+
+/**
+ * Formats a resolved order type token for compact UI pills with i18n for
+ * canonical limit/market types and title-casing for provider-specific names.
+ */
+const formatOrderTypeString = (typeString: string): string => {
+  const normalized = typeString.toLowerCase();
+  if (normalized === 'limit') {
+    return strings('perps.order.limit');
+  }
+  if (normalized === 'market') {
+    return strings('perps.order.market');
+  }
+
+  return capitalize(typeString);
+};
+
+/**
  * Format an order label following the pattern: [Type] [Close?] [Direction]
  *
  * Examples:
@@ -555,16 +641,11 @@ export const getOrderPositionDirection = (order: Order): OrderDirection =>
  * @returns Formatted order label string
  */
 export const formatOrderLabel = (order: Order): string => {
-  const { side, detailedOrderType, orderType } = order;
+  const { side } = order;
 
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
-
-  // Get the order type string
-  // Use detailedOrderType if available (e.g., "Stop Market", "Take Profit Limit")
-  // Otherwise fall back to basic orderType
-  const typeString =
-    detailedOrderType || (orderType === 'limit' ? 'Limit' : 'Market');
+  const typeString = resolveOrderTypeString(order);
 
   // Build the label: [Type] [Close?] [Direction]
   if (isClosing) {
@@ -573,6 +654,17 @@ export const formatOrderLabel = (order: Order): string => {
 
   return capitalize(`${typeString} ${direction}`);
 };
+
+/**
+ * Format just the order type portion of an order label (no direction/close).
+ *
+ * Examples: "Limit", "Stop market", "Take profit limit"
+ *
+ * @param order - The order object
+ * @returns Formatted order type string for compact UI pills
+ */
+export const formatOrderTypeLabel = (order: Order): string =>
+  formatOrderTypeString(resolveOrderTypeString(order));
 
 /**
  * Get just the direction portion of an order label

@@ -34,6 +34,7 @@ import {
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
+import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
@@ -415,6 +416,7 @@ const Main = (props) => {
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
         <PushNotificationOnboardingRoot />
+        <CliLoginPushNudgeListener />
       </View>
     </React.Fragment>
   );
