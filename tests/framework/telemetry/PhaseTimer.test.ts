@@ -1,3 +1,4 @@
+/* eslint-disable import-x/no-nodejs-modules -- AsyncResource simulates ALS context loss across Playwright's use() boundary */
 import { AsyncResource } from 'node:async_hooks';
 import {
   bindPhaseTimer,
@@ -148,6 +149,30 @@ describe('PhaseTimer', () => {
     await runWithPhaseTimer(timer, async () => {
       expect(getPhaseTimer()).toBe(timer);
     });
+
+    expect(getPhaseTimer()).toBeUndefined();
+  });
+
+  it('clears the active binding when the callback throws synchronously', () => {
+    const timer = createPhaseTimer();
+
+    expect(() =>
+      runWithPhaseTimer(timer, () => {
+        throw new Error('boom');
+      }),
+    ).toThrow('boom');
+
+    expect(getPhaseTimer()).toBeUndefined();
+  });
+
+  it('clears the active binding when the async callback rejects', async () => {
+    const timer = createPhaseTimer();
+
+    await expect(
+      runWithPhaseTimer(timer, async () => {
+        throw new Error('async boom');
+      }),
+    ).rejects.toThrow('async boom');
 
     expect(getPhaseTimer()).toBeUndefined();
   });

@@ -117,7 +117,13 @@ export function runWithPhaseTimer<T>(
   fn: () => T | Promise<T>,
 ): T | Promise<T> {
   const unbind = bindPhaseTimer(timer);
-  const result = storage.run(timer, fn);
+  let result: T | Promise<T>;
+  try {
+    result = storage.run(timer, fn);
+  } catch (error) {
+    unbind();
+    throw error;
+  }
   if (result instanceof Promise) {
     return result.finally(unbind);
   }
