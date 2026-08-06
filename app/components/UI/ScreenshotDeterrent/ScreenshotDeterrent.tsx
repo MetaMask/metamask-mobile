@@ -18,6 +18,24 @@ const CAPTURE_RELEASE_DELAY_MS = 500;
 
 let activeScreenCaptureBlocks = 0;
 let pendingCaptureRelease: ReturnType<typeof setTimeout> | undefined;
+// Tracks whether the window flag is actually applied, rather than assuming it
+// follows the block count. The two can diverge when the native call fails or
+// when Android rebuilds the activity window, and the count alone would then
+// stop any later screen from re-applying protection.
+let isCaptureBlocked = false;
+
+const applyCaptureBlock = (blocked: boolean) => {
+  isCaptureBlocked = blocked;
+
+  // Resolves to a promise on Android and to a plain value on iOS, where both
+  // calls are no-ops. A rejection means the activity was missing, so the flag
+  // did not change and the next screen should try again.
+  Promise.resolve(
+    blocked ? PreventScreenshot.forbid() : PreventScreenshot.allow(),
+  ).catch(() => {
+    isCaptureBlocked = !blocked;
+  });
+};
 
 const acquireScreenCaptureBlock = () => {
   if (pendingCaptureRelease) {
@@ -26,8 +44,8 @@ const acquireScreenCaptureBlock = () => {
   }
 
   activeScreenCaptureBlocks += 1;
-  if (activeScreenCaptureBlocks === 1) {
-    PreventScreenshot.forbid();
+  if (!isCaptureBlocked) {
+    applyCaptureBlock(true);
   }
 };
 
@@ -39,8 +57,8 @@ const releaseScreenCaptureBlock = () => {
 
   pendingCaptureRelease = setTimeout(() => {
     pendingCaptureRelease = undefined;
-    if (activeScreenCaptureBlocks === 0) {
-      PreventScreenshot.allow();
+    if (activeScreenCaptureBlocks === 0 && isCaptureBlocked) {
+      applyCaptureBlock(false);
     }
   }, CAPTURE_RELEASE_DELAY_MS);
 };
@@ -132,22 +150,29 @@ const ScreenshotDeterrentWithNavigation = ({
   return <View />;
 };
 
-const ScreenshotDeterrent = ({
-  enabled,
-  isSRP,
-  hasNavigation = true,
-  warnOnScreenshot = enabled,
-}: {
+interface ScreenshotDeterrentProps {
   enabled: boolean;
   isSRP: boolean;
   hasNavigation?: boolean;
   /**
    * Whether a screenshot raises the iOS safety alert. Defaults to `enabled`.
    * Set separately when a screen must block Android capture before it holds
-   * anything worth warning about, such as a password prompt preceding a reveal.
+   * anything worth warning about, such as the password prompt preceding a
+   * reveal.
+   *
+   * Has no effect when `hasNavigation` is `false`: the alert is presented as a
+   * modal route, so it cannot be shown without navigation and that variant
+   * never raises one.
    */
   warnOnScreenshot?: boolean;
-}) =>
+}
+
+const ScreenshotDeterrent = ({
+  enabled,
+  isSRP,
+  hasNavigation = true,
+  warnOnScreenshot = enabled,
+}: ScreenshotDeterrentProps) =>
   hasNavigation ? (
     <ScreenshotDeterrentWithNavigation
       enabled={enabled}

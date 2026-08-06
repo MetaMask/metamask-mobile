@@ -94,6 +94,14 @@ describe('ScreenshotDeterrent with isSRP = true', () => {
 });
 
 describe('ScreenshotDeterrent screen capture blocking', () => {
+  // Settling the native call takes several microtasks: adopting the returned
+  // promise, then running the rejection handler that records the failure.
+  const flushMicrotasks = async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
   const renderDeterrent = () =>
     render(<ScreenshotDeterrent enabled isSRP={false} hasNavigation={false} />);
 
@@ -151,5 +159,54 @@ describe('ScreenshotDeterrent screen capture blocking', () => {
 
     // Assert
     expect(PreventScreenshot.allow).not.toHaveBeenCalled();
+  });
+
+  it('stays balanced when enabled is toggled on a mounted screen', () => {
+    // Arrange
+    const ToggledDeterrent = ({ on }: { on: boolean }) => (
+      <ScreenshotDeterrent enabled={on} isSRP={false} hasNavigation={false} />
+    );
+    const { rerender } = render(<ToggledDeterrent on={false} />);
+
+    // Act
+    rerender(<ToggledDeterrent on />);
+
+    // Assert
+    expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(1);
+
+    // Act
+    rerender(<ToggledDeterrent on={false} />);
+    jest.runOnlyPendingTimers();
+
+    // Assert
+    expect(PreventScreenshot.allow).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-applies the block on the next screen when the native call fails', async () => {
+    // Arrange: the first screen leaves the window flag unset, and stays
+    // mounted so the block count never returns to zero.
+    jest
+      .mocked(PreventScreenshot.forbid)
+      .mockRejectedValueOnce(new Error('no activity'));
+    renderDeterrent();
+    await flushMicrotasks();
+
+    // Act
+    renderDeterrent();
+
+    // Assert
+    expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not re-apply the block when it is already in place', async () => {
+    // Arrange
+    renderDeterrent();
+    await flushMicrotasks();
+
+    // Act
+    renderDeterrent();
+
+    // Assert
+    expect(PreventScreenshot.forbid).toHaveBeenCalledTimes(1);
   });
 });
