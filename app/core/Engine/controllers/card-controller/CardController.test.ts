@@ -2495,6 +2495,7 @@ describe('CardController — getCapabilities', () => {
       kycProvider: 'veriff',
     },
     supportsPinView: false,
+    supportsPinSet: false,
     supportsCashback: true,
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
@@ -2616,6 +2617,33 @@ describe('CardController — data pass-throughs', () => {
       await expect(
         controller.getCardPinView({ customCss: {} }),
       ).rejects.toThrow('Card PIN view not supported');
+    });
+  });
+
+  describe('setCardPin', () => {
+    it('delegates to provider.setCardPin', async () => {
+      const mockSetCardPin = jest.fn().mockResolvedValue(undefined);
+      const provider = buildMockProvider({
+        setCardPin: mockSetCardPin,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await controller.setCardPin('card-1', '1337');
+
+      expect(mockSetCardPin).toHaveBeenCalledWith(
+        'card-1',
+        '1337',
+        mockTokenSet,
+      );
+    });
+
+    it('throws when provider does not support setCardPin', async () => {
+      const provider = buildMockProvider({ setCardPin: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.setCardPin('card-1', '1337')).rejects.toThrow(
+        'Card PIN set not supported',
+      );
     });
   });
 
@@ -3790,6 +3818,7 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
       config: {
         apiKey: 'test-key',
         baseUrl: 'https://api.test.immersve.com',
+        secureBaseUrl: 'https://test-sec.immersve.com',
         clientApplicationId: 'client-app-1',
         appUrl: 'https://app.immersve.com',
       } satisfies ImmersveProviderConfig,

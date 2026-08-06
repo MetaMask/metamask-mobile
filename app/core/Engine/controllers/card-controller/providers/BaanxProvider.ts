@@ -258,6 +258,7 @@ export class BaanxProvider implements ICardProvider {
       kycProvider: 'veriff',
     },
     supportsPinView: true,
+    supportsPinSet: false,
     supportsCashback: true,
     supportsCredit: true,
     supportsSensitiveDetailsView: false,

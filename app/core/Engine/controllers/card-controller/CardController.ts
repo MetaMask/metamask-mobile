@@ -1119,6 +1119,18 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
   }
 
+  async setCardPin(cardId: string, newPin: string): Promise<void> {
+    const provider = this.getActiveProvider();
+    const setCardPin = provider.setCardPin?.bind(provider);
+    if (!setCardPin) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card PIN set not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => setCardPin(cardId, newPin, tokens));
+  }
+
   async getCardSensitiveDetails(): Promise<CardSensitiveDetails> {
     const provider = this.getActiveProvider();
     const getCardSensitiveDetails =
