@@ -1,19 +1,11 @@
 /**
- * Style coverage for CustomNonceModal Pure Black stopgaps (TMCU-1017).
+ * Style coverage for CustomNonceModal Pure Black stopgaps (TMCU-1017 / TMCU-1239).
  * Remove this file during the pure black cleanup or when CustomNonceModal
  * migrates to MMDS BottomSheet and no longer owns local StyleSheet logic.
  */
 import { brandColor, darkTheme, lightTheme } from '@metamask/design-tokens';
 import { AppThemeKey } from '../../../../../../util/theme/models';
 import { createStyles } from './index';
-
-let mockIsPureBlackEnabled = false;
-
-jest.mock('../../../../../../util/theme/pureBlackPreview', () => ({
-  get isPureBlackEnabled() {
-    return mockIsPureBlackEnabled;
-  },
-}));
 
 const createTheme = (themeAppearance: AppThemeKey.light | AppThemeKey.dark) => {
   const base = themeAppearance === AppThemeKey.dark ? darkTheme : lightTheme;
@@ -28,14 +20,10 @@ const createTheme = (themeAppearance: AppThemeKey.light | AppThemeKey.dark) => {
 };
 
 describe('CustomNonceModal styles', () => {
-  beforeEach(() => {
-    mockIsPureBlackEnabled = false;
-  });
-
   describe('modal container', () => {
     it('uses default background without pure black borders', () => {
       const theme = createTheme(AppThemeKey.dark);
-      const styles = createStyles(theme);
+      const styles = createStyles(theme, false);
 
       expect(styles.modal.backgroundColor).toBe(
         theme.colors.background.default,
@@ -44,10 +32,9 @@ describe('CustomNonceModal styles', () => {
       expect(styles.modal.borderColor).toBeUndefined();
     });
 
-    it('uses elevated surface and muted borders in pure black dark mode', () => {
-      mockIsPureBlackEnabled = true;
+    it('uses alternative surface and muted borders in pure black mode', () => {
       const theme = createTheme(AppThemeKey.dark);
-      const styles = createStyles(theme);
+      const styles = createStyles(theme, true);
 
       expect(styles.modal.backgroundColor).toBe(
         theme.colors.background.alternative,
@@ -58,10 +45,9 @@ describe('CustomNonceModal styles', () => {
       expect(styles.modal.borderColor).toBe(theme.colors.border.muted);
     });
 
-    it('keeps default background in pure black light mode', () => {
-      mockIsPureBlackEnabled = true;
+    it('keeps default background when pure black is off in light mode', () => {
       const theme = createTheme(AppThemeKey.light);
-      const styles = createStyles(theme);
+      const styles = createStyles(theme, false);
 
       expect(styles.modal.backgroundColor).toBe(
         theme.colors.background.default,
@@ -71,9 +57,9 @@ describe('CustomNonceModal styles', () => {
   });
 
   describe('nonce warning', () => {
-    it('uses muted warning fill when pure black preview is off', () => {
+    it('uses muted warning fill when pure black is off', () => {
       const theme = createTheme(AppThemeKey.dark);
-      const styles = createStyles(theme);
+      const styles = createStyles(theme, false);
 
       expect(styles.nonceWarning.backgroundColor).toBe(
         theme.colors.warning.muted,
@@ -84,9 +70,8 @@ describe('CustomNonceModal styles', () => {
     });
 
     it('omits muted warning fill in pure black mode', () => {
-      mockIsPureBlackEnabled = true;
       const theme = createTheme(AppThemeKey.dark);
-      const styles = createStyles(theme);
+      const styles = createStyles(theme, true);
 
       expect(styles.nonceWarning.backgroundColor).toBeUndefined();
       expect(styles.nonceWarning.borderColor).toBe(

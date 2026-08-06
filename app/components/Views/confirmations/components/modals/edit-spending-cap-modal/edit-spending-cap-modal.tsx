@@ -8,6 +8,7 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -40,7 +41,8 @@ export const EditSpendingCapModal = ({
   onClose,
   tokenSymbol,
 }: EditSpendingCapProps & ModalProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(styleSheet, { isPureBlack });
   const [newSpendingCap, setNewSpendingCap] = useState(spendingCap);
   const [error, setError] = useState<string | boolean>(false);
   const [isDataUpdating, setIsDataUpdating] = useState<boolean>(false);

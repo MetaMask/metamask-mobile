@@ -11,17 +11,13 @@ import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
-import { AppThemeKey } from '../../../../../../util/theme/models';
 import { isNumber } from '../../../../../../util/number';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../../../util/theme/themeUtils';
 
 // TODO(Pure Black): Remove createStyles export and dedicated styles tests once
 // pure black ships by default or this modal migrates to MMDS BottomSheet.
-export const createStyles = (theme) => {
+export const createStyles = (theme, isPureBlack = false) => {
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -33,10 +29,14 @@ export const createStyles = (theme) => {
       flex: 1,
       justifyContent: 'flex-end',
     },
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens / bg-elevated.
+    // Drop usePureBlack() and the isPureBlack param. Use: backgroundColor: colors.background.default
     modal: {
       minHeight: 200,
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
+      backgroundColor: isPureBlack
+        ? colors.background.alternative
+        : colors.background.default,
+      ...(isPureBlack
         ? {
             borderTopWidth: 1,
             borderLeftWidth: 1,
@@ -90,7 +90,7 @@ export const createStyles = (theme) => {
     nonceWarning: {
       borderWidth: 1,
       borderColor: colors.warning.default,
-      ...(isPureBlackEnabled ? {} : { backgroundColor: colors.warning.muted }),
+      ...(isPureBlack ? {} : { backgroundColor: colors.warning.muted }),
       padding: 16,
       display: 'flex',
       flexDirection: 'row',
@@ -133,8 +133,9 @@ export const createStyles = (theme) => {
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const [nonce, onChangeText] = React.useState(nonceValue);
   const theme = useTheme();
+  const isPureBlack = usePureBlack();
   const { colors, themeAppearance } = theme;
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, isPureBlack);
 
   const incrementDecrementNonce = (isDecrement) => {
     const currentNonce = Number(nonce);

@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../locales/i18n';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import BottomModal from '../../UI/bottom-modal';
 import { GasOption } from '../../../components/gas/gas-option';
 import { useGasOptions } from '../../../hooks/gas/useGasOptions';
@@ -17,7 +18,8 @@ export const EstimatesModal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(styleSheet, { isPureBlack });
   const { options } = useGasOptions({ setActiveModal, handleCloseModals });
 
   return (

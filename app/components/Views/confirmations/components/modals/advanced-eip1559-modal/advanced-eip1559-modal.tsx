@@ -13,6 +13,7 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAdvancedGasFeeModal } from '../../../hooks/gas/useAdvancedGasFeeModal';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -31,7 +32,8 @@ export const AdvancedEIP1559Modal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(styleSheet, { isPureBlack });
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
 
   const { gas, maxFeePerGas, maxPriorityFeePerGas } =

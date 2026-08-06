@@ -21,6 +21,7 @@ import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useTheme } from '../../../../../../util/theme';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import styleSheet from './alert-modal.styles';
 
 interface HeaderProps {
@@ -217,7 +218,11 @@ const AlertModal: React.FC<AlertModalProps> = ({
   onAcknowledgeClick,
 }) => {
   const { colors } = useTheme();
-  const styles = useStyles(styleSheet, {}).styles as Record<string, ViewStyle>;
+  const isPureBlack = usePureBlack();
+  const styles = useStyles(styleSheet, { isPureBlack }).styles as Record<
+    string,
+    ViewStyle
+  >;
   const {
     hideAlertModal,
     alertModalVisible,

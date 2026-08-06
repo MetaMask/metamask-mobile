@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import BottomModal from '../../../components/UI/bottom-modal';
 import {
   Button,
@@ -39,7 +40,8 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
   onConfirm,
 }) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(styleSheet, {});
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(styleSheet, { isPureBlack });
   const {
     showAlertModal,
     fieldAlerts,

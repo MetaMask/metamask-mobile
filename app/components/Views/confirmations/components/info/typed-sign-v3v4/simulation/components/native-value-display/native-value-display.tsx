@@ -7,6 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import { RootState } from '../../../../../../../../../reducers';
 import { selectConversionRateByChainId } from '../../../../../../../../../selectors/currencyRateController';
 import { useTheme } from '../../../../../../../../../util/theme';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
@@ -63,7 +64,8 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
   const theme = useTheme();
-  const styles = styleSheet(theme);
+  const isPureBlack = usePureBlack();
+  const styles = styleSheet(theme, isPureBlack);
 
   const conversionRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId),

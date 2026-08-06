@@ -1,18 +1,11 @@
 import { StyleSheet } from 'react-native';
-import {
-  AppThemeKey,
-  Theme,
-} from '../../../../../../../../../util/theme/models';
+import { Theme } from '../../../../../../../../../util/theme/models';
 import {
   fontStyles,
   colors as importedColors,
 } from '../../../../../../../../../styles/common';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../../../../../../util/theme/themeUtils';
 
-const styleSheet = (theme: Theme) => {
+const styleSheet = (theme: Theme, isPureBlack = false) => {
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -69,14 +62,15 @@ const styleSheet = (theme: Theme) => {
       backgroundColor: colors.error.muted,
       color: colors.error.default,
     },
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens / bg-elevated.
+    // Drop usePureBlack() and the isPureBlack param. Use: backgroundColor: theme.colors.background.default
     valueModal: {
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-        ? {
-            borderWidth: 1,
-            borderColor: colors.border.muted,
-          }
-        : null),
+      backgroundColor: isPureBlack
+        ? colors.background.alternative
+        : colors.background.default,
+      borderWidth: isPureBlack ? 1 : 0,
+      borderColor: isPureBlack ? colors.border.muted : undefined,
+      borderBottomWidth: 0,
       paddingTop: 24,
       paddingBottom: 34,
       paddingHorizontal: 16,

@@ -1,25 +1,25 @@
 import { StyleSheet } from 'react-native';
 
-import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../../../util/theme/themeUtils';
+import { Theme } from '../../../../../../util/theme/models';
 import Device from '../../../../../../util/device';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isPureBlack: boolean };
+}) => {
+  const { theme, vars } = params;
+  const { isPureBlack } = vars;
   const { colors } = theme;
-  const isPureBlackDark =
-    isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
 
   return StyleSheet.create({
-    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
-    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens / bg-elevated.
+    // Drop usePureBlack() and the isPureBlack var. Use: backgroundColor: theme.colors.background.default
     modalContainer: {
-      backgroundColor: getElevatedSurfaceColor(theme),
-      borderWidth: isPureBlackDark ? 1 : 0,
-      borderColor: isPureBlackDark ? colors.border.muted : undefined,
+      backgroundColor: isPureBlack
+        ? theme.colors.background.alternative
+        : theme.colors.background.default,
+      borderWidth: isPureBlack ? 1 : 0,
+      borderColor: isPureBlack ? colors.border.muted : undefined,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
