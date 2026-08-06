@@ -94,8 +94,8 @@ describe('NavigationProvider', () => {
     expect(NavigationService.navigation).toHaveProperty('navigate');
   });
 
-  it('uses DefaultTheme with a transparent background', () => {
-    const { UNSAFE_getByType } = render(
+  it('registers the navigation container with Sentry', () => {
+    render(
       <NavigationProvider>
         <View />
       </NavigationProvider>,
@@ -108,6 +108,15 @@ describe('NavigationProvider', () => {
     expect(mockIntegration.registerNavigationContainer).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: expect.any(Function) }),
     );
+  });
+
+  it('uses DefaultTheme with a transparent background', () => {
+    const { UNSAFE_getByType } = render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
     const container = UNSAFE_getByType(NavigationContainer);
 
     expect(container.props.theme).toEqual({
