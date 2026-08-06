@@ -1,4 +1,6 @@
+import { AsyncResource } from 'node:async_hooks';
 import {
+  bindPhaseTimer,
   createPhaseTimer,
   getPhaseTimer,
   recordPhase,
@@ -92,6 +94,60 @@ describe('PhaseTimer', () => {
       recordPhase('app_clear', 1);
       stopPhase();
     }).not.toThrow();
+
+    expect(getPhaseTimer()).toBeUndefined();
+  });
+
+  it('records via active binding even when AsyncLocalStorage store is unset', () => {
+    let now = 1_000;
+    const timer = createPhaseTimer({ now: () => now });
+    const unbind = bindPhaseTimer(timer);
+
+    try {
+      expect(getPhaseTimer()).toBe(timer);
+      startPhase('login');
+      now += 7;
+      stopPhase();
+      recordPhase('fixture_bootstrap', 3);
+    } finally {
+      unbind();
+    }
+
+    expect(getPhaseTimer()).toBeUndefined();
+
+    const { phases } = timer.snapshot();
+
+    expect(phases.login).toBe(7);
+    expect(phases.fixture_bootstrap).toBe(3);
+  });
+
+  it('runWithPhaseTimer keeps active binding when AsyncLocalStorage context is lost', async () => {
+    let now = 1_000;
+    const timer = createPhaseTimer({ now: () => now });
+
+    await runWithPhaseTimer(timer, async () => {
+      await new Promise<void>((resolve) => {
+        const resource = new AsyncResource('als-loss-probe');
+        resource.runInAsyncScope(() => {
+          expect(getPhaseTimer()).toBe(timer);
+          startPhase('test_body');
+          now += 11;
+          resolve();
+        });
+      });
+      stopPhase();
+    });
+
+    expect(getPhaseTimer()).toBeUndefined();
+    expect(timer.snapshot().phases.test_body).toBe(11);
+  });
+
+  it('runWithPhaseTimer clears active binding after async completion', async () => {
+    const timer = createPhaseTimer();
+
+    await runWithPhaseTimer(timer, async () => {
+      expect(getPhaseTimer()).toBe(timer);
+    });
 
     expect(getPhaseTimer()).toBeUndefined();
   });

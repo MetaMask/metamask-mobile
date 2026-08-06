@@ -34,6 +34,16 @@ export interface CreatePhaseTimerOptions {
 }
 
 const storage = new AsyncLocalStorage<PhaseTimer>();
+let activeTimer: PhaseTimer | undefined;
+
+export function bindPhaseTimer(timer: PhaseTimer): () => void {
+  activeTimer = timer;
+  return () => {
+    if (activeTimer === timer) {
+      activeTimer = undefined;
+    }
+  };
+}
 
 class PhaseTimerImpl implements PhaseTimer {
   readonly #phases = new Map<string, number>();
@@ -101,11 +111,17 @@ export function runWithPhaseTimer<T>(
   timer: PhaseTimer,
   fn: () => T | Promise<T>,
 ): T | Promise<T> {
-  return storage.run(timer, fn);
+  const unbind = bindPhaseTimer(timer);
+  const result = storage.run(timer, fn);
+  if (result instanceof Promise) {
+    return result.finally(unbind);
+  }
+  unbind();
+  return result;
 }
 
 export function getPhaseTimer(): PhaseTimer | undefined {
-  return storage.getStore();
+  return storage.getStore() ?? activeTimer;
 }
 
 export function startPhase(phase: PhaseName): void {
