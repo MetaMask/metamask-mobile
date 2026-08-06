@@ -1,0 +1,192 @@
+tests/llm-workflow/android/platform-adapter.ts
+  s_320c532ad6352b::t_abde8a8cbbf158 268-270,272-279,286-290
+  s_320c532ad6352b::t_6588c2741bd8cb 39-42,53-54,56
+  s_320c532ad6352b::t_c9d0c4cf67564b 43-47,55,58-59
+  s_526ddab7883911::t_533c132ec723e1 313
+  s_526ddab7883911::t_885b1fd67ae9d1 284
+  s_526ddab7883911::t_36f9871b471bd8 347-376,378-381
+  s_1843ae825bfa79::t_ae22478f8aab8c 84-90,92,95,417-428,430-481
+  s_0c69e944997913::t_e2e0d4dae7c2c5 194,197-198,200-209,211-235
+  s_6381864ee0293c::t_6f3af235a6b79d 57,159,315
+  s_1843ae825bfa79::t_3a42e21e62751d 429
+  s_ef63e8d3dac5f4::t_4b63572f3932cd 298-302,305-307
+tests/llm-workflow/README.md
+  s_320c532ad6352b::t_f588cd020dc6e3 156
+  s_526ddab7883911::t_917135bfe11de0 158
+  s_526ddab7883911::t_ee413715409432 124
+  s_ef63e8d3dac5f4::t_a6898de1d21294 162
+tests/llm-workflow/__tests__/android-platform-adapter.test.ts
+  s_320c532ad6352b::t_4686b486bf1c9d 196,203,208,213
+  s_320c532ad6352b::t_b0908810fe7470 86-90
+  s_320c532ad6352b::t_5386736b0b981c 250-255,265-278,280,288
+  s_526ddab7883911::t_b37ea93b49702e 401,410-413,420-425,449,474-478,486,501,508-509
+  s_526ddab7883911::t_333081b3bb1532 312-314,316-319,337-397
+  s_526ddab7883911::t_9ea1b0102cc420 97-100
+  s_526ddab7883911::t_c70314201c7fc1 101-103
+  s_526ddab7883911::t_ba63a9fa4ea505 315
+  s_526ddab7883911::t_c3ca27eb960df0 398-400
+  s_526ddab7883911::t_09a4c2e1c353a8 402-404,407-409
+  s_526ddab7883911::t_ee1d5b66f36174 414-419
+  s_526ddab7883911::t_53cf5be7d640c2 479-481,483-485
+  s_526ddab7883911::t_4f0b04304a3450 487-489,498-500
+  s_526ddab7883911::t_762045a3e8b713 502-507
+  s_526ddab7883911::t_eefef036f21575 510-512
+  s_ef63e8d3dac5f4::t_cfaeb1282f6d0e 516-534,536-543
+  s_0c69e944997913::t_fee99c906d04db 645-684
+  s_6381864ee0293c::t_488c5301129dcc 138,202,232,444,535,550
+  s_1843ae825bfa79::t_ae22478f8aab8c 178-195
+tests/llm-workflow/__tests__/android-adb.test.ts
+  s_fd79a6270acaff::t_d0bcebd00febfd 1-60,62-64
+  s_6381864ee0293c::t_488c5301129dcc 61
+tests/llm-workflow/android/adb.ts
+  s_fd79a6270acaff::t_d0bcebd00febfd 6-8,12
+  s_6381864ee0293c::t_6f3af235a6b79d 16,20,28,38
+tests/llm-workflow/metamask-provider.ts
+  s_e21fb075fbbc24::t_399e85f412f0e1 365,452-455
+  s_6381864ee0293c::t_6f3af235a6b79d 466
+  s_0c69e944997913::t_c3a1c4ce03ea34 397-398
+  s_0c69e944997913::t_fb59e20523ded0 175-176
+tests/llm-workflow/launcher-types.ts
+  s_e21fb075fbbc24::t_399e85f412f0e1 78
+  s_6381864ee0293c::t_488c5301129dcc 81
+  s_6381864ee0293c::t_6f3af235a6b79d 75-76,79-80,82,93-97
+tests/llm-workflow/android/metro-watch-attach.ts
+  s_e173ee0b0b5b8d::t_7b9aa4b9b5663b 86-99,101-108
+  s_e173ee0b0b5b8d::t_9d5a92af3bba4c 56-57
+  s_6381864ee0293c::t_6f3af235a6b79d 50,100,165
+tests/llm-workflow/__tests__/android-metro-watch-attach.test.ts
+  s_e173ee0b0b5b8d::t_1311f3eb0a6ee8 107,208-252,254-281
+  s_e173ee0b0b5b8d::t_60e5a584eceed1 92
+  s_e173ee0b0b5b8d::t_4aaf1ccd0dcd03 53
+  s_6381864ee0293c::t_488c5301129dcc 104,121-124,138,253
+tests/llm-workflow/__tests__/metamask-provider.test.ts
+  s_e21fb075fbbc24::t_399e85f412f0e1 339
+  s_96f5a5b9a29652::t_8f2129f3276b98 224-226,232-235,253-255,265-268
+  s_6381864ee0293c::t_2a2c8645a3c31d 291-311
+  s_0c69e944997913::t_52f9fe91c67081 238-252
+tests/llm-workflow/android/animations.ts
+  s_0c69e944997913::t_843ac7a73448c7 61,63-70,73-81
+tests/llm-workflow/__tests__/ios-platform-adapter.test.ts
+  s_4f34c60125cb7a::t_58bc3c7c3a0d8f 341,343-344
+  s_4f34c60125cb7a::t_5eab6540d1cbb6 10-13,237-340,342,345-371
+  s_4f34c60125cb7a::t_3cf1b4df08e409 372
+tests/llm-workflow/android/prerequisites.ts
+  s_6381864ee0293c::t_6f3af235a6b79d 100,183,194
+tests/llm-workflow/__tests__/android-prerequisites.test.ts
+  s_da7455a0b3e76a::t_e25c999b141b4e 232-233
+  s_6381864ee0293c::t_488c5301129dcc 12,229-231,234-235,243-260
+tests/llm-workflow/__tests__/android-animations.test.ts
+  s_0c69e944997913::t_aec300629370eb 133-240
+tests/llm-workflow/__tests__/launcher-types.test.ts
+  s_6381864ee0293c::t_488c5301129dcc 4-9,20-27,46-48,52-71
+  s_6381864ee0293c::t_a7a742539f93c0 72-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "6d958a175621fd60d1841a2f9af6fbb046ee73dc",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
+  "sessions": {
+    "s_0c69e944997913": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0284278d5ffej4HCPP88Wyl9Cb",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_1843ae825bfa79": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0282c0616ffefmMa4KFPo2dh2k",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_320c532ad6352b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0297eecd0ffe3uLSziL4IDkZtC",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_4f34c60125cb7a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_028343064ffe7nxiBEjRA6rRrb",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_526ddab7883911": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_028b19e1affeFC4ZcK6yWqW3Bb",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_6381864ee0293c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_028310aa9ffeHY067dMz5LhWNi",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_96f5a5b9a29652": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_028287508ffe2y4tuVkVeZlPmI",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_da7455a0b3e76a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_028310aa9ffeHY067dMz5LhWNi",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_e173ee0b0b5b8d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_028aa370cffenfoSmjPG5TLsY8",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_e21fb075fbbc24": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_028c1b437ffe2tct4uS4lC1SeO",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_ef63e8d3dac5f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_028384a2cffekTTYLkg9nXxll1",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_fd79a6270acaff": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_028be5a08ffelKqCnDsNn9fv2Q",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
