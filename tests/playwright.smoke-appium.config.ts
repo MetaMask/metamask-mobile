@@ -86,7 +86,8 @@ export default defineConfig({
   projects: [
     {
       name: 'android-smoke',
-      timeout: 8 * 60 * 1000,
+      // MMConnect account flows (create HD accounts + Chrome CDP + switch).
+      timeout: 12 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
         device: {

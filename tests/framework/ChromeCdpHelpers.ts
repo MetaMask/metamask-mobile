@@ -1,8 +1,6 @@
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
-import type { Context } from '@wdio/protocols';
-import type { AndroidDetailedContext } from 'webdriverio/build/types';
 import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver, executeMobileDeepLink } from './PlaywrightUtilities';
 import { PlatformDetector } from './PlatformLocator';
@@ -21,26 +19,12 @@ const DEEPLINK_CAPTURE_TIMEOUT_MS = 30_000;
 const RECONSTRUCTED_DEEPLINK_GRACE_MS = 3_000;
 const POLL_MS = 500;
 
-interface ChromeContextInfo {
-  webSocketDebuggerUrl?: string;
-}
-
-interface AndroidContextWithInfo extends AndroidDetailedContext {
-  info?: ChromeContextInfo;
-}
-
 interface CdpTarget {
   id?: string;
   type?: string;
   url?: string;
   title?: string;
   webSocketDebuggerUrl?: string;
-}
-
-interface RawAppiumContext {
-  webviewName?: string;
-  webview?: string;
-  info?: ChromeContextInfo;
 }
 
 interface CdpEvaluateResult {
@@ -171,28 +155,59 @@ class CdpSession {
 /**
  * Drive Android Chrome dapp pages via CDP, bypassing Appium Chromedriver.
  *
- * Emulator Chrome 113 + Appium `switchContext('WEBVIEW_chrome')` hangs during
- * Chromedriver session creation even when `getContexts` already exposes a
- * working `webSocketDebuggerUrl`. CDP uses that debugger channel directly.
+ * Emulator Chrome + Appium `switchContext('WEBVIEW_chrome')` hangs during
+ * Chromedriver session creation. CDP talks to `@chrome_devtools_remote`
+ * over `adb forward` instead — never via `mobile: getContexts`.
  */
 export default class ChromeCdpHelpers {
   /**
    * Forward host → device Chrome DevTools abstract socket.
    */
+  private static adbArgs(args: string[]): string[] {
+    const serial =
+      process.env.ANDROID_DEVICE_UDID ||
+      process.env.ANDROID_SERIAL ||
+      process.env.ANDROID_UDID;
+    return serial ? ['-s', serial, ...args] : args;
+  }
+
   private static ensureAdbForward(port = CDP_FORWARD_PORT): void {
     try {
-      execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
-        stdio: 'pipe',
-      });
+      execFileSync(
+        'adb',
+        this.adbArgs(['forward', '--remove', `tcp:${port}`]),
+        {
+          stdio: 'pipe',
+        },
+      );
     } catch {
       // No existing forward is fine.
     }
     execFileSync(
       'adb',
-      ['forward', `tcp:${port}`, 'localabstract:chrome_devtools_remote'],
+      this.adbArgs([
+        'forward',
+        `tcp:${port}`,
+        'localabstract:chrome_devtools_remote',
+      ]),
       { stdio: 'pipe' },
     );
     logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
+  }
+
+  /**
+   * Read current `textContent` of `[data-testid]` (empty string if missing).
+   */
+  static async getTestIdText(dappUrl: string, testId: string): Promise<string> {
+    return this.withCdpSession(dappUrl, async (session) => {
+      const text = await session.evaluate<string | null>(
+        `(() => {
+          const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
+          return el ? (el.textContent || '') : null;
+        })()`,
+      );
+      return text ?? '';
+    });
   }
 
   /**
@@ -205,6 +220,44 @@ export default class ChromeCdpHelpers {
   ): Promise<void> {
     await this.withCdpSession(dappUrl, async (session) => {
       await this.waitForTestIdOnSession(session, testId, timeoutMs, dappUrl);
+    });
+  }
+
+  /**
+   * Wait until `[data-testid]` textContent contains `expectedSubstring`
+   * (case-insensitive).
+   */
+  static async waitForTestIdTextContaining(
+    dappUrl: string,
+    testId: string,
+    expectedSubstring: string,
+    timeoutMs = 15_000,
+  ): Promise<void> {
+    const needle = expectedSubstring.toLowerCase();
+    await this.withCdpSession(dappUrl, async (session) => {
+      const deadline = Date.now() + timeoutMs;
+      let lastText: string | null = null;
+      while (Date.now() < deadline) {
+        const text = await session.evaluate<string | null>(
+          `(() => {
+            const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
+            if (!el) return null;
+            const style = window.getComputedStyle(el);
+            if (style.visibility === 'hidden' || style.display === 'none') {
+              return null;
+            }
+            return el.textContent || '';
+          })()`,
+        );
+        lastText = text;
+        if (text != null && text.toLowerCase().includes(needle)) {
+          return;
+        }
+        await new Promise((r) => setTimeout(r, POLL_MS));
+      }
+      throw new Error(
+        `CDP: [data-testid="${testId}"] text did not contain "${expectedSubstring}" within ${timeoutMs}ms on ${dappUrl} (last=${JSON.stringify(lastText)})`,
+      );
     });
   }
 
@@ -292,22 +345,16 @@ export default class ChromeCdpHelpers {
   }
 
   /**
-   * Click a connect control that should open MetaMask via deeplink.
-   *
-   * The Multichain SDK emits `display_uri` / builds `metamask://connect/mwp?…`
-   * only after transport `session_request` — not synchronously on click. Chrome
-   * often seals `Location.prototype`, so we capture via:
-   * - CDP Page navigation events
-   * - reconstructing the URL when the SDK JSON.stringifies the session request
-   * then open it with Appium `mobile: deepLink`.
+   * Click `[data-testid]` and return the captured MetaMask Connect deeplink
+   * without opening it. Callers decide how/when to foreground MetaMask.
    */
-  static async waitAndClickTestIdOpeningMetaMask(
+  static async waitAndClickTestIdCapturingMetaMaskDeeplink(
     dappUrl: string,
     testId: string,
     timeoutMs = 15_000,
-  ): Promise<void> {
+  ): Promise<string> {
     await this.waitForTestId(dappUrl, testId, timeoutMs);
-    await this.withCdpSession(dappUrl, async (session) => {
+    return this.withCdpSession(dappUrl, async (session) => {
       const captured: string[] = [];
       const remember = (url: unknown) => {
         if (url == null) return;
@@ -332,13 +379,31 @@ export default class ChromeCdpHelpers {
       await this.installDeeplinkCapture(session);
       await this.dispatchTrustedClick(session, testId);
 
-      const deeplink = await this.waitForCapturedDeeplink(session, captured);
-      logger.debug(
-        `Opening captured MM Connect deeplink via Appium: ${deeplink}`,
-      );
-      await executeMobileDeepLink(deeplink, {
-        package: APP_PACKAGE_IDS.ANDROID,
-      });
+      return this.waitForCapturedDeeplink(session, captured);
+    });
+  }
+
+  /**
+   * Click a connect control that should open MetaMask via deeplink.
+   *
+   * The Multichain SDK emits `display_uri` / builds `metamask://connect/mwp?…`
+   * only after transport `session_request` — not synchronously on click.
+   */
+  static async waitAndClickTestIdOpeningMetaMask(
+    dappUrl: string,
+    testId: string,
+    timeoutMs = 15_000,
+  ): Promise<void> {
+    const deeplink = await this.waitAndClickTestIdCapturingMetaMaskDeeplink(
+      dappUrl,
+      testId,
+      timeoutMs,
+    );
+    logger.debug(
+      `Opening captured MM Connect deeplink via Appium: ${deeplink}`,
+    );
+    await executeMobileDeepLink(deeplink, {
+      package: APP_PACKAGE_IDS.ANDROID,
     });
   }
 
@@ -584,77 +649,35 @@ export default class ChromeCdpHelpers {
     }
   }
 
+  /**
+   * Resolve a stable host CDP HTTP endpoint for Chrome.
+   *
+   * Intentionally skips Appium `mobile: getContexts`. On google_apis Chrome that
+   * call can hang for minutes; a client-side timeout does not cancel the Appium
+   * command, so the hung probe blocks every later findElement/CDP setup on the
+   * same session (CI account-switch timeouts + missing sign sheets).
+   */
   private static async resolveCdpHttpEndpoint(): Promise<string> {
-    const fromContexts = await this.tryEndpointFromAppiumContexts();
-    if (fromContexts) {
-      return fromContexts;
-    }
-
-    this.ensureAdbForward();
     const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
-    await this.waitForCdpEndpoint(endpoint);
-    return endpoint;
-  }
-
-  private static async tryEndpointFromAppiumContexts(): Promise<
-    string | undefined
-  > {
+    this.ensureAdbForward();
     try {
-      // Raw mobile:getContexts includes Chrome `info.webSocketDebuggerUrl`
-      // (WDIO getContexts may omit the nested info object).
-      const rawContexts = (await getDriver().execute(
-        'mobile: getContexts',
-      )) as RawAppiumContext[];
-      for (const ctx of rawContexts) {
-        const name = ctx.webviewName ?? ctx.webview ?? '';
-        const wsUrl = ctx.info?.webSocketDebuggerUrl;
-        if (!wsUrl || !/chrome/i.test(name)) continue;
-        const http = this.httpEndpointFromWebSocketUrl(wsUrl);
-        if (http) {
-          await this.waitForCdpEndpoint(http);
-          logger.debug(`Using Appium-forwarded Chrome CDP at ${http}`);
-          return http;
-        }
-      }
-
-      const contexts = (await getDriver().getContexts({
-        returnDetailedContexts: true,
-      })) as (Context | AndroidContextWithInfo)[];
-      for (const ctx of contexts) {
-        if (typeof ctx === 'string') continue;
-        const detailed = ctx as AndroidContextWithInfo;
-        const wsUrl = detailed.info?.webSocketDebuggerUrl;
-        if (!wsUrl || !/chrome/i.test(detailed.id)) continue;
-        const http = this.httpEndpointFromWebSocketUrl(wsUrl);
-        if (http) {
-          await this.waitForCdpEndpoint(http);
-          return http;
-        }
-      }
-    } catch (error) {
+      await this.waitForCdpEndpoint(endpoint);
+    } catch (firstError) {
+      // Chrome may not have bound DevTools yet (cold start / FRE). Re-forward once.
       logger.debug(
-        'Could not resolve CDP endpoint from Appium contexts:',
-        error instanceof Error ? error.message : String(error),
+        'CDP endpoint not ready after first adb forward; retrying:',
+        firstError instanceof Error ? firstError.message : String(firstError),
       );
+      this.ensureAdbForward();
+      await this.waitForCdpEndpoint(endpoint);
     }
-    return undefined;
-  }
-
-  private static httpEndpointFromWebSocketUrl(
-    wsUrl: string,
-  ): string | undefined {
-    try {
-      const parsed = new URL(wsUrl);
-      const protocol = parsed.protocol === 'wss:' ? 'https:' : 'http:';
-      return `${protocol}//${parsed.host}`;
-    } catch {
-      return undefined;
-    }
+    return endpoint;
   }
 
   private static async waitForCdpEndpoint(endpoint: string): Promise<void> {
     const deadline = Date.now() + CDP_READY_TIMEOUT_MS;
     let lastError = '';
+    let lastForwardAt = 0;
     while (Date.now() < deadline) {
       try {
         const response = await fetch(`${endpoint}/json/version`);
@@ -664,6 +687,11 @@ export default class ChromeCdpHelpers {
         lastError = `HTTP ${response.status}`;
       } catch (error) {
         lastError = error instanceof Error ? error.message : String(error);
+        // Refresh the forward periodically — stale forwards fail with fetch errors.
+        if (Date.now() - lastForwardAt > 5_000) {
+          this.ensureAdbForward();
+          lastForwardAt = Date.now();
+        }
       }
       await new Promise((r) => setTimeout(r, POLL_MS));
     }

@@ -1,190 +1,100 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeMMConnect } from '../../tags.js';
-
-import {
-  ensureAccountGroupsFinishedLoading,
-  loginToAppPlaywright,
-  unlockIfLockScreenVisible,
-} from '../../flows/wallet.flow.js';
-import WalletView from '../../page-objects/wallet/WalletView.js';
-import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
-import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
-import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
-import SignModal from '../../page-objects/MMConnect/SignModal.js';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
+import { refreshMobileBrowser } from '../../flows/native-browser.flow.js';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
+import { getDappUrlForBrowser } from './utils.js';
+import { multichainBrowserFixture } from './mm-connect-fixtures.js';
+import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds.js';
 import {
-  DappServer,
-  DappVariants,
-  PlaywrightGestures,
-  TestDapps,
-  sleep,
-} from '../../framework/index.js';
-import {
-  getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
-} from './utils.js';
-import {
-  launchMobileBrowser,
-  navigateToDapp,
-  refreshMobileBrowser,
-  switchToMobileBrowser,
-} from '../../flows/native-browser.flow.js';
+  DEFAULT_MM_CONNECT_DAPP_PORT,
+  MM_CONNECT_ACCOUNT_1,
+  MM_CONNECT_ACCOUNT_3,
+  MM_CONNECT_ACCOUNT_3_NAME,
+  assertLegacyEvmConnected,
+  connectLegacyDappViaMetaMask,
+  createBrowserPlaygroundServer,
+  loginCreateAccountsAndOpenDapp,
+  rejectLegacyPersonalSign,
+  returnToDappAndWaitFor,
+  startBrowserPlaygroundServer,
+  stopBrowserPlaygroundServer,
+  switchWalletAccount,
+} from '../../flows/mm-connect.flow.js';
 
-const DAPP_PORT = 8090;
+const playgroundServer = createBrowserPlaygroundServer(
+  DEFAULT_MM_CONNECT_DAPP_PORT,
+);
 
-const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
-const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
-
-const playgroundServer = new DappServer({
-  dappCounter: 0,
-  rootDirectory: TestDapps[DappVariants.BROWSER_PLAYGROUND].dappPath,
-  dappVariant: DappVariants.BROWSER_PLAYGROUND,
-});
-
-// Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
-appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
+appiumTest.describe(SmokeMMConnect('EVM account switching'), () => {
   appiumTest.beforeAll(async () => {
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-    setupAdbReverse(DAPP_PORT);
+    await startBrowserPlaygroundServer(
+      playgroundServer,
+      DEFAULT_MM_CONNECT_DAPP_PORT,
+    );
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopBrowserPlaygroundServer(
+      playgroundServer,
+      DEFAULT_MM_CONNECT_DAPP_PORT,
+    );
   });
 
-  // Test steps (in order):
-  //
-  // 1. LOGIN AND NAVIGATE TO DAPP
-  //    - Login to app, ensure account groups finished loading
-  //    - Launch mobile browser and navigate to the playground dapp
-  //
-  // 2. CONNECT VIA LEGACY EVM (WITH ACCOUNT 3 ADDED)
-  //    - Tap Connect (Legacy)
-  //    - In MetaMask: tap Edit Accounts, add Account 3, tap Update, tap Connect (cooldown 2s)
-  //      Account 3 must be authorized so MetaMask can switch to it later
-  //    - Assert: connected true, chainId '0x1', active account is Account 1
-  //      (0x19a7Ad8256ab119655f1D758348501d598fC1C94)
-  //
-  // 3. SWITCH TO ACCOUNT 3 IN METAMASK
-  //    - In MetaMask: tap identicon → select Account 3 from the account list
-  //    - Assert: dapp reflects Account 3 as the active account
-  //      (0xE2bEca5CaDC60b61368987728b4229822e6CDa83)
-  //
-  // 4. REFRESH BROWSER AND VERIFY ACCOUNT PERSISTS
-  //    - Refresh mobile browser (native action)
-  //    - Assert: connected true, chainId '0x1', active account is still Account 3
-  //      (0xE2bEca5CaDC60b61368987728b4229822e6CDa83)
-  //
-  // 5. PERSONAL SIGN TO VERIFY WALLET-SIDE ACCOUNT
-  //    - Tap personal sign
-  //    - In MetaMask: tap Cancel (cooldown 2s)
-  //      Canceling verifies Account 3 appears as the signer in the modal (wallet-side check)
-  //    - Assert: response value 'rejected'
-  //
-  // 6. CLEANUP
-  //    - Tap disconnect to reset dapp state
   appiumTest(
     '@metamask/connect-evm - Account switching and wallet-side verification',
-    async ({ currentDeviceDetails, driver: _driver }) => {
-      const platform = currentDeviceDetails.platform;
-      const DAPP_URL = getDappUrlForBrowser(platform);
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: multichainBrowserFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+        },
+        async () => {
+          const dappUrl = getDappUrlForBrowser(currentDeviceDetails.platform);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
-        await loginToAppPlaywright();
-        await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
-        await launchMobileBrowser();
-        await navigateToDapp(DAPP_URL);
-      });
-      await sleep(5000);
+          // Account 1 exists in the fixture; create Account 2 + Account 3.
+          await loginCreateAccountsAndOpenDapp(dappUrl, 2);
+          await connectLegacyDappViaMetaMask(dappUrl, {
+            additionalAccounts: [MM_CONNECT_ACCOUNT_3_NAME],
+          });
+          await returnToDappAndWaitFor(
+            dappUrl,
+            MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
+          );
+          await assertLegacyEvmConnected(dappUrl, {
+            activeAccount: MM_CONNECT_ACCOUNT_1,
+          });
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        await BrowserPlaygroundDapp.tapConnectLegacy();
-      }, DAPP_URL);
+          await switchWalletAccount(
+            MM_CONNECT_ACCOUNT_3_NAME,
+            currentDeviceDetails,
+          );
+          await returnToDappAndWaitFor(
+            dappUrl,
+            MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT,
+          );
+          await assertLegacyEvmConnected(dappUrl, {
+            activeAccount: MM_CONNECT_ACCOUNT_3,
+          });
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
-        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-        await unlockIfLockScreenVisible();
-        await DappConnectionModal.tapEditAccountsButton();
-        await DappConnectionModal.tapAccountButton('Account 3');
-        await DappConnectionModal.tapUpdateAccountsButton();
-        await DappConnectionModal.tapConnectButton({
-          shouldCooldown: true,
-          timeToCooldown: 2000,
-        });
-      });
+          await PlaywrightContextHelpers.withNativeAction(async () => {
+            await refreshMobileBrowser();
+          });
+          await assertLegacyEvmConnected(dappUrl, {
+            activeAccount: MM_CONNECT_ACCOUNT_3,
+          });
 
-      await sleep(1000);
-      await switchToMobileBrowser();
-      await sleep(1000);
+          // Cancel personal_sign — verifies Account 3 is the wallet-side signer.
+          await rejectLegacyPersonalSign(dappUrl, currentDeviceDetails);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        await BrowserPlaygroundDapp.assertConnected(true);
-        await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-        await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
-      }, DAPP_URL);
-
-      await PlaywrightContextHelpers.withNativeAction(async () => {
-        // Wait here to make sure UI is visible before attempted interaction
-        await sleep(1000);
-        // We're only using Android for now
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
-        await unlockIfLockScreenVisible();
-
-        // Change selected account to Account 3 in MetaMask
-        await WalletView.tapIdenticon();
-        await AccountListBottomSheet.tapAccountByName('Account 3');
-      });
-
-      await sleep(1000);
-      await switchToMobileBrowser();
-      await sleep(1000);
-
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        // Verify account changed to Account 3
-        await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-      }, DAPP_URL);
-
-      await PlaywrightContextHelpers.withNativeAction(async () => {
-        await refreshMobileBrowser();
-      });
-      await sleep(2000);
-
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        await BrowserPlaygroundDapp.assertConnected(true);
-        await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-        await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-        await BrowserPlaygroundDapp.tapPersonalSign();
-      }, DAPP_URL);
-
-      await PlaywrightContextHelpers.withNativeAction(async () => {
-        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-        await SignModal.tapCancelButton({
-          shouldCooldown: true,
-          timeToCooldown: 2000,
-        });
-      });
-
-      await sleep(1000);
-      await switchToMobileBrowser();
-      await sleep(1000);
-
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        await BrowserPlaygroundDapp.assertResponseValue('rejected');
-      }, DAPP_URL);
-
-      //
-      // Reset dapp state
-      //
-
-      await PlaywrightContextHelpers.withWebAction(async () => {
-        await BrowserPlaygroundDapp.tapDisconnect();
-      }, DAPP_URL);
+          await ChromeCdpHelpers.waitAndClickTestId(
+            dappUrl,
+            MMConnectDappTestIds.DISCONNECT_BUTTON,
+          );
+        },
+      );
     },
   );
-}); // end describe
+});

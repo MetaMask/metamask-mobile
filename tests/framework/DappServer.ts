@@ -11,6 +11,10 @@ const logger = createLogger({
   name: 'DappServer',
 });
 
+/** Cap stop() so Chrome keep-alive cannot burn Appium shard budgets (e.g. 35m). */
+const STOP_FORCE_CLOSE_MS = 1_000;
+const STOP_HARD_TIMEOUT_MS = 5_000;
+
 export default class DappServer implements Resource {
   private _serverPort: number;
   private _serverStatus: ServerStatus = ServerStatus.STOPPED;
@@ -43,14 +47,73 @@ export default class DappServer implements Resource {
       this._serverStatus === ServerStatus.STARTED &&
       this._server?.listening
     ) {
-      await new Promise<void>((resolve, reject) => {
-        this._server?.close((error) => {
-          if (error) {
-            return reject(error);
+      const server = this._server;
+      // Chrome keep-alive (MMConnect playground via adb reverse) can leave
+      // sockets open so bare `close()` never fires — same idea as the
+      // WebSocket server closing clients before shutdown. Bound the wait so
+      // afterAll cannot consume the Appium shard timeout.
+      await new Promise<void>((resolve) => {
+        let settled = false;
+        const timers: {
+          force?: ReturnType<typeof setTimeout>;
+          hard?: ReturnType<typeof setTimeout>;
+        } = {};
+        const finish = () => {
+          if (settled) {
+            return;
           }
-          return resolve();
+          settled = true;
+          if (timers.force !== undefined) {
+            clearTimeout(timers.force);
+          }
+          if (timers.hard !== undefined) {
+            clearTimeout(timers.hard);
+          }
+          resolve();
+        };
+
+        try {
+          server.closeIdleConnections?.();
+        } catch (error) {
+          logger.debug(
+            `closeIdleConnections failed for ${this.dappVariant}: ${String(error)}`,
+          );
+        }
+
+        timers.force = setTimeout(() => {
+          try {
+            server.closeAllConnections?.();
+          } catch (error) {
+            logger.debug(
+              `closeAllConnections failed for ${this.dappVariant}: ${String(error)}`,
+            );
+          }
+        }, STOP_FORCE_CLOSE_MS);
+        timers.force.unref?.();
+
+        timers.hard = setTimeout(() => {
+          logger.warn(
+            `Dapp server ${this.dappVariant} stop timed out after ${STOP_HARD_TIMEOUT_MS}ms; continuing teardown`,
+          );
+          try {
+            server.closeAllConnections?.();
+          } catch {
+            // Best-effort; finish regardless.
+          }
+          finish();
+        }, STOP_HARD_TIMEOUT_MS);
+        timers.hard.unref?.();
+
+        server.close((error) => {
+          if (error) {
+            logger.debug(
+              `Dapp server ${this.dappVariant} close error: ${String(error)}`,
+            );
+          }
+          finish();
         });
       });
+      this._server = undefined;
     }
     this._serverStatus = ServerStatus.STOPPED;
     // Release the port after server is stopped
