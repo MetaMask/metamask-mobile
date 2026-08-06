@@ -83,9 +83,9 @@ describe('shouldDisplayForegroundPushNotification', () => {
 
   it('returns true when notification_type is missing', () => {
     setAppState('active');
-    expect(shouldDisplayForegroundPushNotification({ notification_id: 'a' })).toBe(
-      true,
-    );
+    expect(
+      shouldDisplayForegroundPushNotification({ notification_id: 'a' }),
+    ).toBe(true);
   });
 
   it('returns true when data is undefined', () => {
