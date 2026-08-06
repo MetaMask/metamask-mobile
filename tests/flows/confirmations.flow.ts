@@ -16,7 +16,6 @@ import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
-import { TestDappSelectorsWebIDs } from '../selectors/Browser/TestDapp.selectors';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
@@ -35,23 +34,13 @@ export {
 };
 
 /**
- * Android Appium: CDP click first (UiAutomator often misses WebView handlers).
- * Never fall back after a successful CDP click — that double-submits.
+ * Tap a test-dapp WebView button and wait for the confirmation sheet.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
   description: string,
 ): Promise<void> => {
   const pageUrl = getDappUrl(0);
-
-  // test-dapp enables EIP-5792 Send Calls only after globalConnectionChange;
-  // clicking while disabled is a silent no-op.
-  if (buttonId === TestDappSelectorsWebIDs.SEND_CALLS_BUTTON) {
-    await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
-      pageUrl,
-      buttonId,
-    );
-  }
 
   if (PlatformDetector.isAndroidAppium()) {
     const clicked = await ChromeCdpHelpers.clickByIdInWebView(
@@ -65,6 +54,10 @@ const tapTestDappButtonAndWaitForConfirm = async (
       });
     }
   } else {
+    await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(
+      pageUrl,
+      buttonId,
+    );
     await WebView.tapById(buttonId, {
       pageUrl,
       description,

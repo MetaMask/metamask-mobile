@@ -570,8 +570,6 @@ class AccountListBottomSheet {
   /**
    * Tap the ellipsis menu for the account row matching `accountName` (Appium).
    * Prefer this over index when the list mixes HD and snap accounts.
-   * Uses XPath scoped to the account row (static `multichain-account-cell-menu`
-   * testID) — avoids unique per-name testIDs that expand CODEOWNERS review.
    */
   async tapAccountEllipsisForAccountNameV2(accountName: string): Promise<void> {
     if (!FrameworkDetector.isAppium()) {
@@ -589,32 +587,10 @@ class AccountListBottomSheet {
     const accountCell = accountCells[accountCells.length - 1];
     await PlaywrightGestures.scrollIntoView(accountCell);
 
-    const escapedAccountName = accountName.replace(/'/g, "\\'");
-    if (PlatformDetector.isIOS()) {
-      const menuByXPath = await Matchers.getAllElementsByXPath(
-        `//*[@name='${AccountCellIds.SELECT}' and contains(@label,'${escapedAccountName}')]/following::*[@name='${AccountCellIds.MENU}'][1]`,
-      );
-      if (menuByXPath.length > 0) {
-        await PlaywrightGestures.waitAndTap(menuByXPath[0], {
-          elemDescription: `Ellipsis menu XPath for "${accountName}"`,
-          timeout: 15_000,
-          checkForDisplayed: false,
-          checkForEnabled: false,
-        });
-        return;
-      }
-      await this.tapAccountEllipsisAlignedToRowIos(accountCell, accountName);
-      return;
-    }
-
-    // Android: avoid `/following::*` (UiAutomator2 XPath2). Scope MENU under the
-    // nearest ancestor that also contains this account's ADDRESS label.
-    const menuByXPath = await Matchers.getAllElementsByXPath(
-      `//*[@resource-id='${AccountCellIds.ADDRESS}' and @text='${escapedAccountName}']/ancestor::*[.//*[@resource-id='${AccountCellIds.MENU}']][1]//*[@resource-id='${AccountCellIds.MENU}']`,
-    );
-    if (menuByXPath.length > 0) {
-      await PlaywrightGestures.waitAndTap(menuByXPath[menuByXPath.length - 1], {
-        elemDescription: `Ellipsis menu XPath for "${accountName}"`,
+    const menuEl = await this.getAccountEllipsisMenuByNameXPath(accountName);
+    if (menuEl) {
+      await PlaywrightGestures.waitAndTap(menuEl, {
+        elemDescription: `Ellipsis menu for "${accountName}"`,
         timeout: 15_000,
         checkForDisplayed: false,
         checkForEnabled: false,
@@ -622,8 +598,54 @@ class AccountListBottomSheet {
       return;
     }
 
-    const addressXpath = `//*[@resource-id='${AccountCellIds.ADDRESS}']`;
-    const addressElements = await Matchers.getAllElementsByXPath(addressXpath);
+    if (PlatformDetector.isIOS()) {
+      await this.tapAccountEllipsisAlignedToRowIos(accountCell, accountName);
+      return;
+    }
+
+    const menuIndex =
+      await this.getAccountEllipsisMenuIndexByAddress(accountName);
+    await this.tapAccountEllipsisButtonV2(menuIndex, { shouldWait: true });
+  }
+
+  /**
+   * Resolve the ellipsis for `accountName` via CONTAINER/parent-scoped XPath.
+   * TODO: Add TestIds for element
+   */
+  private async getAccountEllipsisMenuByNameXPath(
+    accountName: string,
+  ): Promise<PlaywrightElement | undefined> {
+    const escaped = accountName.replace(/'/g, "\\'");
+    const menu = AccountCellIds.MENU;
+    const xpaths = PlatformDetector.isAndroid()
+      ? [
+          `//*[@resource-id='${AccountCellIds.ADDRESS}' and @text='${escaped}']/ancestor::*[@resource-id='${AccountCellIds.CONTAINER}'][1]//*[@resource-id='${menu}' or @resource-id='${menu}-${escaped}' or starts-with(@resource-id,'${menu}-')]`,
+          `//*[@resource-id='${AccountCellIds.ADDRESS}' and contains(@text,'${escaped}')]/ancestor::*[@resource-id='${AccountCellIds.CONTAINER}'][1]//*[@resource-id='${menu}' or starts-with(@resource-id,'${menu}-')]`,
+        ]
+      : [
+          `//*[@name='${AccountCellIds.SELECT}' and contains(@label,'${escaped}')]/parent::*//*[@name='${menu}' or @name='${menu}-${escaped}' or starts-with(@name,'${menu}-')]`,
+          `//*[@name='${AccountCellIds.CONTAINER}'][.//*[@name='${AccountCellIds.SELECT}' and contains(@label,'${escaped}')]]//*[@name='${menu}' or starts-with(@name,'${menu}-')]`,
+          `//*[@name='${AccountCellIds.ADDRESS}' and contains(@label,'${escaped}')]/ancestor::*[@name='${AccountCellIds.CONTAINER}'][1]//*[@name='${menu}' or starts-with(@name,'${menu}-')]`,
+        ];
+
+    for (const xpath of xpaths) {
+      const menus = await Matchers.getAllElementsByXPath(xpath);
+      if (menus.length > 0) {
+        return menus[menus.length - 1];
+      }
+    }
+    return undefined;
+  }
+
+  private async getAccountEllipsisMenuIndexByAddress(
+    accountName: string,
+  ): Promise<number> {
+    const addressAttr = PlatformDetector.isAndroid()
+      ? `@resource-id='${AccountCellIds.ADDRESS}'`
+      : `@name='${AccountCellIds.ADDRESS}'`;
+    const addressElements = await Matchers.getAllElementsByXPath(
+      `//*[${addressAttr}]`,
+    );
 
     let menuIndex = -1;
     for (let i = 0; i < addressElements.length; i++) {
@@ -635,14 +657,16 @@ class AccountListBottomSheet {
 
     if (menuIndex < 0) {
       throw new Error(
-        `Could not resolve ellipsis menu index for account "${accountName}"`,
+        `Could not resolve ellipsis menu for account "${accountName}" via XPath or address index`,
       );
     }
-
-    await this.tapAccountEllipsisButtonV2(menuIndex, { shouldWait: true });
+    return menuIndex;
   }
 
-  /** Fallback when iOS XPath cannot resolve the menu for the account row. */
+  /**
+   * iOS-only: Needed when the accessibility tree flattens CONTAINER
+   * so parent-scoped XPath cannot reach the ellipsis.
+   */
   private async tapAccountEllipsisAlignedToRowIos(
     accountCell: PlaywrightElement,
     accountName: string,
@@ -657,7 +681,7 @@ class AccountListBottomSheet {
     const rowCenterY = rowLocation.y + rowSize.height / 2;
 
     const menuElements = await Matchers.getAllElementsByXPath(
-      `//*[@name='${AccountCellIds.MENU}']`,
+      `//*[@name='${AccountCellIds.MENU}' or starts-with(@name,'${AccountCellIds.MENU}-')]`,
     );
     if (menuElements.length === 0) {
       throw new Error(
@@ -678,7 +702,6 @@ class AccountListBottomSheet {
       }
     }
 
-    // Guard against matching a distant/off-screen menu.
     if (bestDelta > Math.max(rowSize.height, 48)) {
       throw new Error(
         `Could not align ellipsis menu to "${accountName}" (Δy=${Math.round(bestDelta)})`,

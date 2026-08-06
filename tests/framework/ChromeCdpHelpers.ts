@@ -342,6 +342,33 @@ export default class ChromeCdpHelpers {
     });
   }
 
+  private static elementEnabledExpression(elementId: string): string {
+    return `(() => {
+      const el = document.getElementById(${JSON.stringify(elementId)});
+      if (!el) return false;
+      if ('disabled' in el && Boolean(el.disabled)) return false;
+      if (el.getAttribute('aria-disabled') === 'true') return false;
+      return true;
+    })()`;
+  }
+
+  private static async waitForEnabledInSession(
+    session: CdpSession,
+    elementId: string,
+    timeoutMs: number,
+  ): Promise<void> {
+    const isEnabledExpression = this.elementEnabledExpression(elementId);
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const ready = await session.evaluate<boolean>(isEnabledExpression);
+      if (ready) return;
+      await new Promise<void>((r) => setTimeout(r, POLL_MS));
+    }
+    throw new Error(
+      `Timed out after ${timeoutMs}ms waiting for #${elementId} to be enabled`,
+    );
+  }
+
   private static async dispatchTrustedClickById(
     session: CdpSession,
     elementId: string,
@@ -362,6 +389,18 @@ export default class ChromeCdpHelpers {
     if (!clicked) {
       throw new Error(`CDP: could not click #${elementId}`);
     }
+  }
+
+  /**
+   * Wait until `#elementId` is DOM-enabled, then trusted-click (same CDP session).
+   */
+  private static async waitForEnabledAndClickById(
+    session: CdpSession,
+    elementId: string,
+    timeoutMs = DAPP_PAGE_TIMEOUT_MS,
+  ): Promise<void> {
+    await this.waitForEnabledInSession(session, elementId, timeoutMs);
+    await this.dispatchTrustedClickById(session, elementId);
   }
 
   private static async installDeeplinkCapture(
@@ -871,19 +910,32 @@ export default class ChromeCdpHelpers {
 
   /**
    * Click an element by HTML `id` in the MetaMask in-app WebView.
+   * Waits until the control exists and is not disabled (test-dapp buttons start
+   * disabled until connect / contract deploy), then clicks.
    * Android: CDP trusted click. iOS: Appium WebView context + element.click().
    */
   static async clickByIdInWebView(
     dappUrl: string,
     elementId: string,
+    timeoutMs = DAPP_PAGE_TIMEOUT_MS,
   ): Promise<boolean> {
     if (PlatformDetector.isAndroid()) {
       try {
         await this.withMetaMaskWebViewSession(dappUrl, (session) =>
-          this.dispatchTrustedClickById(session, elementId),
+          this.waitForEnabledAndClickById(session, elementId, timeoutMs),
         );
         return true;
-      } catch {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.debug(`clickByIdInWebView failed for #${elementId}: ${message}`);
+        // Surface enable timeouts — native UiAutomator fallback cannot fix a
+        // control that never becomes DOM-enabled.
+        if (
+          message.includes('Timed out after') &&
+          message.includes('to be enabled')
+        ) {
+          throw error;
+        }
         return false;
       }
     }
@@ -891,6 +943,8 @@ export default class ChromeCdpHelpers {
     try {
       await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
       const el = getDriver().$(`#${elementId}`);
+      await el.waitForExist({ timeout: timeoutMs });
+      await el.waitForEnabled({ timeout: timeoutMs });
       await el.scrollIntoView();
       await el.click();
       await PlaywrightContextHelpers.switchToNativeContext();
@@ -948,34 +1002,16 @@ export default class ChromeCdpHelpers {
   static async waitForElementEnabledByIdInWebView(
     dappUrl: string,
     elementId: string,
-    timeoutMs = 30_000,
+    timeoutMs = DAPP_PAGE_TIMEOUT_MS,
   ): Promise<void> {
-    const isEnabledExpression = `(() => {
-      const el = document.getElementById(${JSON.stringify(elementId)});
-      if (!el) return false;
-      if ('disabled' in el && Boolean(el.disabled)) return false;
-      if (el.getAttribute('aria-disabled') === 'true') return false;
-      return true;
-    })()`;
-
+    const isEnabledExpression = this.elementEnabledExpression(elementId);
     const deadline = Date.now() + timeoutMs;
 
     if (PlatformDetector.isAndroid()) {
-      const enabled = await this.withMetaMaskWebViewSession(
-        dappUrl,
-        async (session) => {
-          while (Date.now() < deadline) {
-            const ready = await session.evaluate<boolean>(isEnabledExpression);
-            if (ready) return true;
-            await new Promise<void>((r) => setTimeout(r, POLL_MS));
-          }
-          return false;
-        },
+      await this.withMetaMaskWebViewSession(dappUrl, (session) =>
+        this.waitForEnabledInSession(session, elementId, timeoutMs),
       );
-      if (enabled) return;
-      throw new Error(
-        `Timed out after ${timeoutMs}ms waiting for #${elementId} to be enabled`,
-      );
+      return;
     }
 
     try {
