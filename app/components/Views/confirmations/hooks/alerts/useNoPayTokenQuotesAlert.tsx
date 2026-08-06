@@ -43,21 +43,29 @@ export function useNoPayTokenQuotesAlert() {
 
   // Controller-backed (not UI-local keypad state), so every hook instance sees
   // the same value. True once a positive amount has reached the controller via
-  // keypad input, prefill, or Max.
+  // keypad input, prefill, or Max. isMaxAmount counts because post-quote flows
+  // substitute the token balance for a zero amountRaw when max is set.
   const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
     (t) =>
       !t.skipIfBalance &&
       (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
   );
 
-  // hasPositiveRequiredAmount keeps the alert quiet during the mount-time
-  // window where payToken is auto-selected and quotes are empty only because
-  // no amount has reached the controller yet.
+  // Deposits set isMaxAmount synchronously (Max / uncapped 100% prefill) before
+  // the debounced amount update pushes amountRaw, and a pre-quote max with a
+  // zero amount never starts quote loading. Gating the non-fiat branch on
+  // amountRaw alone — not isMaxAmount — keeps the alert quiet through that
+  // in-flight window; once the amount lands amountRaw is positive and a genuine
+  // no-quote case still fires.
+  const hasPositiveRequiredTokenAmount = (requiredTokens ?? []).some(
+    (t) => !t.skipIfBalance && Boolean(t.amountRaw) && t.amountRaw !== '0',
+  );
+
   const shouldShowNonFiatNoQuotesAlert =
     payToken &&
     !isQuotesLoading &&
     !quotes?.length &&
-    hasPositiveRequiredAmount;
+    hasPositiveRequiredTokenAmount;
 
   const shouldShowFiatNoQuotesAlert =
     hasSelectedFiatPaymentMethod &&
