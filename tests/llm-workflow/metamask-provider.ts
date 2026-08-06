@@ -172,11 +172,8 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       return false;
     }
 
-    try {
-      await this.adapter?.cleanup();
-    } finally {
-      this.resetSessionState();
-    }
+    await this.adapter?.cleanup();
+    this.resetSessionState();
     return true;
   }
 
@@ -365,7 +362,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
     if (unsupported.length > 0) {
       throw this.createPlatformError(platform, {
-        code: 'MM_LAUNCH_FAILED',
+        code: 'MM_INVALID_CONFIG',
         message:
           'MetaMask Mobile is prod-only and operates on the already-installed wallet. ' +
           `Unsupported E2E launch option(s): ${unsupported.join(', ')}. ` +
@@ -397,11 +394,8 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   private async teardownPartialLaunch(): Promise<void> {
-    try {
-      await this.adapter?.cleanup();
-    } finally {
-      this.resetSessionState();
-    }
+    await this.adapter?.cleanup();
+    this.resetSessionState();
   }
 
   private resetSessionState(): void {
@@ -412,7 +406,6 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     this.activePlatform = undefined;
     this.sessionState = undefined;
     this.sessionMetadata = undefined;
-    this.workflowContext = undefined;
     this.refMap.clear();
   }
 
@@ -456,7 +449,10 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   private createPlatformError(
     platform: MobilePlatform,
     args: {
-      code: 'MM_LAUNCH_FAILED' | 'MM_SESSION_ALREADY_RUNNING';
+      code:
+        | 'MM_LAUNCH_FAILED'
+        | 'MM_SESSION_ALREADY_RUNNING'
+        | 'MM_INVALID_CONFIG';
       message: string;
       remediation?: string;
     },
@@ -467,10 +463,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   private formatLaunchErrorMessage(error: MobileLaunchError): string {
-    const message = `${error.code}: ${error.message}`;
-    return error.remediation
-      ? `${message}\nRemediation: ${error.remediation}`
-      : message;
+    return `${error.code}: ${error.message}`;
   }
 
   private logLaunchMetadata(

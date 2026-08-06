@@ -50,7 +50,7 @@ describe('Android Metro attachment', () => {
     expect(attachment.ownsReverse).toBe(true);
     expect(mockExecFileSync).toHaveBeenCalledWith(
       'adb',
-      ['-s', 'emulator-5554', 'reverse', 'tcp:8081', 'tcp:8081'],
+      ['-s', 'emulator-5554', 'reverse', '--no-rebind', 'tcp:8081', 'tcp:8081'],
       expect.anything(),
     );
     expect(mockExecFileSync).toHaveBeenCalledWith(
@@ -89,7 +89,7 @@ describe('Android Metro attachment', () => {
     expect(attachment.ownsReverse).toBe(false);
     expect(mockExecFileSync).not.toHaveBeenCalledWith(
       'adb',
-      ['-s', 'emulator-5554', 'reverse', 'tcp:8081', 'tcp:8081'],
+      ['-s', 'emulator-5554', 'reverse', '--no-rebind', 'tcp:8081', 'tcp:8081'],
       expect.anything(),
     );
   });
@@ -101,10 +101,10 @@ describe('Android Metro attachment', () => {
 
     await expect(
       attachAndroidMetro('emulator-5554', 8081, fetchImpl),
-    ).rejects.toThrow('conflict');
+    ).rejects.toMatchObject({ code: 'MM_DEVICE_NOT_AVAILABLE' });
     expect(mockExecFileSync).not.toHaveBeenCalledWith(
       'adb',
-      ['-s', 'emulator-5554', 'reverse', 'tcp:8081', 'tcp:8081'],
+      ['-s', 'emulator-5554', 'reverse', '--no-rebind', 'tcp:8081', 'tcp:8081'],
       expect.anything(),
     );
   });
@@ -118,7 +118,10 @@ describe('Android Metro attachment', () => {
 
     await expect(
       attachAndroidMetro('emulator-5554', 8081, fetchImpl),
-    ).rejects.toThrow('not reachable');
+    ).rejects.toMatchObject({
+      code: 'MM_DEVICE_NOT_AVAILABLE',
+      message: expect.stringContaining('Remediation: Run `yarn watch:clean`'),
+    });
     expect(mockExecFileSync).not.toHaveBeenCalled();
   });
 
@@ -132,7 +135,7 @@ describe('Android Metro attachment', () => {
 
       await expect(
         attachAndroidMetro('emulator-5554', 8081, fetchImpl),
-      ).rejects.toThrow('not reachable or not recognized');
+      ).rejects.toMatchObject({ code: 'MM_DEVICE_NOT_AVAILABLE' });
       expect(mockExecFileSync).not.toHaveBeenCalled();
     },
   );
@@ -199,6 +202,80 @@ describe('Android Metro attachment', () => {
     expect(mockExecFileSync).toHaveBeenCalledWith(
       'adb',
       ['-s', 'emulator-5554', 'reverse', '--remove', 'tcp:8081'],
+      expect.anything(),
+    );
+  });
+
+  it('reuses an identical mapping created concurrently after the no-rebind create is rejected', async () => {
+    let listCount = 0;
+    mockExecFileSync.mockImplementation((_file, args) => {
+      const command = (args as string[]).join(' ');
+      if (command.includes('reverse --list')) {
+        listCount += 1;
+        return listCount === 1 ? '' : 'host-16 tcp:8081 tcp:8081\n';
+      }
+      if (command.includes('--no-rebind')) {
+        throw new Error('cannot rebind existing socket');
+      }
+      return '';
+    });
+
+    const attachment = await attachAndroidMetro(
+      'emulator-5554',
+      8081,
+      fetchImpl,
+    );
+
+    expect(attachment.ownsReverse).toBe(false);
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'adb',
+      expect.arrayContaining(['shell', 'am', 'start']),
+      expect.anything(),
+    );
+  });
+
+  it('throws conflict when a different mapping appears after the no-rebind create is rejected', async () => {
+    let listCount = 0;
+    mockExecFileSync.mockImplementation((_file, args) => {
+      const command = (args as string[]).join(' ');
+      if (command.includes('reverse --list')) {
+        listCount += 1;
+        return listCount === 1 ? '' : 'host-16 tcp:8081 tcp:9090\n';
+      }
+      if (command.includes('--no-rebind')) {
+        throw new Error('cannot rebind existing socket');
+      }
+      return '';
+    });
+
+    await expect(
+      attachAndroidMetro('emulator-5554', 8081, fetchImpl),
+    ).rejects.toMatchObject({ code: 'MM_DEVICE_NOT_AVAILABLE' });
+    expect(mockExecFileSync).not.toHaveBeenCalledWith(
+      'adb',
+      expect.arrayContaining(['shell', 'am', 'start']),
+      expect.anything(),
+    );
+  });
+
+  it('propagates the create error when the port is still unmapped after a no-rebind failure', async () => {
+    mockExecFileSync.mockImplementation((_file, args) => {
+      const command = (args as string[]).join(' ');
+      if (command.includes('reverse --list')) {
+        return '';
+      }
+      if (command.includes('--no-rebind')) {
+        throw new Error('adb: device offline');
+      }
+      return '';
+    });
+
+    await expect(
+      attachAndroidMetro('emulator-5554', 8081, fetchImpl),
+    ).rejects.toThrow('device offline');
+    expect(mockExecFileSync).not.toHaveBeenCalledWith(
+      'adb',
+      expect.arrayContaining(['shell', 'am', 'start']),
       expect.anything(),
     );
   });

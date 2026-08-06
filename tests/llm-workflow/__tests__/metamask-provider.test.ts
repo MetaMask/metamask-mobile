@@ -221,15 +221,38 @@ describe('MetaMaskMobileSessionManager', () => {
     await launchPromise;
   });
 
-  it('delegates cleanup to the active adapter and resets state', async () => {
+  it('delegates cleanup to the active adapter, resets session state, and retains workflow capabilities', async () => {
+    const stateSnapshot = {} as StateSnapshotCapability;
+    manager.setWorkflowContext({ stateSnapshot } as WorkflowContext);
     await manager.launch(createLaunchInput());
 
     await expect(manager.cleanup()).resolves.toBe(true);
     expect(iosCleanup).toHaveBeenCalledTimes(1);
     expect(manager.hasActiveSession()).toBe(false);
+    expect(manager.getStateSnapshotCapability()).toBe(stateSnapshot);
+    expect(manager.getContextInfo().capabilities.available).toEqual([
+      'stateSnapshot',
+    ]);
   });
 
-  it('delegates partial-failure teardown and resets state', async () => {
+  it('keeps the session after a failed adapter cleanup and fully resets after a subsequent successful one', async () => {
+    await manager.launch(createLaunchInput());
+    expect(manager.hasActiveSession()).toBe(true);
+
+    iosCleanup.mockRejectedValueOnce(new Error('cleanup failed'));
+
+    await expect(manager.cleanup()).rejects.toThrow('cleanup failed');
+    expect(manager.hasActiveSession()).toBe(true);
+    expect(iosCleanup).toHaveBeenCalledTimes(1);
+
+    await expect(manager.cleanup()).resolves.toBe(true);
+    expect(manager.hasActiveSession()).toBe(false);
+    expect(iosCleanup).toHaveBeenCalledTimes(2);
+  });
+
+  it('delegates partial-failure teardown, resets session state, and retains workflow capabilities', async () => {
+    const stateSnapshot = {} as StateSnapshotCapability;
+    manager.setWorkflowContext({ stateSnapshot } as WorkflowContext);
     iosLaunch.mockRejectedValueOnce(new Error('launch failed'));
 
     await expect(manager.launch(createLaunchInput())).rejects.toMatchObject({
@@ -239,6 +262,10 @@ describe('MetaMaskMobileSessionManager', () => {
     });
     expect(iosCleanup).toHaveBeenCalledTimes(1);
     expect(manager.hasActiveSession()).toBe(false);
+    expect(manager.getStateSnapshotCapability()).toBe(stateSnapshot);
+    expect(manager.getContextInfo().capabilities.available).toEqual([
+      'stateSnapshot',
+    ]);
   });
 
   it('wraps unknown iOS adapter errors as IOSLaunchError', async () => {
@@ -259,6 +286,27 @@ describe('MetaMaskMobileSessionManager', () => {
     await expect(launch).rejects.toBeInstanceOf(AndroidLaunchError);
     expect(androidCleanup).toHaveBeenCalledTimes(1);
     expect(iosCleanup).not.toHaveBeenCalled();
+  });
+
+  it('preserves Android error remediation in the message returned to the CLI', async () => {
+    androidLaunch.mockRejectedValueOnce(
+      new AndroidLaunchError({
+        code: 'MM_DEVICE_NOT_AVAILABLE',
+        message: 'No online authorized Android emulator was found.',
+        remediation: 'Start one Android emulator.',
+      }),
+    );
+
+    await expect(
+      manager.launch(
+        createLaunchInput({ platform: 'android', deviceId: 'emulator-5554' }),
+      ),
+    ).rejects.toMatchObject({
+      code: 'MM_DEVICE_NOT_AVAILABLE',
+      message:
+        'No online authorized Android emulator was found.\nRemediation: Start one Android emulator.',
+      remediation: 'Start one Android emulator.',
+    });
   });
 
   it('preserves the original launch error when partial cleanup also fails', async () => {
@@ -288,7 +336,7 @@ describe('MetaMaskMobileSessionManager', () => {
       await expect(
         manager.launch(createLaunchInput(unsupported)),
       ).rejects.toMatchObject({
-        code: 'MM_LAUNCH_FAILED',
+        code: 'MM_INVALID_CONFIG',
         message: expect.stringContaining('Unsupported E2E launch option'),
       });
       expect(createIOSAdapter).not.toHaveBeenCalled();

@@ -47,16 +47,14 @@ export async function attachAndroidMetro(
   );
   if (existing && existing.local !== expected) {
     throw new AndroidLaunchError({
-      code: 'MM_ANDROID_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: `ADB reverse conflict for ${expected}: currently targets ${existing.local}.`,
       remediation: `Remove or change the existing reverse mapping for ${expected}.`,
     });
   }
 
-  const ownsReverse = existing === undefined;
-  if (ownsReverse) {
-    runDeviceAdb(serial, ['reverse', expected, expected]);
-  }
+  const ownsReverse =
+    existing === undefined ? createOwnedReverse(serial, expected) : false;
 
   const attachment = { serial, metroPort, ownsReverse };
   try {
@@ -83,6 +81,29 @@ export async function attachAndroidMetro(
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
+function createOwnedReverse(serial: string, expected: string): boolean {
+  try {
+    runDeviceAdb(serial, ['reverse', '--no-rebind', expected, expected]);
+    return true;
+  } catch (createError) {
+    const current = findPortMapping(
+      parseReverseMappings(runDeviceAdb(serial, ['reverse', '--list'])),
+      expected,
+    );
+    if (current === undefined) {
+      throw createError;
+    }
+    if (current.local !== expected) {
+      throw new AndroidLaunchError({
+        code: 'MM_DEVICE_NOT_AVAILABLE',
+        message: `ADB reverse conflict for ${expected}: currently targets ${current.local}.`,
+        remediation: `Remove or change the existing reverse mapping for ${expected}.`,
+      });
+    }
+    return false;
+  }
 }
 
 export function cleanupAndroidMetro(attachment: AndroidMetroAttachment): void {
@@ -141,7 +162,7 @@ async function validateMetro(
     }
   } catch {
     throw new AndroidLaunchError({
-      code: 'MM_ANDROID_RUNNER_NOT_READY',
+      code: 'MM_DEVICE_NOT_AVAILABLE',
       message: `Metro bundler not reachable or not recognized on port ${metroPort}.`,
       remediation: 'Run `yarn watch:clean` in another terminal.',
     });

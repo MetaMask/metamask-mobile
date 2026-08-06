@@ -97,7 +97,7 @@ function rejectUnsupportedLifecycleOptions(input: SessionLaunchInput): void {
   ].filter((value): value is string => value !== undefined);
   if (unsupported.length > 0) {
     throw new AndroidLaunchError({
-      code: 'MM_LAUNCH_FAILED',
+      code: 'MM_INVALID_CONFIG',
       message: `Android reuses the installed io.metamask app. Unsupported APK lifecycle option(s): ${unsupported.join(', ')}.`,
     });
   }
@@ -180,7 +180,7 @@ export function assertNoDeviceSessionOverride(): void {
   ]);
   if ([...candidates].some((candidate) => existsSync(candidate))) {
     throw new AndroidLaunchError({
-      code: 'MM_ANDROID_BACKEND_INTEGRITY',
+      code: 'MM_INVALID_CONFIG',
       message:
         'A .device-session override is present and could replace the required ADB backend.',
       remediation:
@@ -191,7 +191,7 @@ export function assertNoDeviceSessionOverride(): void {
 
 function throwRunnerError(message: string): never {
   throw new AndroidLaunchError({
-    code: 'MM_ANDROID_RUNNER_NOT_READY',
+    code: 'MM_DEVICE_NOT_AVAILABLE',
     message,
     remediation:
       'Start one Android emulator, wait for it to boot, authorize it, and verify `adb devices -l` reports state `device`.',

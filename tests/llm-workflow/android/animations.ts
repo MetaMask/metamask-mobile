@@ -58,11 +58,25 @@ export function restoreAndroidAnimations(
   state: AndroidAnimationState,
   runDeviceAdb: RunDeviceAdb = defaultRunDeviceAdb,
 ): void {
+  const errors: Error[] = [];
   for (const [setting, value] of state.previous) {
-    if (value === 'null') {
-      runDeviceAdb(state.serial, ['shell', 'settings', 'delete', 'global', setting]);
-    } else {
-      runDeviceAdb(state.serial, ['shell', 'settings', 'put', 'global', setting, value]);
+    try {
+      if (value === 'null') {
+        runDeviceAdb(state.serial, ['shell', 'settings', 'delete', 'global', setting]);
+      } else {
+        runDeviceAdb(state.serial, ['shell', 'settings', 'put', 'global', setting, value]);
+      }
+    } catch (error) {
+      errors.push(error instanceof Error ? error : new Error(String(error)));
     }
+  }
+  if (errors.length === 1) {
+    throw errors[0];
+  }
+  if (errors.length > 1) {
+    throw new AggregateError(
+      errors,
+      'Failed to restore one or more Android animation settings',
+    );
   }
 }
