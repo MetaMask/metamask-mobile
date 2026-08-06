@@ -1,6 +1,7 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
   type InputMethod,
+  type Order,
   type OrderParams,
   type OrderType,
   type Position,
@@ -147,3 +148,51 @@ export const buildPerpsOrderParams = ({
   ...(stopLossPrice?.trim() ? { stopLossPrice } : {}),
   trackingData,
 });
+
+export interface BuildEditOrderParamsInput {
+  order: Order;
+  newLimitPrice?: string;
+  newSize?: string;
+  leverage?: number;
+  trackingData: OrderTrackingData;
+}
+
+/**
+ * Builds controller `OrderParams` for editing an existing limit order.
+ * Unspecified fields are taken from the open order.
+ */
+export const buildEditOrderParamsFromOrder = ({
+  order,
+  newLimitPrice,
+  newSize,
+  leverage,
+  trackingData,
+}: BuildEditOrderParamsInput): OrderParams => {
+  const limitPrice = newLimitPrice ?? order.price ?? '';
+  const parsedPrice = Number.parseFloat(limitPrice);
+  const size =
+    newSize ?? order.remainingSize ?? order.originalSize ?? order.size;
+
+  return {
+    symbol: order.symbol,
+    isBuy: order.side === 'buy',
+    size,
+    orderType: 'limit',
+    currentPrice: parsedPrice,
+    priceAtCalculation: parsedPrice,
+    maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps,
+    price: limitPrice,
+    ...(typeof leverage === 'number' && leverage > 0 ? { leverage } : {}),
+    ...(order.reduceOnly ? { reduceOnly: true } : {}),
+    // Carry TP/SL prices through params for parity with placement flows. The
+    // HyperLiquid modify wire payload does not read these fields today; size
+    // edits on orders with attached TP/SL are blocked separately in the app.
+    ...(order.takeProfitPrice?.trim()
+      ? { takeProfitPrice: order.takeProfitPrice }
+      : {}),
+    ...(order.stopLossPrice?.trim()
+      ? { stopLossPrice: order.stopLossPrice }
+      : {}),
+    trackingData,
+  };
+};

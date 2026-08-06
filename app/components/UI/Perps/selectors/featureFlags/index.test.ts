@@ -2085,6 +2085,21 @@ describe('Perps Feature Flag Selectors', () => {
       );
       expect(result).toBe(false);
     });
+
+    it('returns false when remote flag is missing', () => {
+      const result = selectPerpsProModeEnabledFlag({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('selectPerpsRecentlyAddedEnabledFlag', () => {

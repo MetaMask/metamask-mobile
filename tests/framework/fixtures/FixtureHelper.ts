@@ -22,7 +22,7 @@ import {
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
-import TestHelpers from '../../helpers';
+import { launchApp as launchDetoxApp } from '../detox/DetoxAppLaunch';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
@@ -71,6 +71,12 @@ import {
 } from '../../websocket/account-activity-mocks';
 import { FrameworkDetector } from '../FrameworkDetector';
 import { DeviceCommandHandler } from '../services/device-commands';
+import {
+  getPhaseTimer,
+  recordPhase,
+  startPhase,
+  stopPhase,
+} from '../telemetry/PhaseTimer';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -542,9 +548,6 @@ export async function withFixtures(
   // This ensures we start with a clean slate on Android
   await cleanupAllAndroidPortForwarding();
 
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
-
   // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
   // Resources must be started in this specific order to ensure ports are allocated
   // before they're referenced by subsequent resources, especially in testSpecificMock.
@@ -577,6 +580,8 @@ export async function withFixtures(
   let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
 
   try {
+    startPhase('servers_start');
+
     // Step 1: Start local nodes (Anvil/Ganache)
     if (!disableLocalNodes) {
       localNodes = await handleLocalNodes(localNodeOptions);
@@ -636,6 +641,10 @@ export async function withFixtures(
         commandQueueServer,
       );
     }
+
+    // End servers_start before soft-reload / device launch phases.
+    stopPhase();
+
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
@@ -647,7 +656,7 @@ export async function withFixtures(
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
-        await TestHelpers.launchApp({
+        await launchDetoxApp({
           delete: true,
           launchArgs: {
             fixtureServerPort: isAndroid
@@ -695,6 +704,10 @@ export async function withFixtures(
           launchArgs: testArgs,
           fixtureServer,
         });
+        recordPhase('app_clear', softReloadResult.clearAppDataMs);
+        recordPhase('context_reset', softReloadResult.contextResetMs);
+        recordPhase('app_launch', softReloadResult.launchAppMs);
+        recordPhase('fixture_bootstrap', softReloadResult.fixtureBootstrapMs);
         if (softReloadResult.attemptedMetroDevLauncherDismissal) {
           didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
         }
@@ -726,6 +739,7 @@ export async function withFixtures(
       }
     }
 
+    startPhase('test_body');
     await testSuite({
       contractRegistry,
       mockServer: mockServerInstance.server,
@@ -733,10 +747,15 @@ export async function withFixtures(
       commandQueueServer,
       deviceCommands,
     });
+    stopPhase();
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
   } finally {
+    // Prefer teardown phase even if test_body / login left a phase open.
+    if (getPhaseTimer()) {
+      startPhase('teardown');
+    }
     const cleanupErrors: Error[] = [];
 
     if (endTestfn) {
@@ -881,6 +900,8 @@ export async function withFixtures(
     }
 
     // Handle error reporting: prioritize test error over cleanup errors
+    stopPhase();
+
     if (testError && cleanupErrors.length > 0) {
       // Both test and cleanup failed - report both but throw the test error
       const cleanupErrorMessages = cleanupErrors

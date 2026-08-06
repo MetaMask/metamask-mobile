@@ -10,8 +10,14 @@ import {
   Checkbox,
   IconName,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import React, { useMemo, useState } from 'react';
+import {
+  getPerpsDisplaySymbol,
+  type Order,
+  type PerpsMarketData,
+  type Position,
+} from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import React, { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
@@ -50,8 +56,19 @@ import {
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
 
+/** Which Pro panel tab a market-switch row tap came from. */
+export type ProPositionsPanelSourceSection =
+  | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
+  | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS;
+
 interface PerpsProPositionsPanelProps {
+  /** Active market symbol, which may carry a `dex:` prefix for HIP-3 markets. */
   symbol: string;
+  /** Switches the screen to the market of a tapped position/order row. */
+  onSelectMarket?: (
+    market: PerpsMarketData | Partial<PerpsMarketData>,
+    sourceSection: ProPositionsPanelSourceSection,
+  ) => void;
 }
 
 /**
@@ -67,7 +84,10 @@ interface PerpsProPositionsPanelProps {
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
  * both from those results so filter state never swaps data freshness sources.
  */
-const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
+const PerpsProPositionsPanel = ({
+  symbol,
+  onSelectMarket,
+}: PerpsProPositionsPanelProps) => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
@@ -91,13 +111,52 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     handleEditPositionTpSl,
     handleEditPositionMargin,
     handleCancelOrder,
+    handleEditOrderPrice,
+    handleEditOrderSize,
     handleCloseAllPress,
     cancelingOrderId,
+    editingOrderId,
     isOrderCancelable,
+    isOrderEditable,
+    isOrderSizeEditable,
     isPositionMarginEditable,
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
   const { markets } = usePerpsMarkets();
+
+  const displaySymbol = getPerpsDisplaySymbol(symbol);
+
+  // Rows carry only a symbol, so resolve the full market here where the list is
+  // already loaded; the caller falls back to enriching a symbol-only market.
+  const selectMarketBySymbol = useCallback(
+    (nextSymbol: string, sourceSection: ProPositionsPanelSourceSection) => {
+      onSelectMarket?.(
+        markets.find((market) => market.symbol === nextSymbol) ?? {
+          symbol: nextSymbol,
+        },
+        sourceSection,
+      );
+    },
+    [markets, onSelectMarket],
+  );
+
+  const handleSelectPositionMarket = useCallback(
+    (position: Position) =>
+      selectMarketBySymbol(
+        position.symbol,
+        PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+      ),
+    [selectMarketBySymbol],
+  );
+
+  const handleSelectOrderMarket = useCallback(
+    (order: Order) =>
+      selectMarketBySymbol(
+        order.symbol,
+        PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+      ),
+    [selectMarketBySymbol],
+  );
 
   const fundingRatesBySymbol = useMemo(
     () =>
@@ -110,9 +169,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
   const visiblePositions = useMemo(
     () =>
       isTickerOnly
-        ? positions.filter(
-            (position) => getPerpsDisplaySymbol(position.symbol) === symbol,
-          )
+        ? positions.filter((position) => position.symbol === symbol)
         : positions,
     [isTickerOnly, positions, symbol],
   );
@@ -178,7 +235,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
     hasAnyPositions &&
     visiblePositions.length === 0 &&
     !isSideFilterEmpty
-      ? symbol
+      ? displaySymbol
       : undefined;
 
   const renderPositionsTab = () => {
@@ -195,6 +252,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
               key={position.symbol}
               position={position}
               testID={getPerpsProPositionRowSelector(position.symbol)}
+              onPress={onSelectMarket ? handleSelectPositionMarket : undefined}
               onClose={handleClosePosition}
               onReverse={handleReversePosition}
               onShare={handleSharePosition}
@@ -231,9 +289,24 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
               key={order.orderId}
               order={order}
               testID={getPerpsProOrderRowSelector(order.symbol, index)}
+              onPress={onSelectMarket ? handleSelectOrderMarket : undefined}
               onCancel={handleCancelOrder}
+              onEditPrice={handleEditOrderPrice}
+              onEditSize={handleEditOrderSize}
               isCancelDisabled={
-                !isOrderCancelable(order) || cancelingOrderId !== null
+                !isOrderCancelable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
+              }
+              isEditPriceDisabled={
+                !isOrderEditable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
+              }
+              isEditSizeDisabled={
+                !isOrderSizeEditable(order) ||
+                cancelingOrderId !== null ||
+                editingOrderId !== null
               }
             />
           ))}
@@ -295,7 +368,7 @@ const PerpsProPositionsPanel = ({ symbol }: PerpsProPositionsPanelProps) => {
           </Button>
           <Checkbox
             label={strings('perps.pro_positions_panel.ticker_only', {
-              ticker: symbol,
+              ticker: displaySymbol,
             })}
             isSelected={isTickerOnly}
             onChange={setIsTickerOnly}

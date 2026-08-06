@@ -160,6 +160,22 @@ export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
 
 /**
+ * Retry policy for per-asset market-data fetches (TAT-3645).
+ *
+ * `getMarkets` throws while the Perps connection is still initialising (e.g.
+ * `CLIENT_NOT_INITIALIZED` right after unlocking, or during a reconnect). That
+ * is transient, not a verdict about the asset, so the fetch is retried across
+ * the initialisation window instead of being surfaced as a failure. The total
+ * budget comfortably covers a provider re-initialisation, which is ~1.5s.
+ */
+export const MARKET_DATA_FETCH_RETRY_CONFIG = {
+  /** Extra attempts after the first, when the fetch throws. */
+  MaxRetries: 3,
+  /** Delay between attempts. */
+  RetryDelayMs: 1000,
+} as const;
+
+/**
  * Development-only configuration for testing and debugging
  * These constants are only active when __DEV__ is true
  */

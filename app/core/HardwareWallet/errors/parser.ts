@@ -246,7 +246,14 @@ export const LOCAL_MESSAGE_PATTERNS: {
   condition?: (msg: string) => boolean;
 }[] = [
   {
-    patterns: ['disconnect', 'connection lost'],
+    // Ledger devices can only sign EIP-712 typed data with version V4.
+    // The keyring throws "Ledger: Only version 4 of typed data signing is
+    // supported" for V1/V3 requests.
+    patterns: ['version 4 of typed data', 'only version 4'],
+    code: ErrorCode.DeviceStateOnlyV4Supported,
+  },
+  {
+    patterns: ['disconnected', 'disconnect', 'connection lost'],
     code: ErrorCode.DeviceDisconnected,
   },
   { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
@@ -255,7 +262,7 @@ export const LOCAL_MESSAGE_PATTERNS: {
     code: ErrorCode.AuthenticationDeviceLocked,
   },
   {
-    patterns: ['blind sign', 'contract data'],
+    patterns: ['blind signing', 'blind sign', 'contract data'],
     code: ErrorCode.DeviceStateBlindSignNotSupported,
   },
   {
