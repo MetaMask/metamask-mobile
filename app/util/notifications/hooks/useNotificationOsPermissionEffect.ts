@@ -1,40 +1,40 @@
 import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { useSelector } from 'react-redux';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../selectors/notifications';
 import { syncPushNotificationOsPermission } from '../utils/push-notification-os-permission-sync';
 
 /**
- * Syncs the push OS-permission state after changes made while the app was away.
+ * Keeps the push OS-permission snapshot in sync (see
+ * syncPushNotificationOsPermission) by running the sync whenever its inputs
+ * may have changed:
  *
- * Runs the sync once on mount (covers a cold start after the user disabled
- * notifications in the system settings) and again on every
- * background -> active transition (covers the user leaving to the settings and
- * coming back). The intermediate iOS `inactive` state (e.g. system dialogs) is
- * ignored so returning from it is not treated as a fresh app open.
+ * - when the push controller flips `isPushEnabled` — push registration
+ * completes asynchronously, well after the in-app enable/disable helpers
+ * resolve, so reacting to the actual flip is the only reliable point to
+ * arm/clear the snapshot. The same effect covers the mount / cold-start
+ * check (a system-settings change made while the app was closed).
+ * - on every transition to `active` — covers returning from the system
+ * settings (background -> active) and from the OS permission dialog, which
+ * on iOS only makes the app `inactive`, never `background`.
  */
 export function useNotificationOsPermissionEffect() {
+  const isPushEnabled = useSelector(selectIsMetaMaskPushNotificationsEnabled);
   const lastAppState = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
-    // Cold-start / mount check.
     syncPushNotificationOsPermission();
+  }, [isPushEnabled]);
 
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active' && lastAppState.current === 'background') {
-        syncPushNotificationOsPermission();
-      }
-
-      // Don't overwrite 'background' with the intermediate 'inactive' state so
-      // the background -> active check above still sees the original background.
-      if (
-        !(nextAppState === 'inactive' && lastAppState.current === 'background')
-      ) {
-        lastAppState.current = nextAppState;
-      }
-    };
-
+  useEffect(() => {
     const subscription = AppState.addEventListener(
       'change',
-      handleAppStateChange,
+      (nextAppState: AppStateStatus) => {
+        if (nextAppState === 'active' && lastAppState.current !== 'active') {
+          syncPushNotificationOsPermission();
+        }
+        lastAppState.current = nextAppState;
+      },
     );
 
     return () => {

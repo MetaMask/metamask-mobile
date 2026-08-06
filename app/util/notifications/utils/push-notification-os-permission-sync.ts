@@ -25,11 +25,9 @@ const writeStoredEffectivePushState = (value: boolean): void =>
     value,
   );
 
-// Read push-enabled from the controller directly, NOT the Redux selector.
-// Controller state changes reach Redux through a 250ms batcher, so a selector
-// read right after enablePushNotifications/enableMetamaskNotifications would
-// see a stale `false`. The controller sets its own state synchronously during
-// the awaited enable, so it is authoritative here.
+// Read push-enabled from the controller directly rather than Redux so the
+// value is live at the moment the queued sync actually runs — Redux lags
+// controller state through a 250ms batcher.
 const isControllerPushEnabled = (): boolean =>
   Boolean(
     Engine.context.NotificationServicesPushController?.state?.isPushEnabled,
@@ -85,10 +83,10 @@ const runSync = async (): Promise<void> => {
   }
 };
 
-// Serialize syncs so overlapping runs (mount + background→active, or an
-// enable helper racing the resume check) cannot both observe the same stored
-// snapshot and emit duplicate events. Tasks never reject (runSync catches
-// internally), so the chain cannot get stuck.
+// Serialize syncs so overlapping runs (an isPushEnabled flip racing a
+// foreground transition) cannot both observe the same stored snapshot and
+// emit duplicate events. Tasks never reject (runSync catches internally), so
+// the chain cannot get stuck.
 let inFlight: Promise<void> = Promise.resolve();
 
 /**
@@ -104,9 +102,12 @@ let inFlight: Promise<void> = Promise.resolve();
  * - in-app disable: silently clears the snapshot so a later OS-level change is
  * not misreported as a revocation.
  *
- * Call it whenever the effective state may have changed: after the in-app
- * enable/disable helpers, on mount (cold start after a settings change), and
- * on background -> active transitions.
+ * Call it whenever the effective state may have changed. Note that the in-app
+ * enable/disable helpers resolve BEFORE the controller flips `isPushEnabled`
+ * (push registration is fire-and-forget inside the controller), so syncing
+ * from those helpers is too early — useNotificationOsPermissionEffect instead
+ * reacts to the actual `isPushEnabled` change, plus mount and every return to
+ * the `active` app state.
  */
 export const syncPushNotificationOsPermission = (): Promise<void> => {
   inFlight = inFlight.then(runSync, runSync);

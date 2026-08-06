@@ -5,7 +5,6 @@ import type {
 } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { syncPushNotificationOsPermission } from '../../../util/notifications/utils/push-notification-os-permission-sync';
 
 const CLIENT_TYPE = 'mobile' as const;
 const GET_NOTIFICATION_PREFERENCES_ACTION =
@@ -55,7 +54,6 @@ export const enableNotifications = async (
   await Engine.context.NotificationServicesController.enableMetamaskNotifications(
     options,
   );
-  await syncPushNotificationOsPermission();
 };
 
 /**
@@ -103,7 +101,6 @@ export const setMarketingNotificationPreferencesEnabled = async (
 export const disableNotifications = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.disableNotificationServices();
-  await syncPushNotificationOsPermission();
 };
 
 /**
@@ -114,7 +111,6 @@ export const disableNotifications = async () => {
 export const enablePushNotifications = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.enablePushNotifications();
-  await syncPushNotificationOsPermission();
 };
 
 /**
@@ -124,7 +120,6 @@ export const enablePushNotifications = async () => {
 export const disablePushNotifications = async () => {
   assertIsFeatureEnabled();
   await Engine.context.NotificationServicesController.disablePushNotifications();
-  await syncPushNotificationOsPermission();
 };
 
 /**
