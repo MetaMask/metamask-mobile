@@ -464,6 +464,150 @@ jobs:
             echo "📦 Setting up project (lightweight, skips jetify)..."
             yarn setup:github-ci --no-build-ios --no-build-android
 
+      # Roughly four and a half minutes elapse between the lookup near the top of
+      # this job and the build step below, spent on the Android toolchain and
+      # dependency install. A donor can finish uploading inside that window: the
+      # native build publishes its APKs well before its run ends, so a run that had
+      # nothing to offer at lookup time may have complete artifacts by now. Re-check
+      # before committing to a ~18 minute compile. This costs one lookup on the path
+      # that was about to be the expensive one, and adds no waiting — it only
+      # harvests a donor that appeared while we were busy anyway.
+      #
+      # Deliberately placed *before* the Gradle cache restores rather than directly
+      # before the build, which is where the iOS equivalent sits. "Restore Gradle
+      # dependencies from branch cache" below is `cirruslabs/cache` (not `/restore`),
+      # so it saves at post-job whenever its key missed. Today a miss is always
+      # followed by a compile, so what it saves is populated; if a late reuse could
+      # skip the compile after that step had run, the post-job save would write a
+      # near-empty tree under `gradle-${{ github.ref_name }}-…` — a key that on
+      # `main` is identical to the shared `gradle-main-…` key every other branch
+      # falls back to. Running the re-check first, and gating both restores on it,
+      # removes that possibility and skips the cache download too. The cost is ~27
+      # seconds of harvest window out of ~4.5 minutes.
+      - name: Re-check for a reusable build published since the first lookup
+        id: find-reusable-build-late
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false && steps.gate.outputs.needs-native-build == 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source-fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
+          github-token: ${{ github.token }}
+          main-branch-only: ${{ inputs.reuse-main-builds-only }}
+          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
+
+      - name: Download late reusable Android build metadata
+        id: download-late-metadata
+        if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-reusable-metadata/android-late
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      # Same acceptance criteria as the first lookup's validation. A late donor is
+      # held to an identical standard; the only difference is when it was found.
+      # Failures here are logged plainly rather than via `::warning::` — not finding
+      # a late donor is the ordinary outcome and should not annotate the run.
+      - name: Validate late reusable Android build metadata
+        id: validate-late-metadata
+        if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
+        shell: bash
+        env:
+          EXPECTED_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          EXPECTED_BUILD_TYPE: ${{ inputs.build_type }}
+          EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          EXPECTED_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
+          EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          METADATA_FILE: .e2e-reusable-metadata/android-late/android.json
+        run: |
+          set -euo pipefail
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ steps.download-late-metadata.outcome }}" != "success" ]]; then
+            echo "Late reusable Android metadata download failed; continuing with the fresh native build."
+            exit 0
+          fi
+          if [[ ! -f "$METADATA_FILE" ]]; then
+            echo "Late reusable Android metadata file missing at $METADATA_FILE; continuing with the fresh native build."
+            exit 0
+          fi
+          if jq -e \
+            --arg fingerprint "$EXPECTED_FINGERPRINT" \
+            --arg buildType "$EXPECTED_BUILD_TYPE" \
+            --arg metamaskEnvironment "$EXPECTED_METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$EXPECTED_RUN_ID" \
+            --arg headSha "$EXPECTED_HEAD_SHA" \
+            --argjson artifactNames "$EXPECTED_ARTIFACTS" \
+            '.schemaVersion == 1
+              and .fingerprint == $fingerprint
+              and .platform == "android"
+              and .buildType == $buildType
+              and .metamaskEnvironment == $metamaskEnvironment
+              and .workflowRunId == $workflowRunId
+              and .headSha == $headSha
+              and .artifactNames == $artifactNames' "$METADATA_FILE" >/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Late reusable Android metadata is valid."
+          else
+            echo "Late reusable Android metadata did not match current build request; continuing with the fresh native build."
+            cat "$METADATA_FILE"
+          fi
+
+      # Defensive, not load-bearing. The iOS equivalent of this step is required
+      # there because `actions/download-artifact` merges into its destination and the
+      # iOS payload is a `.app` *directory* bundle, so a stale one would blend with
+      # the donor's. An APK is a single file that the extraction overwrites whole.
+      # Nothing on this path should have written these files either: the Cirrus APK
+      # caches above only restore when the first lookup found nothing, and a hit
+      # there forces `needs-native-build=false`, which this step cannot be reached
+      # under. Kept as cheap insurance against a partial restore — if the download
+      # then fails, the compile still runs and regenerates both files.
+      - name: Clear any stale Android APKs before the late download
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' }}
+        shell: bash
+        env:
+          APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          TEST_APK_TARGET: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          ARTIFACT_NAME: ${{ steps.determine-target-paths.outputs.artifact_name }}
+        run: rm -f "${APK_TARGET}/${ARTIFACT_NAME}.apk" "${TEST_APK_TARGET}/${ARTIFACT_NAME}-androidTest.apk"
+
+      - name: Download late reusable APK
+        id: download-late-apk
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      - name: Download late reusable androidTest APK
+        id: download-late-test-apk
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      - name: Log late-reused Android build source
+        if: ${{ steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success' }}
+        shell: bash
+        run: |
+          echo "A reusable Android build appeared while this job was setting up; skipping the native compile."
+          echo "Reusing Android build from run ${{ steps.find-reusable-build-late.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build-late.outputs.source-branch }}"
+
       # -------------------------------------------------------------------------
       # Gradle caches + native build — only on the full native-build path.
       # -------------------------------------------------------------------------
@@ -476,7 +620,7 @@ jobs:
         id: gradle-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -491,7 +635,7 @@ jobs:
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -511,8 +655,10 @@ jobs:
           echo "init-script=$RUNNER_TEMP/namespace-gradle-init.gradle" >> "$GITHUB_OUTPUT"
         shell: bash
 
+      # Both downloads must have succeeded to skip the compile — a half-downloaded
+      # donor leaves the job without a test APK, so it falls through to a full build.
       - name: Build Android E2E APKs
-        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         run: |
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=4096"
@@ -582,8 +728,10 @@ jobs:
           printf '%s\n' "${EXPECTED}" > "${CACHE_DIR}/.e2e-apk-cache-marker"
           echo "Namespace APK cache marker + APKs written to ${CACHE_DIR}."
 
+      # A late-reused APK carries the donor's JS bundle, not this branch's, so a late
+      # reuse must repack exactly like an early one.
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' && inputs.reuse-main-builds-only != true }}
+        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || (steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success')) }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
