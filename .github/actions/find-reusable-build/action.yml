@@ -260,6 +260,37 @@ runs:
           const seenRunIds = new Set();
           seenRunIds.add(currentRunId);
 
+          // Rate-limit accounting. The `/rate_limit` endpoint is itself free, so
+          // reading it before and after the search costs nothing and tells us how
+          // much of the hourly core budget one lookup actually consumes.
+          async function readRateLimit() {
+            try {
+              const { data } = await github.rest.rateLimit.get();
+              return data.resources.core;
+            } catch (err) {
+              core.info(`rateLimit.get failed: ${err.message}`);
+              return null;
+            }
+          }
+
+          const rateLimitBefore = await readRateLimit();
+
+          async function logRateLimit() {
+            const after = await readRateLimit();
+            if (!after) return;
+            const used = rateLimitBefore ? rateLimitBefore.remaining - after.remaining : null;
+            const resetAt = new Date(after.reset * 1000).toISOString();
+            core.info(
+              `Rate limit (core): ${after.remaining}/${after.limit} remaining, ` +
+              `${used === null ? 'unknown' : used} request(s) used by this lookup, resets at ${resetAt}`,
+            );
+            if (after.remaining < after.limit * 0.1) {
+              core.warning(
+                `GitHub API core rate limit is low: ${after.remaining}/${after.limit} remaining until ${resetAt}`,
+              );
+            }
+          }
+
           // Each tier is swept once per run status below, applied server-side via
           // the `status` filter so that a single crowded page of recent runs can't
           // consume a tier's candidate window. On a busy repo the newest runs are
@@ -346,9 +377,11 @@ runs:
               core.setOutput('run-id', String(match.id));
               core.setOutput('source-sha', match.head_sha);
               core.setOutput('source-branch', match.head_branch || '');
+              await logRateLimit();
               return;
             }
           }
 
           core.info('No reusable build found across any tier');
+          await logRateLimit();
           setNotFound();
