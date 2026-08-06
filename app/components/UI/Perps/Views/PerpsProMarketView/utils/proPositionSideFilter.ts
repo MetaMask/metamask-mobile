@@ -1,4 +1,5 @@
-import type { Position } from '@metamask/perps-controller';
+import type { Order, Position } from '@metamask/perps-controller';
+import { getOrderPositionDirection } from '../../../utils/orderUtils';
 
 export type ProPositionSideFilter = 'all' | 'long' | 'short';
 
@@ -41,6 +42,23 @@ export const filterProPositionsBySide = (
   );
 };
 
+/**
+ * Filters orders by the position direction they create or reduce.
+ * Returns the original array when filter is `all`.
+ */
+export const filterProOrdersBySide = (
+  orders: Order[],
+  sideFilter: ProPositionSideFilter,
+): Order[] => {
+  if (sideFilter === 'all') {
+    return orders;
+  }
+
+  return orders.filter(
+    (order) => getOrderPositionDirection(order) === sideFilter,
+  );
+};
+
 export const getProPositionSideFilterButtonLabelKey = (
   sideFilter: ProPositionSideFilter,
 ): string => {
@@ -62,6 +80,19 @@ export const getProPositionSideFilterEmptyDescriptionKey = (
       return 'perps.pro_positions_panel.positions_empty_long';
     case 'short':
       return 'perps.pro_positions_panel.positions_empty_short';
+    default:
+      return undefined;
+  }
+};
+
+export const getProOrderSideFilterEmptyDescriptionKey = (
+  sideFilter: ProPositionSideFilter,
+): string | undefined => {
+  switch (sideFilter) {
+    case 'long':
+      return 'perps.pro_positions_panel.orders_empty_long';
+    case 'short':
+      return 'perps.pro_positions_panel.orders_empty_short';
     default:
       return undefined;
   }

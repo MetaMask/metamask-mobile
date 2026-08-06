@@ -378,6 +378,96 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeNull();
   });
 
+  it('filters orders by side from the shared filter bar', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
+        makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    applySideFilter('long');
+
+    expectTabLabel('Orders (1)');
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
+  });
+
+  it('shows side-filter empty copy when no orders match', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    applySideFilter('long');
+
+    expect(screen.getByText('No long orders.')).toBeOnTheScreen();
+  });
+
+  it('sorts orders by order value from the Orders tab', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({
+          orderId: 'small',
+          symbol: 'BTC',
+          originalSize: '1',
+          price: '100',
+        }),
+        makeOrder({
+          orderId: 'large',
+          symbol: 'SOL',
+          originalSize: '5',
+          price: '100',
+        }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}-option-orderValue`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}-apply`,
+      ),
+    );
+
+    const orderRows = screen
+      .getAllByTestId(/perps-pro-market-order-row-/)
+      .map((node) => node.props.testID);
+
+    expect(orderRows).toEqual([
+      getPerpsProOrderRowSelector('SOL', 0),
+      getPerpsProOrderRowSelector('BTC', 1),
+    ]);
+  });
+
   it('wires close-all and position action handlers when data is present', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [makePosition({ symbol: 'SOL' })],

@@ -10,6 +10,8 @@ import emptyStatePerpsDark from '../../../../../../images/empty-state-perps-dark
 interface PerpsProOrdersEmptyStateProps {
   /** When set, shows the ticker-filtered empty copy instead of the global one. */
   filteredTicker?: string;
+  /** When set, shows side-filtered empty copy instead of the global one. */
+  filteredSideDescriptionKey?: string;
 }
 
 /**
@@ -18,6 +20,7 @@ interface PerpsProOrdersEmptyStateProps {
  */
 const PerpsProOrdersEmptyState = ({
   filteredTicker,
+  filteredSideDescriptionKey,
 }: PerpsProOrdersEmptyStateProps) => {
   const tw = useTailwind();
   const perpsImage = useAssetFromTheme(
@@ -25,11 +28,13 @@ const PerpsProOrdersEmptyState = ({
     emptyStatePerpsDark,
   );
 
-  const description = filteredTicker
-    ? strings('perps.pro_positions_panel.orders_empty_filtered', {
-        ticker: filteredTicker,
-      })
-    : strings('perps.pro_positions_panel.orders_empty');
+  const description = filteredSideDescriptionKey
+    ? strings(filteredSideDescriptionKey)
+    : filteredTicker
+      ? strings('perps.pro_positions_panel.orders_empty_filtered', {
+          ticker: filteredTicker,
+        })
+      : strings('perps.pro_positions_panel.orders_empty');
 
   return (
     <TabEmptyState
