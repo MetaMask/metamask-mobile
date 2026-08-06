@@ -3,6 +3,11 @@ import { View } from 'react-native';
 import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
+import {
+  PRO_ORDER_BOOK_COLUMN_WIDTH,
+  PRO_ORDER_BOOK_CONTENT_WIDTH,
+  PRO_SCREEN_HORIZONTAL_INSET,
+} from './PerpsProMarketLayout.styles';
 
 const renderLayout = (
   props: Partial<React.ComponentProps<typeof PerpsProMarketLayout>> = {},
@@ -29,7 +34,21 @@ describe('PerpsProMarketLayout', () => {
       within(rightColumn).getByTestId('mock-order-book'),
     ).toBeOnTheScreen();
     expect(leftColumn).toHaveStyle({ flex: 1 });
-    expect(rightColumn).toHaveStyle({ width: 132 });
+    expect(rightColumn).toHaveStyle({ width: 148 });
+  });
+
+  it('uses matching insets on both sides of the order book', () => {
+    const { getByTestId } = renderLayout();
+
+    expect(PRO_ORDER_BOOK_COLUMN_WIDTH - PRO_SCREEN_HORIZONTAL_INSET).toBe(
+      PRO_ORDER_BOOK_CONTENT_WIDTH,
+    );
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+    ).toHaveStyle({
+      width: PRO_ORDER_BOOK_COLUMN_WIDTH,
+      paddingLeft: PRO_SCREEN_HORIZONTAL_INSET,
+    });
   });
 
   it('uses content-driven column heights without a fixed trading-area min height', () => {
@@ -47,9 +66,9 @@ describe('PerpsProMarketLayout', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
     ).toHaveStyle({
-      width: 132,
+      width: 148,
       alignSelf: 'flex-start',
-      paddingLeft: 16,
+      paddingLeft: 8,
     });
   });
 
