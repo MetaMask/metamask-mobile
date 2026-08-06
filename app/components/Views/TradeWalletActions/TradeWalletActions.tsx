@@ -47,6 +47,7 @@ import {
   useElevatedSurface,
 } from '../../../util/theme/themeUtils';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
+import { PerpsMode } from '@metamask/perps-controller';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -176,6 +177,9 @@ function TradeWalletActions() {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const { mode: perpsMode } = usePerpsMode();
+  // Product default is Lite; only Pro gets the gold badge treatment.
+  const perpsModeBadge =
+    perpsMode === PerpsMode.Pro ? PerpsMode.Pro : PerpsMode.Lite;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const isStablecoinLendingEnabled = useSelector(
@@ -390,10 +394,14 @@ function TradeWalletActions() {
               </Text>
               {isPerpsProModeEnabled ? (
                 <Tag
-                  severity={TagSeverity.Neutral}
+                  severity={
+                    perpsModeBadge === PerpsMode.Pro
+                      ? TagSeverity.Warning
+                      : TagSeverity.Neutral
+                  }
                   testID={WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE}
                 >
-                  {strings(`perps.mode.${perpsMode}`)}
+                  {strings(`perps.mode.${perpsModeBadge}`)}
                 </Tag>
               ) : null}
             </Box>

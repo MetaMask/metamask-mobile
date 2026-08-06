@@ -26,7 +26,8 @@ import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 export interface PerpsModeSelectionBottomSheetProps {
   isVisible?: boolean;
-  selectedMode: PerpsMode;
+  /** Defaults to Lite so first-time presentation matches product default. */
+  selectedMode?: PerpsMode;
   onSelect: (mode: PerpsMode) => void;
   onClose: () => void;
 }
@@ -130,7 +131,7 @@ const ModeCard = ({
  */
 const PerpsModeSelectionBottomSheet = ({
   isVisible = true,
-  selectedMode,
+  selectedMode = PerpsMode.Lite,
   onSelect,
   onClose,
 }: PerpsModeSelectionBottomSheetProps) => {

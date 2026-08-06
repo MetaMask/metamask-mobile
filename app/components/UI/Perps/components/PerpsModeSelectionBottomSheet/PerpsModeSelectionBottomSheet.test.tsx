@@ -76,6 +76,22 @@ describe('PerpsModeSelectionBottomSheet', () => {
     ).toHaveLength(1);
   });
 
+  it('defaults to Lite mode when selectedMode is omitted', () => {
+    const { selectedMode: _selectedMode, ...propsWithoutSelectedMode } =
+      defaultProps;
+
+    render(<PerpsModeSelectionBottomSheet {...propsWithoutSelectedMode} />);
+
+    expect(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION)
+        .props.accessibilityState,
+    ).toEqual({ selected: true });
+    expect(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION)
+        .props.accessibilityState,
+    ).toEqual({ selected: false });
+  });
+
   it.each([
     [PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION, PerpsMode.Lite],
     [PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION, PerpsMode.Pro],
