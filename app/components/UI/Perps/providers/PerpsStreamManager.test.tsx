@@ -2282,6 +2282,24 @@ describe('PerpsStreamManager', () => {
       cleanup(); // Should not throw
     });
 
+    describe('getInFlightFetch', () => {
+      it('returns the in-flight fetch promise while prewarm is fetching', async () => {
+        testStreamManager.marketData.prewarm();
+
+        // Available synchronously right after prewarm() is called, since
+        // fetchMarketData() assigns its promise before any await.
+        expect(testStreamManager.marketData.getInFlightFetch()).not.toBeNull();
+
+        await waitFor(() => {
+          expect(testStreamManager.marketData.getInFlightFetch()).toBeNull();
+        });
+      });
+
+      it('returns null when no fetch is in flight', () => {
+        expect(testStreamManager.marketData.getInFlightFetch()).toBeNull();
+      });
+    });
+
     it('deduplicates concurrent fetch requests', async () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();

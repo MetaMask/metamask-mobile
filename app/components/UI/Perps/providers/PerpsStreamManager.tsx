@@ -2219,6 +2219,16 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   }
 
   /**
+   * The in-flight `fetchMarketData()` promise, or `null` if none is running.
+   * Lets other channels (e.g. `PriceStreamChannel.prewarm()`) await this
+   * fetch instead of racing it with their own — see
+   * `PerpsConnectionManager.preloadSubscriptions()`.
+   */
+  public getInFlightFetch(): Promise<void> | null {
+    return this.fetchPromise;
+  }
+
+  /**
    * Clear cache and reset fetch time.
    *
    * @param preserveCache - When true, subscribers keep their current data (used on
@@ -2352,11 +2362,19 @@ export class PerpsStreamManager {
   /**
    * Force reconnection of all stream channels after WebSocket reconnection
    * Disconnects all channels and reconnects those with active subscribers
+   *
+   * @param options.skipPriceReprewarm - Skip re-prewarming `prices`. Pass
+   * `true` when the caller just ran `preloadSubscriptions()`, which already
+   * prewarmed it — `PriceStreamChannel.reconnect()` always re-fetches
+   * unconditionally, so reconnecting again here would just re-fetch the same
+   * data (unlike `marketData`, which checks its own TTL cache first).
    */
-  public clearAllChannels(): void {
+  public clearAllChannels(options?: { skipPriceReprewarm?: boolean }): void {
     // Reconnect all channels - clears dead subscriptions and re-establishes
     // connections for channels that have active subscribers
-    this.prices.reconnect();
+    if (!options?.skipPriceReprewarm) {
+      this.prices.reconnect();
+    }
     this.orders.reconnect();
     this.positions.reconnect();
     this.fills.reconnect();

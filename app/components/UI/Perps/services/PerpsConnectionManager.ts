@@ -501,8 +501,10 @@ class PerpsConnectionManagerClass {
    * header appear frozen after foregrounding until the user navigates away
    * and back (which happens to trigger a fresh subscription elsewhere).
    */
-  private resubscribeActiveStreamChannels(): void {
-    getStreamManagerInstance().clearAllChannels();
+  private resubscribeActiveStreamChannels(options?: {
+    skipPriceReprewarm?: boolean;
+  }): void {
+    getStreamManagerInstance().clearAllChannels(options);
   }
 
   async resumeFromForeground(options?: ConnectOptions): Promise<void> {
@@ -1377,8 +1379,12 @@ class PerpsConnectionManagerClass {
     // clearing during disconnect. Rebind active channel handles after the
     // controller comes back so subscribers do not keep stale WebSocket
     // unsubscribe references from the pre-reconnect provider.
+    //
+    // Skip re-prewarming prices: connect() above just ran preloadSubscriptions()
+    // (the disconnect a few lines up reset hasPreloaded), which already
+    // prewarmed it on the new connection.
     if (preserveCaches) {
-      this.resubscribeActiveStreamChannels();
+      this.resubscribeActiveStreamChannels({ skipPriceReprewarm: true });
     }
   }
 
@@ -1450,6 +1456,11 @@ class PerpsConnectionManagerClass {
       // Portfolio balance updates are now handled by usePerpsPortfolioBalance via usePerpsLiveAccount
 
       // Position updates are no longer needed for balance persistence since we use live streams
+      // Wait for marketData's fetch to finish before prewarming prices —
+      // both ask the controller for the same Terminal market list, and
+      // firing them concurrently means both miss the cache and hit the
+      // network. Sequencing lets the second call reuse the first's cache.
+      await streamManager.marketData.getInFlightFetch();
       // Price channel prewarm is async and subscribes to all market prices
       const priceCleanup = await streamManager.prices.prewarm();
 
