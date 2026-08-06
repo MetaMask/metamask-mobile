@@ -221,6 +221,7 @@
     "bn.js@npm:4.11.6": "4.12.3",
     "bn.js@npm:5.2.1": "5.2.3",
     "@metamask/messenger": "^2.0.0",
+    "@metamask/remote-feature-flag-controller": "^5.0.0",
     "@metamask/keyring-internal-api": "^11.0.1",
     "@metamask/keyring-api": "^23.7.0",
     "@metamask/multichain-account-service": "^13.0.0",
