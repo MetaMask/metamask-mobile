@@ -248,6 +248,10 @@ const PerpsProPositionsPanel = ({
           <PerpsProUnrealizedPnl
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
+            positionCount={sideFilteredPositions.length}
+            isFiltered={
+              isTickerOnly || sideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
+            }
             onCloseAll={handleCloseAllPress}
           />
           {sortedVisiblePositions.map((position) => (
@@ -370,15 +374,17 @@ const PerpsProPositionsPanel = ({
           alignItems={BoxAlignItems.Center}
           twClassName="gap-2 px-2 pt-3"
         >
-          <ButtonIcon
-            iconName={IconName.Customize}
-            accessibilityLabel={strings(
-              'perps.pro_positions_panel.sort.settings_accessibility',
-            )}
-            size={ButtonIconSize.Md}
-            onPress={() => setIsSortSheetOpen(true)}
-            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
-          />
+          <Box twClassName="bg-muted rounded-lg">
+            <ButtonIcon
+              iconName={IconName.Customize}
+              accessibilityLabel={strings(
+                'perps.pro_positions_panel.sort.settings_accessibility',
+              )}
+              size={ButtonIconSize.Md}
+              onPress={() => setIsSortSheetOpen(true)}
+              testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
+            />
+          </Box>
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
@@ -388,14 +394,16 @@ const PerpsProPositionsPanel = ({
           >
             {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
           </Button>
-          <Checkbox
-            label={strings('perps.pro_positions_panel.ticker_only', {
-              ticker: displaySymbol,
-            })}
-            isSelected={isTickerOnly}
-            onChange={setIsTickerOnly}
-            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
-          />
+          <Box twClassName="bg-muted rounded-lg px-2 py-1">
+            <Checkbox
+              label={strings('perps.pro_positions_panel.ticker_only', {
+                ticker: displaySymbol,
+              })}
+              isSelected={isTickerOnly}
+              onChange={setIsTickerOnly}
+              testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
+            />
+          </Box>
         </Box>
       )}
       {activeIndex === ORDERS_TAB_INDEX

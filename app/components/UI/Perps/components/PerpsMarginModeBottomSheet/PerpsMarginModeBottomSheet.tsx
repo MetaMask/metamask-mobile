@@ -1,82 +1,89 @@
-import React, { useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import BottomSheet, {
-  type BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
-  Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
+  BottomSheet,
+  BottomSheetHeader,
+  ListItemSelect,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsMarginModeBottomSheetProps {
+  isVisible?: boolean;
   onClose: () => void;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
+const marginModes = [
+  {
+    id: 'isolated' as const,
+    titleKey: 'perps.margin_mode.isolated_title',
+    descriptionKey: 'perps.margin_mode.isolated_description',
+    testID: PerpsMarginModeBottomSheetSelectorsIDs.ISOLATED_OPTION,
+    isDisabled: false,
+  },
+  {
+    id: 'cross' as const,
+    titleKey: 'perps.margin_mode.cross_title',
+    descriptionKey: 'perps.margin_mode.cross_description',
+    testID: PerpsMarginModeBottomSheetSelectorsIDs.CROSS_OPTION,
+    isDisabled: true,
+  },
+] as const;
+
 const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
+  isVisible = true,
   onClose,
+  sheetRef: externalSheetRef,
 }) => {
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const internalSheetRef = useRef<BottomSheetRef>(null);
+  const sheetRef = externalSheetRef ?? internalSheetRef;
+
+  useEffect(() => {
+    if (isVisible && !externalSheetRef) {
+      sheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible, externalSheetRef, sheetRef]);
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, [sheetRef]);
+
+  const handleIsolatedPress = useCallback(() => {
+    handleClose();
+  }, [handleClose]);
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack={false} onClose={onClose}>
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('perps.margin_mode.title')}
-        </Text>
+    <BottomSheet
+      ref={sheetRef}
+      testID={PerpsMarginModeBottomSheetSelectorsIDs.CONTAINER}
+      goBack={!externalSheetRef ? onClose : undefined}
+      onClose={externalSheetRef ? onClose : undefined}
+    >
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: PerpsMarginModeBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        }}
+      >
+        {strings('perps.margin_mode.title')}
       </BottomSheetHeader>
-      <Box twClassName="pb-2">
-        {/* Isolated — selected */}
-        <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
-          <Box twClassName="flex-row items-start gap-4 px-4 py-4">
-            <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodyMdMedium}>
-                {strings('perps.margin_mode.isolated_title')}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                twClassName="mt-1"
-              >
-                {strings('perps.margin_mode.isolated_description')}
-              </Text>
-            </Box>
-            {/* eslint-disable-next-line react-native/no-inline-styles */}
-            <View style={{ width: 40, alignItems: 'center', paddingTop: 2 }}>
-              <Icon
-                name={IconName.Check}
-                color={IconColor.Default}
-                size={IconSize.Sm}
-              />
-            </View>
-          </Box>
-        </TouchableOpacity>
-        {/* Cross — disabled, coming soon */}
-        <Box twClassName="flex-row items-start gap-4 px-4 py-4 opacity-40">
-          <Box twClassName="flex-1">
-            <Text
-              variant={TextVariant.BodyMdMedium}
-              color={TextColor.TextMuted}
-            >
-              {strings('perps.margin_mode.cross_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextMuted}
-              twClassName="mt-1"
-            >
-              {strings('perps.margin_mode.cross_description')}
-            </Text>
-          </Box>
-        </Box>
-      </Box>
+      {marginModes.map((mode) => (
+        <ListItemSelect
+          key={mode.id}
+          title={strings(mode.titleKey)}
+          description={strings(mode.descriptionKey)}
+          isSelected={mode.id === 'isolated'}
+          showSelectedIcon
+          isDisabled={mode.isDisabled}
+          onPress={mode.id === 'isolated' ? handleIsolatedPress : undefined}
+          testID={mode.testID}
+        />
+      ))}
     </BottomSheet>
   );
 };

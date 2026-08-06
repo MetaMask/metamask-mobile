@@ -324,7 +324,7 @@ const PerpsProPositionCard = ({
                 {formatPnl(pnlNum)}
               </SensitiveText>
               <SensitiveText
-                variant={TextVariant.BodySmMedium}
+                variant={TextVariant.BodySm}
                 color={
                   privacyMode
                     ? TextColor.TextDefault
@@ -358,6 +358,9 @@ const PerpsProPositionCard = ({
                 label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
                 isHidden={privacyMode}
+                labelAccessory={
+                  <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
+                }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined
                 }
@@ -370,7 +373,6 @@ const PerpsProPositionCard = ({
                 )}
                 showEditIcon={canEditMargin}
               />
-              <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
             </Box>
             <Box twClassName="min-w-[128px] gap-6">
               <KeyValueItem

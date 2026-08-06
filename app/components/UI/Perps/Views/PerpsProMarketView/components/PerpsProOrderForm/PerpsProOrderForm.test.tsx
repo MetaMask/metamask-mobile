@@ -329,7 +329,7 @@ describe('PerpsProOrderForm', () => {
       );
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toHaveProp(
         'accessibilityState',
-        { checked: true },
+        expect.objectContaining({ checked: true }),
       );
     });
 
@@ -349,6 +349,7 @@ describe('PerpsProOrderForm', () => {
         'accessibilityRole',
         'button',
       );
+      expect(screen.getByTestId(`${ids.TPSL}-arrow`)).toBeTruthy();
     });
 
     it('calls onTPSLPress when TP/SL is pressed', () => {

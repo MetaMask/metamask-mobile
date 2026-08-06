@@ -90,10 +90,7 @@ const PerpsProOrderFormPanel = ({
     <Box
       testID={PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL}
       collapsable={false}
-      style={[
-        styles.panel,
-        !isOrderBookCollapsed && styles.panelWithBookSeparator,
-      ]}
+      style={styles.panel}
     >
       <PerpsProOrderForm
         direction={direction}
@@ -256,7 +253,7 @@ const PerpsProOrderFormPanel = ({
             statusBarTranslucent
             onRequestClose={closeMarginMode}
           >
-            <PerpsMarginModeBottomSheet onClose={closeMarginMode} />
+            <PerpsMarginModeBottomSheet isVisible onClose={closeMarginMode} />
           </Modal>
         </View>
       )}

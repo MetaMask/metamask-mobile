@@ -1540,6 +1540,7 @@
     },
     "pro_positions_panel": {
       "order_history": "Order history",
+      "close_count": "Close ({{count}})",
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
