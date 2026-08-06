@@ -35,6 +35,7 @@ import {
 import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations';
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
+import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
@@ -42,11 +43,18 @@ import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
   DEFAULT_PRO_POSITION_SIDE_FILTER,
+  filterProOrdersBySide,
   filterProPositionsBySide,
+  getProOrderSideFilterEmptyDescriptionKey,
   getProPositionSideFilterButtonLabelKey,
   getProPositionSideFilterEmptyDescriptionKey,
   type ProPositionSideFilter,
 } from '../utils/proPositionSideFilter';
+import {
+  DEFAULT_PRO_ORDER_SORT,
+  sortProOrders,
+  type ProOrderSortConfig,
+} from '../utils/proOrderSort';
 import {
   DEFAULT_PRO_POSITION_SORT,
   sortProPositions,
@@ -79,8 +87,9 @@ interface PerpsProPositionsPanelProps {
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * The Positions tab shows the user's open positions across all assets,
  * falling back to an empty state when there are none.
- * The `$TICKER only` checkbox filters positions (not orders) to the current
- * market. The Orders tab shows the user's open orders.
+ * The sort, side, and `$TICKER only` controls apply to both tabs. Positions
+ * and orders use domain-specific sort fields while sharing side and market
+ * filters.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -100,6 +109,9 @@ const PerpsProPositionsPanel = ({
   );
   const [sortConfig, setSortConfig] = useState<ProPositionSortConfig>(
     DEFAULT_PRO_POSITION_SORT,
+  );
+  const [orderSortConfig, setOrderSortConfig] = useState<ProOrderSortConfig>(
+    DEFAULT_PRO_ORDER_SORT,
   );
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000,
@@ -177,15 +189,31 @@ const PerpsProPositionsPanel = ({
     [isTickerOnly, positions, symbol],
   );
 
+  const visibleOrders = useMemo(
+    () =>
+      isTickerOnly ? orders.filter((order) => order.symbol === symbol) : orders,
+    [isTickerOnly, orders, symbol],
+  );
+
   const sideFilteredPositions = useMemo(
     () => filterProPositionsBySide(visiblePositions, sideFilter),
     [sideFilter, visiblePositions],
+  );
+
+  const sideFilteredOrders = useMemo(
+    () => filterProOrdersBySide(visibleOrders, sideFilter),
+    [sideFilter, visibleOrders],
   );
 
   const sortedVisiblePositions = useMemo(
     () =>
       sortProPositions(sideFilteredPositions, sortConfig, fundingRatesBySymbol),
     [fundingRatesBySymbol, sideFilteredPositions, sortConfig],
+  );
+
+  const sortedVisibleOrders = useMemo(
+    () => sortProOrders(sideFilteredOrders, orderSortConfig),
+    [orderSortConfig, sideFilteredOrders],
   );
 
   const aggregateTotals = useMemo(
@@ -201,7 +229,7 @@ const PerpsProPositionsPanel = ({
         })
       : strings('perps.pro_positions_panel.positions');
 
-  const openOrdersCount = orders.length;
+  const openOrdersCount = sideFilteredOrders.length;
   const ordersTabLabel =
     openOrdersCount > 0
       ? strings('perps.pro_positions_panel.orders_with_count', {
@@ -238,6 +266,22 @@ const PerpsProPositionsPanel = ({
     hasAnyPositions &&
     visiblePositions.length === 0 &&
     !isSideFilterEmpty
+      ? displaySymbol
+      : undefined;
+
+  const hasAnyOrders = orders.length > 0;
+  const isOrderSideFilterEmpty =
+    sideFilter !== 'all' &&
+    sideFilteredOrders.length === 0 &&
+    visibleOrders.length > 0;
+  const orderSideFilterEmptyDescriptionKey = isOrderSideFilterEmpty
+    ? getProOrderSideFilterEmptyDescriptionKey(sideFilter)
+    : undefined;
+  const filteredOrdersTicker =
+    isTickerOnly &&
+    hasAnyOrders &&
+    visibleOrders.length === 0 &&
+    !isOrderSideFilterEmpty
       ? displaySymbol
       : undefined;
 
@@ -288,10 +332,10 @@ const PerpsProPositionsPanel = ({
   };
 
   const renderOrdersTab = () => {
-    if (orders.length > 0) {
+    if (sortedVisibleOrders.length > 0) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
-          {orders.map((order, index) => (
+          {sortedVisibleOrders.map((order, index) => (
             <PerpsProOrderCard
               key={order.orderId}
               order={order}
@@ -327,10 +371,24 @@ const PerpsProPositionsPanel = ({
 
     return (
       <Box twClassName="items-center justify-center px-2 pt-6">
-        <PerpsProOrdersEmptyState />
+        <PerpsProOrdersEmptyState
+          filteredTicker={filteredOrdersTicker}
+          filteredSideDescriptionKey={orderSideFilterEmptyDescriptionKey}
+        />
       </Box>
     );
   };
+
+  const renderTickerOnlyCheckbox = () => (
+    <Checkbox
+      label={strings('perps.pro_positions_panel.ticker_only', {
+        ticker: displaySymbol,
+      })}
+      isSelected={isTickerOnly}
+      onChange={setIsTickerOnly}
+      testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
+    />
+  );
 
   return (
     <Box
@@ -368,55 +426,59 @@ const PerpsProPositionsPanel = ({
           />
         ) : null}
       </Box>
-      {activeIndex === POSITIONS_TAB_INDEX && (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 px-2 pt-3"
-        >
-          <Box twClassName="bg-muted rounded-lg">
-            <ButtonIcon
-              iconName={IconName.Customize}
-              accessibilityLabel={strings(
-                'perps.pro_positions_panel.sort.settings_accessibility',
-              )}
-              size={ButtonIconSize.Md}
-              onPress={() => setIsSortSheetOpen(true)}
-              testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
-            />
-          </Box>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            endIconName={IconName.ArrowDown}
-            onPress={() => setIsSideFilterSheetOpen(true)}
-            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
-          >
-            {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
-          </Button>
-          <Box twClassName="bg-muted rounded-lg px-2 py-1">
-            <Checkbox
-              label={strings('perps.pro_positions_panel.ticker_only', {
-                ticker: displaySymbol,
-              })}
-              isSelected={isTickerOnly}
-              onChange={setIsTickerOnly}
-              testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
-            />
-          </Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2 px-2 pt-3"
+        accessible={false}
+      >
+        <Box twClassName="bg-muted rounded-lg">
+          <ButtonIcon
+            iconName={IconName.Customize}
+            accessibilityLabel={strings(
+              activeIndex === ORDERS_TAB_INDEX
+                ? 'perps.pro_positions_panel.sort.orders_settings_accessibility'
+                : 'perps.pro_positions_panel.sort.settings_accessibility',
+            )}
+            size={ButtonIconSize.Md}
+            onPress={() => setIsSortSheetOpen(true)}
+            testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON}
+          />
         </Box>
-      )}
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          endIconName={IconName.ArrowDown}
+          onPress={() => setIsSideFilterSheetOpen(true)}
+          testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
+        >
+          {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
+        </Button>
+        <Box twClassName="bg-muted rounded-lg px-2 py-1">
+          {renderTickerOnlyCheckbox()}
+        </Box>
+      </Box>
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
       {renderActionSheets(sideFilteredPositions)}
-      <PerpsProPositionsSortSheet
-        isVisible={isSortSheetOpen}
-        sortConfig={sortConfig}
-        onApply={setSortConfig}
-        onClose={() => setIsSortSheetOpen(false)}
-        testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}
-      />
+      {activeIndex === ORDERS_TAB_INDEX ? (
+        <PerpsProOrdersSortSheet
+          isVisible={isSortSheetOpen}
+          sortConfig={orderSortConfig}
+          onApply={setOrderSortConfig}
+          onClose={() => setIsSortSheetOpen(false)}
+          testID={PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}
+        />
+      ) : (
+        <PerpsProPositionsSortSheet
+          isVisible={isSortSheetOpen}
+          sortConfig={sortConfig}
+          onApply={setSortConfig}
+          onClose={() => setIsSortSheetOpen(false)}
+          testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}
+        />
+      )}
       <PerpsProPositionsSideFilterSheet
         isVisible={isSideFilterSheetOpen}
         sideFilter={sideFilter}

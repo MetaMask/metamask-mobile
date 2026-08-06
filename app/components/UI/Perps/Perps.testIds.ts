@@ -511,6 +511,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
   POSITIONS_SORT_BUTTON: 'perps-pro-market-positions-sort-button',
   POSITIONS_SORT_SHEET: 'perps-pro-market-positions-sort-sheet',
+  ORDERS_SORT_SHEET: 'perps-pro-market-orders-sort-sheet',
   POSITIONS_LIST: 'perps-pro-market-positions-list',
   POSITIONS_CLOSE_ALL: 'perps-pro-market-positions-close-all',
   POSITION_CLOSE: 'perps-pro-market-position-close',

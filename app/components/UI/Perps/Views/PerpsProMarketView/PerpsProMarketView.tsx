@@ -38,6 +38,7 @@ import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
+import { usePerpsMarketData } from '../../hooks';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
@@ -85,6 +86,9 @@ const PerpsProOrderBookColumn = ({
   onCollapse,
 }: PerpsProOrderBookColumnProps) => {
   const { setLimitPrice, setOrderType } = usePerpsOrderContext();
+  // Drives the ladder's price precision and base-size decimals — without it
+  // every price falls back to magnitude-based formatting.
+  const { marketData } = usePerpsMarketData({ asset: symbol });
 
   const handleSelectPrice = useCallback(
     (price: string) => {
@@ -100,6 +104,7 @@ const PerpsProOrderBookColumn = ({
     <PerpsProOrderBookPanel
       symbol={symbol}
       marketPrice={marketPrice}
+      szDecimals={marketData?.szDecimals}
       onCollapse={onCollapse}
       onSelectPrice={handleSelectPrice}
     />

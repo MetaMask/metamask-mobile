@@ -22,8 +22,8 @@ export interface PerpsProPositionsSideFilterSheetProps {
 }
 
 /**
- * Bottom sheet for filtering Pro positions by all sides, long, or short.
- * Applies immediately on selection — no separate Apply button.
+ * Bottom sheet for filtering Pro positions or orders by all sides, long, or
+ * short. Applies immediately on selection — no separate Apply button.
  */
 const PerpsProPositionsSideFilterSheet = ({
   isVisible,
