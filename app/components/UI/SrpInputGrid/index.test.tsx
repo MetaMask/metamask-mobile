@@ -148,7 +148,78 @@ describe('SrpInputGrid', () => {
         nativeEvent: { key: 'Backspace' },
       });
 
-      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+      expect(mockOnSeedPhraseChange).toHaveBeenCalledWith(['wallet']);
+    });
+
+    it('does not collapse the last remaining blank cell on backspace', () => {
+      const seedPhrase = [''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      expect(mockOnSeedPhraseChange).not.toHaveBeenCalled();
+    });
+
+    it('stays in grid mode after deleting down to a single word', () => {
+      const { getByTestId, getByText, queryByText, rerender } =
+        renderWithProvider(
+          <SrpInputGrid
+            {...defaultProps}
+            seedPhrase={['wallet', 'abandon', '']}
+          />,
+        );
+
+      const thirdInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
+      fireEvent(thirdInput, 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalledWith([
+        'wallet',
+        'abandon',
+      ]);
+
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet', '']} />);
+
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+      fireEvent(secondInput, 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalledWith(['wallet']);
+
+      // After sticky-grid mode is latched, a single remaining word must still
+      // render as a numbered grid cell — not switch back to the textarea
+      // (which would steal focus and break continued backspaces).
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet']} />);
+
+      expect(
+        getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`),
+      ).toBeOnTheScreen();
+      expect(getByText('1.')).toBeOnTheScreen();
+      expect(queryByText('2.')).toBeNull();
+    });
+
+    it('exits sticky grid mode when the last word is fully deleted', () => {
+      const { getByText, queryByText, rerender } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={['wallet', 'abandon']} />,
+      );
+
+      // Latch sticky grid with 2+ cells, then delete down to one word.
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet']} />);
+      expect(getByText('1.')).toBeOnTheScreen();
+
+      // Fully empty — Paste replaces Clear, so sticky mode must release or
+      // the numbered empty cell (no placeholder) becomes unreachable to reset.
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['']} />);
+
+      expect(queryByText('1.')).toBeNull();
+      expect(getByText('Paste')).toBeOnTheScreen();
     });
 
     it('dismisses keyboard on submit editing', () => {

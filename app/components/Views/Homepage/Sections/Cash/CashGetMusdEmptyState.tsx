@@ -28,6 +28,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../../UI/Earn/constants/musd';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RampIntent } from '../../../../UI/Ramp/types';
 import { useMusdConversion } from '../../../../UI/Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../../UI/Earn/hooks/useMusdConversionFlowData';
@@ -259,7 +260,7 @@ const CashGetMusdEmptyState = ({
       const rampIntent: RampIntent = {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
-      goToBuy(rampIntent);
+      goToBuy(rampIntent, { surface: RAMPS_BUY_CUF_SURFACE.CASH });
     }
   }, [
     isMusdBuyableOnAnyChain,

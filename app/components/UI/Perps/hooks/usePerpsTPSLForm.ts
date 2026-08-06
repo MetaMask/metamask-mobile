@@ -6,6 +6,7 @@ import { regex } from '../../../../util/regex';
 import {
   DECIMAL_PRECISION_CONFIG,
   calculatePositionSize,
+  type OrderType,
   type Position,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
@@ -40,7 +41,7 @@ interface UsePerpsTPSLFormParams {
   entryPrice?: number;
   isVisible?: boolean;
   liquidationPrice?: string;
-  orderType?: 'market' | 'limit';
+  orderType?: OrderType;
   amount?: string; // For new orders - USD amount to calculate position size
   szDecimals?: number; // For new orders - asset decimal precision
 }

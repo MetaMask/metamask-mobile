@@ -11,6 +11,7 @@ import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
 import { createDepositOrderDetailsNavDetails } from '../../../Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../constants/rampsBuyCufTags';
 import createStyles from './OrdersList.styles';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
@@ -241,7 +242,7 @@ function OrdersList() {
         order?.state === FIAT_ORDER_STATES.CREATED &&
         order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
       ) {
-        goToBuy();
+        goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ORDERS_LIST });
       } else if (order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
         navigateWithDetails(
           navigation,
