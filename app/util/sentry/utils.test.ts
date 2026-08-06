@@ -1233,6 +1233,10 @@ describe('setEASUpdateContext', () => {
     };
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('sets Sentry tags for OTA update metadata', () => {
     setEASUpdateContext();
 
