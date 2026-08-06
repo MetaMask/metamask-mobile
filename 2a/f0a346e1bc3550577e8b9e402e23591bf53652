@@ -1,0 +1,33 @@
+tests/llm-workflow/android/platform-adapter.ts
+  s_320c532ad6352b::t_abde8a8cbbf158 242-244,246-253,260-264
+  s_320c532ad6352b::t_6588c2741bd8cb 39-42,53-54,56-57
+  s_320c532ad6352b::t_c9d0c4cf67564b 43-47,55,58-59
+tests/llm-workflow/README.md
+  s_320c532ad6352b::t_c479c72d94480f 124
+  s_320c532ad6352b::t_f588cd020dc6e3 156
+tests/llm-workflow/__tests__/android-platform-adapter.test.ts
+  s_320c532ad6352b::t_4686b486bf1c9d 172,179,184,189
+  s_320c532ad6352b::t_b0908810fe7470 86-90
+  s_320c532ad6352b::t_5386736b0b981c 226-231,241-254,256,264
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "2af0a346e1bc3550577e8b9e402e23591bf53652",
+  "prompts": {},
+  "humans": {
+    "h_d6a04d82b61d5e": {
+      "author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  },
+  "sessions": {
+    "s_320c532ad6352b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0297eecd0ffe3uLSziL4IDkZtC",
+        "model": "unknown"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
