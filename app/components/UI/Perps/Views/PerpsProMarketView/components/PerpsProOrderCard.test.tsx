@@ -64,6 +64,47 @@ describe('PerpsProOrderCard', () => {
     expect(screen.getByText('Cancel')).toBeOnTheScreen();
   });
 
+  it('shows edit affordance for editable limit orders', () => {
+    render(<PerpsProOrderCard order={baseOrder} onEditPrice={jest.fn()} />);
+
+    expect(screen.getByText('Edit')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_EDIT),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows size edit affordance when size handler is provided', () => {
+    render(<PerpsProOrderCard order={baseOrder} onEditSize={jest.fn()} />);
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_SIZE_EDIT),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides edit affordance when edit handler is omitted', () => {
+    render(<PerpsProOrderCard order={baseOrder} />);
+
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_EDIT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides edit button when price edit is disabled (panel wiring)', () => {
+    // Production panel always supplies onEditPrice and toggles
+    // isEditPriceDisabled — ineligible orders must show no Edit affordance.
+    render(
+      <PerpsProOrderCard
+        order={baseOrder}
+        onEditPrice={jest.fn()}
+        isEditPriceDisabled
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_EDIT),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows Price above for take-profit sell triggers', () => {
     render(
       <PerpsProOrderCard
