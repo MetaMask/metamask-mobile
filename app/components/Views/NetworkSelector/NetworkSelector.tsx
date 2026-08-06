@@ -76,9 +76,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   selectIsEvmNetworkSelected,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectNonEvmNetworkConfigurationsByChainId,
-  ///: END:ONLY_INCLUDE_IF
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -128,11 +126,9 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
@@ -324,21 +320,16 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     return chainId === selectedChainId;
   };
 
-  const {
-    onSetRpcTarget,
-    onNetworkChange,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
-  } = useSwitchNetworks({
-    domainIsConnectedDapp,
-    origin,
-    selectedChainId,
-    selectedNetworkName,
-    dismissModal: () => sheetRef.current?.dismissModal(),
-    closeRpcModal,
-    parentSpan,
-  });
+  const { onSetRpcTarget, onNetworkChange, onNonEvmNetworkChange } =
+    useSwitchNetworks({
+      domainIsConnectedDapp,
+      origin,
+      selectedChainId,
+      selectedNetworkName,
+      dismissModal: () => sheetRef.current?.dismissModal(),
+      closeRpcModal,
+      parentSpan,
+    });
 
   useEffect(() => {
     endTrace({ name: TraceName.NetworkSwitch });
@@ -442,9 +433,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         >
           <NetworkSelectorList
             networkConfigurations={networkConfigurations}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             nonEvmNetworkConfigurations={nonEvmNetworkConfigurations}
-            ///: END:ONLY_INCLUDE_IF
             searchString={searchString}
             showTestNetworks={showTestNetworks}
             isSendFlow={isSendFlow}
@@ -461,9 +450,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             isNetworkSelected={isNetworkSelected}
             onSetRpcTarget={onSetRpcTarget}
             onNetworkChange={onNetworkChange}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             onNonEvmNetworkChange={onNonEvmNetworkChange}
-            ///: END:ONLY_INCLUDE_IF
             openModal={openModal}
             openRpcModal={openRpcModal}
             onCancel={onCancel}

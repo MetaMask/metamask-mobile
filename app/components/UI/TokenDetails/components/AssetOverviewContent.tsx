@@ -86,11 +86,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
-///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
@@ -663,11 +661,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               )}
             </View>
           ) : null}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && <TronEnergyBandwidthDetail />
-            ///: END:ONLY_INCLUDE_IF
-          }
+          {tronNativeToken && <TronEnergyBandwidthDetail />}
           {balance != null && (
             <>
               <Balance
@@ -690,18 +684,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
             />
           )}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            tronNativeToken && (
-              <TronAssetOverviewSection
-                token={tronNativeToken}
-                stakedTrxAsset={stakedTrxAsset}
-                inLockPeriodBalance={inLockPeriodBalance}
-                readyForWithdrawalBalance={readyForWithdrawalBalance}
-              />
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
+          {tronNativeToken && (
+            <TronAssetOverviewSection
+              token={tronNativeToken}
+              stakedTrxAsset={stakedTrxAsset}
+              inLockPeriodBalance={inLockPeriodBalance}
+              readyForWithdrawalBalance={readyForWithdrawalBalance}
+            />
+          )}
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
               <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">

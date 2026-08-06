@@ -151,9 +151,7 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import AppConstants from '../../../core/AppConstants';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
-///: END:ONLY_INCLUDE_IF
 import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
 import { useWalletHomeOnboardingChecklistTradePress } from '../../UI/WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistTradePress';
 import {
@@ -421,14 +419,12 @@ const Wallet = ({
   }, [navigation]);
 
   // Hook for handling non-EVM asset sending
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const { sendNonEvmAsset } = useSendNonEvmAsset({
     asset: {
       chainId: chainId as string,
       address: undefined,
     },
   });
-  ///: END:ONLY_INCLUDE_IF
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
@@ -500,7 +496,6 @@ const Wallet = ({
         location: ActionLocation.HOME,
       });
 
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
       const wasHandledAsNonEvm = await sendNonEvmAsset(
         InitSendLocation.HomePage,
@@ -508,45 +503,30 @@ const Wallet = ({
       if (wasHandledAsNonEvm) {
         return;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
       console.error('Error initiating send flow:', error);
       navigateToSendPage({ location: InitSendLocation.HomePage });
     }
-  }, [
-    trackEvent,
-    createEventBuilder,
-    navigateToSendPage,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    sendNonEvmAsset,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [trackEvent, createEventBuilder, navigateToSendPage, sendNonEvmAsset]);
 
   /** Navigation-only send for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
   const onSendWithoutTracking = useCallback(async () => {
     try {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       const wasHandledAsNonEvm = await sendNonEvmAsset(
         InitSendLocation.HomePage,
       );
       if (wasHandledAsNonEvm) {
         return;
       }
-      ///: END:ONLY_INCLUDE_IF
 
       navigateToSendPage({ location: InitSendLocation.HomePage });
     } catch (error) {
       console.error('Error initiating send flow:', error);
       navigateToSendPage({ location: InitSendLocation.HomePage });
     }
-  }, [
-    navigateToSendPage,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    sendNonEvmAsset,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [navigateToSendPage, sendNonEvmAsset]);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,

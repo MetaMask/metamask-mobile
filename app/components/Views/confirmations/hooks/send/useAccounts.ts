@@ -11,9 +11,7 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import {
   isBtcAccount,
   isSolanaAccount,
-  /// BEGIN:ONLY_INCLUDE_IF(tron)
   isTronAccount,
-  /// END:ONLY_INCLUDE_IF
   isStellarAccount,
 } from '../../../../../core/Multichain/utils';
 import { type RecipientType } from '../../components/UI/recipient';
@@ -27,12 +25,8 @@ export const useAccounts = (): RecipientType[] => {
   const {
     isEvmSendType,
     isSolanaSendType,
-    /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
     isBitcoinSendType,
-    /// END:ONLY_INCLUDE_IF
-    /// BEGIN:ONLY_INCLUDE_IF(tron)
     isTronSendType,
-    /// END:ONLY_INCLUDE_IF
     isStellarSendType,
   } = useSendType();
 
@@ -52,16 +46,12 @@ export const useAccounts = (): RecipientType[] => {
       if (isSolanaSendType) {
         return isSolanaAccount(account);
       }
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       if (isBitcoinSendType) {
         return isBtcAccount(account);
       }
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
       if (isTronSendType) {
         return isTronAccount(account);
       }
-      /// END:ONLY_INCLUDE_IF
       if (isStellarSendType) {
         return isStellarAccount(account);
       }
@@ -71,12 +61,8 @@ export const useAccounts = (): RecipientType[] => {
       internalAccountsById,
       isEvmSendType,
       isSolanaSendType,
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
       isTronSendType,
-      /// END:ONLY_INCLUDE_IF
       isStellarSendType,
       from,
     ],

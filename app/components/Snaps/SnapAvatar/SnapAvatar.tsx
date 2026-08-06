@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import { useSelector } from 'react-redux';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
@@ -75,4 +74,3 @@ export const SnapAvatar: React.FunctionComponent<SnapAvatarProps> = ({
     </BadgeWrapper>
   );
 };
-///: END:ONLY_INCLUDE_IF

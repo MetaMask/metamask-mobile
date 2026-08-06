@@ -119,7 +119,6 @@ export function getKeyringBuilders(
   moneyKeyringBuilder.type = MoneyKeyring.type;
   keyrings.push(moneyKeyringBuilder);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringMessenger = getLegacySnapKeyringBuilderMessenger(messenger);
   // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
   keyrings.push(legacySnapKeyringBuilder(snapKeyringMessenger));
@@ -130,7 +129,6 @@ export function getKeyringBuilders(
   // via `unwrap()` for the v2 builder, so both entries share the same
   // underlying object — enabling both `withKeyring` and `withKeyringV2`.
   keyrings.push(snapKeyringV2AdaptedAsV1Builder(snapKeyringMessenger));
-  ///: END:ONLY_INCLUDE_IF
 
   return keyrings;
 }
@@ -197,13 +195,11 @@ export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Build
     buildHardwareKeyringV2Builder(LedgerKeyringV2, LedgerKeyring.type),
     buildHardwareKeyringV2Builder(QrKeyringV2, QrKeyring.type),
     buildMoneyKeyringV2Builder(MoneyKeyringV2, MoneyKeyring.type),
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // The v2 Snap keyring is registered via `KeyringV1Adapter`, which owns the
     // inner `SnapKeyring` (v2) instance and exposes a v1-compatible facade for
     // KeyringController vault management. The same inner instance is retrieved
     // via `unwrap()` for the v2 builder, so both entries share the same
     // underlying object — enabling both `withKeyring` and `withKeyringV2`.
     snapKeyringV2Builder(),
-    ///: END:ONLY_INCLUDE_IF
   ];
 }

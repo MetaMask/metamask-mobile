@@ -12,12 +12,10 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTestEnvironment } from '../../../util/test/utils';
@@ -108,11 +106,9 @@ const Settings = () => {
     navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   const onPressSnaps = () => {
     navigateWithDetails(navigation, createSnapsSettingsListNavDetails());
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
@@ -165,9 +161,6 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
           />
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        }
         {CAN_INSTALL_THIRD_PARTY_SNAPS && (
           <SettingsDrawer
             title={strings('app_settings.snaps.title')}
@@ -176,9 +169,6 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.SNAPS}
           />
         )}
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
         <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}
           description={strings('app_settings.fiat_on_ramp.description')}

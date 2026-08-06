@@ -6,15 +6,7 @@ import {
   NetworkType,
   ProcessedNetwork,
 } from '../useNetworksByNamespace/useNetworksByNamespace';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-  BtcScope,
-  ///: END:ONLY_INCLUDE_IF
-  SolScope,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TrxScope,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -29,29 +21,17 @@ interface UseNetworksToUseReturn {
   networksToUse: ProcessedNetwork[];
   evmNetworks: ProcessedNetwork[];
   solanaNetworks: ProcessedNetwork[];
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   bitcoinNetworks: ProcessedNetwork[];
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   tronNetworks: ProcessedNetwork[];
-  ///: END:ONLY_INCLUDE_IF
   selectedEvmAccount: InternalAccount | null;
   selectedSolanaAccount: InternalAccount | null;
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   selectedBitcoinAccount: InternalAccount | null;
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   selectedTronAccount: InternalAccount | null;
-  ///: END:ONLY_INCLUDE_IF
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
   areAllSolanaNetworksSelected: boolean;
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   areAllBitcoinNetworksSelected: boolean;
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   areAllTronNetworksSelected: boolean;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 /**
@@ -73,15 +53,11 @@ export const useNetworksToUse = ({
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const selectedBitcoinAccount =
     useSelector(selectSelectedInternalAccountByScope)(BtcScope.Mainnet) || null;
-  ///: END:ONLY_INCLUDE_IF
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const selectedTronAccount =
     useSelector(selectSelectedInternalAccountByScope)(TrxScope.Mainnet) || null;
-  ///: END:ONLY_INCLUDE_IF
 
   const {
     networks: evmNetworks = [],
@@ -99,7 +75,6 @@ export const useNetworksToUse = ({
     namespace: KnownCaipNamespace.Solana,
   });
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const {
     networks: bitcoinNetworks = [],
     areAllNetworksSelected: areAllBitcoinNetworksSelected = false,
@@ -107,9 +82,7 @@ export const useNetworksToUse = ({
     networkType,
     namespace: KnownCaipNamespace.Bip122,
   });
-  ///: END:ONLY_INCLUDE_IF
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
     networks: tronNetworks = [],
     areAllNetworksSelected: areAllTronNetworksSelected = false,
@@ -117,29 +90,20 @@ export const useNetworksToUse = ({
     networkType,
     namespace: KnownCaipNamespace.Tron,
   });
-  ///: END:ONLY_INCLUDE_IF
 
   // Helper functions to make network selection logic more readable
   const hasSelectedAccounts = useMemo(
     () => ({
       evm: !!selectedEvmAccount,
       solana: !!selectedSolanaAccount,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       bitcoin: !!selectedBitcoinAccount,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       tron: !!selectedTronAccount,
-      ///: END:ONLY_INCLUDE_IF
     }),
     [
       selectedEvmAccount,
       selectedSolanaAccount,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       selectedBitcoinAccount,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       selectedTronAccount,
-      ///: END:ONLY_INCLUDE_IF
     ],
   );
 
@@ -155,24 +119,16 @@ export const useNetworksToUse = ({
     const anySelectedAccount = [
       hasSelectedAccounts.evm,
       hasSelectedAccounts.solana,
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       hasSelectedAccounts.bitcoin,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
       hasSelectedAccounts.tron,
-      ///: END:ONLY_INCLUDE_IF
     ].some(Boolean);
 
     if (anySelectedAccount) {
       return combineAvailableNetworks([
         hasSelectedAccounts.evm ? evmNetworks : [],
         hasSelectedAccounts.solana ? solanaNetworks : [],
-        ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
         hasSelectedAccounts.bitcoin ? bitcoinNetworks : [],
-        ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
         hasSelectedAccounts.tron ? tronNetworks : [],
-        ///: END:ONLY_INCLUDE_IF
       ]);
     }
 
@@ -181,22 +137,14 @@ export const useNetworksToUse = ({
   }, [
     hasSelectedAccounts.evm,
     hasSelectedAccounts.solana,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     hasSelectedAccounts.bitcoin,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     hasSelectedAccounts.tron,
-    ///: END:ONLY_INCLUDE_IF
     networks,
     combineAvailableNetworks,
     evmNetworks,
     solanaNetworks,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     bitcoinNetworks,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
   const areAllNetworksSelectedCombined = useMemo(() => {
@@ -211,17 +159,13 @@ export const useNetworksToUse = ({
       accountSelectionFlags.push(areAllSolanaNetworksSelected);
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     if (hasSelectedAccounts.bitcoin) {
       accountSelectionFlags.push(areAllBitcoinNetworksSelected);
     }
-    ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (hasSelectedAccounts.tron) {
       accountSelectionFlags.push(areAllTronNetworksSelected);
     }
-    ///: END:ONLY_INCLUDE_IF
 
     // If any accounts are selected, all their networks must be selected
     // If no accounts are selected, fallback to original areAllNetworksSelected
@@ -233,40 +177,24 @@ export const useNetworksToUse = ({
     hasSelectedAccounts,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     areAllBitcoinNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return {
     networksToUse,
     evmNetworks,
     solanaNetworks,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     bitcoinNetworks,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
-    ///: END:ONLY_INCLUDE_IF
     selectedEvmAccount,
     selectedSolanaAccount,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     selectedBitcoinAccount,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     selectedTronAccount,
-    ///: END:ONLY_INCLUDE_IF
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
-    ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     areAllBitcoinNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
-    ///: END:ONLY_INCLUDE_IF
   };
 };

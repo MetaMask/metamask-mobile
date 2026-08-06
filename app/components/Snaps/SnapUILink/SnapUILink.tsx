@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
 import {
   Text,
@@ -69,5 +68,3 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({
     </Component>
   );
 };
-
-///: END:ONLY_INCLUDE_IF
