@@ -789,6 +789,24 @@ export interface PlaceOrderParams {
   attempt?: PredictBuyAttempt;
 }
 
+export interface PredictBuyAttemptContext {
+  attempt: PredictBuyAttempt;
+  address: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+}
+
+export interface StartPredictBuyAttemptArgs {
+  amountUsd: number;
+  paymentMethod: PredictBuyAttempt['paymentMethod'];
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+}
+
 export interface PreviewOrderParams {
   marketId: string;
   outcomeId: string;

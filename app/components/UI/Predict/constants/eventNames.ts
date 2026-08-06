@@ -254,8 +254,16 @@ export const PredictTradeStatus = {
   FAILED_ORDER: 'failed_order',
 } as const;
 
+export const MAX_TRACKED_PREDICT_BUY_TERMINALS = 500;
+
 export type PredictTradeStatusValue =
   (typeof PredictTradeStatus)[keyof typeof PredictTradeStatus];
+
+export type PredictBuyTerminalStatus =
+  | typeof PredictTradeStatus.SUCCEEDED
+  | typeof PredictTradeStatus.FAILED_SWAP
+  | typeof PredictTradeStatus.FAILED_ORDER
+  | typeof PredictTradeStatus.CANCELLED;
 
 export type PredictPaymentMethodValue =
   (typeof PredictEventValues.PAYMENT_METHOD)[keyof typeof PredictEventValues.PAYMENT_METHOD];

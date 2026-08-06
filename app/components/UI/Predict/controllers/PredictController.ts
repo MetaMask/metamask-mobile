@@ -53,6 +53,8 @@ import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import {
+  MAX_TRACKED_PREDICT_BUY_TERMINALS,
+  type PredictBuyTerminalStatus,
   PredictEventValues,
   PredictTradeStatus,
   type PredictTradeStatusValue,
@@ -97,6 +99,7 @@ import {
   PredictActivity,
   PredictBalance,
   PredictBuyAttempt,
+  PredictBuyAttemptContext,
   PredictClaim,
   PredictClaimStatus,
   PredictFilterOption,
@@ -118,6 +121,7 @@ import {
   Result,
   SearchMarketsParams,
   Side,
+  StartPredictBuyAttemptArgs,
   UnrealizedPnL,
 } from '../types';
 import { PredictFeatureFlags } from '../types/flags';
@@ -489,32 +493,6 @@ const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
  * on-chain value is fetched.
  */
 export const OPTIMISTIC_BALANCE_MAX_AGE_MS = 30 * 1000;
-
-const MAX_TRACKED_PREDICT_BUY_TERMINALS = 500;
-
-type PredictBuyTerminalStatus =
-  | typeof PredictTradeStatus.SUCCEEDED
-  | typeof PredictTradeStatus.FAILED_SWAP
-  | typeof PredictTradeStatus.FAILED_ORDER
-  | typeof PredictTradeStatus.CANCELLED;
-
-interface PredictBuyAttemptContext {
-  attempt: PredictBuyAttempt;
-  address: string;
-  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-  sharePrice?: number;
-  orderType?: OrderPreview['orderType'];
-  activeAbTests?: PlaceOrderParams['activeAbTests'];
-}
-
-interface StartPredictBuyAttemptArgs {
-  amountUsd: number;
-  paymentMethod: PredictBuyAttempt['paymentMethod'];
-  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-  sharePrice?: number;
-  orderType?: OrderPreview['orderType'];
-  activeAbTests?: PlaceOrderParams['activeAbTests'];
-}
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
