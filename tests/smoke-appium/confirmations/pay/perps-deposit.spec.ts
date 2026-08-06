@@ -34,7 +34,7 @@ const PERPS_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
-  appiumTest.describe.configure({ timeout: 2500000 });
+  appiumTest.describe.configure({ timeout: 250_000 });
 
   appiumTest(
     'deposits $50 with Mainnet USDC, verifies the MM Pay quote, confirms the transaction, and sees it in perps activity',
