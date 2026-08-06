@@ -6,15 +6,13 @@ import { View, Text } from 'react-native';
 import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import {
+  DefaultTheme,
+  NavigationContainer,
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { navIntegration } from '../../../util/sentry/utils';
-
-const navigationContainerThemeCapture: {
-  theme?: { colors?: { background?: string } };
-} = {};
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -54,7 +52,6 @@ describe('NavigationProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    navigationContainerThemeCapture.theme = undefined;
     NavigationService.navigation =
       undefined as unknown as NavigationContainerRef<ParamListBase>;
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -94,8 +91,8 @@ describe('NavigationProvider', () => {
     expect(NavigationService.navigation).toHaveProperty('navigate');
   });
 
-  it('registers the navigation container ref with Sentry reactNavigationIntegration', () => {
-    render(
+  it('uses DefaultTheme with a transparent background', () => {
+    const { UNSAFE_getByType } = render(
       <NavigationProvider>
         <View />
       </NavigationProvider>,
@@ -105,6 +102,15 @@ describe('NavigationProvider', () => {
     expect(navIntegration.registerNavigationContainer).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: expect.any(Function) }),
     );
+    const container = UNSAFE_getByType(NavigationContainer);
+
+    expect(container.props.theme).toEqual({
+      ...DefaultTheme,
+      colors: {
+        ...DefaultTheme.colors,
+        background: 'transparent',
+      },
+    });
   });
 
   it('Measures performance trace order when navigation provider is initialized', () => {

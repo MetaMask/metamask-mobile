@@ -38,10 +38,12 @@ import {
 } from '@metamask/transaction-controller';
 import {
   MMM_ORIGIN,
+  MM_PAY_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
@@ -78,6 +80,11 @@ export const Footer = () => {
     TRANSFER_TRANSACTION_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
   const isPayLoading = useIsTransactionPayLoading();
+  const isMMPayTransaction = hasTransactionType(
+    transactionMetadata,
+    MM_PAY_TRANSACTION_TYPES,
+  );
+  const isPayAmountStale = useIsTransactionPayAmountStale();
   const { isGaslessLoading } = useIsGaslessLoading();
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
@@ -183,6 +190,7 @@ export const Footer = () => {
     hasBlockingAlerts ||
     isTransactionValueUpdating ||
     isPayLoading ||
+    (isMMPayTransaction && isPayAmountStale) ||
     isGaslessLoading;
 
   const buttons = [
