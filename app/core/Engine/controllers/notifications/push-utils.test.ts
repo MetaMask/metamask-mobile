@@ -1,3 +1,4 @@
+import { AppState, type AppStateStatus } from 'react-native';
 import { type FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
@@ -43,35 +44,53 @@ const createRemoteMessage = (
     data: overrides.data,
   }) as FirebaseMessagingTypes.RemoteMessage;
 
+const setAppState = (state: AppStateStatus) => {
+  Object.defineProperty(AppState, 'currentState', {
+    value: state,
+    writable: true,
+    configurable: true,
+  });
+};
+
 describe('shouldDisplayForegroundPushNotification', () => {
-  it('returns false for wallet_activity notifications', () => {
-    const data = { notification_type: WALLET_ACTIVITY_NOTIFICATION_TYPE };
-
-    const result = shouldDisplayForegroundPushNotification(data);
-
-    expect(result).toBe(false);
+  afterEach(() => {
+    setAppState('active');
   });
 
-  it('returns true for non-wallet_activity notification types', () => {
+  it('returns false for wallet_activity when the app is in the foreground', () => {
+    setAppState('active');
+    const data = { notification_type: WALLET_ACTIVITY_NOTIFICATION_TYPE };
+
+    expect(shouldDisplayForegroundPushNotification(data)).toBe(false);
+  });
+
+  it.each(['background', 'inactive'] as const)(
+    'returns true for wallet_activity when the app is %s',
+    (state) => {
+      setAppState(state);
+      const data = { notification_type: WALLET_ACTIVITY_NOTIFICATION_TYPE };
+
+      expect(shouldDisplayForegroundPushNotification(data)).toBe(true);
+    },
+  );
+
+  it('returns true for non-wallet_activity types in the foreground', () => {
+    setAppState('active');
     const data = { notification_type: 'perps' };
 
-    const result = shouldDisplayForegroundPushNotification(data);
-
-    expect(result).toBe(true);
+    expect(shouldDisplayForegroundPushNotification(data)).toBe(true);
   });
 
   it('returns true when notification_type is missing', () => {
-    const data = { notification_id: 'abc' };
-
-    const result = shouldDisplayForegroundPushNotification(data);
-
-    expect(result).toBe(true);
+    setAppState('active');
+    expect(shouldDisplayForegroundPushNotification({ notification_id: 'a' })).toBe(
+      true,
+    );
   });
 
   it('returns true when data is undefined', () => {
-    const result = shouldDisplayForegroundPushNotification(undefined);
-
-    expect(result).toBe(true);
+    setAppState('active');
+    expect(shouldDisplayForegroundPushNotification(undefined)).toBe(true);
   });
 });
 
@@ -83,6 +102,7 @@ describe('createSubscribeToPushNotifications', () => {
     jest.clearAllMocks();
     mockListen.mockResolvedValue(jest.fn());
     mockDisplay.mockResolvedValue(undefined);
+    setAppState('active');
   });
 
   const getForegroundHandler = async () => {
