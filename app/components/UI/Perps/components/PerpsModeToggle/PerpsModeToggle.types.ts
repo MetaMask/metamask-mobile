@@ -4,11 +4,11 @@ import type { PerpsMode } from '@metamask/perps-controller';
 /**
  * How the toggle presents itself.
  *
- * `'toggle'` (default) renders the interactive two-segment pill ("Lite" / "Pro")
- * used in the Perps home header.
+ * `'toggle'` (default) renders the interactive two-segment pill ("Lite" / "Pro").
  *
  * `'active'` renders a single pill showing only the currently active mode, used
- * in the Market header (AC #6.3). Pressing it flips to the opposite mode.
+ * in Perps headers. Pressing it plays the shimmer and flips to the opposite
+ * mode.
  */
 export type PerpsModeToggleVariant = 'toggle' | 'active';
 

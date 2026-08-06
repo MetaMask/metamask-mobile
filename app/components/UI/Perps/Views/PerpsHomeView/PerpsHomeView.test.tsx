@@ -69,6 +69,8 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+const mockPerpsModeToggle = jest.fn();
+
 // Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
 // (its analytics/design-system internals are covered by its own unit tests).
 jest.mock('../../components/PerpsModeToggle', () => {
@@ -79,12 +81,20 @@ jest.mock('../../components/PerpsModeToggle', () => {
   );
   return {
     __esModule: true,
-    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
-      ReactActual.createElement(TouchableOpacity, {
+    default: ({
+      onChange,
+      variant,
+    }: {
+      onChange?: (mode: string) => void;
+      variant?: string;
+    }) => {
+      mockPerpsModeToggle({ variant });
+      return ReactActual.createElement(TouchableOpacity, {
         testID: SelectorsIDs.CONTAINER,
         // Simulate the user switching to Pro from the stubbed toggle.
         onPress: () => onChange?.('pro'),
-      }),
+      });
+    },
     PerpsMode: { Lite: 'lite', Pro: 'pro' },
   };
 });
@@ -262,7 +272,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // Mock design system - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
     ButtonIcon: ({
@@ -271,7 +281,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: {
       testID?: string;
       onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    }) => ReactActual.createElement(TouchableOpacity, { testID, onPress }),
     Box: 'Box',
   };
 });
@@ -596,7 +606,7 @@ describe('PerpsHomeView', () => {
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
-  it('renders the Lite/Pro toggle in the header when the Pro mode flag is enabled', () => {
+  it('renders the active-mode pill in the header when the Pro mode flag is enabled', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -613,6 +623,7 @@ describe('PerpsHomeView', () => {
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({ variant: 'active' });
   });
 
   it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {

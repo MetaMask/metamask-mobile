@@ -19,10 +19,13 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheetRef,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonVariant,
   ButtonSize,
   TextColor,
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   HeaderStandard,
   HeaderStandardAnimated,
@@ -1069,33 +1072,39 @@ const PerpsHomeView = () => {
     <View style={styles.container}>
       {/* Header */}
       {isPerpsProModeEnabled ? (
-        // Pro mode: persistent centered Lite/Pro toggle in the top nav
+        // Pro mode: persistent active-mode pill beside search in the top nav
         // (the animated compact title would only appear on scroll).
-        // h-16 (64px) matches the Figma header so the 40px toggle keeps its
-        // 12px of breathing room above/below (HeaderBase defaults to 56px).
+        // h-16 (64px) matches the Figma header (HeaderBase defaults to 56px).
         <HeaderStandard
           includesTopInset
           twClassName="h-16"
-          title={
-            <PerpsModeToggle
-              mode={perpsMode}
-              onChange={handleModeChange}
-              source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-            />
-          }
+          title={perpsScreenTitle}
           onBack={handleBackPress}
           backButtonProps={{
             accessibilityLabel: 'Back',
             testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
           }}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Search,
-              onPress: handleSearchToggle,
-              accessibilityLabel: 'Search',
-              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-            },
-          ]}
+          endAccessory={
+            <Box
+              accessible={false}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <ButtonIcon
+                iconName={IconName.Search}
+                size={ButtonIconSize.Md}
+                onPress={handleSearchToggle}
+                accessibilityLabel="Search"
+                testID={PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE}
+              />
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={handleModeChange}
+                variant="active"
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+              />
+            </Box>
+          }
           testID="perps-home"
         />
       ) : (
