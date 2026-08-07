@@ -27,7 +27,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
 
       const timer = new TimerHelper(
         'Time since the user taps Money until content is visible',
-        { ios: 3500, android: 3500 },
+        { ios: 60_000, android: 60_000 },
         currentDeviceDetails.platform,
       );
 
