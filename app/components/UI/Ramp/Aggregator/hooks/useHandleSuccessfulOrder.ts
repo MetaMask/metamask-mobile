@@ -84,9 +84,16 @@ function useHandleSuccessfulOrder() {
           const chainIdFromProvider = (order?.data as Order)?.cryptoCurrency
             ?.network?.chainId;
 
-          const hexChainId = chainIdFromProvider
-            ? toHexadecimal(chainIdFromProvider)
-            : null;
+          // Non-decimal chain ids (e.g. CAIP Solana) cannot convert to hex.
+          // Legacy BigNumber returned "NaN"; treat as unusable for EVM balance lookup.
+          let hexChainId: string | null = null;
+          if (chainIdFromProvider) {
+            try {
+              hexChainId = toHexadecimal(chainIdFromProvider);
+            } catch {
+              hexChainId = null;
+            }
+          }
           const accountBalance =
             hexChainId &&
             order.account &&
