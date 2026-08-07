@@ -30,6 +30,14 @@ interface UsePerpsMarketFillsReturn {
    */
   isInitialLoading: boolean;
   /**
+   * True while the initial historical REST backfill is loading
+   */
+  isHistoryLoading: boolean;
+  /**
+   * Error from the historical REST backfill, if it failed
+   */
+  historyError: string | null;
+  /**
    * Refresh function to manually refetch REST data
    */
   refresh: () => Promise<void>;
@@ -73,17 +81,27 @@ export const usePerpsMarketFills = ({
 
   // REST API fills state for complete history
   const [restFills, setRestFills] = useState<OrderFill[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch historical fills via REST API (limited to last 3 months for performance)
   const fetchRestFills = useCallback(async (isRefresh = false) => {
     const controller = Engine.context.PerpsController;
     if (!controller) {
+      setIsHistoryLoading(false);
+      setHistoryError('Perps controller is unavailable');
       return;
     }
 
+    if (!isRefresh) {
+      setIsHistoryLoading(true);
+    }
+    setHistoryError(null);
+
     try {
       if (!controller.getActiveProviderOrNull()) {
+        setHistoryError('No active Perps provider');
         return;
       }
 
@@ -102,11 +120,14 @@ export const usePerpsMarketFills = ({
       );
       setRestFills(fills);
     } catch (err) {
+      const error = ensureError(err, 'usePerpsMarketFills.fetchFills');
+      setHistoryError(error.message);
+
       // Get the current account for debugging context
       const accountAddress = addressRef.current ?? 'unknown';
 
       // Log error to Sentry but don't fail - WebSocket fills still work
-      Logger.error(ensureError(err, 'usePerpsMarketFills.fetchFills'), {
+      Logger.error(error, {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
         },
@@ -116,6 +137,10 @@ export const usePerpsMarketFills = ({
           message: `[usePerpsMarketFills] Failed to fetch REST fills for account ${accountAddress}: ${err}`,
         },
       });
+    } finally {
+      if (!isRefresh) {
+        setIsHistoryLoading(false);
+      }
     }
   }, []);
 
@@ -151,6 +176,8 @@ export const usePerpsMarketFills = ({
   return {
     fills,
     isInitialLoading,
+    isHistoryLoading,
+    historyError,
     refresh,
     isRefreshing,
   };

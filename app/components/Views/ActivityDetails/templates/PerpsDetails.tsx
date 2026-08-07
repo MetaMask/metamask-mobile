@@ -51,7 +51,7 @@ import {
   type PerpsTransaction,
 } from '../components/ActivityDetailsPerps.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { usePerpsOrderFees } from '../../../UI/Perps/hooks';
+import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
 
 /**
@@ -200,11 +200,15 @@ function OrderDetails({
   const handleTryAgain = useTradeAgain(transaction.asset);
   const shouldShowTryAgain =
     item.status === 'cancelled' || item.status === 'failed';
-  const isFilled = item.status === 'success';
-  const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
-    orderType: order?.type ?? 'market',
-    amount: isFilled ? (order?.size ?? '0') : '0',
-  });
+  const {
+    totalFee,
+    isLoading: isFeeLoading,
+    hasError: hasFeeError,
+  } = usePerpsRecordedOrderFees(order?.orderId, transaction.asset);
+  const totalFeeValue =
+    isFeeLoading || hasFeeError || totalFee === undefined
+      ? '—'
+      : formatPerpsOrderFee(totalFee);
 
   return (
     <ActivityDetailsTemplateFrame
@@ -238,16 +242,8 @@ function OrderDetails({
       details={
         <ActivityDetailSection>
           <ActivityDetailRow
-            label={strings('perps.transactions.order.metamask_fee')}
-            value={formatPerpsOrderFee(metamaskFee, isFilled)}
-          />
-          <ActivityDetailRow
-            label={strings('perps.transactions.order.hyperliquid_fee')}
-            value={formatPerpsOrderFee(protocolFee, isFilled)}
-          />
-          <ActivityDetailRow
             label={strings('perps.transactions.order.total_fee')}
-            value={formatPerpsOrderFee(totalFee, isFilled)}
+            value={totalFeeValue}
           />
         </ActivityDetailSection>
       }
