@@ -204,6 +204,8 @@ android {
         versionName "8.8.0"
         versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
+        // Still needed so E2E CI can assemble*AndroidTest (artifact cache/reuse).
+        // Detox flavor dimension (`missingDimensionStrategy 'detox'`) removed in MMQA-2230.
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
