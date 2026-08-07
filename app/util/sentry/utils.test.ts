@@ -1317,6 +1317,14 @@ describe('getNavIntegration', () => {
     // Covers lines 644-646 (_noOpNavIntegration object + its arrow function body)
     // and lines 651-653 (the hasTestOverrides early-return branch).
     // Uses isolateModules + doMock so the flag is set before utils.ts is evaluated.
+
+    // Track the factory BEFORE the isolated block. reactNavigationIntegration is a
+    // single jest.fn() created in testSetup.js and shared across all module registries,
+    // so clearing it here and asserting after the block is valid — exactly the same
+    // pattern used by the laziness test above.
+    const mockedFactory = jest.mocked(reactNavigationIntegration);
+    mockedFactory.mockClear();
+
     jest.isolateModules(() => {
       jest.doMock('../test/utils', () => ({
         hasTestOverrides: true,
@@ -1330,6 +1338,13 @@ describe('getNavIntegration', () => {
       // Actually invoke the arrow function to cover its body
       expect(stub.registerNavigationContainer({} as never)).toBeUndefined();
     });
+
+    // Critical guard: the real Sentry factory must NOT have been invoked when
+    // hasTestOverrides is true. Removing the early-return from getNavIntegration()
+    // would cause reactNavigationIntegration() to be called, making this fail.
+    // Without this assertion the test passes whether the early-return exists or not
+    // because jest.fn() also returns a function that returns undefined.
+    expect(mockedFactory).not.toHaveBeenCalled();
   });
 });
 
