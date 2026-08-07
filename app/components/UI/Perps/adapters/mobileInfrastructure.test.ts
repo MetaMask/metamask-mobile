@@ -9,6 +9,7 @@ import {
   getTerminalApiUrl,
 } from './mobileInfrastructure';
 import { TERMINAL_API_URLS } from '../constants/terminalApi';
+import { PERPS_DISK_CACHE_USER_DATA } from '../constants/perpsConfig';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -60,6 +61,10 @@ jest.mock('react-native-performance', () => ({
 
 jest.mock('../providers/PerpsStreamManager', () => ({
   getStreamManagerInstance: jest.fn(),
+}));
+
+jest.mock('../utils/homepagePerformanceProbe', () => ({
+  markHomepagePerpsDiskCacheHydrated: jest.fn(),
 }));
 
 jest.mock('../../../../store/storage-wrapper', () => ({
@@ -282,6 +287,19 @@ describe('createMobileInfrastructure', () => {
 
       expect(StorageWrapper.getItemSync).toHaveBeenCalledWith('test-key');
       expect(value).toBe('cached-sync-value');
+    });
+
+    it('marks synchronous user-cache hydration for provenance', () => {
+      const { markHomepagePerpsDiskCacheHydrated } = jest.requireMock(
+        '../utils/homepagePerformanceProbe',
+      );
+      const infra = createMobileInfrastructure();
+
+      infra.diskCache.getItemSync?.(PERPS_DISK_CACHE_USER_DATA);
+
+      expect(markHomepagePerpsDiskCacheHydrated).toHaveBeenCalledWith(
+        'cached-sync-value',
+      );
     });
 
     it('delegates setItem to StorageWrapper.setItem', async () => {

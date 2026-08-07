@@ -50,6 +50,13 @@ import {
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  createHomepagePerpsDelivery,
+  getHomepagePerpsDiskCacheAgeMs,
+  logHomepagePerformanceStage,
+  wasHomepagePerpsDiskCacheHydrated,
+  type HomepagePerpsDeliveryMetadata,
+} from '../utils/homepagePerformanceProbe';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -65,11 +72,13 @@ function getEvmAccountFromSelectedAccountGroup() {
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
-  callback: (data: T) => void;
+  callback: (data: T, metadata?: HomepagePerpsDeliveryMetadata) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
+  pendingMetadata?: HomepagePerpsDeliveryMetadata;
   hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
+  includeDeliveryMetadata?: boolean;
   // Symbols this subscriber cares about. When present, the channel can dispatch
   // an update only to subscribers registered for the symbols that changed,
   // instead of iterating every subscriber on every tick. Used by the price channel.
@@ -114,7 +123,10 @@ abstract class StreamChannel<T> {
   protected deferConnectTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly MAX_CONNECT_RETRIES = 150; // 30s at 200ms
 
-  protected notifySubscribers(updates: T) {
+  protected notifySubscribers(
+    updates: T,
+    metadata?: HomepagePerpsDeliveryMetadata,
+  ) {
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
       return;
@@ -122,7 +134,7 @@ abstract class StreamChannel<T> {
 
     this.lastDeliveredAt = Date.now();
     this.subscribers.forEach((subscriber) => {
-      this.deliverToSubscriber(subscriber, updates);
+      this.deliverToSubscriber(subscriber, updates, metadata);
     });
   }
 
@@ -192,32 +204,78 @@ abstract class StreamChannel<T> {
    * semantics. Shared by {@link notifySubscribers} and
    * {@link notifySubscribersForSymbols} so both dispatch paths behave identically.
    */
-  private deliverToSubscriber(subscriber: StreamSubscription<T>, updates: T) {
+  private deliverToSubscriber(
+    subscriber: StreamSubscription<T>,
+    updates: T,
+    metadata?: HomepagePerpsDeliveryMetadata,
+    countsAsFirstUpdate = true,
+  ) {
+    const deliver = () => {
+      const deliveredAtMonotonicMs = performance.now();
+      const deliveredMetadata = metadata
+        ? {
+            ...metadata,
+            subscriberDeliveredAtMonotonicMs: deliveredAtMonotonicMs,
+          }
+        : undefined;
+
+      if (subscriber.includeDeliveryMetadata && deliveredMetadata) {
+        subscriber.callback(updates, deliveredMetadata);
+      } else {
+        subscriber.callback(updates);
+      }
+
+      if (deliveredMetadata) {
+        logHomepagePerformanceStage('subscriber_delivery', deliveredMetadata, {
+          queue_ms: Number(
+            (
+              deliveredAtMonotonicMs - deliveredMetadata.receivedAtMonotonicMs
+            ).toFixed(3),
+          ),
+          throttle_ms: subscriber.throttleMs ?? 0,
+        });
+      }
+    };
+
     // Check if this is the first update for this subscriber
     if (!subscriber.hasReceivedFirstUpdate) {
-      subscriber.callback(updates);
-      subscriber.hasReceivedFirstUpdate = true;
+      deliver();
+      if (countsAsFirstUpdate) {
+        subscriber.hasReceivedFirstUpdate = true;
+      }
       return; // Don't set up throttle for the first update
     }
 
     // If no throttling (throttleMs is 0 or undefined), notify immediately
     if (!subscriber.throttleMs) {
-      subscriber.callback(updates);
+      deliver();
       return;
     }
 
     // For subsequent updates with throttling, use throttle logic
     // Store pending update
     subscriber.pendingUpdate = updates;
+    subscriber.pendingMetadata = metadata;
 
     // Throttle pattern: Only set timer if one isn't already running
     // This ensures callbacks fire at most once per throttleMs interval
     // WITHOUT resetting the countdown on every update (which would be debouncing)
     // The conditional check prevents timer accumulation - no memory leaks
     subscriber.timer ??= setTimeout(() => {
-      if (subscriber.pendingUpdate) {
-        subscriber.callback(subscriber.pendingUpdate);
+      if (subscriber.pendingUpdate !== undefined) {
+        const pendingUpdate = subscriber.pendingUpdate;
+        const pendingMetadata = subscriber.pendingMetadata;
+        this.deliverToSubscriber(
+          {
+            ...subscriber,
+            throttleMs: undefined,
+            hasReceivedFirstUpdate: true,
+          },
+          pendingUpdate,
+          pendingMetadata,
+        );
         subscriber.pendingUpdate = undefined;
+        subscriber.pendingMetadata = undefined;
       }
       subscriber.timer = undefined;
     }, subscriber.throttleMs);
@@ -241,8 +299,19 @@ abstract class StreamChannel<T> {
       clearTimeout(subscriber.timer);
       subscriber.timer = undefined;
       if (subscriber.pendingUpdate !== undefined) {
-        subscriber.callback(subscriber.pendingUpdate);
+        const pendingUpdate = subscriber.pendingUpdate;
+        const pendingMetadata = subscriber.pendingMetadata;
+        this.deliverToSubscriber(
+          {
+            ...subscriber,
+            throttleMs: undefined,
+            hasReceivedFirstUpdate: true,
+          },
+          pendingUpdate,
+          pendingMetadata,
+        );
         subscriber.pendingUpdate = undefined;
+        subscriber.pendingMetadata = undefined;
       }
     });
   }
@@ -287,9 +356,10 @@ abstract class StreamChannel<T> {
   }
 
   subscribe(params: {
-    callback: (data: T) => void;
+    callback: (data: T, metadata?: HomepagePerpsDeliveryMetadata) => void;
     throttleMs?: number;
     symbols?: string[];
+    includeDeliveryMetadata?: boolean;
   }): () => void {
     const id = Math.random().toString(36);
 
@@ -304,7 +374,12 @@ abstract class StreamChannel<T> {
     // Give immediate cached data if available
     const cached = this.getCachedData();
     if (cached != null) {
-      params.callback(cached);
+      this.deliverToSubscriber(
+        subscription,
+        cached,
+        this.createCachedDeliveryMetadata(cached),
+        false,
+      );
       // Cached data renders immediately but must not consume the first fresh
       // update exemption. The first live snapshot should also bypass throttling.
     }
@@ -318,6 +393,10 @@ abstract class StreamChannel<T> {
       if (sub?.timer) {
         clearTimeout(sub.timer);
         sub.timer = undefined;
+      }
+      if (sub) {
+        sub.pendingUpdate = undefined;
+        sub.pendingMetadata = undefined;
       }
       this.deindexSubscriptionSymbols(sub);
       this.subscribers.delete(id);
@@ -463,6 +542,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.pendingMetadata = undefined;
     });
 
     if (this.wsSubscription) {
@@ -507,6 +587,12 @@ abstract class StreamChannel<T> {
     return null;
   }
 
+  protected createCachedDeliveryMetadata(
+    _data: T,
+  ): HomepagePerpsDeliveryMetadata | undefined {
+    return undefined;
+  }
+
   public clearCache(): void {
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
@@ -519,6 +605,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.pendingMetadata = undefined;
       subscriber.hasReceivedFirstUpdate = false;
     });
 
@@ -913,6 +1000,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 class OrderStreamChannel extends StreamChannel<Order[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+  private lastFreshAtWallMs: number | null = null;
 
   protected endOpenFirstDataTrace(): void {
     if (this.firstDataTraceId) {
@@ -936,6 +1024,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       name: TraceName.PerpsWebSocketFirstOrders,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -982,8 +1071,18 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
           this.firstDataTraceId = undefined;
         }
 
+        const metadata = createHomepagePerpsDelivery({
+          stream: 'orders',
+          source: 'fresh_socket',
+          itemCount: orders.length,
+        });
+        logHomepagePerformanceStage('socket_received', metadata);
         this.cache.set('orders', orders);
-        this.notifySubscribers(orders);
+        this.lastFreshAtWallMs = Date.now();
+        logHomepagePerformanceStage('cache_write', metadata, {
+          cache: 'memory',
+        });
+        this.notifySubscribers(orders, metadata);
         // Orders confirmed in the live stream — close pending cancel / limit
         // order-render CUF spans at this delivery instant. The boundary is
         // stream confirmation (the order is now present/absent in live orders
@@ -1012,6 +1111,23 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
     }
     const preloaded = getPreloadedData<Order[]>('cachedOrders');
     return preloaded;
+  }
+
+  protected createCachedDeliveryMetadata(data: Order[] | null) {
+    const fromMemory = this.cache.has('orders');
+    const hasFreshMemory = this.lastFreshAtWallMs !== null;
+    return createHomepagePerpsDelivery({
+      stream: 'orders',
+      source:
+        fromMemory || hasFreshMemory || !wasHomepagePerpsDiskCacheHydrated()
+          ? 'memory_cache'
+          : 'disk_cache',
+      itemCount: data?.length ?? 0,
+      dataAgeMs:
+        fromMemory || hasFreshMemory
+          ? Math.max(0, Date.now() - (this.lastFreshAtWallMs ?? Date.now()))
+          : getHomepagePerpsDiskCacheAgeMs(),
+    });
   }
 
   protected getClearedData(): Order[] | null {
@@ -1136,6 +1252,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 class PositionStreamChannel extends StreamChannel<Position[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+  private lastFreshAtWallMs: number | null = null;
 
   protected endOpenFirstDataTrace(): void {
     if (this.firstDataTraceId) {
@@ -1159,6 +1276,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       name: TraceName.PerpsWebSocketFirstPositions,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -1209,8 +1327,18 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
           this.firstDataTraceId = undefined;
         }
 
+        const metadata = createHomepagePerpsDelivery({
+          stream: 'positions',
+          source: 'fresh_socket',
+          itemCount: positions.length,
+        });
+        logHomepagePerformanceStage('socket_received', metadata);
         this.cache.set('positions', positions);
-        this.notifySubscribers(positions);
+        this.lastFreshAtWallMs = Date.now();
+        logHomepagePerformanceStage('cache_write', metadata, {
+          cache: 'memory',
+        });
+        this.notifySubscribers(positions, metadata);
         // Positions just rendered to subscribers — close any pending CUF span
         // (place/close/TPSL/reconnect) at its user-perceived boundary, flushing
         // throttled subscribers first so the span ends at real render time.
@@ -1232,6 +1360,23 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
     }
     const preloaded = getPreloadedData<Position[]>('cachedPositions');
     return preloaded;
+  }
+
+  protected createCachedDeliveryMetadata(data: Position[] | null) {
+    const fromMemory = this.cache.has('positions');
+    const hasFreshMemory = this.lastFreshAtWallMs !== null;
+    return createHomepagePerpsDelivery({
+      stream: 'positions',
+      source:
+        fromMemory || hasFreshMemory || !wasHomepagePerpsDiskCacheHydrated()
+          ? 'memory_cache'
+          : 'disk_cache',
+      itemCount: data?.length ?? 0,
+      dataAgeMs:
+        fromMemory || hasFreshMemory
+          ? Math.max(0, Date.now() - (this.lastFreshAtWallMs ?? Date.now()))
+          : getHomepagePerpsDiskCacheAgeMs(),
+    });
   }
 
   protected getClearedData(): Position[] | null {
@@ -1461,6 +1606,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       name: TraceName.PerpsWebSocketFirstAccount,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      tags: buildPerpsCufStartTags(),
     });
 
     // Track WebSocket connection start time for duration calculation

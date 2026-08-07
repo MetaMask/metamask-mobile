@@ -56,6 +56,11 @@ jest.mock('../utils/perpsCufTrace', () => ({
   endPerpsCufTrace: jest.fn(),
 }));
 
+jest.mock('../utils/homepagePerformanceProbe', () => ({
+  markHomepagePerpsAccountSwitch: jest.fn(),
+  markHomepagePerpsNetworkRecovery: jest.fn(),
+}));
+
 // Mock selectors
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
@@ -658,6 +663,9 @@ describe('PerpsConnectionManager', () => {
     });
 
     it('detects account changes and triggers reconnection', async () => {
+      const { markHomepagePerpsAccountSwitch } = jest.requireMock(
+        '../utils/homepagePerformanceProbe',
+      );
       // Setup connected state
       mockPerpsController.init.mockResolvedValue();
       mockPerpsController.getAccountState.mockResolvedValue({});
@@ -694,6 +702,7 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).toHaveBeenCalledWith(true);
+      expect(markHomepagePerpsAccountSwitch).toHaveBeenCalledTimes(1);
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -1576,6 +1585,9 @@ describe('PerpsConnectionManager', () => {
     });
 
     it('validates only once for duplicate online notifications', async () => {
+      const { markHomepagePerpsNetworkRecovery } = jest.requireMock(
+        '../utils/homepagePerformanceProbe',
+      );
       const m = PerpsConnectionManager as unknown as { wasOffline: boolean };
       m.wasOffline = true;
       const reconnect = jest
@@ -1590,6 +1602,7 @@ describe('PerpsConnectionManager', () => {
 
       expect(m.wasOffline).toBe(false);
       expect(mockActiveProvider.ping).toHaveBeenCalledTimes(1);
+      expect(markHomepagePerpsNetworkRecovery).toHaveBeenCalledTimes(1);
       expect(mockStreamManagerInstance.clearAllChannels).toHaveBeenCalledTimes(
         1,
       );

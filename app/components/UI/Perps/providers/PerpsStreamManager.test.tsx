@@ -21,6 +21,7 @@ import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import { PERPS_CUF_TAG } from '../constants/perpsCufTags';
 import {
   PERPS_LIFECYCLE_CONTEXT,
+  PERPS_LIFECYCLE_DETAIL,
   resetPerpsLifecycleContextForTests,
 } from '../utils/perpsLifecycleContext';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
@@ -1182,10 +1183,11 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  describe('first price and order book trace tags', () => {
+  describe('first WebSocket trace tags', () => {
     const expectedSharedTags = {
       [PERPS_CUF_TAG.FEATURE]: PERPS_CONSTANTS.FeatureName,
       [PERPS_CUF_TAG.LIFECYCLE_CONTEXT]: PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+      [PERPS_CUF_TAG.LIFECYCLE_DETAIL]: PERPS_LIFECYCLE_DETAIL.COLD_PROCESS,
     };
 
     it('starts the first-price trace with shared CUF tags', () => {
@@ -1219,6 +1221,24 @@ describe('PerpsStreamManager', () => {
         tags: expectedSharedTags,
       });
     });
+
+    it.each([
+      ['orders', TraceName.PerpsWebSocketFirstOrders],
+      ['positions', TraceName.PerpsWebSocketFirstPositions],
+      ['account', TraceName.PerpsWebSocketFirstAccount],
+    ] as const)(
+      'starts the first-%s trace with shared CUF tags',
+      (channelName, traceName) => {
+        testStreamManager[channelName].subscribe({ callback: jest.fn() });
+
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: traceName,
+          id: expect.any(String),
+          op: TraceOperation.PerpsOperation,
+          tags: expectedSharedTags,
+        });
+      },
+    );
 
     it('starts the prewarmed first-price trace with shared CUF tags', async () => {
       mockSubscribeToPrices.mockReturnValue(jest.fn());
@@ -4509,10 +4529,18 @@ describe('PerpsStreamManager', () => {
       );
       const callback = jest.fn();
 
-      testStreamManager.positions.subscribe({ callback, throttleMs: 100 });
+      testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 100,
+        includeDeliveryMetadata: true,
+      });
 
       act(() => controllerCallbacks[0]([]));
       expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenLastCalledWith(
+        [],
+        expect.objectContaining({ source: 'fresh_socket' }),
+      );
 
       act(() => controllerCallbacks[0]([]));
       expect(callback).toHaveBeenCalledTimes(1);
@@ -4632,14 +4660,14 @@ describe('PerpsStreamManager', () => {
       } as Order,
     ];
 
-    const mockPositions = [
+    const mockPositions: Position[] = [
       {
         symbol: 'BTC',
-        side: 'long',
         size: '1',
         entryPrice: '50000',
-        markPrice: '51000',
         unrealizedPnl: '1000',
+        positionValue: '51000',
+        marginUsed: '5000',
         leverage: { type: 'cross', value: 10 },
         liquidationPrice: '45000',
         maxLeverage: 50,
@@ -4744,19 +4772,33 @@ describe('PerpsStreamManager', () => {
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
 
-      streamManager.positions.subscribe({ callback, throttleMs: 100 });
+      streamManager.positions.subscribe({
+        callback,
+        throttleMs: 100,
+        includeDeliveryMetadata: true,
+      });
       expect(callback).toHaveBeenCalledTimes(1);
-      expect(callback).toHaveBeenLastCalledWith(mockPositions);
+      expect(callback).toHaveBeenLastCalledWith(
+        mockPositions,
+        expect.objectContaining({ source: 'memory_cache' }),
+      );
 
       act(() => controllerCallback?.([]));
       expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenLastCalledWith(
+        [],
+        expect.objectContaining({ source: 'fresh_socket' }),
+      );
 
       act(() => controllerCallback?.(mockPositions as Position[]));
       expect(callback).toHaveBeenCalledTimes(2);
 
       act(() => jest.advanceTimersByTime(100));
       expect(callback).toHaveBeenCalledTimes(3);
-      expect(callback).toHaveBeenLastCalledWith(mockPositions);
+      expect(callback).toHaveBeenLastCalledWith(
+        mockPositions,
+        expect.objectContaining({ source: 'fresh_socket' }),
+      );
     });
 
     it('serves cached account state instantly via getCachedData before isInitialized', () => {

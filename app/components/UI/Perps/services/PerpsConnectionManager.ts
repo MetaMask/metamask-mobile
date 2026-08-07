@@ -56,6 +56,10 @@ import {
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
 import {
+  markHomepagePerpsAccountSwitch,
+  markHomepagePerpsNetworkRecovery,
+} from '../utils/homepagePerformanceProbe';
+import {
   markPerpsAccountSwitch,
   markPerpsNetworkRecovery,
 } from '../utils/perpsLifecycleContext';
@@ -154,6 +158,7 @@ class PerpsConnectionManagerClass {
         this.isConnected
       ) {
         if (hasAccountChanged) {
+          markHomepagePerpsAccountSwitch();
           markPerpsAccountSwitch();
         }
         DevLogger.log(
@@ -290,6 +295,7 @@ class PerpsConnectionManagerClass {
             // Claim the transition synchronously. NetInfo may emit duplicate
             // online notifications before asynchronous validation completes.
             this.wasOffline = false;
+            markHomepagePerpsNetworkRecovery();
             markPerpsNetworkRecovery();
             DevLogger.log(
               'PerpsConnectionManager: Network restored - validating connection',

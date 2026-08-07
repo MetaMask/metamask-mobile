@@ -4,6 +4,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
+import type { HomepagePerpsDeliveryMetadata } from '../../utils/homepagePerformanceProbe';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -13,6 +14,8 @@ export interface UsePerpsLivePositionsOptions {
   throttleMs?: number;
   /** Whether to subscribe to price updates for live PnL calculations (default: false) */
   useLivePnl?: boolean;
+  /** Include delivery provenance for visible-performance instrumentation. */
+  includeDeliveryMetadata?: boolean;
 }
 
 export interface UsePerpsLivePositionsReturn {
@@ -20,6 +23,8 @@ export interface UsePerpsLivePositionsReturn {
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Metadata for the cache or socket delivery that produced this state. */
+  latestDelivery?: HomepagePerpsDeliveryMetadata;
 }
 
 /**
@@ -102,7 +107,11 @@ export function enrichPositionsWithLivePnL(
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
+  const {
+    throttleMs = 0,
+    useLivePnl = false,
+    includeDeliveryMetadata = false,
+  } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const initialChannelPositions = stream.positions.getSnapshot();
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
@@ -126,6 +135,8 @@ export function usePerpsLivePositions(
     return cached;
   });
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
+  const [latestDelivery, setLatestDelivery] =
+    useState<HomepagePerpsDeliveryMetadata>();
 
   // Derive enriched positions synchronously to avoid one-frame flash
   // where isInitialLoading is false but positions haven't been enriched yet
@@ -139,12 +150,15 @@ export function usePerpsLivePositions(
   // Subscribe to position updates
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
-      callback: (newPositions) => {
+      callback: (newPositions, metadata) => {
         if (newPositions === null) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
           setIsInitialLoading(true);
           setRawPositions(EMPTY_POSITIONS);
+          if (includeDeliveryMetadata) {
+            setLatestDelivery(undefined);
+          }
           return;
         }
 
@@ -158,14 +172,18 @@ export function usePerpsLivePositions(
         }
 
         setRawPositions(newPositions);
+        if (includeDeliveryMetadata) {
+          setLatestDelivery(metadata);
+        }
       },
       throttleMs,
+      ...(includeDeliveryMetadata ? { includeDeliveryMetadata: true } : {}),
     });
 
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs]);
+  }, [includeDeliveryMetadata, stream, throttleMs]);
 
   // Derive the unique set of symbols from the current positions so we only
   // subscribe to the prices we actually need (instead of the full price channel).
@@ -219,5 +237,6 @@ export function usePerpsLivePositions(
   return {
     positions,
     isInitialLoading,
+    ...(includeDeliveryMetadata ? { latestDelivery } : {}),
   };
 }
