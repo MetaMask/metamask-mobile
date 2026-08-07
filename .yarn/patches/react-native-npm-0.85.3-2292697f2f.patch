@@ -12,10 +12,10 @@ index d8e9c7cec2f57c124cc2b2fc52b69de8940d3eb5..b297501dfc3f8d22bc87f22e86ad6e3e
      config[:ios_packages].is_a? Array and
      config[:ios_project_root_path].is_a? String and
 diff --git a/sdks/hermes-engine/hermes-engine.podspec b/sdks/hermes-engine/hermes-engine.podspec
-index fb99142850803e5afc47fcd1b7d58bef482da9fd..1790ef1b8289a7406249e137e3734604ef63518c 100644
+index 58e003985c6dc3cd664d434339bf68ec09bce5bd..50029d487672f5ece7ec987c59eab025cd0175ee 100644
 --- a/sdks/hermes-engine/hermes-engine.podspec
 +++ b/sdks/hermes-engine/hermes-engine.podspec
-@@ -75,8 +75,19 @@ Pod::Spec.new do |spec|
+@@ -92,8 +92,19 @@ Pod::Spec.new do |spec|
          "require.resolve(\"hermes-compiler\", {paths: [\"#{react_native_path}\"]})", __dir__]).strip
        )
  

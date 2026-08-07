@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { ViewStyle } from 'react-native';
 import { RiveRef } from 'rive-react-native';
 import {
   useSharedValue,
@@ -45,8 +46,8 @@ interface UseRewardsAnimationParams {
 
 interface UseRewardsAnimationResult {
   riveRef: React.RefObject<RiveRef | null>;
-  animatedStyle: AnimatedStyle;
-  rivePositionStyle: AnimatedStyle;
+  animatedStyle: AnimatedStyle<ViewStyle>;
+  rivePositionStyle: AnimatedStyle<ViewStyle>;
   displayValue: number;
   displayText: string | null;
   hideValue: boolean;
