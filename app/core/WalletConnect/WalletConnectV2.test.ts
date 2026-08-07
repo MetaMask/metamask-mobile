@@ -34,14 +34,6 @@ jest.mock('../AppConstants', () => ({
   DEEPLINKS: {
     ORIGIN_DEEPLINK: 'deeplink-origin',
   },
-  CARD: {
-    CARD_FEES_URL:
-      'https://support.metamask.io/manage-crypto/metamask-card/limits-and-fees/',
-  },
-  URLS: {
-    MONEY_LANDING: 'https://portfolio.metamask.io/money',
-    MUSD_PRICE: 'https://portfolio.metamask.io/musd',
-  },
 }));
 
 const mockNavigation = {

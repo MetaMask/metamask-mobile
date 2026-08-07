@@ -1,6 +1,6 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
-import { COMPONENT_NAMES } from '../../Money/constants/moneyEvents';
+import { COMPONENT_NAMES } from '../../Money/constants/moneyEventLocations';
 
 // --- Ambient Price Color A/B Test ---
 
