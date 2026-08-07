@@ -1,10 +1,14 @@
-import { PERPS_EVENT_PROPERTY, PerpsMode } from '@metamask/perps-controller';
+import { PerpsMode } from '@metamask/perps-controller';
 import { enrichWithPerpsMode } from './enrichWithPerpsMode';
-import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsAnalyticsAttribution';
+import {
+  getPerpsModeAnalyticsProperties,
+  PERPS_MODE_ANALYTICS_PROPERTY,
+} from '../../components/UI/Perps/utils/perpsAnalyticsAttribution';
 
 jest.mock('../../components/UI/Perps/utils/perpsAnalyticsAttribution', () => ({
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
   getPerpsModeAnalyticsProperties: jest.fn(() => ({
-    mode: 'lite',
+    perps_mode: 'lite',
   })),
 }));
 
@@ -16,11 +20,11 @@ describe('enrichWithPerpsMode', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetPerpsModeAnalyticsProperties.mockReturnValue({
-      [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
+      [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
     });
   });
 
-  it('injects Lite/Pro mode onto Perp events', () => {
+  it('injects Lite/Pro perps_mode onto Perp events', () => {
     const event = {
       name: 'Perp Screen Viewed',
       properties: { screen_type: 'trading' },
@@ -29,7 +33,7 @@ describe('enrichWithPerpsMode', () => {
     expect(enrichWithPerpsMode(event)).toEqual({
       name: 'Perp Screen Viewed',
       properties: {
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Lite,
         screen_type: 'trading',
       },
     });
@@ -45,16 +49,16 @@ describe('enrichWithPerpsMode', () => {
     expect(mockGetPerpsModeAnalyticsProperties).not.toHaveBeenCalled();
   });
 
-  it('lets an explicit mode property win over the injected value', () => {
+  it('lets an explicit perps_mode property win over the injected value', () => {
     const event = {
       name: 'Perp UI Interaction',
       properties: {
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       },
     };
 
     expect(enrichWithPerpsMode(event).properties).toEqual({
-      [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+      [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
     });
   });
 });

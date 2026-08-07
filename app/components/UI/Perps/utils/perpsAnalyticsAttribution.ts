@@ -5,7 +5,6 @@
 
 import {
   DEFAULT_PERPS_MODE,
-  PERPS_EVENT_PROPERTY,
   type PerpsAnalyticsProperties,
   type PerpsAttributionContext,
   type TrackingData,
@@ -14,6 +13,14 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { store } from '../../../../store';
 import { selectPerpsMode } from '../selectors/perpsController';
+
+/**
+ * Analytics property for Lite/Pro interface mode.
+ *
+ * Kept separate from `PERPS_EVENT_PROPERTY.MODE` (`"mode"`), which search
+ * already uses for query intent (`discovery` / `intent` / `browse`).
+ */
+export const PERPS_MODE_ANALYTICS_PROPERTY = 'perps_mode' as const;
 
 export interface PerpsEntryAttributionInput {
   source?: string;
@@ -122,8 +129,11 @@ export function getPerpsUtmAttributionProperties(): PerpsAnalyticsProperties {
  * Snapshot the current Lite/Pro interface mode as an analytics property.
  *
  * Injected onto every Perps MetaMetrics event so funnels can segment by
- * `mode: 'lite' | 'pro'`. Callers that already set `mode` (e.g. mode-toggle
- * emitting the *next* mode) win over this snapshot.
+ * `perps_mode: 'lite' | 'pro'`. Callers that already set `perps_mode`
+ * (e.g. mode-toggle emitting the *next* mode) win over this snapshot.
+ *
+ * Uses `perps_mode` rather than `mode` so search query intent
+ * (`PERPS_EVENT_PROPERTY.MODE`) stays backwards-compatible.
  *
  * Best-effort: enrichment must never take down event emission. On failure we
  * fall back to `DEFAULT_PERPS_MODE` rather than omit the property, so dashboards
@@ -132,7 +142,7 @@ export function getPerpsUtmAttributionProperties(): PerpsAnalyticsProperties {
 export function getPerpsModeAnalyticsProperties(): PerpsAnalyticsProperties {
   try {
     return {
-      [PERPS_EVENT_PROPERTY.MODE]: selectPerpsMode(store.getState()),
+      [PERPS_MODE_ANALYTICS_PROPERTY]: selectPerpsMode(store.getState()),
     };
   } catch (error) {
     DevLogger.log(
@@ -140,7 +150,7 @@ export function getPerpsModeAnalyticsProperties(): PerpsAnalyticsProperties {
       error,
     );
     return {
-      [PERPS_EVENT_PROPERTY.MODE]: DEFAULT_PERPS_MODE,
+      [PERPS_MODE_ANALYTICS_PROPERTY]: DEFAULT_PERPS_MODE,
     };
   }
 }

@@ -65,7 +65,8 @@ jest.mock('./whenEngineReady', () => ({
 jest.mock('../Logger');
 
 jest.mock('../../components/UI/Perps/utils/perpsAnalyticsAttribution', () => ({
-  getPerpsModeAnalyticsProperties: jest.fn(() => ({ mode: 'lite' })),
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
+  getPerpsModeAnalyticsProperties: jest.fn(() => ({ perps_mode: 'lite' })),
 }));
 
 import { analytics } from './analytics';
@@ -139,7 +140,7 @@ describe('analytics', () => {
         expect.objectContaining({
           name: 'Perp Screen Viewed',
           properties: expect.objectContaining({
-            mode: 'lite',
+            perps_mode: 'lite',
             screen_type: 'trading',
           }),
         }),

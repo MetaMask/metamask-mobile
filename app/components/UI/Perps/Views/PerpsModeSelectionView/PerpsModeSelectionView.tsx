@@ -19,6 +19,7 @@ import { usePerpsMode } from '../../hooks/usePerpsMode';
 import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
 import { markPerpsModeSelectionCompleted } from '../../utils/perpsModeSelectionStorage';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsAnalyticsAttribution';
 import {
   type PerpsModeSelectionEntry,
   type PerpsModeSelectionRouteParams,
@@ -136,7 +137,7 @@ const PerpsModeSelectionView: React.FC = () => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-        [PERPS_EVENT_PROPERTY.MODE]: mode,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: mode,
         [PERPS_EVENT_PROPERTY.SOURCE]: source,
       });
 

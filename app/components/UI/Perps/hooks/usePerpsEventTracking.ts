@@ -58,7 +58,7 @@ interface EventTrackingOptions {
  * 1. Imperative: const { track } = usePerpsEventTracking(); track(event, props);
  * 2. Declarative: usePerpsEventTracking({ eventName, conditions, properties });
  *
- * All events include timestamp and Lite/Pro `mode` automatically.
+ * All events include timestamp and Lite/Pro `perps_mode` automatically.
  *
  * @example
  * // IMPERATIVE: Manual tracking (backward compatible)
@@ -91,8 +91,9 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
       eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
       properties: Record<string, unknown> = {},
     ) => {
-      // Lite/Pro mode + timestamp on every event. Explicit caller props win
-      // (e.g. mode toggle emits the *next* mode). UTM is Screen Viewed only.
+      // Lite/Pro perps_mode + timestamp on every event. Explicit caller props
+      // win (e.g. mode toggle emits the *next* perps_mode). UTM is Screen
+      // Viewed only.
       const props = {
         ...getPerpsModeAnalyticsProperties(),
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: Date.now(),

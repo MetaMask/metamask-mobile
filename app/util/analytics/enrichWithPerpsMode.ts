@@ -1,5 +1,7 @@
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
-import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsAnalyticsAttribution';
+import {
+  getPerpsModeAnalyticsProperties,
+  PERPS_MODE_ANALYTICS_PROPERTY,
+} from '../../components/UI/Perps/utils/perpsAnalyticsAttribution';
 
 /** MetaMetrics Perps event names are prefixed with "Perp " (see MetaMetrics.events). */
 const PERPS_EVENT_NAME_PREFIX = 'Perp ';
@@ -23,10 +25,11 @@ const cloneEventWithProperties = <
 };
 
 /**
- * Attach Lite/Pro `mode` to every Perps MetaMetrics event.
+ * Attach Lite/Pro `perps_mode` to every Perps MetaMetrics event.
  *
- * Explicit caller `mode` wins (mode toggle / selection emit the selected next
- * mode). Search intent uses `search_mode` so it never collides with this field.
+ * Explicit caller `perps_mode` wins (mode toggle / selection emit the selected
+ * next mode). Search intent keeps using `mode` (`PERPS_EVENT_PROPERTY.MODE`)
+ * so existing dashboards stay compatible.
  */
 export const enrichWithPerpsMode = <
   T extends {
@@ -41,7 +44,7 @@ export const enrichWithPerpsMode = <
   }
 
   const modeProperties = getPerpsModeAnalyticsProperties();
-  if (!(PERPS_EVENT_PROPERTY.MODE in modeProperties)) {
+  if (!(PERPS_MODE_ANALYTICS_PROPERTY in modeProperties)) {
     return event;
   }
 

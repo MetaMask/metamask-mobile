@@ -3,15 +3,12 @@ import {
   getPerpsUtmAttributionProperties,
   hasPerpsUtmAttribution,
   parsePerpsUtmFromPath,
+  PERPS_MODE_ANALYTICS_PROPERTY,
   setPerpsUtmAttribution,
   toPerpsEntryAttribution,
 } from './perpsAnalyticsAttribution';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import {
-  DEFAULT_PERPS_MODE,
-  PERPS_EVENT_PROPERTY,
-  PerpsMode,
-} from '@metamask/perps-controller';
+import { DEFAULT_PERPS_MODE, PerpsMode } from '@metamask/perps-controller';
 
 const mockSetAttributionContext = jest.fn();
 const mockMergeAttributionContext = jest.fn();
@@ -143,7 +140,7 @@ describe('perpsAnalyticsAttribution', () => {
     it('returns the current Lite/Pro mode from the selector', () => {
       mockSelectPerpsMode.mockReturnValue(PerpsMode.Pro);
       expect(getPerpsModeAnalyticsProperties()).toEqual({
-        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
       });
       expect(mockSelectPerpsMode).toHaveBeenCalledWith(mockGetState());
     });
@@ -153,7 +150,7 @@ describe('perpsAnalyticsAttribution', () => {
         throw new Error('store unavailable');
       });
       expect(getPerpsModeAnalyticsProperties()).toEqual({
-        [PERPS_EVENT_PROPERTY.MODE]: DEFAULT_PERPS_MODE,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: DEFAULT_PERPS_MODE,
       });
       expect(DevLogger.log).toHaveBeenCalled();
     });
