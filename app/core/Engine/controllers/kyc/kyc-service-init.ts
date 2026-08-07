@@ -41,7 +41,7 @@ export const kycServiceInit: MessengerClientInitFunction<
     fetch,
     env: isProduction() ? 'production' : 'development',
     messenger: controllerMessenger,
-    baseUrl: 'http://192.168.1.98:3000',
+    baseUrl: process.env.KYC_API_URL,
     fractalEncryptionBaseUrl: getFractalEncryptionBaseUrl(),
   });
 
