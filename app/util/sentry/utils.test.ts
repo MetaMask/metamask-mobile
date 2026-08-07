@@ -1312,6 +1312,25 @@ describe('getNavIntegration', () => {
       expect.objectContaining({ enableTimeToInitialDisplay: true }),
     );
   });
+
+  it('returns the no-op stub when hasTestOverrides is true', () => {
+    // Covers lines 644-646 (_noOpNavIntegration object + its arrow function body)
+    // and lines 651-653 (the hasTestOverrides early-return branch).
+    // Uses isolateModules + doMock so the flag is set before utils.ts is evaluated.
+    jest.isolateModules(() => {
+      jest.doMock('../test/utils', () => ({
+        hasTestOverrides: true,
+        isE2EOrExpEnvironment: false,
+      }));
+      const { getNavIntegration: fresh } =
+        require('./utils') as typeof import('./utils'); // eslint-disable-line @typescript-eslint/no-require-imports
+      const stub = fresh();
+      // The stub exposes registerNavigationContainer but it is a no-op
+      expect(typeof stub.registerNavigationContainer).toBe('function');
+      // Actually invoke the arrow function to cover its body
+      expect(stub.registerNavigationContainer({} as never)).toBeUndefined();
+    });
+  });
 });
 
 describe('setupSentry', () => {
@@ -1368,5 +1387,25 @@ describe('setupSentry', () => {
     expect((result as { tags?: Record<string, string> }).tags?.perf_fix).toBe(
       'nav-tracing-v1',
     );
+  });
+
+  it('returns null from beforeSendTransaction when excludeEvents filters the event', async () => {
+    // Covers the `if (filtered)` false branch (lines 709-714): when excludeEvents
+    // returns null the perf_fix block is skipped and null is forwarded to the SDK.
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSendTransaction: (event: {
+        transaction?: string;
+        tags?: Record<string, string>;
+      }) => null | { tags?: Record<string, string> };
+    };
+
+    // 'Route Change' is always dropped by excludeEvents — exercises the null path
+    const result = initOptions.beforeSendTransaction({
+      transaction: 'Route Change',
+      tags: {},
+    });
+    expect(result).toBeNull();
   });
 });
