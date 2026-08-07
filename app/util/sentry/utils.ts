@@ -618,6 +618,47 @@ export function isSentryEnabled(): boolean {
   return client.getOptions().enabled !== false;
 }
 
+/**
+ * Lazily-created reactNavigationIntegration instance.
+ *
+ * The integration is created on first call rather than at module load time.
+ * Module-level Sentry SDK calls crash E2E and test builds before the runtime
+ * is fully initialised (TypeError: undefined is not a function during
+ * loadModuleImplementation). The memoised getter ensures nothing executes at
+ * import time; the single instance is shared between setupSentry (which passes
+ * it to Sentry.init) and setNavigationRef (which calls registerNavigationContainer).
+ *
+ * enableTimeToInitialDisplay must be explicitly true — the SDK defaults to false
+ * so TTID spans would never be emitted without it.
+ *
+ * In E2E / test builds (hasTestOverrides) Sentry.init is never called, so
+ * returning a real integration would cause registerNavigationContainer to
+ * interact with an uninitialised SDK client, which can silently break the
+ * NavigationContainer bootstrap and prevent the app from reaching the login
+ * or wallet-home screen. A no-op stub is returned instead.
+ */
+let _navIntegration:
+  | ReturnType<typeof Sentry.reactNavigationIntegration>
+  | undefined;
+
+const _noOpNavIntegration = {
+  registerNavigationContainer: () => undefined,
+} as unknown as ReturnType<typeof Sentry.reactNavigationIntegration>;
+
+export function getNavIntegration(): ReturnType<
+  typeof Sentry.reactNavigationIntegration
+> {
+  if (hasTestOverrides) {
+    return _noOpNavIntegration;
+  }
+  if (!_navIntegration) {
+    _navIntegration = Sentry.reactNavigationIntegration({
+      enableTimeToInitialDisplay: true,
+    });
+  }
+  return _navIntegration;
+}
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,
@@ -635,7 +676,15 @@ export async function setupSentry(
     // Ensure consent cache is populated early
     const hasConsent = await hasMetricsConsent();
 
-    const integrations = [dedupeIntegration(), extraErrorDataIntegration()];
+    // reactNativeTracingIntegration is intentionally omitted here: getDefaultIntegrations()
+    // already pushes it whenever tracesSampleRate is set and enableAutoPerformanceTracing
+    // is true (both hold for this config). Adding it explicitly would be a no-op after
+    // the SDK's name-deduplication pass.
+    const integrations = [
+      dedupeIntegration(),
+      extraErrorDataIntegration(),
+      getNavIntegration(),
+    ];
     const environment = deriveSentryEnvironment(
       __DEV__,
       METAMASK_ENVIRONMENT,
@@ -657,6 +706,11 @@ export async function setupSentry(
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => {
         const filtered = excludeEvents(event as SentryEvent);
+        if (filtered) {
+          // Scoped to transactions only so it never appears on error events.
+          // Remove once the nav-tracing rollout has been validated in Sentry.
+          filtered.tags = { ...filtered.tags, perf_fix: 'nav-tracing-v1' };
+        }
         return filtered as typeof event;
       },
       enabled: forceEnabled || hasConsent,

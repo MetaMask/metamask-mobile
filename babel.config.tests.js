@@ -60,6 +60,8 @@ const newOverrides = [
       'app/selectors/featureFlagController/seedlessTelegramLogin/index.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      'app/util/sentry/utils.ts',
+      'app/util/sentry/utils.test.ts',
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
