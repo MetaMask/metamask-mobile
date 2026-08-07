@@ -10,6 +10,7 @@ import {
   ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
+  Checkbox,
   FilterButton,
   FontWeight,
   Icon,
@@ -35,10 +36,10 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
-import PerpsSlider from '../../../../components/PerpsSlider';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
 } from './PerpsProCompactInput';
+import PerpsProSizeInput from './PerpsProSizeInput';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderFormProps,
@@ -67,63 +68,13 @@ const summaryValueTextProps = {
   fontWeight: FontWeight.Medium,
 };
 
-interface SelectionIndicatorProps {
-  isSelected: boolean;
+interface TPSLRowProps {
+  label: string;
+  onPress?: () => void;
   testID: string;
 }
 
-const SelectionIndicator = ({ isSelected, testID }: SelectionIndicatorProps) =>
-  isSelected ? (
-    <Box
-      twClassName="size-5 items-center justify-center rounded-full bg-icon-default"
-      testID={`${testID}-indicator`}
-    >
-      <Icon
-        name={IconName.CheckBold}
-        size={IconSize.Xs}
-        color={IconColor.PrimaryInverse}
-      />
-    </Box>
-  ) : (
-    <Box
-      twClassName="size-5 rounded-full border-2 border-muted"
-      testID={`${testID}-indicator`}
-    />
-  );
-
-interface ReduceOnlyRowProps extends SelectionIndicatorProps {
-  label: string;
-  onChange: (value: boolean) => void;
-}
-
-const ReduceOnlyRow = ({
-  label,
-  isSelected,
-  onChange,
-  testID,
-}: ReduceOnlyRowProps) => (
-  <Pressable
-    accessibilityRole="checkbox"
-    accessibilityState={{ checked: isSelected }}
-    accessibilityLabel={label}
-    onPress={() => onChange(!isSelected)}
-    testID={testID}
-  >
-    <Box twClassName="h-12 flex-row items-center justify-between rounded-xl bg-muted px-3">
-      <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-        {label}
-      </Text>
-      <SelectionIndicator isSelected={isSelected} testID={testID} />
-    </Box>
-  </Pressable>
-);
-
-interface TPSLRowProps extends SelectionIndicatorProps {
-  label: string;
-  onPress?: () => void;
-}
-
-const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
+const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
   const isDisabled = !onPress;
 
   return (
@@ -143,7 +94,12 @@ const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
           {label}
         </Text>
-        <SelectionIndicator isSelected={isSelected} testID={testID} />
+        <Icon
+          name={IconName.ArrowDown}
+          size={IconSize.Sm}
+          color={IconColor.IconDefault}
+          testID={`${testID}-arrow`}
+        />
       </Box>
     </Pressable>
   );
@@ -226,38 +182,6 @@ const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
   </Pressable>
 );
 
-interface AvailableBalanceRowProps {
-  value: string;
-  onPress?: () => void;
-}
-
-const AvailableBalanceRow = ({ value, onPress }: AvailableBalanceRowProps) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ disabled: !onPress }}
-    accessibilityLabel={value}
-    accessibilityHint={onPress ? strings('perps.add_funds') : undefined}
-    disabled={!onPress}
-    onPress={onPress}
-    testID={ids.ADD_FUNDS_BUTTON}
-  >
-    <Box twClassName="flex-row items-center gap-1">
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        testID={ids.AVAILABLE_BALANCE}
-      >
-        {value}
-      </Text>
-      <Icon
-        name={IconName.AddCircle}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Box>
-  </Pressable>
-);
-
 const OrderSummary = ({
   margin,
   liquidationPrice,
@@ -329,23 +253,21 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  onMarginModePress,
   leverageLabel,
   onLeveragePress,
   orderType,
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
+  onLimitPriceBlur,
   onUseMidPricePress,
-  size,
-  onSizeChange,
-  onSizeUnitPress,
-  balancePercentage,
-  onBalancePercentageChange,
+  sizeInput,
+  sizeSlider,
   availableBalance,
   onAddFundsPress,
   reduceOnly,
   onReduceOnlyChange,
-  isTPSLConfigured,
   onTPSLPress,
   notices,
   summary,
@@ -423,12 +345,19 @@ const PerpsProOrderForm = ({
               />
             ) : null}
           </Box>
-          <Box twClassName="flex-row items-center justify-between">
-            <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
-              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-                {marginModeLabel}
-              </Text>
-            </Box>
+          <Box
+            twClassName="flex-row items-center gap-2"
+            testID={ids.MARGIN_SETTINGS_ROW}
+          >
+            <ButtonBase
+              size={ButtonBaseSize.Sm}
+              onPress={onMarginModePress}
+              isDisabled={!onMarginModePress}
+              twClassName="h-8 rounded-lg bg-muted px-2"
+              testID={ids.MARGIN_MODE_BUTTON}
+            >
+              {marginModeLabel}
+            </ButtonBase>
             <ButtonBase
               size={ButtonBaseSize.Sm}
               onPress={onLeveragePress}
@@ -439,13 +368,13 @@ const PerpsProOrderForm = ({
               {leverageLabel}
             </ButtonBase>
           </Box>
-          <Box twClassName="overflow-hidden rounded-xl bg-muted">
+          <Box twClassName="overflow-hidden rounded-xl border border-muted bg-muted">
             <ButtonBase
               onPress={onOrderTypeButtonPress}
               twClassName="h-12 w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
-              endIconName={IconName.ArrowRight}
+              endIconName={IconName.ArrowDown}
               endIconProps={{
                 size: IconSize.Sm,
                 testID: `${ids.ORDER_TYPE_BUTTON}-chevron`,
@@ -461,73 +390,68 @@ const PerpsProOrderForm = ({
                 label={strings('perps.order.limit_price_modal.title')}
                 value={limitPrice}
                 onChangeText={onLimitPriceChange}
+                onBlur={onLimitPriceBlur}
                 testID={ids.LIMIT_PRICE_INPUT}
                 variant="inline"
                 placeholder={strings('perps.order.limit_price_modal.title')}
-                endAccessory={
-                  <ButtonBase
-                    size={ButtonBaseSize.Sm}
-                    onPress={onUseMidPricePress}
-                    isDisabled={!onUseMidPricePress}
-                    twClassName="h-12 bg-transparent px-0"
-                    testID={ids.MID_PRICE_BUTTON}
+                startAccessory={
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="mr-1"
+                    testID={ids.LIMIT_PRICE_PREFIX}
                   >
-                    {strings('perps.order.limit_price_modal.mid_price')}
-                  </ButtonBase>
+                    $
+                  </Text>
+                }
+                endAccessory={
+                  <Box twClassName="h-full shrink-0 justify-center">
+                    <ButtonBase
+                      size={ButtonBaseSize.Sm}
+                      onPress={onUseMidPricePress}
+                      isDisabled={!onUseMidPricePress}
+                      twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+                      contentWrapperProps={{ twClassName: 'justify-end' }}
+                      textProps={{
+                        variant: TextVariant.BodySm,
+                        fontWeight: FontWeight.Medium,
+                      }}
+                      testID={ids.MID_PRICE_BUTTON}
+                    >
+                      {strings('perps.order.limit_price_modal.mid_price')}
+                    </ButtonBase>
+                  </Box>
                 }
               />
             ) : null}
           </Box>
-          <Box twClassName="gap-2">
-            <PerpsProCompactInput
-              label={strings('perps.pro_order_form.size_usd')}
-              value={size}
-              onChangeText={onSizeChange}
-              testID={ids.SIZE_INPUT}
-              placeholder="0.00"
-              placeholderColor="default"
-              endAccessory={
-                <ButtonIcon
-                  iconName={IconName.SwapHorizontal}
-                  size={ButtonIconSize.Xs}
-                  isDisabled={!onSizeUnitPress}
-                  onPress={onSizeUnitPress}
-                  testID={ids.SIZE_UNIT_BUTTON}
-                  accessibilityLabel={strings(
-                    'perps.pro_order_form.toggle_size_unit',
-                  )}
-                />
-              }
-              footer={
-                <PerpsSlider
-                  value={balancePercentage}
-                  onValueChange={onBalancePercentageChange}
-                  minimumValue={0}
-                  maximumValue={100}
-                  showPercentageLabels={false}
-                  showPercentageMarkers
-                  variant="compact"
-                  testID={ids.SIZE_SLIDER}
-                  accessibilityLabel={strings(
-                    'perps.pro_order_form.size_percentage',
-                  )}
-                />
-              }
-            />
-            <AvailableBalanceRow
-              value={availableBalance}
-              onPress={onAddFundsPress}
+          <PerpsProSizeInput
+            value={sizeInput.value}
+            onChangeText={sizeInput.onChange}
+            denomination={sizeInput.denomination}
+            canToggleDenomination={sizeInput.canToggleDenomination}
+            onFocus={sizeInput.onFocus}
+            onBlur={sizeInput.onBlur}
+            onToggleDenomination={sizeInput.onToggleDenomination}
+            sizeSlider={sizeSlider}
+            availableBalance={availableBalance}
+            onAddFundsPress={onAddFundsPress}
+          />
+          <Box twClassName="h-12 justify-center rounded-xl bg-muted px-3">
+            <Checkbox
+              label={strings('perps.order.reduce_only')}
+              labelProps={{
+                variant: TextVariant.BodySm,
+                fontWeight: FontWeight.Medium,
+                style: { marginLeft: 0, flex: 1 },
+              }}
+              isSelected={reduceOnly}
+              onChange={onReduceOnlyChange}
+              testID={ids.REDUCE_ONLY}
+              twClassName="w-full flex-row-reverse justify-between"
             />
           </Box>
-          <ReduceOnlyRow
-            label={strings('perps.order.reduce_only')}
-            isSelected={reduceOnly}
-            onChange={onReduceOnlyChange}
-            testID={ids.REDUCE_ONLY}
-          />
           <TPSLRow
             label={strings('perps.pro_order_form.tpsl')}
-            isSelected={isTPSLConfigured}
             onPress={onTPSLPress}
             testID={ids.TPSL}
           />

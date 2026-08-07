@@ -9,7 +9,10 @@ import {
   formatFeeRate,
   clearRewardsCaches,
 } from './usePerpsOrderFees';
-import { type FeeCalculationResult } from '@metamask/perps-controller';
+import {
+  type FeeCalculationParams,
+  type FeeCalculationResult,
+} from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 
@@ -74,7 +77,7 @@ const createWrapper = () => {
 describe('usePerpsOrderFees', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
@@ -775,7 +778,7 @@ describe('clearRewardsCaches', () => {
 describe('usePerpsOrderFees - Maker/Taker Determination', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
@@ -1547,7 +1550,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
 describe('usePerpsOrderFees - Enhanced Error Handling', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {

@@ -1,7 +1,5 @@
 import React, { useCallback } from 'react';
 import {
-  ButtonBase,
-  ButtonBaseSize,
   FilterButton,
   SegmentedControl,
   SegmentedControlSize,
@@ -17,6 +15,7 @@ import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
 import PerpsProGradientLabel from './PerpsProGradientLabel';
+import PerpsModeSwitchPill from './PerpsModeSwitchPill';
 
 /**
  * Selected "Pro" segment fill from Figma — `accent/02/normal` at ~18% over
@@ -30,7 +29,6 @@ const PERPS_PRO_ACCENT_SELECTED_BG = '#382b43';
  *
  * Rendered as a two-segment pill built on the design-system `SegmentedControl`
  * / `FilterButton`. A single component powers every entry point:
- * - Trade bottom-sheet menu (Perps row)
  * - Perps home header
  * - Market header (`variant="active"` shows only the active mode)
  */
@@ -70,19 +68,19 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
     <PerpsProGradientLabel>{proLabel}</PerpsProGradientLabel>
   );
 
-  // Market header: single outlined pill showing only the active mode, per Figma
-  // (transparent fill, `border/muted` border, gradient "Pro" text). Pressing it
-  // flips to the opposite mode (same analytics + onChange path as the full
-  // toggle).
+  // Market header: single outlined pill showing only the active mode. Pro uses
+  // the theme-specific gold treatment from Figma; Lite uses neutral tokens.
   if (variant === 'active') {
     const isPro = mode === PerpsMode.Pro;
     const nextModeLabel = isPro ? liteLabel : proLabel;
     const currentModeLabel = isPro ? proLabel : liteLabel;
     return (
-      <ButtonBase
-        size={ButtonBaseSize.Sm}
-        twClassName="bg-transparent border border-border-muted"
-        onPress={() => handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)}
+      <PerpsModeSwitchPill
+        currentModeLabel={currentModeLabel}
+        isPro={isPro}
+        onSwitchRequest={() =>
+          handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)
+        }
         accessibilityLabel={strings(
           'perps.mode.active_pill_accessibility_label',
           { mode: currentModeLabel },
@@ -96,9 +94,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
             ? PerpsModeToggleSelectorsIDs.PRO_SEGMENT
             : PerpsModeToggleSelectorsIDs.LITE_SEGMENT
         }
-      >
-        {isPro ? proGradientLabel : liteLabel}
-      </ButtonBase>
+      />
     );
   }
 

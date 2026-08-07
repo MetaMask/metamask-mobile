@@ -35,10 +35,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
-  // core#9517: AccountActivityDataSource is the highest-priority balance
-  // source. `balanceUpdated` carries real-time balances; `statusChanged`
-  // drives chain-claiming so polling sources skip chains covered by the
-  // websocket.
+  // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
   // AccountsApiDataSource: re-evaluate Accounts API vs RPC when remote flags change
@@ -67,13 +64,11 @@ export function getAssetsControllerMessenger(
     actions: [
       // Account group + network context for RpcDataSource (core#9388)
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'NetworkEnablementController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'AccountsController:getSelectedAccount',
-      // core#9717: MulticallClient resolves multicall3 addresses from the
-      // config registry, falling back to its bundled defaults.
-      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'SnapController:handleRequest',
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',

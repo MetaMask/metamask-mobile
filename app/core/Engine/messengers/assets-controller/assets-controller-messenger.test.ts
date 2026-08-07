@@ -7,11 +7,11 @@ import {
 
 const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
   'NetworkEnablementController:getState',
   'NetworkController:getState',
   'NetworkController:getNetworkClientById',
   'AccountsController:getSelectedAccount',
-  'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
   'SnapController:handleRequest',
   'SnapController:getRunnableSnaps',
   'PermissionController:getPermissions',
@@ -90,7 +90,7 @@ describe('getAssetsControllerMessenger', () => {
     );
   });
 
-  it('delegates AccountActivityService balanceUpdated and statusChanged events', () => {
+  it('delegates AccountActivityService balanceUpdated event', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
@@ -100,7 +100,6 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountActivityService:balanceUpdated',
-          'AccountActivityService:statusChanged',
         ]),
       }),
     );
@@ -150,7 +149,7 @@ describe('getAssetsControllerMessenger', () => {
     );
   });
 
-  it('delegates the config registry multicall3 lookup action', () => {
+  it('delegates AccountActivityService statusChanged event', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
@@ -158,8 +157,8 @@ describe('getAssetsControllerMessenger', () => {
 
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        actions: expect.arrayContaining([
-          'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
+        events: expect.arrayContaining([
+          'AccountActivityService:statusChanged',
         ]),
       }),
     );
