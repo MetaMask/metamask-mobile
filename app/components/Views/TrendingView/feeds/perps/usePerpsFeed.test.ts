@@ -44,10 +44,12 @@ jest.mock('../../../../UI/Perps/selectors/perpsController', () => ({
   selectPerpsWatchlistMarkets: jest.fn(),
 }));
 
+const mockUseHomepageSparklines = jest.fn(() => ({ sparklines: {} }));
 jest.mock(
   '../../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
   () => ({
-    useHomepageSparklines: jest.fn(() => ({ sparklines: {} })),
+    useHomepageSparklines: (...args: unknown[]) =>
+      mockUseHomepageSparklines(...args),
   }),
 );
 
@@ -263,5 +265,44 @@ describe('usePerpsFeed', () => {
     renderFeed({ skipInitialFetch: true });
 
     expect(usePerpsMarkets).toHaveBeenCalledWith({ skipInitialFetch: true });
+  });
+
+  describe('sparkline markets', () => {
+    it('passes market objects (not symbols) sliced to the tile carousel max when withTileExtras is true', () => {
+      const markets = [
+        makeMarket('BTC', '1', 100),
+        makeMarket('ETH', '5', 50),
+        makeMarket('SOL', '3', 75),
+      ];
+      (usePerpsMarkets as jest.Mock).mockReturnValue({
+        markets,
+        isLoading: false,
+        refresh: mockRefetch,
+        isRefreshing: false,
+      });
+
+      renderFeed({ withTileExtras: true });
+
+      expect(mockUseHomepageSparklines).toHaveBeenCalledTimes(1);
+      const [passedMarkets] = mockUseHomepageSparklines.mock.calls[0];
+      // Sorted by 24h price change descending (default 'all' variant sort).
+      expect((passedMarkets as PerpsMarketData[]).map((m) => m.symbol)).toEqual(
+        ['ETH', 'SOL', 'BTC'],
+      );
+    });
+
+    it('passes an empty array when withTileExtras is false', () => {
+      const markets = [makeMarket('BTC', '1', 100)];
+      (usePerpsMarkets as jest.Mock).mockReturnValue({
+        markets,
+        isLoading: false,
+        refresh: mockRefetch,
+        isRefreshing: false,
+      });
+
+      renderFeed({ withTileExtras: false });
+
+      expect(mockUseHomepageSparklines).toHaveBeenCalledWith([]);
+    });
   });
 });

@@ -147,10 +147,15 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       usesPillsEmptyState && !showSkeleton && !hasItems;
     const shouldLoadMarkets = !shouldShowPillsEmptyState;
 
-    const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
-      usePerpsTrendingCarouselData({
-        skipInitialFetch: !shouldLoadMarkets,
-      });
+    const {
+      markets,
+      marketsLoading,
+      allCarouselMarkets,
+      watchlistSymbolSet,
+      refreshMarkets,
+    } = usePerpsTrendingCarouselData({
+      skipInitialFetch: !shouldLoadMarkets,
+    });
     const title =
       shouldShowPillsEmptyState && !connectionError
         ? (emptyStateTitleOverride ?? baseTitle)
@@ -210,12 +215,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       !hasItems &&
       !shouldShowPillsEmptyState &&
       !marketsLoading;
-    const carouselSymbols = useMemo(
-      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+    const sparklineMarkets = useMemo(
+      () => (showTrending ? allCarouselMarkets : []),
       [allCarouselMarkets, showTrending],
     );
-    const { sparklines, refresh: refreshSparklines } =
-      useHomepageSparklines(carouselSymbols);
+    const { sparklines } = useHomepageSparklines(sparklineMarkets);
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
@@ -245,14 +249,14 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             await refetchPerpsPills();
             return;
           }
-          refreshSparklines();
+          await refreshMarkets();
         },
       }),
       [
         connectionError,
         refetchPerpsPills,
         reconnectWithNewContext,
-        refreshSparklines,
+        refreshMarkets,
         shouldShowPillsEmptyState,
       ],
     );
