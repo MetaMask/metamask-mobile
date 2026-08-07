@@ -4,7 +4,13 @@ import MoneyNextBestActionParallax from './MoneyNextBestActionParallax';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import { PARALLAX_REST_VALUE } from '../../utils/parallax';
+import {
+  PARALLAX_REST_VALUE,
+  PARALLAX_TILT_DEADZONE,
+  pitchToParallaxValue,
+  shapeParallaxTilt,
+  tiltToParallaxValue,
+} from '../../utils/parallax';
 import fallbackImage from '../../../../../images/money-onboarding-stepper-step-1.png';
 
 const mockSetNumber = jest.fn();
@@ -67,6 +73,17 @@ const latestApplyTilt = (): ((x: number, y: number) => void) =>
   mockUseDeviceOrientation.mock.calls[
     mockUseDeviceOrientation.mock.calls.length - 1
   ][0];
+
+/** Feeds the same reading for long enough that the smoothing has settled. */
+const holdTilt = (x: number, y: number, samples = 200): void => {
+  const applyTilt = latestApplyTilt();
+  act(() => {
+    for (let i = 0; i < samples; i++) applyTilt(x, y);
+  });
+};
+
+const lastValueFor = (path: string): number | undefined =>
+  mockSetNumber.mock.calls.filter(([name]) => name === path).pop()?.[1];
 
 describe('MoneyNextBestActionParallax', () => {
   beforeEach(() => {
@@ -200,7 +217,7 @@ describe('MoneyNextBestActionParallax', () => {
     );
   });
 
-  it('dispatches the mapped roll to the Rive xValue property', () => {
+  it('settles xValue on the shaped roll when the tilt is held', () => {
     render(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"
@@ -208,12 +225,15 @@ describe('MoneyNextBestActionParallax', () => {
       />,
     );
 
-    act(() => latestApplyTilt()(0.5, -0.5));
+    holdTilt(0.5, -0.5);
 
-    expect(mockSetNumber).toHaveBeenCalledWith('xValue', 75);
+    expect(lastValueFor('xValue')).toBeCloseTo(
+      tiltToParallaxValue(shapeParallaxTilt(0.5)),
+      3,
+    );
   });
 
-  it('dispatches the inverted pitch to the Rive yValue property', () => {
+  it('settles yValue on the inverted shaped pitch when the tilt is held', () => {
     render(
       <MoneyNextBestActionParallax
         artboardName="Parallax Block 1"
@@ -221,9 +241,12 @@ describe('MoneyNextBestActionParallax', () => {
       />,
     );
 
-    act(() => latestApplyTilt()(0.5, -0.5));
+    holdTilt(0.5, -0.5);
 
-    expect(mockSetNumber).toHaveBeenCalledWith('yValue', 75);
+    expect(lastValueFor('yValue')).toBeCloseTo(
+      pitchToParallaxValue(shapeParallaxTilt(-0.5)),
+      3,
+    );
   });
 
   it('drives yValue below the resting value for a positive pitch', () => {
@@ -234,12 +257,49 @@ describe('MoneyNextBestActionParallax', () => {
       />,
     );
 
-    act(() => latestApplyTilt()(0, 0.5));
+    holdTilt(0, 0.5);
 
-    const [, yValue] = mockSetNumber.mock.calls.find(
-      ([path]) => path === 'yValue',
-    ) as [string, number];
-    expect(yValue).toBeLessThan(PARALLAX_REST_VALUE);
+    expect(lastValueFor('yValue')).toBeLessThan(PARALLAX_REST_VALUE);
+  });
+
+  it('leaves the artboard at rest while the device is only jittering', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    // Alternating tremor inside the deadzone, as the hook would report it.
+    const tremor = (PARALLAX_TILT_DEADZONE * 0.9) ** 2;
+    const applyTilt = latestApplyTilt();
+    act(() => {
+      for (let i = 0; i < 60; i++) {
+        applyTilt(
+          i % 2 === 0 ? tremor : -tremor,
+          i % 2 === 0 ? -tremor : tremor,
+        );
+      }
+    });
+
+    expect(lastValueFor('xValue')).toBeCloseTo(PARALLAX_REST_VALUE, 6);
+    expect(lastValueFor('yValue')).toBeCloseTo(PARALLAX_REST_VALUE, 6);
+  });
+
+  it('eases into a new tilt rather than jumping to it', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => latestApplyTilt()(1, 0));
+
+    const settled = tiltToParallaxValue(shapeParallaxTilt(1));
+    const firstStep = lastValueFor('xValue') as number;
+    expect(firstStep).toBeGreaterThan(PARALLAX_REST_VALUE);
+    expect(firstStep).toBeLessThan(settled);
   });
 
   it('does not dispatch tilt values while the native Rive view is detached', () => {

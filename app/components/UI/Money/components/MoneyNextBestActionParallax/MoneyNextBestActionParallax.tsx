@@ -16,6 +16,8 @@ import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import {
   pitchToParallaxValue,
+  shapeParallaxTilt,
+  smoothParallaxTilt,
   tiltToParallaxValue,
 } from '../../utils/parallax';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
@@ -62,6 +64,9 @@ const MoneyNextBestActionParallax = ({
   // every value back to JS through setState, re-rendering at the accelerometer
   // sample rate for values this component never reads.
   const riveRef = useRef<RiveRef>(null);
+  // Last values written to the artboard, in tilt units (0 = at rest). Kept
+  // here rather than in state so smoothing costs no re-renders.
+  const smoothedTilt = useRef({ x: 0, y: 0 });
 
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
@@ -70,8 +75,18 @@ const MoneyNextBestActionParallax = ({
     // viewTag() is null while the native Rive view is detached; dispatching
     // then throws "found null reactTag".
     if (!rive || rive.viewTag() === null) return;
-    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
-    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
+    smoothedTilt.current = {
+      x: smoothParallaxTilt(smoothedTilt.current.x, shapeParallaxTilt(x)),
+      y: smoothParallaxTilt(smoothedTilt.current.y, shapeParallaxTilt(y)),
+    };
+    rive.setNumber(
+      RIVE_PROPERTY_X,
+      tiltToParallaxValue(smoothedTilt.current.x),
+    );
+    rive.setNumber(
+      RIVE_PROPERTY_Y,
+      pitchToParallaxValue(smoothedTilt.current.y),
+    );
   }, []);
 
   useDeviceOrientation(applyTilt, { enabled: animate });
