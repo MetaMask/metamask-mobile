@@ -281,7 +281,7 @@ const CardAuthentication = () => {
         });
       } catch (err) {
         Logger.log('CardAuthentication::Login failed', err);
-        // error is displayed via the derived `error` variable above
+        // errors are displayed via the derived `error` variable above
       }
     },
     [

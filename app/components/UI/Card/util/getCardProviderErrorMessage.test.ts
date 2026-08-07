@@ -50,6 +50,12 @@ describe('getCardProviderErrorMessage', () => {
         expectedStringKey: 'card.card_authentication.errors.unknown_error',
         description: 'Unknown',
       },
+      {
+        code: CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
+        expectedStringKey:
+          'card.card_authentication.errors.money_account_linked_to_different_card',
+        description: 'MoneyAccountLinkedToDifferentCard',
+      },
     ] as const;
 
     it.each(cardProviderErrorTestCases)(

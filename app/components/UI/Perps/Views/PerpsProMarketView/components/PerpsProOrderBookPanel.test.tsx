@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import PerpsProOrderBookPanel from './PerpsProOrderBookPanel';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -244,6 +244,34 @@ describe('PerpsProOrderBookPanel', () => {
     expect(onCollapse).toHaveBeenCalledTimes(1);
   });
 
+  it('positions collapse at the leading edge and settings at the trailing edge', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onCollapse={jest.fn()}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const header = getByTestId(`${testID}-header`);
+    const leading = getByTestId(`${testID}-header-leading`);
+    const trailing = getByTestId(`${testID}-header-trailing`);
+
+    expect(header).toHaveStyle({
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    });
+    expect(
+      within(leading).getByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(trailing).getByTestId(`${testID}-grouping-trigger`),
+    ).toBeOnTheScreen();
+  });
+
   it('opens settings and saves currency, metric, and grouping', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
@@ -257,6 +285,168 @@ describe('PerpsProOrderBookPanel', () => {
     fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
 
     expect(mockSaveGrouping).toHaveBeenCalledWith(100);
+  });
+
+  it('shows the spread value alone, keeping the label for screen readers', () => {
+    const { getByTestId, queryByText } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const spreadRow = getByTestId(`${testID}-spread`);
+
+    expect(spreadRow).toHaveTextContent('$100 (0.2%)');
+    expect(queryByText('Spread')).not.toBeOnTheScreen();
+    expect(
+      within(spreadRow).getByLabelText('Spread $100 (0.2%)'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the depth ratio as +/- percentages, keeping buy/sell for screen readers', () => {
+    const { getByTestId, queryByText } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const buySide = getByTestId(`${testID}-buy-percent`);
+    const sellSide = getByTestId(`${testID}-sell-percent`);
+
+    expect(buySide).toHaveTextContent('54%');
+    expect(sellSide).toHaveTextContent('46%');
+    expect(queryByText(/Buy: /u)).not.toBeOnTheScreen();
+    expect(queryByText(/Sell: /u)).not.toBeOnTheScreen();
+    expect(buySide).toHaveProp('accessibilityLabel', 'Buy: 54%');
+    expect(sellSide).toHaveProp('accessibilityLabel', 'Sell: 46%');
+  });
+
+  it('abbreviates large size values instead of printing every digit', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    // totalNotional 174800 for the deepest bid.
+    expect(getByTestId(`${testID}-bid-row-1-value`)).toHaveTextContent(
+      '$174.8K',
+    );
+  });
+
+  it('abbreviates ladder prices to the scale the grouping makes redundant', () => {
+    // Grouping by 1,000 fixes the last three digits, so "$69,000" spent three
+    // characters per row on padding that never changes.
+    mockSavedGroupingBySymbol.BTC = 1000;
+
+    const btcOrderBook: OrderBookData = {
+      ...mockOrderBook,
+      midPrice: '64500',
+      bids: [
+        { ...mockOrderBook.bids[0], price: '64000' },
+        { ...mockOrderBook.bids[1], price: '63000' },
+      ],
+      asks: [
+        { ...mockOrderBook.asks[0], price: '65000' },
+        { ...mockOrderBook.asks[1], price: '66000' },
+      ],
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: btcOrderBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={64500}
+        szDecimals={5}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-bid-row-0-price`)).toHaveTextContent('$64K');
+    expect(getByTestId(`${testID}-bid-row-1-price`)).toHaveTextContent('$63K');
+    expect(getByTestId(`${testID}-ask-row-0-price`)).toHaveTextContent('$66K');
+  });
+
+  it('keeps the grouping step visible when it needs decimals to survive', () => {
+    // BTC's default grouping of 10 is the Figma reference ladder: "$61.47K".
+    const btcOrderBook: OrderBookData = {
+      ...mockOrderBook,
+      midPrice: '61470',
+      bids: [
+        { ...mockOrderBook.bids[0], price: '61470' },
+        { ...mockOrderBook.bids[1], price: '61460' },
+      ],
+      asks: [
+        { ...mockOrderBook.asks[0], price: '61480' },
+        { ...mockOrderBook.asks[1], price: '61490' },
+      ],
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: btcOrderBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={61470}
+        szDecimals={5}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-bid-row-0-price`)).toHaveTextContent(
+      '$61.47K',
+    );
+    expect(getByTestId(`${testID}-bid-row-1-price`)).toHaveTextContent(
+      '$61.46K',
+    );
+  });
+
+  it('renders every low-priced level at one precision so none collapse', () => {
+    // PUMP-style ladder: magnitude formatting stripped trailing zeros, so
+    // "0.0021" rendered two digits shorter than its neighbours.
+    const pumpOrderBook: OrderBookData = {
+      ...mockOrderBook,
+      midPrice: '0.0021',
+      bids: [
+        { ...mockOrderBook.bids[0], price: '0.002099' },
+        { ...mockOrderBook.bids[1], price: '0.0021' },
+      ],
+      asks: [
+        { ...mockOrderBook.asks[0], price: '0.002101' },
+        { ...mockOrderBook.asks[1], price: '0.002102' },
+      ],
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: pumpOrderBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="PUMP"
+        marketPrice={0.0021}
+        szDecimals={0}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-bid-row-0-price`)).toHaveTextContent(
+      '$0.002099',
+    );
+    expect(getByTestId(`${testID}-bid-row-1-price`)).toHaveTextContent(
+      '$0.002100',
+    );
   });
 
   it('resets grouping to the new market preference when symbol changes', () => {
