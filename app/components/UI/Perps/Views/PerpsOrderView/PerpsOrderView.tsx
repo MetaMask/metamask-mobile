@@ -57,6 +57,7 @@ import {
 } from '../../../../Views/confirmations/constants/perps';
 import {
   useIsTransactionPayQuoteLoading,
+  useIsTransactionPaySubmitReady,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../../../Views/confirmations/hooks/pay/useIsTransactionPayAmountStale';
@@ -622,6 +623,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
   const isPayAmountStale = useIsTransactionPayAmountStale();
+  const isPaySubmitReady = useIsTransactionPaySubmitReady();
   const depositFeeUsd = useMemo(() => {
     if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -641,7 +643,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ? undiscountedEstimatedFees + depositFeeUsd
     : undiscountedEstimatedFees;
 
-  const isPayStateNotReady = isPayTotalsLoading || isPayAmountStale;
+  // Mirror the publish guard: while the deposit transaction exists but has no
+  // executable quote and no validated direct or fiat route, a tap would be
+  // rejected at publish with "Cannot submit without quote". The loading and
+  // stale-amount checks alone miss states where the quote fetch failed, never
+  // started, or the payment token is still unset.
+  const isPayStateNotReady =
+    isPayTotalsLoading ||
+    isPayAmountStale ||
+    (Boolean(activeTransactionMeta) && !isPaySubmitReady);
 
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
