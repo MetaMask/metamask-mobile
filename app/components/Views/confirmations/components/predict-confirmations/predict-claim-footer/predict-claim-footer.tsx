@@ -15,7 +15,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
 import styleSheet from './predict-claim-footer.styles';
-import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
+import { selectPredictPayablePositions } from '../../../../../UI/Predict/selectors/predictController';
 import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -42,11 +42,11 @@ export function PredictClaimFooter({
   const address = transactionMetadata?.txParams.from;
   const transactionId = transactionMetadata?.id;
 
-  const wonPositions = useSelector((state: RootState) =>
-    selectPredictWonPositions(state, address ?? '0x'),
+  const payablePositions = useSelector((state: RootState) =>
+    selectPredictPayablePositions(state, address ?? '0x'),
   );
 
-  const hasNoPositions = !address || !wonPositions?.length;
+  const hasNoPositions = !address || !payablePositions.length;
 
   const hasTrackedNoPositions = useRef(false);
 
@@ -86,10 +86,10 @@ export function PredictClaimFooter({
 
   return (
     <Box style={styles.container} testID="predict-claim-footer">
-      {wonPositions.length > 1 ? (
-        <MultipleWinnings wonPositions={wonPositions} />
+      {payablePositions.length > 1 ? (
+        <MultipleWinnings wonPositions={payablePositions} />
       ) : (
-        <SingleWin wonPositions={wonPositions} />
+        <SingleWin wonPositions={payablePositions} />
       )}
       <ButtonHero
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}

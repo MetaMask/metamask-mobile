@@ -3476,7 +3476,8 @@ export class PredictController extends BaseController<
 
     return this.state.claimablePositions[matchedAddress].reduce(
       (sum, position) =>
-        position.status === PredictPositionStatus.WON
+        position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE
           ? sum + position.currentValue
           : sum,
       0,
