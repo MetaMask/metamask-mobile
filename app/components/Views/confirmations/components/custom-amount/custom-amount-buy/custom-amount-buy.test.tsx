@@ -9,9 +9,7 @@ import { otherControllersMock } from '../../../__mocks__/controllers/other-contr
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { strings } from '../../../../../../../locales/i18n';
-import { TransactionType } from '@metamask/transaction-controller';
 import { AssetType } from '../../../types/token';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
@@ -19,7 +17,6 @@ import { Hex } from '@metamask/utils';
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
-jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 
 const mockGoToBuy = jest.fn();
 
@@ -43,9 +40,6 @@ describe('CustomAmountBuy', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
-  const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -56,18 +50,6 @@ describe('CustomAmountBuy', () => {
 
     useAccountTokensMock.mockReturnValue([]);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.contractInteraction,
-      txParams: { from: '0x123' },
-    } as never);
-  });
-
-  it('renders without crashing', () => {
-    const { getByText } = render();
-
-    expect(
-      getByText(strings('confirm.custom_amount.buy_button')),
-    ).toBeDefined();
   });
 
   it('renders the buy button text', () => {
@@ -105,15 +87,5 @@ describe('CustomAmountBuy', () => {
       },
       { surface: 'confirmation' },
     );
-  });
-
-  it('renders the perps deposit buy message when no tokens available', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.perpsDeposit,
-    } as never);
-    const { getByText } = render();
-    expect(
-      getByText(strings('confirm.custom_amount.buy_perps')),
-    ).toBeOnTheScreen();
   });
 });

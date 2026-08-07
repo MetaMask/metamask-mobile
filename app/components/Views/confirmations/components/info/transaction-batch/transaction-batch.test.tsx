@@ -3,7 +3,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { generateStablecoinLendingDepositConfirmationState } from '../../../__mocks__/controllers/transaction-batch-mock';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { getNavbar } from '../../UI/navbar/navbar';
+import useNavbar from '../../../hooks/ui/useNavbar';
 import TransactionBatch from './transaction-batch';
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -38,8 +38,9 @@ jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
-jest.mock('../../../components/UI/navbar/navbar', () => ({
-  getNavbar: jest.fn(),
+jest.mock('../../../hooks/ui/useNavbar', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
@@ -79,7 +80,7 @@ describe('BatchTransaction', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockTrackAdvancedDetailsToggledEvent = jest.fn();
   const mockSetConfirmationMetric = jest.fn();
-  const mockGetNavbar = jest.mocked(getNavbar);
+  const mockUseNavbar = jest.mocked(useNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
@@ -110,16 +111,7 @@ describe('BatchTransaction', () => {
       state: generateStablecoinLendingDepositConfirmationState,
     });
 
-    expect(mockGetNavbar).toHaveBeenCalled();
-    expect(mockGetNavbar).toHaveBeenCalledWith({
-      title: 'Transaction',
-      onReject: mockOnReject,
-      addBackButton: true,
-      theme: expect.any(Object),
-      mmPayRequestInProgressNavHandler: expect.objectContaining({
-        current: false,
-      }),
-    });
+    expect(mockUseNavbar).toHaveBeenCalledWith('Transaction', true);
   });
 
   it('tracks metrics events', () => {

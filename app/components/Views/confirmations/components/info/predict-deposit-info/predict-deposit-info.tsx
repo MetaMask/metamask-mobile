@@ -14,12 +14,13 @@ import {
 
 export function PredictDepositInfo() {
   const { payWithOption } = useParams<ConfirmationParams>({});
-  const title =
+
+  const liveTitle =
     payWithOption === PayWithOption.MoneyAccount
       ? strings('predict.send_to_predictions')
       : strings('confirm.title.predict_deposit');
 
-  useNavbar(title);
+  useNavbar(liveTitle, true);
   useDefaultPaySelectedSection();
 
   useAddToken({

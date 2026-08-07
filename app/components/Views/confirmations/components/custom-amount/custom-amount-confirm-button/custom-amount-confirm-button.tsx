@@ -8,8 +8,6 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from '../../info/custom-amount-info/custom-amount-info.styles';
 import { strings } from '../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
@@ -21,29 +19,34 @@ import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
-import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 
 export function CustomAmountConfirmButton({
-  alertTitle,
-  isDisabled,
+  disableConfirm,
+  isAmountUpdating,
   onContinue,
-  stage,
 }: Readonly<{
-  alertTitle: string | undefined;
-  isDisabled: boolean;
+  disableConfirm?: boolean;
+  isAmountUpdating?: boolean;
   onContinue?: () => void;
-  stage: CustomAmountStage;
 }>) {
-  const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
+  const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
+  const disabled =
+    hasBlockingAlerts ||
+    isLoading ||
+    Boolean(disableConfirm) ||
+    isAmountUpdating ||
+    isHeadlessBuyInProgress;
+  const buttonLabel = useButtonLabel();
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
+    // Continue / Add Funds CTA funnel event; no-op for non-money flows.
     onContinue?.();
-
     try {
       await onConfirm();
     } catch (error) {
@@ -52,22 +55,9 @@ export function CustomAmountConfirmButton({
     }
   }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
 
-  const disabled =
-    isDisabled ||
-    stage !== CustomAmountStage.ShowTotals ||
-    hasBlockingAlerts ||
-    isHeadlessBuyInProgress;
-
-  const enabledButtonLabel = useButtonLabel();
-
-  const buttonLabel =
-    stage === CustomAmountStage.Loading
-      ? enabledButtonLabel
-      : (alertTitle ?? enabledButtonLabel);
-
   return (
     <Button
-      style={[disabled && styles.disabledButton]}
+      twClassName={disabled ? 'opacity-50' : undefined}
       size={ButtonSize.Lg}
       variant={ButtonVariant.Primary}
       isFullWidth

@@ -21,6 +21,59 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = (...args: unknown[]) =>
+      args.reduce<Record<string, unknown>>((acc, arg) => {
+        if (typeof arg === 'object' && arg !== null) {
+          return { ...acc, ...(arg as Record<string, unknown>) };
+        }
+        return acc;
+      }, {});
+    return tw;
+  },
+}));
+
+// BottomSheet's real close path needs native sheet animations; keep a thin mock
+// for the imperative `onCloseBottomSheet` ref used after account selection.
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactActual = require('react');
+  const { View: RNView } = jest.requireActual('react-native');
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        testID,
+      }: {
+        children: React.ReactNode;
+        onClose?: (hasPendingAction?: boolean) => void;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (cb?: () => void) => void;
+        onOpenBottomSheet: (cb?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          onClose?.(false);
+          cb?.();
+        },
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return <RNView testID={testID}>{children}</RNView>;
+    },
+  );
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
+
 jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -30,17 +83,6 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
     ),
     AvatarVariant: { Account: 'Account' },
     AvatarSize: { Sm: 'Sm' },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
-    IconColor: { Alternative: 'Alternative' },
-    IconName: { ArrowDown: 'ArrowDown', Close: 'Close' },
-    IconSize: { Sm: 'Sm', Md: 'Md' },
   };
 });
 

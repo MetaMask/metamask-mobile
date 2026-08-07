@@ -17,6 +17,7 @@ describe('ConfirmationContext', () => {
       mmPayRequestInProgressNavHandler: expect.objectContaining({
         current: false,
       }),
+      navHeaderConfig: null,
       headlessBuyError: undefined,
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,
@@ -24,6 +25,7 @@ describe('ConfirmationContext', () => {
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setNavHeaderConfig: expect.any(Function),
       setHeadlessBuyError: expect.any(Function),
       setIsFooterVisible: expect.any(Function),
       setIsConfirmationSubmitting: expect.any(Function),
@@ -31,6 +33,28 @@ describe('ConfirmationContext', () => {
       setIsTransactionDataUpdating: expect.any(Function),
       setIsTransactionValueUpdating: expect.any(Function),
     });
+  });
+
+  it('updates navHeaderConfig when calling setNavHeaderConfig', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setNavHeaderConfig({
+        title: 'Add funds',
+        addBackButton: true,
+      });
+    });
+
+    expect(result.current.navHeaderConfig).toStrictEqual({
+      title: 'Add funds',
+      addBackButton: true,
+    });
+
+    act(() => {
+      result.current.setNavHeaderConfig(null);
+    });
+
+    expect(result.current.navHeaderConfig).toBeNull();
   });
 
   it('updates isTransactionValueUpdating state when calling setIsTransactionValueUpdating', () => {

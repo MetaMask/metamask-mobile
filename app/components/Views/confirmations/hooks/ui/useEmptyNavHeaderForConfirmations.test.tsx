@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { getEmptyNavHeader } from '../../components/UI/navbar/navbar';
 import { useEmptyNavHeaderForConfirmations } from './useEmptyNavHeaderForConfirmations';
@@ -9,8 +8,7 @@ describe('useEmptyNavHeaderForConfirmations', () => {
   const mockGetEmptyNavHeader = jest.mocked(getEmptyNavHeader);
 
   const mockNavbarOptions = {
-    header: () => <></>,
-    headerShown: true,
+    headerShown: false,
     gestureEnabled: false,
   };
 
