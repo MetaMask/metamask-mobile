@@ -1071,7 +1071,7 @@
       "error": "Webview received error: {{code}}"
     },
     "notifications": {
-      "deposit_failed_title": "Deposit of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+      "deposit_failed_title": "Deposit of {{currency}} has failed. Please try again, sorry for the inconvenience.",
       "deposit_failed_description": "Verify your payment method and card support",
       "deposit_cancelled_title": "Your deposit was cancelled",
       "deposit_cancelled_description": "You requested a cancellation of your deposit.",
@@ -1310,6 +1310,9 @@
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
+      "selection_title": "Choose how you trade",
+      "lite_description": "One-tap longs or shorts. Simple by design.",
+      "pro_description": "Order book, advanced order types, and leverage.",
       "lite_transition_title": "Lite Mode",
       "pro_transition_title": "Pro Mode",
       "active_pill_accessibility_label": "Currently {{mode}} mode",
@@ -1539,6 +1542,8 @@
       "close_keyboard": "Close keyboard"
     },
     "pro_positions_panel": {
+      "order_history": "Order history",
+      "close_count": "Close ({{count}})",
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
@@ -1641,7 +1646,10 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
-        "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time."
+        "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
+        "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
+        "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
+        "reduce_only_too_large": "Reduce only order is larger than your open position"
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -2390,6 +2398,13 @@
       "error_title": "Failed to cancel orders",
       "error_message": "Failed to cancel {{count}} order(s)"
     },
+    "margin_mode": {
+      "title": "Choose margin mode",
+      "isolated_title": "Isolated",
+      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "cross_title": "Cross",
+      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
     "crossMargin": {
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
@@ -2415,7 +2430,8 @@
       "past_hour": "Past hour",
       "past_24_hours": "Past 24 hours",
       "time": "Time",
-      "apply": "Apply"
+      "apply": "Apply",
+      "clear": "Clear"
     },
     "provider_selector": {
       "title": "Select Provider"
@@ -3381,7 +3397,7 @@
     "refresh_metadata": "Refresh metadata",
     "token_removal_issue_title": "Issue removing token.",
     "token_removal_issue_desc": "There was a problem when trying to remove the token. Try again.",
-    "collectible_removed_title": "Collectible removed!",
+    "collectible_removed_title": "Collectible removed",
     "collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
     "remove": "Hide",
     "cancel": "Cancel",
@@ -3963,15 +3979,15 @@
       "deselect_all": "Deselect all",
       "select_accounts_title": "Accounts",
       "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
-      "wallet_activity_title": "Wallet Activity",
-      "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
-      "perps_title": "Trading Activity",
+      "wallet_activity_title": "Wallet activity",
+      "wallet_activity_desc": "Buy, sells, transfers, swaps",
+      "perps_title": "Trading activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
       "agentic_cli_title": "Agentic CLI",
       "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
-      "social_ai_title": "Trading Signals",
-      "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
-      "marketing_title": "Updates and Rewards",
+      "social_ai_title": "Trading signals",
+      "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
+      "marketing_title": "Updates and rewards",
       "marketing_desc": "Product updates, feature announcements, and new releases",
       "marketing_disclaimer": "By turning this on, you agree to receive product news and marketing updates from MetaMask.",
       "customize_session_title": "Customize your notifications",
@@ -3988,7 +4004,7 @@
       "snaps_desc": "New features and updates",
       "products_announcements_title": "Product announcements",
       "products_announcements_desc": "New products and features",
-      "price_alerts_title": "Price Alerts",
+      "price_alerts_title": "Price alerts",
       "price_alerts_desc": "Get notified based on the alerts you've set for a token's price"
     },
     "contacts_title": "Contacts",
@@ -5776,7 +5792,7 @@
     "risks_1": "You lose it",
     "risks_2": "You forget where you put it",
     "risks_3": "Someone else finds it",
-    "other_options": "Other options: Doesn’t have to be paper!",
+    "other_options": "Other options: Doesn’t have to be paper.",
     "tips_title": "Tips:",
     "tips_1": "Store in bank vault",
     "tips_2": "Store in a safe",
@@ -5917,7 +5933,7 @@
     "proceed_anyway": "proceed anyway",
     "but_please_do_so_at_your_own_risk": "but please do so at your own risk.",
     "report_detection_problem": "Report a detection problem",
-    "share_on_twitter": "If you found this helpful, share on X!",
+    "share_on_twitter": "If you found this helpful, share on X.",
     "share_text": "MetaMask protected me from visiting a potentially harmful site: {{url}}. Stay safe!"
   },
   "notifications": {
@@ -5990,11 +6006,11 @@
     "erc1155_received": "Received NFT from {{address}}",
     "received_nft": "Received NFT from {{address}}",
     "pending_title": "Transaction submitted",
-    "pending_deposit_title": "Deposit in progress!",
-    "pending_withdrawal_title": "Withdrawal in progress!",
-    "cancelled_title": "Transaction cancelled!",
+    "pending_deposit_title": "Deposit in progress",
+    "pending_withdrawal_title": "Withdrawal in progress",
+    "cancelled_title": "Transaction cancelled",
     "success_title": "Transaction #{{nonce}} Complete!",
-    "speedup_title": "Speeding up #{{nonce}}!",
+    "speedup_title": "Speeding up #{{nonce}}",
     "success_deposit_title": "Deposit complete!",
     "success_withdrawal_title": "Withdrawal complete!",
     "error_title": "Oops, something went wrong :/",
@@ -6488,8 +6504,8 @@
     "something_went_wrong": "Oops, something went wrong",
     "report_this_issue": "Report this issue",
     "no_providers_available": "No providers available",
-    "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
-    "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell!",
+    "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy.",
+    "try_different_amount_to_sell_input": "Try choosing a different cash out destination or try to increase or reduce the amount you want to sell.",
     "webview_received_error": "WebView received error status code: {{code}}",
     "no_tokens_available_title": "No tokens available",
     "no_tokens_available": "There are currently no tokens available to purchase on {{network}} with the selected payment method.",
@@ -6542,7 +6558,7 @@
     },
     "order_details": {
       "details_main": "Order details",
-      "successful": "Order successful!",
+      "successful": "Order successful",
       "your": "Your",
       "available_in_account": "is now available in your account",
       "delayed_bank_transfer": "It make take a few days to see the cash in your bank account.",
@@ -6633,7 +6649,7 @@
     "notifications": {
       "purchase_pending_title": "Processing your purchase of {{cryptocurrency}}",
       "purchase_pending_description": "This should only take a few minutes...",
-      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful!",
+      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful",
       "purchase_completed_description": "Your {{cryptocurrency}} is now available",
       "purchase_failed_title": "Purchase of {{cryptocurrency}} failed",
       "purchase_failed_description": "Please try again momentarily",
@@ -7397,7 +7413,7 @@
     "your_bonus_tooltip_lifetime_bonus_desc": "The total bonus you've claimed since you started.",
     "learn_more": "Learn more",
     "service_interruption_banner": {
-      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
+      "maintenance_message": "We're down for maintenance. We'll be back online soon."
     },
     "supply": "Supply",
     "deposit": "Deposit",
@@ -7619,7 +7635,7 @@
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "{{apy}}% APY",
+        "earn_apy": "Get {{apy}}% APY",
         "start_earning": "Start earning",
         "current_apy_disclaimer": "Current APY, variable and not guaranteed."
       },
@@ -10373,6 +10389,7 @@
     "convert_again": "Convert again",
     "wrap_again": "Wrap again",
     "unwrap_again": "Unwrap again",
+    "lend_again": "Lend again",
     "transaction_pending": "Transaction pending",
     "likely_to_confirm_in": "Likely to confirm in",
     "confirm_time_estimate": "< 30 sec",
