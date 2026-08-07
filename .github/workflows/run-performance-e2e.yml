@@ -316,6 +316,7 @@ jobs:
     needs: [determine-branch-name]
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
+      testmu_android_matrix: ${{ steps.read-matrix.outputs.testmu_android_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
     steps:
       - name: Checkout code
@@ -329,15 +330,20 @@ jobs:
         run: |
           FILE="tests/performance/device-matrix.json"
 
-          # TestMu PoC: Pixel 7/8 pool only. BrowserStack receives explicit
-          # catalog entries; TestMu resolver maps each to its matching catalog.
+          # BrowserStack receives explicit Pixel 7/8 catalog entries.
           ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name == "Google Pixel 7 Pro" or .name == "Google Pixel 8 Pro")]' "$FILE")
+          # TestMu receives one logical matrix entry and chooses one available
+          # Pixel 7/8 device through its availability regex.
+          TESTMU_ANDROID_MATRIX='[{"name":"Pixel.*","os_version":"13.*|14.*","category":"low","description":"TestMu Pixel 7/8 availability pool"}]'
           IOS_MATRIX='[]'
-          echo "PoC mode: Google Pixel 7/8 pool (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
+          echo "PoC mode: BrowserStack Pixel 7/8 matrix; TestMu Pixel regex pool (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
 
           {
             echo "android_matrix<<EOF"
             echo "$ANDROID_MATRIX"
+            echo "EOF"
+            echo "testmu_android_matrix<<EOF"
+            echo "$TESTMU_ANDROID_MATRIX"
             echo "EOF"
             echo "ios_matrix<<EOF"
             echo "$IOS_MATRIX"
@@ -743,7 +749,7 @@ jobs:
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.testmu_android_matrix }}
       testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-testmu-url || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
       app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-version || needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
@@ -783,7 +789,7 @@ jobs:
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.testmu_android_matrix }}
       testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-testmu-url || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
       app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-version || needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
@@ -937,7 +943,7 @@ jobs:
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.testmu_android_matrix }}
       testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-testmu-url || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
       app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
@@ -978,7 +984,7 @@ jobs:
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.testmu_android_matrix }}
       testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-testmu-url || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
       app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
