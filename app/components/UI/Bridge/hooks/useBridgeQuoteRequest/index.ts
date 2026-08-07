@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   formatAddressToCaipReference,
+  isValidQuoteRequest,
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
@@ -25,7 +26,7 @@ import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
-import { trace, TraceName } from '../../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 export const DEBOUNCE_WAIT = 300;
 
@@ -132,18 +133,33 @@ export const useBridgeQuoteRequest = (
         insufficientBal,
       };
 
-      trace({
-        name: TraceName.SwapQuoteFetch,
-        data: { isRefresh },
-        startTime: Date.now(),
-      });
+      const shouldTrace = isValidQuoteRequest(params);
 
-      await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-        params,
-        context,
-        0,
-        1,
-      );
+      try {
+        if (shouldTrace) {
+          trace({
+            name: TraceName.SwapQuoteFetch,
+            data: { isRefresh },
+            startTime: Date.now(),
+          });
+        }
+
+        await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
+          params,
+          context,
+          0,
+          1,
+        );
+      } catch (error) {
+        if (shouldTrace) {
+          endTrace({
+            name: TraceName.SwapQuoteFetch,
+            timestamp: Date.now(),
+            data: { success: false },
+          });
+        }
+        throw error;
+      }
     },
     [
       sourceToken,

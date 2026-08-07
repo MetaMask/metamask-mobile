@@ -12,7 +12,7 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
-import { trace, TraceName } from '../../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -83,6 +83,7 @@ jest.mock('../useLatestBalance', () => ({
 jest.mock('../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../util/trace'),
   trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 jest.useFakeTimers();
@@ -110,6 +111,7 @@ const mockUseInsufficientNativeReserveError =
     typeof useInsufficientNativeReserveError
   >;
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useBridgeQuoteRequest', () => {
   beforeEach(() => {
@@ -200,6 +202,30 @@ describe('useBridgeQuoteRequest', () => {
       name: TraceName.SwapQuoteFetch,
       data: { isRefresh: true },
       startTime: expect.any(Number),
+    });
+  });
+
+  it('ends the trace when updating quote parameters fails', async () => {
+    const error = new Error('quote request failed');
+    spyUpdateBridgeQuoteRequestParams.mockRejectedValueOnce(error);
+
+    const testState = createBridgeTestState();
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    await expect(
+      act(async () => {
+        result.current();
+        await result.current.flush();
+      }),
+    ).rejects.toThrow(error);
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+      data: { success: false },
     });
   });
 
@@ -387,6 +413,7 @@ describe('useBridgeQuoteRequest', () => {
       0,
       1,
     );
+    expect(mockTrace).not.toHaveBeenCalled();
   });
 
   it('converts source amount with custom token decimals', async () => {
