@@ -37,10 +37,12 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockIsStockToken = jest.fn();
 const mockIsTokenTradingOpen = jest.fn();
+const mockIsTokenMarketFullyClosed = jest.fn();
 jest.mock('./useRWAToken', () => ({
   useRWAToken: () => ({
     isStockToken: mockIsStockToken,
     isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenMarketFullyClosed: mockIsTokenMarketFullyClosed,
   }),
 }));
 
@@ -184,6 +186,7 @@ describe('useTokenSelection', () => {
     // Non-stock token behavior
     mockIsStockToken.mockReturnValue(false);
     mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenMarketFullyClosed.mockReturnValue(false);
     mockUseIsNetworkEnabled.mockReturnValue(true);
     mockHandleSwitchTokensInner.mockResolvedValue(undefined);
     mockAddNetwork.mockResolvedValue(undefined);
@@ -442,9 +445,9 @@ describe('useTokenSelection', () => {
       },
     });
 
-    it('proceeds with selection when stock token trading is open', async () => {
+    it('proceeds with selection when stock token is tradable (regular or off-hours)', async () => {
       mockIsStockToken.mockReturnValue(true);
-      mockIsTokenTradingOpen.mockResolvedValue(true);
+      mockIsTokenMarketFullyClosed.mockReturnValue(false);
 
       const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
@@ -453,15 +456,15 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockIsStockToken).toHaveBeenCalledWith(mockStockToken);
-      expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(mockStockToken);
+      expect(mockIsTokenMarketFullyClosed).toHaveBeenCalledWith(mockStockToken);
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(mockStockToken));
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to market closed modal when stock token trading is closed', async () => {
+    it('navigates to market closed modal when stock token is fully closed (not regular, not off-hours)', async () => {
       mockIsStockToken.mockReturnValue(true);
-      mockIsTokenTradingOpen.mockReturnValue(false);
+      mockIsTokenMarketFullyClosed.mockReturnValue(true);
 
       const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
 
@@ -470,7 +473,7 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockIsStockToken).toHaveBeenCalledWith(mockStockToken);
-      expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(mockStockToken);
+      expect(mockIsTokenMarketFullyClosed).toHaveBeenCalledWith(mockStockToken);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
       });
@@ -478,7 +481,21 @@ describe('useTokenSelection', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('skips trading check for non-stock tokens', async () => {
+    it('allows selection of off-hours stock token (does not show market closed modal)', async () => {
+      mockIsStockToken.mockReturnValue(true);
+      mockIsTokenMarketFullyClosed.mockReturnValue(false); // in off-hours → tradable, not fully closed
+
+      const { result } = renderTokenSelectionHook(TokenSelectorType.Source);
+
+      await act(async () => {
+        await result.current.handleTokenPress(mockStockToken);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(mockStockToken));
+    });
+
+    it('skips market-closed check entirely for non-stock tokens', async () => {
       mockIsStockToken.mockReturnValue(false);
       const regularToken = createMockToken({
         address: '0xregular',
@@ -492,14 +509,15 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockIsStockToken).toHaveBeenCalledWith(regularToken);
-      expect(mockIsTokenTradingOpen).not.toHaveBeenCalled();
+      // isTokenMarketFullyClosed must not be consulted for non-stock tokens
+      expect(mockIsTokenMarketFullyClosed).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(setSourceToken(regularToken));
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('navigates to market closed modal for dest token when trading is closed', async () => {
+    it('navigates to market closed modal for dest stock token when fully closed', async () => {
       mockIsStockToken.mockReturnValue(true);
-      mockIsTokenTradingOpen.mockReturnValue(false);
+      mockIsTokenMarketFullyClosed.mockReturnValue(true);
 
       const { result } = renderTokenSelectionHook(TokenSelectorType.Dest);
 
@@ -514,7 +532,7 @@ describe('useTokenSelection', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('swaps tokens when selecting other token as stock token with open market', async () => {
+    it('swaps tokens when selecting other token as stock token in off-hours (tradable)', async () => {
       const stockDestToken = createMockToken({
         address: '0xdest',
         symbol: 'DST',
@@ -528,7 +546,7 @@ describe('useTokenSelection', () => {
         },
       });
       mockIsStockToken.mockReturnValue(true);
-      mockIsTokenTradingOpen.mockResolvedValue(true);
+      mockIsTokenMarketFullyClosed.mockReturnValue(false); // in off-hours → not fully closed
 
       const { result } = renderTokenSelectionHook(TokenSelectorType.Source, {
         destToken: stockDestToken,
@@ -539,7 +557,7 @@ describe('useTokenSelection', () => {
       });
 
       expect(mockIsStockToken).toHaveBeenCalledWith(stockDestToken);
-      expect(mockIsTokenTradingOpen).toHaveBeenCalledWith(stockDestToken);
+      expect(mockIsTokenMarketFullyClosed).toHaveBeenCalledWith(stockDestToken);
       expect(mockHandleSwitchTokens).toHaveBeenCalledWith(mockDestAmount);
       expect(mockHandleSwitchTokensInner).toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();

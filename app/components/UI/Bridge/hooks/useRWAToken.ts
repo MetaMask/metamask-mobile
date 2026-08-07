@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { BridgeToken } from '../types';
 import { isStockRwaBridgeToken } from '../utils/isStockRwaBridgeToken';
 
-export type DateLike = string | null | undefined | Date;
+type DateLike = string | null | undefined | Date;
 
 function toMs(v: DateLike): number | null {
   if (!v) return null;
@@ -12,51 +12,114 @@ function toMs(v: DateLike): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
+/**
+ * Checks whether a token is inside its regular market-hours window at `nowMs`.
+ *
+ * Uses the same wraparound logic as the legacy `isTokenTradingOpen` hook:
+ * - nextClose > nextOpen → simple window [nextOpen, nextClose)
+ * - nextClose < nextOpen → overnight/weekend wrap → open when nowMs < nextClose OR nowMs >= nextOpen
+ *
+ * Pauses (rwaData.nextPause) block regular-hours trading but do NOT affect off-hours trading.
+ */
+function isTokenInRegularHoursAt(
+  token: BridgeToken | undefined,
+  isRwaEnabled: boolean,
+  nowMs: number,
+): boolean {
+  if (!isRwaEnabled || !token?.rwaData) return true;
+
+  const nextOpenMs = toMs(token.rwaData.market?.nextOpen);
+  const nextCloseMs = toMs(token.rwaData.market?.nextClose);
+  if (nextOpenMs == null || nextCloseMs == null) return false;
+
+  let marketIsOpen: boolean;
+  if (nextCloseMs > nextOpenMs) {
+    marketIsOpen = nowMs >= nextOpenMs && nowMs < nextCloseMs;
+  } else {
+    marketIsOpen = nowMs < nextCloseMs || nowMs >= nextOpenMs;
+  }
+
+  const pauseStartMs = toMs(token.rwaData.nextPause?.start);
+  const pauseEndMs = toMs(token.rwaData.nextPause?.end);
+
+  const inPause =
+    (pauseStartMs != null &&
+      nowMs >= pauseStartMs &&
+      (pauseEndMs == null || nowMs < pauseEndMs)) ||
+    (pauseStartMs == null && pauseEndMs != null && nowMs < pauseEndMs);
+
+  return marketIsOpen && !inPause;
+}
+
+/**
+ * Checks whether a stock RWA token is inside its off-hours trading window at `nowMs`.
+ *
+ * Off-hours windows follow the same wraparound logic as regular market hours.
+ * Pauses do NOT apply to off-hours windows.
+ *
+ * Returns `false` for non-RWA tokens, when the feature flag is off, or when the
+ * `offhours` field is absent from `rwaData`.
+ */
+export function isTokenInOffHoursAt(
+  token: BridgeToken | undefined,
+  isRwaEnabled: boolean,
+  nowMs: number,
+): boolean {
+  if (!isRwaEnabled || !token?.rwaData?.offhours) return false;
+
+  const nextOpenMs = toMs(token.rwaData.offhours.nextOpen);
+  const nextCloseMs = toMs(token.rwaData.offhours.nextClose);
+  if (nextOpenMs == null || nextCloseMs == null) return false;
+
+  if (nextCloseMs > nextOpenMs) {
+    return nowMs >= nextOpenMs && nowMs < nextCloseMs;
+  }
+  return nowMs < nextCloseMs || nowMs >= nextOpenMs;
+}
+
+/**
+ * A token is tradable when it is either in regular market hours OR in its off-hours window.
+ * Regular-hours pauses (nextPause) do NOT block off-hours trading.
+ */
+export function isTokenTradableAt(
+  token: BridgeToken | undefined,
+  isRwaEnabled: boolean,
+  nowMs: number,
+): boolean {
+  if (!isRwaEnabled || !token?.rwaData) return true;
+
+  return (
+    isTokenInRegularHoursAt(token, isRwaEnabled, nowMs) ||
+    isTokenInOffHoursAt(token, isRwaEnabled, nowMs)
+  );
+}
+
 export function useRWAToken() {
-  // Check remote feature flag for RWA token enablement
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
 
-  // TODO: Borrowed isRwaTokenTradable function from crosschain API src/utils/tokens.ts file.
-  // To be removed once `isOpen` flag is also available from token API
   /**
-   * Checks if the token is trading open
-   * @returns {boolean} - True if the token is trading open, false otherwise
+   * True when the token is in regular market hours (not paused).
+   * Kept for backward-compatibility; use `isTokenTradable` for gating.
    */
   const isTokenTradingOpen = useCallback(
-    (token?: BridgeToken) => {
-      if (!isRWAEnabled || !token?.rwaData) {
-        return true;
-      }
-      const nextOpenMs = toMs(token?.rwaData?.market?.nextOpen);
-      const nextCloseMs = toMs(token?.rwaData?.market?.nextClose);
-      if (nextOpenMs == null || nextCloseMs == null) return false;
+    (token?: BridgeToken) =>
+      isTokenInRegularHoursAt(token, isRWAEnabled, Date.now()),
+    [isRWAEnabled],
+  );
 
-      const nowMs = new Date().getTime();
-
-      let marketIsOpen;
-      if (nextCloseMs > nextOpenMs) {
-        marketIsOpen = nowMs >= nextOpenMs && nowMs < nextCloseMs;
-      } else {
-        marketIsOpen = nowMs < nextCloseMs || nowMs >= nextOpenMs;
-      }
-
-      const pauseStartMs = toMs(token?.rwaData?.nextPause?.start);
-      const pauseEndMs = toMs(token?.rwaData?.nextPause?.end);
-
-      const inPause =
-        (pauseStartMs != null &&
-          nowMs >= pauseStartMs &&
-          (pauseEndMs == null || nowMs < pauseEndMs)) ||
-        (pauseStartMs == null && pauseEndMs != null && nowMs < pauseEndMs);
-
-      return marketIsOpen && !inPause;
-    },
+  /**
+   * True when the token is a stock RWA and neither regular hours nor off-hours
+   * are currently active. Only fully-closed tokens should trigger the market-closed modal.
+   */
+  const isTokenMarketFullyClosed = useCallback(
+    (token?: BridgeToken) =>
+      isStockRwaBridgeToken(token, isRWAEnabled) &&
+      !isTokenTradableAt(token, isRWAEnabled, Date.now()),
     [isRWAEnabled],
   );
 
   /**
    * Checks if the token is a stock token
-   * @returns {boolean} - True if the token is a stock token, false otherwise
    */
   const isStockToken = useCallback(
     (token?: BridgeToken) => isStockRwaBridgeToken(token, isRWAEnabled),
@@ -66,5 +129,6 @@ export function useRWAToken() {
   return {
     isStockToken,
     isTokenTradingOpen,
+    isTokenMarketFullyClosed,
   };
 }

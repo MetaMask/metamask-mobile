@@ -8572,6 +8572,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Done"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Swap in progress",
       "swap_success": "Swap complete",

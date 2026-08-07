@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Tapos na"
     },
+    "off_hours_trading": {
+      "title": "Pangangalakal sa labas ng oras",
+      "description": "Sarado ang merkado: Ang presyo ay kinakalkula ng nag-isyu, hindi live na datos ng merkado. Maaaring magkaiba ito kapag muling binuksan ang mga merkado sa susunod na magagamit na sesyon ng pangangalakal."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Kasalukuyang nagsu-swap",
       "swap_success": "Nakumpleto ang swap",

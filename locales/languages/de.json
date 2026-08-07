@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Fertig"
     },
+    "off_hours_trading": {
+      "title": "Handel außerhalb der Handelszeiten",
+      "description": "Markt geschlossen: Der Preis wird vom Emittenten berechnet und spiegelt keine Live-Marktdaten wider. Er kann abweichen, wenn der Markt zur nächsten verfügbaren Handelssitzung wieder öffnet."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Swap läuft",
       "swap_success": "Swap abgeschlossen",

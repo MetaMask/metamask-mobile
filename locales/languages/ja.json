@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "完了"
     },
+    "off_hours_trading": {
+      "title": "時間外取引",
+      "description": "市場閉鎖中：価格は発行者が算出したものであり、リアルタイムの市場データではありません。次回の取引セッションで市場が再開した際に価格が異なる場合があります。"
+    },
     "post_trade_modal": {
       "swap_in_progress": "スワップ中",
       "swap_success": "スワップ完了",

@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "पूरा हुआ"
     },
+    "off_hours_trading": {
+      "title": "ऑफ-आवर्स ट्रेडिंग",
+      "description": "बाज़ार बंद: कीमत जारीकर्ता द्वारा गणना की गई है, यह लाइव बाज़ार डेटा नहीं है। अगली उपलब्ध ट्रेडिंग सत्र में बाज़ार खुलने पर यह भिन्न हो सकती है।"
+    },
     "post_trade_modal": {
       "swap_in_progress": "स्वैप प्रगति पर है",
       "swap_success": "स्वैप पूरा हुआ",
