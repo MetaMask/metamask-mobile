@@ -17,7 +17,7 @@ import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import ToastService from '../../../../core/ToastService';
-import { renderNumber } from '../../../../util/number';
+import { renderNumber } from '../../../../util/number/bigint';
 
 export interface V2OrderToastParams {
   orderId: string;

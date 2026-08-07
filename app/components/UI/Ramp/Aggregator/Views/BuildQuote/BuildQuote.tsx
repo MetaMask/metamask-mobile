@@ -14,7 +14,6 @@ import Animated, {
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import BN4 from 'bnjs4';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -85,7 +84,7 @@ import styleSheet from './BuildQuote.styles';
 import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/bigint';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
 import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
@@ -139,7 +138,7 @@ const BuildQuote = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
+  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<bigint>();
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const [intentHandled, setIntentHandled] = useState(false);
@@ -382,11 +381,11 @@ const BuildQuote = () => {
         },
   );
 
-  let maxSellAmount = null;
+  let maxSellAmount: bigint | null = null;
   if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
     maxSellAmount =
       balanceBN && gasPriceEstimation
-        ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+        ? balanceBN - gasPriceEstimation.estimatedGasFee
         : null;
   } else if (
     selectedAsset &&
@@ -415,17 +414,20 @@ const BuildQuote = () => {
     if (isBuy || !maxSellAmount) {
       return false;
     }
-    return Boolean(amountBNMinimalUnit?.gt(maxSellAmount));
+    return Boolean(
+      amountBNMinimalUnit !== undefined &&
+        amountBNMinimalUnit > maxSellAmount,
+    );
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!amountBNMinimalUnit || amountBNMinimalUnit.isZero()) {
+    if (!amountBNMinimalUnit || amountBNMinimalUnit === 0n) {
       return false;
     }
     if (!balanceBN) {
       return true;
     }
-    return balanceBN.lt(amountBNMinimalUnit);
+    return balanceBN < amountBNMinimalUnit;
   }, [balanceBN, amountBNMinimalUnit]);
 
   const hasInsufficientNativeBalanceForGas = useMemo(() => {
@@ -437,7 +439,7 @@ const BuildQuote = () => {
       return false;
     }
 
-    return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
+    return nativeTokenBalanceBN < gasPriceEstimation.estimatedGasFee;
   }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
   const displayBalance = useMemo(() => {
@@ -560,7 +562,7 @@ const BuildQuote = () => {
 
       if (isSell) {
         setAmountBNMinimalUnit(
-          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0) as BN4,
+          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0),
         );
       }
 
@@ -576,11 +578,12 @@ const BuildQuote = () => {
         setAmountNumber(value);
       } else {
         const percentage = value * 100;
-        const amountPercentage = balanceBN
-          ?.mul(new BN4(percentage))
-          .div(new BN4(100));
+        const amountPercentage =
+          balanceBN !== null && balanceBN !== undefined
+            ? (balanceBN * BigInt(percentage)) / 100n
+            : undefined;
 
-        if (!amountPercentage) {
+        if (amountPercentage === undefined) {
           return;
         }
 
@@ -588,7 +591,8 @@ const BuildQuote = () => {
 
         if (
           selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount?.lt(amountPercentage)
+          maxSellAmount !== null &&
+          maxSellAmount < amountPercentage
         ) {
           amountToSet = maxSellAmount;
         }
@@ -899,8 +903,9 @@ const BuildQuote = () => {
       })) ?? [];
   } else if (
     balanceBN &&
-    !balanceBN.isZero() &&
-    maxSellAmount?.gt(new BN4(0))
+    balanceBN !== 0n &&
+    maxSellAmount !== null &&
+    maxSellAmount > 0n
   ) {
     quickAmounts = [
       { value: 0.25, label: '25%' },

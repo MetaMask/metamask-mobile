@@ -9,7 +9,7 @@ import { protectWalletModalVisible } from '../../../../../actions/user';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { addFiatOrder, FiatOrder } from '../../../../../reducers/fiatOrders';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
-import { hexToBN, toHexadecimal } from '../../../../../util/number';
+import { hexToBigInt, toHexadecimal } from '../../../../../util/number/bigint';
 
 import useThunkDispatch from '../../../../hooks/useThunkDispatch';
 import { getNotificationDetails } from '../utils';
@@ -100,13 +100,7 @@ function useHandleSuccessfulOrder() {
             chain_id_destination: chainIdFromProvider,
             has_zero_currency_destination_balance: false,
             has_zero_native_balance: accountBalance
-              ? (
-                  hexToBN(
-                    accountBalance,
-                    // TODO: Replace "any" with type
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  ) as any
-                )?.isZero?.()
+              ? hexToBigInt(accountBalance) === 0n
               : undefined,
             currency_source: (order?.data as Order)?.fiatCurrency?.symbol,
             currency_destination: (order?.data as Order)?.cryptoCurrency

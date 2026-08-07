@@ -2,7 +2,6 @@ import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { Pressable, Text } from 'react-native';
-import type BN4 from 'bnjs4';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
@@ -23,7 +22,7 @@ import {
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../hooks/useBalance';
-import { toTokenMinimalUnit } from '../../../../../../util/number';
+import { toTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
@@ -227,7 +226,7 @@ jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
   balance: '5.36385',
   balanceFiat: '$27.02',
-  balanceBN: toTokenMinimalUnit('5.36385', 18) as BN4,
+  balanceBN: toTokenMinimalUnit('5.36385', 18),
 };
 
 let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
@@ -279,7 +278,7 @@ const mockUseGasPriceEstimationInitialValue: ReturnType<
   estimatedGasFee: toTokenMinimalUnit(
     '0.01',
     mockUseRampSDKInitialValues.selectedAsset?.decimals || 18,
-  ) as BN4,
+  ),
 };
 
 let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
@@ -949,7 +948,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '5',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       render(BuildQuote);
       const initialAmount = '0';
       const overBalanceAmout = '6';
@@ -970,7 +969,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '0',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       render(BuildQuote);
       const initialAmount = '0';
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
@@ -987,7 +986,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '1',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('25%'));
@@ -1018,13 +1017,13 @@ describe('BuildQuote View', () => {
         balanceBN: toTokenMinimalUnit(
           '1',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
@@ -1051,13 +1050,13 @@ describe('BuildQuote View', () => {
         balanceBN: toTokenMinimalUnit(
           '1',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
       mockUseGasPriceEstimationValue = {
         estimatedGasFee: toTokenMinimalUnit(
           '0.27',
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
-        ) as BN4,
+        ),
       };
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
@@ -1085,7 +1084,7 @@ describe('BuildQuote View', () => {
                 mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
                   '5.36385',
                   mockCryptoCurrenciesData[1].decimals || 18,
-                ) as BN4;
+                );
                 setSelectedAssetVersion((version) => version + 1);
               }}
             >

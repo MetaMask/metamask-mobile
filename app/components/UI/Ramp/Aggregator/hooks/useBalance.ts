@@ -12,11 +12,11 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   balanceToFiat,
-  hexToBN,
+  hexToBigInt,
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiat,
-} from '../../../../../util/number';
+} from '../../../../../util/number/bigint';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { getEvmHexChainId } from '../utils';
@@ -72,7 +72,9 @@ export default function useBalance(asset?: Asset) {
     return defaultReturn;
   }
 
-  let balance, balanceFiat, balanceBN;
+  let balance: string | number | null | undefined;
+  let balanceFiat: string | undefined;
+  let balanceBN: bigint | null | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset.assetId) {
@@ -105,7 +107,7 @@ export default function useBalance(asset?: Asset) {
       accountsByChainId[hexChainId][selectedAddress]?.balance,
     );
 
-    balanceBN = hexToBN(
+    balanceBN = hexToBigInt(
       accountsByChainId[hexChainId][selectedAddress]?.balance,
     );
 
@@ -131,7 +133,7 @@ export default function useBalance(asset?: Asset) {
     );
     balanceBN =
       assetAddress && chainBalances && assetAddress in chainBalances
-        ? hexToBN(chainBalances[assetAddress])
+        ? hexToBigInt(chainBalances[assetAddress])
         : null;
   }
 

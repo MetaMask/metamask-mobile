@@ -135,22 +135,7 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 
 ### @MetaMask/money-movement
 
-- `app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx`
-- `app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx`
-- `app/components/UI/Ramp/Aggregator/Views/OrdersList/OrdersList.tsx`
-- `app/components/UI/Ramp/Aggregator/Views/SendTransaction/SendTransaction.tsx`
-- `app/components/UI/Ramp/Aggregator/components/OrderDetails.tsx`
-- `app/components/UI/Ramp/Aggregator/components/OrderListItem/OrderListItem.tsx`
-- `app/components/UI/Ramp/Aggregator/components/Quote/Quote.tsx`
-- `app/components/UI/Ramp/Aggregator/hooks/useBalance.test.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useBalance.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useERC20GasLimitEstimation.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts`
-- `app/components/UI/Ramp/Aggregator/utils/index.ts`
-- `app/components/UI/Ramp/Deposit/utils/index.ts`
-- `app/components/UI/Ramp/utils/getOrderAmount.ts`
-- `app/components/UI/Ramp/utils/v2OrderToast.ts`
+_(migrated — no remaining burndown entries)_
 
 ### @MetaMask/notifications
 
