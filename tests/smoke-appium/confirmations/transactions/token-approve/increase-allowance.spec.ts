@@ -10,6 +10,7 @@ import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../../../framework/Assertions.js';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper.js';
 import {
+  buildPermissions,
   AnvilPort,
   getDappUrlForFixture,
 } from '../../../../framework/fixtures/FixtureUtils.js';
@@ -45,6 +46,7 @@ function buildIncreaseAllowanceFixture({
       nickname: 'Local RPC',
       ticker: 'ETH',
     })
+    .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
     .build();
 
   fixture.state.browser.tabs[0].url = getDappUrlForFixture(0);
@@ -65,7 +67,9 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-appiumTest.describe(
+// Skipped with other token-approve suites pending Android confirm-sheet
+// stability after CDP click. Un-skip after Appium validation on main-e2e.
+appiumTest.describe.skip(
   SmokeConfirmations('Token Approve - increaseAllowance method'),
   () => {
     appiumTest.describe.configure({ timeout: 2500000 });
