@@ -23,6 +23,13 @@ import {
 
 const LOADING_ACCOUNT_LABEL = 'Account is loading...';
 
+/**
+ * Ramp account picker control built on MMDS `SelectButton`.
+ *
+ * For new generic select triggers, use `SelectButton` from
+ * `@metamask/design-system-react-native` directly instead of the deprecated
+ * `SelectorButton` from `app/components/Base/SelectorButton`.
+ */
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const accountName = useAccountGroupName();
