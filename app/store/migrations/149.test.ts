@@ -140,35 +140,38 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
     expect(result).toEqual(state);
   });
 
-  it('removes the Arc network configuration when it exactly matches the migration 145 default', () => {
+  it('removes Arc from both controllers without touching unrelated networks', () => {
     const state = stateWithArc();
     const result = migrate(state) as typeof baseState;
 
-    const configs =
-      result.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId;
-    expect((configs as Record<string, unknown>)[ARC_CHAIN_ID]).toBeUndefined();
-  });
-
-  it('removes the Arc entry from the enablement map', () => {
-    const state = stateWithArc();
-    const result = migrate(state) as typeof baseState;
-
+    const configs = result.engine.backgroundState.NetworkController
+      .networkConfigurationsByChainId as Record<string, unknown>;
+    expect(configs[ARC_CHAIN_ID]).toBeUndefined();
+    expect(configs['0x1']).toEqual(
+      baseState.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId['0x1'],
+    );
     expect(
       result.engine.backgroundState.NetworkEnablementController
         .enabledNetworkMap.eip155,
     ).not.toHaveProperty(ARC_CHAIN_ID);
   });
 
-  it('force-enables mainnet if Arc was the only enabled EVM network', () => {
+  it.each([
+    [
+      'force-enables mainnet if Arc was the only enabled EVM network',
+      { '0x1': false, '0xe708': false, '0x2105': false, [ARC_CHAIN_ID]: true },
+      true,
+    ],
+    [
+      'does not force-enable mainnet if another network was already enabled alongside Arc',
+      { '0x1': false, '0xe708': true, '0x2105': false, [ARC_CHAIN_ID]: true },
+      false,
+    ],
+  ])('%s', (_description, eip155Override, expectMainnetEnabled) => {
     const state = stateWithArc();
     state.engine.backgroundState.NetworkEnablementController.enabledNetworkMap.eip155 =
-      {
-        '0x1': false,
-        '0xe708': false,
-        '0x2105': false,
-        [ARC_CHAIN_ID]: true,
-      };
+      eip155Override;
 
     const result = migrate(state) as typeof baseState;
 
@@ -176,58 +179,26 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
       result.engine.backgroundState.NetworkEnablementController
         .enabledNetworkMap.eip155;
     expect(eip155Map).not.toHaveProperty(ARC_CHAIN_ID);
-    expect(eip155Map['0x1']).toBe(true);
+    expect(eip155Map['0x1']).toBe(expectMainnetEnabled);
+    // selectedNetworkClientId is already 'mainnet' in the base fixture either way.
     expect(
       result.engine.backgroundState.NetworkController.selectedNetworkClientId,
     ).toBe('mainnet');
   });
 
-  it('does not force-enable mainnet if another network was already enabled alongside Arc', () => {
-    const state = stateWithArc();
-    state.engine.backgroundState.NetworkEnablementController.enabledNetworkMap.eip155 =
-      {
-        '0x1': false,
-        '0xe708': true,
-        '0x2105': false,
-        [ARC_CHAIN_ID]: true,
-      };
-
-    const result = migrate(state) as typeof baseState;
-
-    const eip155Map =
-      result.engine.backgroundState.NetworkEnablementController
-        .enabledNetworkMap.eip155;
-    expect(eip155Map).not.toHaveProperty(ARC_CHAIN_ID);
-    expect(eip155Map['0x1']).toBe(false);
-    expect(eip155Map['0xe708']).toBe(true);
-  });
-
-  it('does not touch unrelated networks', () => {
-    const state = stateWithArc();
-    const result = migrate(state) as typeof baseState;
-
-    const configs = result.engine.backgroundState.NetworkController
-      .networkConfigurationsByChainId as Record<string, unknown>;
-    expect(configs['0x1']).toEqual(
-      baseState.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId['0x1'],
-    );
-  });
-
-  it('falls back selectedNetworkClientId to mainnet if the user was on the Arc client', () => {
+  it.each([
+    [
+      'falls back selectedNetworkClientId to mainnet if the user was on the Arc client',
+      defaultArcRpcEndpoint.networkClientId,
+    ],
+    [
+      'leaves selectedNetworkClientId untouched if the user was on a different network',
+      'mainnet',
+    ],
+  ])('%s', (_description, initialSelectedNetworkClientId) => {
     const state = stateWithArc();
     state.engine.backgroundState.NetworkController.selectedNetworkClientId =
-      defaultArcRpcEndpoint.networkClientId;
-
-    const result = migrate(state) as typeof baseState;
-
-    expect(
-      result.engine.backgroundState.NetworkController.selectedNetworkClientId,
-    ).toBe('mainnet');
-  });
-
-  it('leaves selectedNetworkClientId untouched if the user was on a different network', () => {
-    const state = stateWithArc();
+      initialSelectedNetworkClientId;
 
     const result = migrate(state) as typeof baseState;
 
@@ -356,7 +327,19 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
 
   it('does not revert if the Infura project ID is the literal string "null"', () => {
     process.env.MM_INFURA_PROJECT_ID = 'null';
-    const state = stateWithArc();
+    // Build the RPC URL as it would look if 'null' were used unguarded as the
+    // project ID (i.e. what migration 145 would have written had it not
+    // special-cased this env var quirk), so this test actually exercises the
+    // 'null' -> '' guard: without that guard, this URL would match and Arc
+    // would incorrectly get reverted.
+    const state = stateWithArc({
+      rpcEndpoints: [
+        {
+          ...defaultArcRpcEndpoint,
+          url: 'https://arc-mainnet.infura.io/v3/null',
+        },
+      ],
+    });
 
     const result = migrate(state) as typeof baseState;
 
@@ -435,202 +418,121 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
       expect(configs[ARC_CHAIN_ID]).toBe('not-an-object');
     });
 
-    it('returns state unchanged if NetworkController is not an object', () => {
-      const state = {
-        engine: { backgroundState: { NetworkController: 'not-an-object' } },
-      };
-      const result = migrate(state);
-      expect(result).toEqual(state);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'NetworkController state is not an object',
-          ),
-        }),
-      );
-    });
-
-    it('returns state unchanged if networkConfigurationsByChainId is missing', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            NetworkController: { selectedNetworkClientId: 'mainnet' },
-          },
-        },
-      };
-      const result = migrate(state);
-      expect(result).toEqual(state);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'missing networkConfigurationsByChainId property',
-          ),
-        }),
-      );
-    });
-
-    it('returns state unchanged if networkConfigurationsByChainId is not a valid Record<Hex, unknown>', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: { 'not-hex': {} },
-              selectedNetworkClientId: 'mainnet',
+    it.each([
+      [
+        'NetworkController is not an object',
+        { engine: { backgroundState: { NetworkController: 'not-an-object' } } },
+        'NetworkController state is not an object',
+      ],
+      [
+        'networkConfigurationsByChainId is missing',
+        {
+          engine: {
+            backgroundState: {
+              NetworkController: { selectedNetworkClientId: 'mainnet' },
             },
           },
         },
-      };
-      const result = migrate(state);
-      expect(result).toEqual(state);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'networkConfigurationsByChainId is not a valid',
-          ),
-        }),
-      );
-    });
-
-    it('returns state unchanged if selectedNetworkClientId is missing', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            NetworkController: { networkConfigurationsByChainId: {} },
-          },
-        },
-      };
-      const result = migrate(state);
-      expect(result).toEqual(state);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'missing selectedNetworkClientId property',
-          ),
-        }),
-      );
-    });
-
-    it('returns state unchanged if selectedNetworkClientId is not a string', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: {},
-              selectedNetworkClientId: 123,
+        'missing networkConfigurationsByChainId property',
+      ],
+      [
+        'networkConfigurationsByChainId is not a valid Record<Hex, unknown>',
+        {
+          engine: {
+            backgroundState: {
+              NetworkController: {
+                networkConfigurationsByChainId: { 'not-hex': {} },
+                selectedNetworkClientId: 'mainnet',
+              },
             },
           },
         },
-      };
-      const result = migrate(state);
-      expect(result).toEqual(state);
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'selectedNetworkClientId is not a string',
-          ),
-        }),
-      );
-    });
+        'networkConfigurationsByChainId is not a valid',
+      ],
+      [
+        'selectedNetworkClientId is missing',
+        {
+          engine: {
+            backgroundState: {
+              NetworkController: { networkConfigurationsByChainId: {} },
+            },
+          },
+        },
+        'missing selectedNetworkClientId property',
+      ],
+      [
+        'selectedNetworkClientId is not a string',
+        {
+          engine: {
+            backgroundState: {
+              NetworkController: {
+                networkConfigurationsByChainId: {},
+                selectedNetworkClientId: 123,
+              },
+            },
+          },
+        },
+        'selectedNetworkClientId is not a string',
+      ],
+    ])(
+      'returns state unchanged when %s',
+      (_description, state, expectedMessage) => {
+        const result = migrate(state);
+        expect(result).toEqual(state);
+        expect(mockedCaptureException).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining(expectedMessage),
+          }),
+        );
+      },
+    );
 
-    it('reverts Arc but skips enablement cleanup if NetworkEnablementController is not an object', () => {
-      const state = stateWithArc();
-      (
-        state.engine.backgroundState as Record<string, unknown>
-      ).NetworkEnablementController = 'not-an-object';
+    it.each([
+      [
+        'NetworkEnablementController is not an object',
+        'not-an-object',
+        'Invalid NetworkEnablementController state',
+      ],
+      [
+        'enabledNetworkMap is missing',
+        {},
+        'missing property enabledNetworkMap',
+      ],
+      [
+        'enabledNetworkMap is not an object',
+        { enabledNetworkMap: 'not-an-object' },
+        'enabledNetworkMap is not an object',
+      ],
+      [
+        'the eip155 namespace is missing',
+        { enabledNetworkMap: { solana: {} } },
+        'missing property eip155',
+      ],
+      [
+        'the eip155 map is invalid',
+        { enabledNetworkMap: { eip155: { '0x1': 'not-a-boolean' } } },
+        'enabledNetworkMap[eip155] is not valid',
+      ],
+    ])(
+      'reverts Arc but skips enablement cleanup when %s',
+      (_description, enablementControllerOverride, expectedMessage) => {
+        const state = stateWithArc();
+        (
+          state.engine.backgroundState as Record<string, unknown>
+        ).NetworkEnablementController = enablementControllerOverride;
 
-      const result = migrate(state) as typeof baseState;
+        const result = migrate(state) as typeof baseState;
 
-      const configs = result.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId as Record<string, unknown>;
-      expect(configs[ARC_CHAIN_ID]).toBeUndefined();
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'Invalid NetworkEnablementController state',
-          ),
-        }),
-      );
-    });
-
-    it('reverts Arc but skips enablement cleanup if enabledNetworkMap is missing', () => {
-      const state = stateWithArc();
-      (
-        state.engine.backgroundState as Record<string, unknown>
-      ).NetworkEnablementController = {};
-
-      const result = migrate(state) as typeof baseState;
-
-      const configs = result.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId as Record<string, unknown>;
-      expect(configs[ARC_CHAIN_ID]).toBeUndefined();
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'missing property enabledNetworkMap',
-          ),
-        }),
-      );
-    });
-
-    it('reverts Arc but skips enablement cleanup if enabledNetworkMap is not an object', () => {
-      const state = stateWithArc();
-      (
-        state.engine.backgroundState as Record<string, unknown>
-      ).NetworkEnablementController = { enabledNetworkMap: 'not-an-object' };
-
-      const result = migrate(state) as typeof baseState;
-
-      const configs = result.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId as Record<string, unknown>;
-      expect(configs[ARC_CHAIN_ID]).toBeUndefined();
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'enabledNetworkMap is not an object',
-          ),
-        }),
-      );
-    });
-
-    it('reverts Arc but skips enablement cleanup if the eip155 namespace is missing', () => {
-      const state = stateWithArc();
-      (
-        state.engine.backgroundState as Record<string, unknown>
-      ).NetworkEnablementController = { enabledNetworkMap: { solana: {} } };
-
-      const result = migrate(state) as typeof baseState;
-
-      const configs = result.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId as Record<string, unknown>;
-      expect(configs[ARC_CHAIN_ID]).toBeUndefined();
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining('missing property eip155'),
-        }),
-      );
-    });
-
-    it('reverts Arc but skips enablement cleanup if the eip155 map is invalid', () => {
-      const state = stateWithArc();
-      (
-        state.engine.backgroundState as Record<string, unknown>
-      ).NetworkEnablementController = {
-        enabledNetworkMap: { eip155: { '0x1': 'not-a-boolean' } },
-      };
-
-      const result = migrate(state) as typeof baseState;
-
-      const configs = result.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId as Record<string, unknown>;
-      expect(configs[ARC_CHAIN_ID]).toBeUndefined();
-      expect(mockedCaptureException).toHaveBeenCalledWith(
-        expect.objectContaining({
-          message: expect.stringContaining(
-            'enabledNetworkMap[eip155] is not valid',
-          ),
-        }),
-      );
-    });
+        const configs = result.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId as Record<string, unknown>;
+        expect(configs[ARC_CHAIN_ID]).toBeUndefined();
+        expect(mockedCaptureException).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining(expectedMessage),
+          }),
+        );
+      },
+    );
   });
 
   describe('running after migration 145, in sequence', () => {
