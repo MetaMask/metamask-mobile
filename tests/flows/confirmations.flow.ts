@@ -29,11 +29,42 @@ const LOCAL_CHAIN_NAME = 'Local RPC';
 const LOCAL_CHAIN_CAIP = 'eip155:1337';
 const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
+const TEST_DAPP_READY_TIMEOUT_MS = 30_000;
+const TEST_DAPP_READY_POLL_MS = 500;
 
 export {
   LOCAL_CHAIN_CAIP,
   SMART_ACCOUNT_UPGRADED_ACTIVITY,
   SMART_ACCOUNT_UPGRADING_ACTIVITY,
+};
+
+/**
+ * Wait until the target control is DOM-enabled and the provider has a
+ * selected account.
+ */
+const waitForTestDappReadyForTap = async (
+  pageUrl: string,
+  buttonId: string,
+  description: string,
+): Promise<void> => {
+  await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(pageUrl, buttonId);
+  await Utilities.executeWithRetry(
+    async () => {
+      const selectedAddress = await ChromeCdpHelpers.evaluateInWebView<
+        string | null
+      >(pageUrl, `(() => window.ethereum?.selectedAddress ?? null)()`);
+      if (!selectedAddress) {
+        throw new Error(
+          `Test dapp has no selectedAddress before tapping #${buttonId} (${description})`,
+        );
+      }
+    },
+    {
+      description: `Wait for selectedAddress before tapping #${buttonId} (${description})`,
+      timeout: TEST_DAPP_READY_TIMEOUT_MS,
+      interval: TEST_DAPP_READY_POLL_MS,
+    },
+  );
 };
 
 /**
@@ -48,6 +79,8 @@ const tapTestDappButtonAndWaitForConfirm = async (
 ): Promise<void> => {
   const pageUrl = getDappUrl(0);
   const confirmTimeoutMs = 30_000;
+
+  await waitForTestDappReadyForTap(pageUrl, buttonId, description);
 
   if (PlatformDetector.isAndroidAppium()) {
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
@@ -73,6 +106,9 @@ const tapTestDappButtonAndWaitForConfirm = async (
         await FooterActions.waitForConfirmButton(perAttemptConfirmTimeoutMs);
         return;
       } catch (error) {
+        // Push onboarding sheet can sit above the confirmation UI; clear it
+        // before the next CDP re-click.
+        await dismissPushNotificationExistingUserSheet();
         lastError = error;
       }
     }
@@ -83,7 +119,6 @@ const tapTestDappButtonAndWaitForConfirm = async (
         );
   }
 
-  await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(pageUrl, buttonId);
   await WebView.tapById(buttonId, {
     pageUrl,
     description,
