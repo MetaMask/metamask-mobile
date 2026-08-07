@@ -714,8 +714,28 @@ describe('MoneyMetaMaskCard', () => {
       expect(mockTiltAnimationCalls).toEqual([]);
     });
 
-    it('leaves the upsell and manage rows on the default thumbnail size', () => {
+    it('leaves the upsell row on the default thumbnail size', () => {
       render(<MoneyMetaMaskCard onGetNowPress={jest.fn()} />);
+
+      expect(mockTiltAnimationProps).toEqual([
+        {
+          isMetalCard: false,
+          width: undefined,
+          height: undefined,
+          testID: undefined,
+        },
+      ]);
+    });
+
+    it('leaves the manage row on the default thumbnail size', () => {
+      render(
+        <MoneyMetaMaskCard
+          mode="manage"
+          onGetNowPress={jest.fn()}
+          onManagePress={jest.fn()}
+          cardBalance="$0.00"
+        />,
+      );
 
       expect(mockTiltAnimationProps).toEqual([
         {
