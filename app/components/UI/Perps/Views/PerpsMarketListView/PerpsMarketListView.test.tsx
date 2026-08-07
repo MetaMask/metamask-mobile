@@ -2095,7 +2095,7 @@ describe('PerpsMarketListView', () => {
             [PEP.RESULTS_COUNT]: 1,
             [PEP.RESULT_COUNT]: 1,
             has_results: true,
-            [PEP.MODE]: 'intent',
+            search_mode: 'intent',
             [PEP.SOURCE]: PEV.SOURCE.PERP_MARKET_SEARCH,
           }),
         );

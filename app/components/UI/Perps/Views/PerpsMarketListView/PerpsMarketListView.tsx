@@ -453,9 +453,10 @@ const PerpsMarketListView = ({
         : []),
       ...(marketTypeFilter !== 'all' ? [marketTypeFilter] : []),
     ];
-    // mode: chips/category narrow the set → discovery; a short ticker-like
+    // search_mode: chips/category narrow the set → discovery; a short ticker-like
     // token → intent; free-text or empty context → browse.
-    const mode = activeChips.length
+    // Kept separate from PERPS_EVENT_PROPERTY.MODE (Lite/Pro interface mode).
+    const searchMode = activeChips.length
       ? 'discovery'
       : /^[a-z0-9]{1,6}$/.test(normalizedQuery)
         ? 'intent'
@@ -481,7 +482,7 @@ const PerpsMarketListView = ({
             has_results: hasResults,
           }
         : {}),
-      [PERPS_EVENT_PROPERTY.MODE]: mode,
+      search_mode: searchMode,
       active_chips: activeChips,
       [PERPS_EVENT_PROPERTY.SOURCE]:
         PERPS_EVENT_VALUE.SOURCE.PERP_MARKET_SEARCH,

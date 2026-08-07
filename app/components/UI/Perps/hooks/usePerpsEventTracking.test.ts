@@ -3,10 +3,14 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PerpsMode,
 } from '@metamask/perps-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
+import {
+  getPerpsModeAnalyticsProperties,
+  getPerpsUtmAttributionProperties,
+} from '../utils/perpsAnalyticsAttribution';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -14,16 +18,26 @@ const mockCreateEventBuilder = jest.fn();
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../utils/perpsAnalyticsAttribution', () => ({
   getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+  getPerpsModeAnalyticsProperties: jest.fn(() => ({
+    mode: 'lite',
+  })),
 }));
 
 const mockGetPerpsUtmAttributionProperties = jest.mocked(
   getPerpsUtmAttributionProperties,
+);
+const mockGetPerpsModeAnalyticsProperties = jest.mocked(
+  getPerpsModeAnalyticsProperties,
 );
 
 describe('usePerpsEventTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    mockGetPerpsModeAnalyticsProperties.mockReturnValue({
+      [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
+    });
+    mockGetPerpsUtmAttributionProperties.mockReturnValue({});
 
     mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: jest.fn().mockReturnThis(),
@@ -40,7 +54,7 @@ describe('usePerpsEventTracking', () => {
   });
 
   describe('track', () => {
-    it('tracks event with automatic timestamp', () => {
+    it('tracks event with automatic timestamp and Lite/Pro mode', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mockEvent = 'TEST_EVENT' as any;
@@ -52,6 +66,7 @@ describe('usePerpsEventTracking', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(mockEvent);
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
       });
       expect(eventBuilder.build).toHaveBeenCalled();
@@ -74,8 +89,25 @@ describe('usePerpsEventTracking', () => {
 
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
+      });
+    });
+
+    it('lets explicit mode override the injected Lite/Pro mode', () => {
+      const { result } = renderHook(() => usePerpsEventTracking());
+
+      act(() => {
+        result.current.track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+        });
+      });
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
       });
     });
 
@@ -104,12 +136,14 @@ describe('usePerpsEventTracking', () => {
       const perpsBuilder = mockCreateEventBuilder.mock.results[0].value;
       const assetBuilder = mockCreateEventBuilder.mock.results[1].value;
       expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
       });
       const assetViewedProperties = assetBuilder.addProperties.mock
         .calls[0][0] as Record<string, unknown>;
       expect(assetViewedProperties).toEqual({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         screen_type: 'home',
         open_positions_count: 2,
@@ -143,6 +177,7 @@ describe('usePerpsEventTracking', () => {
       const perpsBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
         [PERPS_EVENT_PROPERTY.UTM_SOURCE]: 'newsletter',
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
       });
@@ -161,6 +196,7 @@ describe('usePerpsEventTracking', () => {
       expect(mockGetPerpsUtmAttributionProperties).not.toHaveBeenCalled();
       const builder = mockCreateEventBuilder.mock.results[0].value;
       expect(builder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
@@ -192,6 +228,7 @@ describe('usePerpsEventTracking', () => {
 
       const perpsBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
       });
@@ -224,6 +261,7 @@ describe('usePerpsEventTracking', () => {
       // Builder order: [0] BTC screen, [1] BTC asset, [2] ETH screen, [3] ETH asset.
       const eventBuilder = mockCreateEventBuilder.mock.results[2].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         asset: 'ETH',
       });

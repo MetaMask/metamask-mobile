@@ -64,6 +64,10 @@ jest.mock('./whenEngineReady', () => ({
 
 jest.mock('../Logger');
 
+jest.mock('../../components/UI/Perps/utils/perpsAnalyticsAttribution', () => ({
+  getPerpsModeAnalyticsProperties: jest.fn(() => ({ mode: 'lite' })),
+}));
+
 import { analytics } from './analytics';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
@@ -73,6 +77,7 @@ import {
   selectAnalyticsOptedIn,
 } from '../../selectors/analyticsController';
 import Logger from '../Logger';
+import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsAnalyticsAttribution';
 
 const mockedGetAnalyticsIdFromStorage =
   getAnalyticsIdFromStorage as jest.MockedFunction<
@@ -116,6 +121,28 @@ describe('analytics', () => {
       expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
         'trackEvent',
         event,
+      );
+    });
+
+    it('injects Lite/Pro mode onto Perps events before queueing', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        'Perp Screen Viewed',
+      )
+        .addProperties({ screen_type: 'trading' })
+        .build();
+
+      analytics.trackEvent(event);
+
+      expect(getPerpsModeAnalyticsProperties).toHaveBeenCalled();
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Perp Screen Viewed',
+          properties: expect.objectContaining({
+            mode: 'lite',
+            screen_type: 'trading',
+          }),
+        }),
       );
     });
 

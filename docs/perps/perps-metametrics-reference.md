@@ -6,6 +6,17 @@ MetaMetrics uses **9 consolidated events** with discriminating properties (vs 38
 
 **Example:** `PERPS_SCREEN_VIEWED` with `screen_type: 'trading' | 'withdrawal' | ...` instead of 9 separate screen events.
 
+### Global properties (all Perps events)
+
+These are attached automatically — do not pass them manually unless overriding:
+
+| Property    | Values              | Source                                                                                     |
+| ----------- | ------------------- | ------------------------------------------------------------------------------------------ |
+| `timestamp` | number (ms)         | `usePerpsEventTracking`                                                                    |
+| `mode`      | `'lite'` \| `'pro'` | Current Perps interface mode via `getPerpsModeAnalyticsProperties` / `enrichWithPerpsMode` |
+
+`mode` is the Lite/Pro interface mode. Search query intent uses a separate `search_mode` property (`'discovery'` \| `'intent'` \| `'browse'`).
+
 ## Three Tracking Approaches
 
 ### 1. `usePerpsEventTracking` Hook (Components)
@@ -718,7 +729,7 @@ Section names used in impression events:
 2. **Track status** - Always include success/failure
 3. **Track duration** - Include `completion_duration` for transactions
 4. **Use properties** - Don't create new events for minor variations
-5. **Auto timestamp** - `usePerpsEventTracking` adds it automatically
+5. **Auto timestamp + Lite/Pro mode** - `usePerpsEventTracking` and `analytics.trackEvent` (`enrichWithPerpsMode`) add `timestamp` and `mode: 'lite' | 'pro'` automatically. Explicit caller `mode` wins (e.g. mode toggle emits the selected next mode). Search intent uses `search_mode` (`discovery` | `intent` | `browse`) so it never collides with interface mode.
 6. **AB test tracking** - Only in screen view events, not every interaction
 7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
 8. **Source = current screen** - The `source` property must always identify the screen the user is currently on, never a screen from earlier in the navigation chain. If the user navigates A → B → action C, the source for C must be B, not A.
@@ -736,6 +747,7 @@ Section names used in impression events:
 ## Related Files
 
 - **Event Tracking Hook**: `app/components/UI/Perps/hooks/usePerpsEventTracking.ts`
+- **Lite/Pro mode enrichment**: `app/util/analytics/enrichWithPerpsMode.ts`, `app/components/UI/Perps/utils/perpsAnalyticsAttribution.ts` (`getPerpsModeAnalyticsProperties`)
 - **Events**: `app/core/Analytics/MetaMetrics.events.ts`
 - **Properties & Values**: Exported from `@metamask/perps-controller` as `PERPS_EVENT_PROPERTY`, `PERPS_EVENT_VALUE` (source: `packages/perps-controller/src/constants/eventNames.ts` in the [MetaMask/core](https://github.com/MetaMask/core) monorepo)
 - **Metrics Adapter**: `app/components/UI/Perps/adapters/mobileInfrastructure.ts` (maps `trackPerpsEvent` to MetaMetrics)
