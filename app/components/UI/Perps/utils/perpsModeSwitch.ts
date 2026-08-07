@@ -60,13 +60,17 @@ export interface PerpsHomeNavigationTarget {
  * Resolves where a "go to Perps home" action should actually land, given
  * whether Pro mode is currently active.
  *
+ * Takes `isProModeActive` explicitly so callers that just changed the mode can
+ * pass the mode they selected rather than reading it back from a selector that
+ * has not re-rendered yet.
+ *
  * While Pro mode is active, `PerpsHomeView` must never be shown (TAT-3612):
  * every entry point instead lands on the default Pro market, so the user
  * only ever moves between a market page and the market list. Centralizing
  * this here keeps every entry point (Trade sheet, Wallet actions, Homepage
  * grid/pill, deeplinks, etc.) consistent.
  */
-const resolvePerpsHomeNavigationTarget = (
+export const resolvePerpsHomeNavigationTarget = (
   isProModeActive: boolean,
   extraParams: Record<string, unknown> = {},
 ): PerpsHomeNavigationTarget => {
@@ -146,8 +150,8 @@ export const navigateToPerpsHomeTarget = (
 };
 
 /**
- * Returns a function that removes `PerpsHomeView` from the Perps stack's
- * history, leaving every other entry (e.g. the market list) untouched.
+ * Removes `PerpsHomeView` from a Perps stack's history, leaving every other
+ * entry (e.g. the market list) untouched.
  *
  * Switching to Pro from a market screen swaps the rendered layout in place —
  * `PerpsMarketDetailsRouter` keeps the same route — so a Perps Home entry the
@@ -155,43 +159,54 @@ export const navigateToPerpsHomeTarget = (
  * hub while Pro is active (TAT-3612). Screens that switch mode by navigating
  * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
  */
+export const dropPerpsHomeFromStackHistory = (navigation: {
+  getState: () => NavigationState | undefined;
+  // Callers cast through `unknown` at the reset boundary (same as the hook).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  reset: (state: any) => void;
+}): void => {
+  const state = navigation.getState();
+
+  if (!state) {
+    return;
+  }
+
+  const routes = state.routes.filter(
+    (route) => route.name !== Routes.PERPS.PERPS_HOME,
+  );
+
+  // Nothing to drop, or Home is the only entry — resetting to an empty
+  // history would leave the navigator with no screen to render.
+  if (routes.length === state.routes.length || routes.length === 0) {
+    return;
+  }
+
+  // Keep the user on the screen they're looking at: its position shifts when
+  // an earlier route is removed.
+  const focusedKey = state.routes[state.index]?.key;
+  const focusedIndex = routes.findIndex((route) => route.key === focusedKey);
+
+  // Same assertion rationale as `toPerpsNavigatorScreenParams`: route names
+  // are plain `string`s here, so they can't be correlated with the
+  // navigator's param list keys.
+  const reset = navigation.reset as unknown as (state: NavigationState) => void;
+
+  reset({
+    ...state,
+    routes,
+    index: focusedIndex >= 0 ? focusedIndex : routes.length - 1,
+  });
+};
+
+/**
+ * Hook wrapper around {@link dropPerpsHomeFromStackHistory} for screens that
+ * already sit on the Perps stack (not a nested modal navigator).
+ */
 export const useDropPerpsHomeFromStackHistory = (): (() => void) => {
   const navigation = useNavigation();
 
   return useCallback(() => {
-    const state = navigation.getState() as NavigationState | undefined;
-
-    if (!state) {
-      return;
-    }
-
-    const routes = state.routes.filter(
-      (route) => route.name !== Routes.PERPS.PERPS_HOME,
-    );
-
-    // Nothing to drop, or Home is the only entry — resetting to an empty
-    // history would leave the navigator with no screen to render.
-    if (routes.length === state.routes.length || routes.length === 0) {
-      return;
-    }
-
-    // Keep the user on the screen they're looking at: its position shifts when
-    // an earlier route is removed.
-    const focusedKey = state.routes[state.index]?.key;
-    const focusedIndex = routes.findIndex((route) => route.key === focusedKey);
-
-    // Same assertion rationale as `toPerpsNavigatorScreenParams`: route names
-    // are plain `string`s here, so they can't be correlated with the
-    // navigator's param list keys.
-    const reset = navigation.reset as unknown as (
-      state: NavigationState,
-    ) => void;
-
-    reset({
-      ...state,
-      routes,
-      index: focusedIndex >= 0 ? focusedIndex : routes.length - 1,
-    });
+    dropPerpsHomeFromStackHistory(navigation);
   }, [navigation]);
 };
 
