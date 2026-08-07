@@ -997,6 +997,51 @@ describe('rewriteReport', () => {
     expect(result.tags?.persist_key).toBe('persist:root');
   });
 
+  it('does not apply disk-full grouping to unrelated Sentry reports', () => {
+    const originalMessage =
+      'Network request failed while fetching token prices';
+    const report = {
+      exception: {
+        values: [
+          {
+            type: 'Error',
+            value: originalMessage,
+          },
+        ],
+      },
+      tags: { feature: 'token-prices' },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.fingerprint).toBeUndefined();
+    expect(result.exception?.values?.[0]?.value).toBe(originalMessage);
+    expect(result.tags?.error_category).toBeUndefined();
+    expect(result.tags?.persist_key).toBeUndefined();
+    expect(result.tags?.feature).toBe('token-prices');
+  });
+
+  it('groups multiple absolute paths for the same persist key identically', () => {
+    const messages = [
+      "File '/var/mobile/Containers/Data/Application/AAA111/Documents/persistStore/persist-root' could not be written; volume is out of space",
+      "File '/data/user/0/io.metamask/files/persistStore/persist-root' could not be written; No space left on device",
+    ];
+
+    const results = messages.map((value) =>
+      rewriteReport({
+        exception: { values: [{ value }] },
+        contexts: {},
+      }),
+    );
+
+    expect(results[0].fingerprint).toEqual(['disk-space-full', 'persist:root']);
+    expect(results[1].fingerprint).toEqual(results[0].fingerprint);
+    expect(results[0].exception?.values?.[0]?.value).toBe(
+      results[1].exception?.values?.[0]?.value,
+    );
+  });
+
   it('should remove SES from stack trace', () => {
     const report = {
       exception: {

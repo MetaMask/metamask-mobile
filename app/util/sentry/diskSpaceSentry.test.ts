@@ -147,4 +147,51 @@ describe('diskSpaceSentry', () => {
     expect(report.tags?.error_category).toBe('disk_full');
     expect(report.tags?.persist_key).toBe('persist:root');
   });
+
+  it('collapses different absolute paths for the same persist key to one fingerprint', () => {
+    const messages = [
+      "File '/var/mobile/Containers/Data/Application/AAA111/Documents/persistStore/persist-root' could not be written; volume is out of space",
+      "File '/var/mobile/Containers/Data/Application/BBB222/Documents/persistStore/persist-root' could not be written; No space left on device",
+      "File '/data/user/0/io.metamask/files/persistStore/persist-root' could not be written; NSPOSIXErrorDomain Code=28",
+    ];
+
+    const fingerprints = messages.map((message) => {
+      const report = groupDiskSpaceSentryReport(createDiskSpaceReport(message));
+      return report.fingerprint;
+    });
+
+    expect(fingerprints).toEqual([
+      ['disk-space-full', 'persist:root'],
+      ['disk-space-full', 'persist:root'],
+      ['disk-space-full', 'persist:root'],
+    ]);
+  });
+
+  it('keeps distinct persist keys on separate fingerprints', () => {
+    const samples = [
+      {
+        message:
+          "File '/var/mobile/.../persistStore/persist-root' could not be written; out of space",
+        key: 'persist:root',
+      },
+      {
+        message:
+          'Failed to set item for persist:PreferencesController due to no space left on device',
+        key: 'persist:PreferencesController',
+      },
+      {
+        message:
+          "File '/var/mobile/.../ReactNative/screenshot.png' could not be written; out of space",
+        key: 'browser_screenshot',
+      },
+    ];
+
+    const fingerprints = samples.map(({ message, key }) => {
+      const report = groupDiskSpaceSentryReport(createDiskSpaceReport(message));
+      expect(report.tags?.persist_key).toBe(key);
+      return report.fingerprint?.join('|');
+    });
+
+    expect(new Set(fingerprints).size).toBe(samples.length);
+  });
 });
