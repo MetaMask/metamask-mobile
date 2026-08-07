@@ -30,6 +30,10 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
+import {
+  CHAIN_VALUE_ORDER_AB_KEY,
+  CHAIN_VALUE_ORDER_VARIANTS,
+} from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { useMemo } from 'react';
 
 import {
@@ -81,6 +85,10 @@ export default function useSubmitBridgeTx() {
     SWAPS_CTA_BUTTON_COLOR_VARIANTS,
     SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
   );
+  const {
+    variantName: chainValueOrderVariantName,
+    isActive: isChainValueOrderAbActive,
+  } = useABTest(CHAIN_VALUE_ORDER_AB_KEY, CHAIN_VALUE_ORDER_VARIANTS);
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -127,6 +135,15 @@ export default function useSubmitBridgeTx() {
       );
     }
 
+    if (isChainValueOrderAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          CHAIN_VALUE_ORDER_AB_KEY,
+          chainValueOrderVariantName,
+        ),
+      );
+    }
+
     return tests.length > 0 ? tests : undefined;
   }, [
     isNumpadAbActive,
@@ -137,6 +154,8 @@ export default function useSubmitBridgeTx() {
     ambientColorVariantName,
     isCtaButtonColorAbActive,
     ctaButtonColorVariantName,
+    isChainValueOrderAbActive,
+    chainValueOrderVariantName,
   ]);
 
   const submitBridgeTx = async ({
