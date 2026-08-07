@@ -132,6 +132,13 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
+      editSubmitting: () => PerpsToastOptions;
+      editConfirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      editFailed: (error?: string) => PerpsToastOptions;
     };
   };
   positionManagement: {
@@ -613,6 +620,40 @@ const usePerpsToasts = (): {
                 error,
                 fallbackMessage: strings(
                   'perps.order.your_funds_have_been_returned_to_you',
+                ),
+              }),
+            ),
+          }),
+          editSubmitting: () => ({
+            ...perpsBaseToastOptions.inProgress,
+            hasNoTimeout: true,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.updating_your_order'),
+            ),
+          }),
+          editConfirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_updated'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          editFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_update_failed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.order_update_failed_subtitle',
                 ),
               }),
             ),

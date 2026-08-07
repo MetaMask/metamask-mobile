@@ -14,8 +14,14 @@ beforeEach(() => {
   mockRequest.mockResolvedValue({ data: { result: 'ok' }, status: 200 });
 });
 
-const createService = (baseUrl = 'https://api.test.immersve.com') =>
-  new ImmersveService({ getBaseUrl: () => baseUrl });
+const createService = ({
+  baseUrl = 'https://api.test.immersve.com',
+}: {
+  baseUrl?: string;
+} = {}) =>
+  new ImmersveService({
+    getBaseUrl: () => baseUrl,
+  });
 
 const TOKEN_SET = {
   accessToken: 'access-token',
@@ -26,7 +32,7 @@ const TOKEN_SET = {
 describe('ImmersveService', () => {
   describe('constructor', () => {
     it('does not bake a baseURL into the axios instance', () => {
-      createService('https://a.example');
+      createService({ baseUrl: 'https://a.example' });
 
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -46,7 +52,9 @@ describe('ImmersveService', () => {
   describe('get', () => {
     it('resolves baseURL from the thunk on each request', async () => {
       let base = 'https://first.example';
-      const service = new ImmersveService({ getBaseUrl: () => base });
+      const service = new ImmersveService({
+        getBaseUrl: () => base,
+      });
 
       await service.get('/v1/test');
       expect(mockRequest).toHaveBeenLastCalledWith(
