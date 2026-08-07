@@ -4,18 +4,21 @@ import {
   asPlaywrightElement,
   PlaywrightAssertions,
 } from '../../../framework/index.js';
-import { onboardingFlowImportSRPPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  onboardingFlowImportSRPPlaywright,
+} from '../../../flows/wallet.flow.js';
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import { Performance, PerformanceMoney } from '../../../tags.performance.js';
+import { MONEY_FUNDED_USER_SRP } from '../../../constants/money.js';
 
 perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
   perfTest(
     'Money Home after importing SRP with funded balance',
     { tag: '@mm-earn-team' },
     async ({ currentDeviceDetails, driver: _driver, performanceTracker }) => {
-      // We use TEST_SRP_2 for the funded Money account.
-      await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_2 ?? '');
+      await onboardingFlowImportSRPPlaywright(MONEY_FUNDED_USER_SRP);
 
       await PlaywrightAssertions.expectElementToBeVisible(
         asPlaywrightElement(TabBarComponent.tabBarMoneyButton),
@@ -36,16 +39,16 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
 
       // Measure data load times.
       await timer.measure(async () => {
-        await MoneyHomeView.waitForEarningsDataLoaded();
         await MoneyHomeView.waitForFundedBalanceLoaded();
+        await MoneyHomeView.waitForEarningsValuesLoaded();
+        await MoneyHomeView.waitForApyLoaded();
       });
 
-      // Don't include regular assertions in measure().
-      // Each assertion carries overhead and can skew the results.
+      // Only include data fetching assertions in measure().
+      // Each assertion carries overhead and can inflate results.
       await MoneyHomeView.expectOnboardingCardTitleVisible();
       await MoneyHomeView.expectSendButtonEnabled();
-      await MoneyHomeView.expectApyVisible();
-      await MoneyHomeView.expectEarningsSectionRendered();
+      await MoneyHomeView.expectEarningsSectionVisible();
 
       performanceTracker.addTimers(timer);
     },

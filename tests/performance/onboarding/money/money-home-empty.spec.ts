@@ -8,14 +8,14 @@ import { onboardingFlowImportSRPPlaywright } from '../../../flows/wallet.flow.js
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import { Performance, PerformanceMoney } from '../../../tags.performance.js';
+import { MONEY_NEW_USER_SRP } from '../../../constants/money.js';
 
 perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
   perfTest(
     'Money Home after fresh wallet creation with empty balance',
     { tag: '@mm-earn-team' },
     async ({ currentDeviceDetails, driver: _driver, performanceTracker }) => {
-      // We use TEST_SRP_1 for the unfunded Money account.
-      await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1 ?? '');
+      await onboardingFlowImportSRPPlaywright(MONEY_NEW_USER_SRP);
 
       await PlaywrightAssertions.expectElementToBeVisible(
         asPlaywrightElement(TabBarComponent.tabBarMoneyButton),
@@ -27,7 +27,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
 
       const timer = new TimerHelper(
         'Time since the user taps Money until content is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2500, android: 2500 },
         currentDeviceDetails.platform,
       );
 
@@ -37,13 +37,14 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
       // Measure data load times.
       await timer.measure(async () => {
         await MoneyHomeView.waitForEmptyBalanceLoaded();
+        await MoneyHomeView.waitForApyLoaded();
       });
 
       // Don't include regular assertions in measure().
       // Each assertion carries overhead and can skew the results.
-      await MoneyHomeView.expectApyVisible();
       await MoneyHomeView.expectOnboardingCardTitleVisible();
       await MoneyHomeView.expectSendButtonDisabled();
+      await MoneyHomeView.expectEarningsSectionNotVisible();
 
       performanceTracker.addTimers(timer);
     },

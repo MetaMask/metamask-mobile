@@ -593,9 +593,7 @@ describe('MoneyHomeView', () => {
   it('renders the scroll view', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-    expect(
-      getByTestId(/money-home-view-scroll-view-activity-/),
-    ).toBeOnTheScreen();
+    expect(getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW)).toBeOnTheScreen();
   });
 
   it('renders the header section', () => {
@@ -641,7 +639,7 @@ describe('MoneyHomeView', () => {
   describe('pull to refresh', () => {
     it('refreshes balance, interest, and card home data when refresh control onRefresh runs', async () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      const scrollView = getByTestId(/money-home-view-scroll-view-activity-/);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
 
       await act(async () => {
         await scrollView.props.refreshControl.props.onRefresh();
@@ -656,7 +654,7 @@ describe('MoneyHomeView', () => {
       const loggerMock = jest.requireMock('../../../../../util/Logger');
       mockRefetchBalance.mockRejectedValueOnce(new Error('refresh failed'));
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      const scrollView = getByTestId(/money-home-view-scroll-view-activity-/);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
 
       await act(async () => {
         await scrollView.props.refreshControl.props.onRefresh();
@@ -2149,9 +2147,6 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyActivityListTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyHomeViewTestIds.ACTIVITY_LOADING),
-      ).toBeOnTheScreen();
     });
 
     it('drops the skeleton once the empty list is exhaustive (isComplete)', () => {
@@ -2165,9 +2160,7 @@ describe('MoneyHomeView', () => {
         }),
       );
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
         queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
@@ -2175,9 +2168,6 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyActivityListTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyHomeViewTestIds.ACTIVITY_RESOLVED_EMPTY),
-      ).toBeOnTheScreen();
     });
 
     it('drops the skeleton once the auto-fill page budget is exhausted', () => {
@@ -2195,9 +2185,7 @@ describe('MoneyHomeView', () => {
         }),
       );
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
         queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
@@ -2205,9 +2193,6 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyActivityListTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyHomeViewTestIds.ACTIVITY_RESOLVED_EMPTY),
-      ).toBeOnTheScreen();
     });
 
     it('drops the skeleton when the fetch fails (error is terminal)', () => {
@@ -2222,16 +2207,11 @@ describe('MoneyHomeView', () => {
         }),
       );
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
         queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
       ).not.toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyHomeViewTestIds.ACTIVITY_ERROR),
-      ).toBeOnTheScreen();
     });
   });
 
@@ -2690,7 +2670,7 @@ describe('MoneyHomeView', () => {
       mockSelectIsCardholder.mockReturnValue(false);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      const scrollRoot = getByTestId(/money-home-view-scroll-view-activity-/);
+      const scrollRoot = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
 
       expectTestIdBefore(
         scrollRoot,
@@ -2723,7 +2703,7 @@ describe('MoneyHomeView', () => {
       } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      const scrollRoot = getByTestId(/money-home-view-scroll-view-activity-/);
+      const scrollRoot = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
 
       expectTestIdBefore(
         scrollRoot,
