@@ -194,6 +194,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   ) : null;
 
 const summaryRowClassName = 'h-5 px-0';
+const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
 
 interface SlippageValueProps {
@@ -237,7 +238,7 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
 }: PerpsProOrderSummaryProps) => (
-  <Box twClassName="w-full gap-1 overflow-hidden" testID={ids.SUMMARY}>
+  <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
     <KeyValueRow
       keyLabel={strings('perps.order.margin')}
       value={margin}
@@ -276,6 +277,8 @@ const OrderSummary = ({
           feeDiscountPercentage={feeDiscountPercentage}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
+          color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
         />
       }
       keyEndButtonIconProps={buttonIcon(
@@ -285,7 +288,7 @@ const OrderSummary = ({
       )}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      twClassName={summaryRowClassName}
+      twClassName={summaryFeesRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
     />
