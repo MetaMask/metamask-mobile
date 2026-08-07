@@ -251,7 +251,9 @@ describe('PredictController', () => {
     };
   }
 
-  function createMockMarket(overrides?: Partial<PredictMarket>): PredictMarket {
+  function createPredictMarket(
+    overrides?: Partial<PredictMarket>,
+  ): PredictMarket {
     return {
       id: 'market-1',
       providerId: POLYMARKET_PROVIDER_ID,
@@ -363,7 +365,7 @@ describe('PredictController', () => {
       transactionHash: undefined,
     });
     mockPolymarketProvider.getMarketDetails.mockResolvedValue(
-      createMockMarket(),
+      createPredictMarket(),
     );
 
     // Default safe mocks for async fire-and-forget methods
@@ -1616,6 +1618,269 @@ describe('PredictController', () => {
       });
     });
 
+    it('emits the attempt lifecycle for a Predict balance buy', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true,
+          response: {
+            id: 'order-123',
+            spentAmount: '20',
+            receivedAmount: '50',
+          },
+        });
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+          sharePrice: preview.sharePrice,
+          orderType: preview.orderType,
+        });
+
+        await controller.placeOrder({
+          preview,
+          analyticsProperties,
+          attempt,
+        });
+
+        const trackedEvents = (
+          analytics.trackEvent as jest.Mock
+        ).mock.calls.map(([event]) => event);
+        const attemptEvents = trackedEvents.filter(
+          (event) =>
+            event.name === 'Predict Trade Transaction' &&
+            event.properties?.attempt_id === attempt.attemptId,
+        );
+
+        expect(attemptEvents.map((event) => event.properties.status)).toEqual([
+          'attempt_started',
+          'submitted',
+          'succeeded',
+        ]);
+        expect(
+          attemptEvents.every(
+            (event) => event.sensitiveProperties?.amount_usd === 25,
+          ),
+        ).toBe(true);
+        expect(
+          trackedEvents.find((event) => event.name === 'Trade Completed')
+            ?.sensitiveProperties?.usd_trade_value,
+        ).toBe(20);
+      });
+    });
+
+    it.each([
+      {
+        error: PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED,
+        expectedStatus: 'order_failed',
+      },
+      {
+        error: 'Network request failed',
+        expectedStatus: 'failed',
+      },
+    ])(
+      'classifies an order error as $expectedStatus',
+      async ({ error, expectedStatus }) => {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockRejectedValue(new Error(error));
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(
+            controller.placeOrder({
+              preview,
+              analyticsProperties: {
+                marketId: 'market-1',
+                transactionType: 'mm_predict_buy',
+              },
+              attempt: {
+                attemptId: 'failed-attempt',
+                amountUsd: 25,
+                paymentMethod: 'predict_balance',
+              },
+            }),
+          ).rejects.toThrow(error);
+
+          const attemptEvents = (analytics.trackEvent as jest.Mock).mock.calls
+            .map(([event]) => event)
+            .filter(
+              (event) => event.properties?.attempt_id === 'failed-attempt',
+            );
+
+          expect(attemptEvents.map((event) => event.properties.status)).toEqual(
+            ['submitted', expectedStatus],
+          );
+        });
+      },
+    );
+
+    it('preserves one attempt through a retryable failure and retry', async () => {
+      await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+        });
+        mockPolymarketProvider.placeOrder
+          .mockRejectedValueOnce(
+            new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+          )
+          .mockResolvedValueOnce({
+            success: true,
+            response: {
+              id: 'order-123',
+              spentAmount: '25',
+              receivedAmount: '50',
+            },
+          });
+
+        await expect(
+          controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+        expect(controller.getRetryablePredictBuyAttempt()).toEqual(attempt);
+
+        await controller.placeOrder({
+          preview,
+          analyticsProperties,
+          attempt: controller.getRetryablePredictBuyAttempt(),
+        });
+
+        const attemptEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .filter(
+            (event) =>
+              event.name === 'Predict Trade Transaction' &&
+              event.properties?.attempt_id === attempt.attemptId,
+          );
+
+        expect(attemptEvents.map((event) => event.properties.status)).toEqual([
+          'attempt_started',
+          'submitted',
+          'order_failed',
+          'submitted',
+          'succeeded',
+        ]);
+        expect(controller.getRetryablePredictBuyAttempt()).toBeUndefined();
+      });
+    });
+
+    it('cancels one retryable attempt once', async () => {
+      await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+        });
+        mockPolymarketProvider.placeOrder.mockRejectedValue(
+          new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+        );
+
+        await expect(
+          controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+        expect(controller.cancelRetryablePredictBuyAttempt()).toBe(true);
+        expect(controller.cancelRetryablePredictBuyAttempt()).toBe(false);
+
+        const terminalEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .filter(
+            (event) =>
+              event.properties?.attempt_id === attempt.attemptId &&
+              event.properties?.status === 'cancelled',
+          );
+
+        expect(terminalEvents).toHaveLength(1);
+      });
+    });
+
+    it('keeps retryable attempts isolated by account', async () => {
+      let accountAddress = MOCK_ADDRESS;
+      const secondAddress = '0x2222222222222222222222222222222222222222';
+      const getAccountsFromSelectedAccountGroup = jest.fn(() => [
+        {
+          id: `account-${accountAddress}`,
+          address: accountAddress,
+          type: 'eip155:eoa',
+          name: 'Test Account',
+          metadata: { lastSelected: 0 },
+        },
+      ]);
+
+      await withController(
+        async ({ controller }) => {
+          const preview = createMockOrderPreview({ side: Side.BUY });
+          const analyticsProperties = {
+            marketId: 'market-1',
+            transactionType: 'mm_predict_buy' as const,
+          };
+          mockPolymarketProvider.placeOrder.mockRejectedValue(
+            new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+          );
+
+          const firstAttempt = controller.startPredictBuyAttempt({
+            amountUsd: 25,
+            paymentMethod: 'predict_balance',
+            analyticsProperties,
+          });
+          await expect(
+            controller.placeOrder({
+              address: accountAddress,
+              preview,
+              analyticsProperties,
+              attempt: firstAttempt,
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+          accountAddress = secondAddress;
+          const secondAttempt = controller.startPredictBuyAttempt({
+            amountUsd: 30,
+            paymentMethod: 'pay_with_any_token',
+            analyticsProperties,
+          });
+          await expect(
+            controller.placeOrder({
+              address: accountAddress,
+              preview,
+              analyticsProperties,
+              attempt: secondAttempt,
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+          expect(controller.getRetryablePredictBuyAttempt()).toEqual(
+            secondAttempt,
+          );
+          accountAddress = MOCK_ADDRESS;
+          expect(controller.getRetryablePredictBuyAttempt()).toEqual(
+            firstAttempt,
+          );
+        },
+        { mocks: { getAccountsFromSelectedAccountGroup } },
+      );
+    });
+
     it.each([
       ['proposed_resolution', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
       ['in_dispute', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
@@ -1625,7 +1890,7 @@ describe('PredictController', () => {
       'blocks orders before provider submission when live outcome status is %s',
       async (resolutionStatus, errorCode) => {
         await withController(async ({ controller }) => {
-          const market = createMockMarket();
+          const market = createPredictMarket();
           mockPolymarketProvider.getMarketDetails.mockResolvedValue({
             ...market,
             outcomes: [
@@ -1651,7 +1916,7 @@ describe('PredictController', () => {
 
     it('blocks sell orders when the live outcome is not accepting orders', async () => {
       await withController(async ({ controller }) => {
-        const market = createMockMarket();
+        const market = createPredictMarket();
         mockPolymarketProvider.getMarketDetails.mockResolvedValue({
           ...market,
           outcomes: [
@@ -1678,7 +1943,7 @@ describe('PredictController', () => {
     it('blocks orders when the live market is inactive', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getMarketDetails.mockResolvedValue(
-          createMockMarket({
+          createPredictMarket({
             active: false,
           }),
         );
@@ -1696,7 +1961,7 @@ describe('PredictController', () => {
     it('fails closed when the live market does not include the preview outcome', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getMarketDetails.mockResolvedValue({
-          ...createMockMarket(),
+          ...createPredictMarket(),
           outcomes: [],
         });
 
@@ -1781,7 +2046,7 @@ describe('PredictController', () => {
           setActiveOrderForTest(controller, {
             state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
           });
-          const market = createMockMarket();
+          const market = createPredictMarket();
           mockPolymarketProvider.getMarketDetails.mockResolvedValue({
             ...market,
             outcomes: [
@@ -5512,6 +5777,45 @@ describe('PredictController', () => {
         ...overrides,
       }) as any;
 
+    it('cancels a retryable attempt when payment changes', async () => {
+      await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({ side: Side.BUY });
+        const analyticsProperties = {
+          marketId: 'market-1',
+          transactionType: 'mm_predict_buy' as const,
+        };
+        const attempt = controller.startPredictBuyAttempt({
+          amountUsd: 25,
+          paymentMethod: 'predict_balance',
+          analyticsProperties,
+        });
+        mockPolymarketProvider.placeOrder.mockRejectedValue(
+          new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+        );
+        await expect(
+          controller.placeOrder({
+            preview,
+            analyticsProperties,
+            attempt,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+
+        controller.selectPaymentToken(createAssetToken({}));
+
+        const cancellationEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .find(
+            (event) =>
+              event.properties?.attempt_id === attempt.attemptId &&
+              event.properties?.status === 'cancelled',
+          );
+        expect(cancellationEvent?.properties.failure_reason).toBe(
+          'User changed payment method after a retryable order failure',
+        );
+        expect(controller.getRetryablePredictBuyAttempt()).toBeUndefined();
+      });
+    });
+
     it('treats null as balance token and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         const existingToken = {
@@ -8818,6 +9122,8 @@ describe('PredictController', () => {
             from: '0xFrom',
             to: '0xOldTarget',
             data: '0xolddata',
+            gas: '0x1111',
+            gasLimit: '0x2222',
           },
         };
 
@@ -8825,6 +9131,8 @@ describe('PredictController', () => {
 
         expect(testTransaction.txParams.data).toBe('0xmodifieddata');
         expect(testTransaction.txParams.to).toBe('0xPredictAddress');
+        expect(testTransaction.txParams.gas).toBe('0x5208');
+        expect(testTransaction.txParams.gasLimit).toBe('0x5208');
         expect(testTransaction.assetsFiatValues).toEqual({
           receiving: '100',
         });
@@ -10392,6 +10700,76 @@ describe('PredictController', () => {
       });
     });
 
+    it('reconciles one start and one terminal event per attempt', async () => {
+      await withController(async ({ controller }) => {
+        const commonProperties = {
+          amountUsd: 25,
+          analyticsProperties: {
+            marketId: 'market-1',
+            transactionType: 'mm_predict_buy' as const,
+          },
+          attemptId: 'attempt-1',
+          paymentMethod: 'predict_balance' as const,
+        };
+
+        await controller.trackPredictOrderEvent({
+          ...commonProperties,
+          status: 'attempt_started',
+        });
+        controller.trackPredictBuyTerminalEvent({
+          ...commonProperties,
+          status: 'succeeded',
+        });
+        controller.trackPredictBuyTerminalEvent({
+          ...commonProperties,
+          status: 'failed',
+          failureStage: 'order',
+          failureCategory: 'other',
+        });
+
+        const attemptEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map(([event]) => event)
+          .filter(
+            (event) =>
+              event.name === 'Predict Trade Transaction' &&
+              event.properties?.attempt_id === commonProperties.attemptId,
+          );
+        const startEvents = attemptEvents.filter(
+          (event) => event.properties.status === 'attempt_started',
+        );
+        const terminalEvents = attemptEvents.filter((event) =>
+          ['succeeded', 'failed', 'cancelled'].includes(
+            event.properties.status,
+          ),
+        );
+
+        expect(startEvents).toHaveLength(1);
+        expect(terminalEvents).toHaveLength(1);
+        expect(attemptEvents).toHaveLength(2);
+      });
+    });
+
+    it('bounds retained terminal attempt IDs', async () => {
+      await withController(async ({ controller }) => {
+        const analyticsProperties = { marketId: 'market-1' };
+
+        for (let index = 0; index <= 500; index += 1) {
+          controller.trackPredictBuyTerminalEvent({
+            status: 'failed',
+            analyticsProperties,
+            attemptId: `attempt-${index}`,
+          });
+        }
+        controller.trackPredictBuyTerminalEvent({
+          status: 'failed',
+          analyticsProperties,
+          attemptId: 'attempt-0',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(502);
+      });
+    });
+
     it('does not call analytics.trackEvent when analyticsProperties is missing for trackPredictOrderEvent', async () => {
       await withController(async ({ controller }) => {
         await controller.trackPredictOrderEvent({
@@ -10881,6 +11259,52 @@ describe('PredictController', () => {
                 status: 'swap_initiated',
                 payment_token_address: '0xtoken',
                 payment_token_symbol: 'MATIC',
+              }),
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('emits swap_initiated with the PWAT attempt context', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+            transactionId: 'tx-200',
+          });
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({
+            analyticsProperties: {
+              marketId: 'market-1',
+              transactionType: 'mm_predict_buy',
+            },
+            preview,
+            transactionId: 'tx-200',
+            attempt: {
+              attemptId: 'pwat-attempt',
+              amountUsd: 30,
+              paymentMethod: 'pay_with_any_token',
+            },
+          });
+
+          expect(analytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                status: 'swap_initiated',
+                attempt_id: 'pwat-attempt',
+                payment_method: 'pay_with_any_token',
+              }),
+              sensitiveProperties: expect.objectContaining({
+                amount_usd: 30,
               }),
             }),
           );

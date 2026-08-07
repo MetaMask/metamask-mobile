@@ -450,6 +450,8 @@ export const PredictPreviewSheetProvider: React.FC<
   );
 
   const onBuyDismiss = useCallback(() => {
+    Engine.context.PredictController.cancelRetryablePredictBuyAttempt();
+
     // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
     // Skip if: the back-button handler already fired it, or the sheet is
     // closing because the user confirmed an order (not a dismissal).

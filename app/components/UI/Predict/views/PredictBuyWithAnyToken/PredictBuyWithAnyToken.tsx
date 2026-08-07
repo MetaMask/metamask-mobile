@@ -18,6 +18,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
@@ -296,6 +297,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const { handleConfirm, placeOrder } = usePredictBuyActions({
     analyticsProperties,
     preview,
+    amountUsd: currentValue,
     setIsConfirming,
     isSheetMode,
     onClose,
@@ -328,16 +330,33 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isOrderNotFilled,
     resetOrderNotFilled,
     isSheetMode,
+    attempt: Engine.context.PredictController.getRetryablePredictBuyAttempt(),
   });
+
+  const handleRetryDismiss = useCallback(() => {
+    if (isOrderNotFilled) {
+      Engine.context.PredictController.cancelRetryablePredictBuyAttempt();
+    }
+    resetOrderNotFilled();
+  }, [isOrderNotFilled, resetOrderNotFilled]);
 
   const isBannerActive = !!buyErrorBanner;
   const previousValueRef = useRef(currentValue);
   useEffect(() => {
     if (previousValueRef.current !== currentValue && isUserInputChange) {
+      if (isOrderNotFilled) {
+        handleRetryDismiss();
+      }
       clearBuyErrorBanner();
     }
     previousValueRef.current = currentValue;
-  }, [currentValue, isUserInputChange, clearBuyErrorBanner]);
+  }, [
+    currentValue,
+    isUserInputChange,
+    isOrderNotFilled,
+    handleRetryDismiss,
+    clearBuyErrorBanner,
+  ]);
 
   // When the banner appears in sheet mode, close the keypad so the Retry CTA
   // + banner are immediately visible without the user having to dismiss the
@@ -589,7 +608,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
-        onDismiss={resetOrderNotFilled}
+        onDismiss={handleRetryDismiss}
         isRetrying={isRetrying}
       />
       <PredictPayWithAnyTokenInfo
