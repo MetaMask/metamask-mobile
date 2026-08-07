@@ -173,6 +173,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
         notice.variant === 'banner' ? (
           <BannerAlert
             key={notice.id}
+            alignItems={BoxAlignItems.Center}
             severity={BannerAlertSeverity.Warning}
             title={notice.title}
             description={notice.message}
@@ -297,6 +298,7 @@ const PerpsProOrderForm = ({
   isOrderBookCollapsed = false,
   onExpandOrderBook,
   marginModeLabel,
+  onMarginModePress,
   leverageLabel,
   onLeveragePress,
   orderType,
@@ -390,14 +392,18 @@ const PerpsProOrderForm = ({
             ) : null}
           </Box>
           <Box
-            twClassName="flex-row items-center gap-4"
+            twClassName="flex-row items-center gap-2"
             testID={ids.MARGIN_SETTINGS_ROW}
           >
-            <Box twClassName="h-8 justify-center rounded-lg bg-muted px-2">
-              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-                {marginModeLabel}
-              </Text>
-            </Box>
+            <ButtonBase
+              size={ButtonBaseSize.Sm}
+              onPress={onMarginModePress}
+              isDisabled={!onMarginModePress}
+              twClassName="h-8 rounded-lg bg-muted px-2"
+              testID={ids.MARGIN_MODE_BUTTON}
+            >
+              {marginModeLabel}
+            </ButtonBase>
             <ButtonBase
               size={ButtonBaseSize.Sm}
               onPress={onLeveragePress}
@@ -482,12 +488,14 @@ const PerpsProOrderForm = ({
             onChange={onReduceOnlyChange}
             testID={ids.REDUCE_ONLY}
           />
-          <TPSLRow
-            label={strings('perps.pro_order_form.tpsl')}
-            isSelected={isTPSLConfigured}
-            onPress={onTPSLPress}
-            testID={ids.TPSL}
-          />
+          {!reduceOnly ? (
+            <TPSLRow
+              label={strings('perps.pro_order_form.tpsl')}
+              isSelected={isTPSLConfigured}
+              onPress={onTPSLPress}
+              testID={ids.TPSL}
+            />
+          ) : null}
           <Notices notices={notices} />
           <ButtonSemantic
             severity={
