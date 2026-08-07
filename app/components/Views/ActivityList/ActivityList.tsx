@@ -281,11 +281,30 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
       INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
     );
+    const [hasPerpsSourceReported, setHasPerpsSourceReported] = useState(false);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const [predictSource, setPredictSource] =
       useState<PredictActivitySourceState>(
         INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
       );
+    const [hasPredictSourceReported, setHasPredictSourceReported] =
+      useState(false);
+
+    const handlePerpsSourceChange = useCallback(
+      (state: PerpsActivitySourceState) => {
+        setHasPerpsSourceReported(true);
+        setPerpsSource(state);
+      },
+      [],
+    );
+
+    const handlePredictSourceChange = useCallback(
+      (state: PredictActivitySourceState) => {
+        setHasPredictSourceReported(true);
+        setPredictSource(state);
+      },
+      [],
+    );
 
     const nonEvmState = useSelector(
       selectNonEvmTransactionsForSelectedAccountGroup,
@@ -1280,9 +1299,26 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const shouldShowTransactionList = data.length > 0;
     const items = shouldShowTransactionList ? groupedData : [];
 
+    const haveRelevantSourcesReported = (() => {
+      switch (typeFilter) {
+        case ActivityTypeFilter.Perps:
+          return !isPerpsEnabled || hasPerpsSourceReported;
+        case ActivityTypeFilter.Predictions:
+          return !isPredictEnabled || hasPredictSourceReported;
+        case undefined:
+        case ActivityTypeFilter.All:
+          return (
+            (!isPerpsEnabled || hasPerpsSourceReported) &&
+            (!isPredictEnabled || hasPredictSourceReported)
+          );
+        default:
+          return true;
+      }
+    })();
+
     useActivityScreenViewed({
       enabled: trackScreenViewed,
-      isSettled: !isRelevantActivityLoading,
+      isSettled: !isRelevantActivityLoading && haveRelevantSourcesReported,
       isEmpty: !shouldShowTransactionList,
       pendingCount: pendingActivityCount,
       typeFilter,
@@ -1371,10 +1407,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
             )}
           </PriceChartContext.Consumer>
           {shouldMountPerpsSource ? (
-            <PerpsActivitySource onChange={setPerpsSource} />
+            <PerpsActivitySource onChange={handlePerpsSourceChange} />
           ) : null}
           {shouldMountPredictSource ? (
-            <PredictActivitySource onChange={setPredictSource} />
+            <PredictActivitySource onChange={handlePredictSourceChange} />
           ) : null}
           {/* Speed up / Cancel modals */}
           <CancelSpeedupModal
