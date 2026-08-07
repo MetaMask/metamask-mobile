@@ -10,10 +10,10 @@ MetaMetrics uses **9 consolidated events** with discriminating properties (vs 38
 
 These are attached automatically — do not pass them manually unless overriding:
 
-| Property     | Values              | Source                                                                                     |
-| ------------ | ------------------- | ------------------------------------------------------------------------------------------ |
-| `timestamp`  | number (ms)         | `usePerpsEventTracking`                                                                    |
-| `perps_mode` | `'lite'` \| `'pro'` | Current Perps interface mode via `getPerpsModeAnalyticsProperties` / `enrichWithPerpsMode` |
+| Property     | Values              | Source                                                                           |
+| ------------ | ------------------- | -------------------------------------------------------------------------------- |
+| `timestamp`  | number (ms)         | `usePerpsEventTracking`                                                          |
+| `perps_mode` | `'lite'` \| `'pro'` | Current Perps interface mode via `enrichWithPerpsMode` in `analytics.trackEvent` |
 
 `perps_mode` is the Lite/Pro interface mode. It is intentionally separate from `mode` (`PERPS_EVENT_PROPERTY.MODE`), which search already uses for query intent (`'discovery'` \| `'intent'` \| `'browse'`).
 
@@ -729,7 +729,7 @@ Section names used in impression events:
 2. **Track status** - Always include success/failure
 3. **Track duration** - Include `completion_duration` for transactions
 4. **Use properties** - Don't create new events for minor variations
-5. **Auto timestamp + Lite/Pro mode** - `usePerpsEventTracking` and `analytics.trackEvent` (`enrichWithPerpsMode`) add `timestamp` and `perps_mode: 'lite' | 'pro'` automatically. Explicit caller `perps_mode` wins (e.g. mode toggle emits the selected next mode). Search intent continues to use `mode` (`discovery` | `intent` | `browse`) for backwards compatibility.
+5. **Auto timestamp + Lite/Pro mode** - `usePerpsEventTracking` adds `timestamp`. `analytics.trackEvent` (`enrichWithPerpsMode`) adds `perps_mode: 'lite' | 'pro'` on every `Perp *` event. Explicit caller `perps_mode` wins (e.g. mode toggle emits the selected next mode). Search intent continues to use `mode` (`discovery` | `intent` | `browse`) for backwards compatibility.
 6. **AB test tracking** - Only in screen view events, not every interaction
 7. **Entry point tracking** - Include `button_clicked` and `button_location` to track user navigation flows
 8. **Source = current screen** - The `source` property must always identify the screen the user is currently on, never a screen from earlier in the navigation chain. If the user navigates A → B → action C, the source for C must be B, not A.

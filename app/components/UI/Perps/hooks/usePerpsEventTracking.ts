@@ -8,10 +8,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import {
-  getPerpsModeAnalyticsProperties,
-  getPerpsUtmAttributionProperties,
-} from '../utils/perpsAnalyticsAttribution';
+import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
 
 // Static helper function - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
@@ -58,7 +55,8 @@ interface EventTrackingOptions {
  * 1. Imperative: const { track } = usePerpsEventTracking(); track(event, props);
  * 2. Declarative: usePerpsEventTracking({ eventName, conditions, properties });
  *
- * All events include timestamp and Lite/Pro `perps_mode` automatically.
+ * All events include timestamp automatically. Lite/Pro `perps_mode` is
+ * attached centrally by `enrichWithPerpsMode` in `analytics.trackEvent`.
  *
  * @example
  * // IMPERATIVE: Manual tracking (backward compatible)
@@ -91,11 +89,10 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
       eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
       properties: Record<string, unknown> = {},
     ) => {
-      // Lite/Pro perps_mode + timestamp on every event. Explicit caller props
-      // win (e.g. mode toggle emits the *next* perps_mode). UTM is Screen
-      // Viewed only.
+      // Timestamp on every event. Lite/Pro `perps_mode` is injected later by
+      // enrichWithPerpsMode in analytics.trackEvent (caller props still win).
+      // UTM is Screen Viewed only.
       const props = {
-        ...getPerpsModeAnalyticsProperties(),
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: Date.now(),
         ...properties,
       };
