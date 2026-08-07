@@ -4,6 +4,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Text,
+  TextVariant,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import BottomModal from '../../../components/UI/bottom-modal';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
@@ -20,11 +23,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useTheme } from '../../../../../../util/theme';
 import { AlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
 import styleSheet from './alert-modal.styles';
-import {
-  Text,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 interface HeaderProps {
   iconColor: string;
