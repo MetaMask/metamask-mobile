@@ -89,7 +89,6 @@ const flaskTags = {};
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   sampleFeature: 'SampleFeature:',
-  performance: 'Performance:',
   fixtureValidation: 'FixtureValidation:',
 };
 
@@ -99,13 +98,8 @@ const tagDescribe = (tagPrefix) => (testName) => `${tagPrefix} ${testName}`;
 /** smokeAccounts → SmokeAccounts */
 const smokeExportName = (key) => `Smoke${key.slice('smoke'.length)}`;
 
-/** sampleFeature → SampleFeature; performance → SmokePerformance (tag stays "Performance:") */
-const otherExportName = (key) => {
-  if (key === 'performance') {
-    return 'SmokePerformance';
-  }
-  return key.charAt(0).toUpperCase() + key.slice(1);
-};
+/** sampleFeature → SampleFeature */
+const otherExportName = (key) => key.charAt(0).toUpperCase() + key.slice(1);
 
 /** @param {Record<string, { tag: string, description: string }>} tags */
 const createSmokeDescribeFunctions = (tags) =>
@@ -143,7 +137,7 @@ const {
   SmokeMMConnect,
 } = createSmokeDescribeFunctions(smokeTags);
 
-const { SampleFeature, SmokePerformance, FixtureValidation } =
+const { SampleFeature, FixtureValidation } =
   createOtherDescribeFunctions(otherTags);
 
 export {
@@ -165,6 +159,5 @@ export {
   SmokeMMConnect,
   SampleFeature,
   SmokeSnaps,
-  SmokePerformance,
   FixtureValidation,
 };

@@ -63,8 +63,7 @@ const CHANNEL_BY_KEY: Record<
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { profileId } = useSessionProfileId();
-  const { preferences, updatePreferencesSection } =
-    useNotificationStoragePreferences();
+  const { updatePreferencesSection } = useNotificationStoragePreferences();
   const {
     accountProps,
     notificationAccountListProps,
@@ -74,20 +73,20 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
 
-  // Toggling all accounts flips both wallet-activity channels in one section
-  // update so they don't race on the shared (stale) preferences snapshot.
+  // Flip both channels in one write. The updater form is required:
+  // `toggleAllAccounts` just rewrote the accounts, so building the section
+  // from this render's preferences would PUT the pre-toggle accounts array
+  // and re-enable every account.
   const handleToggleAllAccounts = useCallback(async () => {
     const nextEnabled = !hasEnabledAccount;
 
     await toggleAllAccounts();
 
-    if (preferences) {
-      await updatePreferencesSection('walletActivity', {
-        ...preferences.walletActivity,
-        pushNotificationsEnabled: nextEnabled,
-        inAppNotificationsEnabled: nextEnabled,
-      });
-    }
+    await updatePreferencesSection('walletActivity', (walletActivity) => ({
+      ...walletActivity,
+      pushNotificationsEnabled: nextEnabled,
+      inAppNotificationsEnabled: nextEnabled,
+    }));
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
@@ -101,7 +100,6 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
   }, [
     hasEnabledAccount,
     toggleAllAccounts,
-    preferences,
     updatePreferencesSection,
     trackEvent,
     createEventBuilder,

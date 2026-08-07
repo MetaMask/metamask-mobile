@@ -9,7 +9,7 @@ import {
   type CancelOrdersResult,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
+import { useNavigateToPerpsHome } from '../utils/perpsModeSwitch';
 
 export interface UsePerpsCancelAllOrdersOptions {
   /** Callback invoked when cancellation succeeds */
@@ -52,6 +52,7 @@ export const usePerpsCancelAllOrders = (
   options?: UsePerpsCancelAllOrdersOptions,
 ): UsePerpsCancelAllOrdersReturn => {
   const navigation = useNavigation<AppNavigationProp>();
+  const navigateToPerpsHome = useNavigateToPerpsHome();
   const [isCanceling, setIsCanceling] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -93,10 +94,7 @@ export const usePerpsCancelAllOrders = (
         if (navigation.canGoBack()) {
           navigation.goBack();
         } else {
-          // Fallback: navigate to Markets view if can't go back
-          navigation.navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.PERPS_HOME,
-          });
+          navigateToPerpsHome();
         }
       }
 
@@ -123,19 +121,23 @@ export const usePerpsCancelAllOrders = (
     } finally {
       setIsCanceling(false);
     }
-  }, [orders, onSuccess, onError, navigateBackOnSuccess, navigation]);
+  }, [
+    orders,
+    onSuccess,
+    onError,
+    navigateBackOnSuccess,
+    navigation,
+    navigateToPerpsHome,
+  ]);
 
   const handleKeepOrders = useCallback(() => {
     DevLogger.log('[usePerpsCancelAllOrders] User chose to keep orders');
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      // Fallback: navigate to Markets view if can't go back
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
+      navigateToPerpsHome();
     }
-  }, [navigation]);
+  }, [navigation, navigateToPerpsHome]);
 
   return {
     isCanceling,

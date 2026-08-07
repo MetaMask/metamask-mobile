@@ -189,6 +189,7 @@ describe('ConfirmationsDeveloperOptions', () => {
       networkClientId: MOCK_NETWORK_CLIENT_ID,
       disableHook: true,
       disableSequential: true,
+      overwriteUpgrade: true,
       transactions: [
         {
           params: {
