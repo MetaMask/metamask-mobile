@@ -593,7 +593,7 @@ export const mockPerpsGeolocation = async (
   mockServer: Mockttp,
   region: RampsRegion,
 ): Promise<void> => {
-  const regionCode = region.id.replace('/regions/', '');
+  const regionCode = region.id.replace('/regions/', '').toUpperCase();
 
   await mockServer
     .forGet('/proxy')

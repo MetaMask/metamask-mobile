@@ -3,6 +3,7 @@ import {
   ActivitiesViewSelectorsText,
 } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { ActivityScreenSelectorsIDs } from '../../../app/components/Views/ActivityScreen/ActivityScreen.testIds';
+import { activityListRowItemTestId } from '../../../app/components/Views/ActivityList/ActivityList.testIds';
 import {
   getOrderRowFiatAmountTestId,
   getOrderRowCryptoAmountTestId,
@@ -23,6 +24,121 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class ActivitiesView {
+  get typeFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
+  }
+
+  typeFilterOption(option: string): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  get perpsFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
+    );
+  }
+
+  get perpsFilterSheet(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
+    );
+  }
+
+  get typeFilterSheet(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
+    );
+  }
+
+  perpsFilterOption(option: string): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  async tapTypeFilterChip(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.typeFilterChip, {
+      description: 'Activity Type Filter Chip',
+    });
+  }
+
+  async tapTypeFilterOption(option: string): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.typeFilterOption(option), {
+      description: `Activity Type Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async tapPerpsFilterChip(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
+      description: 'Activity Perps Filter Chip',
+    });
+  }
+
+  async tapPerpsFilterOption(option: string): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.perpsFilterOption(option), {
+      description: `Activity Perps Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async selectPerpsFilterOptionSafe(option: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const label = option === 'deposit' ? 'Deposits' : option;
+        let sheetOpen = true;
+        try {
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText(label),
+            {
+              timeout: 1500,
+              description: 'Check if perps filter sheet is open',
+            },
+          );
+        } catch {
+          sheetOpen = false;
+        }
+
+        if (!sheetOpen) {
+          await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
+            description: 'Activity Perps Filter Chip',
+            timeout: 3000,
+          });
+        }
+
+        await UnifiedGestures.waitAndTap(this.perpsFilterOption(option), {
+          description: `Activity Perps Filter Option: ${option}`,
+          checkForDisplayed: false,
+          delay: 2000,
+          timeout: 8000,
+        });
+
+        await Assertions.expectElementToNotBeVisible(this.perpsFilterSheet, {
+          timeout: 4000,
+          description: 'Wait for perps filter sheet to close after selection',
+        });
+      },
+      {
+        timeout: 30000,
+        description: 'Selecting perps filter option with retry',
+      },
+    );
+  }
+
+  async verifyActivityItemLabelAndAmount(
+    label: string,
+    amount: string,
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed(label, { timeout: 15000 });
+    await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
+  }
+
   get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
@@ -140,7 +256,7 @@ class ActivitiesView {
   }
 
   transactionItem(row: number): EncapsulatedElementType {
-    return Matchers.getElementByID(`transaction-item-${row}`);
+    return Matchers.getElementByID(activityListRowItemTestId(row));
   }
 
   generateSwapActivityLabel(
@@ -195,6 +311,26 @@ class ActivitiesView {
       speed: 'slow',
       percentage: 0.5,
     });
+  }
+
+  /**
+   * Taps an activity row via its visible text label.
+   * Note: The ~transaction-item-0 wrapper testID can be flaky under XCUITest
+   * (accessibility flattening swallows it into StaticText children), so tapping by label text is safer.
+   */
+  async tapOnActivityItemByLabel(label: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await UnifiedGestures.waitAndTap(Matchers.getElementByText(label), {
+          description: `Tap Activity Item By Label: ${label}`,
+          timeout: 10000,
+        });
+      },
+      {
+        timeout: 30000,
+        description: `Tapping activity item by label ${label} with retry`,
+      },
+    );
   }
 
   async tapOnTransactionItem(row: number): Promise<void> {

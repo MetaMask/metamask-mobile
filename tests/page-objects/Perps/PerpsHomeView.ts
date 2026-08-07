@@ -17,6 +17,12 @@ class PerpsHomeView {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON);
   }
 
+  get addFundsButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
+    );
+  }
+
   get withdrawButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
@@ -44,6 +50,12 @@ class PerpsHomeView {
   async tapBackHomeButton(): Promise<void> {
     await Gestures.waitAndTap(this.backHome, {
       elemDescription: 'Perps Back Home Button',
+    });
+  }
+
+  async tapAddFundsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.addFundsButton, {
+      elemDescription: 'Add Funds button',
     });
   }
 

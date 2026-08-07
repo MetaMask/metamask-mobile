@@ -94,6 +94,18 @@ class FooterActions {
     });
   }
 
+  /**
+   * Taps Confirm and waits for the confirmation footer to unmount, signalling
+   * the confirmation has been processed.
+   */
+  async tapConfirmAndExpectConfirmationUnmount(timeout = 25000): Promise<void> {
+    await this.tapConfirmButton();
+    await Assertions.expectElementToNotBeVisible(this.confirmButton, {
+      timeout,
+      description: 'Wait for confirmation to process',
+    });
+  }
+
   async tapCancelButton(): Promise<void> {
     await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel button',

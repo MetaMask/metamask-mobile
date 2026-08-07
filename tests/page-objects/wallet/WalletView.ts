@@ -61,6 +61,18 @@ class WalletView extends WalletHomeSectionsBase {
     return WalletHomeScroll.walletScrollView;
   }
 
+  get activityButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
+    );
+  }
+
+  async tapActivityButton(): Promise<void> {
+    await Gestures.waitAndTap(this.activityButton, {
+      elemDescription: 'Wallet Activity button',
+    });
+  }
+
   get earnButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }

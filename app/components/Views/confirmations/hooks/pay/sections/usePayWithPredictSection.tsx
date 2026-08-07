@@ -27,10 +27,12 @@ import {
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
 import useApprovalRequest from '../../useApprovalRequest';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
-export const PAY_WITH_PREDICT_SECTION_TEST_ID = 'pay-with-section-predict';
+export const PAY_WITH_PREDICT_SECTION_TEST_ID =
+  PayWithBottomSheetIDs.PREDICT_SECTION;
 export const PAY_WITH_PREDICT_BALANCE_ROW_TEST_ID =
-  'pay-with-predict-section-balance-row';
+  PayWithBottomSheetIDs.PREDICT_BALANCE_ROW;
 
 export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const navigation = useNavigation<AppNavigationProp>();
