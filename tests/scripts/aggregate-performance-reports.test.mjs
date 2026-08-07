@@ -1,0 +1,314 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+
+import {
+  aggregateReports,
+  collectAppProfilingArtifacts,
+  extractPlatformScenarioAndDevice,
+} from './aggregate-performance-reports.mjs';
+
+const makeReport = (testName, provider) => [
+  {
+    testName,
+    testFilePath: 'tests/performance/onboarding/import-wallet.spec.ts',
+    tags: ['@Performance'],
+    steps: [],
+    total: 1000,
+    testFailed: false,
+    device: {
+      name: 'Google Pixel 7 Pro',
+      osVersion: '13',
+      provider,
+    },
+  },
+];
+
+const makeFailedReport = (testName) => [
+  {
+    testName,
+    testFilePath: 'tests/performance/onboarding/import-wallet.spec.ts',
+    tags: ['@Performance'],
+    steps: [],
+    total: 1000,
+    testFailed: true,
+    failureReason: 'failed',
+    team: {
+      teamId: 'Wallet Framework',
+      owners: ['@metamask/wallet-framework'],
+    },
+    device: {
+      name: 'Google Pixel 7 Pro',
+      osVersion: '13',
+    },
+  },
+];
+
+const writeJson = (filePath, data) => {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+};
+
+test('extractPlatformScenarioAndDevice classifies Standard, HyperExecute, and BrowserStack artifacts separately', () => {
+  assert.deepEqual(
+    extractPlatformScenarioAndDevice(
+      [
+        'test-results',
+        'testmu-standard-android-onboarding-flow-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Create_wallet-Google_Pixel_7_Pro-13.json',
+      ].join('/'),
+    ),
+    {
+      platform: 'android',
+      platformKey: 'Android',
+      scenario: 'onboarding',
+      scenarioKey: 'Onboarding',
+      deviceKey: 'Google Pixel 7 Pro+13',
+      cloudProvider: 'testmu-standard',
+    },
+  );
+
+  assert.deepEqual(
+    extractPlatformScenarioAndDevice(
+      [
+        'test-results',
+        'testmu-android-imported-wallet-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Import_wallet-Google_Pixel_7_Pro-13.json',
+      ].join('/'),
+    ),
+    {
+      platform: 'android',
+      platformKey: 'Android',
+      scenario: 'imported-wallet',
+      scenarioKey: 'ImportedWallet',
+      deviceKey: 'Google Pixel 7 Pro+13',
+      cloudProvider: 'testmu-hyperexecute',
+    },
+  );
+
+  assert.deepEqual(
+    extractPlatformScenarioAndDevice(
+      [
+        'test-results',
+        'android-imported-wallet-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Import_wallet-Google_Pixel_7_Pro-13.json',
+      ].join('/'),
+    ),
+    {
+      platform: 'android',
+      platformKey: 'Android',
+      scenario: 'imported-wallet',
+      scenarioKey: 'ImportedWallet',
+      deviceKey: 'Google Pixel 7 Pro+13',
+      cloudProvider: 'browserstack',
+    },
+  );
+});
+
+test('aggregateReports keeps Standard and HyperExecute provider identities in final JSON', () => {
+  const originalCwd = process.cwd();
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'aggregate-performance-reports-'),
+  );
+
+  try {
+    process.chdir(tempDir);
+
+    writeJson(
+      path.join(
+        tempDir,
+        'test-results',
+        'testmu-standard-android-imported-wallet-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Import_wallet-Google_Pixel_7_Pro-13.json',
+      ),
+      makeReport('Import wallet via TestMu Standard', 'testmu'),
+    );
+
+    writeJson(
+      path.join(
+        tempDir,
+        'test-results',
+        'testmu-android-imported-wallet-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Import_wallet-Google_Pixel_7_Pro-13.json',
+      ),
+      makeReport('Import wallet via TestMu HyperExecute', 'testmu'),
+    );
+
+    aggregateReports();
+
+    const aggregated = JSON.parse(
+      fs.readFileSync(
+        path.join(
+          tempDir,
+          'tests',
+          'aggregated-reports',
+          'performance-results.json',
+        ),
+        'utf8',
+      ),
+    );
+    const reports = aggregated.Android['Google Pixel 7 Pro+13'];
+
+    assert.equal(reports.length, 2);
+    assert.deepEqual(
+      reports.map((report) => report.cloudProvider).sort(),
+      ['testmu-hyperexecute', 'testmu-standard'],
+    );
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('aggregateReports counts failed tests separately per cloud provider', () => {
+  const originalCwd = process.cwd();
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'aggregate-performance-reports-'),
+  );
+  const testName = 'Import wallet with provider separation';
+
+  try {
+    process.chdir(tempDir);
+
+    writeJson(
+      path.join(
+        tempDir,
+        'test-results',
+        'testmu-standard-android-imported-wallet-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Import_wallet-Google_Pixel_7_Pro-13.json',
+      ),
+      makeFailedReport(testName),
+    );
+
+    writeJson(
+      path.join(
+        tempDir,
+        'test-results',
+        'testmu-android-imported-wallet-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Import_wallet_Google_Pixel_7_Pro-13.json',
+      ),
+      makeFailedReport(testName),
+    );
+
+    writeJson(
+      path.join(
+        tempDir,
+        'test-results',
+        'android-imported-wallet-test-results-Google Pixel 7 Pro-13',
+        'tests',
+        'reporters',
+        'reports',
+        'performance-metrics-Import_wallet-Google_Pixel_7_Pro-13.json',
+      ),
+      makeFailedReport(testName),
+    );
+
+    aggregateReports();
+
+    const summary = JSON.parse(
+      fs.readFileSync(
+        path.join(tempDir, 'tests', 'aggregated-reports', 'summary.json'),
+        'utf8',
+      ),
+    );
+    const failedTests =
+      summary.failedTestsStats.failedTestsByTeam['Wallet Framework'].tests;
+
+    assert.equal(summary.failedTestsStats.totalFailedTests, 3);
+    assert.equal(summary.failedTestsStats.uniqueFailedTests, 3);
+    assert.deepEqual(
+      failedTests.map((report) => report.cloudProvider).sort(),
+      ['browserstack', 'testmu-hyperexecute', 'testmu-standard'],
+    );
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('collectAppProfilingArtifacts preserves provider identity for matching sidecars', () => {
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'aggregate-performance-profiling-'),
+  );
+  const outputDir = path.join(tempDir, 'aggregated-reports');
+  const artifactName = 'app-profiling-Import_wallet-Pixel_7_Pro-13.json';
+  const providers = [
+    ['testmu-standard-results', 'testmu-standard'],
+    ['testmu-results', 'testmu-hyperexecute'],
+    ['browserstack-results', 'browserstack'],
+  ];
+
+  try {
+    for (const [sourceDir] of providers) {
+      writeJson(path.join(tempDir, sourceDir, artifactName), {
+        testName: 'Import wallet',
+        device: {
+          name: 'Pixel 7 Pro',
+          osVersion: '13',
+          provider: sourceDir.startsWith('testmu') ? 'testmu' : 'browserstack',
+        },
+      });
+    }
+
+    assert.equal(
+      collectAppProfilingArtifacts(
+        providers.map(([sourceDir]) => path.join(tempDir, sourceDir)),
+        outputDir,
+      ),
+      3,
+    );
+
+    const collectedProviders = fs
+      .readdirSync(path.join(outputDir, 'app-profiling'))
+      .map((fileName) =>
+        JSON.parse(
+          fs.readFileSync(
+            path.join(outputDir, 'app-profiling', fileName),
+            'utf8',
+          ),
+        ),
+      )
+      .map((artifact) => artifact.cloudProvider)
+      .sort();
+
+    assert.deepEqual(
+      collectedProviders,
+      providers.map(([, provider]) => provider).sort(),
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('aggregate workflow preserves artifact directories for provider classification', () => {
+  const workflow = fs.readFileSync(
+    path.join(process.cwd(), '.github', 'workflows', 'run-performance-e2e.yml'),
+    'utf8',
+  );
+
+  assert.match(workflow, /pattern:\s+['"]?\*-test-results-\*['"]?/);
+  assert.match(workflow, /merge-multiple:\s+false/);
+});

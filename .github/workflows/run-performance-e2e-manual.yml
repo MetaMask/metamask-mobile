@@ -76,8 +76,8 @@ jobs:
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: main
-      source_ref: main
       build_variant: e2e
+      enable_testmu_benchmark: true
       sentry_target: test
     secrets: inherit
 
@@ -87,8 +87,8 @@ jobs:
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: ${{ github.ref_name }}
-      source_ref: ${{ github.ref_name }}
       build_variant: ${{ inputs.build_variant }}
+      enable_testmu_benchmark: true
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
       browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}

@@ -1,0 +1,349 @@
+#!/usr/bin/env bash
+# Trigger MetaMask performance suites on TestMu AI HyperExecute.
+#
+# Required env:
+#   BUILD_TYPE              onboarding | imported-wallet | mm-connect
+#   LT_USERNAME / LT_ACCESS_KEY
+#   TESTMU_DEVICE / TESTMU_OS_VERSION
+#   App URL env vars used by playwright.testmu.config.ts
+#
+# Optional:
+#   HE_CONCURRENCY          default 2 (try modest parallel HE tasks for PoC)
+#   HE_REGION               default us
+#   GREP_TAGS               optional playwright --grep
+#   HE_WORKDIR              default ./tmp/hyperexecute
+#
+# Security:
+#   Sensitive values are written to a job-secret file outside the repo
+#   (via HyperExecute --job-secret-file) and referenced from YAML as
+#   ${{.secrets.NAME}}. They are never embedded in the generated YAML and
+#   must not be uploaded as GitHub Actions artifacts.
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT_DIR"
+
+BUILD_TYPE="${BUILD_TYPE:-}"
+LT_USERNAME="${LT_USERNAME:-}"
+LT_ACCESS_KEY="${LT_ACCESS_KEY:-}"
+# PoC org typically has a single Pixel available — parallel HE tasks compete for
+# the same device and hit WebDriver session timeouts. Keep sequential by default.
+HE_CONCURRENCY="${HE_CONCURRENCY:-2}"
+HE_REGION="${HE_REGION:-us}"
+HE_WORKDIR="${HE_WORKDIR:-./tmp/hyperexecute}"
+GREP_TAGS="${GREP_TAGS:-}"
+
+if [[ -z "$BUILD_TYPE" || -z "$LT_USERNAME" || -z "$LT_ACCESS_KEY" ]]; then
+  echo "❌ BUILD_TYPE, LT_USERNAME, and LT_ACCESS_KEY are required" >&2
+  exit 1
+fi
+
+case "$BUILD_TYPE" in
+  onboarding|imported-wallet|mm-connect) ;;
+  *)
+    echo "❌ Unsupported BUILD_TYPE: $BUILD_TYPE" >&2
+    exit 1
+    ;;
+esac
+
+mkdir -p "$HE_WORKDIR"
+HE_BIN="$HE_WORKDIR/hyperexecute"
+HE_YAML="$HE_WORKDIR/performance-${BUILD_TYPE}.generated.yaml"
+
+# Secrets live outside the workspace so they are not part of the HE upload
+# payload and cannot be retained via GHA artifacts of tmp/hyperexecute/.
+SECRETS_FILE="$(mktemp "${TMPDIR:-/tmp}/mm-he-job-secrets.XXXXXX")"
+chmod 600 "$SECRETS_FILE"
+cleanup_secrets() {
+  if [[ -n "${SECRETS_FILE:-}" && -f "$SECRETS_FILE" ]]; then
+    # Best-effort wipe before unlink
+    : > "$SECRETS_FILE" 2>/dev/null || true
+    rm -f "$SECRETS_FILE"
+  fi
+}
+trap cleanup_secrets EXIT
+
+if [[ ! -x "$HE_BIN" ]]; then
+  echo "Downloading HyperExecute CLI (linux)..."
+  curl -fsSL -o "$HE_BIN" "https://downloads.lambdatest.com/hyperexecute/linux/hyperexecute"
+  chmod +x "$HE_BIN"
+fi
+
+# Escape values for YAML double-quoted scalars (non-secret env only)
+yaml_escape() {
+  # shellcheck disable=SC2001
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
+# Append KEY=VALUE to the HyperExecute job-secret file (value may contain '=').
+write_secret() {
+  local key="$1"
+  local value="$2"
+  printf '%s=%s\n' "$key" "$value" >> "$SECRETS_FILE"
+}
+
+APP_URL_KEY="TESTMU_ANDROID_APP_URL"
+case "$BUILD_TYPE" in
+  onboarding)
+    APP_URL_KEY="TESTMU_ANDROID_CLEAN_APP_URL"
+    ;;
+esac
+
+# Sensitive credentials → job-secret file (referenced as ${{.secrets.*}} in YAML)
+write_secret "LT_USERNAME" "$LT_USERNAME"
+write_secret "LT_ACCESS_KEY" "$LT_ACCESS_KEY"
+write_secret "MM_TEST_ACCOUNT_SRP" "${MM_TEST_ACCOUNT_SRP:-}"
+write_secret "TEST_SRP_1" "${TEST_SRP_1:-}"
+write_secret "TEST_SRP_2" "${TEST_SRP_2:-}"
+write_secret "TEST_SRP_3" "${TEST_SRP_3:-}"
+write_secret "TEST_SRP_4" "${TEST_SRP_4:-}"
+write_secret "E2E_PASSWORD" "${E2E_PASSWORD:-}"
+write_secret "E2E_PERFORMANCE_SENTRY_DSN" "${E2E_PERFORMANCE_SENTRY_DSN:-}"
+
+# Resolve app URLs once so empty-string env vars don't wipe fallbacks in YAML.
+RESOLVED_ANDROID_APP_URL="${TESTMU_ANDROID_APP_URL:-}"
+RESOLVED_ANDROID_CLEAN_URL="${TESTMU_ANDROID_CLEAN_APP_URL:-$RESOLVED_ANDROID_APP_URL}"
+RESOLVED_ANDROID_ONBOARDING_URL="${TESTMU_ANDROID_ONBOARDING_PERF_APP_URL:-$RESOLVED_ANDROID_CLEAN_URL}"
+RESOLVED_ANDROID_SEEDLESS_URL="${TESTMU_ANDROID_SEEDLESS_PERF_APP_URL:-$RESOLVED_ANDROID_CLEAN_URL}"
+
+# Fail fast if the primary lt:// is not listed in TestMu storage yet. Avoids
+# HyperExecute jobs that burn ~5m on "no valid app URL found".
+case "$BUILD_TYPE" in
+  onboarding) PRIMARY_APP_URL="$RESOLVED_ANDROID_CLEAN_URL" ;;
+  *) PRIMARY_APP_URL="$RESOLVED_ANDROID_APP_URL" ;;
+esac
+if [[ -z "$PRIMARY_APP_URL" ]]; then
+  echo "❌ Primary app URL for BUILD_TYPE=$BUILD_TYPE is empty ($APP_URL_KEY)" >&2
+  exit 1
+fi
+chmod +x ./tests/scripts/verify-testmu-app-url.sh
+LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
+  ./tests/scripts/verify-testmu-app-url.sh "$PRIMARY_APP_URL"
+
+# YAML 0.2 (TestMu requirement) with Appium framework shape.
+# TestMu support: for Playwright-as-runner → Appium driver, use framework.name=
+# appium with region/reservation only — do NOT set playwrightRD / defaultReports
+# (those target Playwright Real Device / CDP, not Appium-via-Playwright).
+# Discovery/runner stay custom (AutoSplit raw). mode=static is required by 0.2
+# (dynamic/matrix discovery removed). Tasks still run on linux VMs and open
+# Appium sessions to mobile-hub via TestMuAIProvider (not runson: android).
+DISCOVERY_LIST="${HE_WORKDIR}/discovered-${BUILD_TYPE}.txt"
+BUILD_TYPE="$BUILD_TYPE" bash ./tests/scripts/hyperexecute-discover-performance-tests.sh \
+  > "$DISCOVERY_LIST"
+DISCOVERY_COUNT="$(wc -l < "$DISCOVERY_LIST" | tr -d ' ')"
+if [[ "$DISCOVERY_COUNT" -lt 1 ]]; then
+  echo "❌ Discovery produced no specs for BUILD_TYPE=$BUILD_TYPE" >&2
+  exit 1
+fi
+# Keep a copy inside the payload so static discovery (cat) works on the CLI host
+# and the same list is available inside uploaded artefacts for debugging.
+mkdir -p tests/hyperexecute
+cp -f "$DISCOVERY_LIST" "tests/hyperexecute/discovered-${BUILD_TYPE}.txt"
+echo "Discovered ${DISCOVERY_COUNT} @Performance spec(s) for BUILD_TYPE=$BUILD_TYPE"
+
+cat > "$HE_YAML" <<EOF
+version: "0.2"
+runson: linux
+autosplit: true
+concurrency: ${HE_CONCURRENCY}
+dynamicAllocation: true
+globalTimeout: 180
+testSuiteTimeout: 180
+testSuiteStep: 180
+retryOnFailure: false
+shell: bash
+
+runtime:
+  language: node
+  version: "24"
+
+pre:
+  - corepack enable
+  - yarn --immutable
+
+cacheKey: '{{ checksum "yarn.lock" }}'
+cacheDirectories:
+  - .yarn/cache
+  - node_modules
+
+framework:
+  name: appium
+  args:
+    region: "$(yaml_escape "$HE_REGION")"
+    reservation: false
+
+env:
+  BUILD_TYPE: "$(yaml_escape "$BUILD_TYPE")"
+  LT_USERNAME: \${{.secrets.LT_USERNAME}}
+  LT_ACCESS_KEY: \${{.secrets.LT_ACCESS_KEY}}
+  TESTMU_DEVICE: "$(yaml_escape "${TESTMU_DEVICE:-Pixel 7 Pro}")"
+  TESTMU_OS_VERSION: "$(yaml_escape "${TESTMU_OS_VERSION:-13}")"
+  TESTMU_BUILD_NAME: "$(yaml_escape "${TESTMU_BUILD_NAME:-HyperExecute-Performance}")"
+  TESTMU_GEO_LOCATION: "$(yaml_escape "${TESTMU_GEO_LOCATION:-SE}")"
+  TEST_PLATFORM: "$(yaml_escape "${TEST_PLATFORM:-android}")"
+  QA_APP_VERSION: "$(yaml_escape "${QA_APP_VERSION:-HyperExecute}")"
+  E2E_PERFORMANCE_CLOUD_PROVIDER: "testmu"
+  DISABLE_VIDEO_DOWNLOAD: "true"
+  PLAYWRIGHT_WORKERS: "1"
+  GREP_TAGS: "$(yaml_escape "$GREP_TAGS")"
+  MM_TEST_ACCOUNT_SRP: \${{.secrets.MM_TEST_ACCOUNT_SRP}}
+  TEST_SRP_1: \${{.secrets.TEST_SRP_1}}
+  TEST_SRP_2: \${{.secrets.TEST_SRP_2}}
+  TEST_SRP_3: \${{.secrets.TEST_SRP_3}}
+  TEST_SRP_4: \${{.secrets.TEST_SRP_4}}
+  E2E_PASSWORD: \${{.secrets.E2E_PASSWORD}}
+  E2E_PERFORMANCE_SENTRY_DSN: \${{.secrets.E2E_PERFORMANCE_SENTRY_DSN}}
+  E2E_PERFORMANCE_SENTRY_ENVIRONMENT: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_ENVIRONMENT:-hyperexecute-performance-e2e-testmu}")"
+  E2E_PERFORMANCE_SENTRY_RELEASE: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_RELEASE:-}")"
+  E2E_PERFORMANCE_BUILD_VARIANT: "$(yaml_escape "${E2E_PERFORMANCE_BUILD_VARIANT:-rc}")"
+  TESTMU_ANDROID_APP_URL: "$(yaml_escape "$RESOLVED_ANDROID_APP_URL")"
+  TESTMU_ANDROID_CLEAN_APP_URL: "$(yaml_escape "$RESOLVED_ANDROID_CLEAN_URL")"
+  TESTMU_ANDROID_ONBOARDING_PERF_APP_URL: "$(yaml_escape "$RESOLVED_ANDROID_ONBOARDING_URL")"
+  TESTMU_ANDROID_SEEDLESS_PERF_APP_URL: "$(yaml_escape "$RESOLVED_ANDROID_SEEDLESS_URL")"
+  TESTMU_RN_PLAYGROUND_URL: "$(yaml_escape "${TESTMU_RN_PLAYGROUND_URL:-}")"
+  TESTMU_LOCAL: "$(yaml_escape "${TESTMU_LOCAL:-false}")"
+  HE_REGION: "$(yaml_escape "$HE_REGION")"
+
+mergeArtifacts: true
+uploadArtefacts:
+  - name: performance-reports
+    path:
+      - tests/reporters/reports/**
+      - tests/test-reports/**
+
+# Static discovery (YAML 0.2): list materialised on the CLI host before upload.
+testDiscovery:
+  type: raw
+  mode: static
+  command: cat tests/hyperexecute/discovered-${BUILD_TYPE}.txt
+
+testRunnerCommand: bash ./tests/scripts/hyperexecute-run-performance-test.sh \$test
+
+jobLabel: ['MMQA', 'HyperExecute', 'TestMu', 'YAML0.2', '${BUILD_TYPE}', 'Pixel7Pro']
+EOF
+
+echo "=== Generated HyperExecute YAML: $HE_YAML ==="
+cat "$HE_YAML"
+echo "Secrets file: (outside workspace, wiped on exit)"
+echo "Primary app env key: $APP_URL_KEY=${!APP_URL_KEY:-<empty>}"
+echo "Device: ${TESTMU_DEVICE:-Pixel 7 Pro} / ${TESTMU_OS_VERSION:-13}"
+echo "Concurrency: $HE_CONCURRENCY"
+echo "YAML version: 0.2 (framework=appium, region=$HE_REGION, reservation=false)"
+
+# Ensure scripts are executable inside the uploaded payload
+chmod +x \
+  ./tests/scripts/hyperexecute-discover-performance-tests.sh \
+  ./tests/scripts/hyperexecute-run-performance-test.sh \
+  ./tests/scripts/start-testmu-tunnel.sh \
+  ./tests/scripts/stop-testmu-tunnel.sh \
+  ./tests/scripts/run-testmu-hyperexecute.sh
+
+# Download HE artefacts onto the GH runner so actions/upload-artifact can publish
+# them (uploadArtefacts alone only stores them on the HyperExecute dashboard).
+# CLI --download-artifacts is often skipped when the job exits with an error
+# ("Lambda error found"), so we also pull via the HE artefacts API using Job ID.
+HE_ARTIFACTS_DIR="${HE_WORKDIR}/downloaded-artifacts"
+HE_CLI_LOG="${HE_WORKDIR}/hyperexecute-cli.log"
+mkdir -p "$HE_ARTIFACTS_DIR"
+
+set +e
+"$HE_BIN" \
+  --user "$LT_USERNAME" \
+  --key "$LT_ACCESS_KEY" \
+  --config "$HE_YAML" \
+  --job-secret-file "$SECRETS_FILE" \
+  --download-artifacts \
+  --download-artifacts-path "$HE_ARTIFACTS_DIR" \
+  --force-clean-artifacts \
+  --verbose 2>&1 | tee "$HE_CLI_LOG"
+HE_EXIT=${PIPESTATUS[0]}
+set -e
+
+echo "HyperExecute CLI exit code: $HE_EXIT"
+
+HE_JOB_ID="$(
+  grep -Eo 'Job ID:[[:space:]]*[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
+    | tail -1 \
+    | awk '{print $NF}'
+)"
+if [[ -z "$HE_JOB_ID" ]]; then
+  HE_JOB_ID="$(
+    grep -Eo 'jobId=[0-9a-fA-F-]{36}' "$HE_CLI_LOG" 2>/dev/null \
+      | tail -1 \
+      | cut -d= -f2
+  )"
+fi
+
+if [[ -n "$HE_JOB_ID" ]]; then
+  echo "HyperExecute Job ID: $HE_JOB_ID"
+  echo "Job Link: https://hyperexecute.lambdatest.com/hyperexecute/task?jobId=$HE_JOB_ID"
+  echo "Artefacts UI: https://hyperexecute.lambdatest.com/artifact/view/${HE_JOB_ID}?artifactName=performance-reports"
+
+  HE_API_ZIP="${HE_ARTIFACTS_DIR}/performance-reports.zip"
+  echo "Downloading artefacts via HyperExecute API (performance-reports)..."
+  set +e
+  HTTP_CODE="$(
+    curl -sS -u "${LT_USERNAME}:${LT_ACCESS_KEY}" \
+      -o "$HE_API_ZIP" \
+      -w "%{http_code}" \
+      "https://api.hyperexecute.cloud/v2.0/artefacts/${HE_JOB_ID}/download?name=performance-reports"
+  )"
+  CURL_EXIT=$?
+  set -e
+  echo "Artefacts API HTTP status: ${HTTP_CODE:-n/a} (curl exit=${CURL_EXIT})"
+
+  if [[ "$CURL_EXIT" -eq 0 && "$HTTP_CODE" == "200" && -s "$HE_API_ZIP" ]]; then
+    echo "Unpacking artefacts zip into $HE_ARTIFACTS_DIR..."
+    unzip -o -q "$HE_API_ZIP" -d "$HE_ARTIFACTS_DIR" || true
+  else
+    echo "⚠️ Artefacts API download did not return a zip (status=${HTTP_CODE:-n/a})."
+    if [[ -f "$HE_API_ZIP" ]]; then
+      echo "Response preview:"
+      head -c 400 "$HE_API_ZIP" || true
+      echo
+    fi
+  fi
+else
+  echo "⚠️ Could not parse HyperExecute Job ID from CLI log; skipping API artefact download."
+fi
+
+# Collect downloaded artefacts into the paths GHA already uploads.
+mkdir -p tests/reporters/reports tests/test-reports/playwright-report artifacts
+echo "Contents of HE download dir ($HE_ARTIFACTS_DIR):"
+find "$HE_ARTIFACTS_DIR" -type f 2>/dev/null | head -80 || true
+
+if [[ -d "$HE_ARTIFACTS_DIR" ]]; then
+  echo "Copying HyperExecute downloaded artefacts from $HE_ARTIFACTS_DIR..."
+  # Preserve a copy under artifacts/ for the GHA upload-artifact path.
+  cp -R "$HE_ARTIFACTS_DIR"/. artifacts/ 2>/dev/null || true
+fi
+
+copy_report_files() {
+  local root="$1"
+  [[ -d "$root" ]] || return 0
+  find "$root" -type f \( -name '*.json' -o -name '*.html' -o -name '*.csv' -o -name '*.zip' \) -print0 \
+    | while IFS= read -r -d '' f; do
+      base="$(basename "$f")"
+      if [[ "$base" == *playwright* || "$f" == *playwright-report* ]]; then
+        mkdir -p tests/test-reports/playwright-report
+        cp -f "$f" "tests/test-reports/playwright-report/" 2>/dev/null || true
+      else
+        cp -f "$f" "tests/reporters/reports/" 2>/dev/null || true
+      fi
+    done
+}
+
+copy_report_files artifacts
+copy_report_files "$HE_ARTIFACTS_DIR"
+
+# Also check common HE download folder names (CLI defaults)
+for dir in hyperexecute-artifacts HyperExecute-Artifacts Artefacts artefacts; do
+  copy_report_files "$dir"
+done
+
+echo "Reporter files after artefact copy:"
+find tests/reporters/reports tests/test-reports -type f 2>/dev/null | head -80 || true
+REPORT_COUNT="$(find tests/reporters/reports -type f 2>/dev/null | wc -l | tr -d ' ')"
+echo "tests/reporters/reports file count: ${REPORT_COUNT:-0}"
+
+exit "$HE_EXIT"

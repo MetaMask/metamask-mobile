@@ -54,6 +54,12 @@ on:
           (app JS unchanged). When false, fingerprint hit still reuses native
           APKs but repacks the JS bundle like E2E.
         default: false
+      lt_username:
+        required: false
+        type: string
+        description: 'TestMu AI username (from manual dispatch or secrets upstream)'
+      # LT_ACCESS_KEY must come from secrets (caller uses secrets: inherit).
+      # Passing it via `with:` is invalid — GitHub rejects secrets.* in reusable-workflow inputs.
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -73,6 +79,18 @@ on:
       without-srp-version:
         description: 'App version for without-SRP build'
         value: ${{ jobs.upload-to-browserstack.outputs.without-srp-version }}
+      with-srp-testmu-url:
+        description: 'TestMu AI URL for with-SRP version'
+        value: ${{ jobs.upload-to-testmu.outputs.with-srp-testmu-url }}
+      without-srp-testmu-url:
+        description: 'TestMu AI URL for without-SRP version'
+        value: ${{ jobs.upload-to-testmu.outputs.without-srp-testmu-url }}
+      with-srp-testmu-version:
+        description: 'App version for with-SRP TestMu upload'
+        value: ${{ jobs.upload-to-testmu.outputs.with-srp-version }}
+      without-srp-testmu-version:
+        description: 'App version for without-SRP TestMu upload'
+        value: ${{ jobs.upload-to-testmu.outputs.without-srp-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -791,3 +809,151 @@ jobs:
             echo "❌ Both APK uploads failed. Failing step."
             exit 1
           fi
+
+  upload-to-testmu:
+    name: Upload APKs to TestMu AI
+    runs-on: ubuntu-latest
+    needs:
+      [
+        check-builds-needed,
+        resolve-fingerprint-reuse,
+        build-with-srp,
+        build-without-srp,
+      ]
+    # Gate on lt_username only — secrets.* is illegal in job `if:` for reusable workflows.
+    # LT_ACCESS_KEY is still consumed in the upload step via secrets: inherit.
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      inputs.lt_username != '' &&
+      (
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' ||
+        (
+          needs.build-with-srp.result == 'success' &&
+          needs.build-without-srp.result == 'success'
+        )
+      )
+    continue-on-error: true
+    outputs:
+      with-srp-testmu-url: ${{ steps.testmu-upload.outputs.with-srp-testmu-url }}
+      without-srp-testmu-url: ${{ steps.testmu-upload.outputs.without-srp-testmu-url }}
+      with-srp-version: ${{ steps.testmu-upload.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.testmu-upload.outputs.without-srp-version }}
+
+    steps:
+      - name: Checkout verify script
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            tests/scripts/verify-testmu-app-url.sh
+          sparse-checkout-cone-mode: false
+
+      - name: Download reused with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+
+      - name: Download reused without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+
+      - name: Download fresh with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+
+      - name: Download fresh without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+
+      - name: Upload APKs to TestMu AI
+        id: testmu-upload
+        env:
+          LT_USERNAME: ${{ inputs.lt_username }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+          FINGERPRINT_REUSED: ${{ needs.resolve-fingerprint-reuse.outputs.found }}
+          REUSED_SOURCE_SHA: ${{ needs.resolve-fingerprint-reuse.outputs.source-sha }}
+          FRESH_WITH_SRP_VERSION: ${{ needs.build-with-srp.outputs.semantic_version }}
+          FRESH_WITHOUT_SRP_VERSION: ${{ needs.build-without-srp.outputs.semantic_version }}
+        run: |
+          set +e
+          echo "Uploading APKs to TestMu AI..."
+
+          WITH_SRP_APP_URL=""
+          WITHOUT_SRP_APP_URL=""
+          if [ "$FINGERPRINT_REUSED" = "true" ]; then
+            WITH_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+            WITHOUT_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+          else
+            WITH_SRP_VERSION="$FRESH_WITH_SRP_VERSION"
+            WITHOUT_SRP_VERSION="$FRESH_WITHOUT_SRP_VERSION"
+          fi
+
+          WITH_SRP_APK=$(find artifacts/with-srp -name "*.apk" | head -1)
+          WITHOUT_SRP_APK=$(find artifacts/without-srp -name "*.apk" | head -1)
+
+          chmod +x tests/scripts/verify-testmu-app-url.sh
+
+          if [ -n "$WITH_SRP_APK" ]; then
+            echo "Uploading with-SRP APK to TestMu AI: $WITH_SRP_APK"
+            WITH_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+              -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
+              -F "appFile=@$WITH_SRP_APK" \
+              -F "name=MetaMask-Android-With-SRP-${{ github.run_id }}" \
+              -F "visibility=team" \
+              -F "custom_id=mm-android-with-srp-${{ github.run_id }}")
+
+            WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
+            if [ -n "$WITH_SRP_APP_URL" ] && \
+              LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
+                ./tests/scripts/verify-testmu-app-url.sh "$WITH_SRP_APP_URL"; then
+              echo "✅ With-SRP APK uploaded to TestMu AI: $WITH_SRP_APP_URL"
+              {
+                echo "with-srp-testmu-url=$WITH_SRP_APP_URL"
+                echo "with-srp-version=$WITH_SRP_VERSION"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "❌ With-SRP TestMu upload/verify failed: $WITH_SRP_RESPONSE"
+              WITH_SRP_APP_URL=""
+            fi
+          fi
+
+          if [ -n "$WITHOUT_SRP_APK" ]; then
+            echo "Uploading without-SRP APK to TestMu AI: $WITHOUT_SRP_APK"
+            WITHOUT_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+              -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
+              -F "appFile=@$WITHOUT_SRP_APK" \
+              -F "name=MetaMask-Android-Without-SRP-${{ github.run_id }}" \
+              -F "visibility=team" \
+              -F "custom_id=mm-android-without-srp-${{ github.run_id }}")
+
+            WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
+            if [ -n "$WITHOUT_SRP_APP_URL" ] && \
+              LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
+                ./tests/scripts/verify-testmu-app-url.sh "$WITHOUT_SRP_APP_URL"; then
+              echo "✅ Without-SRP APK uploaded to TestMu AI: $WITHOUT_SRP_APP_URL"
+              {
+                echo "without-srp-testmu-url=$WITHOUT_SRP_APP_URL"
+                echo "without-srp-version=$WITHOUT_SRP_VERSION"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "❌ Without-SRP TestMu upload/verify failed: $WITHOUT_SRP_RESPONSE"
+              WITHOUT_SRP_APP_URL=""
+            fi
+          fi
+
+          echo ""
+          echo "=== TestMu AI Upload Summary ==="
+          echo "With-SRP:    ${WITH_SRP_APP_URL:-FAILED}"
+          echo "Without-SRP: ${WITHOUT_SRP_APP_URL:-FAILED}"

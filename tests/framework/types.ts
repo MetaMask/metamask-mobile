@@ -40,6 +40,7 @@ export enum ProviderName {
   EMULATOR = 'emulator',
   SIMULATOR = 'simulator',
   BROWSERSTACK = 'browserstack',
+  TESTMU = 'testmu',
 }
 
 export enum Platform {
@@ -82,6 +83,15 @@ export interface BrowserStackConfig {
   otherApps?: string[];
 }
 
+export interface TestMuConfig {
+  provider: ProviderName;
+  name: string;
+  osVersion: string;
+  orientation?: DeviceOrientation;
+  enableCameraImageInjection?: boolean;
+  otherApps?: string[];
+}
+
 export interface AppConfig {
   appId?: string;
   packageName?: string;
@@ -89,7 +99,7 @@ export interface AppConfig {
   buildPath?: string;
 }
 
-export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
+export type DeviceConfig = EmulatorConfig | BrowserStackConfig | TestMuConfig;
 
 export interface TimeoutOptions {
   /**
