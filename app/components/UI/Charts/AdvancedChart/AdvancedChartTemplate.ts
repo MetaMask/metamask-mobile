@@ -246,7 +246,7 @@ export const createAdvancedChartTemplate = (
             text-align: center;
             text-overflow: ellipsis;
             white-space: nowrap;
-            font-family: Geist, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+            font-family: Oswald, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
                 Roboto, sans-serif;
             font-size: 12px;
             font-style: normal;
@@ -310,7 +310,7 @@ export const createAdvancedChartTemplate = (
             display: inline-flex;
             align-items: center;
             box-sizing: border-box;
-            font-family: Geist, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: Oswald, -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 10px;
             font-weight: 500;
             line-height: 1;

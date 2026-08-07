@@ -108,7 +108,7 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         body {
           background-color: var(--bg) !important;
           color: var(--text) !important;
-          font-family: Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: Oswald, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           margin: 0;
           font-size: 14px;
           font-weight: 400;

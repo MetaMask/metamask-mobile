@@ -407,7 +407,7 @@ const AddCustomToken = ({
 
   // --- Styles ---
 
-  const baseInputFont = { fontFamily: 'Geist-Regular' };
+  const baseInputFont = { fontFamily: 'Oswald-Regular' };
   const bottomInset = Platform.OS === 'ios' ? 0 : insets.bottom;
 
   const getInputStyle = (hasError: boolean) =>
