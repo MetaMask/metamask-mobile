@@ -66,7 +66,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer4 = new TimerHelper(
         'Google: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 6000 },
+        { ios: 5000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -136,7 +136,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-        await measureCreatePasswordToOnboardingSuccess(timer4);
+        //await measureCreatePasswordToOnboardingSuccess(timer4);
+        await timer4.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(OnboardingSuccessView.doneButton),
+          );
+        });
 
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
