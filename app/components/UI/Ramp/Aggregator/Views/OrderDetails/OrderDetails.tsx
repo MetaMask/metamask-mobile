@@ -105,8 +105,7 @@ const OrderDetails = () => {
     }
     hasTrackedDetailsViewRef.current = true;
 
-    const { data, state, cryptocurrency, orderType, currency, network } =
-      order;
+    const { data, state, cryptocurrency, orderType, currency, network } = order;
 
     const providerName = (data as Order).provider?.name;
 
