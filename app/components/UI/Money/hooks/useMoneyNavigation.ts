@@ -60,10 +60,14 @@ export const useMoneyNavigation = () => {
       return;
     }
 
-    NavigationService.navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    NavigationService.navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
   }, [redirectToOnboardingIfNeeded]);
 
   return { isOnboardingRedirectNeeded, navigateToMoneyHome };

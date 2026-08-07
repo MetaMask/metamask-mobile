@@ -362,10 +362,14 @@ const MoneyOnboardingView = () => {
   }, [riveRef, riveApyValue, setApyValue, setApyAmountDigit]);
 
   const navigateToMoneyHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
   }, [navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {

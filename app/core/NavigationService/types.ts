@@ -1210,8 +1210,8 @@ export type AppNavigationProp = Omit<
  * that type unless you need the stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
-  NativeStackNavigationProp<ReactNavigation.RootParamList>,
+  NativeStackNavigationProp<RootStackParamList>,
   'getState'
 > & {
-  getState(): NavigationState<ReactNavigation.RootParamList> | undefined;
+  getState(): NavigationState<RootStackParamList> | undefined;
 };

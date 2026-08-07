@@ -76,6 +76,11 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
           background: 'transparent',
         },
       }}
+      // v7 stopped resolving `navigate` into mounted child navigators. Sibling
+      // stacks target each other's nested routes (e.g. WalletActions in
+      // RootModalFlow opening StakeModals on MainNavigator), so keep the v6
+      // resolution until those call sites pass explicit `{ screen, params }`.
+      navigationInChildEnabled
       onReady={onReady}
       ref={setNavigationRef}
     >
