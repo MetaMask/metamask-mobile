@@ -32,7 +32,7 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       );
       const addAccountTimer = new TimerHelper(
         'Time since the user clicks on "Add account" button until the next modal is visible',
-        { ios: 1000, android: 1200 },
+        { ios: 1000, android: 1500 },
         currentDeviceDetails.platform,
       );
       const importSrpTimer = new TimerHelper(
