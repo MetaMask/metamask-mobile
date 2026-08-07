@@ -810,7 +810,15 @@ jobs:
             }' > .e2e-build-metadata/ios.json
           cat .e2e-build-metadata/ios.json
 
-      # Upload the iOS .app file that works in simulators
+      # Upload the iOS .app file that works in simulators.
+      #
+      # Deliberately not `continue-on-error`: together with `if-no-files-found: error`
+      # that let the job finish green having produced no .app, so the real failure only
+      # resurfaced downstream as an opaque "artifact not found" in every E2E test job.
+      # Failing here instead points at the actual cause. This matches Android's APK
+      # upload, which also hard-fails. The metadata uploads below intentionally keep
+      # `continue-on-error` (as Android's do) because they affect only future reuse,
+      # not this run's own tests.
       - name: Upload iOS APP Artifact (Simulator) (Namespace)
         id: upload-app-namespace
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -820,7 +828,6 @@ jobs:
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
-        continue-on-error: true
 
       - name: Upload iOS APP Artifact (Simulator) (current)
         id: upload-app
@@ -831,7 +838,6 @@ jobs:
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
-        continue-on-error: true
 
       - name: Upload iOS build metadata (Namespace)
         id: upload-metadata-namespace
