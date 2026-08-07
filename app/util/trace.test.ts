@@ -175,7 +175,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
         },
         expect.any(Function),
@@ -209,7 +209,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
         },
         expect.any(Function),
@@ -263,7 +263,7 @@ describe('Trace', () => {
         {
           name: NAME_MOCK,
           parentSpan: PARENT_CONTEXT_MOCK,
-          attributes: DATA_MOCK,
+          attributes: { ...TAGS_MOCK, ...DATA_MOCK },
           op: 'custom',
           startTime: 123,
         },

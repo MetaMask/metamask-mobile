@@ -404,17 +404,27 @@ function rememberOnboardingAccountType(
 function getSpanAttributes(
   request: TraceRequest,
 ): Record<string, TraceValue> | undefined {
-  const { data, op } = request;
+  const { data, op, tags } = request;
+  const attributes =
+    data || tags
+      ? {
+          ...tags,
+          ...data,
+        }
+      : undefined;
 
   if (
     !op?.startsWith(ONBOARDING_OP_PREFIX) ||
     onboardingAccountType === undefined ||
-    data?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+    attributes?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
   ) {
-    return data;
+    return attributes;
   }
 
-  return { ...data, [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType };
+  return {
+    ...attributes,
+    [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType,
+  };
 }
 
 export interface PendingTrace {
