@@ -4604,6 +4604,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/ui@npm:~55.0.17":
+  version: 55.0.17
+  resolution: "@expo/ui@npm:55.0.17"
+  dependencies:
+    sf-symbols-typescript: "npm:^2.1.0"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 10/4917dfd7c7773f4281dd2fa716f00ad2ed8202e89b3cc3d62c51d3469af5a6261f19ea06a38694798c17089de17bc5bef1b0b739b346b3b2650e0b9ba52ccf6c
+  languageName: node
+  linkType: hard
+
 "@expo/vector-icons@npm:^15.0.2":
   version: 15.1.1
   resolution: "@expo/vector-icons@npm:15.1.1"
@@ -29997,6 +30010,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-widgets@npm:~55.0.20":
+  version: 55.0.20
+  resolution: "expo-widgets@npm:55.0.20"
+  dependencies:
+    "@expo/plist": "npm:^0.5.4"
+    "@expo/ui": "npm:~55.0.17"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10/5517a2c8acc3a72a8ad096de1cc7d8c86ebe786b6ecf1033d7dbb4147099cc0ecc8978c30a73475f8c33a79a37617d5a4e7dcf599b77872ae3d73a65c47fa0be
+  languageName: node
+  linkType: hard
+
 "expo@npm:^55.0.0":
   version: 55.0.26
   resolution: "expo@npm:55.0.26"
@@ -36187,6 +36213,7 @@ __metadata:
     "@expo/fingerprint": "npm:~0.16.7"
     "@expo/metro-config": "npm:~55.0.23"
     "@expo/repack-app": "npm:^0.2.9"
+    "@expo/ui": "npm:~55.0.17"
     "@google/generative-ai": "npm:^0.24.1"
     "@img/sharp-darwin-arm64": "npm:^0.34.3"
     "@img/sharp-libvips-darwin-arm64": "npm:^1.2.1"
@@ -36521,6 +36548,7 @@ __metadata:
     expo-splash-screen: "npm:~55.0.21"
     expo-updates: "npm:~55.0.24"
     expo-web-browser: "npm:~55.0.16"
+    expo-widgets: "npm:~55.0.20"
     fast-equals: "npm:^5.2.2"
     fuse.js: "npm:3.4.4"
     ganache: "npm:^7.9.2"
@@ -43508,7 +43536,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sf-symbols-typescript@npm:^2.2.0":
+"sf-symbols-typescript@npm:^2.1.0, sf-symbols-typescript@npm:^2.2.0":
   version: 2.2.0
   resolution: "sf-symbols-typescript@npm:2.2.0"
   checksum: 10/8623e148bf86151692d3ccb3149122c091b256162a39f4c4f78472811ffe92e3c77a83841a7381a5dc0bc6505ebb73e7ca8901cb077004872d7ee1cb4e5be9d4

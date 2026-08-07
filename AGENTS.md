@@ -210,6 +210,7 @@ If the user asks to implement a ticket directly from Jira:
 | Performance               | `/docs/performance/`                         |
 | Storybook                 | `/docs/readme/storybook.md`                  |
 | Troubleshooting           | `/docs/readme/troubleshooting.md`            |
+| iOS Widgets               | `/docs/widgets/README.md`                    |
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
 | E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
 
@@ -246,3 +247,15 @@ bash scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
+
+## iOS Widgets & Live Activities
+
+For adding or modifying a home screen widget or Live Activity, use the canonical standard:
+
+- `docs/widgets/README.md` (architecture, theming, data flow, adding a widget/Live Activity, testing, possibilities/limitations)
+
+Agent skill entrypoint (synced by `yarn skills`, so not tracked here):
+
+- `mms-ios-widgets` — source: [`domains/ui/skills/ios-widgets`](https://github.com/MetaMask/skills/tree/main/domains/ui/skills/ios-widgets) in MetaMask/skills
+
+Foundation code lives in `app/core/Widgets/` (JS/TS) and `ios/ExpoWidgetsTarget/` (native, iOS-only). See `app/core/Widgets/widgets/BalanceWidget.ios.tsx` for the reference widget.

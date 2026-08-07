@@ -82,6 +82,37 @@ module.exports = {
     ],
     'expo-asset',
     '@react-native-community/datetimepicker',
+    // NOTE: This entry never reaches a running Expo tool, for two independent
+    // reasons: (1) this repo is a bare workflow project with a checked-in
+    // ios/ directory, so `expo prebuild` — the only thing that ever applies
+    // config plugins — is never run against it; and (2) this file exports a
+    // nested `expo:` object below, so @expo/config's `reduceExpoObject`
+    // reduces via `config.expo ?? config` and discards every top-level key,
+    // `plugins` included (it even warns "Ignoring extra keys in Expo config"
+    // if anything ever does read this file through @expo/config). It's kept
+    // here anyway, like the other plugin entries above, as the canonical
+    // declaration of the widget's metadata — the actual native wiring lives
+    // in ios/ExpoWidgetsTarget/ and ios/Podfile, hand-applied by
+    // scripts/ios/setup-expo-widgets-target.rb. Keep `name`, `displayName`,
+    // `description`, `supportedFamilies`, and `contentMarginsDisabled` in
+    // sync with ios/ExpoWidgetsTarget/BalanceWidget.swift — see
+    // docs/widgets/README.md before adding or removing an entry from
+    // `widgets` below.
+    [
+      'expo-widgets',
+      {
+        groupIdentifier: 'group.io.metamask.MetaMask',
+        widgets: [
+          {
+            name: 'BalanceWidget',
+            supportedFamilies: ['systemSmall', 'systemMedium'],
+            displayName: 'Balance',
+            description: 'Shows your total wallet balance at a glance.',
+            contentMarginsDisabled: false,
+          },
+        ],
+      },
+    ],
   ],
   android: {
     package:

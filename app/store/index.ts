@@ -11,6 +11,7 @@ import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
+import { WidgetUpdaterService } from '../core/Widgets';
 import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
@@ -87,6 +88,11 @@ const createStoreAndPersistor = async () => {
     } else {
       store.dispatch(expireAttributionIfStale());
     }
+
+    // Start pushing widget (home screen) snapshot updates now that persisted
+    // state (privacy mode, currency, account tree) has rehydrated. No-op on
+    // Android. See app/core/Widgets/WidgetUpdaterService.ts.
+    WidgetUpdaterService.initialize();
   };
 
   persistor = persistStore(store, null, onPersistComplete);
