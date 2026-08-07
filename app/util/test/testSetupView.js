@@ -117,6 +117,18 @@ jest.mock('expo/fetch', () => ({
   fetch,
 }));
 
+// Mock expo-screen-capture: it reaches for a native module at import time, so
+// importing it unmocked throws.
+jest.mock('expo-screen-capture', () => ({
+  preventScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  allowScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeScreenshotListener: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+  usePreventScreenCapture: jest.fn(),
+  useScreenshotListener: jest.fn(),
+}));
+
 // @metamask/perps-controller no longer exports MarketCategory / MARKET_CATEGORIES on
 // this branch, but Perps UI (pulled in via TransactionElement → Balance) still reads
 // them at module load. Stub the enum so component-view tests can import Activity views.
