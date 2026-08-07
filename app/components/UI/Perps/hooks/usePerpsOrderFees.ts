@@ -18,6 +18,7 @@ import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
+  type OrderType,
 } from '@metamask/perps-controller';
 import { DEVELOPMENT_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -75,8 +76,8 @@ export interface OrderFeesResult {
 }
 
 interface UsePerpsOrderFeesParams {
-  /** Order type - market or limit */
-  orderType: 'market' | 'limit';
+  /** Order placement type */
+  orderType: OrderType;
   /** Order amount in USD */
   amount: string;
   /** Symbol for the trade (e.g., 'BTC', 'ETH') */

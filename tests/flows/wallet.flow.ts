@@ -57,7 +57,7 @@ import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/Experience
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
-import { startPhase } from '../framework/telemetry/PhaseTimer';
+import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -706,7 +706,7 @@ export const dismissPushNotificationExistingUserSheet =
         }),
       );
       await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 5_000,
+        timeout: 2_000,
         description: 'Push notification existing user sheet',
       });
 
