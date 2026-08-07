@@ -24,7 +24,7 @@ Both descriptors have Venue-qualified keys, semantic invalidation families, expl
 
 ## Runtime boundary
 
-Mobile parsers validate canonical Predict API responses using `@metamask/superstruct`. Kalshi and Polymarket DTOs, status mapping, and identifier derivation are backend adapter responsibilities and must not enter this module.
+Mobile parsers in `contracts/v1/marketData.ts` validate canonical Predict API responses using `@metamask/superstruct`. Kalshi and Polymarket DTOs, status mapping, and identifier derivation are backend adapter responsibilities and must not enter this module.
 
 ## Testing boundary
 

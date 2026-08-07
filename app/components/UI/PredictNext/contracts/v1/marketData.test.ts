@@ -1,5 +1,5 @@
-import { PredictError, PredictErrorCode } from '../errors';
-import { parsePredictEvent, parsePredictEventSummary } from './index';
+import { PredictError, PredictErrorCode } from '../../errors';
+import { parsePredictEvent, parsePredictEventSummary } from './marketData';
 
 const venueId = 'kalshi';
 

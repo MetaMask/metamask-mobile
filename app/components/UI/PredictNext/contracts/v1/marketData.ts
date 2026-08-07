@@ -10,12 +10,12 @@ import {
   type Struct,
   create,
 } from '@metamask/superstruct';
-import { PredictError, PredictErrorCode } from '../errors';
+import { PredictError, PredictErrorCode } from '../../errors';
 import type {
   PredictEvent,
   PredictEventSummary,
   PredictMarket,
-} from '../types';
+} from '../../types';
 
 const timestamp = refine(
   string(),
