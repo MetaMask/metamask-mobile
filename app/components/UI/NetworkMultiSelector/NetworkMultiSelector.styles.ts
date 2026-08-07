@@ -1,14 +1,21 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
-const stylesheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const stylesheet = (params: {
+  theme: Theme;
+  vars: { isPureBlack: boolean };
+}) => {
+  const {
+    theme,
+    vars: { isPureBlack },
+  } = params;
   const { colors } = theme;
   return StyleSheet.create({
     bodyContainer: {
       flex: 1,
-      backgroundColor: getElevatedSurfaceColor(theme),
+      backgroundColor: isPureBlack
+        ? colors.background.section
+        : colors.background.default,
     },
     // custom network
     customNetworkContainer: {

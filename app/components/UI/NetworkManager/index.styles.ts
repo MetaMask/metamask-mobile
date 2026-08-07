@@ -4,7 +4,6 @@ import {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
-import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
 const UNDERLINE_HEIGHT = 2;
 const TAB_PADDING_BOTTOM = 8;
@@ -14,8 +13,14 @@ const DELETE_CONTAINER_PADDING_RIGHT = 8;
 
 const BODY_MD_FONT_FAMILY = getFontFamily(TextVariant.BodyMD);
 
-const createStyles = (params: { theme: Theme }) => {
-  const { theme } = params;
+const createStyles = (params: {
+  theme: Theme;
+  vars: { isPureBlack: boolean };
+}) => {
+  const {
+    theme,
+    vars: { isPureBlack },
+  } = params;
   const { colors, typography } = theme;
 
   const borderMuted = colors.border.muted;
@@ -43,7 +48,9 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tabBar: {
       borderColor: borderMuted,
-      backgroundColor: getElevatedSurfaceColor(theme),
+      backgroundColor: isPureBlack
+        ? colors.background.section
+        : colors.background.default,
     },
     // edit network menu
     editNetworkMenu: {

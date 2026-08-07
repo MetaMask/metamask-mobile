@@ -38,13 +38,13 @@ describe('ActionContent styles', () => {
     expect(styles.viewContainer.borderColor).toBeUndefined();
   });
 
-  it('uses alternative background and muted border in pure black dark mode', () => {
+  it('uses section background and muted border in pure black dark mode', () => {
     mockIsPureBlackEnabled = true;
     const theme = createTheme(AppThemeKey.dark);
     const styles = createStyles(theme, true);
 
     expect(styles.viewContainer.backgroundColor).toBe(
-      theme.colors.background.alternative,
+      theme.colors.background.section,
     );
     expect(styles.viewContainer.borderWidth).toBe(1);
     expect(styles.viewContainer.borderColor).toBe(theme.colors.border.muted);

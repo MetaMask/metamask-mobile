@@ -13,9 +13,6 @@ import Modal from 'react-native-modal';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { AppThemeKey } from '../../../util/theme/models';
-import { isPureBlackEnabled } from '../../../util/theme/pureBlackPreview';
-import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 import PickerBase from '../../../component-library/components/Pickers/PickerBase';
 import {
   HeaderStandard,
@@ -24,9 +21,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 
 const ROW_HEIGHT = 35;
-export const createStyles = (theme) => {
+export const createStyles = (theme, isPureBlack = false) => {
   const { colors } = theme;
 
   return StyleSheet.create({
@@ -49,22 +47,18 @@ export const createStyles = (theme) => {
       padding: 60,
     },
     // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
-    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
+    // Drop usePureBlack() and the isPureBlack param.
     // Use: backgroundColor: colors.background.default, borderWidth: 0
     modalView: {
-      backgroundColor: getElevatedSurfaceColor(theme),
+      backgroundColor: isPureBlack
+        ? colors.background.section
+        : colors.background.default,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 10,
       maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
-      borderWidth:
-        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-          ? 1
-          : 0,
-      borderColor:
-        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-          ? colors.border.muted
-          : undefined,
+      borderWidth: isPureBlack ? 1 : 0,
+      borderColor: isPureBlack ? colors.border.muted : undefined,
     },
     list: {
       width: '100%',
@@ -93,8 +87,12 @@ export const createStyles = (theme) => {
   });
 };
 
-export default class SelectComponent extends PureComponent {
+class SelectComponentInner extends PureComponent {
   static propTypes = {
+    /**
+     * Whether pure black theme is active
+     */
+    isPureBlack: PropTypes.bool,
     /**
      * Default value to show
      */
@@ -172,7 +170,8 @@ export default class SelectComponent extends PureComponent {
   renderDropdownSelector = () => {
     const theme = this.context || mockTheme;
     const { colors } = theme;
-    const styles = createStyles(theme);
+    const { isPureBlack = false } = this.props;
+    const styles = createStyles(theme, isPureBlack);
 
     return (
       <View style={baseStyles.flexGrow}>
@@ -240,4 +239,12 @@ export default class SelectComponent extends PureComponent {
   );
 }
 
-SelectComponent.contextType = ThemeContext;
+SelectComponentInner.contextType = ThemeContext;
+
+function SelectComponent(props) {
+  const isPureBlack = usePureBlack();
+  return <SelectComponentInner {...props} isPureBlack={isPureBlack} />;
+}
+
+export { SelectComponentInner };
+export default SelectComponent;
