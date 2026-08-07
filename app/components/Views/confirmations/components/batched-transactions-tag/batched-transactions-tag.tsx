@@ -2,10 +2,11 @@ import React from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
 import TagBase from '../../../../../component-library/base-components/TagBase';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -37,7 +38,7 @@ export const BatchedTransactionTag = () => {
     <TagBase
       style={styles.tagBaseStyle}
       startAccessory={
-        <Icon name={IconName.Info} color={IconColor.Alternative} />
+        <Icon name={IconName.Info} color={IconColor.IconAlternative} />
       }
     >
       <Text color={TextColor.Alternative} variant={TextVariant.BodySMMedium}>

@@ -2,7 +2,7 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { processHeader, processError, processString } from '../util';
 import { ApprovalTypes } from '../../../../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
@@ -77,8 +77,8 @@ function getValues(
                         : IconName.Warning,
                       size: IconSize.Lg,
                       color: isApprovalResultTypeSuccess(pendingApproval?.type)
-                        ? IconColor.Success
-                        : IconColor.Error,
+                        ? IconColor.SuccessDefault
+                        : IconColor.ErrorDefault,
                     },
                     children: 'Icon',
                   },

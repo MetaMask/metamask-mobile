@@ -28,17 +28,6 @@ jest.mock('../../predict-confirmations/predict-claim-background', () => ({
   PredictClaimBackground: () => null,
 }));
 
-jest.mock(
-  '../../../../../../component-library/components/Buttons/ButtonIcon',
-  () => ({
-    __esModule: true,
-    default: () => null,
-    ButtonIconSizes: {
-      Lg: 'lg',
-    },
-  }),
-);
-
 jest.mock('../../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {

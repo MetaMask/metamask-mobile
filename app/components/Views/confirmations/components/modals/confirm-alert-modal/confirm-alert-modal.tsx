@@ -1,22 +1,21 @@
 import React, { useCallback, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../../../../../../util/theme';
 import BottomModal from '../../../components/UI/bottom-modal';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
-  IconName as DesignSystemIconName,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import {
   ButtonSize as ButtonLinkSize,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+import { IconName as LegacyIconName } from '../../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -38,7 +37,6 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
   onReject,
   onConfirm,
 }) => {
-  const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const {
     showAlertModal,
@@ -81,7 +79,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
-            color={colors.error.default}
+            color={IconColor.ErrorDefault}
           />
         </View>
         <View style={styles.headerContainer}>
@@ -101,7 +99,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             style={styles.reviewAlertsLink}
             onPress={showAlertModal}
             label={strings('alert_system.confirm_modal.review_alerts')}
-            startIconName={IconName.SecuritySearch}
+            startIconName={LegacyIconName.SecuritySearch}
             width={ButtonWidthTypes.Auto}
             size={ButtonLinkSize.Lg}
             labelTextVariant={TextVariant.BodyMD}
@@ -140,7 +138,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             variant={ButtonVariant.Primary}
             isFullWidth
             isDisabled={!confirmCheckbox}
-            startIconName={DesignSystemIconName.Danger}
+            startIconName={IconName.Danger}
             isDanger
             testID="confirm-alert-confirm-button"
           >

@@ -7,10 +7,12 @@ import {
 } from '@metamask/design-system-react-native';
 import BottomModal from '../../../components/UI/bottom-modal';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
-import Icon, {
+import {
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -24,8 +26,19 @@ import { useTheme } from '../../../../../../util/theme';
 import { AlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
 import styleSheet from './alert-modal.styles';
 
+function getAlertIconColor(severity: Severity): IconColor {
+  switch (severity) {
+    case Severity.Danger:
+      return IconColor.ErrorDefault;
+    case Severity.Warning:
+      return IconColor.WarningDefault;
+    case Severity.Info:
+    default:
+      return IconColor.InfoDefault;
+  }
+}
+
 interface HeaderProps {
-  iconColor: string;
   selectedAlert: Alert;
   styles: Record<string, ViewStyle>;
   headerAccessory?: React.ReactNode;
@@ -33,7 +46,6 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({
   selectedAlert,
-  iconColor,
   styles,
   headerAccessory,
 }) => (
@@ -47,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({
               : IconName.Danger
           }
           size={IconSize.Xl}
-          color={iconColor}
+          color={getAlertIconColor(selectedAlert.severity)}
           testID="alert-modal-icon"
         />
       </View>
@@ -282,7 +294,6 @@ const AlertModal: React.FC<AlertModalProps> = ({
       <View style={styles.modalContainer}>
         <Header
           selectedAlert={selectedAlert}
-          iconColor={severityStyle.icon}
           styles={styles}
           headerAccessory={headerAccessory}
         />

@@ -1,9 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+import { Icon, IconName, IconSize } from '@metamask/design-system-react-native';
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';

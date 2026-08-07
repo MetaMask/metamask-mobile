@@ -13,11 +13,12 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import styleSheet from './gas-fee-token-list-item.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 
@@ -140,7 +141,7 @@ function WarningIndicator({ text }: { text: string }) {
       <Icon
         name={IconName.Warning}
         size={IconSize.Xs}
-        color={IconColor.Muted}
+        color={IconColor.IconMuted}
       />
       <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
         {text}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { Alert, Severity } from '../../../types/alerts';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';

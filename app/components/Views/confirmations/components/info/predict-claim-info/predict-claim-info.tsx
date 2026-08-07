@@ -6,10 +6,11 @@ import {
 import { PredictClaimBackground } from '../../predict-confirmations/predict-claim-background';
 import { useModalNavbar } from '../../../hooks/ui/useNavbar';
 import { usePredictClaimConfirmationMetrics } from '../../../hooks/metrics/usePredictClaimConfirmationMetrics';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-info.styles';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -50,7 +51,7 @@ function BackButton({ onReject }: { onReject: () => void }) {
 
   return (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSize.Lg}
       iconName={IconName.Close}
       onPress={handleReject}
       style={styles.backButton}

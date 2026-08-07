@@ -5,6 +5,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import {
   AvatarTokenSize,
   Box,
+  ButtonIconSize,
   FontWeight,
   Icon,
   IconColor,
@@ -16,8 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor as LegacyIconColor } from '../../../../component-library/components/Icons/Icon';
 import type { Status, TokenAmount } from '../../../../util/activity-adapters';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAvatar } from '../components/ActivityDetailsAvatar';
@@ -50,8 +49,8 @@ export function RampOrderIdValue({
       </Text>
       <CopyButton
         copyText={orderId}
-        size={ButtonIconSizes.Sm}
-        iconColor={LegacyIconColor.Alternative}
+        size={ButtonIconSize.Sm}
+        iconColor={IconColor.IconAlternative}
         testID="ramp-order-id-copy"
       />
     </Box>
