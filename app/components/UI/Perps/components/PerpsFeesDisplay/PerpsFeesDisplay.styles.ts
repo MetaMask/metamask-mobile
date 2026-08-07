@@ -6,7 +6,7 @@ const createStyles = (_colors: Theme['colors']) =>
     feeRowContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 4,
     },
   });
 

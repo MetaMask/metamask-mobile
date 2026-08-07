@@ -1,6 +1,7 @@
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
+  getTriggerExecution,
   type OrderType,
   type PerpsMarketData,
   type Position,
@@ -385,16 +386,16 @@ export const usePerpsProOrderForm = ({
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: () => {
       showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].confirmed(
-          orderForm.direction,
-          positionSize,
-          orderForm.asset,
-        ),
+        PerpsToastOptions.orderManagement[
+          getTriggerExecution(orderForm.type)
+        ].confirmed(orderForm.direction, positionSize, orderForm.asset),
       );
     },
     onError: (error) => {
       showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].creationFailed(error),
+        PerpsToastOptions.orderManagement[
+          getTriggerExecution(orderForm.type)
+        ].creationFailed(error),
       );
     },
   });
@@ -524,11 +525,9 @@ export const usePerpsProOrderForm = ({
       });
 
       showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].submitted(
-          orderForm.direction,
-          positionSize,
-          orderForm.asset,
-        ),
+        PerpsToastOptions.orderManagement[
+          getTriggerExecution(orderForm.type)
+        ].submitted(orderForm.direction, positionSize, orderForm.asset),
       );
 
       const shouldHandleTPSLSeparately =

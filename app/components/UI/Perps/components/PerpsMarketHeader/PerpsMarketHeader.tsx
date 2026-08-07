@@ -2,6 +2,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -112,6 +113,7 @@ const PerpsMarketHeader = ({
   testIDs,
   onBackPress,
   onIdentityPress,
+  showMarketIdentity = true,
   endAccessory,
   onWalletPress,
   onFavoritePress,
@@ -206,36 +208,51 @@ const PerpsMarketHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
       >
         {onWalletPress ? (
-          <ButtonIcon
-            iconName={IconName.Wallet}
-            size={ButtonIconSize.Md}
-            onPress={onWalletPress}
-            accessibilityLabel={strings('perps.market_details.wallet')}
-            testID={testIDs.walletButton}
-          />
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="size-10"
+          >
+            <ButtonIcon
+              iconName={IconName.Wallet}
+              size={ButtonIconSize.Md}
+              onPress={onWalletPress}
+              accessibilityLabel={strings('perps.market_details.wallet')}
+              testID={testIDs.walletButton}
+            />
+          </Box>
         ) : null}
         {onFavoritePress ? (
-          <ButtonIcon
-            iconName={isFavorite ? IconName.StarFilled : IconName.Star}
-            size={ButtonIconSize.Md}
-            onPress={onFavoritePress}
-            accessibilityLabel={strings(
-              isFavorite
-                ? 'perps.market_details.remove_from_watchlist'
-                : 'perps.market_details.add_to_watchlist',
-            )}
-            testID={testIDs.favoriteButton}
-          />
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="size-10"
+          >
+            <ButtonIcon
+              iconName={isFavorite ? IconName.StarFilled : IconName.Star}
+              size={ButtonIconSize.Md}
+              onPress={onFavoritePress}
+              accessibilityLabel={strings(
+                isFavorite
+                  ? 'perps.market_details.remove_from_watchlist'
+                  : 'perps.market_details.add_to_watchlist',
+              )}
+              testID={testIDs.favoriteButton}
+            />
+          </Box>
         ) : null}
         {onModeChange && mode ? (
-          <PerpsModeToggle
-            mode={mode}
-            variant="active"
-            onChange={onModeChange}
-            source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
-          />
+          <Box justifyContent={BoxJustifyContent.Center} twClassName="h-10">
+            <PerpsModeToggle
+              mode={mode}
+              variant="active"
+              onChange={onModeChange}
+              source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+            />
+          </Box>
         ) : null}
       </Box>
     ) : null);
@@ -244,7 +261,7 @@ const PerpsMarketHeader = ({
     <Box
       testID={testIDs.container}
       style={styles.container}
-      twClassName="border-b border-muted bg-default px-2"
+      twClassName="border-b border-muted bg-default px-4"
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
@@ -252,7 +269,7 @@ const PerpsMarketHeader = ({
       {onBackPress ? (
         <ButtonIcon
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
+          size={ButtonIconSize.Sm}
           onPress={onBackPress}
           accessibilityLabel={strings('perps.market_details.back')}
           testID={testIDs.backButton}
@@ -260,22 +277,24 @@ const PerpsMarketHeader = ({
       ) : null}
 
       <Box twClassName="flex-1">
-        <PerpsMarketIdentity
-          symbol={market.symbol}
-          name={market.name}
-          maxLeverage={market.maxLeverage}
-          size={32}
-          gap={2}
-          nameStyle={styles.nameText}
-          onPress={onIdentityPress}
-          subtitleContent={displaySubtitleAndPrice}
-          testIDs={{
-            assetIcon: testIDs.assetIcon,
-            assetName: testIDs.assetName,
-            subtitle: testIDs.subtitle,
-            marketListButton: testIDs.marketListButton,
-          }}
-        />
+        {showMarketIdentity ? (
+          <PerpsMarketIdentity
+            symbol={market.symbol}
+            name={market.name}
+            maxLeverage={market.maxLeverage}
+            size={32}
+            gap={2}
+            nameStyle={styles.nameText}
+            onPress={onIdentityPress}
+            subtitleContent={displaySubtitleAndPrice}
+            testIDs={{
+              assetIcon: testIDs.assetIcon,
+              assetName: testIDs.assetName,
+              subtitle: testIDs.subtitle,
+              marketListButton: testIDs.marketListButton,
+            }}
+          />
+        ) : null}
       </Box>
 
       {rightActions}
