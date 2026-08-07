@@ -1862,7 +1862,7 @@ export const getPredictPositionStatus = ({
   if (!claimable) {
     return PredictPositionStatus.OPEN;
   }
-  if (cashPnl > 0) {
+  if (cashPnl >= 0) {
     return PredictPositionStatus.WON;
   }
   return PredictPositionStatus.LOST;
