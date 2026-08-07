@@ -383,14 +383,15 @@ const BuildQuote = () => {
 
   let maxSellAmount: bigint | null = null;
   if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+    // Use nullish checks — bigint 0n is falsy, unlike BN instances.
     maxSellAmount =
-      balanceBN && gasPriceEstimation
+      balanceBN != null && gasPriceEstimation
         ? balanceBN - gasPriceEstimation.estimatedGasFee
         : null;
   } else if (
     selectedAsset &&
     selectedAsset.address !== NATIVE_ADDRESS &&
-    balanceBN
+    balanceBN != null
   ) {
     maxSellAmount = balanceBN;
   }
@@ -411,7 +412,9 @@ const BuildQuote = () => {
   );
 
   const amountIsOverGas = useMemo(() => {
-    if (isBuy || !maxSellAmount) {
+    // maxSellAmount of 0n is a real ceiling (e.g. native balance equals gas);
+    // only skip when it was never computed.
+    if (isBuy || maxSellAmount === null) {
       return false;
     }
     return Boolean(
@@ -420,10 +423,10 @@ const BuildQuote = () => {
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!amountBNMinimalUnit || amountBNMinimalUnit === 0n) {
+    if (amountBNMinimalUnit === undefined || amountBNMinimalUnit === 0n) {
       return false;
     }
-    if (!balanceBN) {
+    if (balanceBN == null) {
       return true;
     }
     return balanceBN < amountBNMinimalUnit;
@@ -434,7 +437,9 @@ const BuildQuote = () => {
       return false;
     }
 
-    if (!nativeTokenBalanceBN || !gasPriceEstimation) {
+    // 0n native balance must still be compared against gas — do not use
+    // truthiness (BN objects were always truthy; 0n is not).
+    if (nativeTokenBalanceBN == null || !gasPriceEstimation) {
       return false;
     }
 
@@ -901,7 +906,7 @@ const BuildQuote = () => {
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
   } else if (
-    balanceBN &&
+    balanceBN != null &&
     balanceBN !== 0n &&
     maxSellAmount !== null &&
     maxSellAmount > 0n
