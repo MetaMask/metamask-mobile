@@ -461,6 +461,7 @@
     "expo-haptics": "~55.0.14",
     "expo-image": "~55.0.11",
     "expo-local-authentication": "~55.0.14",
+    "expo-screen-capture": "~55.0.16",
     "expo-screen-orientation": "~55.0.16",
     "expo-sensors": "~55.0.15",
     "expo-splash-screen": "~55.0.21",
