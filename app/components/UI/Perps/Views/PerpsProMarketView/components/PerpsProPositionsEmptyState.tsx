@@ -1,11 +1,5 @@
-import { TabEmptyState } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image } from 'react-native';
-import { strings } from '../../../../../../../locales/i18n';
-import { useAssetFromTheme } from '../../../../../../util/theme';
-import emptyStatePerpsLight from '../../../../../../images/empty-state-perps-light.png';
-import emptyStatePerpsDark from '../../../../../../images/empty-state-perps-dark.png';
+import PerpsProTabEmptyState from './PerpsProTabEmptyState';
 
 interface PerpsProPositionsEmptyStateProps {
   /** When set, shows the ticker-filtered empty copy instead of the global one. */
@@ -21,33 +15,13 @@ interface PerpsProPositionsEmptyStateProps {
 const PerpsProPositionsEmptyState = ({
   filteredTicker,
   filteredSideDescriptionKey,
-}: PerpsProPositionsEmptyStateProps) => {
-  const tw = useTailwind();
-  const perpsImage = useAssetFromTheme(
-    emptyStatePerpsLight,
-    emptyStatePerpsDark,
-  );
-
-  const description = filteredSideDescriptionKey
-    ? strings(filteredSideDescriptionKey)
-    : filteredTicker
-      ? strings('perps.pro_positions_panel.positions_empty_filtered', {
-          ticker: filteredTicker,
-        })
-      : strings('perps.pro_positions_panel.positions_empty');
-
-  return (
-    <TabEmptyState
-      icon={
-        <Image
-          source={perpsImage}
-          resizeMode="contain"
-          style={tw.style('w-[72px] h-[72px]')}
-        />
-      }
-      description={description}
-    />
-  );
-};
+}: PerpsProPositionsEmptyStateProps) => (
+  <PerpsProTabEmptyState
+    filteredTicker={filteredTicker}
+    filteredSideDescriptionKey={filteredSideDescriptionKey}
+    emptyDescriptionKey="perps.pro_positions_panel.positions_empty"
+    filteredTickerDescriptionKey="perps.pro_positions_panel.positions_empty_filtered"
+  />
+);
 
 export default PerpsProPositionsEmptyState;
