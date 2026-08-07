@@ -76,7 +76,7 @@ import {
   recordPhase,
   startPhase,
   stopPhase,
-} from '../telemetry/PhaseTimer';
+} from '../telemetry/PhaseTimer.ts';
 
 const logger = createLogger({
   name: 'FixtureHelper',

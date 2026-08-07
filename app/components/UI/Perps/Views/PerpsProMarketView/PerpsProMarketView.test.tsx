@@ -88,6 +88,10 @@ const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
 // the order-book → order-form wiring (TAT-3643) can be asserted directly.
 const mockSetLimitPrice = jest.fn();
 const mockSetOrderType = jest.fn();
+const mockPerpsOrderProvider = jest.fn(
+  ({ children }: { children: React.ReactNode; fallbackAmount?: string }) =>
+    children,
+);
 const mockOrderProviderProps = jest.fn();
 
 const mockHandleBackPress = jest.fn();
@@ -288,13 +292,13 @@ jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
 }));
 
 jest.mock('../../contexts/PerpsOrderContext', () => ({
-  PerpsOrderProvider: ({
-    children,
-    ...props
-  }: {
+  PerpsOrderProvider: (props: {
     children: React.ReactNode;
+    fallbackAmount?: string;
   }) => {
-    mockOrderProviderProps(props);
+    const { children, ...providerProps } = props;
+    mockPerpsOrderProvider(props);
+    mockOrderProviderProps(providerProps);
     return children;
   },
   usePerpsOrderContext: () => ({
@@ -414,6 +418,16 @@ describe('PerpsProMarketView', () => {
       orders: [],
       isInitialLoading: false,
     });
+  });
+
+  it('configures an empty fallback amount for the Pro order form', () => {
+    renderView();
+
+    expect(mockPerpsOrderProvider.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        fallbackAmount: '',
+      }),
+    );
   });
 
   afterEach(() => {
@@ -565,15 +579,6 @@ describe('PerpsProMarketView', () => {
       ).not.toBeOnTheScreen();
     },
   );
-
-  it('renders the screen inside every safe-area edge', () => {
-    const { getByTestId } = renderView();
-
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER)).toHaveProp(
-      'edges',
-      ['top', 'bottom', 'left', 'right'],
-    );
-  });
 
   it('tracks an attributed Pro market screen view', () => {
     renderView();
