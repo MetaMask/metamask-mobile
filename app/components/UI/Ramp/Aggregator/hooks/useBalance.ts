@@ -25,6 +25,8 @@ import { selectMultichainBalances } from '../../../../../selectors/multichain';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 ///: END:ONLY_INCLUDE_IF
 
+type CurrencyCode = Parameters<typeof weiToFiat>[2];
+
 const defaultReturn = {
   balance: null,
   balanceFiat: null,
@@ -72,9 +74,7 @@ export default function useBalance(asset?: Asset) {
     return defaultReturn;
   }
 
-  let balance: string | number | null | undefined;
-  let balanceFiat: string | undefined;
-  let balanceBN: bigint | null | undefined;
+  let balance, balanceFiat, balanceBN;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset.assetId) {
@@ -103,15 +103,19 @@ export default function useBalance(asset?: Asset) {
       return defaultReturn;
     }
 
-    balance = renderFromWei(
-      accountsByChainId[hexChainId][selectedAddress]?.balance,
-    );
+    const accountBalance =
+      accountsByChainId[hexChainId][selectedAddress]?.balance;
 
-    balanceBN = hexToBigInt(
-      accountsByChainId[hexChainId][selectedAddress]?.balance,
-    );
+    balance = renderFromWei(accountBalance);
 
-    balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
+    // Legacy hexToBN(undefined) returned BN(0); preserve that for missing balances.
+    balanceBN = hexToBigInt(accountBalance ?? '0x0');
+
+    balanceFiat = weiToFiat(
+      balanceBN,
+      conversionRate ?? null,
+      currentCurrency as CurrencyCode,
+    );
   } else if (asset.address) {
     const assetAddress = safeToChecksumAddress(asset.address);
     const exchangeRate = tokenExchangeRates?.[assetAddress as Hex]?.price;
@@ -128,8 +132,9 @@ export default function useBalance(asset?: Asset) {
     balanceFiat = balanceToFiat(
       balance,
       conversionRate,
-      exchangeRate,
-      currentCurrency,
+      // Runtime guard inside balanceToFiat still handles undefined/0 exchange rates.
+      exchangeRate as number,
+      currentCurrency as CurrencyCode,
     );
     balanceBN =
       assetAddress && chainBalances && assetAddress in chainBalances

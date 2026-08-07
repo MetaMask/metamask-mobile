@@ -168,6 +168,12 @@ const initialState = {
 };
 
 describe('useBalance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectSelectedInternalAccountByScope.mockReset();
+    mockSelectMultichainBalances.mockReset();
+  });
+
   it('returns default if not asset is provided', async () => {
     const { result } = renderHookWithProvider(() => useBalance(), {
       state: initialState,

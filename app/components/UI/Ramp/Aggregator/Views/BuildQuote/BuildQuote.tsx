@@ -415,8 +415,7 @@ const BuildQuote = () => {
       return false;
     }
     return Boolean(
-      amountBNMinimalUnit !== undefined &&
-        amountBNMinimalUnit > maxSellAmount,
+      amountBNMinimalUnit !== undefined && amountBNMinimalUnit > maxSellAmount,
     );
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
