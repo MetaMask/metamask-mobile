@@ -94,6 +94,7 @@ import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsigh
 import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
 import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedChart/MAPickerSheet';
+import type { FeatureNotificationsGateSheetParams } from '../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
@@ -412,6 +413,7 @@ export type RootModalFlowParamList = {
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   SDKManageConnections: SDKManageConnectionsParams | undefined;
   ExperienceEnhancer: undefined;
+  FeatureNotificationsGate: FeatureNotificationsGateSheetParams;
   DataCollection: undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;

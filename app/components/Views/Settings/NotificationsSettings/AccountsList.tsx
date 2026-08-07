@@ -20,11 +20,14 @@ export type NotificationAccountListProps = ReturnType<
 interface AccountsListProps {
   accountProps: AccountProps;
   notificationAccountListProps: NotificationAccountListProps;
+  /** When true, disables all account switches. */
+  disabled?: boolean;
 }
 
 export const AccountsList = ({
   accountProps,
   notificationAccountListProps,
+  disabled = false,
 }: AccountsListProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
@@ -44,6 +47,7 @@ export const AccountsList = ({
   } | null>(null);
   const isUpdatingAccountRef = useRef(false);
   const areSwitchesDisabled =
+    disabled ||
     shouldDisableSwitches ||
     isAnyAccountUpdating ||
     pendingAccountToggle !== null;
