@@ -12,6 +12,7 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -79,6 +80,12 @@ jest.mock('../useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
 jest.useFakeTimers();
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -103,6 +110,8 @@ const mockUseInsufficientNativeReserveError =
   useInsufficientNativeReserveError as jest.MockedFunction<
     typeof useInsufficientNativeReserveError
   >;
+const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useBridgeQuoteRequest', () => {
   beforeEach(() => {
@@ -150,6 +159,74 @@ describe('useBridgeQuoteRequest', () => {
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
+  });
+
+  it('starts the quote trace after the debounce delay', async () => {
+    const testState = createBridgeTestState();
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    act(() => {
+      result.current();
+      jest.advanceTimersByTime(DEBOUNCE_WAIT - 1);
+    });
+
+    expect(mockTrace).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      data: { isRefresh: false },
+      startTime: expect.any(Number),
+    });
+  });
+
+  it('marks manually requested quote refreshes in the quote trace', async () => {
+    const testState = createBridgeTestState();
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    await act(async () => {
+      result.current({ isRefresh: true });
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+    });
+
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      data: { isRefresh: true },
+      startTime: expect.any(Number),
+    });
+  });
+
+  it('ends the trace when updating quote parameters fails', async () => {
+    const error = new Error('quote request failed');
+    spyUpdateBridgeQuoteRequestParams.mockRejectedValueOnce(error);
+
+    const testState = createBridgeTestState();
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
+      state: testState,
+    });
+
+    await expect(
+      act(async () => {
+        result.current();
+        await result.current.flush();
+      }),
+    ).rejects.toThrow(error);
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+      data: { success: false },
+    });
   });
 
   it('includes the custom slippage in quote parameters', async () => {
@@ -221,7 +298,9 @@ describe('useBridgeQuoteRequest', () => {
     });
 
     spyUpdateBridgeQuoteRequestParams.mockClear();
+    mockTrace.mockClear();
     expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+    expect(mockTrace).not.toHaveBeenCalled();
   });
 
   it('skips update when destination token is missing', async () => {
@@ -334,6 +413,7 @@ describe('useBridgeQuoteRequest', () => {
       0,
       1,
     );
+    expect(mockTrace).not.toHaveBeenCalled();
   });
 
   it('converts source amount with custom token decimals', async () => {
