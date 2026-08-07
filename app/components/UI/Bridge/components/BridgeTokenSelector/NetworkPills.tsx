@@ -89,11 +89,8 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
   // Visible pill chain IDs from Redux (shared across source/dest pickers).
   // Falls back to first N from chainRanking on initial mount.
   const reduxVisibleChainIds = useSelector(selectVisiblePillChainIds);
-  const fallbackVisibleChainIds = useMemo(
-    () => getVisibleChainIds(chainRanking),
-    [chainRanking],
-  );
-  const visibleChainIds = reduxVisibleChainIds ?? fallbackVisibleChainIds;
+  const visibleChainIds =
+    reduxVisibleChainIds ?? getVisibleChainIds(chainRanking);
 
   // Resolve visible chains to full entries from chainRanking
   const visibleChains = useMemo(
@@ -110,9 +107,9 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
   // push it to the first position and pop the last visible pill.
   // Also scroll the pills to bring the selected network into view.
   //
-  // Re-run when `chainRanking` or persisted visible IDs change so treatment
-  // holdings reorders cannot drop the selected chain out of the pills while
-  // `visiblePillChainIds` is still unset (derived from live ranking).
+  // Only `selectedChainId` is listed as a dependency because
+  // `visibleChainIds` is derived from Redux state that this effect updates;
+  // including it would cause an infinite update loop.
   useEffect(() => {
     if (!selectedChainId) {
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
@@ -130,13 +127,12 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
         ]),
       );
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
-      return;
+    } else {
+      // Already visible: scroll to bring it into view
+      const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
+      scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
     }
-
-    // Already visible: scroll to bring it into view
-    const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
-    scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
-  }, [selectedChainId, visibleChainIds, dispatch]);
+  }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderChainPill = (chain: ChainRankingEntry) => {
     // Only one pill may appear selected at a time (star, All, or one network).
