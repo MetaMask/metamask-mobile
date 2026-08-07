@@ -2,10 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsAdjustMarginActionSheet from './PerpsAdjustMarginActionSheet';
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {

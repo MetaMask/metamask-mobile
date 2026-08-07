@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
+import { v4 as uuidv4 } from 'uuid';
 import { CaipChainId } from '@metamask/utils';
 import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
 
 const MIN_SEARCH_LENGTH = 3;
@@ -104,6 +106,8 @@ export const useSearchTokens = ({
         setSearchResults([]);
       }
 
+      let traceId: string | undefined;
+
       try {
         const requestBody: {
           chainIds: CaipChainId[];
@@ -121,6 +125,15 @@ export const useSearchTokens = ({
 
         if (includeAssetsRef.current && !isPagination) {
           requestBody.includeAssets = includeAssetsRef.current;
+        }
+
+        traceId = isPagination ? undefined : uuidv4();
+        if (traceId) {
+          trace({
+            name: TraceName.SwapTokenSearch,
+            id: traceId,
+            startTime: Date.now(),
+          });
         }
 
         const response = await fetch(
@@ -173,6 +186,14 @@ export const useSearchTokens = ({
           setSearchCursor(undefined);
         }
       } finally {
+        if (traceId) {
+          endTrace({
+            name: TraceName.SwapTokenSearch,
+            id: traceId,
+            timestamp: Date.now(),
+          });
+        }
+
         if (isPagination) {
           setIsLoadingMore(false);
         } else {

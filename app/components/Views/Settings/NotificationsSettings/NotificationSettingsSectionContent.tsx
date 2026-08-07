@@ -47,8 +47,7 @@ const WalletActivitySectionContent = ({
   disabled = false,
 }: SectionContentProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { preferences, updatePreferencesSection } =
-    useNotificationStoragePreferences();
+  const { updatePreferencesSection } = useNotificationStoragePreferences();
   const {
     accountProps,
     notificationAccountListProps,
@@ -58,18 +57,20 @@ const WalletActivitySectionContent = ({
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
 
+  // Flip both channels in one write. The updater form is required:
+  // `toggleAllAccounts` just rewrote the accounts, so building the section
+  // from this render's preferences would PUT the pre-toggle accounts array
+  // and re-enable every account.
   const handleToggleAllAccounts = useCallback(async () => {
     const nextEnabled = !hasEnabledAccount;
 
     await toggleAllAccounts();
 
-    if (preferences) {
-      await updatePreferencesSection('walletActivity', {
-        ...preferences.walletActivity,
-        pushNotificationsEnabled: nextEnabled,
-        inAppNotificationsEnabled: nextEnabled,
-      });
-    }
+    await updatePreferencesSection('walletActivity', (walletActivity) => ({
+      ...walletActivity,
+      pushNotificationsEnabled: nextEnabled,
+      inAppNotificationsEnabled: nextEnabled,
+    }));
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
@@ -83,7 +84,6 @@ const WalletActivitySectionContent = ({
   }, [
     hasEnabledAccount,
     toggleAllAccounts,
-    preferences,
     updatePreferencesSection,
     trackEvent,
     createEventBuilder,

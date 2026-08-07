@@ -8,6 +8,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { PerpsGTMModalSelectorsIDs } from '../../Perps.testIds';
+import {
+  PERPS_GTM_MODAL_DECLINE,
+  PERPS_GTM_MODAL_ENGAGE,
+  PERPS_GTM_WHATS_NEW_MODAL,
+} from '../../constants/perpsConfig';
 
 jest.mock('../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../util/theme');
@@ -25,6 +31,14 @@ jest.mock('../../../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
+jest.mock('../../../../../util/metrics', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    platform: 'ios',
+    deviceModel: 'iPhone 14',
+  })),
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -38,9 +52,11 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
+  addProperties: mockAddProperties,
+  build: mockBuild,
 });
 jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 
@@ -53,6 +69,12 @@ const initialState = {
 describe('PerpsGTMModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnThis();
+    mockBuild.mockReturnValue({});
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('false');
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -60,7 +82,7 @@ describe('PerpsGTMModal', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('renders correctly with all main elements', async () => {
+  it('renders all main elements', async () => {
     const { getByText, getByTestId } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
     });
@@ -70,39 +92,49 @@ describe('PerpsGTMModal', () => {
       expect(getByText('perps.gtm_content.title_description')).toBeTruthy();
       expect(getByText('perps.gtm_content.try_now')).toBeTruthy();
       expect(getByText('perps.gtm_content.not_now')).toBeTruthy();
-      expect(getByTestId('perps-gtm-modal')).toBeTruthy();
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL),
+      ).toBeTruthy();
     });
   });
 
-  it('handles close button press correctly', async () => {
-    const { getByText } = renderWithProvider(<PerpsGTMModal />, {
+  it('tracks Whats New Link Clicked with decline action when not now is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      const notNowButton = getByText('perps.gtm_content.not_now');
-      fireEvent.press(notNowButton);
+      fireEvent.press(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON),
+      );
     });
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       PERPS_GTM_MODAL_SHOWN,
       'true',
     );
-    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      platform: 'ios',
+      deviceModel: 'iPhone 14',
+      feature: PERPS_GTM_WHATS_NEW_MODAL,
+      action: PERPS_GTM_MODAL_DECLINE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
-  it('handles try now button press correctly', async () => {
-    const { getByText } = renderWithProvider(<PerpsGTMModal />, {
+  it('tracks Whats New Link Clicked with engage action when try now is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      const tryNowButton = getByText('perps.gtm_content.try_now');
-      fireEvent.press(tryNowButton);
+      fireEvent.press(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON),
+      );
     });
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
@@ -110,22 +142,30 @@ describe('PerpsGTMModal', () => {
       'true',
       { emitEvent: false },
     );
-    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WHATS_NEW_LINK_CLICKED,
     );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      platform: 'ios',
+      deviceModel: 'iPhone 14',
+      feature: PERPS_GTM_WHATS_NEW_MODAL,
+      action: PERPS_GTM_MODAL_ENGAGE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
       isFromGTMModal: true,
     });
   });
 
-  it('renders image correctly', async () => {
+  it('renders image', async () => {
     const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      expect(getByTestId('perps-gtm-modal')).toBeTruthy();
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL),
+      ).toBeTruthy();
     });
   });
 });

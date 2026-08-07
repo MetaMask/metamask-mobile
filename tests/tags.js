@@ -65,7 +65,7 @@ const smokeTags = {
   smokeSeedlessOnboarding: {
     tag: 'SmokeSeedlessOnboarding:',
     description:
-      'Tests seedless onboarding with social login providers (Google and Apple) and post-onboard flows. Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, SeedlessOnboardingController mock integration, OAuth token exchange, and the onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. Also covers importing an additional SRP after Google seedless onboarding, Wallet Setup Completed attribution analytics for Google and Apple, QR sync SRP (new-user and existing-user mobile ↔ extension), and lock/unlock and reset-wallet after Google social login (may be skipped when flaky). Specs live in tests/smoke-appium/seedless/. When changes touch OAuth, SeedlessOnboardingController, social login UI, Account Already Exists, the onboarding sheet, Add Device / QR sync, post-seedless SRP import, onboarding attribution analytics, or seedless lock/reset, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync / multi-SRP after social login.',
+      'Device-critical seedless / social-login Appium smokes. Keep thin: Google and Apple new-user OAuth onboard to wallet home; QR sync SRP (new-user and existing-user mobile ↔ extension); lock/unlock and reset-wallet from a fixture wallet (keychain / vault wipe — do not re-run full social onboard in those specs). Specs live in tests/smoke-appium/seedless/. Prefer component-view / unit for Account Already Exists UI, Wallet Setup Completed attribution props, and Import SRP screen validation. When changes touch OAuth, SeedlessOnboardingController, social login UI, the onboarding sheet, Add Device / QR sync, or seedless lock/reset, select this tag. Related to SmokeWalletPlatform for wallet lifecycle, SmokeAccounts for multi-SRP import, and wallet analytics smokes for Wallet Setup Completed attribution.',
   },
   smokeBrowser: {
     tag: 'SmokeBrowser:',
@@ -89,7 +89,6 @@ const flaskTags = {};
 // Other tags to run on demand or for specific purposes.
 const otherTags = {
   sampleFeature: 'SampleFeature:',
-  performance: 'Performance:',
   fixtureValidation: 'FixtureValidation:',
 };
 
@@ -99,13 +98,8 @@ const tagDescribe = (tagPrefix) => (testName) => `${tagPrefix} ${testName}`;
 /** smokeAccounts → SmokeAccounts */
 const smokeExportName = (key) => `Smoke${key.slice('smoke'.length)}`;
 
-/** sampleFeature → SampleFeature; performance → SmokePerformance (tag stays "Performance:") */
-const otherExportName = (key) => {
-  if (key === 'performance') {
-    return 'SmokePerformance';
-  }
-  return key.charAt(0).toUpperCase() + key.slice(1);
-};
+/** sampleFeature → SampleFeature */
+const otherExportName = (key) => key.charAt(0).toUpperCase() + key.slice(1);
 
 /** @param {Record<string, { tag: string, description: string }>} tags */
 const createSmokeDescribeFunctions = (tags) =>
@@ -143,7 +137,7 @@ const {
   SmokeMMConnect,
 } = createSmokeDescribeFunctions(smokeTags);
 
-const { SampleFeature, SmokePerformance, FixtureValidation } =
+const { SampleFeature, FixtureValidation } =
   createOtherDescribeFunctions(otherTags);
 
 export {
@@ -165,6 +159,5 @@ export {
   SmokeMMConnect,
   SampleFeature,
   SmokeSnaps,
-  SmokePerformance,
   FixtureValidation,
 };

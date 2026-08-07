@@ -933,6 +933,7 @@ export const BridgeTokenSelector: React.FC = () => {
           data={displayData}
           renderItem={renderToken}
           keyExtractor={keyExtractor}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator
           showsHorizontalScrollIndicator={false}
           onScroll={handleScroll}

@@ -978,7 +978,6 @@ export type RootStackParamList = {
   PredictFeed: PredictNavigationParamList['PredictFeed'];
   PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
   PredictPositions: PredictNavigationParamList['PredictPositions'];
-  PredictWorldCup: PredictNavigationParamList['PredictWorldCup'];
   PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
   PredictModals:
     | NavigatorScreenParams<PredictModalsNavigationParamList>

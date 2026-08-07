@@ -298,6 +298,18 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    region: null,
+    onboardingDocuments: [],
+    permanentDocuments: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
 const mockResumePendingAction = jest.fn();
 let mockImmersvePendingAction: { type: string } | null = null;
 jest.mock('./hooks/useImmersveCardProvisioning', () => ({
@@ -851,9 +863,6 @@ function setupMockSelectors(
       return config.selectedAccount;
     if (selectorString.includes('selectCardholderAccounts'))
       return config.cardholderAccounts;
-    if (selectorString.includes('selectEvmTokens')) return [mockPriorityToken];
-    if (selectorString.includes('selectEvmTokenFiatBalances'))
-      return ['1000.00'];
 
     return [];
   });
@@ -1548,6 +1557,9 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).not.toBeOnTheScreen();
       expect(screen.getByText('Unlink Money account')).toBeOnTheScreen();
       expect(
         screen.getByText('Change your Card funding source'),
@@ -1571,6 +1583,9 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
       ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('hides the unlink row when there is no active primary Money Account', () => {
@@ -2837,14 +2852,16 @@ describe('CardHome Component', () => {
   });
 
   describe('Data refresh on focus', () => {
-    it('calls refetch when the screen gains focus', () => {
-      mockRefetchAllData.mockClear();
+    it('calls fetchCardHomeData when the screen gains focus', () => {
+      const fetchSpy = Engine.context.CardController
+        .fetchCardHomeData as jest.Mock;
+      fetchSpy.mockClear();
 
       jest.mocked(useFocusEffect).mockImplementation((cb) => cb());
 
       render();
 
-      expect(mockRefetchAllData).toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledWith();
 
       jest.mocked(useFocusEffect).mockImplementation(jest.fn());
     });
