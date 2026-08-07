@@ -10,8 +10,6 @@ import {
   toQuoteResponseV2,
   type BridgeAppState,
   type GenericQuoteRequest,
-  type L1GasFees,
-  type NonEvmFees,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { RootState } from '../../../../../../../reducers';
@@ -51,6 +49,7 @@ import {
   streamQuickBuyQuotes,
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../../../constants/bridge';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -623,6 +622,7 @@ export function useQuickBuyQuotes({
     return selectBridgeQuotesBase(controllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
   }, [rawQuotes, metadataDeps, sourceToken, destToken]);
 

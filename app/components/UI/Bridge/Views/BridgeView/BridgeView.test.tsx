@@ -1757,7 +1757,7 @@ describe('BridgeView', () => {
       // navigate to the PriceImpactModal — the location value is embedded in
       // the navigation params, making this the easiest observable side-effect
       // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact (raw decimal),
+      // The component reads activeQuote.quote.priceData.priceImpact.amount (raw decimal),
       // so we must override it alongside the formatted display string.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -1767,7 +1767,7 @@ describe('BridgeView', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {

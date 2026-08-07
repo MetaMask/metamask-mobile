@@ -116,6 +116,7 @@ import {
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../../../constants/bridge';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -1495,6 +1496,14 @@ export function useQuickBuyController(
         walletAddress,
         activeQuote,
         stxEnabled,
+        undefined, // quotesReceivedContext
+        undefined, // location
+        undefined, // abTests
+        undefined, // mergedActiveAbTests
+        undefined, // tokenSecurityTypeDestination
+        undefined, // batchSellTrades
+        undefined, // inputPrimaryDenomination
+        BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       );
       const txHash =
         submitResult &&

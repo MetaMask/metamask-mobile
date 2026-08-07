@@ -3521,6 +3521,14 @@ describe('useQuickBuyController', () => {
         '0xWALLET',
         expect.objectContaining({ approval: null }),
         true,
+        undefined, // quotesReceivedContext
+        undefined, // location
+        undefined, // abTests
+        undefined, // mergedActiveAbTests
+        undefined, // tokenSecurityTypeDestination
+        undefined, // batchSellTrades
+        undefined, // inputPrimaryDenomination
+        '1.5',
       );
     });
 

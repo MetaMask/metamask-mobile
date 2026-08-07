@@ -244,7 +244,7 @@ describe('useBridgeQuoteData', () => {
       ...mockQuoteWithMetadata,
       quote: {
         ...mockQuoteWithMetadata.quote,
-        priceData: { priceImpact: '0.05' },
+        priceData: { priceImpact: { amount: '0.05' } },
       },
     };
     selectBridgeQuotes.mockImplementation(() => ({
@@ -287,9 +287,11 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           priceData: {
-            priceImpact: String(
-              AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD,
-            ),
+            priceImpact: {
+              amount: String(
+                AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD,
+              ),
+            },
           },
         },
       },
