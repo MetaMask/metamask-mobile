@@ -4639,6 +4639,8 @@ describe('PerpsStreamManager', () => {
         size: '1',
         entryPrice: '50000',
         markPrice: '51000',
+        positionValue: '51000',
+        marginUsed: '5100',
         unrealizedPnl: '1000',
         leverage: { type: 'cross', value: 10 },
         liquidationPrice: '45000',
