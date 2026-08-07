@@ -1,7 +1,5 @@
 import {
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   BtcScope,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
@@ -144,7 +142,6 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.ROBINHOOD,
     }),
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   {
     id: BtcScope.Mainnet,
     name: 'Bitcoin',
@@ -152,7 +149,6 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
     isSelected: false,
     imageSource: getNetworkImageSource({ chainId: BtcScope.Mainnet }),
   },
-  ///: END:ONLY_INCLUDE_IF
 ];
 
 /**
