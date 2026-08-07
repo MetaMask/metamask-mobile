@@ -2,7 +2,11 @@ import {
   ATTRIBUTION_DEFAULT_TTL_MS,
   type AttributionRecord,
 } from '../../core/redux/slices/attribution';
-import { getWalletSetupCompletedAttributionAnalyticsProps } from './walletSetupCompletedAttribution';
+import ReduxService from '../../core/redux';
+import {
+  getWalletSetupAttributionPropsFromStore,
+  getWalletSetupCompletedAttributionAnalyticsProps,
+} from './walletSetupCompletedAttribution';
 
 const baseRecord: AttributionRecord = {
   utm_source: 'email',
@@ -89,5 +93,49 @@ describe('getWalletSetupCompletedAttributionAnalyticsProps', () => {
     expect(props).toEqual({
       utm_campaign: 'spring',
     });
+  });
+});
+
+describe('getWalletSetupAttributionPropsFromStore', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('returns acquisition fields from Redux when marketing consent is true', () => {
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({
+        attribution: {
+          attribution: {
+            ...baseRecord,
+            // Match former seedless Appium attribution E2E fixture fields.
+            utm_source: 'e2e_wsc_utm_source',
+            utm_campaign: 'e2e_wsc_campaign',
+            attribution_id: 'e2e_wsc_attr_id',
+            capturedAt: Date.now(),
+          },
+        },
+      }),
+    } as unknown as typeof ReduxService.store);
+
+    expect(getWalletSetupAttributionPropsFromStore(true)).toEqual({
+      utm_source: 'e2e_wsc_utm_source',
+      utm_campaign: 'e2e_wsc_campaign',
+      attribution_id: 'e2e_wsc_attr_id',
+    });
+  });
+
+  it('returns empty object when marketing consent is false', () => {
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({
+        attribution: {
+          attribution: {
+            ...baseRecord,
+            capturedAt: Date.now(),
+          },
+        },
+      }),
+    } as unknown as typeof ReduxService.store);
+
+    expect(getWalletSetupAttributionPropsFromStore(false)).toEqual({});
   });
 });

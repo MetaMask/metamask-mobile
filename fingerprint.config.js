@@ -110,16 +110,30 @@ const config = {
 
   /**
    * Paths excluded from the fingerprint entirely (on top of `@expo/fingerprint`'s own
-   * defaults). Every entry below has been verified to only run GitHub metadata automation
-   * (labels/comments/notifications), static lint/compliance checks, branch/release
+   * defaults). Every `.github/**` entry below has been verified to only run GitHub metadata
+   * automation (labels/comments/notifications), static lint/compliance checks, branch/release
    * bookkeeping, or test execution against an already-built app artifact — none of them
-   * can change the compiled native binary or the OTA JS bundle.
+   * can change the compiled native binary or the OTA JS bundle. Entries outside `.github/**`
+   * carry their own inline justification.
    *
    * IMPORTANT: this is a denylist by design (see the comment on `extraSources` above).
    * When adding a new workflow/script, it is tracked by default; only add it here once
    * you've confirmed it can't affect the native binary. When in doubt, leave it tracked.
    */
   ignorePaths: [
+    // The root `.gitignore`, which `@expo/fingerprint` hashes by default (as the
+    // `bareGitIgnore` source). Nothing the native build consumes depends on it. Its only
+    // consumer inside fingerprinting is `resolveProjectWorkflowAsync`, which classifies the
+    // project as bare or managed (`useCNG`) by running `git check-ignore` against the
+    // platform marker files: `android/app/build.gradle`, the Android manifest, and the Xcode
+    // `project.pbxproj`. `git check-ignore` never reports a *tracked* file as ignored, and
+    // all three markers are committed here, so that classification is pinned to `generic`
+    // regardless of this file's contents — verified by adding `ios/MetaMask.xcodeproj/` and
+    // both Android markers to `.gitignore` and observing an unchanged fingerprint. Hashing
+    // the text therefore adds no signal, and only means edits that cannot reach the native
+    // binary (new tooling/log/build-artifact patterns) invalidate every cached native build.
+    '.gitignore',
+
     // .github/scripts own tooling/deps - irrelevant to any workflow's runtime behavior.
     '.github/scripts/node_modules/**',
     '.github/scripts/.yarn/**',
@@ -160,6 +174,14 @@ const config = {
     '.github/scripts/e2e-report-fixture-validation.mjs',
     '.github/scripts/e2e-smart-selection.mjs',
     '.github/scripts/e2e-split-tags-shards.mjs',
+
+    // E2E platform-gating logic. Its outputs (`native_build_needed`,
+    // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, ...) only decide *whether*
+    // build/test jobs run - none of them is a build parameter, so no change here can
+    // alter what gets compiled.
+    '.github/scripts/compute-e2e-platform-flags.cjs',
+    '.github/scripts/compute-e2e-platform-flags.test.ts',
+    '.github/scripts/run-compute-e2e-platform-flags.cjs',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.
@@ -239,16 +261,18 @@ const config = {
     '.github/workflows/run-appium-smoke-tests-android.yml',
     '.github/workflows/run-appium-smoke-tests-ios.yml',
     '.github/workflows/run-e2e-api-specs.yml',
-    '.github/workflows/run-e2e-smoke-tests-android.yml',
-    '.github/workflows/run-e2e-smoke-tests-ios.yml',
     '.github/workflows/run-e2e-workflow.yml',
     '.github/workflows/performance-test-runner.yml',
     '.github/workflows/update-e2e-fixtures.yml',
     '.github/workflows/upload-to-testflight.yml',
     '.github/workflows/runway-ota-resolve-context.yml',
 
-    // Note: `.github/workflows/get-requirements.yml` is intentionally NOT ignored, since
-    // it gates whether native build jobs run at all.
+    // Gating only: every `workflow_call` output it exposes (`native_build_needed`,
+    // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, `run_performance`, ...) is a
+    // boolean or a spec-file list that decides *whether* downstream jobs run. It emits no
+    // build parameter (no `build_type`, no `metamask_environment`), so it cannot change
+    // what gets compiled - only whether a compile is attempted.
+    '.github/workflows/get-requirements.yml',
   ],
 
   /**
