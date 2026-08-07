@@ -172,8 +172,8 @@ describe('NotificationSettingsSection', () => {
   it('disables both channels and tracks an ALL update when deselecting all accounts', async () => {
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     const button = screen.getByTestId(
@@ -216,8 +216,8 @@ describe('NotificationSettingsSection', () => {
 
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     const button = screen.getByTestId(
@@ -431,8 +431,8 @@ describe('NotificationSettingsSection', () => {
     );
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, swaps',
     });
 
     const pushToggle = screen.getByTestId(
@@ -471,8 +471,8 @@ describe('NotificationSettingsSection', () => {
       .mockResolvedValueOnce(undefined);
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     fireEvent(
