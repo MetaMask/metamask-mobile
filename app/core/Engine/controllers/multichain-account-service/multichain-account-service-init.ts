@@ -4,15 +4,26 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  AccountProviderWrapper,
+  XlmAccountProvider,
 } from '@metamask/multichain-account-service';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
+import { isStellarAccountsFeatureEnabled } from '../../../../multichain-stellar/remote-feature-flag';
+import { previousValueComparator } from '../../../../util/value-compartor';
+
+const mergedFlags = (state: RemoteFeatureFlagControllerState) => ({
+  ...state.remoteFeatureFlags,
+  ...(state.localOverrides ?? {}),
+});
 
 /**
  * Initialize the multichain account service.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.
+ * @param request.initMessenger - The messenger to use for initialization.
  * @returns The initialized service.
  */
 export const multichainAccountServiceInit: MessengerClientInitFunction<
@@ -39,8 +50,27 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
+  const xlmProvider = new AccountProviderWrapper(
+    controllerMessenger,
+    new XlmAccountProvider(controllerMessenger, snapAccountProviderConfig),
+  );
+
+  // initialize Stellar provider based on feature flag
+  const initialRemoteFeatureFlagsState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+
+  const initialStellarEnabled = isStellarAccountsFeatureEnabled(
+    mergedFlags(initialRemoteFeatureFlagsState).stellarAccounts,
+  );
+
+  xlmProvider.setEnabled(initialStellarEnabled);
+
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
+    // TODO: Once stellar is officially supported,
+    // move it to the providers array via `XLM_ACCOUNT_PROVIDER_NAME`.
+    providers: [xlmProvider],
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -51,6 +81,37 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
       /// END:ONLY_INCLUDE_IF
     },
   });
+
+
+  // Subscribe to feature flag changes to enable Stellar provider.
+  // Note: Disable Stellar provider from enable may result abnormal behavior.
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    previousValueComparator((prevState, currState) => {
+      const prevStellarEnabled = isStellarAccountsFeatureEnabled(
+        mergedFlags(prevState).stellarAccounts,
+      );
+      const currStellarEnabled = isStellarAccountsFeatureEnabled(
+        mergedFlags(currState).stellarAccounts,
+      );
+
+      // Only handle the case when Stellar provider is enabled.
+      // Disable after enable may result in abnormal behavior.
+      if (prevStellarEnabled !== currStellarEnabled && currStellarEnabled) {
+        xlmProvider.setEnabled(currStellarEnabled);
+        // Trigger wallet alignment when Stellar accounts are enabled
+        // This will create Stellar accounts for existing wallets
+        controller.alignWallets().catch((error) => {
+          console.error(
+            'Failed to align wallets after enabling Stellar provider:',
+            error,
+          );
+        });
+      }
+
+      return true;
+    }, initialRemoteFeatureFlagsState),
+  );
 
   return { controller, memStateKey: null, persistedStateKey: null };
 };

@@ -10427,6 +10427,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/stellar-wallet-snap@npm:@metamask-previews/stellar-wallet-snap@npm:0.0.1-preview-b2b824b":
+  version: 0.0.1-preview-b2b824b
+  resolution: "@metamask-previews/stellar-wallet-snap@npm:0.0.1-preview-b2b824b"
+  checksum: 10/ab9292f038fd3355ccdac0071521257a4c3d6840c2a7c672c2f3c1aea39329ac4857d094d2c8e39924f65079dd2847383fc998fbdbd46a6775511e8f64c5952e
+  languageName: node
+  linkType: hard
+
 "@metamask/storage-service@npm:^1.0.0, @metamask/storage-service@npm:^1.0.1, @metamask/storage-service@npm:^1.0.2":
   version: 1.0.2
   resolution: "@metamask/storage-service@npm:1.0.2"
@@ -35976,6 +35983,7 @@ __metadata:
     "@metamask/solana-wallet-snap": "npm:^2.10.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
+    "@metamask/stellar-wallet-snap": "npm:@metamask-previews/stellar-wallet-snap@npm:0.0.1-preview-b2b824b"
     "@metamask/storage-service": "npm:^1.0.0"
     "@metamask/superstruct": "npm:^3.2.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"

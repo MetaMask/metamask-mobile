@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { SolScope, TrxScope, BtcScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope, BtcScope, XlmScope } from '@metamask/keyring-api';
 import type { CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
@@ -54,6 +54,7 @@ export const usePayWithTokens = (): {
 
   const solanaAccount = accountByScope(SolScope.Mainnet);
   const tronAccount = accountByScope(TrxScope.Mainnet);
+  const stellarAccount = accountByScope(XlmScope.Pubnet);
   const bitcoinAccount = accountByScope(BtcScope.Mainnet);
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
@@ -82,6 +83,7 @@ export const usePayWithTokens = (): {
       allNetworkConfigs,
       solanaAccount: solanaAccount ?? undefined,
       tronAccount: tronAccount ?? undefined,
+      stellarAccount: stellarAccount ?? undefined,
       bitcoinAccount: bitcoinAccount ?? undefined,
       multichainBalances,
       multichainRates: multichainRates as Record<
@@ -125,6 +127,7 @@ export const usePayWithTokens = (): {
     allNetworkConfigs,
     solanaAccount,
     tronAccount,
+    stellarAccount,
     bitcoinAccount,
     multichainBalances,
     multichainRates,
