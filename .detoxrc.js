@@ -15,6 +15,10 @@ module.exports = {
         enabled: true,  // Enable video recording
         keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' videos
       },
+      log: {
+        enabled: true, // Capture device logs (Android logcat / iOS syslog)
+        keepOnlyFailedTestsArtifacts: true, // Keep logs only for failed tests
+      },
     },
   },
   testRunner: {
