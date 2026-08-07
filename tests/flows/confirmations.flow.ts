@@ -19,7 +19,6 @@ import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
-import { TestDappSelectorsWebIDs } from '../selectors/Browser/TestDapp.selectors';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
@@ -30,8 +29,6 @@ const LOCAL_CHAIN_NAME = 'Local RPC';
 const LOCAL_CHAIN_CAIP = 'eip155:1337';
 const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
-const TEST_DAPP_READY_TIMEOUT_MS = 30_000;
-const TEST_DAPP_READY_POLL_MS = 500;
 const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
 const ANDROID_CONFIRM_POLL_MS = 3_000;
 
@@ -39,86 +36,6 @@ export {
   LOCAL_CHAIN_CAIP,
   SMART_ACCOUNT_UPGRADED_ACTIVITY,
   SMART_ACCOUNT_UPGRADING_ACTIVITY,
-};
-
-/**
- * Wait until the provider has a selected account and the target control is
- * DOM-enabled.
- */
-const waitForTestDappReadyForTap = async (
-  pageUrl: string,
-  buttonId: string,
-  description: string,
-): Promise<void> => {
-  await Utilities.executeWithRetry(
-    async () => {
-      const readiness = await ChromeCdpHelpers.evaluateInWebView<{
-        selectedAddress: string | null;
-        buttonEnabled: boolean;
-        buttonHidden: boolean;
-        accountsText: string | null;
-      }>(
-        pageUrl,
-        `(() => {
-          const el = document.getElementById(${JSON.stringify(buttonId)});
-          const accountsEl = document.getElementById(${JSON.stringify(
-            TestDappSelectorsWebIDs.ACCOUNTS_TEXT,
-          )});
-          const buttonEnabled = Boolean(
-            el &&
-              !('disabled' in el && Boolean(el.disabled)) &&
-              el.getAttribute('aria-disabled') !== 'true',
-          );
-          const buttonHidden = Boolean(
-            el &&
-              (Boolean(el.hidden) ||
-                el.getAttribute('hidden') !== null ||
-                window.getComputedStyle(el).display === 'none'),
-          );
-          return {
-            selectedAddress: window.ethereum?.selectedAddress ?? null,
-            buttonEnabled,
-            buttonHidden,
-            accountsText: accountsEl ? accountsEl.textContent || null : null,
-          };
-        })()`,
-      );
-      if (!readiness?.selectedAddress) {
-        throw new Error(
-          `Test dapp has no selectedAddress before tapping #${buttonId} (${description})`,
-        );
-      }
-      if (!readiness.buttonEnabled) {
-        throw new Error(
-          `Test dapp #${buttonId} is not enabled before tap (${description})`,
-        );
-      }
-      if (
-        buttonId === TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID &&
-        readiness.buttonHidden
-      ) {
-        throw new Error(
-          `Test dapp #${buttonId} is still hidden before tap (${description})`,
-        );
-      }
-      const accountsConnected = Boolean(
-        readiness.accountsText?.replace(/^Accounts:\s*/i, '').trim(),
-      );
-      if (
-        buttonId === TestDappSelectorsWebIDs.SEND_CALLS_BUTTON &&
-        !accountsConnected
-      ) {
-        throw new Error(
-          `Test dapp has no connected accounts before tapping #${buttonId} (${description})`,
-        );
-      }
-    },
-    {
-      description: `Wait for selectedAddress and #${buttonId} enabled (${description})`,
-      timeout: TEST_DAPP_READY_TIMEOUT_MS,
-      interval: TEST_DAPP_READY_POLL_MS,
-    },
-  );
 };
 
 /**
@@ -130,8 +47,6 @@ const tapTestDappButtonAndWaitForConfirm = async (
 ): Promise<void> => {
   const pageUrl = getDappUrl(0);
   const confirmTimeoutMs = 30_000;
-
-  await waitForTestDappReadyForTap(pageUrl, buttonId, description);
 
   if (PlatformDetector.isAndroidAppium()) {
     let dismissedPushSheet = false;
