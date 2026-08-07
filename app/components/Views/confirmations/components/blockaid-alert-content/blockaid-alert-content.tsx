@@ -3,7 +3,10 @@ import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { deflate } from 'react-native-gzip';
 import type { Hex } from '@metamask/utils';
-import { TextButton } from '@metamask/design-system-react-native';
+import {
+  TextButton,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
@@ -121,6 +124,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
           </Text>
           <TextButton
             testID={BlockaidAlertContentTestIds.REPORT_ISSUE_BUTTON}
+            variant={TextVariant.BodySm}
             onPress={() => {
               onContactUsClicked();
               Linking.openURL(reportUrl);

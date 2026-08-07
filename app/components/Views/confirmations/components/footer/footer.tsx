@@ -11,11 +11,12 @@ import {
   ButtonSize,
   ButtonsAlignment,
   IconName,
+  TextButton,
+  TextVariant as DesignSystemTextVariant,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { TextButton } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
@@ -255,6 +256,7 @@ export const Footer = () => {
             </Text>
             <TextButton
               testID={ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON}
+              variant={DesignSystemTextVariant.BodySm}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
               {strings('confirm.staking_footer.terms_of_use')}
@@ -269,6 +271,7 @@ export const Footer = () => {
               testID={
                 ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON
               }
+              variant={DesignSystemTextVariant.BodySm}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
               }
