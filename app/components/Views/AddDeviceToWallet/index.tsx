@@ -36,7 +36,6 @@ import {
 } from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
-  selectQrSyncError,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
   selectQrSyncPresentation,
@@ -79,7 +78,6 @@ const AddDeviceToWallet = () => {
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
-  const error = useSelector(selectQrSyncError);
 
   const handleBack = useCallback(() => {
     Engine.context.QrSyncController.resetState();
@@ -152,10 +150,11 @@ const AddDeviceToWallet = () => {
 
   return (
     <SafeAreaView
+      edges={['bottom', 'left', 'right']}
       style={tw.style('flex-1 bg-default')}
       testID={AddDeviceToWalletTestIds.SCREEN}
     >
-      <HeaderCompactStandard onBack={handleBack} />
+      <HeaderCompactStandard onBack={handleBack} includesTopInset />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
           source={addDeviceToWalletImage}
@@ -210,12 +209,6 @@ const AddDeviceToWallet = () => {
           >
             {strings('app_settings.add_device.scan_qr_code_button')}
           </Button>
-
-          {presentation === 'error' && error?.message ? (
-            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-              {error.message}
-            </Text>
-          ) : null}
         </Box>
       </Box>
     </SafeAreaView>

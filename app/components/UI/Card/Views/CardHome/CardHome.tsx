@@ -224,14 +224,10 @@ const CardHome = () => {
   }, [refetch]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
-  const refetched = useRef(false);
   useFocusEffect(
     useCallback(() => {
-      if (!refetched.current) {
-        refetched.current = true;
-        refetch();
-      }
-    }, [refetch]),
+      Engine.context.CardController.fetchCardHomeData();
+    }, []),
   );
 
   // --- Auth state transition: navigate to auth screen on logout ---
@@ -667,7 +663,6 @@ const CardHome = () => {
                 showMetalCard={hasMetalCard}
                 isLinkDisabled={isMoneyAccountLinkInProgress}
                 onGetNowPress={handleLinkMoneyAccountCard}
-                onHeaderPress={handleLinkMoneyAccountCard}
                 onLinkPress={handleLinkMoneyAccountCard}
                 analyticsScreen={CardScreens.HOME}
                 analyticsEntryPoint={

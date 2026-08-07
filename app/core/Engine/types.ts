@@ -42,6 +42,10 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+  DeFiPositionsControllerV2,
+  DeFiPositionsControllerV2State,
+  DeFiPositionsControllerV2Events,
+  DeFiPositionsControllerV2Actions,
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
@@ -499,6 +503,15 @@ import {
   ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
 import {
+  KycController,
+  KycControllerActions,
+  KycControllerEvents,
+  KycControllerState,
+  KycService,
+  KycServiceActions,
+  KycServiceEvents,
+} from '@metamask/kyc-controller';
+import {
   ChompApiService,
   ChompApiServiceActions,
   type ChompApiServiceEvents,
@@ -522,6 +535,7 @@ type RequiredControllers = Omit<
   | 'RewardsDataService'
   | 'StorageService'
   | 'ComplianceService'
+  | 'KycService'
   | 'ChompApiService'
 >;
 
@@ -535,6 +549,7 @@ type OptionalControllers = Pick<
   | 'RewardsDataService'
   | 'StorageService'
   | 'ComplianceService'
+  | 'KycService'
   | 'ChompApiService'
 >;
 
@@ -632,6 +647,7 @@ export type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRoutingServiceActions
   | DeFiPositionsControllerActions
+  | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
@@ -647,6 +663,8 @@ export type GlobalActions =
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
+  | KycControllerActions
+  | KycServiceActions
   | TransakServiceActions
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
@@ -729,6 +747,7 @@ export type GlobalEvents =
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
+  | DeFiPositionsControllerV2Events
   | AccountTreeControllerEvents
   | DelegationControllerEvents
   | NftDetectionControllerEvents
@@ -743,6 +762,8 @@ export type GlobalEvents =
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
+  | KycControllerEvents
+  | KycServiceEvents
   | TransakServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
@@ -824,6 +845,7 @@ export type MessengerClients = {
   TokenRatesController: TokenRatesController;
   TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
+  DeFiPositionsControllerV2: DeFiPositionsControllerV2;
   TransactionController: TransactionController;
   TransactionPayController: TransactionPayController;
   SmartTransactionsController: SmartTransactionsController;
@@ -885,6 +907,8 @@ export type MessengerClients = {
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
+  KycService: KycService;
+  KycController: KycController;
   TransakService: TransakService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
@@ -925,6 +949,7 @@ export type EngineState = {
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
+  DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SnapController: PersistedSnapControllerState;
   SnapRegistryController: SnapRegistryControllerState;
@@ -973,6 +998,7 @@ export type EngineState = {
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
   ComplianceController: ComplianceControllerState;
+  KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
 };
 
@@ -1045,7 +1071,7 @@ export type MessengerClientsToInitialize =
   | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
-  | 'GasFeeController'
+  | 'DeFiPositionsControllerV2'
   | 'GeolocationController'
   | 'GeolocationApiService'
   | 'MultichainNetworkController'
@@ -1053,7 +1079,6 @@ export type MessengerClientsToInitialize =
   | 'NftDetectionController'
   | 'PhishingController'
   | 'SignatureController'
-  | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
@@ -1090,6 +1115,8 @@ export type MessengerClientsToInitialize =
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController'
+  | 'KycService'
+  | 'KycController'
   | 'ChompApiService'
   | 'MoneyAccountUpgradeController';
 

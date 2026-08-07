@@ -26,6 +26,7 @@ import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { refreshTokens, goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
@@ -97,7 +98,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     },
     ref,
   ) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();

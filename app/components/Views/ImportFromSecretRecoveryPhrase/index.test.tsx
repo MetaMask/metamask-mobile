@@ -6,6 +6,7 @@ import ReduxService from '../../../core/redux';
 import type { ReduxStore } from '../../../core/redux/types';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
+import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -93,6 +94,7 @@ jest.mock('../../../util/trace', () => ({
 
 const mockCaptureException = jest.fn();
 jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
@@ -1318,12 +1320,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                 jest
                   .spyOn(navigation, 'navigate')
                   .mockImplementation(mockNavigate);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={{ params: {} }}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1371,14 +1368,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
               name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
               initialParams={{ qrSyncImport: true }}
             >
-              {({ navigation, route }) => {
+              {({ navigation }) => {
                 jest.spyOn(navigation, 'goBack').mockImplementation(mockGoBack);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={route}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1806,6 +1798,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+      await act(async () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 
@@ -2161,6 +2155,55 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
+    it('ends onboarding-owned traces on unmount when opened from onboarding', () => {
+      const { unmount } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+        { [PREVIOUS_SCREEN]: ONBOARDING },
+      );
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingExistingSrpImport,
+        data: { success: false },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingSRPAccountImportTime,
+        data: { success: false },
+      });
+    });
+
+    it('does not end onboarding traces on unmount when opened outside onboarding', () => {
+      // e.g. the QR device-sync flow opens this screen without the
+      // PREVIOUS_SCREEN === ONBOARDING ownership marker.
+      const { unmount } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+        { qrSyncImport: true },
+      );
+
+      unmount();
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingExistingSrpImport,
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSRPAccountImportTime,
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingJourneyOverall,
+        }),
+      );
+    });
+
     it('does not start trace and end trace when moving to password setup step without onboardingTraceCtx', async () => {
       const { getByPlaceholderText, getByRole, unmount } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -2183,11 +2226,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      const passwordSetupTrace = expect.objectContaining({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+      });
+
+      expect(mockTrace).not.toHaveBeenCalledWith(passwordSetupTrace);
 
       unmount();
 
-      expect(mockEndTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalledWith(passwordSetupTrace);
     });
 
     it('traces error and reports to Sentry when wallet import fails with onboardingTraceCtx', async () => {

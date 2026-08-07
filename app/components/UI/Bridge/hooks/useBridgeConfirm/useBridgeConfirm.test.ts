@@ -102,6 +102,29 @@ describe('useBridgeConfirm', () => {
       });
     });
 
+    it('forwards the quote fetched with custom slippage unchanged', async () => {
+      const customSlippageQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          slippage: 3.5,
+        },
+      };
+      const { result } = renderHook({
+        ...defaultParams,
+        activeQuote: customSlippageQuote,
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+        quoteResponse: customSlippageQuote,
+        location: MetaMetricsSwapsEventSource.MainView,
+      });
+    });
+
     it('passes the location prop through to submitBridgeTx', async () => {
       const { result } = renderHook({
         ...defaultParams,
@@ -132,8 +155,8 @@ describe('useBridgeConfirm', () => {
           status: PostTradeStatus.InProgress,
           transactionMetaId: 'tx-meta-id',
           transactionHash: '0xabc',
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
         }),
       });
     });
@@ -176,6 +199,26 @@ describe('useBridgeConfirm', () => {
 
       expect(mockNavigate).toHaveBeenCalled();
     });
+
+    it('keeps the slippage override after successful submission', async () => {
+      const state = {
+        bridge: {
+          ...mockBridgeReducerState,
+          slippage: '3.5',
+          isSlippageUserOverride: true,
+        },
+      };
+      const { result, store } = renderHook(defaultParams, state);
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect((store.getState() as RootState).bridge.slippage).toBe('3.5');
+      expect(
+        (store.getState() as RootState).bridge.isSlippageUserOverride,
+      ).toBe(true);
+    });
   });
 
   describe('hardware wallet submissions', () => {
@@ -193,10 +236,24 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
+      const sourceAmount = mockQuoteWithMetadata.sentAmount;
+      const destAmount = mockQuoteWithMetadata.toTokenAmount;
+      if (!sourceAmount || !destAmount) {
+        throw new Error('Mock quote is missing token amounts');
+      }
+
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.BRIDGE.ROOT,
         expect.objectContaining({
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+          params: expect.objectContaining({
+            submissionParams: expect.objectContaining({
+              postTradeModalParams: expect.objectContaining({
+                sourceAmount: sourceAmount.amount,
+                destAmount: destAmount.amount,
+              }),
+            }),
+          }),
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -294,6 +351,10 @@ describe('useBridgeConfirm', () => {
       mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('logs the error', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderHook();
@@ -322,8 +383,8 @@ describe('useBridgeConfirm', () => {
         screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
         params: expect.objectContaining({
           status: PostTradeStatus.Failed,
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
         }),
       });
     });

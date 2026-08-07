@@ -12,6 +12,10 @@ import {
   getDeFiPositionsControllerMessenger,
 } from './defi-positions-controller-messenger/defi-positions-controller-messenger';
 import {
+  getDeFiPositionsControllerV2InitMessenger,
+  getDeFiPositionsControllerV2Messenger,
+} from './defi-positions-controller-v2-messenger/defi-positions-controller-v2-messenger';
+import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
@@ -37,9 +41,7 @@ import { getSnapAccountServiceMessenger } from './snap-account-service-messenger
 ///: END:ONLY_INCLUDE_IF
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
-import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 import { getSignatureControllerMessenger } from './signature-controller-messenger';
-import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFeature/controllers/sample-petnames-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
@@ -143,6 +145,8 @@ import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import { getKycServiceMessenger } from './kyc/kyc-service-messenger';
+import { getKycControllerMessenger } from './kyc/kyc-controller-messenger';
 import { getConfigRegistryApiServiceMessenger } from './config-registry-api-service-messenger.ts';
 import {
   getChompApiServiceMessenger,
@@ -217,10 +221,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getMultichainNetworkControllerMessenger,
     getInitMessenger: noop,
   },
-  GasFeeController: {
-    getMessenger: getGasFeeControllerMessenger,
-    getInitMessenger: noop,
-  },
   NftController: {
     getMessenger: getNftControllerMessenger,
     getInitMessenger: noop,
@@ -244,6 +244,10 @@ export const MESSENGER_FACTORIES = {
   DeFiPositionsController: {
     getMessenger: getDeFiPositionsControllerMessenger,
     getInitMessenger: getDeFiPositionsControllerInitMessenger,
+  },
+  DeFiPositionsControllerV2: {
+    getMessenger: getDeFiPositionsControllerV2Messenger,
+    getInitMessenger: getDeFiPositionsControllerV2InitMessenger,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   AuthenticationController: {
@@ -324,10 +328,6 @@ export const MESSENGER_FACTORIES = {
   PermissionController: {
     getMessenger: getPermissionControllerMessenger,
     getInitMessenger: getPermissionControllerInitMessenger,
-  },
-  SeedlessOnboardingController: {
-    getMessenger: getSeedlessOnboardingControllerMessenger,
-    getInitMessenger: noop,
   },
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
@@ -489,6 +489,14 @@ export const MESSENGER_FACTORIES = {
   },
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
+    getInitMessenger: noop,
+  },
+  KycService: {
+    getMessenger: getKycServiceMessenger,
+    getInitMessenger: noop,
+  },
+  KycController: {
+    getMessenger: getKycControllerMessenger,
     getInitMessenger: noop,
   },
   ChompApiService: {

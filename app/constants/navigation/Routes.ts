@@ -189,6 +189,8 @@ const Routes = {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
+    FIRST_PREDICT_ON_US_SPLASH: 'FirstPredictOnUsSplash',
+    FIRST_PREDICT_ON_US_ORDER_SHEET: 'FirstPredictOnUsOrderSheet',
     DEFAULT_SETTINGS: 'DefaultSettings',
     GENERAL_SETTINGS: 'GeneralSettings',
     ASSETS_SETTINGS: 'AssetsSettings',
@@ -242,7 +244,6 @@ const Routes = {
     REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
-    ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
@@ -269,6 +270,9 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
+    ACTIVITY_TYPE_FILTER: 'ActivityTypeFilter',
+    ACTIVITY_PERPS_FILTER: 'ActivityPerpsFilter',
+    ACTIVITY_NETWORK_FILTER: 'ActivityNetworkFilter',
     MA_PICKER: 'MAPicker',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
@@ -417,7 +421,6 @@ const Routes = {
     MARKET_DETAILS: 'PredictMarketDetails',
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
-    WORLD_CUP: 'PredictWorldCup',
     FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',
@@ -503,6 +506,7 @@ const Routes = {
   },
   IMPORT_PRIVATE_KEY_VIEW: 'ImportPrivateKeyView',
   MULTICHAIN_ACCOUNTS: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',

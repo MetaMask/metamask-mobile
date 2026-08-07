@@ -266,6 +266,20 @@ export default {
     DEV: 'https://test.immersve.com',
     PRD: 'https://api.immersve.com',
   },
+  // Fractal encryption service (publishes the JWKS used to verify the UKYC
+  // wrapping-key `jwtChain`). Values per build target; wire real endpoints when
+  // available.
+  FRACTAL_ENCRYPTION_URL: {
+    DEV:
+      process.env.FRACTAL_ENCRYPTION_URL_DEV ??
+      'https://enclave.staging.sandbox.fractal.id/',
+    UAT:
+      process.env.FRACTAL_ENCRYPTION_URL_UAT ??
+      'https://enclave.staging.sandbox.fractal.id/',
+    PRD:
+      process.env.FRACTAL_ENCRYPTION_URL_PRD ??
+      'https://encryption.idos.network/',
+  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

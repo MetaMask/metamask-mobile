@@ -65,6 +65,7 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
         now - lastHandledDeeplinkAt < DUPLICATE_DEEPLINK_WINDOW_MS
       ) {
         Logger.log(`Deeplink: Ignoring duplicate deeplink: ${uri}`);
+        AppStateEventProcessor.promoteCurrentDeeplinkSource(uri, source);
         return;
       }
       lastHandledDeeplinkUri = uri;
