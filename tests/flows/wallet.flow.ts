@@ -49,6 +49,7 @@ import PlaywrightUtilities, {
   getDriver,
 } from '../framework/PlaywrightUtilities';
 import UnifiedGestures from '../framework/UnifiedGestures';
+import { resolveTestMuCatalogDeviceName } from '../framework/services/providers/testmu/TestMuDeviceResolver';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
@@ -57,7 +58,6 @@ import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/Experience
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
-import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -139,24 +139,15 @@ export const ensureAccountListOpenPlaywright = async (
     }
 
     if (await isWalletHomeReadyOnAppium()) {
-      if (PlatformDetector.isAndroid()) {
-        await dismissAndroidSystemOverlaysPlaywright();
-      }
       await WalletView.tapIdenticon();
-      try {
-        // Keep each tap attempt short so we can re-tap if wallet chrome is still settling.
-        await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
-          {
-            timeout: 3_000,
-            description: 'Account list should open from wallet home',
-          },
-        );
-        return;
-      } catch {
-        await sleep(250);
-        continue;
-      }
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        {
+          timeout: resolveE2EWaitTimeoutMs(10_000),
+          description: 'Account list should open from wallet home',
+        },
+      );
+      return;
     }
 
     if (PlatformDetector.isAndroid()) {
@@ -706,7 +697,7 @@ export const dismissPushNotificationExistingUserSheet =
         }),
       );
       await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 5_000,
+        timeout: 2_000,
         description: 'Push notification existing user sheet',
       });
 
@@ -762,18 +753,10 @@ export const loginToAppPlaywright = async (
   const { scenarioType = 'login' } = options;
 
   const dismissPostLoginModals = async (): Promise<void> => {
-    startPhase('modal_dismissal');
-    try {
-      await PlaywrightUtilities.wait(500);
-      await dismissPushNotificationExistingUserSheet();
-      await dismissExperienceEnhancerModal();
-    } finally {
-      // Resume test_body after login + modals (exclusive phases).
-      startPhase('test_body');
-    }
+    await PlaywrightUtilities.wait(500);
+    await dismissPushNotificationExistingUserSheet();
+    await dismissExperienceEnhancerModal();
   };
-
-  startPhase('login');
 
   await dismissAndroidSystemOverlaysPlaywright();
 
@@ -981,10 +964,19 @@ export const selectAccountByDevice = async (
   deviceName: string,
 ): Promise<void> => {
   const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
-  const accountName = deviceAccountMapping[deviceName];
+  const normalizedDeviceName = deviceName.replace(/\.\*$/, '');
+  const accountName =
+    deviceAccountMapping[deviceName] ??
+    deviceAccountMapping[normalizedDeviceName] ??
+    deviceAccountMapping[resolveTestMuCatalogDeviceName(normalizedDeviceName)];
 
-  if (!(deviceName in deviceAccountMapping)) {
-    throw new Error(`Account name not found for device: ${deviceName}`);
+  if (accountName === undefined) {
+    throw new Error(
+      `Account name not found for device: ${deviceName}` +
+        (normalizedDeviceName !== deviceName
+          ? ` (normalized: ${normalizedDeviceName})`
+          : ''),
+    );
   }
 
   if (!accountName) {
