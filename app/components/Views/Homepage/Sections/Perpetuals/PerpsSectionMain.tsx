@@ -97,7 +97,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
       hideTpSl: true,
-      throttleMs: HOMEPAGE_THROTTLE_MS,
+      // Orders are low-frequency user state. Deliver them immediately so a
+      // reconnect's initial empty snapshot cannot hold the real order behind
+      // the Homepage's five-second market-data throttle.
+      throttleMs: 0,
     });
 
     const hookLoading = positionsLoading || ordersLoading;
