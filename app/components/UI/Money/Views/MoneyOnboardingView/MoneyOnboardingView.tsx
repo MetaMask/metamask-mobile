@@ -552,7 +552,7 @@ const MoneyOnboardingViewE2E = () => {
     completeOnboardingAndRedirect();
   }, [completeOnboardingAndRedirect]);
 
-  return <MoneyOnboardingView />;
+  return null;
 };
 
 const MoneyOnboardingViewGate = () => {
