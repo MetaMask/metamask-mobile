@@ -1862,8 +1862,11 @@ export const getPredictPositionStatus = ({
   if (!claimable) {
     return PredictPositionStatus.OPEN;
   }
-  if (cashPnl >= 0) {
+  if (cashPnl > 0) {
     return PredictPositionStatus.WON;
+  }
+  if (cashPnl === 0) {
+    return PredictPositionStatus.REDEEMABLE;
   }
   return PredictPositionStatus.LOST;
 };

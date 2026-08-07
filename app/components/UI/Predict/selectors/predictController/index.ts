@@ -58,6 +58,17 @@ const selectPredictWonPositions = createSelector(
   weakMapMemoizeOptions,
 );
 
+const selectPredictPayablePositions = createSelector(
+  [selectPredictClaimablePositionsByAddress],
+  (claimablePositions) =>
+    claimablePositions.filter(
+      (position) =>
+        position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE,
+    ),
+  weakMapMemoizeOptions,
+);
+
 const selectPredictWinFiat = createSelector(
   [selectPredictWonPositions],
   (winningPositions) =>
@@ -69,6 +80,20 @@ const selectPredictWinPnl = createSelector(
   [selectPredictWonPositions],
   (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
+  weakMapMemoizeOptions,
+);
+
+const selectPredictClaimFiat = createSelector(
+  [selectPredictPayablePositions],
+  (payablePositions) =>
+    payablePositions.reduce((acc, position) => acc + position.currentValue, 0),
+  weakMapMemoizeOptions,
+);
+
+const selectPredictClaimPnl = createSelector(
+  [selectPredictPayablePositions],
+  (payablePositions) =>
+    payablePositions.reduce((acc, position) => acc + position.cashPnl, 0),
   weakMapMemoizeOptions,
 );
 
@@ -128,8 +153,11 @@ export {
   selectPredictClaimablePositions,
   selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,
+  selectPredictPayablePositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
+  selectPredictClaimFiat,
+  selectPredictClaimPnl,
   selectPredictBalances,
   selectPredictBalanceByAddress,
   selectPredictPendingDepositByAddress,

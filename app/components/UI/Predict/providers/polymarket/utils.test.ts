@@ -143,7 +143,7 @@ describe('polymarket utils', () => {
       {
         claimable: true,
         cashPnl: 0,
-        expectedStatus: PredictPositionStatus.WON,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
       },
       {
         claimable: true,

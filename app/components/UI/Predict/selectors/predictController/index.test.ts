@@ -2,6 +2,7 @@ import {
   selectPredictControllerState,
   selectPredictClaimablePositions,
   selectPredictPendingDeposits,
+  selectPredictPayablePositions,
   selectPredictWonPositions,
   selectPredictWinFiat,
   selectPredictWinPnl,
@@ -14,6 +15,7 @@ import {
   selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
+import type { RootState } from '../../../../../reducers';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
@@ -371,6 +373,28 @@ describe('Predict Controller Selectors', () => {
             endDate: '2024-12-31',
           },
           {
+            id: 'pos-push',
+            providerId: POLYMARKET_PROVIDER_ID,
+            marketId: 'market-push',
+            outcomeId: 'outcome-push',
+            outcome: 'Yes',
+            outcomeTokenId: '789',
+            currentValue: 50,
+            title: 'Pushed Market',
+            icon: 'icon-url-push',
+            amount: 50,
+            price: 0.5,
+            status: PredictPositionStatus.REDEEMABLE,
+            size: 100,
+            outcomeIndex: 0,
+            percentPnl: 0,
+            cashPnl: 0,
+            claimable: true,
+            initialValue: 50,
+            avgPrice: 0.5,
+            endDate: '2024-12-31',
+          },
+          {
             id: 'pos-2',
             providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-2',
@@ -414,6 +438,25 @@ describe('Predict Controller Selectors', () => {
       expect(result).toHaveLength(1);
       expect(result[0].status).toBe(PredictPositionStatus.WON);
       expect(result[0].id).toBe('pos-1');
+    });
+
+    it('includes redeemable positions in the payable set without treating them as won', () => {
+      const testAddress = '0x123';
+      const pushedPosition = makeWonPosition({
+        id: 'pos-push',
+        status: PredictPositionStatus.REDEEMABLE,
+        cashPnl: 0,
+      });
+      const mockState = makeClaimablePositionsState({
+        [testAddress]: [pushedPosition],
+      });
+
+      const state = mockState as unknown as RootState;
+
+      expect(selectPredictWonPositions(state, testAddress)).toEqual([]);
+      expect(selectPredictPayablePositions(state, testAddress)).toEqual([
+        pushedPosition,
+      ]);
     });
 
     it('returns empty array when no positions have WON status', () => {
