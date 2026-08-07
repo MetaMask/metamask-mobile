@@ -59,6 +59,7 @@ import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/is
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -779,6 +780,7 @@ export const selectBridgeQuotes = createSelector(
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
     // If no selectedQuoteRequestId, return the default result
@@ -796,6 +798,7 @@ export const selectBridgeQuotes = createSelector(
       return selectBridgeQuotesBase(requiredControllerFields, {
         sortOrder: SortOrder.COST_ASC,
         selectedQuote,
+        migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       });
     }
 
@@ -811,6 +814,7 @@ export const selectBatchSellQuotes = createSelector(
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     }),
 );
 

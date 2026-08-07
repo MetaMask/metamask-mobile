@@ -15,6 +15,7 @@ import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
 import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
 import { SWAPS_CTA_BUTTON_COLOR_AB_KEY } from '../../../components/UI/Bridge/components/SwapsConfirmButton/abTestConfig';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 
 type BridgeQuoteResponse = QuoteResponse;
 interface MockABTestResult {
@@ -211,6 +212,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      '1.5',
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -270,6 +272,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      '1.5',
     );
   });
 
@@ -312,6 +315,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      '1.5',
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -515,6 +519,7 @@ describe('useSubmitBridgeTx', () => {
       activeAbTests: undefined,
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
@@ -549,6 +554,7 @@ describe('useSubmitBridgeTx', () => {
       ],
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
+      migrationPhase: '1.5',
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
@@ -595,6 +601,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 
@@ -647,6 +654,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 
@@ -702,6 +710,7 @@ describe('useSubmitBridgeTx', () => {
       null,
       undefined,
       'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 
@@ -757,6 +766,7 @@ describe('useSubmitBridgeTx', () => {
       'Malicious',
       undefined,
       'fiat_value',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 });

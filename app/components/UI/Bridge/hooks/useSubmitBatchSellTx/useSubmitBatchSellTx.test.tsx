@@ -153,6 +153,7 @@ describe('useSubmitBatchSellTx', () => {
       isStxEnabled: true,
       quotesReceivedContext: undefined,
       tokenSecurityTypeDestination: 'Malicious',
+      migrationPhase: '1.5',
     });
     expect(txResult).toEqual(mockBatchSellResult);
   });
