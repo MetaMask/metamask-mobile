@@ -270,6 +270,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsCredit: false,
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
+    supportsTransactionHistory: false,
   };
 
   private readonly service: ImmersveService;
