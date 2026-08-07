@@ -60,6 +60,18 @@ jest.mock('expo-modules-core', () => ({
   LegacyEventEmitter: jest.fn(),
 }));
 
+// Mock expo-screen-capture: it reaches for a native module at import time, so
+// importing it unmocked throws in Jest.
+jest.mock('expo-screen-capture', () => ({
+  preventScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  allowScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeScreenshotListener: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+  usePreventScreenCapture: jest.fn(),
+  useScreenshotListener: jest.fn(),
+}));
+
 // Mock Expo's fetch implementation
 jest.mock('expo/fetch', () => {
   return {

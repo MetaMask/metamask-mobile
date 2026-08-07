@@ -326,6 +326,8 @@ PODS:
     - React-Core
     - React-runtimescheduler
     - ReactCommon
+  - ExpoScreenCapture (55.0.16):
+    - ExpoModulesCore
   - ExpoScreenOrientation (55.0.16):
     - boost
     - DoubleConversion
@@ -4527,6 +4529,7 @@ DEPENDENCIES:
   - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-core`)
+  - ExpoScreenCapture (from `../node_modules/expo-screen-capture/ios`)
   - ExpoScreenOrientation (from `../node_modules/expo-screen-orientation/ios`)
   - ExpoSensors (from `../node_modules/expo-sensors/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -4780,6 +4783,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-core"
+  ExpoScreenCapture:
+    :path: "../node_modules/expo-screen-capture/ios"
   ExpoScreenOrientation:
     :path: "../node_modules/expo-screen-orientation/ios"
   ExpoSensors:
@@ -5118,6 +5123,7 @@ SPEC CHECKSUMS:
   ExpoLogBox: a678d36477ab9544fe63e0b5328a0716539b6774
   ExpoModulesCore: cc07ebf5b947a239f1669cb5856d905cb2b093f7
   ExpoModulesJSI: 964334271fc77832736f66ee1785761cdc778dbe
+  ExpoScreenCapture: 4f1837dae9f4379fa444a44f2e45e6fbc60991e0
   ExpoScreenOrientation: d6f7486ab8c0dca13220ee8f8b64511563570838
   ExpoSensors: f52b1ac7794da9c91be3d893aae612475f1ab94a
   ExpoSplashScreen: 049301b226bce8284fcafb7923fcad3a43f23a9f

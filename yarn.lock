@@ -29903,6 +29903,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-screen-capture@npm:~55.0.16":
+  version: 55.0.16
+  resolution: "expo-screen-capture@npm:55.0.16"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10/0b9e2a6f9d6a83850c2a516bb2d2b0a3ec37f8c0dafa3608082e3f5ce5c7f77b7555950264bd97ec94b69c6fc0e75cd52726123040647b2e6dbdf23b57ea73b5
+  languageName: node
+  linkType: hard
+
 "expo-screen-orientation@npm:~55.0.16":
   version: 55.0.16
   resolution: "expo-screen-orientation@npm:55.0.16"
@@ -36516,6 +36526,7 @@ __metadata:
     expo-haptics: "npm:~55.0.14"
     expo-image: "npm:~55.0.11"
     expo-local-authentication: "npm:~55.0.14"
+    expo-screen-capture: "npm:~55.0.16"
     expo-screen-orientation: "npm:~55.0.16"
     expo-sensors: "npm:~55.0.15"
     expo-splash-screen: "npm:~55.0.21"
