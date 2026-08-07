@@ -263,17 +263,21 @@ const OrderDetails = () => {
     }
   }, [order, refreshOrder]);
 
-  const hasRefreshedPendingOrderRef = useRef(false);
+  // Preserve prior mount-only semantics: evaluate once on first effect run.
+  // Marking the ref before the condition matters — callback success clears
+  // callback params via setParams while the order may still be pending; if we
+  // only marked the ref when refreshing, that transition would spuriously
+  // call handleOnRefresh.
+  const hasAttemptedInitialPendingRefreshRef = useRef(false);
 
   useEffect(() => {
-    if (hasRefreshedPendingOrderRef.current) {
+    if (hasAttemptedInitialPendingRefreshRef.current) {
       return;
     }
-    if (!isPending || hasCallbackParams) {
-      return;
+    hasAttemptedInitialPendingRefreshRef.current = true;
+    if (isPending && !hasCallbackParams) {
+      handleOnRefresh();
     }
-    hasRefreshedPendingOrderRef.current = true;
-    handleOnRefresh();
   }, [isPending, hasCallbackParams, handleOnRefresh]);
 
   useEffect(() => {

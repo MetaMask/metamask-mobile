@@ -141,17 +141,18 @@ const V2BankDetails = () => {
     }
   }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
-  const hasRefreshedCreatedOrderRef = useRef(false);
+  // Preserve prior mount-only semantics: evaluate once on first effect run so
+  // later status/shouldUpdate changes cannot trigger a second auto-refresh.
+  const hasAttemptedInitialCreatedRefreshRef = useRef(false);
 
   useEffect(() => {
-    if (hasRefreshedCreatedOrderRef.current) {
+    if (hasAttemptedInitialCreatedRefreshRef.current) {
       return;
     }
-    if (order?.status !== RampsOrderStatus.Created || !shouldUpdate) {
-      return;
+    hasAttemptedInitialCreatedRefreshRef.current = true;
+    if (order?.status === RampsOrderStatus.Created && shouldUpdate) {
+      handleOnRefresh();
     }
-    hasRefreshedCreatedOrderRef.current = true;
-    handleOnRefresh();
   }, [order?.status, shouldUpdate, handleOnRefresh]);
 
   useEffect(() => {

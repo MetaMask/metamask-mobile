@@ -165,6 +165,64 @@ describe('OrderDetails', () => {
     expect(mockEmitTerminalOrderAnalyticsFromCallback).not.toHaveBeenCalled();
   });
 
+  it('does not refresh after callback params clear for a still-pending order', async () => {
+    const pendingOrder = {
+      providerOrderId: 'ord-pending-cb',
+      status: RampsOrderStatus.Pending,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+
+    let routeParams: Record<string, string | undefined> = {
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockImplementation(() => routeParams);
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(pendingOrder);
+    mockRefreshOrder.mockResolvedValue(undefined);
+
+    const OrderDetailsHarness = () => {
+      const [, setVersion] = React.useState(0);
+
+      React.useEffect(() => {
+        mockSetParams.mockImplementation(
+          (next: Record<string, string | undefined>) => {
+            routeParams = { ...routeParams, ...next };
+            mockGetOrderById.mockReturnValue(pendingOrder);
+            setVersion((version) => version + 1);
+          },
+        );
+      }, []);
+
+      return <OrderDetails />;
+    };
+
+    renderScreen(OrderDetailsHarness, {
+      name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+    });
+
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'ord-pending-cb',
+          callbackUrl: undefined,
+          providerCode: undefined,
+          walletAddress: undefined,
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockGetOrderById).toHaveBeenCalled();
+    });
+
+    expect(mockRefreshOrder).not.toHaveBeenCalled();
+  });
+
   it('emits terminal analytics instead of confirmed for a completed callback order', async () => {
     const completedOrder = {
       providerOrderId: 'ord-cb-1',

@@ -178,17 +178,18 @@ const OrderDetails = () => {
     [dispatchThunk, dispatchUpdateFiatOrder, order],
   );
 
-  const hasRefreshedCreatedOrderRef = useRef(false);
+  // Preserve prior mount-only semantics: evaluate once on first effect run so
+  // a later transition into CREATED cannot trigger a second auto-refresh.
+  const hasAttemptedInitialCreatedRefreshRef = useRef(false);
 
   useEffect(() => {
-    if (hasRefreshedCreatedOrderRef.current) {
+    if (hasAttemptedInitialCreatedRefreshRef.current) {
       return;
     }
-    if (order?.state !== FIAT_ORDER_STATES.CREATED) {
-      return;
+    hasAttemptedInitialCreatedRefreshRef.current = true;
+    if (order?.state === FIAT_ORDER_STATES.CREATED) {
+      handleOnRefresh();
     }
-    hasRefreshedCreatedOrderRef.current = true;
-    handleOnRefresh();
   }, [order?.state, handleOnRefresh]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
