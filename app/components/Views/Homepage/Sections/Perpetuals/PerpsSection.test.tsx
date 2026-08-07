@@ -693,7 +693,7 @@ describe('PerpsSection', () => {
     expect(screen.queryByTestId('skeleton-placeholder')).not.toBeOnTheScreen();
   });
 
-  it('uses 5000ms throttle for WebSocket subscriptions', () => {
+  it('throttles positions but delivers low-frequency orders immediately', () => {
     renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -706,7 +706,7 @@ describe('PerpsSection', () => {
     expect(usePerpsLiveOrders).toHaveBeenCalledWith(
       expect.objectContaining({
         hideTpSl: true,
-        throttleMs: 5000,
+        throttleMs: 0,
       }),
     );
   });
