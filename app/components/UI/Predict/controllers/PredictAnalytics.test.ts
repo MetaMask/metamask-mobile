@@ -156,7 +156,7 @@ describe('PredictAnalytics', () => {
 
     it('tracks attempt properties on a Predict buy lifecycle event', async () => {
       await predictAnalytics.trackPredictOrderEvent({
-        status: PredictTradeStatus.FAILED_ORDER,
+        status: PredictTradeStatus.FAILED,
         amountUsd: 42,
         analyticsProperties: {
           marketId: 'm1',
@@ -172,7 +172,7 @@ describe('PredictAnalytics', () => {
       const event = getTrackedEvent();
 
       expect(event.properties).toMatchObject({
-        status: 'failed_order',
+        status: 'failed',
         attempt_id: 'attempt-1',
         payment_method: 'pay_with_any_token',
         failure_stage: 'order',

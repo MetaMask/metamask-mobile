@@ -1842,7 +1842,7 @@ describe('PredictController', () => {
 
         expect(attemptEvents.map((event) => event.properties.status)).toEqual([
           'attempt_started',
-          'order_submitted',
+          'submitted',
           'succeeded',
         ]);
         expect(
@@ -1864,7 +1864,7 @@ describe('PredictController', () => {
       },
       {
         error: 'Network request failed',
-        expectedStatus: 'failed_order',
+        expectedStatus: 'failed',
       },
     ])(
       'classifies an order error as $expectedStatus',
@@ -1895,7 +1895,7 @@ describe('PredictController', () => {
             );
 
           expect(attemptEvents.map((event) => event.properties.status)).toEqual(
-            ['order_submitted', expectedStatus],
+            ['submitted', expectedStatus],
           );
         });
       },
@@ -1952,9 +1952,9 @@ describe('PredictController', () => {
 
         expect(attemptEvents.map((event) => event.properties.status)).toEqual([
           'attempt_started',
-          'order_submitted',
+          'submitted',
           'order_failed',
-          'order_submitted',
+          'submitted',
           'succeeded',
         ]);
         expect(controller.getRetryablePredictBuyAttempt()).toBeUndefined();
@@ -11158,7 +11158,7 @@ describe('PredictController', () => {
         });
         controller.trackPredictBuyTerminalEvent({
           ...commonProperties,
-          status: 'failed_order',
+          status: 'failed',
           failureStage: 'order',
           failureCategory: 'other',
         });
@@ -11174,7 +11174,7 @@ describe('PredictController', () => {
           (event) => event.properties.status === 'attempt_started',
         );
         const terminalEvents = attemptEvents.filter((event) =>
-          ['succeeded', 'failed_swap', 'failed_order', 'cancelled'].includes(
+          ['succeeded', 'failed', 'cancelled'].includes(
             event.properties.status,
           ),
         );
@@ -11191,13 +11191,13 @@ describe('PredictController', () => {
 
         for (let index = 0; index <= 500; index += 1) {
           controller.trackPredictBuyTerminalEvent({
-            status: 'failed_order',
+            status: 'failed',
             analyticsProperties,
             attemptId: `attempt-${index}`,
           });
         }
         controller.trackPredictBuyTerminalEvent({
-          status: 'failed_order',
+          status: 'failed',
           analyticsProperties,
           attemptId: 'attempt-0',
         });
@@ -11709,7 +11709,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('emits swap_started with the PWAT attempt context', async () => {
+    it('emits swap_initiated with the PWAT attempt context', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -11735,7 +11735,7 @@ describe('PredictController', () => {
           expect(analytics.trackEvent).toHaveBeenCalledWith(
             expect.objectContaining({
               properties: expect.objectContaining({
-                status: 'swap_started',
+                status: 'swap_initiated',
                 attempt_id: 'pwat-attempt',
                 payment_method: 'pay_with_any_token',
               }),

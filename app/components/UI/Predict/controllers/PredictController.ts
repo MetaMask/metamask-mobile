@@ -1926,7 +1926,7 @@ export class PredictController extends BaseController<
           PredictEventValues.FAILURE_STAGE.ORDER,
         );
         this.trackPredictBuyTerminalEvent({
-          status: PredictTradeStatus.FAILED_ORDER,
+          status: PredictTradeStatus.FAILED,
           amountUsd: params.attempt.amountUsd,
           analyticsProperties: params.analyticsProperties,
           sharePrice: params.preview.sharePrice,
@@ -1992,9 +1992,7 @@ export class PredictController extends BaseController<
       }
 
       this.trackPredictOrderEvent({
-        status: params.attempt
-          ? PredictTradeStatus.SWAP_STARTED
-          : PredictTradeStatus.SWAP_INITIATED,
+        status: PredictTradeStatus.SWAP_INITIATED,
         amountUsd: params.attempt?.amountUsd ?? params.preview?.maxAmountSpent,
         analyticsProperties: params.analyticsProperties,
         sharePrice: params.preview?.sharePrice,
@@ -2090,9 +2088,7 @@ export class PredictController extends BaseController<
 
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
-        status: params.attempt
-          ? PredictTradeStatus.ORDER_SUBMITTED
-          : PredictTradeStatus.SUBMITTED,
+        status: PredictTradeStatus.SUBMITTED,
         amountUsd,
         analyticsProperties,
         sharePrice,
@@ -2289,7 +2285,7 @@ export class PredictController extends BaseController<
             ...failureEvent,
             status: failure.isUserRejected
               ? PredictTradeStatus.CANCELLED
-              : PredictTradeStatus.FAILED_ORDER,
+              : PredictTradeStatus.FAILED,
           });
         }
       } else {
@@ -3708,9 +3704,7 @@ export class PredictController extends BaseController<
 
       // Track swap/deposit success — the token swap confirmed, order placement begins
       this.trackPredictOrderEvent({
-        status: pendingOrder.attempt
-          ? PredictTradeStatus.SWAP_SUCCEEDED
-          : PredictTradeStatus.SWAP_SUCCESS,
+        status: PredictTradeStatus.SWAP_SUCCESS,
         amountUsd: pendingOrder.attempt?.amountUsd,
         analyticsProperties: pendingOrder.analyticsProperties,
         paymentTokenAddress:
@@ -3791,7 +3785,7 @@ export class PredictController extends BaseController<
         this.trackPredictBuyTerminalEvent({
           status: failure.isUserRejected
             ? PredictTradeStatus.CANCELLED
-            : PredictTradeStatus.FAILED_SWAP,
+            : PredictTradeStatus.FAILED,
           amountUsd: pendingOrder.attempt.amountUsd,
           analyticsProperties: pendingOrder.analyticsProperties,
           paymentTokenAddress: failedPaymentTokenAddress,
