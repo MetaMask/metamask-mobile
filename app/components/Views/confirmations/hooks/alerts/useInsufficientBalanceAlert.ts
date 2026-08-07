@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -113,7 +114,7 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
             onReject(undefined, true);
           },
         },

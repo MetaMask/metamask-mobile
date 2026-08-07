@@ -1,6 +1,6 @@
+import { BannerAlertSeverity } from '@metamask/design-system-react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import { Severity } from '../types/alerts';
-import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner';
 
 /**
  * Returns the style object based on the severity level.
@@ -40,7 +40,7 @@ export function getBannerAlertSeverity(
 ): BannerAlertSeverity {
   switch (severity) {
     case Severity.Danger:
-      return BannerAlertSeverity.Error;
+      return BannerAlertSeverity.Danger;
     case Severity.Warning:
       return BannerAlertSeverity.Warning;
     default:

@@ -9,15 +9,14 @@ import {
   ActivityDetailsAccountValue,
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsDoItAgainButton,
-  ActivityDetailsNetworkValue,
   ActivityDetailsPayFeesAndTotal,
+  ActivityDetailsPayNetworkRow,
   ActivityDetailsStepTimeline,
   ActivityDetailsTemplateFrame,
   formatActivityTokenAmount,
   useActivityPayFiat,
 } from '../../components';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
-import { useActivityNetworkName } from '../../hooks/useActivityNetworkName';
 import {
   getPredictFundsCtaLabel,
   type PredictActivityListItem,
@@ -29,8 +28,13 @@ import {
 } from './PredictDetails.utils';
 import { useOpenPredictHome } from './useOpenPredictHome';
 
-function PredictFundsMetadata({ item }: { item: PredictActivityListItem }) {
-  const networkName = useActivityNetworkName(item.chainId);
+function PredictFundsMetadata({
+  item,
+  isDeposit,
+}: {
+  item: PredictActivityListItem;
+  isDeposit: boolean;
+}) {
   const selectedAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
@@ -50,16 +54,7 @@ function PredictFundsMetadata({ item }: { item: PredictActivityListItem }) {
         }
         testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}
       />
-      <ActivityDetailRow
-        label={strings('activity_details.network')}
-        value={
-          <ActivityDetailsNetworkValue
-            chainId={item.chainId}
-            name={networkName}
-          />
-        }
-        testID={ActivityDetailsSelectorsIDs.NETWORK_ROW}
-      />
+      <ActivityDetailsPayNetworkRow item={item} isDeposit={isDeposit} />
     </ActivityDetailSection>
   );
 }
@@ -95,7 +90,7 @@ export function PredictFundsDetails({
           showTokenIcon
         />
       }
-      metadata={<PredictFundsMetadata item={item} />}
+      metadata={<PredictFundsMetadata item={item} isDeposit={isDeposit} />}
       details={
         showDetails ? (
           <>

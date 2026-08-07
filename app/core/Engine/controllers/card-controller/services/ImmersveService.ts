@@ -11,6 +11,7 @@ interface RequestOptions {
   tokenSet?: CardAuthTokens;
   timeout?: number;
   headers?: Record<string, string>;
+  baseURL?: string;
 }
 
 export class ImmersveService {
@@ -45,7 +46,7 @@ export class ImmersveService {
 
     try {
       const response = await this.client.request<T>({
-        baseURL: this.getBaseUrl(),
+        baseURL: opts.baseURL ?? this.getBaseUrl(),
         url: path,
         method: opts.method ?? 'GET',
         headers,
