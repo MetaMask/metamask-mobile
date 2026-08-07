@@ -55,8 +55,8 @@ on:
         default: ''
       reuse_main_builds:
         description: >-
-          For e2e builds only, skip fresh Android BrowserStack builds and reuse
-          the latest uploaded apps from main-branch CI instead.
+          For e2e builds only, download the latest Android APK artifacts from
+          main-branch CI and upload them to BrowserStack instead of building.
         required: false
         type: boolean
         default: false
@@ -188,11 +188,12 @@ jobs:
           echo "ios_build_name=iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
 
       # A fingerprint is only needed when tests will run and Android apps were
-      # not supplied. PR CI normally provides it; schedule/manual runs compute it.
+      # not supplied and latest-main reuse is not selected.
       - name: Use caller-provided fingerprint
         id: provided
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           inputs.source_fingerprint
@@ -205,6 +206,7 @@ jobs:
       - name: Set up Node.js
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
@@ -216,6 +218,7 @@ jobs:
       - name: Install Yarn dependencies with retry
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
@@ -230,6 +233,7 @@ jobs:
         id: computed
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
@@ -243,6 +247,7 @@ jobs:
         id: resolve-fingerprint
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
+          !inputs.reuse_main_builds &&
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet
         env:
@@ -265,7 +270,7 @@ jobs:
     needs: [prepare]
     if: >-
       needs.prepare.outputs.run_tests == 'true' &&
-      inputs.reuse_main_builds &&
+      !inputs.reuse_main_builds &&
       inputs.build_variant == 'e2e' &&
       !inputs.browserstack_app_url_android_onboarding &&
       !inputs.browserstack_app_url_android_imported_wallet
@@ -315,6 +320,7 @@ jobs:
       source_ref: ${{ inputs.source_ref }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.prepare.outputs.fingerprint }}
+      reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
       # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
