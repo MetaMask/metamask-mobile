@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import RewardsDashboard from './RewardsDashboard';
 import Routes from '../../../../constants/navigation/Routes';
@@ -246,6 +246,10 @@ jest.mock('../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
 }));
 
+jest.mock('../hooks/useMoneyAccountSweepstakesOptIn', () => ({
+  useResumePendingMasSeriesOptIn: jest.fn(),
+}));
+
 jest.mock('../hooks/useOndoOutcomeToast', () => ({
   useOndoOutcomeToast: jest.fn(),
 }));
@@ -258,10 +262,15 @@ jest.mock('../hooks/useGetPredictThePitchOutcomeToast', () => ({
   useGetPredictThePitchOutcomeToast: jest.fn(),
 }));
 
+jest.mock('../hooks/useMoneyAccountSweepstakesOutcomeToast', () => ({
+  useMoneyAccountSweepstakesOutcomeToast: jest.fn(),
+}));
+
 // Import mocked hooks
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import { useRewardDashboardModals } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
+import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
@@ -284,6 +293,10 @@ const mockUsePerpsTradingCampaignEndedOutcomeToast =
 const mockUseGetPredictThePitchOutcomeToast =
   useGetPredictThePitchOutcomeToast as jest.MockedFunction<
     typeof useGetPredictThePitchOutcomeToast
+  >;
+const mockUseMoneyAccountSweepstakesOutcomeToast =
+  useMoneyAccountSweepstakesOutcomeToast as jest.MockedFunction<
+    typeof useMoneyAccountSweepstakesOutcomeToast
   >;
 
 describe('RewardsDashboard', () => {
@@ -451,6 +464,9 @@ describe('RewardsDashboard', () => {
         mockUsePerpsTradingCampaignEndedOutcomeToast,
       ).toHaveBeenCalledTimes(1);
       expect(mockUseGetPredictThePitchOutcomeToast).toHaveBeenCalledTimes(1);
+      expect(mockUseMoneyAccountSweepstakesOutcomeToast).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('renders all child components', () => {
@@ -1541,11 +1557,12 @@ describe('RewardsDashboard', () => {
 
       // Act — 5 quick taps
       tapTitle(getByTestId as never, 5);
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       // Assert
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
-      });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       expect(mockControllerMessengerCall).toHaveBeenCalledWith(
         'RewardsController:getVIPDashboard',
         defaultSelectorValues.subscriptionId,
@@ -1635,8 +1652,8 @@ describe('RewardsDashboard', () => {
 
       // Act — first 5 taps trigger; another 5 should be ignored
       tapTitle(getByTestId as never, 5);
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await jest.runAllTimersAsync();
       });
       tapTitle(getByTestId as never, 5);
 
@@ -1651,15 +1668,17 @@ describe('RewardsDashboard', () => {
 
       // Act — first 5 taps fail; another 5 should be allowed
       tapTitle(getByTestId as never, 5);
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        await jest.runAllTimersAsync();
       });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(1);
       tapTitle(getByTestId as never, 5);
+      await act(async () => {
+        await jest.runAllTimersAsync();
+      });
 
       // Assert
-      await waitFor(() => {
-        expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
-      });
+      expect(mockControllerMessengerCall).toHaveBeenCalledTimes(2);
     });
   });
 });

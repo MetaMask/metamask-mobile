@@ -32,6 +32,8 @@ import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignW
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
 import PredictThePitchCampaignStatsView from './Views/PredictThePitchCampaignStatsView';
+import MoneyAccountSweepstakesCampaignDetailsView from './Views/MoneyAccountSweepstakesCampaignDetailsView';
+import MoneyAccountSweepstakesCampaignWinningView from './Views/MoneyAccountSweepstakesCampaignWinningView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -299,6 +301,16 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW}
         component={PredictThePitchCampaignWinningView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW}
+        component={MoneyAccountSweepstakesCampaignDetailsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW}
+        component={MoneyAccountSweepstakesCampaignWinningView}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

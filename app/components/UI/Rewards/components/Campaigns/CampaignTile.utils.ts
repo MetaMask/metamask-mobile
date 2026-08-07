@@ -15,6 +15,7 @@ const SUPPORTED_CAMPAIGN_TYPES = new Set<CampaignType>([
   CampaignType.SEASON_1,
   CampaignType.PERPS_TRADING,
   CampaignType.PREDICT_THE_PITCH,
+  CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
 ]);
 
 /**
@@ -67,6 +68,37 @@ function formatCampaignDate(date: Date, locale: string = I18n.locale): string {
     month: 'long',
     day: 'numeric',
   }).format(date);
+}
+
+/**
+ * Formats a campaign date range for draw schedule rows (e.g. "Jul 8–14").
+ * Collapses the month when start and end share the same month.
+ */
+export function formatCampaignDateRange(
+  startDate: Date | string,
+  endDate: Date | string,
+  locale: string = I18n.locale,
+): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const sameMonth =
+    start.getUTCFullYear() === end.getUTCFullYear() &&
+    start.getUTCMonth() === end.getUTCMonth();
+
+  const monthDay = getIntlDateTimeFormatter(locale, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+  const dayOnly = getIntlDateTimeFormatter(locale, {
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+
+  if (sameMonth) {
+    return `${monthDay.format(start)}–${dayOnly.format(end)}`;
+  }
+  return `${monthDay.format(start)}–${monthDay.format(end)}`;
 }
 
 /**

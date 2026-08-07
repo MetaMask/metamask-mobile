@@ -62,24 +62,20 @@ const CampaignMechanicsView: React.FC = () => {
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-4')}
+          contentContainerStyle={tw.style('py-4')}
         >
           {howItWorks && (
-            <>
-              <Box
-                twClassName="px-4 py-4"
-                testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
-              >
-                <CampaignHowItWorks howItWorks={howItWorks} />
-              </Box>
-              {/* ── Divider ── */}
-              <Box twClassName="my-1 border-b border-border-muted" />
-            </>
+            <Box
+              twClassName="px-4"
+              testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
+            >
+              <CampaignHowItWorks howItWorks={howItWorks} />
+            </Box>
           )}
 
           {isDocument(notes) && (
             <Box
-              twClassName="px-4 py-4"
+              twClassName="px-4"
               testID={CAMPAIGN_MECHANICS_TEST_IDS.NOTES_SECTION}
             >
               <ContentfulRichText document={notes} />

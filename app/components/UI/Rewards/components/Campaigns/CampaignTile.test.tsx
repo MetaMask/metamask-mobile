@@ -11,6 +11,7 @@ import {
   isCampaignTypeSupported,
 } from './CampaignTile.utils';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
+import { useMoneyAccountSweepstakesParticipation } from '../../hooks/useMoneyAccountSweepstakesParticipation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
@@ -113,6 +114,11 @@ const mockUseGetCampaignParticipantStatus =
     typeof useGetCampaignParticipantStatus
   >;
 
+const mockUseMoneyAccountSweepstakesParticipation =
+  useMoneyAccountSweepstakesParticipation as jest.MockedFunction<
+    typeof useMoneyAccountSweepstakesParticipation
+  >;
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return { ...actual };
@@ -127,6 +133,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 jest.mock('../../hooks/useGetCampaignParticipantStatus', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useMoneyAccountSweepstakesParticipation', () => ({
+  useMoneyAccountSweepstakesParticipation: jest.fn(),
 }));
 
 jest.mock('./CampaignTile.utils', () => ({
@@ -172,6 +182,15 @@ function setupParticipantStatus(optedIn: boolean) {
     status: { optedIn, participantCount: 0 },
     isLoading: false,
     hasError: false,
+    refetch: jest.fn(),
+  });
+}
+
+function setupSweepstakesParticipation(optedInAny: boolean) {
+  mockUseMoneyAccountSweepstakesParticipation.mockReturnValue({
+    optedInAny,
+    optedInByCampaignId: {},
+    isLoading: false,
     refetch: jest.fn(),
   });
 }
@@ -223,6 +242,7 @@ describe('CampaignTile', () => {
       },
     );
     mockDefaultSelectors();
+    setupSweepstakesParticipation(false);
     mockCreateEventBuilder.mockImplementation(() => {
       const builder = {
         addProperties: jest.fn(),
@@ -689,6 +709,63 @@ describe('CampaignTile', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
         screen: Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
         params: { campaignId: 'camp-predict-opted-in' },
+      });
+    });
+
+    it('navigates to Money Account Sweepstakes details for MONEY_ACCOUNT_SWEEPSTAKES type without a tour', () => {
+      const campaign = createTestCampaign({
+        id: 'camp-sweepstakes',
+        type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-sweepstakes'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'camp-sweepstakes' },
+      });
+    });
+
+    it('navigates to campaign tour for MONEY_ACCOUNT_SWEEPSTAKES when not opted in and tour exists', () => {
+      setupSweepstakesParticipation(false);
+      const campaign = createTestCampaign({
+        id: 'camp-sweepstakes-tour',
+        type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+        details: {
+          howItWorks: {
+            tour: [{ title: 'Step 1', description: 'Description 1' }],
+          },
+        },
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-sweepstakes-tour'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        params: { campaignId: 'camp-sweepstakes-tour' },
+      });
+    });
+
+    it('navigates to Money Account Sweepstakes details when opted in to any week even if tour exists', () => {
+      setupSweepstakesParticipation(true);
+      const campaign = createTestCampaign({
+        id: 'camp-sweepstakes-opted-in',
+        type: CampaignType.MONEY_ACCOUNT_SWEEPSTAKES,
+        details: {
+          howItWorks: {
+            tour: [{ title: 'Step 1', description: 'Description 1' }],
+          },
+        },
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-sweepstakes-opted-in'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'camp-sweepstakes-opted-in' },
       });
     });
 

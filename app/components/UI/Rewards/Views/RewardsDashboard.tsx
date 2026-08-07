@@ -38,6 +38,7 @@ import {
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
+import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
@@ -52,6 +53,7 @@ import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
 
@@ -81,6 +83,7 @@ const RewardsDashboard: React.FC = () => {
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
   useGetPredictThePitchOutcomeToast();
+  useMoneyAccountSweepstakesOutcomeToast();
 
   // Data hooks that populate Redux for the dashboard and its pushed sub-pages.
   // The version guard and candidate-subscription fetch live one level up in
@@ -176,6 +179,9 @@ const RewardsDashboard: React.FC = () => {
 
   // Use the bulk link state hook for resuming interrupted opt-in processes
   const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
+
+  // Quietly finish incomplete Money Account Sweepstakes series opt-ins
+  useResumePendingMasSeriesOptIn();
 
   const totalOptedInAccountsSelectedGroup = useMemo(
     () => optInBySelectedAccountGroup?.optedInAccounts?.length,

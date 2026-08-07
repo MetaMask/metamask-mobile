@@ -24,6 +24,9 @@ import {
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
   PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesDrawProofDto,
   VipDashboardState,
   VipRefereeMeState,
   VipTransactionDto,
@@ -78,6 +81,17 @@ export interface BulkLinkState {
    * linking accounts to different subscriptions.
    */
   initialSubscriptionId: string | null;
+}
+
+/**
+ * Deferred Money Account Sweepstakes series opt-in resume.
+ * When some active/upcoming weeks fail after immediate retries, needsRetry is
+ * set so RewardsDashboard can re-run ensureOptedIn on focus. Targets are
+ * always re-derived from series + participant status (no campaign ID list).
+ */
+export interface PendingMasSeriesOptInState {
+  needsRetry: boolean;
+  subscriptionId: string | null;
 }
 
 export type FirstPredictionOnUsOrderStatus =
@@ -171,6 +185,9 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
+  // Pending Money Account Sweepstakes series opt-in (resume on dashboard focus)
+  pendingMasSeriesOptIn: PendingMasSeriesOptInState;
+
   // Benefits state
   benefits: SubscriptionBenefitDto[];
   benefitsLoading: boolean;
@@ -262,6 +279,24 @@ export interface RewardsState {
     CampaignResourceCacheEntry<PredictThePitchPrizePoolDto>
   >;
 
+  // Money Account Sweepstakes stats (keyed by campaignId; auth-scoped via controller)
+  moneyAccountSweepstakesStats: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesStatsMeDto>
+  >;
+
+  // Money Account Sweepstakes prize pool (keyed by campaignId)
+  moneyAccountSweepstakesPrizePools: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesPrizePoolDto>
+  >;
+
+  // Money Account Sweepstakes draw proof (keyed by campaignId)
+  moneyAccountSweepstakesDrawProofs: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesDrawProofDto>
+  >;
+
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
   pendingDeeplink: PendingDeeplink | null;
@@ -346,6 +381,11 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
+  pendingMasSeriesOptIn: {
+    needsRetry: false,
+    subscriptionId: null,
+  },
+
   // Benefits initial state
   benefits: [],
   benefitsLoading: false,
@@ -399,6 +439,9 @@ export const initialState: RewardsState = {
   predictThePitchLeaderboardPositions: {},
   predictThePitchPositions: {},
   predictThePitchPrizePools: {},
+  moneyAccountSweepstakesStats: {},
+  moneyAccountSweepstakesPrizePools: {},
+  moneyAccountSweepstakesDrawProofs: {},
 
   pendingDeeplink: null,
 
@@ -527,6 +570,9 @@ const rewardsSlice = createSlice({
       state.predictThePitchLeaderboardPositions = {};
       state.predictThePitchPositions = {};
       state.predictThePitchPrizePools = {};
+      state.moneyAccountSweepstakesStats = {};
+      state.moneyAccountSweepstakesPrizePools = {};
+      state.moneyAccountSweepstakesDrawProofs = {};
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
@@ -718,6 +764,20 @@ const rewardsSlice = createSlice({
         action.payload.campaignId,
       );
       state.campaignParticipantStatuses[key] = action.payload.status;
+    },
+
+    setPendingMasSeriesOptIn: (
+      state,
+      action: PayloadAction<PendingMasSeriesOptInState>,
+    ) => {
+      state.pendingMasSeriesOptIn = {
+        needsRetry: action.payload.needsRetry,
+        subscriptionId: action.payload.subscriptionId,
+      };
+    },
+
+    clearPendingMasSeriesOptIn: (state) => {
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
 
     // Version guard reducers
@@ -1190,6 +1250,123 @@ const rewardsSlice = createSlice({
       }
     },
 
+    // Money Account Sweepstakes stats reducers
+    setMoneyAccountSweepstakesStats: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        stats: MoneyAccountSweepstakesStatsMeDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.stats;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesStatsLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesStatsError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes prize pool reducers
+    setMoneyAccountSweepstakesPrizePool: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        prizePool: MoneyAccountSweepstakesPrizePoolDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.prizePool;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesPrizePoolLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesPrizePoolError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes draw proof reducers
+    setMoneyAccountSweepstakesDrawProof: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        drawProof: MoneyAccountSweepstakesDrawProofDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.drawProof;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesDrawProofLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesDrawProofError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
     // Bulk link reducers
     bulkLinkStarted: (
       state,
@@ -1236,6 +1413,7 @@ const rewardsSlice = createSlice({
       state.bulkLink.isRunning = false;
       state.bulkLink.wasInterrupted = false;
       state.bulkLink.initialSubscriptionId = null;
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
     bulkLinkReset: (state) => {
       state.bulkLink = initialState.bulkLink;
@@ -1440,6 +1618,11 @@ const rewardsSlice = createSlice({
                   ? (previousBulkLink?.initialSubscriptionId ?? null)
                   : null,
               },
+
+              pendingMasSeriesOptIn: {
+                ...initialState.pendingMasSeriesOptIn,
+                ...(action.payload.rewards.pendingMasSeriesOptIn ?? {}),
+              },
             } as RewardsState;
           }
           return state as unknown as RewardsState;
@@ -1491,6 +1674,8 @@ export const {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  setPendingMasSeriesOptIn,
+  clearPendingMasSeriesOptIn,
   // Version guard actions
   setVersionGuardMinimumMobileVersion,
   setVersionGuardLoading,
@@ -1523,6 +1708,15 @@ export const {
   setPredictThePitchPrizePool,
   setPredictThePitchPrizePoolLoading,
   setPredictThePitchPrizePoolError,
+  setMoneyAccountSweepstakesStats,
+  setMoneyAccountSweepstakesStatsLoading,
+  setMoneyAccountSweepstakesStatsError,
+  setMoneyAccountSweepstakesPrizePool,
+  setMoneyAccountSweepstakesPrizePoolLoading,
+  setMoneyAccountSweepstakesPrizePoolError,
+  setMoneyAccountSweepstakesDrawProof,
+  setMoneyAccountSweepstakesDrawProofLoading,
+  setMoneyAccountSweepstakesDrawProofError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
