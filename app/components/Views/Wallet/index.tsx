@@ -86,6 +86,7 @@ import ConditionalScrollView from '../../../component-library/components-temp/Co
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -865,7 +866,17 @@ const Wallet = ({
         MetaMetricsEvents.ACTIVITY_CLICKED,
       ).build(),
     );
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    // This button only renders when the Money tab has taken the Activity tab
+    // slot (isMoneyAccountVisible), so it is the complement of the tab bar's
+    // `bottom_nav_click` — never both for the same user.
+    //
+    // Nested form is required: TRANSACTIONS_VIEW points at a stack containing a
+    // screen of the same name, so params passed to the outer route never reach
+    // the Activity screen.
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.WalletHomeHeader },
+    });
   }, [navigation, trackEvent]);
 
   const handleSearchPress = useCallback(() => {
