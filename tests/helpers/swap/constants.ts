@@ -913,7 +913,7 @@ export const GET_TOKENS_BASE_RESPONSE = [
   {
     address: '0x0000000000000000000000000000000000000000',
     chainId: 8453,
-    assetId: 'eip155:8453/slip44:8453',
+    assetId: 'eip155:8453/slip44:60',
     symbol: 'ETH',
     decimals: 18,
     name: 'Ether',
@@ -1085,7 +1085,7 @@ export const GET_QUOTE_ETH_BASE_RESPONSE: QuoteResponseV1[] = [
       destAsset: {
         address: '0x0000000000000000000000000000000000000000',
         chainId: 8453,
-        assetId: 'eip155:8453/slip44:8453',
+        assetId: 'eip155:8453/slip44:60',
         symbol: 'ETH',
         decimals: 18,
         name: 'Ether',
@@ -1127,7 +1127,7 @@ export const GET_QUOTE_ETH_BASE_RESPONSE: QuoteResponseV1[] = [
           destAsset: {
             address: '0x0000000000000000000000000000000000000000',
             chainId: 8453,
-            assetId: 'eip155:8453/slip44:8453',
+            assetId: 'eip155:8453/slip44:60',
             symbol: 'ETH',
             decimals: 18,
             name: 'Ether',
@@ -1163,7 +1163,7 @@ export const GET_TOP_ASSETS_BASE_RESPONSE = [
 // This matches the PopularToken interface used by usePopularTokens hook
 export const GET_POPULAR_TOKENS_BASE_RESPONSE = [
   {
-    assetId: 'eip155:8453/slip44:8453',
+    assetId: 'eip155:8453/slip44:60',
     decimals: 18,
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
