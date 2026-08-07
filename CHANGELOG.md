@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.7.0]
 
+### Uncategorized
+
+- chore(navigation): point React Navigation's global `RootParamList` at the app's real `RootStackParamList` (Phase 5) (#33745)
+- Bumped `rive-react-native` to `9.8.5` to pick up Android native runtime stability fixes (#33834)
+
 ### Added
 
 - Updated the money deposit CTA to fit longer APY copy (#34380)
