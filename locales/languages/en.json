@@ -176,6 +176,20 @@
         "title": "Address needs review"
       }
     },
+    "signature_address_scan": {
+      "malicious": {
+        "message": "The {{field}} address {{address}} has been identified as malicious.",
+        "title": "Malicious address"
+      },
+      "warning": {
+        "message": "The {{field}} address {{address}} needs review. Only continue if you trust the source.",
+        "title": "Address needs review"
+      },
+      "incomplete": {
+        "message": "Some addresses in this request couldn't be checked for known threats. Only continue if you trust this site.",
+        "title": "Addresses not fully checked"
+      }
+    },
     "url_trust_signal": {
       "malicious": {
         "message": "This has been identified as malicious. We recommend not interacting with this site.",
