@@ -7,6 +7,7 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 import { isEqual } from 'lodash';
+import type { OriginMetadata } from '@metamask/snaps-sdk';
 
 import {
   CaipAccountId,
@@ -666,6 +667,10 @@ class WalletConnect2Session {
         // what Snaps must receive as the request origin, never the dapp's
         // self-reported metadata URL.
         origin: this.channelId,
+        originMetadata: {
+          transport: 'WalletConnect',
+          selfReportedOrigin: this.selfReportedUrl,
+        },
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -795,10 +800,12 @@ class WalletConnect2Session {
    */
   private handleAdapterRequest = async ({
     origin,
+    originMetadata,
     requestEvent,
     scope,
   }: {
     origin: string;
+    originMetadata: OriginMetadata;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -810,6 +817,7 @@ class WalletConnect2Session {
     try {
       const result = await handleMultichainRequestByAdapter({
         origin,
+        originMetadata,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,
