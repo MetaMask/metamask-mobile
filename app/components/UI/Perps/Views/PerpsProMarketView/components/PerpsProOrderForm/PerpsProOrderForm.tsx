@@ -10,7 +10,6 @@ import {
   ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
-  Checkbox,
   FilterButton,
   FontWeight,
   Icon,
@@ -68,13 +67,63 @@ const summaryValueTextProps = {
   fontWeight: FontWeight.Medium,
 };
 
-interface TPSLRowProps {
-  label: string;
-  onPress?: () => void;
+interface SelectionIndicatorProps {
+  isSelected: boolean;
   testID: string;
 }
 
-const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
+const SelectionIndicator = ({ isSelected, testID }: SelectionIndicatorProps) =>
+  isSelected ? (
+    <Box
+      twClassName="size-5 items-center justify-center rounded-full bg-icon-default"
+      testID={`${testID}-indicator`}
+    >
+      <Icon
+        name={IconName.CheckBold}
+        size={IconSize.Xs}
+        color={IconColor.PrimaryInverse}
+      />
+    </Box>
+  ) : (
+    <Box
+      twClassName="size-5 rounded-full border-2 border-muted"
+      testID={`${testID}-indicator`}
+    />
+  );
+
+interface ReduceOnlyRowProps extends SelectionIndicatorProps {
+  label: string;
+  onChange: (value: boolean) => void;
+}
+
+const ReduceOnlyRow = ({
+  label,
+  isSelected,
+  onChange,
+  testID,
+}: ReduceOnlyRowProps) => (
+  <Pressable
+    accessibilityRole="checkbox"
+    accessibilityState={{ checked: isSelected }}
+    accessibilityLabel={label}
+    onPress={() => onChange(!isSelected)}
+    testID={testID}
+  >
+    <Box twClassName="h-12 flex-row items-center justify-between rounded-xl bg-muted px-3">
+      <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
+      <SelectionIndicator isSelected={isSelected} testID={testID} />
+    </Box>
+  </Pressable>
+);
+
+interface TPSLRowProps extends SelectionIndicatorProps {
+  label: string;
+  onPress?: () => void;
+}
+
+const TPSLRow = ({ label, isSelected, onPress, testID }: TPSLRowProps) => {
   const isDisabled = !onPress;
 
   return (
@@ -94,12 +143,7 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
           {label}
         </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Sm}
-          color={IconColor.IconDefault}
-          testID={`${testID}-arrow`}
-        />
+        <SelectionIndicator isSelected={isSelected} testID={testID} />
       </Box>
     </Pressable>
   );
@@ -129,6 +173,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
         notice.variant === 'banner' ? (
           <BannerAlert
             key={notice.id}
+            alignItems={BoxAlignItems.Center}
             severity={BannerAlertSeverity.Warning}
             title={notice.title}
             description={notice.message}
@@ -149,6 +194,7 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   ) : null;
 
 const summaryRowClassName = 'h-5 px-0';
+const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
 
 interface SlippageValueProps {
@@ -192,7 +238,7 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
 }: PerpsProOrderSummaryProps) => (
-  <Box twClassName="w-full gap-1 overflow-hidden" testID={ids.SUMMARY}>
+  <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
     <KeyValueRow
       keyLabel={strings('perps.order.margin')}
       value={margin}
@@ -231,6 +277,8 @@ const OrderSummary = ({
           feeDiscountPercentage={feeDiscountPercentage}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
+          color={TextColor.TextDefault}
+          fontWeight={FontWeight.Medium}
         />
       }
       keyEndButtonIconProps={buttonIcon(
@@ -240,7 +288,7 @@ const OrderSummary = ({
       )}
       keyTextProps={summaryKeyTextProps}
       valueTextProps={summaryValueTextProps}
-      twClassName={summaryRowClassName}
+      twClassName={summaryFeesRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
     />
@@ -268,6 +316,7 @@ const PerpsProOrderForm = ({
   onAddFundsPress,
   reduceOnly,
   onReduceOnlyChange,
+  isTPSLConfigured,
   onTPSLPress,
   notices,
   summary,
@@ -436,25 +485,20 @@ const PerpsProOrderForm = ({
             availableBalance={availableBalance}
             onAddFundsPress={onAddFundsPress}
           />
-          <Box twClassName="h-12 justify-center rounded-xl bg-muted px-3">
-            <Checkbox
-              label={strings('perps.order.reduce_only')}
-              labelProps={{
-                variant: TextVariant.BodySm,
-                fontWeight: FontWeight.Medium,
-                style: { marginLeft: 0, flex: 1 },
-              }}
-              isSelected={reduceOnly}
-              onChange={onReduceOnlyChange}
-              testID={ids.REDUCE_ONLY}
-              twClassName="w-full flex-row-reverse justify-between"
-            />
-          </Box>
-          <TPSLRow
-            label={strings('perps.pro_order_form.tpsl')}
-            onPress={onTPSLPress}
-            testID={ids.TPSL}
+          <ReduceOnlyRow
+            label={strings('perps.order.reduce_only')}
+            isSelected={reduceOnly}
+            onChange={onReduceOnlyChange}
+            testID={ids.REDUCE_ONLY}
           />
+          {!reduceOnly ? (
+            <TPSLRow
+              label={strings('perps.pro_order_form.tpsl')}
+              isSelected={isTPSLConfigured}
+              onPress={onTPSLPress}
+              testID={ids.TPSL}
+            />
+          ) : null}
           <Notices notices={notices} />
           <ButtonSemantic
             severity={

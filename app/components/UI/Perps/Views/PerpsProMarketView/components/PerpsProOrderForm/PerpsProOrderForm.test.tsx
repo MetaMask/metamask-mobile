@@ -345,6 +345,12 @@ describe('PerpsProOrderForm', () => {
       expect(onReduceOnlyChange).toHaveBeenCalledWith(true);
     });
 
+    it('hides the TP/SL row when Reduce Only is on', () => {
+      renderForm({ reduceOnly: true, onTPSLPress: jest.fn() });
+
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
     it('exposes TP/SL as a button action', () => {
       renderForm({ onTPSLPress: jest.fn() });
 
@@ -352,7 +358,6 @@ describe('PerpsProOrderForm', () => {
         'accessibilityRole',
         'button',
       );
-      expect(screen.getByTestId(`${ids.TPSL}-arrow`)).toBeOnTheScreen();
     });
 
     it('calls onTPSLPress when TP/SL is pressed', () => {
