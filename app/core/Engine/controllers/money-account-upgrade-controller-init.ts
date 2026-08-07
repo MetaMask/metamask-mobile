@@ -135,13 +135,13 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
   };
 
   const bootstrap = async (vaultConfig: MoneyAccountVaultConfig) => {
-    const chainId = vaultConfig.chainId as Hex;
+    const chainId = vaultConfig.chainId;
 
     await ensureChainConfigured(chainId);
 
     await controller.init({
       chainId,
-      boringVaultAddress: vaultConfig.boringVault as Hex,
+      boringVaultAddress: vaultConfig.boringVault,
     });
   };
 
