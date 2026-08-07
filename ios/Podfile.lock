@@ -491,22 +491,27 @@ PODS:
   - hermes-engine (0.14.1):
     - hermes-engine/Pre-built (= 0.14.1)
   - hermes-engine/Pre-built (0.14.1)
+  - IdensicMobileSDK (1.45.1):
+    - IdensicMobileSDK/Default (= 1.45.1)
+  - IdensicMobileSDK/Core (1.45.1)
+  - IdensicMobileSDK/Default (1.45.1):
+    - IdensicMobileSDK/Core
   - libavif/core (1.0.0)
   - libavif/libdav1d (1.0.0):
     - libavif/core
     - libdav1d (>= 0.6.0)
   - libdav1d (1.2.0)
-  - libwebp (1.5.0):
-    - libwebp/demux (= 1.5.0)
-    - libwebp/mux (= 1.5.0)
-    - libwebp/sharpyuv (= 1.5.0)
-    - libwebp/webp (= 1.5.0)
-  - libwebp/demux (1.5.0):
+  - libwebp (1.6.0):
+    - libwebp/demux (= 1.6.0)
+    - libwebp/mux (= 1.6.0)
+    - libwebp/sharpyuv (= 1.6.0)
+    - libwebp/webp (= 1.6.0)
+  - libwebp/demux (1.6.0):
     - libwebp/webp
-  - libwebp/mux (1.5.0):
+  - libwebp/mux (1.6.0):
     - libwebp/demux
-  - libwebp/sharpyuv (1.5.0)
-  - libwebp/webp (1.5.0):
+  - libwebp/sharpyuv (1.6.0)
+  - libwebp/webp (1.6.0):
     - libwebp/sharpyuv
   - lottie-ios (4.6.0)
   - lottie-react-native (7.3.8):
@@ -693,8 +698,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - OpenSSL-Universal (3.6.0000)
-  - PromisesObjC (2.4.0)
+  - OpenSSL-Universal (3.6.2000)
+  - PromisesObjC (2.4.1)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2828,6 +2833,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - react-native-mobilesdk-module (1.45.1):
+    - IdensicMobileSDK (= 1.45.1)
+    - React-Core
   - react-native-netinfo (11.5.2):
     - boost
     - DoubleConversion
@@ -4602,6 +4610,7 @@ DEPENDENCIES:
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
+  - "react-native-mobilesdk-module (from `../node_modules/@sumsub/react-native-mobilesdk-module`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
@@ -4686,15 +4695,21 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
+    - BrazeKit
+    - FirebaseCore
+    - PromisesObjC
+    - SDWebImage
+    - SocketRocket
+  https://github.com/SumSubstance/Specs.git:
+    - IdensicMobileSDK
+  trunk:
     - Base64
     - BEMCheckBox
     - Branch
-    - BrazeKit
     - BrazeLocation
     - BrazeUI
     - CocoaAsyncSocket
     - Firebase
-    - FirebaseCore
     - FirebaseCoreExtension
     - FirebaseCoreInternal
     - FirebaseInstallations
@@ -4710,15 +4725,12 @@ SPEC REPOS:
     - MultiplatformBleAdapter
     - nanopb
     - OpenSSL-Universal
-    - PromisesObjC
     - ReachabilitySwift
     - RiveRuntime
-    - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
     - Sentry
-    - SocketRocket
     - SwiftUIIntrospect
     - VeriffSDK
     - YttriumWrapper
@@ -4921,6 +4933,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-launch-arguments"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
+  react-native-mobilesdk-module:
+    :path: "../node_modules/@sumsub/react-native-mobilesdk-module"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -5141,9 +5155,10 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: f37e1d6f1eb198649a60b3f17b6f685a6ac12470
+  IdensicMobileSDK: b32caa39919bd9d0ad64897b2a17de81e16f23fd
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
-  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
+  libwebp: af5937a13536ef73f3784d69cc342b98961acf33
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: b410d8c9dcaf536198ce852ea47e73c9158ad04e
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
@@ -5153,8 +5168,8 @@ SPEC CHECKSUMS:
   NitroFetchWebsockets: 8ce4909248acd869f7002be2c9b1eefcbb60544a
   NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
   NitroTextDecoder: 9b50be860ed7488349bc31791b6fe96778a43db0
-  OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
-  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
+  PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   RCT-Folly: b29feb752b08042c62badaef7d453f3bb5e6ae23
   RCTDeprecation: c5e70bcdbc24b9edbca24b96f3997319f01ba8fb
   RCTRequired: 7fbf6c9b97de59aab5c6a1ca5a5d91555d5ba403
@@ -5207,6 +5222,7 @@ SPEC CHECKSUMS:
   react-native-keyboard-controller: dbf568b5d029cdc5b26667a7c2323b160c25dc00
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ac7507625cd74bac0eb5333604a7cd7b08fe9e3e
+  react-native-mobilesdk-module: cbf8b811c658f02325e0e41240a32af40a6fa791
   react-native-netinfo: 57447b5a45c98808f8eae292cf641f3d91d13830
   react-native-pager-view: d7d2aa47f54343bf55fdcee3973503dd27c2bd37
   react-native-performance: b48d1aba7501a54af5e1a7efb0dab1ab25dc734f
@@ -5298,6 +5314,6 @@ SPEC CHECKSUMS:
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: 765be4dd3d78fecfb151a4b9e4a55956b1ebf8aa
+PODFILE CHECKSUM: c22d42fccd45544ef2beb387612b47b0d56bd745
 
 COCOAPODS: 1.16.2
