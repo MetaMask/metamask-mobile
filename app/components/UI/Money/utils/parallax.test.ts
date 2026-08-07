@@ -1,7 +1,9 @@
 import {
   PARALLAX_REST_VALUE,
   PARALLAX_SMOOTHING,
+  PARALLAX_SMOOTHING_REFERENCE_HZ,
   PARALLAX_TILT_DEADZONE,
+  parallaxSmoothingFactor,
   shapeCardTilt,
   shapeParallaxTilt,
   smoothParallaxTilt,
@@ -10,6 +12,8 @@ import {
   pitchToParallaxValue,
   tiltToParallaxValue,
 } from './parallax';
+
+const HZ = PARALLAX_SMOOTHING_REFERENCE_HZ;
 
 describe('tiltToParallaxValue', () => {
   it('maps a flat device to the resting (centred) value', () => {
@@ -164,25 +168,70 @@ describe('shapeParallaxTilt', () => {
     expect(tremor).toBeGreaterThan(0);
     expect(shapeParallaxTilt(tremor)).toBe(0);
   });
+
+  it('keeps the reach of the raw curve above the noise floor', () => {
+    // The handful of degrees a phone actually moves while its screen is being
+    // read. Subtracting the deadzone before the exponent instead of after
+    // shrinks these to almost nothing while still satisfying every assertion
+    // above, which is how the reach was lost once already.
+    const travelled = [0.25, 0.33, 0.5, 0.67];
+
+    for (const fraction of travelled) {
+      const raw = fraction ** 2;
+
+      expect(shapeParallaxTilt(raw)).toBeGreaterThan(raw * 0.8);
+    }
+  });
+});
+
+describe('parallaxSmoothingFactor', () => {
+  it('uses the authored weight at the reference sample rate', () => {
+    expect(parallaxSmoothingFactor(HZ)).toBeCloseTo(PARALLAX_SMOOTHING, 10);
+  });
+
+  it('weights each sample more heavily when they arrive less often', () => {
+    expect(parallaxSmoothingFactor(HZ / 2)).toBeGreaterThan(PARALLAX_SMOOTHING);
+  });
+
+  it('settles in the same wall-clock time at half the sample rate', () => {
+    const ease = (hz: number, samples: number): number => {
+      let value = 0;
+      for (let i = 0; i < samples; i++)
+        value = smoothParallaxTilt(value, 1, hz);
+      return value;
+    };
+
+    expect(ease(HZ / 2, 10)).toBeCloseTo(ease(HZ, 20), 10);
+  });
+
+  it('never weights a sample beyond the reading itself', () => {
+    expect(parallaxSmoothingFactor(1)).toBeLessThanOrEqual(1);
+  });
+
+  it('falls back to the authored weight for a rate it cannot use', () => {
+    expect(parallaxSmoothingFactor(0)).toBe(PARALLAX_SMOOTHING);
+    expect(parallaxSmoothingFactor(-1)).toBe(PARALLAX_SMOOTHING);
+    expect(parallaxSmoothingFactor(NaN)).toBe(PARALLAX_SMOOTHING);
+  });
 });
 
 describe('smoothParallaxTilt', () => {
   it('stays put when the reading has not changed', () => {
-    expect(smoothParallaxTilt(0.4, 0.4)).toBeCloseTo(0.4, 10);
+    expect(smoothParallaxTilt(0.4, 0.4, HZ)).toBeCloseTo(0.4, 10);
   });
 
   it('moves only part of the way towards a new reading', () => {
-    expect(smoothParallaxTilt(0, 1)).toBeCloseTo(PARALLAX_SMOOTHING, 10);
+    expect(smoothParallaxTilt(0, 1, HZ)).toBeCloseTo(PARALLAX_SMOOTHING, 10);
   });
 
   it('never lets a single-sample spike through at full amplitude', () => {
-    expect(smoothParallaxTilt(0, 1)).toBeLessThan(0.5);
+    expect(smoothParallaxTilt(0, 1, HZ)).toBeLessThan(0.5);
   });
 
   it('decays a single-sample spike back towards rest', () => {
-    let value = smoothParallaxTilt(0, 1);
+    let value = smoothParallaxTilt(0, 1, HZ);
     for (let i = 0; i < 10; i++) {
-      value = smoothParallaxTilt(value, 0);
+      value = smoothParallaxTilt(value, 0, HZ);
     }
 
     expect(Math.abs(value)).toBeLessThan(0.05);
@@ -191,15 +240,15 @@ describe('smoothParallaxTilt', () => {
   it('converges on a sustained reading', () => {
     let value = 0;
     for (let i = 0; i < 60; i++) {
-      value = smoothParallaxTilt(value, 1);
+      value = smoothParallaxTilt(value, 1, HZ);
     }
 
     expect(value).toBeCloseTo(1, 3);
   });
 
   it('eases symmetrically in both directions', () => {
-    expect(smoothParallaxTilt(0, -1)).toBeCloseTo(
-      -smoothParallaxTilt(0, 1),
+    expect(smoothParallaxTilt(0, -1, HZ)).toBeCloseTo(
+      -smoothParallaxTilt(0, 1, HZ),
       10,
     );
   });

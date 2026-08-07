@@ -14,6 +14,7 @@ import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
+import { useRiveTiltWriter } from '../../hooks/useRiveTiltWriter';
 import {
   pitchToParallaxValue,
   shapeParallaxTilt,
@@ -77,24 +78,27 @@ const MoneyNextBestActionParallax = ({
     smoothedTilt.current = { x: 0, y: 0 };
   }, [artboardName, animate]);
 
-  const applyTilt = useCallback((x: number, y: number) => {
-    const rive = riveRef.current;
-    // viewTag() is null while the native Rive view is detached; dispatching
-    // then throws "found null reactTag".
-    if (!rive || rive.viewTag() === null) return;
-    smoothedTilt.current = {
-      x: smoothParallaxTilt(smoothedTilt.current.x, shapeParallaxTilt(x)),
-      y: smoothParallaxTilt(smoothedTilt.current.y, shapeParallaxTilt(y)),
-    };
-    rive.setNumber(
-      RIVE_PROPERTY_X,
-      tiltToParallaxValue(smoothedTilt.current.x),
-    );
-    rive.setNumber(
-      RIVE_PROPERTY_Y,
-      pitchToParallaxValue(smoothedTilt.current.y),
-    );
-  }, []);
+  const writeTilt = useRiveTiltWriter({
+    riveRef,
+    xProperty: RIVE_PROPERTY_X,
+    yProperty: RIVE_PROPERTY_Y,
+    artboardName,
+    enabled: animate,
+  });
+
+  const applyTilt = useCallback(
+    (x: number, y: number, hz: number) => {
+      smoothedTilt.current = {
+        x: smoothParallaxTilt(smoothedTilt.current.x, shapeParallaxTilt(x), hz),
+        y: smoothParallaxTilt(smoothedTilt.current.y, shapeParallaxTilt(y), hz),
+      };
+      writeTilt(
+        tiltToParallaxValue(smoothedTilt.current.x),
+        pitchToParallaxValue(smoothedTilt.current.y),
+      );
+    },
+    [writeTilt],
+  );
 
   useDeviceOrientation(applyTilt, { enabled: animate });
 

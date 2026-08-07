@@ -6,7 +6,9 @@ import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import {
   PARALLAX_REST_VALUE,
+  PARALLAX_SMOOTHING_REFERENCE_HZ,
   PARALLAX_TILT_DEADZONE,
+  RIVE_TILT_WRITE_EPSILON,
   pitchToParallaxValue,
   shapeParallaxTilt,
   tiltToParallaxValue,
@@ -69,10 +71,16 @@ jest.mock('../../hooks/useDeviceOrientation', () => ({
 const mockUseReduceMotion = useReduceMotion as jest.Mock;
 const mockUseDeviceOrientation = useDeviceOrientation as jest.Mock;
 
-const latestApplyTilt = (): ((x: number, y: number) => void) =>
+const registeredApplyTilt = (): ((x: number, y: number, hz: number) => void) =>
   mockUseDeviceOrientation.mock.calls[
     mockUseDeviceOrientation.mock.calls.length - 1
   ][0];
+
+/** The registered tilt callback, bound to a sample rate the hook would report. */
+const latestApplyTilt =
+  (hz: number = PARALLAX_SMOOTHING_REFERENCE_HZ) =>
+  (x: number, y: number): void =>
+    registeredApplyTilt()(x, y, hz);
 
 /** Feeds the same reading for long enough that the smoothing has settled. */
 const holdTilt = (x: number, y: number, samples = 200): void => {
@@ -84,6 +92,16 @@ const holdTilt = (x: number, y: number, samples = 200): void => {
 
 const lastValueFor = (path: string): number | undefined =>
   mockSetNumber.mock.calls.filter(([name]) => name === path).pop()?.[1];
+
+/**
+ * The writer skips dispatches too small to be seen, so the last steps of an
+ * ease never reach the artboard and it settles just short of the target.
+ */
+const expectSettledNear = (path: string, expected: number): void => {
+  expect(Math.abs((lastValueFor(path) as number) - expected)).toBeLessThan(
+    RIVE_TILT_WRITE_EPSILON,
+  );
+};
 
 describe('MoneyNextBestActionParallax', () => {
   beforeEach(() => {
@@ -227,10 +245,7 @@ describe('MoneyNextBestActionParallax', () => {
 
     holdTilt(0.5, -0.5);
 
-    expect(lastValueFor('xValue')).toBeCloseTo(
-      tiltToParallaxValue(shapeParallaxTilt(0.5)),
-      3,
-    );
+    expectSettledNear('xValue', tiltToParallaxValue(shapeParallaxTilt(0.5)));
   });
 
   it('settles yValue on the inverted shaped pitch when the tilt is held', () => {
@@ -243,10 +258,7 @@ describe('MoneyNextBestActionParallax', () => {
 
     holdTilt(0.5, -0.5);
 
-    expect(lastValueFor('yValue')).toBeCloseTo(
-      pitchToParallaxValue(shapeParallaxTilt(-0.5)),
-      3,
-    );
+    expectSettledNear('yValue', pitchToParallaxValue(shapeParallaxTilt(-0.5)));
   });
 
   it('drives yValue below the resting value for a positive pitch', () => {
@@ -284,6 +296,71 @@ describe('MoneyNextBestActionParallax', () => {
 
     expect(lastValueFor('xValue')).toBeCloseTo(PARALLAX_REST_VALUE, 6);
     expect(lastValueFor('yValue')).toBeCloseTo(PARALLAX_REST_VALUE, 6);
+  });
+
+  it('stops dispatching once a held tilt has settled', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    holdTilt(0.5, -0.5);
+    mockSetNumber.mockClear();
+    holdTilt(0.5, -0.5);
+
+    expect(mockSetNumber).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch at all for a device lying still', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    const applyTilt = latestApplyTilt();
+    act(() => {
+      for (let i = 0; i < 60; i++) applyTilt(0, 0);
+    });
+
+    // One write per axis puts the artboard at rest; the rest of the stream is
+    // identical and must cost nothing.
+    expect(mockSetNumber).toHaveBeenCalledTimes(2);
+  });
+
+  it('settles in the same wall-clock time on the low-end sample rate', () => {
+    const { unmount } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    // A third of a second of samples at each rate.
+    act(() => {
+      const applyTilt = latestApplyTilt(60);
+      for (let i = 0; i < 20; i++) applyTilt(1, 0);
+    });
+    const atDefaultRate = lastValueFor('xValue') as number;
+
+    unmount();
+    mockSetNumber.mockClear();
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    act(() => {
+      const applyTilt = latestApplyTilt(30);
+      for (let i = 0; i < 10; i++) applyTilt(1, 0);
+    });
+
+    expectSettledNear('xValue', atDefaultRate);
   });
 
   it('eases into a new tilt rather than jumping to it', () => {
