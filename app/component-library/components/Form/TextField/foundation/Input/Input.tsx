@@ -5,6 +5,7 @@ import React, { useCallback, useState } from 'react';
 import { TextInput, type BlurEvent, type FocusEvent } from 'react-native';
 
 // External dependencies.
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { useStyles } from '../../../../../hooks';
 import { DEFAULT_TEXT_VARIANT } from '../../../../Texts/Text/Text.constants';
 
@@ -39,6 +40,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
     ref,
   ) => {
     const [isFocused, setIsFocused] = useState(autoFocus);
+    const isPureBlack = usePureBlack();
 
     const { styles, theme } = useStyles(styleSheet, {
       style,
@@ -46,6 +48,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
       isStateStylesDisabled,
       isDisabled,
       isFocused,
+      isPureBlack,
       value: value ?? '',
       placeholder,
     });

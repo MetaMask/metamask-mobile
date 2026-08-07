@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import ReusableModal, {
   ReusableModalRef,
 } from '../../../../components/UI/ReusableModal';
@@ -30,7 +31,8 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     isDanger = false,
   } = route.params;
   const modalRef = useRef<ReusableModalRef>(null);
-  const { styles } = useStyles(stylesheet, {});
+  const isPureBlack = usePureBlack();
+  const { styles } = useStyles(stylesheet, { isPureBlack });
 
   const triggerCancel = () => modalRef.current?.dismissModal(onCancel);
 

@@ -39,5 +39,6 @@ export type InputStyleSheetVars = Pick<
   'style' | 'isStateStylesDisabled' | 'isDisabled' | 'value' | 'placeholder'
 > & {
   isFocused: boolean;
+  isPureBlack: boolean;
   textVariant: TextVariant;
 };

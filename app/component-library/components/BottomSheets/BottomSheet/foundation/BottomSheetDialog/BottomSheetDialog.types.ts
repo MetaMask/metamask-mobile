@@ -47,4 +47,5 @@ export interface BottomSheetDialogStyleSheetVars {
   screenBottomPadding: number;
   style: StyleProp<ViewStyle>;
   isFullscreen: boolean;
+  isPureBlack: boolean;
 }
