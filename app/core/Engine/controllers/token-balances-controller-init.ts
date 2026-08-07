@@ -34,6 +34,7 @@ export const tokenBalancesControllerInit: MessengerClientInitFunction<
       selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     platform: 'mobile',
     isOnboarded: () => selectCompletedOnboarding(getState()),
+    isDeprecated: () => true,
   });
 
   return {

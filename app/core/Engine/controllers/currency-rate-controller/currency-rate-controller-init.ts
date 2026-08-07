@@ -54,6 +54,7 @@ export const currencyRateControllerInit: MessengerClientInitFunction<
     },
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     tokenPricesService: codefiTokenApiV2,
+    isDeprecated: () => true,
   });
 
   return { controller };

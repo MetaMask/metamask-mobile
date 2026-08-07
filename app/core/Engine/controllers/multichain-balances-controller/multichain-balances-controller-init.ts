@@ -23,6 +23,7 @@ export const multichainBalancesControllerInit: MessengerClientInitFunction<
   const controller = new MultichainBalancesController({
     messenger: controllerMessenger,
     state: multichainBalancesControllerState,
+    isDeprecated: () => true,
   });
 
   return { controller };

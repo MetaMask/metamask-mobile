@@ -24,6 +24,7 @@ export const multichainAssetsRatesControllerInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     state: multichainAssetsRatesControllerState,
     interval: 180000,
+    isDeprecated: () => true,
   });
 
   return { controller };
