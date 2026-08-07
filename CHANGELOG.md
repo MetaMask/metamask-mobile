@@ -9,75 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.7.0]
 
-### Uncategorized
-
-- Track asset_id on token watchlisted (#34262)
-- perf(useTokenLogo): stabilize default Set params and memoize handlers (#34105)
-- Fixed address-poisoning detection so lookalikes of the actual recipient of a token transfer are flagged, and lookalikes of the (#34158)
-  token contract address are no longer flagged.
-- Removed the expired dedicated World Cup Predict feed and promotional entry points (#33625)
-- chore: revert add @metamaskbot create-testflight-build PR command (#34177)
-- chore(navbar): remove un-used navbar functions (#34087)
-- Updated Stellar Asset Component and wire them into asset component (asset details, asset row and asset button) (#34048)
-- Added esports match markets and game/map tabs to Predict sports markets. (#34006)
-
-## **Related issues**
-
-Fixes: https://consensyssoftware.atlassian.net/browse/PRED-1138
-
-## **Manual testing steps**
-
-```gherkin
-Feature: Esports markets in Predict
-  Scenario: user views esports outcome groups
-    Given Predict extended sports markets are enabled for an esports league
-    And an esports event has match-level and per-game or per-map markets
-    When user opens the event details
-    Then the Outcomes tab displays Game Lines first
-    And numbered Game or Map chips appear in numeric order
-    And game/map numbers above 5 are included when present
-  Scenario: user views esports markets with optional draw outcomes
-    Given an esports moneyline market includes explicit home, draw, and away outcomes
-    When user views the market card or game details
-    Then the draw option is displayed and routes to the draw token
-  Scenario: user views two-way esports markets
-    Given an esports moneyline market only includes home and away outcomes
-    When user views the market card or game details
-    Then no draw option is displayed
-```
-
-## **Screenshots/Recordings**
-
-N/A - no screenshots or recordings were captured for this branch.
-Verification was performed with focused unit tests and TypeScript
-checks.
-
-### **Before**
-
-N/A
-
-### **After**
-
-- Improved the loading performance of the Money potential earnings list for wallets holding many tokens (#33982)
-- Fixed issue with DeFi balances in the new controller not aggregating loans correctly (#34010)
-- chore(navigation): point React Navigation's global `RootParamList` at the app's real `RootStackParamList` (Phase 5) (#33745)
-- Bumped `rive-react-native` to `9.8.5` to pick up Android native runtime stability fixes (#33834)
-- Update swap and bridge to use and display partial QuoteMetadata (#33559)
-- Added Robinhood Chain to the networks supporting smart transactions (#33876)
-- Only fetch NFTs when section is focused and add skeletons (#33645)
-- chore(money): opt in useNavigation to AppNavigationProp (Phase 4) (#33622)
-- chore(navigation): opt remaining small teams into AppNavigationProp (phase 4) (#33678)
-- chore(multichain accounts): opt in useNavigation to AppNavigationProp (Phase 4) (#33627)
-- chore(confirmation): opt in useNavigation to AppNavigationProp (Phase 4) (#33558)
-- Upgrades design system libraries to v56.0.0 and migrates Perps `KeyValueRow` call sites off parent horizontal padding (#33788)
-- chore(navigation): opt unowned surfaces into AppNavigationProp (Phase 4) (#33740)
-- chore(core): opt in useNavigation to AppNavigationProp (Phase 4) (#33666)
-- chore(assets): opt in useNavigation to AppNavigationProp (Phase 4) (#33628)
-- Improved performance and reduced device heat when viewing Predict Crypto Up/Down markets (#33757)
-- Allow deprecating tokens controller through FF (#33570)
-- Remove price alerts FF (#33599)
-- Removed the Batch Sell promotional banner from the Swap source token picker (#33742)
-
 ### Added
 
 - Updated the money deposit CTA to fit longer APY copy (#34380)
@@ -157,6 +88,31 @@ N/A
 - Added a live order book to the Perps Pro market view (#33664)
 - Updated Immersve Card funding approval to always use the maximum spending limit and polished Immersve onboarding UX (#33655)
 - Added a VIP transactions screen so users can view Perps and Swap fills that counted toward their VIP points (#33680)
+- Update swap and bridge to use and display partial QuoteMetadata (#33559)
+- Added Robinhood Chain to the networks supporting smart transactions (#33876)
+- Only fetch NFTs when section is focused and add skeletons (#33645)
+- chore(money): opt in useNavigation to AppNavigationProp (Phase 4) (#33622)
+- chore(navigation): opt remaining small teams into AppNavigationProp (phase 4) (#33678)
+- chore(multichain accounts): opt in useNavigation to AppNavigationProp (Phase 4) (#33627)
+- chore(confirmation): opt in useNavigation to AppNavigationProp (Phase 4) (#33558)
+- Upgrades design system libraries to v56.0.0 and migrates Perps `KeyValueRow` call sites off parent horizontal padding (#33788)
+- chore(navigation): opt unowned surfaces into AppNavigationProp (Phase 4) (#33740)
+- chore(core): opt in useNavigation to AppNavigationProp (Phase 4) (#33666)
+- chore(assets): opt in useNavigation to AppNavigationProp (Phase 4) (#33628)
+- Improved performance and reduced device heat when viewing Predict Crypto Up/Down markets (#33757)
+- Allow deprecating tokens controller through FF (#33570)
+- Remove price alerts FF (#33599)
+- Removed the Batch Sell promotional banner from the Swap source token picker (#33742)
+- Track asset_id on token watchlisted (#34262)
+- perf(useTokenLogo): stabilize default Set params and memoize handlers (#34105)
+- Fixed address-poisoning detection so lookalikes of the actual recipient of a token transfer are flagged, and lookalikes of the (#34158)
+  token contract address are no longer flagged.
+- Removed the expired dedicated World Cup Predict feed and promotional entry points (#33625)
+- chore: revert add @metamaskbot create-testflight-build PR command (#34177)
+- chore(navbar): remove un-used navbar functions (#34087)
+- Updated Stellar Asset Component and wire them into asset component (asset details, asset row and asset button) (#34048)
+- Added esports match markets and game/map tabs to Predict sports markets. (#34006)
+- Improved the loading performance of the Money potential earnings list for wallets holding many tokens (#33982)
 
 ### Fixed
 
@@ -258,6 +214,7 @@ N/A
 - Fixed an error thrown by the Money home parallax animation when the device was tilted while the animation was off-screen (#33718)
 - Fixed duplicate Ramps transaction completed analytics events after app relaunch (#33357)
 - Added Monad to the Explore/Trending supported network list so Monad assets appear in token search results (#33614)
+- Fixed issue with DeFi balances in the new controller not aggregating loans correctly (#34010)
 
 ## [8.3.0]
 
