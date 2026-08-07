@@ -456,6 +456,7 @@
     "expo-auth-session": "~55.0.16",
     "expo-build-properties": "~55.0.14",
     "expo-dev-client": "~55.0.35",
+    "expo-dev-menu": "~55.0.30",
     "expo-file-system": "~55.0.22",
     "expo-font": "~55.0.8",
     "expo-haptics": "~55.0.14",

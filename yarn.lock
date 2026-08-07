@@ -29519,6 +29519,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-dev-menu@npm:~55.0.30":
+  version: 55.0.32
+  resolution: "expo-dev-menu@npm:55.0.32"
+  dependencies:
+    expo-dev-menu-interface: "npm:55.0.2"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/73b77aee25a1634496bdb2727405b9a42d73c19e57857dc68763a4a403ce146db872728b174685b7a4412fac2744ec42ef110aca834ae56705564dc0006f57f1
+  languageName: node
+  linkType: hard
+
 "expo-eas-client@npm:~55.0.5":
   version: 55.0.5
   resolution: "expo-eas-client@npm:55.0.5"
@@ -36156,6 +36167,7 @@ __metadata:
     expo-auth-session: "npm:~55.0.16"
     expo-build-properties: "npm:~55.0.14"
     expo-dev-client: "npm:~55.0.35"
+    expo-dev-menu: "npm:~55.0.30"
     expo-file-system: "npm:~55.0.22"
     expo-font: "npm:~55.0.8"
     expo-haptics: "npm:~55.0.14"
