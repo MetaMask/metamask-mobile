@@ -178,7 +178,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { trackAmountCommitted, trackContinue } =
       useFiatFunnelMetricsAdapter();
 
-    const { isNative: isNativePayToken } = useTransactionPayToken();
+    const { isNative: isNativePayToken, payToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
 
@@ -198,8 +198,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     } = useTransactionCustomAmount({ currency });
 
+    const { hasTokens: hasAvailableTokens } =
+      useTransactionPayAvailableTokens();
+    const fiatPayment = useTransactionPayFiatPayment();
+    const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+
+    // Fiat was selected (explicitly or because no crypto tokens are available)
+    // with no crypto pay token — deposit prefill has nothing to prefill from.
+    const skipDepositPrefill =
+      Boolean(autoSelectFiatPayment) ||
+      (Boolean(selectedFiatPaymentMethodId) && !payToken) ||
+      (!hasAvailableTokens && !payToken);
+
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(
-      !isAddMusdIntent && !isDepositPrefillEnabled,
+      !isAddMusdIntent && (!isDepositPrefillEnabled || skipDepositPrefill),
     );
     const isKeyboardVisibleRef = useRef(isKeyboardVisible);
     isKeyboardVisibleRef.current = isKeyboardVisible;
@@ -218,10 +230,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setIsKeyboardVisible,
       wasKeyboardEverVisible,
     );
-    const { hasTokens: hasAvailableTokens } =
-      useTransactionPayAvailableTokens();
-    const fiatPayment = useTransactionPayFiatPayment();
-    const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
     const moneyAccountSection = usePayWithMoneyAccountSection();
     const hasPaymentOption =
@@ -230,6 +238,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
     }
+
+    useEffect(() => {
+      if (isDepositPrefillEnabled && skipDepositPrefill && !isKeyboardVisible) {
+        setIsKeyboardVisible(true);
+      }
+    }, [isDepositPrefillEnabled, skipDepositPrefill, isKeyboardVisible]);
+
     const shouldHideAccountSelector =
       hideAccountSelector && !fiatEverSelectedRef.current;
     const transactionId = transactionMeta?.id;
@@ -262,6 +277,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const isAwaitingPrefillResult =
       !hasAccountNoFunds &&
+      !skipDepositPrefill &&
       (isDepositPrefillLoading ||
         (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
 
@@ -271,6 +287,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingTokenAmount: amountHumanDebounced,
       pendingFiatAmount: amountFiatDebounced,
     });
+
+    const hasAutoSubmittedPrefill = useRef(false);
 
     const handleDone = useCallback(async () => {
       const keyboardVisibleAtStart = isKeyboardVisibleRef.current;
@@ -282,6 +300,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       setQuoteHandoff(undefined);
       setIsAmountUpdating(true);
       setIsKeyboardVisible(false);
+
       try {
         await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
@@ -328,6 +347,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           setIsAmountUpdating(false);
         }
       } catch (error) {
+        const isConfirmationDismissed =
+          !Engine.context.TransactionController.state.transactions.some(
+            (tx) => tx.id === transactionId,
+          );
+        if (isConfirmationDismissed) {
+          return;
+        }
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
         toastRef?.current?.showToast(
           getAmountUpdateErrorToastOptions(prefixed, () =>
@@ -343,6 +369,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         isAmountUpdateInProgressRef.current = false;
       }
       EngineService.flushState();
+      hasAutoSubmittedPrefill.current = true;
+      // If the keyboard was closed when handleDone started (auto-submit) but
+      // the user opened it during the await, don't dismiss it.
+      if (!keyboardVisibleAtStart && isKeyboardVisibleRef.current) {
+        return;
+      }
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
     }, [
@@ -383,7 +415,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       wasPrefillPending.current = isPrefillPending;
     }, [isPrefillPending, handleDone]);
 
-    const hasAutoSubmittedPrefill = useRef(false);
     useEffect(() => {
       // Reset when prefill drops (e.g. pay token changed) so handleDone
       // re-fires once the new prefill amount is ready.
@@ -392,11 +423,39 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
 
+      // Never auto-submit while the user is actively editing on the keyboard.
+      // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
+      // (true → false → true) during background state changes, which resets
+      // the guard above and would otherwise dismiss the keyboard mid-edit.
+      if (isKeyboardVisible) {
+        return;
+      }
+
       if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
         handleDone();
       }
-    }, [isDepositPrefilled, amountFiat, handleDone]);
+    }, [isDepositPrefilled, amountFiat, handleDone, isKeyboardVisible]);
+
+    const isMaxAutoSubmitPending = useRef(false);
+
+    const handlePercentagePress = useCallback(
+      (percentage: number) => {
+        updatePendingAmountPercentage(percentage);
+        if (percentage === 100) {
+          isMaxAutoSubmitPending.current = true;
+          setIsKeyboardVisible(false);
+        }
+      },
+      [updatePendingAmountPercentage],
+    );
+
+    useEffect(() => {
+      if (isMaxAutoSubmitPending.current && amountFiat !== '0') {
+        isMaxAutoSubmitPending.current = false;
+        handleDone();
+      }
+    }, [amountFiat, handleDone]);
 
     const handleAmountPress = useCallback(() => {
       wasKeyboardEverVisible.current = true;
@@ -420,6 +479,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={Boolean(alertMessage)}
             isLoading={
               !hasAccountNoFunds &&
+              !skipDepositPrefill &&
               (isPrefillPending || isDepositPrefillLoading)
             }
             onPress={showLoadingReview ? undefined : handleAmountPress}
@@ -502,7 +562,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               value={amountFiat}
               onChange={updatePendingAmount}
               onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
+              onPercentagePress={handlePercentagePress}
               hasInput={hasInput}
               hasMax={
                 (hasMax || isMoneyDepositNoFee) &&

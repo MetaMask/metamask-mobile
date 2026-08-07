@@ -260,7 +260,15 @@ jobs:
 
       - name: Resolve Appium test grep pattern
         id: appium-grep
-        run: echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+          # FixtureValidation must fail if no tests match; smoke shards keep the
+          # flag because sharding can leave empty shards.
+          if [[ "${{ inputs.test_suite_tag }}" == "FixtureValidation" ]]; then
+            echo "pass_with_no_tests=" >> "$GITHUB_OUTPUT"
+          else
+            echo "pass_with_no_tests=--pass-with-no-tests" >> "$GITHUB_OUTPUT"
+          fi
         shell: bash
 
       - name: Verify Appium runner connectivity (iOS)
@@ -279,7 +287,7 @@ jobs:
           --project android-smoke
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          --pass-with-no-tests
+          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
@@ -296,6 +304,8 @@ jobs:
           ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
           ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
+          # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Run Appium smoke tests (iOS)
         id: run-tests-ios
@@ -307,7 +317,7 @@ jobs:
           --project ios-smoke
           --grep "${{ steps.appium-grep.outputs.pattern }}"
           --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
-          --pass-with-no-tests
+          ${{ steps.appium-grep.outputs.pass_with_no_tests }}
         env:
           APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
           APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
@@ -326,6 +336,8 @@ jobs:
           USE_PREBUILT_WDA: 'true'
           IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
+          # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Upload Playwright HTML report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}
@@ -390,3 +402,14 @@ jobs:
           fail-on-error: false
           list-suites: all
           list-tests: failed
+
+      - name: Upload fixture validation reports
+        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-validation-results-${{ inputs.test-suite-name }}
+          path: |
+            tests/reports/fixture-validation-result.json
+            tests/reports/fixture-validation-diff.txt
+          if-no-files-found: ignore
+          retention-days: 7

@@ -14,7 +14,7 @@
 import type { Mockttp } from 'mockttp';
 import type { TestSpecificMock } from '../../framework/types';
 import { safeGetBodyText } from '../MockServerE2E';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
+import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 
 // --- Pre-computed constants ---
 

@@ -75,6 +75,7 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
@@ -429,6 +430,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'subscribeToConnectionStatus',
   'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
@@ -2599,6 +2601,24 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Subscribes to WebSocket connection-status changes for live data feeds.
+   * The callback fires immediately with the current status and thereafter only
+   * on real transitions, replacing per-subscriber polling.
+   *
+   * @param callback - Function invoked with the current {@link ConnectionStatus}.
+   * @returns Unsubscribe function to clean up the subscription.
+   */
+  public subscribeToConnectionStatus(
+    callback: ConnectionStatusCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToConnectionStatus) {
+      return () => undefined;
+    }
+    return provider.subscribeToConnectionStatus(callback);
+  }
+
+  /**
    * Gets the current WebSocket connection status for live data feeds.
    *
    * @returns Connection status for sports, market, and RTDS data WebSocket channels
@@ -3980,13 +4000,6 @@ export class PredictController extends BaseController<
     }
 
     const signer = this.getSigner(request.transactionMeta.txParams.from);
-
-    const chainId = activeWithdrawTransaction.chainId;
-
-    const networkClientId = this.messenger.call(
-      'NetworkController:findNetworkClientIdByChainId',
-      numberToHex(chainId),
-    );
     const withdrawDataPrefix = withdrawTransaction.data?.slice(0, 10);
 
     if (
@@ -3997,13 +4010,43 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Invalidate query cache (to avoid nonce issues)
-    await this.invalidateQueryCache(chainId);
+    const accountState = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const chainId = activeWithdrawTransaction.chainId;
 
-    const { callData, amount } = await provider.signWithdraw({
+    if (accountState.walletType === 'safe') {
+      // Invalidate query cache to avoid using a stale Safe nonce.
+      await this.invalidateQueryCache(chainId);
+    }
+
+    const { callData, amount, walletType } = await provider.signWithdraw({
       callData: withdrawTransaction?.data as Hex,
       signer,
     });
+
+    if (walletType === 'deposit-wallet') {
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.amount = amount;
+          state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
+        }
+      });
+
+      return {
+        updateTransaction: (transaction: TransactionMeta) => {
+          transaction.assetsFiatValues = {
+            ...transaction.assetsFiatValues,
+            receiving: String(amount),
+          };
+        },
+      };
+    }
+
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      numberToHex(chainId),
+    );
 
     const newParams = {
       ...withdrawTransaction,

@@ -50,6 +50,7 @@ import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
+import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations';
@@ -57,6 +58,9 @@ import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import AddWallet from '../../../components/Views/AddWallet';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
+import ActivityTypeFilterSheet from '../../Views/ActivityScreen/components/ActivityTypeFilterSheet';
+import PerpsActivityFilterSheet from '../../Views/ActivityScreen/components/PerpsActivityFilterSheet';
+import ActivityNetworkFilterSheet from '../../Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -154,6 +158,7 @@ import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroMo
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import Pna25BottomSheet from '../../Views/Pna25BottomSheet';
+import SupportConsentSheet from '../../UI/SupportConsentSheet';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
@@ -599,6 +604,18 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={TokenSortBottomSheet}
     />
     <NativeStack.Screen
+      name={Routes.SHEET.ACTIVITY_TYPE_FILTER}
+      component={ActivityTypeFilterSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.ACTIVITY_PERPS_FILTER}
+      component={PerpsActivityFilterSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.ACTIVITY_NETWORK_FILTER}
+      component={ActivityNetworkFilterSheet}
+    />
+    <NativeStack.Screen
       name={Routes.SHEET.NETWORK_MANAGER}
       component={NetworkManager}
     />
@@ -706,6 +723,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET}
       component={Pna25BottomSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.MODAL.SUPPORT_CONSENT_SHEET}
+      component={SupportConsentSheet}
+      options={{ headerShown: false }}
     />
     <NativeStack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}
@@ -1425,6 +1447,7 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
+        <CliLoginPushNudgeListener />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />

@@ -12,6 +12,7 @@ import { PendingActivityListItemRow } from './PendingActivityListItemRow';
 import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import { useNftActivityImage } from './useNftActivityImage';
+import { useSubtitleAccountParts } from './useSubtitleAccountParts';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 import {
   isPerpsOrderKind,
@@ -68,6 +69,11 @@ function ResolvedActivityListItemRow({
 
   const nftImageUrl = useNftActivityImage(item);
   const styles = createStyles(colors, typography);
+  const subtitleParts = useSubtitleAccountParts(
+    content,
+    styles,
+    item.hash ?? index,
+  );
   const isFailed = item.status === 'failed';
   const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = isSingleNetworkDomainKind(item.type)
@@ -105,6 +111,7 @@ function ResolvedActivityListItemRow({
       secondaryAmount={content.secondaryAmount}
       styles={styles}
       subtitle={content.subtitle}
+      subtitleParts={subtitleParts}
       title={titleOverride ?? content.title}
     />
   );

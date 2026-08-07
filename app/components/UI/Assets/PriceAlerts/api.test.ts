@@ -7,11 +7,22 @@ import {
   createAlert,
   deleteAlert,
   updateAlert,
+  createPercentAlert,
+  updatePercentAlert,
+  deletePercentAlert,
+  updateAlertByType,
+  deleteAlertByType,
   fetchSupportedChains,
   priceAlertsQueryKey,
+  assertOkResponse,
   useSubmitPriceAlert,
+  useSubmitPercentAlert,
 } from './api';
-import type { PriceAlert } from './constants';
+import type {
+  AbsolutePriceAlert,
+  Alert,
+  PercentChangeAlert,
+} from './constants';
 
 // Prevents teardown crashes with unstable_batchedUpdates in Jest
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -42,6 +53,7 @@ jest.mock('../../../../core/AppConstants', () => ({
 }));
 
 const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/v1/alerts';
+const PERCENT_ALERTS_URL = `${ALERTS_URL}/percent-change`;
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -240,7 +252,35 @@ describe('priceAlertsQueryKey', () => {
   });
 });
 
-const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
+describe('assertOkResponse', () => {
+  it('resolves for an ok response', async () => {
+    await expect(
+      assertOkResponse(makeOkResponse({ id: 'alert-1' })),
+    ).resolves.toBeUndefined();
+  });
+
+  it('throws with the HTTP status and body text on a non-ok response', async () => {
+    await expect(
+      assertOkResponse(makeErrorResponse(409, 'Conflict')),
+    ).rejects.toThrow('HTTP 409: Conflict');
+  });
+
+  it('falls back to "(no body)" when the error response body is unreadable', async () => {
+    const response = {
+      ok: false,
+      status: 500,
+      text: jest.fn().mockRejectedValue(new Error('stream error')),
+    } as unknown as Response;
+
+    await expect(assertOkResponse(response)).rejects.toThrow(
+      'HTTP 500: (no body)',
+    );
+  });
+});
+
+const makeAlert = (
+  overrides: Partial<AbsolutePriceAlert> = {},
+): AbsolutePriceAlert => ({
   id: 'alert-1',
   userId: 'user-1',
   asset: 'eip155:1/slip44:60',
@@ -248,6 +288,7 @@ const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
   recurring: true,
   active: true,
   createdAt: '2025-01-01T00:00:00.000Z',
+  type: 'absolute_price',
   ...overrides,
 });
 
@@ -439,6 +480,219 @@ describe('useSubmitPriceAlert — edit mode (with editingAlert)', () => {
         result.current.submit({
           asset: 'eip155:1/slip44:60',
           threshold: 2500,
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 404: Not Found');
+    });
+  });
+});
+
+const makePercentAlert = (
+  overrides: Partial<PercentChangeAlert> = {},
+): PercentChangeAlert => ({
+  id: 'percent-1',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  threshold: 10,
+  period: '1h',
+  direction: 'up',
+  recurring: true,
+  active: true,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  type: 'percent_change',
+  ...overrides,
+});
+
+describe('createPercentAlert', () => {
+  it('POSTs to the percent-change endpoint with a JSON-serialised body', async () => {
+    const params = {
+      asset: 'eip155:1/slip44:60',
+      threshold: 10.5,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: false,
+    };
+    await createPercentAlert(params);
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(PERCENT_ALERTS_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(params));
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/json',
+    );
+  });
+
+  it('attaches auth headers', async () => {
+    await createPercentAlert({
+      asset: 'eip155:1/slip44:60',
+      threshold: 10,
+      period: '1h',
+      direction: 'up',
+      recurring: true,
+    });
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      'Bearer test-bearer-token',
+    );
+  });
+});
+
+describe('updatePercentAlert', () => {
+  it('sends PATCH to /alerts/percent-change/:id with a JSON-serialised body', async () => {
+    const params = { threshold: 15 };
+    await updatePercentAlert('percent-42', params);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('PATCH');
+    expect(init.body).toBe(JSON.stringify(params));
+  });
+
+  it('accepts period and direction in the PATCH body', async () => {
+    const params = {
+      threshold: 15,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: true,
+    };
+    await updatePercentAlert('percent-42', params);
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual(params);
+  });
+});
+
+describe('deletePercentAlert', () => {
+  it('sends DELETE to /alerts/percent-change/:id', async () => {
+    await deletePercentAlert('percent-42');
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('DELETE');
+  });
+});
+
+describe('updateAlertByType', () => {
+  it('routes an absolute_price alert to the base PATCH endpoint', async () => {
+    const alert: Alert = makeAlert({ id: 'abs-1' });
+    await updateAlertByType(alert, { active: false });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ALERTS_URL}/abs-1`);
+    expect(init.method).toBe('PATCH');
+  });
+
+  it('routes a percent_change alert to the percent-change PATCH endpoint', async () => {
+    const alert: Alert = makePercentAlert({ id: 'pct-1' });
+    await updateAlertByType(alert, { active: false });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/pct-1`);
+    expect(init.method).toBe('PATCH');
+  });
+});
+
+describe('deleteAlertByType', () => {
+  it('routes an absolute_price alert to the base DELETE endpoint', async () => {
+    const alert: Alert = makeAlert({ id: 'abs-1' });
+    await deleteAlertByType(alert);
+    const [url] = mockFetch.mock.calls[0] as [string];
+    expect(url).toBe(`${ALERTS_URL}/abs-1`);
+  });
+
+  it('routes a percent_change alert to the percent-change DELETE endpoint', async () => {
+    const alert: Alert = makePercentAlert({ id: 'pct-1' });
+    await deleteAlertByType(alert);
+    const [url] = mockFetch.mock.calls[0] as [string];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/pct-1`);
+  });
+});
+
+describe('useSubmitPercentAlert — create mode (no editingAlert)', () => {
+  it('POSTs to createPercentAlert with the full params', async () => {
+    const params = {
+      asset: 'eip155:1/erc20:0xABC',
+      threshold: 12.5,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: false,
+    };
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit(params);
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(PERCENT_ALERTS_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(params));
+  });
+
+  it('throws with the HTTP status and body text on a non-ok response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(409, 'Conflict'));
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 10,
+          period: '1h',
+          direction: 'up',
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 409: Conflict');
+    });
+  });
+});
+
+describe('useSubmitPercentAlert — edit mode (with editingAlert)', () => {
+  it('PATCHes the correct alert id with threshold, period, direction, and recurring', async () => {
+    const alert = makePercentAlert({ id: 'percent-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit({
+        asset: 'eip155:1/slip44:60',
+        threshold: 25,
+        period: '24h',
+        direction: 'down',
+        recurring: false,
+      });
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({
+      threshold: 25,
+      period: '24h',
+      direction: 'down',
+      recurring: false,
+    });
+  });
+
+  it('throws with HTTP status on a non-ok PATCH response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(404, 'Not Found'));
+    const alert = makePercentAlert({ id: 'percent-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 25,
+          period: '1h',
+          direction: 'up',
           recurring: true,
         }),
       ).rejects.toThrow('HTTP 404: Not Found');
