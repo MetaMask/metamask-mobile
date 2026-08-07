@@ -6,6 +6,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { Severity } from '../../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../../hooks/metrics/useConfirmationAlertMetrics';
+import { AlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
 
 jest.mock('../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
@@ -108,7 +109,7 @@ describe('AlertModal', () => {
 
     const { getByTestId } = render(<AlertModal />);
 
-    const checkbox = getByTestId('alert-modal-checkbox');
+    const checkbox = getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
 
     await act(async () => {
       fireEvent.press(checkbox);
@@ -131,11 +132,12 @@ describe('AlertModal', () => {
       ],
     });
 
-    const { getByText } = render(<AlertModal />);
-    const actionButton1 = getByText('Action 1');
+    const { getByTestId } = render(<AlertModal />);
 
     await act(async () => {
-      fireEvent.press(actionButton1);
+      fireEvent.press(
+        getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_ACTION_BUTTON),
+      );
     });
     expect(action1Callback).toHaveBeenCalled();
     expect(hideAlertModal).toHaveBeenCalled();
@@ -147,9 +149,11 @@ describe('AlertModal', () => {
       ...baseMockUseAlerts,
       hideAlertModal,
     });
-    const { getByText } = render(<AlertModal />);
+    const { getByTestId } = render(<AlertModal />);
     await act(async () => {
-      fireEvent.press(getByText('Got it'));
+      fireEvent.press(
+        getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON),
+      );
     });
     expect(hideAlertModal).toHaveBeenCalledTimes(1);
   });
@@ -159,11 +163,14 @@ describe('AlertModal', () => {
       ...baseMockUseAlerts,
       alertKey: 'alert1', // Warning severity
     });
-    const { queryByTestId, queryByText } = render(<AlertModal />);
+    const { queryByTestId } = render(<AlertModal />);
 
-    expect(queryByTestId('alert-modal-close-button')).toBeNull();
-    expect(queryByText('Close')).toBeNull();
-    expect(queryByText('Got it')).toBeOnTheScreen();
+    expect(
+      queryByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CLOSE_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('renders Acknowledge and Close buttons for Danger severity alerts', () => {
@@ -171,12 +178,14 @@ describe('AlertModal', () => {
       ...baseMockUseAlerts,
       alertKey: 'alert2',
     });
-    const { getByText, getByTestId } = render(<AlertModal />);
+    const { getByTestId } = render(<AlertModal />);
 
-    expect(getByText('Acknowledge')).toBeOnTheScreen();
-    expect(getByText('Close')).toBeOnTheScreen();
-    expect(getByTestId('alert-modal-acknowledge-button')).toBeOnTheScreen();
-    expect(getByTestId('alert-modal-close-button')).toBeOnTheScreen();
+    expect(
+      getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CLOSE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('disables Acknowledge button when checkbox is not checked for Danger alerts', () => {
@@ -187,7 +196,9 @@ describe('AlertModal', () => {
     });
     const { getByTestId } = render(<AlertModal />);
 
-    const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
+    const acknowledgeButton = getByTestId(
+      AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
+    );
     expect(acknowledgeButton).toBeDisabled();
   });
 
@@ -199,7 +210,9 @@ describe('AlertModal', () => {
     });
     const { getByTestId } = render(<AlertModal />);
 
-    const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
+    const acknowledgeButton = getByTestId(
+      AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
+    );
     expect(acknowledgeButton).not.toBeDisabled();
   });
 
@@ -213,7 +226,9 @@ describe('AlertModal', () => {
     const { getByTestId } = render(<AlertModal />);
 
     await act(async () => {
-      fireEvent.press(getByTestId('alert-modal-close-button'));
+      fireEvent.press(
+        getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CLOSE_BUTTON),
+      );
     });
     expect(hideAlertModal).toHaveBeenCalledTimes(1);
   });
@@ -231,7 +246,9 @@ describe('AlertModal', () => {
     });
     const { getByTestId } = render(<AlertModal />);
 
-    const acknowledgeButton = getByTestId('alert-modal-acknowledge-button');
+    const acknowledgeButton = getByTestId(
+      AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
+    );
     expect(acknowledgeButton).toBeDisabled();
   });
 
@@ -249,7 +266,9 @@ describe('AlertModal', () => {
     );
 
     await act(async () => {
-      fireEvent.press(getByTestId('alert-modal-close-button'));
+      fireEvent.press(
+        getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CLOSE_BUTTON),
+      );
     });
 
     expect(onAcknowledgeClick).not.toHaveBeenCalled();
@@ -271,8 +290,11 @@ describe('AlertModal', () => {
       ...baseMockUseAlerts,
       alertKey: 'alert1',
     });
-    const { queryByText } = render(<AlertModal />);
+    const { queryByText, queryByTestId } = render(<AlertModal />);
     expect(queryByText(CHECKBOX_LABEL)).toBeNull();
+    expect(
+      queryByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX),
+    ).toBeNull();
   });
 
   it('renders checkbox if the severity is Danger', () => {
@@ -280,8 +302,11 @@ describe('AlertModal', () => {
       ...baseMockUseAlerts,
       alertKey: 'alert2',
     });
-    const { queryByText } = render(<AlertModal />);
+    const { queryByText, getByTestId } = render(<AlertModal />);
     expect(queryByText(CHECKBOX_LABEL)).toBeDefined();
+    expect(
+      getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX),
+    ).toBeDefined();
   });
 
   it('renders content component correctly', () => {
@@ -322,8 +347,11 @@ describe('AlertModal', () => {
         },
       ],
     });
-    const { queryByText } = render(<AlertModal />);
+    const { queryByText, queryByTestId } = render(<AlertModal />);
     expect(queryByText(CHECKBOX_LABEL)).toBeNull();
+    expect(
+      queryByTestId(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX),
+    ).toBeNull();
   });
 
   it('renders header accessory when provided', () => {
@@ -340,7 +368,9 @@ describe('AlertModal', () => {
       <AlertModal onAcknowledgeClick={onAcknowledgeClick} />,
     );
     await act(async () => {
-      fireEvent.press(getByTestId('alert-modal-acknowledge-button'));
+      fireEvent.press(
+        getByTestId(AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON),
+      );
     });
     expect(onAcknowledgeClick).toHaveBeenCalled();
   });

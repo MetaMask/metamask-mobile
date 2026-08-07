@@ -17,7 +17,7 @@ import {
   determineMakerStatus,
   isPriceOutsideDeviationBand,
 } from './orderUtils';
-import { Order, OrderParams } from '@metamask/perps-controller';
+import { Order, OrderParams, type OrderType } from '@metamask/perps-controller';
 import { Position } from '../hooks';
 
 // Mock DevLogger
