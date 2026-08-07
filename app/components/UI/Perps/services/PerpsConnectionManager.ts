@@ -639,9 +639,15 @@ class PerpsConnectionManagerClass {
       // Stop immediately after scheduling (not in the callback)
       BackgroundTimer.stop();
     } else if (Device.isAndroid()) {
+      // A timer armed by the wallet-root AppState transition belongs to the
+      // same account/provider session. Keep its last visible data while the
+      // transport disconnects so foreground recovery can paint cache first and
+      // converge to the fresh snapshot. Active in-app reference-count teardown
+      // remains a hard clear, and identity changes clear caches separately.
+      const preserveCaches = AppState.currentState !== 'active';
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
-        this.performActualDisconnection().catch((error) => {
+        this.performActualDisconnection({ preserveCaches }).catch((error) => {
           Logger.error(
             ensureError(
               error,

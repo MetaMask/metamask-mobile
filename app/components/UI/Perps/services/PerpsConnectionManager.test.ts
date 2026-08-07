@@ -1442,6 +1442,78 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
+  describe('scheduleGracePeriodDisconnection — Android cache continuity', () => {
+    interface SchedulableManager {
+      connectionRefCount: number;
+      scheduleGracePeriodDisconnection: () => void;
+    }
+
+    const fireAndroidGracePeriod = async (
+      appState: 'active' | 'background',
+    ) => {
+      const manager = PerpsConnectionManager as unknown as SchedulableManager;
+      manager.connectionRefCount = 0;
+      AppState.currentState = appState;
+      manager.scheduleGracePeriodDisconnection();
+      const backgroundTimer = jest.requireMock(
+        'react-native-background-timer',
+      ) as { setTimeout: jest.Mock };
+      const callback = backgroundTimer.setTimeout.mock.calls.at(-1)?.[0] as
+        | (() => void)
+        | undefined;
+      expect(callback).toBeDefined();
+      callback?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    };
+
+    beforeEach(async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.disconnect.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+      mockPerpsController.disconnect.mockClear();
+      Object.values(mockStreamManagerInstance).forEach((channel) => {
+        if (typeof channel === 'object' && channel?.clearCache) {
+          channel.clearCache.mockClear();
+        }
+      });
+      jest.mocked(Device.isIos).mockReturnValue(false);
+      jest.mocked(Device.isAndroid).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      jest.mocked(Device.isIos).mockReset();
+      jest.mocked(Device.isAndroid).mockReset();
+      AppState.currentState = 'active';
+    });
+
+    it('disconnects transport but preserves same-session caches after background expiry', async () => {
+      await fireAndroidGracePeriod('background');
+
+      expect(mockPerpsController.disconnect).toHaveBeenCalledTimes(1);
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.orders.clearCache,
+      ).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('still clears caches when an active in-app grace period expires', async () => {
+      await fireAndroidGracePeriod('active');
+
+      expect(mockPerpsController.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.orders.clearCache).toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalled();
+    });
+  });
+
   describe('NetInfo isInternetReachable null handling', () => {
     type NetInfoCallback = (state: {
       isInternetReachable: boolean | null;
