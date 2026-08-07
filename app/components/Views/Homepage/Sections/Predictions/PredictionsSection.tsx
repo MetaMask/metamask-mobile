@@ -61,21 +61,6 @@ const useWorldCupDiscoveryFeeds = (enabled: boolean) => ({
   worldCupEventCount: useHomepagePredictWorldCupEventCount({ enabled }),
 });
 
-const mergeActiveAbTests = (
-  ...testGroups: (TransactionActiveAbTestEntry[] | undefined)[]
-): TransactionActiveAbTestEntry[] | undefined => {
-  const merged = new Map<string, TransactionActiveAbTestEntry>();
-
-  testGroups.flat().forEach((assignment) => {
-    if (!assignment) {
-      return;
-    }
-    merged.set(assignment.key, assignment);
-  });
-
-  return merged.size > 0 ? Array.from(merged.values()) : undefined;
-};
-
 const usePredictEmptyStateAnalytics = ({
   activeAbTests,
   isAssignmentActive,
@@ -174,7 +159,7 @@ interface PredictionsSectionShellProps {
 }
 
 /**
- * Shared boilerplate for the four `PredictionsSection*` variants:
+ * Shared boilerplate for the prediction section variants:
  * mounts/unmounts the section view, wires `useHomeViewedEvent` to the layout,
  * and forwards a `refresh()` imperative handle.
  */
@@ -287,12 +272,7 @@ const PredictionsSectionDefault = forwardRef<
   PredictionsSectionProps
 >(
   (
-    {
-      sectionIndex,
-      totalSectionsLoaded,
-      sectionName: sectionNameOverride,
-      titleOverride,
-    },
+    { sectionIndex, totalSectionsLoaded }: Readonly<PredictionsSectionProps>,
     ref,
   ) => {
     const {
@@ -303,10 +283,7 @@ const PredictionsSectionDefault = forwardRef<
       handleViewAllPredictions,
       handleViewAllFromPositions,
       handlePositionPress,
-    } = usePredictionsCommonSetup({
-      sectionNameOverride,
-      titleOverride,
-    });
+    } = usePredictionsCommonSetup();
     const {
       privacyMode,
       positions,
@@ -331,7 +308,6 @@ const PredictionsSectionDefault = forwardRef<
     const {
       discoveryLayout,
       isTreatmentDiscovery,
-      trendingTransactionActiveAbTests,
       predictEmptyStateActiveAbTests,
       predictEmptyStateVariantName,
       isPredictEmptyStateAssignmentActive,
@@ -403,10 +379,8 @@ const PredictionsSectionDefault = forwardRef<
     const emptyStateTransactionActiveAbTests = shouldTrackEmptyState
       ? predictEmptyStateActiveAbTests
       : undefined;
-    const discoveryTransactionActiveAbTests = mergeActiveAbTests(
-      trendingTransactionActiveAbTests,
-      emptyStateTransactionActiveAbTests,
-    );
+    const discoveryTransactionActiveAbTests =
+      emptyStateTransactionActiveAbTests;
 
     const refreshPositions = useRefreshPredictPositions({
       queryClient,
@@ -432,14 +406,12 @@ const PredictionsSectionDefault = forwardRef<
 
     const positionsLayout =
       hasAnyPositions || isLoadingPositions || isLoadingClaimable;
-    // Trending-only branch is hidden when not treatment discovery and there
-    // are no markets to show; mirrors the legacy early-return.
-    const trendingHasNothingToShow =
+    const discoveryHasNothingToShow =
       !isTreatmentDiscovery && !isLoadingMarkets && markets.length === 0;
     const enabled =
       isPredictEnabled &&
       !hasError &&
-      (positionsLayout || !trendingHasNothingToShow);
+      (positionsLayout || !discoveryHasNothingToShow);
 
     return (
       <PredictionsSectionShell
@@ -523,193 +495,6 @@ const PredictionsSectionDefault = forwardRef<
   },
 );
 
-const PredictionsSectionPositionsOnly = forwardRef<
-  SectionRefreshHandle,
-  PredictionsSectionProps
->(
-  (
-    {
-      sectionIndex,
-      totalSectionsLoaded,
-      sectionName: sectionNameOverride,
-      titleOverride,
-    },
-    ref,
-  ) => {
-    const {
-      isPredictEnabled,
-      queryClient,
-      title,
-      analyticsName,
-      handleViewAllFromPositions,
-      handlePositionPress,
-    } = usePredictionsCommonSetup({
-      sectionNameOverride,
-      titleOverride,
-    });
-    const {
-      privacyMode,
-      positions,
-      isLoadingPositions,
-      refetchPositions,
-      totalClaimableValue,
-      isLoadingClaimable,
-      handleClaim,
-      hasPositions,
-      predictHomepageUnrealizedPnl,
-    } = usePredictPositionsSectionData(isPredictEnabled);
-
-    const hasClaimablePositions =
-      !isLoadingClaimable && totalClaimableValue > 0;
-    const hasAnyPositions = hasPositions || hasClaimablePositions;
-    const isLoading = isLoadingPositions || isLoadingClaimable;
-    const willRender = isPredictEnabled && !isLoading && hasAnyPositions;
-    const itemCount = hasPositions
-      ? positions.length
-      : hasClaimablePositions
-        ? 1
-        : 0;
-
-    const refresh = useRefreshPredictPositions({
-      queryClient,
-      refetchPositions,
-    });
-
-    return (
-      <PredictionsSectionShell
-        ref={ref}
-        enabled={isPredictEnabled && (isLoading || hasAnyPositions)}
-        viewed={willRender}
-        refresh={refresh}
-        isLoading={isLoading}
-        isEmpty={!isLoading && !hasAnyPositions}
-        itemCount={itemCount}
-        analyticsName={analyticsName}
-        sectionIndex={sectionIndex}
-        totalSectionsLoaded={totalSectionsLoaded}
-      >
-        <HomepagePredictPositions
-          title={title}
-          onViewAll={handleViewAllFromPositions}
-          privacyMode={privacyMode}
-          isLoadingPositions={isLoadingPositions}
-          positions={positions}
-          isLoadingClaimable={isLoadingClaimable}
-          totalClaimableValue={totalClaimableValue}
-          predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
-          onClaim={handleClaim}
-          onPositionPress={handlePositionPress}
-        />
-      </PredictionsSectionShell>
-    );
-  },
-);
-
-const PredictionsSectionTrendingOnly = forwardRef<
-  SectionRefreshHandle,
-  PredictionsSectionProps
->(
-  (
-    {
-      sectionIndex,
-      totalSectionsLoaded,
-      sectionName: sectionNameOverride,
-      titleOverride,
-    },
-    ref,
-  ) => {
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const title = titleOverride ?? strings('homepage.sections.predictions');
-    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
-    const { handleViewAllPredictions } = usePredictNavigationHandlers();
-
-    const {
-      markets,
-      isLoading: isLoadingMarkets,
-      refetch: refetchMarkets,
-    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
-      enabled: isPredictEnabled,
-    });
-
-    const { discoveryLayout, trendingTransactionActiveAbTests } =
-      usePredictHomepageDiscoveryExperiment();
-
-    const isListLayout = discoveryLayout === 'list';
-    const {
-      worldCup: worldCupHomepageMarkets,
-      liveWorldCup: liveWorldCupHomepageMarkets,
-      worldCupEventCount,
-    } = useWorldCupDiscoveryFeeds(isPredictEnabled && isListLayout);
-    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
-    const { refetch: refetchLiveWorldCupHomepageMarkets } =
-      liveWorldCupHomepageMarkets;
-    const { refetch: refetchWorldCupEventCount } = worldCupEventCount;
-
-    const itemCount = isListLayout ? 1 : markets.length;
-    const willRender =
-      isPredictEnabled &&
-      (isListLayout || (!isLoadingMarkets && itemCount > 0));
-
-    const refresh = useCallback(async () => {
-      const tasks: Promise<unknown>[] = [refetchMarkets()];
-      if (isListLayout) {
-        tasks.push(refetchWorldCupHomepageMarkets());
-        tasks.push(refetchLiveWorldCupHomepageMarkets());
-        tasks.push(refetchWorldCupEventCount());
-      }
-      await Promise.all(tasks);
-    }, [
-      refetchMarkets,
-      isListLayout,
-      refetchWorldCupHomepageMarkets,
-      refetchLiveWorldCupHomepageMarkets,
-      refetchWorldCupEventCount,
-    ]);
-
-    return (
-      <PredictionsSectionShell
-        ref={ref}
-        enabled={
-          isPredictEnabled &&
-          (isListLayout || isLoadingMarkets || markets.length > 0)
-        }
-        viewed={willRender}
-        refresh={refresh}
-        isLoading={
-          isListLayout
-            ? worldCupHomepageMarkets.isFetching ||
-              liveWorldCupHomepageMarkets.isFetching ||
-              worldCupEventCount.isFetching
-            : isLoadingMarkets
-        }
-        isEmpty={isListLayout ? false : !isLoadingMarkets && itemCount === 0}
-        itemCount={itemCount}
-        analyticsName={analyticsName}
-        sectionIndex={sectionIndex}
-        totalSectionsLoaded={totalSectionsLoaded}
-      >
-        <Box paddingBottom={3}>
-          <HomepagePredictTrendingMarkets
-            title={title}
-            onViewAll={handleViewAllPredictions}
-            headerTestIdKey="trending-predictions"
-            discoveryLayout={discoveryLayout}
-            isLoadingMarkets={isLoadingMarkets}
-            markets={markets}
-            transactionActiveAbTests={trendingTransactionActiveAbTests}
-            emptyStateTransactionActiveAbTests={
-              trendingTransactionActiveAbTests
-            }
-            worldCupHomepage={worldCupHomepageMarkets}
-            liveWorldCupHomepage={liveWorldCupHomepageMarkets}
-            worldCupEventCount={worldCupEventCount.eventCount}
-          />
-        </Box>
-      </PredictionsSectionShell>
-    );
-  },
-);
-
 /**
  * Sports-only section: World Cup discovery rail (BTC row, men's summary, winner market, bracket pills).
  * Renders whenever Predict is enabled.
@@ -719,17 +504,11 @@ const PredictionsSectionSportsOnly = forwardRef<
   PredictionsSectionProps
 >(
   (
-    {
-      sectionIndex,
-      totalSectionsLoaded,
-      sectionName: sectionNameOverride,
-      titleOverride,
-    },
+    { sectionIndex, totalSectionsLoaded }: Readonly<PredictionsSectionProps>,
     ref,
   ) => {
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const title = titleOverride ?? strings('homepage.sections.predictions');
-    const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+    const title = strings('homepage.sections.predictions');
     const { handleViewAllPredictions } = usePredictNavigationHandlers();
 
     const {
@@ -767,7 +546,7 @@ const PredictionsSectionSportsOnly = forwardRef<
         }
         isEmpty={false}
         itemCount={1}
-        analyticsName={analyticsName}
+        analyticsName={HomeSectionNames.PREDICT}
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
       >
@@ -775,7 +554,7 @@ const PredictionsSectionSportsOnly = forwardRef<
           <HomepagePredictWorldCupDiscovery
             title={title}
             onViewAll={handleViewAllPredictions}
-            headerTestIdKey="trending-predictions"
+            headerTestIdKey="predictions"
             worldCup={worldCupHomepageMarkets}
             liveWorldCup={liveWorldCupHomepageMarkets}
             worldCupEventCount={worldCupEventCount.eventCount}
@@ -790,12 +569,6 @@ const PredictionsSection = forwardRef<
   SectionRefreshHandle,
   PredictionsSectionProps
 >(({ mode = 'default', ...props }, ref) => {
-  if (mode === 'trending-only') {
-    return <PredictionsSectionTrendingOnly {...props} ref={ref} />;
-  }
-  if (mode === 'positions-only') {
-    return <PredictionsSectionPositionsOnly {...props} ref={ref} />;
-  }
   if (mode === 'sports') {
     return <PredictionsSectionSportsOnly {...props} ref={ref} />;
   }

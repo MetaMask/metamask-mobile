@@ -11,6 +11,8 @@ import {
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
@@ -141,7 +143,7 @@ const useSpendingLimit = ({
   delegationSettings,
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -484,8 +486,9 @@ const useSpendingLimit = ({
 
   // Handlers
   const handleAccountSelect = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         disableAddAccountButton: true,
         onSelectAccount: () => {
           if (!isMoneyAccountSource) return;
@@ -512,8 +515,9 @@ const useSpendingLimit = ({
 
     const excludedTokens = selectedToken ? [selectedToken] : [];
 
-    navigation.navigate(
-      ...createAssetSelectionModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createAssetSelectionModalNavigationDetails({
         selectionOnly: true,
         excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -546,8 +550,9 @@ const useSpendingLimit = ({
   );
 
   const handleLimitSelect = useCallback(() => {
-    navigation.navigate(
-      ...createSpendingLimitOptionsNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createSpendingLimitOptionsNavigationDetails({
         currentLimitType: limitType,
         currentCustomLimit: customLimit,
         callerRoute: Routes.CARD.SPENDING_LIMIT,

@@ -327,4 +327,98 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
       '<html><head><title>Card</title></head><body>Card Dashboard</body></html>',
     responseCode: 200,
   });
+
+  // Token API single-token metadata on Linea (chainId 59144). When Card Home
+  // opens, ensureCardFundingTokensImported adds each configured funding token
+  // via TokensController.addToken, which fetches metadata from
+  // token.api.cx.metamask.io/token/59144?address=...&includeRwaData=true.
+  // Mock all such lookups so they don't hit live services and fail the
+  // unmocked-request guard during cleanup. The response echoes the requested
+  // address, mapping known card tokens to their symbol/decimals/name.
+  const LINEA_TOKEN_METADATA: Record<
+    string,
+    { symbol: string; decimals: number; name: string }
+  > = {
+    '0x176211869ca2b568f2a7d4ee941e073a821ee1ff': {
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+    },
+    '0xa219439258ca9da29e9cc4ce5596924745e12b93': {
+      symbol: 'USDT',
+      decimals: 6,
+      name: 'Tether USD',
+    },
+    '0xe5d7c2a44ffddf6b295a15c148167daaaf5cf34f': {
+      symbol: 'WETH',
+      decimals: 18,
+      name: 'Wrapped Ether',
+    },
+    '0x3ff47c5bf409c86533fe1f4907524d304062428d': {
+      symbol: 'EURe',
+      decimals: 18,
+      name: 'EURe',
+    },
+    '0x3bce82cf1a2bc357f956dd494713fe11dc54780f': {
+      symbol: 'GBPe',
+      decimals: 18,
+      name: 'GBPe',
+    },
+    '0x374d7860c4f2f604de0191298dd393703cce84f3': {
+      symbol: 'aUSDC',
+      decimals: 6,
+      name: 'Aave USDC',
+    },
+  };
+
+  const buildLineaTokenResponse = (address: string) => {
+    const meta = LINEA_TOKEN_METADATA[address] ?? {
+      symbol: 'UNKNOWN',
+      decimals: 18,
+      name: 'Unknown Token',
+    };
+    return {
+      address,
+      symbol: meta.symbol,
+      decimals: meta.decimals,
+      name: meta.name,
+    };
+  };
+
+  const lineaTokenApiRegex =
+    /^https:\/\/token\.api\.cx\.metamask\.io\/token\/59144\?.*address=/i;
+
+  // Direct GET requests to the Token API
+  await mockServer
+    .forGet(lineaTokenApiRegex)
+    .asPriority(1000)
+    .thenCallback((request) => {
+      const address = (
+        new URL(request.url).searchParams.get('address') ?? ''
+      ).toLowerCase();
+      return {
+        statusCode: 200,
+        json: buildLineaTokenResponse(address),
+      };
+    });
+
+  // Proxied GET requests to the Token API
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) =>
+      getDecodedProxiedURL(request.url).includes(
+        'token.api.cx.metamask.io/token/59144',
+      ),
+    )
+    .asPriority(1000)
+    .thenCallback((request) => {
+      const proxiedUrl = getDecodedProxiedURL(request.url);
+      const address = (
+        new URL(proxiedUrl).searchParams.get('address') ?? ''
+      ).toLowerCase();
+      return {
+        statusCode: 200,
+        json: buildLineaTokenResponse(address),
+      };
+    });
 };

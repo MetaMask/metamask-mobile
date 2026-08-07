@@ -5,10 +5,6 @@ import {
   HUB_PAGE_DISCOVERY_TABS_AB_KEY,
   HUB_PAGE_DISCOVERY_TABS_VARIANTS,
 } from '../../../components/Views/Homepage/abTestConfig';
-import {
-  ONBOARDING_CHECKLIST_STEPPER_AB_KEY,
-  ONBOARDING_CHECKLIST_STEPPER_VARIANTS,
-} from '../../../components/UI/WalletHomeOnboardingSteps/abTestConfig';
 
 export const selectHubPageDiscoveryTabsABTest = createSelector(
   selectRemoteFeatureFlags,
@@ -17,23 +13,5 @@ export const selectHubPageDiscoveryTabsABTest = createSelector(
       remoteFeatureFlags,
       HUB_PAGE_DISCOVERY_TABS_AB_KEY,
       Object.keys(HUB_PAGE_DISCOVERY_TABS_VARIANTS),
-    ),
-);
-
-/**
- * Onboarding checklist stepper experiment (TMCU-828) assignment.
- *
- * Layered on top of eligible checklist users (`selectShouldShowWalletHomeOnboardingSteps`).
- * UI should read this via `useABTest` so exposure only fires for users who already see
- * the checklist. This selector is provided for tests and non-React consumers; it does not
- * gate the checklist.
- */
-export const selectOnboardingChecklistStepperAbTest = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
-    resolveABTestAssignment(
-      remoteFeatureFlags,
-      ONBOARDING_CHECKLIST_STEPPER_AB_KEY,
-      Object.keys(ONBOARDING_CHECKLIST_STEPPER_VARIANTS),
     ),
 );

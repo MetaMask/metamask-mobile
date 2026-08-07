@@ -23,7 +23,9 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../utils/transaction';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -41,6 +43,11 @@ export function useInsufficientPayTokenBalanceAlert({
   const transactionMeta = useTransactionMetadataRequest();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const { isMaxDeposit } = useConfirmationContext();
+  const isMaxMoneyAccountDeposit = isMoneyAccountDeposit && isMaxDeposit;
 
   // In post-quote (withdrawal) flows, payToken is the *destination* token,
   // so payToken.chainId is the destination chain. The source chain (where gas
@@ -119,12 +126,25 @@ export function useInsufficientPayTokenBalanceAlert({
 
   // For post-quote (withdrawal) flows, the source funds come from the withdrawal
   // transaction itself, not from the user's existing balance. Skip input/fees checks.
+  //
+  // For a Max money account deposit, skip the check entirely: the deposit amount
+  // is derived from a balance snapshot and the submitted token amount is clamped
+  // to the actual raw balance, so it can never truly exceed the balance. Fiat
+  // rounding between the snapshot and the live balance used here could otherwise
+  // falsely flag "Insufficient funds".
   const isInsufficientForInput = useMemo(
     () =>
       !isPostQuote &&
       payToken &&
+      !isMaxMoneyAccountDeposit &&
       totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, isPostQuote, payToken, totalAmountUsd],
+    [
+      balanceUsd,
+      isMaxMoneyAccountDeposit,
+      isPostQuote,
+      payToken,
+      totalAmountUsd,
+    ],
   );
 
   const isInsufficientForFees = useMemo(

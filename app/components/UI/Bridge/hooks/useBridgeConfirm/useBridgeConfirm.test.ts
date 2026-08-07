@@ -2,17 +2,12 @@ import { act, waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useBridgeConfirm } from './index';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { useABTest } from '../../../../../hooks';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
 import { HardwareWalletsSwapsStatus } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
-import {
-  POST_TRADE_MODAL_VARIANTS,
-  PostTradeModalVariant,
-} from '../../components/PostTradeBottomSheet/abTestConfig';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { RootState } from '../../../../../reducers';
 
@@ -44,11 +39,6 @@ jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
 }));
-
-jest.mock('../../../../../hooks', () => ({
-  useABTest: jest.fn(),
-}));
-const mockUseABTest = jest.mocked(useABTest);
 
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -89,11 +79,6 @@ describe('useBridgeConfirm', () => {
       id: 'tx-meta-id',
       hash: '0xabc',
       status: 'submitted',
-    });
-    mockUseABTest.mockReturnValue({
-      variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Treatment],
-      variantName: PostTradeModalVariant.Treatment,
-      isActive: true,
     });
   });
 
@@ -190,21 +175,6 @@ describe('useBridgeConfirm', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalled();
-    });
-
-    it('navigates to TRANSACTIONS_VIEW when post-trade modal is disabled', async () => {
-      mockUseABTest.mockReturnValue({
-        variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Control],
-        variantName: PostTradeModalVariant.Control,
-        isActive: true,
-      });
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
   });
 
@@ -356,22 +326,6 @@ describe('useBridgeConfirm', () => {
           destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
         }),
       });
-    });
-
-    it('navigates to TRANSACTIONS_VIEW after the error when post-trade modal is disabled', async () => {
-      mockUseABTest.mockReturnValue({
-        variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Control],
-        variantName: PostTradeModalVariant.Control,
-        isActive: true,
-      });
-      jest.spyOn(console, 'error').mockImplementation();
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
     it('resets isSubmittingTx to false after the error', async () => {

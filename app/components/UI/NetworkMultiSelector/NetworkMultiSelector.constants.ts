@@ -25,6 +25,7 @@ export const NETWORK_MULTI_SELECTOR_TEST_IDS = {
 
 export enum NetworkToCaipChainId {
   SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  STELLAR = 'stellar:pubnet',
   ETHEREUM = 'eip155:1',
   LINEA = 'eip155:59144',
   AVALANCHE = 'eip155:43114',

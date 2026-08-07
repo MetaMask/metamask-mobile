@@ -100,6 +100,7 @@ import {
   selectCardUserLocation,
   selectCardHomeDataStatus,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -605,6 +606,22 @@ const mockClearLastUnauthenticatedReason = Engine.context.CardController
   typeof Engine.context.CardController.clearLastUnauthenticatedReason
 >;
 
+const BAANX_CAPABILITIES = {
+  authMethod: 'email_password',
+  supportsOTP: true,
+  supportsFundingApproval: true,
+  supportsFundingLimits: true,
+  fundingChains: ['eip155:59144', 'eip155:8453'],
+  supportsFreeze: true,
+  supportsPushProvisioning: true,
+  onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
+  supportsPinView: true,
+  supportsCashback: true,
+  supportsCredit: true,
+  supportsSensitiveDetailsView: false,
+  supportsTravel: true,
+};
+
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
   typeof isSolanaChainId
 >;
@@ -770,6 +787,7 @@ function setupMockSelectors(
       address: string;
       decimals: number;
     } | null;
+    activeProviderId: string;
   }>,
 ) {
   const defaults = {
@@ -786,6 +804,7 @@ function setupMockSelectors(
     cardHomeDataStatus: 'success' as const,
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
+    activeProviderId: 'baanx',
   };
 
   const config = { ...defaults, ...overrides };
@@ -802,6 +821,7 @@ function setupMockSelectors(
     if (selector === selectCardLastUnauthenticatedReason)
       return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
+    if (selector === selectCardActiveProviderId) return config.activeProviderId;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
     if (selector === selectPrimaryMoneyAccount)
       return config.primaryMoneyAccount;
@@ -1143,6 +1163,7 @@ describe('CardHome Component', () => {
     mockNavigationDispatch.mockClear();
 
     // Setup Engine controller mocks
+    mockGetCapabilities.mockReturnValue(BAANX_CAPABILITIES);
     mockDispatch.mockClear();
     mockSetActiveNetwork.mockResolvedValue(undefined);
     mockFindNetworkClientIdByChainId.mockReturnValue(''); // Prevent network switching
@@ -1878,6 +1899,32 @@ describe('CardHome Component', () => {
     await waitFor(() => {
       expect(Linking.openURL).toHaveBeenCalledWith(
         `mailto:${CARD_SUPPORT_EMAIL}`,
+      );
+    });
+  });
+
+  it('uses the Immersve terms URL for the Immersve provider', () => {
+    setupMockSelectors({ activeProviderId: 'immersve' });
+
+    render();
+
+    expect(mockUseNavigateToCardPage).toHaveBeenCalledWith(
+      expect.any(Object),
+      'https://immersve.com/terms-and-conditions/uk/general-terms-of-use',
+    );
+  });
+
+  it('opens the Immersve support email for the Immersve provider', async () => {
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'mailto:support@metamask.io',
       );
     });
   });
@@ -4783,6 +4830,30 @@ describe('CardHome Component', () => {
       });
     });
 
+    describe('Blocked card', () => {
+      it('shows the blocked warning banner and hides manage options', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.BLOCKED,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        render();
+
+        expect(
+          screen.getByText(strings('card.card_home.warnings.blocked.title')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeNull();
+      });
+    });
+
     describe('Freeze action (card is active)', () => {
       it('calls toggleFreeze directly without reauthentication', async () => {
         setupMockSelectors({ isAuthenticated: true });
@@ -6534,10 +6605,7 @@ describe('CardHome Component', () => {
   describe('Zero priority token balance — manage options visibility', () => {
     beforeEach(() => {
       setupMockSelectors({ isAuthenticated: true });
-      mockGetCapabilities.mockReturnValue({
-        supportsPinView: true,
-        supportsCashback: true,
-      });
+      mockGetCapabilities.mockReturnValue(BAANX_CAPABILITIES);
     });
 
     it('hides all manage options except Change asset when priority token balance is zero', () => {
@@ -6620,10 +6688,7 @@ describe('CardHome Component', () => {
   describe('Unauthenticated cardholder teaser options', () => {
     beforeEach(() => {
       setupMockSelectors({ isAuthenticated: false });
-      mockGetCapabilities.mockReturnValue({
-        supportsPinView: true,
-        supportsCashback: true,
-      });
+      mockGetCapabilities.mockReturnValue(BAANX_CAPABILITIES);
     });
 
     it('shows view card details as teaser when unauthenticated', () => {

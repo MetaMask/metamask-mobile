@@ -11,6 +11,7 @@ import type { TransactionGroup } from './adapters/transaction-group';
 import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PredictActivity } from '../../components/UI/Predict/types';
+import type { RampsOrder } from '@metamask/ramps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
@@ -81,6 +82,8 @@ export type ActivityKind =
   | 'perpsReceivedFundingFees'
   | 'perpsCloseShortTakeProfit'
   | 'perpsCloseLongTakeProfit'
+  | 'assetActivation'
+  | 'assetDeactivation'
   | PerpsOrderKind
   | 'nftMint';
 
@@ -132,7 +135,7 @@ interface ActivityData<Type extends ActivityKind, Data> {
     | { type: 'localTransaction'; data: TransactionGroup }
     | { type: 'perpsTransaction'; data: PerpsTransaction }
     | { type: 'predictActivity'; data: PredictActivity }
-    | { type: 'rampOrder'; data: FiatOrder };
+    | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
   data: Data;
 }
 
@@ -217,6 +220,15 @@ export type ActivityListItem =
         transactionCategory?: string;
         transactionProtocol?: string;
         transactionType?: string;
+      }
+    >
+  | ActivityData<
+      'assetActivation' | 'assetDeactivation',
+      {
+        from?: string;
+        to?: string;
+        token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<

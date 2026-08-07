@@ -43,6 +43,7 @@ import customizeSVG from './assets/customize.svg';
 import dangerSVG from './assets/danger.svg';
 import dataSVG from './assets/data.svg';
 import detailsSVG from './assets/details.svg';
+import draggridSVG from './assets/drag-grid.svg';
 import editSVG from './assets/edit.svg';
 import errorSVG from './assets/error.svg';
 import ethereumSVG from './assets/ethereum.svg';
@@ -169,6 +170,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Danger]: dangerSVG,
   [IconName.Data]: dataSVG,
   [IconName.Details]: detailsSVG,
+  [IconName.DragGrid]: draggridSVG,
   [IconName.Edit]: editSVG,
   [IconName.Error]: errorSVG,
   [IconName.Ethereum]: ethereumSVG,
