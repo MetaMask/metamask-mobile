@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import {
   BottomSheet,
@@ -11,13 +12,11 @@ import SelectSRP from './SelectSRP';
 import { strings } from '../../../../locales/i18n';
 import { SelectSRPBottomSheetTestIds } from './SelectSRPBottomSheet.testIds';
 import { goBackIfFocused } from './SelectSRPBottomSheet.utils';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import Routes from '../../../constants/navigation/Routes';
 
 export const SelectSRPBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-  const surfaceClass = useElevatedSurface();
+  const navigation = useNavigation<AppNavigationProp>();
   const goBack = useCallback(() => {
     goBackIfFocused(navigation);
   }, [navigation]);
@@ -38,11 +37,7 @@ export const SelectSRPBottomSheet = () => {
   );
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      goBack={goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={bottomSheetRef} goBack={goBack}>
       <BottomSheetHeader
         onBack={goBack}
         backButtonProps={{

@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
@@ -42,6 +43,7 @@ import {
 import AppConstants from '../../../../core/AppConstants.ts';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect.ts';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger.ts';
+import { isWalletConnectPermissionOrigin } from '../../../../core/WalletConnect/wc-utils.ts';
 import { RootState } from '../../../../reducers/index.ts';
 import { trackDappViewedEvent } from '../../../../util/metrics/index.ts';
 import { useTheme } from '../../../../util/theme/index.ts';
@@ -134,7 +136,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number | undefined>(undefined);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
@@ -277,7 +279,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
   const isOriginWalletConnect =
-    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+    !isOriginMMSDKRemoteConn &&
+    isWalletConnectPermissionOrigin(channelIdOrHostname, wc2Metadata);
 
   const isMaliciousDapp = Boolean(
     isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
@@ -493,7 +496,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   if (isOriginMMSDKRemoteConn || isOriginMMSDKV2RemoteConn) {
     referrer = dappUrl;
   } else if (isOriginWalletConnect) {
-    referrer = wc2Metadata?.url;
+    referrer = wc2Metadata?.url ?? '';
   }
 
   const { domainTitle, hostname } = useMemo(() => {

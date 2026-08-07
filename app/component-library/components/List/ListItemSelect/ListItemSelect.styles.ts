@@ -32,7 +32,7 @@ const styleSheet = (params: {
       style,
     ) as ViewStyle,
     underlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       flexDirection: 'row',
       backgroundColor: colors.background.muted,
     },

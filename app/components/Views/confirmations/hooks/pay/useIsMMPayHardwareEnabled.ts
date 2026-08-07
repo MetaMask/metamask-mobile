@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
+import { hasTransactionType } from '@metamask/transaction-controller';
 
 import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 /**

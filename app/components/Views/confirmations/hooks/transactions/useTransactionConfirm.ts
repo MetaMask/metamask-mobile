@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -7,20 +8,19 @@ import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import {
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import {
-  hasTransactionType,
-  shouldApplyGasFeeSponsorship,
-} from '../../utils/transaction';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
@@ -43,7 +43,7 @@ export const GO_BACK_TYPES = [
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } =
     useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -56,6 +56,7 @@ export function useTransactionConfirm() {
   const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
+  const navigateToPerpsHome = useNavigateToPerpsHome();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
   const { payWithOption } = useParams<ConfirmationParams>({});
@@ -173,9 +174,7 @@ export function useTransactionConfirm() {
             params: { screen: Routes.MONEY.HOME },
           });
         } else {
-          navigation.navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.PERPS_HOME,
-          });
+          navigateToPerpsHome();
         }
       } else if (type === TransactionType.predictDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {
@@ -219,6 +218,7 @@ export function useTransactionConfirm() {
       isGaslessSupported,
       isGaslessSupportedSTX,
       navigation,
+      navigateToPerpsHome,
       musdConversionNavigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,

@@ -195,6 +195,13 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       dappOrigin,
     ]);
 
+    const dismissEditing = useCallback(() => {
+      shouldTriggerBlurCallbackRef.current = false;
+      inputRef?.current?.blur();
+      unfocusInput();
+      onBlur();
+    }, [unfocusInput, onBlur]);
+
     useImperativeHandle(ref, () => ({
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
@@ -207,6 +214,10 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         }
         inputRef?.current?.setNativeProps(props);
       },
+      suppressNextBlur: () => {
+        shouldTriggerBlurCallbackRef.current = false;
+      },
+      dismissEditing,
     }));
 
     /**
@@ -306,6 +317,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             />
             <TouchableWithoutFeedback onPress={onPressUrlText}>
               <Text
+                testID={BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT}
                 style={styles.urlBarText}
                 numberOfLines={1}
                 ellipsizeMode="head"

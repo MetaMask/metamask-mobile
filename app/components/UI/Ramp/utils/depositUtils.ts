@@ -135,6 +135,24 @@ export const generateThemeParameters = (
   };
 };
 
+export const generateWidgetThemeParameters = (
+  themeAppearance: AppThemeKey,
+  colors: Colors,
+): Record<string, string> => ({
+  themeColor: colors.primary.default,
+  colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
+  widgetBackgroundFillColor:
+    themeAppearance === AppThemeKey.light
+      ? colors.background.default
+      : colors.background.alternative,
+  surfaceFillColor: colors.background.muted,
+  textPrimaryColor: colors.text.default,
+  textSecondaryColor: colors.text.alternative,
+  borderColor: colors.border.default,
+  primaryButtonFillColor: colors.icon.default,
+  primaryButtonTextColor: colors.icon.inverse,
+});
+
 /**
  * Transforms a timestamp to a Transak format
  * @param timestamp - The timestamp to transform

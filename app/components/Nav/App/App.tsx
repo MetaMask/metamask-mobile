@@ -39,6 +39,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
   slideFromRightNativeOptions,
+  transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
@@ -50,7 +51,6 @@ import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
-import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations';
@@ -58,6 +58,9 @@ import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import AddWallet from '../../../components/Views/AddWallet';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
+import ActivityTypeFilterSheet from '../../Views/ActivityScreen/components/ActivityTypeFilterSheet';
+import PerpsActivityFilterSheet from '../../Views/ActivityScreen/components/PerpsActivityFilterSheet';
+import ActivityNetworkFilterSheet from '../../Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -110,6 +113,8 @@ import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
+import FirstPredictOnUsSplashScreen from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsSplashScreen';
+import FirstPredictOnUsOrderSheet from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsOrderSheet';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
@@ -195,6 +200,7 @@ const addWalletTransitionOptions: NativeStackNavigationOptions = {
 };
 
 const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
+  presentation: 'transparentModal',
   animation: 'none',
   contentStyle: { backgroundColor: importedColors.transparent },
   gestureEnabled: false,
@@ -380,6 +386,23 @@ const OnboardingNav = () => {
         component={WalletCreationError}
         options={{ headerShown: false }}
       />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.FIRST_PREDICT_ON_US_SPLASH}
+        component={FirstPredictOnUsSplashScreen}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.FIRST_PREDICT_ON_US_ORDER_SHEET}
+        component={FirstPredictOnUsOrderSheet}
+        options={{
+          headerShown: false,
+          presentation: 'transparentModal',
+          contentStyle: { backgroundColor: importedColors.transparent },
+        }}
+      />
     </NativeStack.Navigator>
   );
 };
@@ -470,7 +493,12 @@ interface RootModalFlowProps {
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
   <NativeStack.Navigator
-    screenOptions={{ ...clearNativeStackNavigatorOptions }}
+    // Explicit presentation so nested pushes stay overlays on RN v7
+    // (parent RootModalFlow is already transparentModal; screens must opt in too).
+    screenOptions={{
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
+    }}
   >
     <NativeStack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -596,6 +624,18 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.TOKEN_SORT}
       component={TokenSortBottomSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.ACTIVITY_TYPE_FILTER}
+      component={ActivityTypeFilterSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.ACTIVITY_PERPS_FILTER}
+      component={PerpsActivityFilterSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.ACTIVITY_NETWORK_FILTER}
+      component={ActivityNetworkFilterSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.NETWORK_MANAGER}
@@ -1461,7 +1501,6 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
-        <CliLoginPushNudgeListener />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />

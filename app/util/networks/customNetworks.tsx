@@ -31,6 +31,8 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'hyperevm-mainnet': () => process.env.QUICKNODE_HYPEREVM_URL,
   'arc-mainnet': () => process.env.QUICKNODE_ARC_URL,
   'robinhood-mainnet': () => process.env.QUICKNODE_ROBINHOOD_URL,
+  'zksync-mainnet': () => process.env.QUICKNODE_ZKSYNC_URL,
+  'megaeth-mainnet': () => process.env.QUICKNODE_MEGAETH_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -135,7 +137,7 @@ export const PopularList = [
     chainId: toHex('324'),
     nickname: 'zkSync Era',
     rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('zksync-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -174,7 +176,7 @@ export const PopularList = [
     chainId: toHex('4326'),
     nickname: 'MegaETH',
     rpcUrl: `https://megaeth-mainnet.infura.io/v3/${infuraProjectId}`,
-    failoverRpcUrls: [],
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('megaeth-mainnet'),
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -440,6 +442,8 @@ export const NETWORK_CHAIN_ID: {
   readonly ARC: '0x13b2';
   readonly KONET_MAINNET: '0x4341';
   readonly ROBINHOOD_CHAIN: '0x1237';
+  readonly GNOSIS: '0x64';
+  readonly SOMNIA: '0x13a7';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -489,6 +493,7 @@ export const NETWORK_CHAIN_ID: {
   ARC: '0x13b2',
   KONET_MAINNET: '0x4341',
   ROBINHOOD_CHAIN: '0x1237',
+  SOMNIA: '0x13a7',
   ...CHAIN_IDS,
 };
 
@@ -521,6 +526,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.NOMINA]: require('../../images/nomina.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
+  [NETWORK_CHAIN_ID.GNOSIS]: require('../../images/gnosis.png'),
   [NETWORK_CHAIN_ID.XDC]: require('../../images/xdc.png'),
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: require('../../images/megaeth-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.MEGAETH_TESTNET_V2]: require('../../images/megaeth-testnet-logo.png'),
@@ -545,4 +551,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ARC]: require('../../images/arc-network-logo.png'),
   [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
   [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: require('../../images/robinhood.png'),
+  [NETWORK_CHAIN_ID.SOMNIA]: require('../../images/somnia.png'),
 };

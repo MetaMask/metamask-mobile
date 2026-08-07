@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: 'current'
+      android-tag:
+        description: 'Android system image tag (default = AOSP; google_apis includes Chrome for browser dApp tests)'
+        required: false
+        type: string
+        default: 'default'
 
 permissions:
   contents: read
@@ -87,8 +92,8 @@ jobs:
           platform: android
           setup-simulator: 'true'
           android-avd-name: appium_smoke_avd
-          android-api-level: '34'
-          android-tag: default
+          android-tag: ${{ inputs.android-tag }}
+          android-api-level: '36'
           android-abi: x86_64
           android-device: pixel_5
           configure-keystores: 'false'
@@ -373,6 +378,23 @@ jobs:
         with:
           name: playwright-json-report-${{ inputs.test-suite-name }}
           path: tests/test-reports/playwright-json/playwright-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Appium phase timings (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: appium-timings-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-timings/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Appium phase timings (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-timings-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
 

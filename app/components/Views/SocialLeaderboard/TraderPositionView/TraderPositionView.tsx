@@ -23,7 +23,10 @@ import type {
   AppNavigationProp,
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
@@ -104,6 +107,7 @@ const TraderPositionView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
@@ -219,20 +223,14 @@ const TraderPositionView = () => {
     await ClipboardManager.setString(displayPosition.tokenAddress);
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
-      iconName: ComponentLibraryIconName.CheckBold,
-      iconColor: colors.accent03.dark,
-      backgroundColor: colors.accent03.normal,
+      iconName: ComponentLibraryIconName.Confirmation,
+      iconColor: colors.success.default,
       labelOptions: [
         { label: strings('detected_tokens.address_copied_to_clipboard') },
       ],
       hasNoTimeout: false,
     });
-  }, [
-    colors.accent03.dark,
-    colors.accent03.normal,
-    displayPosition?.tokenAddress,
-    toastRef,
-  ]);
+  }, [colors.success.default, displayPosition?.tokenAddress, toastRef]);
 
   // Quick Buy `source` is always the trade screen; upstream journey attribution
   // is carried separately on `original_entry_point`.
@@ -607,46 +605,56 @@ const TraderPositionView = () => {
   );
 
   return (
+    // The top edge is deliberately off: a native SafeAreaView top padding is
+    // recalculated as the view is attached, which lands after this screen's
+    // `slide_from_right` push and visibly drops the header into place. The top
+    // inset is applied in JS below instead, off the already resolved provider.
     <SafeAreaView
+      edges={['bottom', 'left', 'right']}
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
-      {isInitialLoading ? (
-        <TraderPositionHeader
-          traderName={traderName}
-          traderImageUrl={traderImageUrl}
-          traderAddress={traderAddress}
-          onBack={handleBack}
-          onTraderPress={handleTraderPress}
-          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-        />
-      ) : hasFailed ? (
-        <TraderPositionHeader
-          traderName={traderName}
-          traderImageUrl={traderImageUrl}
-          traderAddress={traderAddress}
-          onBack={handleBack}
-          onTraderPress={handleTraderPress}
-          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-        />
-      ) : (
-        <TraderPositionAnimatedHeader
-          scrollY={scrollYShared}
-          titleSectionHeight={titleSectionHeightSv}
-          traderName={traderName}
-          traderImageUrl={traderImageUrl}
-          traderAddress={traderAddress}
-          symbol={symbol}
-          pricePercentChange={displayPercentChange}
-          activeTimePeriodLabel={activeTimePeriod}
-          perpDirection={perpDirection}
-          perpLeverage={displayPosition?.perpLeverage}
-          onBack={handleBack}
-          onTraderPress={handleTraderPress}
-        />
-      )}
+      {/* The inset sits on this wrapper rather than on the headers themselves so
+          all three branches share one value — swapping between the loading,
+          failed and loaded headers must not move the back button. */}
+      <Box style={{ paddingTop: insets.top }}>
+        {isInitialLoading ? (
+          <TraderPositionHeader
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+          />
+        ) : hasFailed ? (
+          <TraderPositionHeader
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+          />
+        ) : (
+          <TraderPositionAnimatedHeader
+            scrollY={scrollYShared}
+            titleSectionHeight={titleSectionHeightSv}
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            symbol={symbol}
+            pricePercentChange={displayPercentChange}
+            activeTimePeriodLabel={activeTimePeriod}
+            perpDirection={perpDirection}
+            perpLeverage={displayPosition?.perpLeverage}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+          />
+        )}
+      </Box>
 
       {isInitialLoading ? (
         <TraderPositionSkeleton />

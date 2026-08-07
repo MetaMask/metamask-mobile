@@ -2,13 +2,13 @@ import React, { useCallback, useRef } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
 import { colors as commonColors } from '../../../styles/common';
@@ -48,7 +48,7 @@ type OnboardingSheetRouteProp = RouteProp<
 
 const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<OnboardingSheetRouteProp>();
   const {
     onPressCreate,
@@ -58,7 +58,7 @@ const OnboardingSheet = () => {
     onPressContinueWithTelegram,
     createWallet = false,
   } = params ?? {};
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
   const onPressCreateAction = () => {
     if (onPressCreate) {
@@ -110,16 +110,10 @@ const OnboardingSheet = () => {
     goTo(url, strings('onboarding.privacy_notice'));
   };
 
-  const { themeAppearance } = useTheme();
-  const surfaceClass = useElevatedSurface();
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet
-      goBack={navigation.goBack}
-      ref={sheetRef}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet goBack={navigation.goBack} ref={sheetRef}>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}

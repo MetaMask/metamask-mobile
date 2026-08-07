@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
@@ -20,6 +21,7 @@ import {
   selectCardHomeData,
   selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
+import Engine from '../../../../../core/Engine';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { CardType } from '../../../Card/types';
@@ -49,7 +51,7 @@ interface MoneyLinkCardSheetRouteParams {
 const MoneyLinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedViewRef = useRef(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyAccountBalance();
@@ -63,6 +65,12 @@ const MoneyLinkCardSheet = () => {
   const cardType = isMetalCard ? 'metal' : 'virtual';
   const isCardDataReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+
+  useEffect(() => {
+    if (cardHomeDataStatus === 'idle') {
+      Engine.context.CardController.fetchCardHomeData();
+    }
+  }, [cardHomeDataStatus]);
 
   useEffect(() => {
     if (hasTrackedViewRef.current || !isCardDataReady) return;

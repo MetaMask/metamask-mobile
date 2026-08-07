@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { hasTransactionType } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
@@ -6,7 +7,6 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
-import { hasTransactionType } from '../../utils/transaction';
 import {
   isHardwareAccount,
   isQRHardwareAccount,

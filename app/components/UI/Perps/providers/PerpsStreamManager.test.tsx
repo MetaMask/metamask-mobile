@@ -104,6 +104,7 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
     resetPerpsLifecycleContextForTests();
 
     // Restore the default Terminal flag state (enabled) after any per-test override.
@@ -1493,11 +1494,12 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalled();
     });
 
+    const FIXED_TS = new Date('2024-01-01T12:00:00.000Z').getTime();
     const firstUpdate: PriceUpdate = {
       symbol: 'BTC-PERP',
 
       price: '50000',
-      timestamp: Date.now(),
+      timestamp: FIXED_TS,
       isTradable: true,
     };
 
@@ -1514,7 +1516,7 @@ describe('PerpsStreamManager', () => {
       symbol: 'BTC-PERP',
 
       price: '50100',
-      timestamp: Date.now() + 10,
+      timestamp: FIXED_TS + 10,
       isTradable: true,
     };
 
@@ -1522,7 +1524,7 @@ describe('PerpsStreamManager', () => {
       symbol: 'BTC-PERP',
 
       price: '50200',
-      timestamp: Date.now() + 20,
+      timestamp: FIXED_TS + 20,
       isTradable: true,
     };
 
@@ -2025,6 +2027,9 @@ describe('PerpsStreamManager', () => {
     ];
 
     beforeEach(() => {
+      // Market-data tests await Promise-based fetches. Keep real timers active
+      // so waitFor can poll without relying on the outer suite's fake timers.
+      jest.useRealTimers();
       mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData);
       mockEngine.context.PerpsController.getMarketDataWithPrices =
         mockGetMarketDataWithPrices;
@@ -3399,55 +3404,6 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  describe('pauseAllChannels / resumeAllChannels', () => {
-    const CHANNEL_NAMES = [
-      'prices',
-      'orders',
-      'positions',
-      'fills',
-      'account',
-      'oiCaps',
-      'topOfBook',
-      'focusedPrice',
-      'candles',
-    ] as const;
-
-    it('pauseAllChannels calls pause() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'pause');
-      }
-
-      testStreamManager.pauseAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].pause).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('resumeAllChannels calls resume() on every channel', () => {
-      for (const channel of CHANNEL_NAMES) {
-        jest.spyOn(testStreamManager[channel], 'resume');
-      }
-
-      testStreamManager.resumeAllChannels();
-
-      for (const channel of CHANNEL_NAMES) {
-        expect(testStreamManager[channel].resume).toHaveBeenCalledTimes(1);
-      }
-    });
-
-    it('does not touch marketData (REST-based, not a stream channel)', () => {
-      const pauseSpy = jest.spyOn(testStreamManager.marketData, 'pause');
-      const resumeSpy = jest.spyOn(testStreamManager.marketData, 'resume');
-
-      testStreamManager.pauseAllChannels();
-      testStreamManager.resumeAllChannels();
-
-      expect(pauseSpy).not.toHaveBeenCalled();
-      expect(resumeSpy).not.toHaveBeenCalled();
-    });
-  });
-
   describe('TopOfBookStreamChannel', () => {
     it('subscribes to top of book with includeOrderBook flag', () => {
       const callback = jest.fn();
@@ -4210,6 +4166,182 @@ describe('PerpsStreamManager', () => {
       ]);
 
       unsubscribe();
+    });
+  });
+
+  describe('OrderStreamChannel.updateOrderOptimistic', () => {
+    let mockOrdersSubscribe: jest.Mock;
+    let mockOrdersUnsubscribe: jest.Mock;
+
+    const createMockOrder = (overrides: Partial<Order> = {}): Order => ({
+      orderId: 'order-1',
+      symbol: 'ETH',
+      side: 'buy',
+      orderType: 'limit',
+      size: '1.0',
+      originalSize: '1.0',
+      price: '3000',
+      filledSize: '0',
+      remainingSize: '1.0',
+      status: 'open',
+      timestamp: Date.now(),
+      detailedOrderType: 'Limit',
+      isTrigger: false,
+      reduceOnly: false,
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      mockOrdersUnsubscribe = jest.fn();
+      mockOrdersSubscribe = jest.fn().mockReturnValue(mockOrdersUnsubscribe);
+      mockEngine.context.PerpsController.subscribeToOrders =
+        mockOrdersSubscribe;
+      mockEngine.context.PerpsController.isCurrentlyReinitializing = jest
+        .fn()
+        .mockReturnValue(false);
+    });
+
+    const seedOrdersAndSubscribe = async (
+      initialOrders: Order[],
+    ): Promise<{
+      callback: jest.Mock;
+      unsubscribe: () => void;
+    }> => {
+      let orderCallback: ((orders: Order[]) => void) | null = null;
+      mockOrdersSubscribe.mockImplementation(
+        (params: { callback: (orders: Order[]) => void }) => {
+          orderCallback = params.callback;
+          return mockOrdersUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockOrdersSubscribe).toHaveBeenCalled();
+      });
+
+      act(() => {
+        orderCallback?.(initialOrders);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(initialOrders);
+      });
+
+      callback.mockClear();
+      return { callback, unsubscribe };
+    };
+
+    it('updates limit price in the cached order', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          limitPrice: '3100',
+        });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          price: '3100',
+          size: '1.0',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates size, originalSize, and remainingSize together', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          size: '2.5',
+        });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          size: '2.5',
+          originalSize: '2.5',
+          remainingSize: '2.5',
+          price: '3000',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('updates price and size in one optimistic patch', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          limitPrice: '3200',
+          size: '1.5',
+        });
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          orderId: 'order-1',
+          price: '3200',
+          size: '1.5',
+          originalSize: '1.5',
+          remainingSize: '1.5',
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('no-ops when neither limitPrice nor size is provided', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {});
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      unsubscribe();
+    });
+
+    it('no-ops when the order is not in the cache', async () => {
+      const { callback, unsubscribe } = await seedOrdersAndSubscribe([
+        createMockOrder(),
+      ]);
+
+      act(() => {
+        testStreamManager.orders.updateOrderOptimistic('missing-order', {
+          limitPrice: '3100',
+        });
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+      unsubscribe();
+    });
+
+    it('no-ops when there is no cached orders list', () => {
+      expect(() => {
+        testStreamManager.orders.updateOrderOptimistic('order-1', {
+          limitPrice: '3100',
+        });
+      }).not.toThrow();
     });
   });
 

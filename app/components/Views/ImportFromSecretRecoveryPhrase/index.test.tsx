@@ -94,6 +94,7 @@ jest.mock('../../../util/trace', () => ({
 
 const mockCaptureException = jest.fn();
 jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
@@ -1319,12 +1320,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                 jest
                   .spyOn(navigation, 'navigate')
                   .mockImplementation(mockNavigate);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={{ params: {} }}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1372,14 +1368,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
               name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
               initialParams={{ qrSyncImport: true }}
             >
-              {({ navigation, route }) => {
+              {({ navigation }) => {
                 jest.spyOn(navigation, 'goBack').mockImplementation(mockGoBack);
-                return (
-                  <ImportFromSecretRecoveryPhrase
-                    navigation={navigation}
-                    route={route}
-                  />
-                );
+                return <ImportFromSecretRecoveryPhrase />;
               }}
             </Stack.Screen>
           </Stack.Navigator>
@@ -1807,6 +1798,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await act(async () => {
         fireEvent.changeText(passwordInput, 'StrongPass123!');
+      });
+      await act(async () => {
         fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       });
 
@@ -2233,11 +2226,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         fireEvent.press(continueButton);
       });
 
-      expect(mockTrace).not.toHaveBeenCalled();
+      const passwordSetupTrace = expect.objectContaining({
+        name: TraceName.OnboardingPasswordSetupAttempt,
+      });
+
+      expect(mockTrace).not.toHaveBeenCalledWith(passwordSetupTrace);
 
       unmount();
 
-      expect(mockEndTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalledWith(passwordSetupTrace);
     });
 
     it('traces error and reports to Sentry when wallet import fails with onboardingTraceCtx', async () => {

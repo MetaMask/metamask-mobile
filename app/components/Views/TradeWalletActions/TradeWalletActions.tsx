@@ -28,6 +28,9 @@ import { useParams } from '../../../util/navigation/navUtils';
 
 import {
   ActionListItem,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   IconName,
   Tag,
@@ -44,6 +47,7 @@ import {
   useElevatedSurface,
 } from '../../../util/theme/themeUtils';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
+import { PerpsMode } from '@metamask/perps-controller';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -75,13 +79,15 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
-import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { usePerpsMode } from '../../UI/Perps/hooks';
-import PerpsModeToggle from '../../UI/Perps/components/PerpsModeToggle';
-import { showPerpsModeFlash } from '../../UI/Perps/utils/perpsModeFlash';
-import { buildDefaultProMarket } from '../../UI/Perps/utils/perpsModeSwitch';
+import {
+  toPerpsNavigatorScreenParams,
+  useGetPerpsHomeNavigationTarget,
+} from '../../UI/Perps/utils/perpsModeSwitch';
+import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelection';
+import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -101,9 +107,10 @@ const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
 
-interface TradeWalletActionsParams {
+export interface TradeWalletActionsParams {
   onDismiss?: () => void;
-  buttonLayout: {
+  /** Measured tab-bar button layout; may be unset until first layout. */
+  buttonLayout?: {
     x: number;
     y: number;
     width: number;
@@ -116,7 +123,9 @@ function TradeWalletActions() {
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
-  const postCallback = useRef<(() => void) | undefined>(undefined);
+  const postCallback = useRef<(() => void | Promise<void>) | undefined>(
+    undefined,
+  );
   const [visible, setIsVisible] = useState(true);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { height: screenHeight } = useSafeAreaFrame();
@@ -171,7 +180,11 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
-  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const { mode: perpsMode } = usePerpsMode();
+  // Product default is Lite; only Pro gets the gold badge treatment.
+  const perpsModeBadge =
+    perpsMode === PerpsMode.Pro ? PerpsMode.Pro : PerpsMode.Lite;
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -231,55 +244,34 @@ function TradeWalletActions() {
   }, [handleNavigateBack, navigate]);
 
   const onPerps = useCallback(() => {
-    postCallback.current = () => {
+    postCallback.current = async () => {
+      if (isPerpsProModeEnabled) {
+        const hasCompletedModeSelection =
+          await hasCompletedPerpsModeSelection();
+        if (!hasCompletedModeSelection) {
+          openPerpsModeSelection(navigation, { entry: 'trade' });
+          return;
+        }
+      }
+
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-        });
+        navigate(
+          Routes.PERPS.ROOT,
+          toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
+        );
       }
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
-
-  const onPerpsModeChange = useCallback(
-    (nextMode: PerpsMode) => {
-      setPerpsMode(nextMode);
-      // Dismiss the Trade sheet, then route the user into Perps.
-      postCallback.current = () => {
-        // First-time users must still go through onboarding (same as tapping
-        // the Perps row): routing straight into Perps would skip the tutorial
-        // otherwise, so no mode-switch flash is shown here.
-        if (isFirstTimePerpsUser) {
-          navigate(Routes.PERPS.TUTORIAL);
-          return;
-        }
-        // Flash the destination mode on top of the Perps stack once it mounts.
-        showPerpsModeFlash(nextMode);
-        if (nextMode === PerpsMode.Pro) {
-          // Pro lands on the default (BTC) market screen, with Perps home
-          // seeded beneath it (initial: false) so back navigation works.
-          navigate(Routes.PERPS.ROOT, {
-            screen: Routes.PERPS.MARKET_DETAILS,
-            params: {
-              market: buildDefaultProMarket(),
-              source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
-            },
-            initial: false,
-          });
-          return;
-        }
-        // Lite lands on Perps home.
-        navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.PERPS_HOME,
-          initial: false,
-        });
-      };
-      handleNavigateBack();
-    },
-    [handleNavigateBack, navigate, setPerpsMode, isFirstTimePerpsUser],
-  );
+  }, [
+    handleNavigateBack,
+    navigate,
+    navigation,
+    isFirstTimePerpsUser,
+    isPerpsProModeEnabled,
+    getPerpsHomeNavigationTarget,
+  ]);
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
@@ -365,7 +357,10 @@ function TradeWalletActions() {
   );
 
   const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
-  const bottomShapeMaskWidth = buttonLayout.width * 2;
+  const layout = buttonLayout as NonNullable<
+    TradeWalletActionsParams['buttonLayout']
+  >;
+  const bottomShapeMaskWidth = layout.width * 2;
 
   const actionList = (
     <>
@@ -403,21 +398,34 @@ function TradeWalletActions() {
       )}
       {isPerpsEnabled && (
         <ActionListItem
-          label={strings('asset_overview.perps_button')}
+          label={
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('asset_overview.perps_button')}
+              </Text>
+              {isPerpsProModeEnabled ? (
+                <Tag
+                  severity={
+                    perpsModeBadge === PerpsMode.Pro
+                      ? TagSeverity.Warning
+                      : TagSeverity.Neutral
+                  }
+                  testID={WalletActionsBottomSheetSelectorsIDs.PERPS_MODE_BADGE}
+                >
+                  {strings(`perps.mode.${perpsModeBadge}`)}
+                </Tag>
+              ) : null}
+            </Box>
+          }
           description={strings('asset_overview.perps_description')}
           iconName={IconName.Candlestick}
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
-          endAccessory={
-            isPerpsProModeEnabled && canSignTransactions ? (
-              <PerpsModeToggle
-                mode={perpsMode}
-                onChange={onPerpsModeChange}
-                source={PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION}
-              />
-            ) : undefined
-          }
         />
       )}
       {isPredictEnabled && (
@@ -515,9 +523,9 @@ function TradeWalletActions() {
           <OverlayWithHole
             width={windowWidth}
             height={windowHeight + insetsTop}
-            circleSize={buttonLayout.width - 1}
-            circleX={buttonLayout.x + buttonLayout.width / 2}
-            circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
+            circleSize={layout.width - 1}
+            circleX={layout.x + layout.width / 2}
+            circleY={layout.y + layout.height / 2 + insetsTop}
             fill={colors.overlay.default}
           />
         </Pressable>
@@ -530,7 +538,7 @@ function TradeWalletActions() {
       )}
       <View
         style={tw.style('pointer-events-none', {
-          height: screenHeight - buttonLayout.y - insetsTop,
+          height: screenHeight - layout.y - insetsTop,
         })}
       />
     </View>

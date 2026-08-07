@@ -1,6 +1,10 @@
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type {
   AppNavigationProp,
@@ -15,6 +19,7 @@ import {
 import React, {
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -28,6 +33,7 @@ import Animated, {
   useAnimatedScrollHandler,
   type SharedValue,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -86,7 +92,6 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
@@ -125,6 +130,7 @@ import {
   resolveRampOrderTarget,
 } from './utils/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -832,7 +838,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // Continue → Send Transaction flow which ActivityDetails does not.
         if (raw.type === 'rampOrder') {
           if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
             return;
           }
 
@@ -859,10 +865,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        // Non-EVM swaps/bridges submitted from this device carry a
-        // bridge-history entry. Cross-chain bridges keep their dedicated
-        // bridge-status screen, mirroring hasDedicatedDetailScreen for local
-        // EVM bridges; same-chain swaps fall through to the shared detail flows.
+        // Bridges route to the redesigned details screen (BridgeDetails
+        // template); the legacy bridge-status screen below is the flag-off
+        // fallback.
+        if (isTransactionsRedesignEnabled) {
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
+        }
+
+        // Flag off: non-EVM cross-chain bridges keep the bridge-status screen.
         if (raw.type === 'keyringTransaction') {
           const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
             item.hash,
@@ -876,14 +890,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               multiChainTx: raw.data,
               bridgeTxHistoryItem: keyringBridgeHistoryItem,
             });
-            return;
-          }
-        }
-
-        if (isTransactionsRedesignEnabled) {
-          const detailsRoute = getActivityDetailsRoute(item);
-          if (detailsRoute) {
-            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
             return;
           }
         }
@@ -1148,6 +1154,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const listRef = useRef<FlashListRef<GroupedActivityListItem>>(null);
 
+    const { bottom: bottomInset } = useSafeAreaInsets();
+    const tabBarHeight = useContext(BottomTabBarHeightContext);
+    const listContentStyle = useMemo(
+      () => ({ paddingBottom: tabBarHeight ? 0 : bottomInset }),
+      [tabBarHeight, bottomInset],
+    );
+
     const isDomainFilter =
       typeFilter === ActivityTypeFilter.Perps ||
       typeFilter === ActivityTypeFilter.Predictions;
@@ -1305,7 +1318,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   autoscrollToTopThreshold: 100,
                 }}
                 style={baseStyles.flexGrow}
-                contentContainerStyle={tw.style('pb-8')}
+                contentContainerStyle={listContentStyle}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}

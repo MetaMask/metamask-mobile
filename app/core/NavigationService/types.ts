@@ -1,5 +1,4 @@
 import type {
-  ParamListBase,
   NavigationProp,
   NavigationState,
   NavigatorScreenParams,
@@ -18,6 +17,8 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
+import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
@@ -32,6 +33,7 @@ import type {
   WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../../components/UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import type { Nft } from '@metamask/assets-controllers';
 import type { FundActionMenuParams } from '../../components/UI/FundActionMenu/FundActionMenu.types';
 import type { DeFiProtocolPositionDetailsParams } from '../../components/UI/DeFiPositions/DeFiProtocolPositionDetails';
@@ -63,6 +65,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
+import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
@@ -74,7 +77,6 @@ import type {
   PerpsOrderRouteParams,
   PerpsStackParamList,
 } from '../../components/UI/Perps/types/navigation';
-import type { ConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type {
   MoneyNavigationParamList,
   MoneyScreensStackParamList,
@@ -123,6 +125,9 @@ import type {
   TransactionsViewParams,
   TransactionDetailsParams,
 } from '../../components/Views/TransactionsView/TransactionsView.types';
+import type { ActivityTypeFilterSheetParams } from '../../components/Views/ActivityScreen/components/ActivityTypeFilterSheet';
+import type { PerpsActivityFilterSheetParams } from '../../components/Views/ActivityScreen/components/PerpsActivityFilterSheet';
+import type { ActivityNetworkFilterSheetParams } from '../../components/Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 
 // Asset params
 import type {
@@ -173,9 +178,12 @@ import type {
   SDKLoadingParams,
   SDKFeedbackParams,
   SDKDisconnectParams,
+  SDKSessionsManagerParams,
+  SDKManageConnectionsParams,
   ReturnToDappNotificationParams,
 } from '../../components/Views/SDK/SDK.types';
 import type { SDKConnectV2OtpModalParams } from '../../components/Views/SDK/SDKConnectV2OtpModal';
+import type { TradeWalletActionsParams } from '../../components/Views/TradeWalletActions/TradeWalletActions';
 
 // Notification params
 import type { NotificationDetailsParams } from '../../components/Views/Notifications/Notifications.types';
@@ -245,17 +253,11 @@ import type {
   EarnModalsNavigationParamList,
   EarnScreensStackParamList,
 } from '../../components/UI/Earn/types/navigation';
-
-/** Earn token list sheet params (WalletActions / StakeModals). */
-interface EarnTokenListParams {
-  tokenFilter: {
-    includeReceiptTokens: boolean;
-    includeNativeTokens?: boolean;
-    includeStakingTokens?: boolean;
-    includeLendingTokens?: boolean;
-  };
-  onItemPressScreen: string;
-}
+import type {
+  EarnTokenListParams,
+  StakeModalsNavigationParamList,
+  StakeScreensStackParamList,
+} from '../../components/UI/Stake/types/navigation';
 
 // Modal params
 import type {
@@ -308,14 +310,6 @@ interface OnboardingSuccessFlowParamList {
   GeneralSettings: undefined;
   AssetsSettings: undefined;
   SecuritySettings: undefined;
-}
-
-interface StakeModalsNavigationParamList {
-  LearnMore: LearnMoreModalParams | undefined;
-  TrxLearnMore: undefined;
-  MaxInput: MaxInputModalParams;
-  GasImpact: GasImpactModalParams;
-  EarnTokenList: EarnTokenListParams | undefined;
 }
 
 /** Onboarding social-login screens share AccountStatus params plus trace context. */
@@ -395,12 +389,12 @@ type TraderPositionViewParams =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootModalFlowParamList = {
   WalletActions: undefined;
-  TradeWalletActions: undefined;
+  TradeWalletActions: TradeWalletActionsParams | undefined;
   FundActionMenu: FundActionMenuParams | undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   MAPicker: MAPickerSheetParams | undefined;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   OnboardingSheet: OnboardingSheetParams | undefined;
@@ -416,7 +410,7 @@ export type RootModalFlowParamList = {
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
-  SDKManageConnections: undefined;
+  SDKManageConnections: SDKManageConnectionsParams | undefined;
   ExperienceEnhancer: undefined;
   DataCollection: undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
@@ -427,9 +421,14 @@ export type RootModalFlowParamList = {
   PermittedNetworksInfoSheet: undefined;
   NetworkSelector: NetworkSelectorParams | undefined;
   TokenSort: undefined;
+  ActivityTypeFilter: ActivityTypeFilterSheetParams;
+  ActivityPerpsFilter: PerpsActivityFilterSheetParams;
+  ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   TurnOffRememberMeModal: undefined;
   AssetHideConfirmation: { onConfirm: () => void } | undefined;
@@ -650,7 +649,7 @@ export type RootStackParamList = {
   RewardsSelectSheet: RewardsNavigationParamList['RewardsSelectSheet'];
 
   // Modal routes
-  DeleteWalletModal: { isResetWallet?: boolean } | undefined;
+  DeleteWalletModal: DeleteWalletModalParams | undefined;
   RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
@@ -658,7 +657,7 @@ export type RootStackParamList = {
   UpdateNeededModal: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
   WalletActions: undefined;
-  TradeWalletActions: undefined;
+  TradeWalletActions: TradeWalletActionsParams | undefined;
   FundActionMenu: FundActionMenuParams | undefined;
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
@@ -771,7 +770,7 @@ export type RootStackParamList = {
   NotificationsSettings: undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
-  SDKSessionsManager: undefined;
+  SDKSessionsManager: SDKSessionsManagerParams | undefined;
   NetworksManagement: undefined;
   NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
@@ -784,13 +783,15 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
-  ConfirmTurnOnBackupAndSync: undefined;
+  ConfirmTurnOnBackupAndSync:
+    | ConfirmTurnOnBackupAndSyncModalNavigateParams
+    | undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
-  SDKManageConnections: undefined;
+  SDKManageConnections: SDKManageConnectionsParams | undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
   AccountPermissions: AccountPermissionsParams | undefined;
@@ -807,6 +808,9 @@ export type RootStackParamList = {
   OriginSpamModal: OriginSpamModalParams | undefined;
   tooltipModal: TooltipModalRouteParams | undefined;
   TokenSort: undefined;
+  ActivityTypeFilter: ActivityTypeFilterSheetParams;
+  ActivityPerpsFilter: PerpsActivityFilterSheetParams;
+  ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
@@ -972,7 +976,6 @@ export type RootStackParamList = {
   PredictFeed: PredictNavigationParamList['PredictFeed'];
   PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
   PredictPositions: PredictNavigationParamList['PredictPositions'];
-  PredictWorldCup: PredictNavigationParamList['PredictWorldCup'];
   PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
   PredictModals:
     | NavigatorScreenParams<PredictModalsNavigationParamList>
@@ -1022,7 +1025,7 @@ export type RootStackParamList = {
         ConfirmationSwitchAccountType: { address?: string } | undefined;
       }>
     | undefined;
-  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithModal: PayWithModalParams | undefined;
   ConfirmationPayWithBottomSheet:
     | { preferredPaymentToken?: SetPayTokenRequest }
     | undefined;
@@ -1034,6 +1037,7 @@ export type RootStackParamList = {
   NotificationsDetails: NotificationDetailsParams | undefined;
 
   // Staking routes
+  StakeScreens: NavigatorScreenParams<StakeScreensStackParamList> | undefined;
   StakeModals:
     | NavigatorScreenParams<StakeModalsNavigationParamList>
     | undefined;
@@ -1059,11 +1063,13 @@ export type RootStackParamList = {
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
+  // FullScreenConfirmationParams covers confirmation entry points; Partial<PerpsOrderRouteParams>
+  // covers Perps deposit+order navigation that reuses the same root route key.
   RedesignedConfirmations:
-    | ConfirmationParams
+    | FullScreenConfirmationParams
     | Partial<PerpsOrderRouteParams>
     | undefined;
-  NoHeaderConfirmations: undefined;
+  NoHeaderConfirmations: FullScreenConfirmationParams | undefined;
 
   // Identity routes
   TurnOnBackupAndSync: undefined;
@@ -1079,6 +1085,7 @@ export type RootStackParamList = {
   MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
+  SmartAccountDetails: SmartAccountParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   // Snaps routes
@@ -1165,27 +1172,23 @@ export type RootStackParamList = {
   FeatureFlagOverride: undefined;
 };
 
-// NOTE: The global ReactNavigation.RootParamList is intentionally kept LOOSE
-// (extends ParamListBase) during the incremental migration to strict navigation
-// typing. This keeps untyped `useNavigation()` call sites compiling while we
-// migrate them, feature-by-feature, to `useNavigation<AppNavigationProp>()`.
-// Once every call site is migrated and `RootStackParamList` is complete, this
-// should be flipped to `extends RootStackParamList` to enforce strict route
-// names globally.
+// Registers `RootStackParamList` as React Navigation's global root param list,
+// so bare `useNavigation()` / `useRoute()` are checked against the app's real
+// route names and params. Adding a screen means adding it to
+// `RootStackParamList`, otherwise navigating to it will not compile.
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ReactNavigation {
-    interface RootParamList extends ParamListBase {}
+    interface RootParamList extends RootStackParamList {}
   }
 }
 
 /**
  * Strict navigation prop for the app's root stack.
  *
- * Opt in via `useNavigation<AppNavigationProp>()` to get route-name and param
- * type checking + autocomplete against `RootStackParamList`. This deliberately
- * references `RootStackParamList` directly (not the loose global) so callers get
- * strict checking even while the global remains permissive during migration.
+ * Equivalent to bare `useNavigation()`, which is keyed to the same param list
+ * through the `ReactNavigation.RootParamList` declaration above. Use this
+ * explicitly when a component needs to name the type (e.g. props, helpers).
  *
  * `getState()` is widened to allow `undefined` (navigator not yet mounted) and
  * uses the unparameterized `NavigationState` to match @react-navigation/core.
@@ -1203,9 +1206,8 @@ export type AppNavigationProp = Omit<
  * Mirrors {@link AppNavigationProp}'s `getState()` override, which accounts for
  * `getState()` potentially returning undefined when the navigator is not mounted.
  *
- * Note: still keyed to the loose global `RootParamList` during Phase 4. Prefer
- * {@link AppNavigationProp} for strict route/param checking unless you need
- * stack-only APIs.
+ * Keyed to the same route names and params as {@link AppNavigationProp}; prefer
+ * that type unless you need the stack-only APIs.
  */
 export type AppStackNavigationProp = Omit<
   NativeStackNavigationProp<ReactNavigation.RootParamList>,

@@ -66,6 +66,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -75,6 +76,8 @@ import {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
@@ -155,7 +158,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     () => loading || isDeletingInProgress,
     [loading, isDeletingInProgress],
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    destinationReady: true,
+  });
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 

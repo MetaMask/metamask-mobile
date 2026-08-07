@@ -1,40 +1,31 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeSeedlessOnboardingExtended } from '../../tags.js';
+import { SmokeSeedlessOnboarding } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
-import { PlatformDetector } from '../../framework/PlatformLocator.js';
 import {
-  completeGoogleNewUserOnboarding,
   lockApp,
   loginWithFixturePassword,
   resetWallet,
-  setupGoogleNewUserOAuthMock,
 } from './helpers/seedless-helpers.js';
 
+/**
+ * Device smoke: reset wallet from the login screen (native vault wipe).
+ * Does not re-run Google onboard (covered by google-login-new-user).
+ */
 appiumTest.describe(
-  SmokeSeedlessOnboardingExtended('Google Login - Reset Wallet'),
+  SmokeSeedlessOnboarding('Google Login - Reset Wallet'),
   () => {
-    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
-    appiumTest.skip(
-      'onboards with Google login, locks, and resets the wallet',
+    appiumTest(
+      'locks a fixture wallet and resets it from the login screen',
       async ({ driver: _driver, currentDeviceDetails }) => {
-        const fixture = PlatformDetector.isIOS()
-          ? new FixtureBuilder().build()
-          : new FixtureBuilder({ onboarding: true }).build();
-
         await withFixtures(
           {
-            fixture,
+            fixture: new FixtureBuilder().build(),
             restartDevice: true,
             currentDeviceDetails,
-            testSpecificMock: setupGoogleNewUserOAuthMock,
           },
           async () => {
-            if (PlatformDetector.isIOS()) {
-              await loginWithFixturePassword();
-            } else {
-              await completeGoogleNewUserOnboarding();
-            }
+            await loginWithFixturePassword();
 
             await lockApp();
 

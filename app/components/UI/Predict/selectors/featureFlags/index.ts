@@ -8,14 +8,24 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictFeedBannerConfig, PredictHotTabFlag } from '../../types/flags';
+import {
+  PredictFeedBannerConfig,
+  PredictFeedCarouselConfig,
+  PredictHotTabFlag,
+} from '../../types/flags';
 import {
   DEFAULT_HOT_TAB_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
 } from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 import { resolvePredictFeatureFlags } from '../../utils/resolvePredictFeatureFlags';
-import { parse, PredictFeedBannerSchema } from '../../schemas';
+import {
+  parse,
+  PredictFeedBannerSchema,
+  PredictFeedCarouselSchema,
+} from '../../schemas';
+import { isAllowedPredictDeeplink } from '../../utils/isAllowedPredictDeeplink';
 
 /**
  * Selector for Predict trading feature enablement
@@ -156,51 +166,14 @@ export const selectPredictUpDownEnabledFlag = createSelector(
   (flags) => flags.predictUpDownEnabled,
 );
 
-export const selectPredictWorldCupConfig = createSelector(
+export const selectPredictSportsFeedConfig = createSelector(
   selectPredictFeatureFlags,
-  (flags) => flags.predictWorldCup,
+  (flags) => flags.predictSportsFeed,
 );
 
 export const selectPredictWimbledonTabFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWimbledonTab,
-);
-
-export const selectPredictWorldCupEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled,
-);
-
-export const selectPredictWorldCupMainFeedBannerEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showMainFeedBanner,
-);
-
-export const selectPredictWorldCupMainFeedTabEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showMainFeedTab,
-);
-
-export const selectPredictWorldCupScreenEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showWorldCupScreen,
-);
-
-export const selectPredictWorldCupHubV2EnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showWorldCupScreen && config.showHubV2,
-);
-
-// The banner is only mounted inside the V2 hub (`PredictWorldCupHub`), so it
-// must also require `showHubV2`. Without this, enabling `showHubBanner` while
-// `showHubV2` is off would silently render nothing (the V1 hub has no banner).
-export const selectPredictWorldCupHubBannerEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) =>
-    config.enabled &&
-    config.showWorldCupScreen &&
-    config.showHubV2 &&
-    config.showHubBanner,
 );
 
 export const selectPredictPortfolioEnabledFlag = createSelector(
@@ -249,6 +222,52 @@ export const selectPredictFeedBannerConfig = createSelector(
     }
 
     return parsedFlag;
+  },
+);
+
+export const selectPredictFeedCarouselConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictFeedCarouselConfig => {
+    const parsedFlag = parse(
+      unwrapRemoteFeatureFlag<PredictFeedCarouselConfig>(
+        remoteFeatureFlags?.predictFeedCarousel,
+      ),
+      PredictFeedCarouselSchema,
+      DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+    );
+
+    if (
+      parsedFlag.mode !== 'custom' ||
+      !validatedVersionGatedFeatureFlag(parsedFlag)
+    ) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    const title = parsedFlag.title?.trim() || undefined;
+    const deeplink = parsedFlag.deeplink?.trim() || undefined;
+
+    if (deeplink && !isAllowedPredictDeeplink(deeplink)) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    return {
+      ...parsedFlag,
+      title,
+      deeplink,
+      contentSource: {
+        ...parsedFlag.contentSource,
+        queryParams: parsedFlag.contentSource.queryParams
+          .trim()
+          .replace(/^\?/, ''),
+        excludedMarketIds: [
+          ...new Set(
+            parsedFlag.contentSource.excludedMarketIds
+              .map((id) => id.trim())
+              .filter(Boolean),
+          ),
+        ],
+      },
+    };
   },
 );
 
