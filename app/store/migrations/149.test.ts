@@ -94,8 +94,8 @@ function stateWithArc(
   };
   if (enablementValue !== undefined) {
     (
-      state.engine.backgroundState.NetworkEnablementController
-        .enabledNetworkMap.eip155 as Record<string, boolean>
+      state.engine.backgroundState.NetworkEnablementController.enabledNetworkMap
+        .eip155 as Record<string, boolean>
     )[ARC_CHAIN_ID] = enablementValue;
   }
   return state;
@@ -147,9 +147,7 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
     const configs =
       result.engine.backgroundState.NetworkController
         .networkConfigurationsByChainId;
-    expect(
-      (configs as Record<string, unknown>)[ARC_CHAIN_ID],
-    ).toBeUndefined();
+    expect((configs as Record<string, unknown>)[ARC_CHAIN_ID]).toBeUndefined();
   });
 
   it('removes the Arc entry from the enablement map', () => {
@@ -274,7 +272,10 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
         ],
       },
     ],
-    ['block explorer changed by the user', { blockExplorerUrls: ['https://custom-explorer.example.com'] }],
+    [
+      'block explorer changed by the user',
+      { blockExplorerUrls: ['https://custom-explorer.example.com'] },
+    ],
   ])(
     'leaves the Arc network configuration untouched when %s',
     (_description, overrides) => {
@@ -372,16 +373,22 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
     it('removes Arc for a user who never touched the auto-added network', () => {
       mockedEnsureValidState.mockReturnValue(true);
 
-      const stateAfter145 = migrateArc(cloneDeep(baseState)) as typeof baseState;
-      const configsAfter145 =
-        stateAfter145.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId as Record<string, unknown>;
+      const stateAfter145 = migrateArc(
+        cloneDeep(baseState),
+      ) as typeof baseState;
+      const configsAfter145 = stateAfter145.engine.backgroundState
+        .NetworkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >;
       expect(configsAfter145[ARC_CHAIN_ID]).toBeDefined();
 
       const stateAfter149 = migrate(stateAfter145) as typeof baseState;
-      const configsAfter149 =
-        stateAfter149.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId as Record<string, unknown>;
+      const configsAfter149 = stateAfter149.engine.backgroundState
+        .NetworkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >;
       expect(configsAfter149[ARC_CHAIN_ID]).toBeUndefined();
       expect(
         stateAfter149.engine.backgroundState.NetworkEnablementController
@@ -392,21 +399,24 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
     it('keeps Arc for a user who had already customized it between the two migrations', () => {
       mockedEnsureValidState.mockReturnValue(true);
 
-      const stateAfter145 = migrateArc(cloneDeep(baseState)) as typeof baseState;
-      const configs =
-        stateAfter145.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId as Record<string, unknown>;
+      const stateAfter145 = migrateArc(
+        cloneDeep(baseState),
+      ) as typeof baseState;
+      const configs = stateAfter145.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId as Record<string, unknown>;
       // Simulate the user renaming the network before 149 ever runs.
       (configs[ARC_CHAIN_ID] as { name: string }).name = 'My Custom Arc';
 
       const stateAfter149 = migrate(stateAfter145) as typeof baseState;
-      const configsAfter149 =
-        stateAfter149.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId as Record<string, unknown>;
+      const configsAfter149 = stateAfter149.engine.backgroundState
+        .NetworkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >;
       expect(configsAfter149[ARC_CHAIN_ID]).toBeDefined();
-      expect(
-        (configsAfter149[ARC_CHAIN_ID] as { name: string }).name,
-      ).toBe('My Custom Arc');
+      expect((configsAfter149[ARC_CHAIN_ID] as { name: string }).name).toBe(
+        'My Custom Arc',
+      );
     });
   });
 });
