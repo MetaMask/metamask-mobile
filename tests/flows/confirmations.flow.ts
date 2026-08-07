@@ -29,6 +29,8 @@ const LOCAL_CHAIN_NAME = 'Local RPC';
 const LOCAL_CHAIN_CAIP = 'eip155:1337';
 const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
+const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
+const ANDROID_CONFIRM_POLL_MS = 3_000;
 
 export {
   LOCAL_CHAIN_CAIP,
@@ -38,9 +40,6 @@ export {
 
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
- *
- * Android: CDP can report a successful DOM click without MetaMask opening
- * the confirmation sheet. Retry the click when confirm-button never appears.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -50,40 +49,28 @@ const tapTestDappButtonAndWaitForConfirm = async (
   const confirmTimeoutMs = 30_000;
 
   if (PlatformDetector.isAndroidAppium()) {
-    ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    const maxAttempts = 3;
-    // Short per-attempt wait so we can re-click within a reasonable budget.
-    const perAttemptConfirmTimeoutMs = 12_000;
-    let lastError: unknown;
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (attempt > 1) {
-        ChromeCdpHelpers.resetMetaMaskWebViewCache();
-      }
-      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-        pageUrl,
-        buttonId,
-      );
-      if (!clicked) {
-        lastError = new Error(
-          `CDP could not click #${buttonId} (${description}) on attempt ${attempt}/${maxAttempts}`,
-        );
-        continue;
-      }
-      try {
-        await FooterActions.waitForConfirmButton(perAttemptConfirmTimeoutMs);
-        return;
-      } catch (error) {
-        lastError = error;
-      }
-    }
-    throw lastError instanceof Error
-      ? lastError
-      : new Error(
-          `Confirmation sheet did not open after clicking #${buttonId} (${description}) in ${maxAttempts} attempts`,
-        );
+    let dismissedPushSheet = false;
+    await Utilities.executeWithRetry(
+      async () => {
+        await WebView.tapById(buttonId, {
+          pageUrl,
+          description,
+        });
+        try {
+          await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
+        } catch (error) {
+          if (!dismissedPushSheet) {
+            dismissedPushSheet = true;
+            await dismissPushNotificationExistingUserSheet();
+          }
+          throw error;
+        }
+      },
+      { timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS },
+    );
+    return;
   }
 
-  await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(pageUrl, buttonId);
   await WebView.tapById(buttonId, {
     pageUrl,
     description,
