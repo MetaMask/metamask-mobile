@@ -38,7 +38,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
   const navigation = useNavigation<AppNavigationProp>();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const { isStockToken, isTokenTradingOpen } = useRWAToken();
+  const { isStockToken, isTokenMarketFullyClosed } = useRWAToken();
   const destAmount = useSelector(selectDestAmount);
   const { handleSwitchTokens } = useSwitchTokens();
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
@@ -56,8 +56,9 @@ export const useTokenSelection = (type: TokenSelectorType) => {
         token.address === otherToken.address &&
         token.chainId === otherToken.chainId;
 
-      if (isStockToken(token) && !isTokenTradingOpen(token)) {
-        // Show market closed bottom sheet
+      if (isStockToken(token) && isTokenMarketFullyClosed(token)) {
+        // Only stock tokens have market hours. Show the modal when the market is
+        // fully closed — i.e. neither regular hours nor an off-hours window is active.
         navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
           screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
         });
@@ -143,7 +144,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
       destToken,
       sourceToken,
       isStockToken,
-      isTokenTradingOpen,
+      isTokenMarketFullyClosed,
       destAmount,
       dispatch,
       navigation,

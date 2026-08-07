@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Selesai"
     },
+    "off_hours_trading": {
+      "title": "Perdagangan di luar jam",
+      "description": "Pasar tutup: Harga dihitung oleh penerbit, bukan data pasar langsung. Harga mungkin berbeda saat pasar dibuka kembali pada sesi perdagangan berikutnya yang tersedia."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Swap sedang berlangsung",
       "swap_success": "Swap selesai",

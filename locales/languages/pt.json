@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Pronto"
     },
+    "off_hours_trading": {
+      "title": "Negociação fora do horário",
+      "description": "Mercado fechado: O preço é calculado pelo emissor e não reflete dados de mercado em tempo real. Pode ser diferente quando os mercados reabrirem na próxima sessão de negociação disponível."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Troca em andamento",
       "swap_success": "Troca concluída",

@@ -52,6 +52,7 @@ import {
   selectBridgeControllerState,
   selectSlippage,
   selectIsSlippageUserOverride,
+  selectIsInOffHoursTrading,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
@@ -158,6 +159,19 @@ interface BridgeViewContentProps {
 
 const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
+
+  // Re-evaluate off-hours market status every minute so the warning banner
+  // appears / disappears as soon as the off-hours window opens or closes.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const isInOffHoursTrading = useSelector((state: RootState) =>
+    selectIsInOffHoursTrading(state, nowMs),
+  );
+
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   const isFiatToggleEnabled = useSelector(
@@ -834,6 +848,15 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                   severity={BannerAlertSeverity.Danger}
                   description={strings('swaps.market_price_unavailable')}
                   testID={BridgeViewSelectorsIDs.MISSING_PRICE_BANNER}
+                />
+              ) : null}
+
+              {isInOffHoursTrading ? (
+                <BannerAlert
+                  severity={BannerAlertSeverity.Warning}
+                  title={strings('bridge.off_hours_trading.title')}
+                  description={strings('bridge.off_hours_trading.description')}
+                  testID={BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER}
                 />
               ) : null}
             </Box>

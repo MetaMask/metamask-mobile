@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Bitti"
     },
+    "off_hours_trading": {
+      "title": "Saatler dışı işlem",
+      "description": "Piyasa kapalı: Fiyat, ihraçcı tarafından hesaplanmış olup canlı piyasa verisi değildir. Piyasalar bir sonraki müsait işlem seansında yeniden açıldığında farklılık gösterebilir."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Takas işlemi sürüyor",
       "swap_success": "Takas tamamlandı",

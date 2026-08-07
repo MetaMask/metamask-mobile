@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Hoàn tất"
     },
+    "off_hours_trading": {
+      "title": "Giao dịch ngoài giờ",
+      "description": "Thị trường đóng cửa: Giá do tổ chức phát hành tính toán, không phải dữ liệu thị trường trực tiếp. Có thể khác đi khi thị trường mở cửa trở lại vào phiên giao dịch tiếp theo."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Đang hoán đổi",
       "swap_success": "Hoán đổi hoàn tất",

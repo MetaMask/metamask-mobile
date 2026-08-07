@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "완료"
     },
+    "off_hours_trading": {
+      "title": "장외 거래",
+      "description": "시장 마감: 가격은 발행자가 산정한 것으로, 실시간 시장 데이터가 아닙니다. 다음 거래 세션에서 시장이 재개되면 가격이 달라질 수 있습니다."
+    },
     "post_trade_modal": {
       "swap_in_progress": "스왑 진행 중",
       "swap_success": "스왑 완료",

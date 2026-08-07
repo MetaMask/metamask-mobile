@@ -12,6 +12,7 @@ export const BridgeViewSelectorsIDs = {
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
+  OFF_HOURS_TRADING_BANNER: 'bridge-off-hours-trading-banner',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

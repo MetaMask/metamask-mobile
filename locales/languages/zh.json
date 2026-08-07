@@ -8530,6 +8530,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "已完成"
     },
+    "off_hours_trading": {
+      "title": "盘后交易",
+      "description": "市场已关闭：价格由发行方计算，并非实时市场数据。当市场在下一个可用交易时段重新开放时，价格可能有所不同。"
+    },
     "post_trade_modal": {
       "swap_in_progress": "兑换进行中",
       "swap_success": "兑换完成",
