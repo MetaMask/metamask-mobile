@@ -690,10 +690,16 @@ describe('AgenticService.install', () => {
     const StorageWrapper = jest.requireMock('../../store/storage-wrapper');
     StorageWrapper.removeItem.mockClear();
     MockEngine.context.PerpsController.state.cachedMarketDataByProvider = {
-      market: {},
+      market: { data: [], timestamp: 0 },
     };
     MockEngine.context.PerpsController.state.cachedUserDataByProvider = {
-      user: {},
+      user: {
+        positions: [],
+        orders: [],
+        accountState: null,
+        timestamp: 0,
+        address: '0x0000000000000000000000000000000000000000',
+      },
     };
 
     await expect(bridge().clearPerpsPerformanceCaches()).resolves.toEqual({
