@@ -2363,16 +2363,22 @@ export class PerpsStreamManager {
    * Force reconnection of all stream channels after WebSocket reconnection
    * Disconnects all channels and reconnects those with active subscribers
    *
-   * @param options.skipPriceReprewarm - Skip re-prewarming `prices`. Pass
-   * `true` when the caller just ran `preloadSubscriptions()`, which already
-   * prewarmed it — `PriceStreamChannel.reconnect()` always re-fetches
+   * @param options.skipPriceReprewarm - Pass `true` when the caller just ran
+   * `preloadSubscriptions()`, which already prewarmed `prices` on the new
+   * connection — `PriceStreamChannel.reconnect()` always re-fetches
    * unconditionally, so reconnecting again here would just re-fetch the same
-   * data (unlike `marketData`, which checks its own TTL cache first).
+   * data (unlike `marketData`, which checks its own TTL cache first). We
+   * still call `disconnect()` (not a full skip) to clear any stale
+   * `wsSubscription` handle left over from before the reconnect — otherwise
+   * a later `connect()` (e.g. from a failed prewarm retry) would see a
+   * truthy handle and return early, leaving prices frozen.
    */
   public clearAllChannels(options?: { skipPriceReprewarm?: boolean }): void {
     // Reconnect all channels - clears dead subscriptions and re-establishes
     // connections for channels that have active subscribers
-    if (!options?.skipPriceReprewarm) {
+    if (options?.skipPriceReprewarm) {
+      this.prices.disconnect();
+    } else {
       this.prices.reconnect();
     }
     this.orders.reconnect();

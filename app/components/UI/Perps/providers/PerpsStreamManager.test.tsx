@@ -4605,6 +4605,48 @@ describe('PerpsStreamManager', () => {
       testStreamManager.prices.cleanupPrewarm();
       expect(restoredPrewarmUnsubscribe).toHaveBeenCalledTimes(1);
     });
+
+    it('clears a leftover wsSubscription handle for prices instead of skipping it entirely when skipPriceReprewarm is true', () => {
+      const pricesDisconnect = jest.spyOn(
+        testStreamManager.prices,
+        'disconnect',
+      );
+      const pricesReconnect = jest.spyOn(testStreamManager.prices, 'reconnect');
+
+      // A direct (non-prewarm) subscription sets `wsSubscription` on the
+      // channel, simulating the leftover handle left behind by a
+      // pre-reconnect connection.
+      const staleUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(staleUnsubscribe);
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      testStreamManager.clearAllChannels({ skipPriceReprewarm: true });
+
+      // Skipping "re-prewarm" must still clear the stale handle via
+      // disconnect() — it must not skip prices entirely.
+      expect(pricesDisconnect).toHaveBeenCalledTimes(1);
+      expect(pricesReconnect).not.toHaveBeenCalled();
+      expect(staleUnsubscribe).toHaveBeenCalledTimes(1);
+
+      // A later subscribe must be able to establish a fresh subscription
+      // instead of being blocked by the stale handle (the bug this guards
+      // against: `connect()` returning early because `wsSubscription` was
+      // still truthy, leaving prices frozen).
+      const freshUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(freshUnsubscribe);
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH'],
+        callback: jest.fn(),
+      });
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      pricesDisconnect.mockRestore();
+      pricesReconnect.mockRestore();
+    });
   });
 
   describe('Cached user data preloading', () => {
