@@ -16,6 +16,20 @@ class CardHomeView {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BUTTON);
   }
 
+  get changeAssetButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(CardHomeSelectors.CHANGE_ASSET_BUTTON);
+  }
+
+  get manageSpendingLimitItem(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM,
+    );
+  }
+
+  get cashbackItem(): EncapsulatedElementType {
+    return Matchers.getElementByID(CardHomeSelectors.CASHBACK_ITEM);
+  }
+
   get addFundsBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET);
   }
@@ -55,6 +69,27 @@ class CardHomeView {
   async tapAddFundsButton(): Promise<void> {
     await Gestures.waitAndTap(this.addFundsButton, {
       elemDescription: 'Add Funds Button in Card Home View',
+    });
+  }
+
+  async tapChangeAssetButton(): Promise<void> {
+    await Gestures.scrollToElement(this.changeAssetButton);
+    await Gestures.waitAndTap(this.changeAssetButton, {
+      elemDescription: 'Change Asset Button in Card Home View',
+    });
+  }
+
+  async tapManageSpendingLimitItem(): Promise<void> {
+    await Gestures.scrollToElement(this.manageSpendingLimitItem);
+    await Gestures.waitAndTap(this.manageSpendingLimitItem, {
+      elemDescription: 'Manage Spending Limit Item in Card Home View',
+    });
+  }
+
+  async tapCashbackItem(): Promise<void> {
+    await Gestures.scrollToElement(this.cashbackItem);
+    await Gestures.waitAndTap(this.cashbackItem, {
+      elemDescription: 'Cashback Item in Card Home View',
     });
   }
 
