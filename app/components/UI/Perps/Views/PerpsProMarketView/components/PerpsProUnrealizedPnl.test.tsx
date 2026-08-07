@@ -18,7 +18,11 @@ describe('PerpsProUnrealizedPnl', () => {
 
   it('renders aggregate PnL and close-all control', () => {
     render(
-      <PerpsProUnrealizedPnl unrealizedPnl="150.5" returnOnEquity="12.3" />,
+      <PerpsProUnrealizedPnl
+        unrealizedPnl="150.5"
+        returnOnEquity="12.3"
+        positionCount={2}
+      />,
     );
 
     expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
@@ -30,7 +34,11 @@ describe('PerpsProUnrealizedPnl', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
 
     render(
-      <PerpsProUnrealizedPnl unrealizedPnl="150.5" returnOnEquity="12.3" />,
+      <PerpsProUnrealizedPnl
+        unrealizedPnl="150.5"
+        returnOnEquity="12.3"
+        positionCount={2}
+      />,
     );
 
     expect(screen.getByText('Unrealized P&L')).toBeOnTheScreen();
