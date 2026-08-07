@@ -237,7 +237,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     hasActionButton,
     hasTrailingTextButton: hasTrailingTextButtonOption,
   });
-  const baseStyle: StyleProp<ViewStyle> = useMemo(
+  const baseStyle = useMemo(
     () => [
       styles.base,
       !hasDescription && styles.baseWithoutDescription,

@@ -194,7 +194,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             },
           ]
         }
-        nativeID="2"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1567,7 +1566,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             },
           ]
         }
-        nativeID="5"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -1696,7 +1694,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             },
           ]
         }
-        nativeID="6"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -2024,7 +2021,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             },
           ]
         }
-        nativeID="0"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -2153,7 +2149,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             },
           ]
         }
-        nativeID="1"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -3031,7 +3026,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             },
           ]
         }
-        nativeID="3"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -3160,7 +3154,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             },
           ]
         }
-        nativeID="4"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
