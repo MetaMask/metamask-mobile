@@ -9,6 +9,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
@@ -30,6 +31,8 @@ import {
   JsonMap,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { getSocialAccountType } from '../../../constants/onboarding';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
@@ -75,7 +78,7 @@ interface AccountStatusProps {
 
 const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { width: windowWidth } = useWindowDimensions();
   const route =
     useRoute<
@@ -92,6 +95,14 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     onboardingTraceCtx,
     provider,
   } = route?.params ?? {};
+
+  useNavigationPerformance({
+    destinationScreenId:
+      type === 'found'
+        ? OnboardingScreenIds.ACCOUNT_ALREADY_EXISTS
+        : OnboardingScreenIds.ACCOUNT_NOT_FOUND,
+    destinationReady: true,
+  });
 
   const isSmallScreen = windowWidth < 375;
 

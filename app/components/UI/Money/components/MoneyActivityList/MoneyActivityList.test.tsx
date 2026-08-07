@@ -140,57 +140,41 @@ describe('MoneyActivityList', () => {
     expect(queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON)).toBeNull();
   });
 
-  it('calls onHeaderPress when section header is pressed', () => {
-    const mockPress = jest.fn();
+  it('renders a non-tappable section header', () => {
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} onHeaderPress={mockPress} />,
+      <MoneyActivityList items={MOCK_ITEMS} onViewAllPress={jest.fn()} />,
     );
 
-    fireEvent.press(getByTestId('section-header'));
-    expect(mockPress).toHaveBeenCalledTimes(1);
+    expect(getByTestId('section-header').props.onPress).toBeUndefined();
   });
 
-  it('hides View all and does not wire the header arrow with 5 or fewer transactions', () => {
-    const onHeaderPress = jest.fn();
+  it('hides View all with 5 or fewer transactions', () => {
     const onViewAllPress = jest.fn();
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { queryByTestId } = renderWithProvider(
       <MoneyActivityList
         items={MOCK_ITEMS.slice(0, 5)}
-        onHeaderPress={onHeaderPress}
         onViewAllPress={onViewAllPress}
       />,
     );
 
-    fireEvent.press(getByTestId('section-header'));
-    expect(onHeaderPress).not.toHaveBeenCalled();
     expect(queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON)).toBeNull();
   });
 
-  it('wires the header arrow and renders View all with more than 5 transactions', () => {
-    const onHeaderPress = jest.fn();
+  it('renders View all with more than 5 transactions', () => {
     const onViewAllPress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <MoneyActivityList
-        items={MOCK_ITEMS}
-        onHeaderPress={onHeaderPress}
-        onViewAllPress={onViewAllPress}
-      />,
+      <MoneyActivityList items={MOCK_ITEMS} onViewAllPress={onViewAllPress} />,
     );
-
-    fireEvent.press(getByTestId('section-header'));
-    expect(onHeaderPress).toHaveBeenCalledTimes(1);
 
     fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
     expect(onViewAllPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders View all when more pages remain upstream even at the preview count', () => {
-    const onHeaderPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <MoneyActivityList
         items={MOCK_ITEMS.slice(0, 5)}
         hasMore
-        onHeaderPress={onHeaderPress}
         onViewAllPress={jest.fn()}
       />,
     );
@@ -198,8 +182,6 @@ describe('MoneyActivityList', () => {
     expect(
       getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
     ).toBeOnTheScreen();
-    fireEvent.press(getByTestId('section-header'));
-    expect(onHeaderPress).toHaveBeenCalledTimes(1);
   });
 
   it('forwards privacyMode false by default to each row', () => {

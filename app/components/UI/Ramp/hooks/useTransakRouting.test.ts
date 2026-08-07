@@ -45,14 +45,26 @@ jest.mock(
 
 const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
 
+// Selector-aware useSelector mock: the feature-flag selector returns the
+// per-test boolean; every other selector (selectTokens) keeps the token shape.
+let mockIsTransakWidgetUrlProxyEnabled = false;
+
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => ({
-    selected: {
-      chainId: 'eip155:1',
-      assetId: 'eip155:1/erc20:0xasset',
-      symbol: 'ETH',
-    },
-  })),
+  useSelector: jest.fn((selector: (state: unknown) => unknown) => {
+    const { selectRampsTransakWidgetUrlProxyEnabled } = jest.requireActual(
+      '../../../../selectors/featureFlagController/deposit',
+    );
+    if (selector === selectRampsTransakWidgetUrlProxyEnabled) {
+      return mockIsTransakWidgetUrlProxyEnabled;
+    }
+    return {
+      selected: {
+        chainId: 'eip155:1',
+        assetId: 'eip155:1/erc20:0xasset',
+        symbol: 'ETH',
+      },
+    };
+  }),
 }));
 
 const mockUseRampAccountAddress = jest.fn(
@@ -139,6 +151,7 @@ const mockGetOrder = jest.fn();
 const mockGetUserLimits = jest.fn();
 const mockRequestOtt = jest.fn();
 const mockGeneratePaymentWidgetUrl = jest.fn();
+const mockCreateWidgetUrl = jest.fn();
 const mockSubmitPurposeOfUsageForm = jest.fn();
 const mockLogoutFromProvider = jest.fn();
 
@@ -162,6 +175,7 @@ jest.mock('./useTransakController', () => ({
     getUserLimits: mockGetUserLimits,
     requestOtt: mockRequestOtt,
     generatePaymentWidgetUrl: mockGeneratePaymentWidgetUrl,
+    createWidgetUrl: mockCreateWidgetUrl,
     submitPurposeOfUsageForm: mockSubmitPurposeOfUsageForm,
   }),
 }));
@@ -178,10 +192,12 @@ jest.mock('./useRampsPaymentMethods', () => ({
   }),
 }));
 
+const mockGetRampsEnvironment = jest.fn(() => 'STAGING');
+
 jest.mock(
   '../../../../core/Engine/controllers/ramps-controller/ramps-service-init',
   () => ({
-    getRampsEnvironment: () => 'STAGING',
+    getRampsEnvironment: () => mockGetRampsEnvironment(),
   }),
 );
 
@@ -191,6 +207,7 @@ jest.mock('../../../../selectors/rampsController', () => ({
 
 jest.mock('../utils/depositUtils', () => ({
   generateThemeParameters: jest.fn(() => ({ theme: 'light' })),
+  generateWidgetThemeParameters: jest.fn(() => ({ widgetTheme: 'light' })),
 }));
 
 let capturedHandleNavigationStateChange:
@@ -256,6 +273,7 @@ jest.mock('@metamask/ramps-controller', () => ({
   RampsEnvironment: {
     Production: 'PRODUCTION',
     Staging: 'STAGING',
+    Development: 'DEVELOPMENT',
   },
   TransakEnvironment: {
     Production: 'PRODUCTION',
@@ -289,6 +307,7 @@ const mockQuote = {
 describe('useTransakRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetRampsEnvironment.mockReturnValue('STAGING');
     capturedHandleNavigationStateChange = null;
     // clearAllMocks resets call records but not return values set via
     // mockReturnValue, so explicitly default getSession back to "no session"
@@ -304,6 +323,7 @@ describe('useTransakRouting', () => {
       id: '/payments/debit-credit-card',
       isManualBankTransfer: false,
     };
+    mockIsTransakWidgetUrlProxyEnabled = false;
   });
 
   afterEach(() => {
@@ -515,6 +535,61 @@ describe('useTransakRouting', () => {
               name: 'Checkout',
               params: expect.objectContaining({
                 url: 'https://payment.example.com',
+                providerName: 'Transak',
+                onNavigationStateChange: expect.any(Function),
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('creates the widget URL via the proxy instead of the OTT flow when the proxy flag is enabled', async () => {
+      mockIsTransakWidgetUrlProxyEnabled = true;
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockCreateWidgetUrl.mockResolvedValue('https://proxy-widget.example.com');
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockCreateWidgetUrl).toHaveBeenCalledWith(
+        mockQuote,
+        MOCK_WALLET_ADDRESS,
+        { widgetTheme: 'light' },
+      );
+      expect(mockRequestOtt).not.toHaveBeenCalled();
+      expect(mockGeneratePaymentWidgetUrl).not.toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
+            expect.objectContaining({
+              name: 'Checkout',
+              params: expect.objectContaining({
+                url: 'https://proxy-widget.example.com',
                 providerName: 'Transak',
                 onNavigationStateChange: expect.any(Function),
               }),
@@ -1769,6 +1844,39 @@ describe('useTransakRouting', () => {
     });
 
     it('remaps a production native provider on the order to the staging code', async () => {
+      mockGetOrder.mockResolvedValue({
+        ...depositOrder,
+        provider: '/providers/transak-native',
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockRefreshOrder).toHaveBeenCalledWith(
+        'transak-native-staging',
+        'order-hs',
+        MOCK_WALLET_ADDRESS,
+      );
+    });
+
+    it('uses the staging native provider code when ramps env is Development', async () => {
+      mockGetRampsEnvironment.mockReturnValue('DEVELOPMENT');
       mockGetOrder.mockResolvedValue({
         ...depositOrder,
         provider: '/providers/transak-native',

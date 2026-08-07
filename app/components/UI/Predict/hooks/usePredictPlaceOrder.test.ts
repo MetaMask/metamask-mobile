@@ -13,9 +13,19 @@ import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { mockTheme } from '../../../../util/theme';
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    // useContext is stubbed below for ToastContext only; keep useTheme on
+    // mockTheme so colors.success.default is defined in toast callbacks.
+    useTheme: () => actual.mockTheme,
+  };
+});
 jest.mock('./usePredictTrading');
 jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
@@ -183,7 +193,8 @@ describe('usePredictPlaceOrder', () => {
       expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: ToastVariants.Icon,
-          iconName: IconName.Check,
+          iconName: IconName.Confirmation,
+          iconColor: mockTheme.colors.success.default,
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('Prediction placed'),
@@ -244,7 +255,8 @@ describe('usePredictPlaceOrder', () => {
       expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
         expect.objectContaining({
           variant: ToastVariants.Icon,
-          iconName: IconName.Check,
+          iconName: IconName.Confirmation,
+          iconColor: mockTheme.colors.success.default,
           labelOptions: expect.arrayContaining([
             expect.objectContaining({
               label: expect.stringContaining('Cashed out'),

@@ -163,7 +163,8 @@
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
-          "selectedCountry": null
+          "selectedCountry": null,
+          "selectedCardProgramId": null
         },
         "ClientController": {
           "isUiOpen": false
@@ -466,7 +467,14 @@
             "direction": "desc",
             "optionId": "volume"
           },
+          "mode": "lite",
           "perpsBalances": {},
+          "proLayoutPreferences": {
+            "chartExpanded": false,
+            "orderBookExpanded": false,
+            "orderBookPosition": "left",
+            "orderFormPosition": "right"
+          },
           "recentlyViewedMarkets": {
             "mainnet": [],
             "testnet": []

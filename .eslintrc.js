@@ -113,7 +113,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/hooks/useGetFormattedTokensPerChain.tsx',
   'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
   'app/core/Engine/Engine.ts',
-  'app/core/Engine/controllers/gas-fee-controller/gas-fee-controller-init.test.ts',
   'app/core/GasPolling/GasPolling.ts',
   'app/core/NotificationManager.js',
   'app/selectors/earnController/earn/index.ts',

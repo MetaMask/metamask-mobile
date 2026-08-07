@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
@@ -42,7 +43,7 @@ const RwaUnavailableBottomSheet = forwardRef<
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const surfaceClass = useElevatedSurface();
 
   const handleSheetClosed = useCallback(() => {

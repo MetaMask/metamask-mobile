@@ -15,8 +15,7 @@ import {
 appiumTest.describe(
   SmokeSeedlessOnboarding('Google Login - Lock and Unlock'),
   () => {
-    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
-    appiumTest.skip(
+    appiumTest(
       'onboards with Google login, locks, and unlocks the app',
       async ({ driver: _driver, currentDeviceDetails }) => {
         const fixture = PlatformDetector.isIOS()

@@ -1,8 +1,15 @@
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootModalFlowParamList,
+} from '../../../core/NavigationService/types';
 import {
   FlashList,
   type FlashListProps,
@@ -85,7 +92,6 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
@@ -218,7 +224,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
     ref,
   ) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
     const tw = useTailwind();
@@ -1024,7 +1030,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               transactionDetails,
               showSpeedUpModal: noop,
               showCancelModal: noop,
-            },
+            } as NonNullable<RootModalFlowParamList['TransactionDetailsSheet']>,
           });
         } catch {
           if (activityPressTokenRef.current !== pressToken) return;

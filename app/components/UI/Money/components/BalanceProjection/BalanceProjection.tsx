@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -22,6 +23,7 @@ import { isPositiveNumberOrZero } from '../../utils/number';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
+  COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
@@ -37,7 +39,7 @@ export function BalanceProjection({
   amountFiat,
   projectedYears,
 }: BalanceProjectionProps) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
@@ -74,6 +76,7 @@ export function BalanceProjection({
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_PROJECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {

@@ -1,3 +1,5 @@
+import { hasTransactionType } from '@metamask/transaction-controller';
+
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
@@ -9,24 +11,21 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
-  useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
-  useTransactionPaySourceAmounts,
 } from '../pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
-  const quotes = useTransactionPayQuotes();
+  const quotes = useTransactionPayQuotesRaw();
   const isQuotesLoading = useIsTransactionPayLoading();
-  const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
   const isPostQuote = useTransactionPayIsPostQuote();
   const isMaxAmount = useTransactionPayIsMaxAmount();
@@ -39,27 +38,31 @@ export function useNoPayTokenQuotesAlert() {
     fiatPayment?.selectedPaymentMethodId,
   );
 
-  // For non-post-quote flows, sourceAmount.targetTokenAddress refers to a
-  // required token address, so matching against `requiredTokens` is valid.
-  // For post-quote flows (perps/predict/moneyAccount withdraw, musdConversion),
-  // sourceAmount.targetTokenAddress is the destination token address, so this
-  // lookup is meaningless and can false-match a skipped gas token across
-  // chains (e.g. destination native ETH `0x0…0` vs. Arbitrum native gas
-  // `0x0…0`). See issue #29297.
-  const isOptionalOnly =
-    !isPostQuote &&
-    (sourceAmounts ?? []).every(
-      (t) =>
-        requiredTokens?.find((rt) => rt.address === t.targetTokenAddress)
-          ?.skipIfBalance,
-    );
+  // Controller-backed (not UI-local keypad state), so every hook instance sees
+  // the same value. True once a positive amount has reached the controller via
+  // keypad input, prefill, or Max. isMaxAmount counts because post-quote flows
+  // substitute the token balance for a zero amountRaw when max is set.
+  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
+    (t) =>
+      !t.skipIfBalance &&
+      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
+  );
+
+  // Deposits set isMaxAmount synchronously (Max / uncapped 100% prefill) before
+  // the debounced amount update pushes amountRaw, and a pre-quote max with a
+  // zero amount never starts quote loading. Gating the non-fiat branch on
+  // amountRaw alone — not isMaxAmount — keeps the alert quiet through that
+  // in-flight window; once the amount lands amountRaw is positive and a genuine
+  // no-quote case still fires.
+  const hasPositiveRequiredTokenAmount = (requiredTokens ?? []).some(
+    (t) => !t.skipIfBalance && Boolean(t.amountRaw) && t.amountRaw !== '0',
+  );
 
   const shouldShowNonFiatNoQuotesAlert =
     payToken &&
     !isQuotesLoading &&
-    sourceAmounts?.length &&
     !quotes?.length &&
-    !isOptionalOnly;
+    hasPositiveRequiredTokenAmount;
 
   const shouldShowFiatNoQuotesAlert =
     hasSelectedFiatPaymentMethod &&
@@ -68,21 +71,10 @@ export function useNoPayTokenQuotesAlert() {
     !fiatPayment?.rampsQuote &&
     quotes?.length === 0;
 
-  // Post-quote flows (e.g. money account withdraw) where `sourceAmounts` is
-  // non-empty but no quote was returned. The non-fiat branch above may not
-  // fire, so we also emit the alert when the user has entered a positive
-  // input amount but no quote is available.
-  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
-    (t) =>
-      !t.skipIfBalance &&
-      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
-  );
-
   const shouldShowPostQuoteNoQuotesAlert =
     isPostQuote &&
     Boolean(payToken) &&
     !isQuotesLoading &&
-    sourceAmounts?.length &&
     !quotes?.length &&
     hasPositiveRequiredAmount;
 

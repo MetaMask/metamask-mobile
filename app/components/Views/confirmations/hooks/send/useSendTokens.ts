@@ -17,6 +17,7 @@ export function useSendTokens({
     isPredefinedBitcoin,
     isPredefinedSolana,
     isPredefinedEvm,
+    isPredefinedStellar,
   } = useSendType();
   const allTokens = useAccountTokens({
     includeNoBalance,
@@ -30,6 +31,7 @@ export function useSendTokens({
       solana: !!isPredefinedSolana,
       tron: !!isPredefinedTron,
       bip122: !!isPredefinedBitcoin,
+      stellar: !!isPredefinedStellar,
     };
 
     const matchedAccountType = Object.entries(accountTypeMap).find(
@@ -49,5 +51,6 @@ export function useSendTokens({
     isPredefinedSolana,
     isPredefinedTron,
     isPredefinedBitcoin,
+    isPredefinedStellar,
   ]);
 }

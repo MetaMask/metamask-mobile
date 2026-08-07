@@ -9,25 +9,43 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
+  SnapUIRendererSelectorIDs,
+  SnapUIInputSelectorIDs,
+  SnapUIInputSelectorXPaths,
+  snapUISelectorItemAndroidUIAutomator,
+  snapUISelectorItemIosXPath,
+  TEST_SNAPS_URL,
+  testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
+import WebView, { type WebViewByIdOptions } from '../../framework/WebView';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
 import { SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapPermissionsRequest/InstallSnapPermissionsRequest.constants';
 import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapApproval/InstallSnapApproval.constants';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
-import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
-import { RetryOptions, EncapsulatedElementType } from '../../framework';
+import {
+  RetryOptions,
+  EncapsulatedElementType,
+  resolve,
+  encapsulated,
+} from '../../framework';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
-export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+export { TEST_SNAPS_URL } from '../../selectors/Browser/TestSnaps.selectors';
 
+const TEST_SNAPS_WEBVIEW_OPTIONS: WebViewByIdOptions = {
+  pageUrl: TEST_SNAPS_URL,
+  ...testSnapsAndroidScrollOptions,
+};
 class TestSnaps {
   get getConnectSnapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
@@ -95,6 +113,20 @@ class TestSnaps {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
+  private getTestSnapsWebElement(innerID: string) {
+    if (FrameworkDetector.isAppium()) {
+      return Matchers.getElementByWebID(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        innerID,
+        TEST_SNAPS_URL,
+      );
+    }
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      innerID,
+    );
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -103,15 +135,34 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    const webId = TestSnapResultSelectorWebIDS[selector];
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      await Assertions.checkIfTextMatches(actualText, expectedMessage);
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+
+        // Android Appium UiAutomator omits JSON string quotes; Detox/iOS include them
+        if (PlatformDetector.isAndroidAppium()) {
+          const normalizedExpected = expectedMessage.replace(/^"|"$/g, '');
+          if (!actualText.includes(normalizedExpected)) {
+            throw new Error(
+              `Expected "${webId}" text to contain "${normalizedExpected}", got "${actualText}"`,
+            );
+          }
+          return;
+        }
+
+        await Assertions.checkIfTextMatches(actualText, expectedMessage);
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert result "${webId}" matches expected text`,
+      },
+    );
   }
 
   async checkInstalledSnaps(
@@ -136,22 +187,58 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
+    const webId = TestSnapResultSelectorWebIDS[selector];
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        await Assertions.checkParsedJsonEqual(
+          actualText,
+          expectedJson,
+          `result span "${selector}"`,
+        );
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert JSON result "${webId}"`,
+      },
     );
+  }
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      let actualJson: Json;
-      try {
-        actualJson = JSON.parse(actualText);
-      } catch (error) {
-        throw new Error(`Failed to parse JSON from result span: ${actualText}`);
-      }
+  async checkResultJsonExcluding(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    excludedKeys: string[],
+    expectedJson: Json,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webId = TestSnapResultSelectorWebIDS[selector];
 
-      await Assertions.checkIfJsonEqual(actualJson, expectedJson);
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        await Assertions.checkParsedJsonEqualExcluding(
+          actualText,
+          expectedJson,
+          excludedKeys,
+          `result span "${selector}"`,
+        );
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert JSON result "${webId}" excluding ${excludedKeys.join(', ')}`,
+      },
+    );
   }
 
   async checkResultSpanIncludes(
@@ -162,17 +249,28 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    const webId = TestSnapResultSelectorWebIDS[selector];
+    // Android Appium UiAutomator omits JSON string quotes; Detox/iOS include them.
+    const formattedExpectedMessage = PlatformDetector.isAndroidAppium()
+      ? expectedMessage.replace(/^"|"$/g, '')
+      : expectedMessage;
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      if (!actualText.includes(expectedMessage)) {
-        throw new Error(`Text did not contain "${expectedMessage}"`);
-      }
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        if (!actualText.includes(formattedExpectedMessage)) {
+          throw new Error(`Text did not contain "${formattedExpectedMessage}"`);
+        }
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert result "${webId}" contains "${formattedExpectedMessage}"`,
+      },
+    );
   }
 
   async checkResultSpanNotEmpty(
@@ -182,17 +280,24 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS[selector],
-    );
+    const webId = TestSnapResultSelectorWebIDS[selector];
 
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      if (!actualText || actualText.trim() === '') {
-        throw new Error(`Result span is empty`);
-      }
-    }, options);
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        if (!actualText || actualText.trim() === '') {
+          throw new Error(`Result span is empty`);
+        }
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert result "${webId}" is not empty`,
+      },
+    );
   }
 
   async checkClientStatus(
@@ -205,70 +310,82 @@ class TestSnaps {
       interval: 100,
     },
   ) {
-    const webElement = await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS.clientStatusResultSpan,
+    const webId = TestSnapResultSelectorWebIDS.clientStatusResultSpan;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const actualText = await WebView.readTextById(
+          webId,
+          TEST_SNAPS_WEBVIEW_OPTIONS,
+        );
+        let actualStatusWithVersion;
+        try {
+          actualStatusWithVersion = JSON.parse(actualText);
+        } catch {
+          throw new Error(
+            `Failed to parse JSON from client status span: ${actualText}`,
+          );
+        }
+
+        const { clientVersion: actualClientVersion, ...actualStatus } =
+          actualStatusWithVersion;
+
+        await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
+        if (!actualClientVersion.startsWith(expectedClientVersion)) {
+          throw new Error(
+            `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
+          );
+        }
+      },
+      {
+        timeout: options.timeout ?? 5_000,
+        interval: options.interval ?? 100,
+        description: `Assert client status JSON "${webId}"`,
+      },
     );
-
-    return await Utilities.executeWithRetry(async () => {
-      const actualText = await webElement.getText();
-      let actualStatusWithVersion;
-      try {
-        actualStatusWithVersion = JSON.parse(actualText);
-      } catch (error) {
-        throw new Error(
-          `Failed to parse JSON from client status span: ${actualText}`,
-        );
-      }
-
-      const { clientVersion: actualClientVersion, ...actualStatus } =
-        actualStatusWithVersion;
-
-      await Assertions.checkIfJsonEqual(actualStatus, expectedStatus);
-      if (!actualClientVersion.startsWith(expectedClientVersion)) {
-        throw new Error(
-          `Client version mismatch: Expected version to start with "${expectedClientVersion}", got "${actualClientVersion}".`,
-        );
-      }
-    }, options);
   }
 
-  async navigateToTestSnap(): Promise<void> {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_SNAPS_URL);
+  async navigateToTestSnap(
+    options: { skipTabCleanup?: boolean } = {},
+  ): Promise<void> {
+    // Appium uses dapp:// deeplink for https test-snaps URLs in navigateToURL.
+    // Tapping the URL bar first is unnecessary and races with browser chrome.
+    if (!FrameworkDetector.isAppium()) {
+      await Browser.tapUrlInputBox();
+    }
+    await Browser.navigateToURL(TEST_SNAPS_URL, {
+      closeAllTabsIfOpen: !options.skipTabCleanup,
+    });
     await waitForTestSnapsToLoad();
   }
 
   async tapButton(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
-    const webElement = Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapViewSelectorWebIDS[buttonLocator],
-    );
-    await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tap(webElement, {
-      elemDescription: `tapButton:: ${buttonLocator}`,
+    const webId = TestSnapViewSelectorWebIDS[buttonLocator];
+    await WebView.tapById(webId, {
+      ...TEST_SNAPS_WEBVIEW_OPTIONS,
+      description: `tapButton:: ${buttonLocator}`,
     });
   }
 
   async tapOkButton() {
-    const button = Matchers.getElementByText('OK');
+    const button = Matchers.getElementByText(/^OK$/i);
     await Gestures.waitAndTap(button);
   }
 
   async tapApproveButton() {
-    const button = Matchers.getElementByText('Approve');
+    const button = Matchers.getElementByText(/^Approve$/i);
     await Gestures.waitAndTap(button);
   }
 
   async tapConfirmButton() {
-    const button = Matchers.getElementByText('Confirm');
+    const button = Matchers.getElementByText(/^Confirm$/i);
     await Gestures.waitAndTap(button);
   }
 
   async tapCancelButton() {
-    const button = Matchers.getElementByText('Cancel');
+    const button = Matchers.getElementByText(/^Cancel$/i);
     await Gestures.waitAndTap(button);
   }
 
@@ -282,51 +399,42 @@ class TestSnaps {
   }
 
   async dismissAlert() {
-    // Matches the native WebView alert on each platform
-    const button = Matchers.getElementByText(
-      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
-    );
-    await Gestures.tap(button);
-  }
-
-  async getOptionValueByText(
-    webElement: IndexableWebElement,
-    text: string,
-  ): Promise<string | null> {
-    return await webElement.runScript(
-      (el, searchText) => {
-        if (!el?.options) return null;
-        const option = Array.from(el.options).find((opt: any) =>
-          opt.text.includes(searchText),
-        );
-        return option ? (option as any).value : null;
-      },
-      [text],
-    );
+    try {
+      await Gestures.tap(Matchers.getElementByText(/^OK$/i));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/stale|wasn't found|no such element/i.test(message)) {
+        throw error;
+      }
+    }
   }
 
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    await WebView.selectOptionById(
       EntropyDropDownSelectorWebIDS[selector],
-    )) as IndexableWebElement;
-
-    const source = await this.getOptionValueByText(webElement, text);
-
-    await webElement.runScript(
-      (el, value) => {
-        el.value = value;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      },
-      [source],
+      text,
+      TEST_SNAPS_WEBVIEW_OPTIONS,
     );
   }
 
   async fillInput(name: string, text: string) {
     const input = Matchers.getElementByID(`${name}-snap-ui-input`);
+    await Gestures.typeText(input, text, { hideKeyboard: true });
+  }
+
+  /**
+   * Dialog Snap custom input. iOS uses textfield selector as testID
+   * is not exposed in page source.
+   */
+  async fillCustomDialogInput(text: string) {
+    const input = resolve({
+      detoxTestID: SnapUIInputSelectorIDs.customDialogInput,
+      androidAppiumTestID: SnapUIInputSelectorIDs.customDialogInput,
+      iosAppiumXPath: SnapUIInputSelectorXPaths.customDialogInputIos,
+    });
 
     await Gestures.typeText(input, text, { hideKeyboard: true });
   }
@@ -341,16 +449,44 @@ class TestSnaps {
 
     await Gestures.tap(dropdown);
 
-    const selectorItem = element(
-      by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
-    ) as unknown as DetoxElement;
+    const selectorItem = encapsulated({
+      detox: () =>
+        element(
+          by
+            .text(text)
+            .withAncestor(by.id(SnapUIRendererSelectorIDs.selectorItem)),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            snapUISelectorItemAndroidUIAutomator(text),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            snapUISelectorItemIosXPath(text),
+          ),
+      },
+    });
     await Gestures.tap(selectorItem);
   }
 
   async selectRadioButton(text: string) {
-    const radioButton = element(
-      by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
-    ) as unknown as DetoxElement;
+    const radioButton = encapsulated({
+      detox: () =>
+        element(
+          by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
+        ) as unknown as DetoxElement,
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.resourceIdMatches(".*snap-ui-renderer__radio-button.*").childSelector(new UiSelector().text("${text}"))`,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@name="snap-ui-renderer__radio-button" and (@label="${text}" or contains(@label,"${text}") or @name="${text}")] | //*[@name="snap-ui-renderer__radio-button"]//*[@label="${text}" or @name="${text}" or @value="${text}"]`,
+          ),
+      },
+    });
     await Gestures.tap(radioButton);
   }
 
@@ -378,7 +514,7 @@ class TestSnaps {
     });
 
     // Android date and time picker is a two-step process, so we need to tap OK again
-    if (device.getPlatform() === 'android') {
+    if (PlatformDetector.isAndroid()) {
       await Gestures.waitAndTap(this.dateTimePickerOkButton);
     }
   }
@@ -405,37 +541,69 @@ class TestSnaps {
     });
   }
 
+  async expectSnapDialogLinkDisplayed(
+    options: { timeout?: number } = { timeout: 30_000 },
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed('Confirmation Dialog', options);
+
+    if (PlatformDetector.isIOSAppium()) {
+      // Detox / Android can target `snaps-ui-link-icon`. On iOS Appium, XCUITest
+      // does not expose that testID for inline SnapUILink — it surfaces as Text —
+      // so assert the visible link label instead (same coverage as before for Detox).
+      await Assertions.expectTextDisplayed('link', options);
+      return;
+    }
+
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID('snaps-ui-link-icon'),
+      options,
+    );
+  }
+
   async installSnap(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    await Gestures.tap(this.getConnectSnapButton, {
+    // Wait explicitly between steps; Snap install sheets are slower on Android CI.
+    const stepTimeout = PlatformDetector.isAndroidAppium() ? 60_000 : 15_000;
+    const waitForSheetTransition = async (
+      elem: EncapsulatedElementType,
+    ): Promise<void> => {
+      if (!FrameworkDetector.isAppium()) {
+        return;
+      }
+      await Utilities.waitForElementToDisappear(elem, stepTimeout);
+    };
+
+    await Gestures.waitAndTap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
+      timeout: stepTimeout,
       waitForElementToDisappear: true,
     });
+    await waitForSheetTransition(this.getConnectSnapButton);
 
-    await Gestures.tap(this.getApproveSnapPermissionsRequestButton, {
+    await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
+      timeout: stepTimeout,
       waitForElementToDisappear: true,
     });
+    await waitForSheetTransition(this.getApproveSnapPermissionsRequestButton);
 
-    await Gestures.tap(this.getConnectSnapInstallOkButton, {
+    await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
+      timeout: stepTimeout,
       waitForElementToDisappear: true,
     });
+    await waitForSheetTransition(this.getConnectSnapInstallOkButton);
   }
 
   async fillMessage(
     locator: keyof typeof TestSnapInputSelectorWebIDS,
     message: string,
   ) {
-    const webElement = Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapInputSelectorWebIDS[locator],
-    ) as unknown as Promise<IndexableWebElement>;
-    // New gestures currently don't support web elements
-    await Gestures.typeInWebElement(webElement, message);
+    const webId = TestSnapInputSelectorWebIDS[locator];
+    await WebView.fillById(webId, message, TEST_SNAPS_WEBVIEW_OPTIONS);
   }
 
   async approveSignRequest() {
@@ -447,6 +615,12 @@ class TestSnaps {
    * keyboard input accessory (prev/next/done bar) over the native confirmation footer.
    */
   async blurActiveWebViewInput(): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await WebView.blurActiveElement(TEST_SNAPS_URL);
+      return;
+    }
+
+    // Detox path — keep until remaining SmokeSnaps suites finish migrating to Appium.
     const nativeWebView = Matchers.getWebViewByID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
     );
@@ -493,11 +667,6 @@ class TestSnaps {
     origin: string | null;
     blockNumber: string | null;
   }): Promise<void> {
-    const resultElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestSnapResultSelectorWebIDS.networkAccessResultSpan,
-    )) as IndexableWebElement;
-
     await Utilities.waitUntil(
       async () => {
         try {
@@ -506,7 +675,10 @@ class TestSnaps {
           // eslint-disable-next-line no-restricted-syntax
           await TestHelpers.delay(250);
 
-          const text = await resultElement.getText();
+          const text = await WebView.readTextById(
+            TestSnapResultSelectorWebIDS.networkAccessResultSpan,
+            TEST_SNAPS_WEBVIEW_OPTIONS,
+          );
 
           const { open, origin, blockNumber } = JSON.parse(text);
 
@@ -522,7 +694,7 @@ class TestSnaps {
           return false;
         }
       },
-      { timeout: 10000, interval: 1000 },
+      { timeout: 30_000, interval: 1000 },
     );
   }
 }

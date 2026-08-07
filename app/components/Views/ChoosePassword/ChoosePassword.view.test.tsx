@@ -81,6 +81,9 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Isolate from prior CV suites that use nock (Ramp/PriceAlerts) — leftover
+    // interceptor TLS state surfaces here as unhandled `read EINVAL`.
+    clearSeedlessAuthServerMocks();
     getTypeSpy = mockAuthenticationGetType();
     if (Engine.context.SeedlessOnboardingController?.state) {
       Engine.context.SeedlessOnboardingController.state.accessToken =
