@@ -1,6 +1,7 @@
 import { type FullConfig } from '@playwright/test';
 import { WebDriverConfig } from '../types.ts';
 import { createServiceProvider } from '../services';
+import { warmupProxyCa } from '../services/proxy-setup';
 import { createLogger, LogLevel } from '../logger';
 
 const logger = createLogger({
@@ -88,6 +89,11 @@ async function globalSetup(config: FullConfig<WebDriverConfig>) {
   );
 
   logger.info(`🚀 Setting up project(s): ${requestedProjects.join(', ')}`);
+
+  // Warm up the device-proxy CA so Mockttp's HTTPS options and the per-test
+  // proxy setup in withFixtures find it ready. Best-effort — failures surface
+  // later from the per-test path only if the proxy is actually needed.
+  await warmupProxyCa();
 
   // Setup all requested projects in parallel (with proper error handling)
   await Promise.all(

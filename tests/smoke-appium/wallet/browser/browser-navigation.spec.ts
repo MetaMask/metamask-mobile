@@ -18,7 +18,10 @@ import RedirectWebsite from '../../../page-objects/Browser/ExternalWebsites/Redi
 import { Assertions, Utilities } from '../../../framework/index.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
 import { TestSpecificMock } from '../../../framework/types.js';
-import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers.js';
+import {
+  setupMockRequest,
+  setupMockNetworkFailure,
+} from '../../../api-mocking/helpers/mockHelpers.js';
 import {
   ENS_IPFS_CID_V0,
   ensResolutionMock,
@@ -27,15 +30,15 @@ import {
 const INVALID_URL = 'https://quackquakc.easq';
 
 /**
- * Mocks the invalid URL request so it doesn't trigger the unmocked-request guard.
- * Also provides a catch-all for background HyperLiquid API calls not covered by defaults.
+ * Simulates a network-level failure for the invalid URL (not an HTTP mock).
+ * The in-app browser renders its error page only on load failure; a 404 mock
+ * would "succeed" under the device proxy. Also provides a catch-all for
+ * background HyperLiquid API calls not covered by defaults.
  */
 const invalidUrlMock: TestSpecificMock = async (mockServer) => {
-  await setupMockRequest(mockServer, {
+  await setupMockNetworkFailure(mockServer, {
     requestMethod: 'GET',
     url: INVALID_URL,
-    response: '',
-    responseCode: 404,
   });
 
   await setupMockRequest(mockServer, {

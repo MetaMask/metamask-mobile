@@ -466,18 +466,46 @@ class TestSnaps {
   }
 
   async dismissAlert() {
-    try {
-      await this.tapOkButton();
-    } catch (error) {
-      // Teardown-only helper: specs assert on the alert before dismissing it,
-      // and the alert can close on its own first, so a missing OK button means
-      // there is nothing left to dismiss.
-      const message = error instanceof Error ? error.message : String(error);
-      if (
-        !/stale|wasn't found|no such element|still not displayed/i.test(message)
-      ) {
+    // Teardown-only helper: specs assert on the alert before dismissing it,
+    // and the alert can close on its own first. iOS buttons also vary
+    // (OK / Close / Done), including Snap UI "I, OK" via tapOkButton().
+    const attempts: (() => Promise<void>)[] = [
+      () => this.tapOkButton(),
+      () =>
+        Gestures.tap(Matchers.getElementByText(/^Close$/i), {
+          timeout: 3_000,
+        }),
+      () =>
+        Gestures.tap(Matchers.getElementByText(/^Done$/i), {
+          timeout: 3_000,
+        }),
+    ];
+    let lastError: unknown;
+    for (const attempt of attempts) {
+      try {
+        await attempt();
+        return;
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message : String(error);
+        if (
+          /stale|wasn't found|no such element|still not displayed|timed out/i.test(
+            message,
+          )
+        ) {
+          continue;
+        }
         throw error;
       }
+    }
+    const message =
+      lastError instanceof Error ? lastError.message : String(lastError ?? '');
+    if (
+      !/stale|wasn't found|no such element|still not displayed|timed out/i.test(
+        message,
+      )
+    ) {
+      throw lastError;
     }
   }
 
