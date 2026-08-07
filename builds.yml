@@ -179,6 +179,26 @@ _code_fencing_flask: &code_fencing_flask
   - bitcoin
   - tron
 
+# E2E-only: Stellar wallet snap (excluded from production bundle size checks)
+_code_fencing_main_e2e: &code_fencing_main_e2e
+  - snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+  - stellar
+
+_code_fencing_flask_e2e: &code_fencing_flask_e2e
+  - flask
+  - snaps
+  - keyring-snaps
+  - multi-srp
+  - solana
+  - bitcoin
+  - tron
+  - stellar
+
 # =============================================================================
 # Build Configurations
 # =============================================================================
@@ -247,7 +267,7 @@ builds:
       # (TO-916) can see the button without depending on remote test flags.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_main_e2e
 
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
@@ -271,7 +291,7 @@ builds:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_main_e2e
   # Release candidate with pre-imported wallet (system tests / performance tests)
   # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
   # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
@@ -360,7 +380,7 @@ builds:
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
+    code_fencing: *code_fencing_main_e2e
 
   # Experimental builds
   main-exp:
@@ -544,7 +564,7 @@ builds:
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_flask
+    code_fencing: *code_fencing_flask_e2e
 
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
