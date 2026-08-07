@@ -24,6 +24,8 @@ jest.mock('../../hooks/usePerpsMarketFills', () => ({
   usePerpsMarketFills: jest.fn(() => ({
     fills: [],
     isInitialLoading: false,
+    isHistoryLoading: false,
+    historyError: null,
     refresh: jest.fn(),
     isRefreshing: false,
   })),
@@ -173,6 +175,8 @@ describe('PerpsMarketTradesList', () => {
   ) => ({
     fills,
     isInitialLoading,
+    isHistoryLoading: false,
+    historyError: null,
     refresh: jest.fn(),
     isRefreshing: false,
   });

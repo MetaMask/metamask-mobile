@@ -32,10 +32,10 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
-  usePerpsOrderFees: () => ({
+  usePerpsRecordedOrderFees: () => ({
     totalFee: 2.345,
-    protocolFee: 0.005,
-    metamaskFee: 1.229,
+    isLoading: false,
+    hasError: false,
   }),
 }));
 
@@ -186,7 +186,7 @@ describe('PerpsDetails', () => {
     ).toHaveTextContent('Confirmed');
   });
 
-  it('renders canceled order rows and try-again CTA', () => {
+  it('renders the recorded fee for a partially filled canceled order', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
       id: 'order-1',
@@ -194,12 +194,13 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Take profit close short',
       order: {
+        orderId: 'order-1',
         text: PerpsOrderTransactionStatus.Canceled,
         statusType: PerpsOrderTransactionStatusType.Canceled,
         type: 'limit',
         size: '10.23',
         limitPrice: '98023',
-        filled: '0%',
+        filled: '45%',
       },
     };
 
@@ -210,7 +211,9 @@ describe('PerpsDetails', () => {
     );
 
     expect(getByText('Limit price')).toBeOnTheScreen();
-    expect(getByText('MetaMask fee')).toBeOnTheScreen();
+    expect(getByText('45%')).toBeOnTheScreen();
+    expect(getByText('Total fee')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
@@ -250,6 +253,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-2',
         text: PerpsOrderTransactionStatus.Filled,
         statusType: PerpsOrderTransactionStatusType.Filled,
         type: 'limit',
@@ -259,15 +263,15 @@ describe('PerpsDetails', () => {
       },
     };
 
-    const { getByText } = renderWithProvider(
+    const { getByText, queryByText } = renderWithProvider(
       <PerpsDetails item={perpsItem('marketShort', transaction)} />,
     );
 
     expect(getByText('$10.239')).toBeOnTheScreen();
     expect(getByText('$98,023')).toBeOnTheScreen();
-    expect(getByText('$1.229')).toBeOnTheScreen();
     expect(getByText('$2.345')).toBeOnTheScreen();
-    expect(getByText('$0.005')).toBeOnTheScreen();
+    expect(queryByText('MetaMask fee')).toBeNull();
+    expect(queryByText('Hyperliquid fee')).toBeNull();
   });
 
   it('shows a filled order as "Filled" in the status row, not "Confirmed"', () => {
@@ -278,6 +282,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-filled',
         text: PerpsOrderTransactionStatus.Filled,
         statusType: PerpsOrderTransactionStatusType.Filled,
         type: 'market',
@@ -296,6 +301,32 @@ describe('PerpsDetails', () => {
     expect(statusPill).not.toHaveTextContent('Confirmed');
   });
 
+  it('renders the recorded fee for a triggered order', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-triggered',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Stop market close short',
+      order: {
+        orderId: 'order-triggered',
+        text: PerpsOrderTransactionStatus.Triggered,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'market',
+        size: '10',
+        limitPrice: '90000',
+        filled: '100%',
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketCloseShort', transaction)} />,
+    );
+
+    expect(getByText('Total fee')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
+  });
+
   it('labels a rejected order "Rejected" in the status row (not "Failed")', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -304,6 +335,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-rejected',
         text: PerpsOrderTransactionStatus.Rejected,
         statusType: PerpsOrderTransactionStatusType.Canceled,
         type: 'market',

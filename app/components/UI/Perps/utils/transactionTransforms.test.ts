@@ -1039,6 +1039,7 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'BTC',
         order: {
+          orderId: 'order1',
           text: PerpsOrderTransactionStatus.Filled,
           statusType: PerpsOrderTransactionStatusType.Filled,
           type: 'limit',
