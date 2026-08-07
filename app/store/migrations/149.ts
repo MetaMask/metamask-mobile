@@ -6,13 +6,13 @@ export const migrationVersion = 149;
 
 const ETH_SIGN_TRANSACTION_METHOD = 'eth_signTransaction';
 
-type MoneyAccountLike = {
+interface MoneyAccountLike {
   methods?: unknown;
-};
+}
 
-type MoneyAccountControllerLike = {
+interface MoneyAccountControllerLike {
   moneyAccounts?: unknown;
-};
+}
 
 /**
  * Migration 149: Remove `eth_signTransaction` from persisted money accounts.
