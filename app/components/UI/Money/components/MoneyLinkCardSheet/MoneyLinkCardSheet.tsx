@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
@@ -51,6 +51,7 @@ interface MoneyLinkCardSheetRouteParams {
 const MoneyLinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedViewRef = useRef(false);
+  const [hasSheetOpened, setHasSheetOpened] = useState(false);
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
@@ -97,6 +98,12 @@ const MoneyLinkCardSheet = () => {
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  // Fires once the sheet's own open transition has finished, so the card
+  // animation is sequenced after it rather than running against it.
+  const handleOpen = useCallback(() => {
+    setHasSheetOpened(true);
+  }, []);
 
   const handleClose = useCallback(() => {
     trackEvent(
@@ -162,6 +169,7 @@ const MoneyLinkCardSheet = () => {
     <BottomSheet
       ref={sheetRef}
       goBack={handleGoBack}
+      onOpen={handleOpen}
       testID={MoneyLinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
@@ -177,6 +185,7 @@ const MoneyLinkCardSheet = () => {
         >
           <MoneyCardFlipAnimation
             isMetalCard={isCardDataReady ? isMetalCard : undefined}
+            shouldPlay={hasSheetOpened}
           />
         </Box>
         <Box twClassName="gap-2 items-center">

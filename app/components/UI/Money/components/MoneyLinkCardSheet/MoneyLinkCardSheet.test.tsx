@@ -19,15 +19,20 @@ import {
 } from '../../../Card/util/metrics';
 
 const MOCK_CARD_FLIP_ANIMATION_TEST_ID = 'mock-money-card-flip-animation';
-const mockCardFlipProps: { current?: { isMetalCard?: boolean } } = {};
+const mockCardFlipProps: {
+  current?: { isMetalCard?: boolean; shouldPlay?: boolean };
+} = {};
 
 jest.mock('../MoneyCardFlipAnimation', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: (props: { isMetalCard?: boolean }) => {
-      mockCardFlipProps.current = { isMetalCard: props.isMetalCard };
+    default: (props: { isMetalCard?: boolean; shouldPlay?: boolean }) => {
+      mockCardFlipProps.current = {
+        isMetalCard: props.isMetalCard,
+        shouldPlay: props.shouldPlay,
+      };
       return ReactActual.createElement(View, {
         testID: 'mock-money-card-flip-animation',
       });
@@ -37,6 +42,9 @@ jest.mock('../MoneyCardFlipAnimation', () => {
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockSheetGoBackRef: { current?: () => void } = {};
+// The real dialog calls `onOpen` when its open transition finishes; the mock
+// exposes it so tests can drive both sides of the sequencing.
+const mockSheetOnOpenRef: { current?: () => void } = {};
 const mockGoBack = jest.fn();
 let mockRouteParams: { entrypoint?: CardEntryPoint | string } | undefined;
 const mockTrackEvent = jest.fn();
@@ -92,14 +100,17 @@ jest.mock('@metamask/design-system-react-native', () => {
         children,
         testID,
         goBack,
+        onOpen,
       }: {
         children: React.ReactNode;
         testID?: string;
         goBack?: () => void;
+        onOpen?: () => void;
       },
       ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
       mockSheetGoBackRef.current = goBack;
+      mockSheetOnOpenRef.current = onOpen;
       ReactActual.useImperativeHandle(ref, () => ({
         onCloseBottomSheet: mockOnCloseBottomSheet,
         onOpenBottomSheet: jest.fn(),
@@ -131,6 +142,7 @@ describe('MoneyLinkCardSheet', () => {
     jest.clearAllMocks();
     mockRouteParams = undefined;
     mockCardFlipProps.current = undefined;
+    mockSheetOnOpenRef.current = undefined;
     mockConfirmLinkInBackground = jest.fn().mockResolvedValue(true);
     mockUseMoneyAccountCardLinkage.mockReturnValue({
       confirmLinkInBackground: mockConfirmLinkInBackground,
@@ -325,6 +337,33 @@ describe('MoneyLinkCardSheet', () => {
       renderWithProvider(<MoneyLinkCardSheet />);
 
       expect(mockCardFlipProps.current?.isMetalCard).toBeUndefined();
+    });
+  });
+
+  describe('card animation sequencing', () => {
+    it('holds the card animation while the sheet is still opening', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(false);
+    });
+
+    it('starts the card animation once the sheet has fully opened', () => {
+      renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(true);
+    });
+
+    it('keeps the card animation running when the card variant resolves after the open', () => {
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+      const { rerender } = renderWithProvider(<MoneyLinkCardSheet />);
+
+      act(() => mockSheetOnOpenRef.current?.());
+      mockSelectCardHomeDataStatus.mockReturnValue('success');
+      rerender(<MoneyLinkCardSheet />);
+
+      expect(mockCardFlipProps.current?.shouldPlay).toBe(true);
     });
   });
 

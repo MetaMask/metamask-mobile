@@ -213,4 +213,50 @@ describe('MoneyCardFlipAnimation', () => {
       getByTestId(MoneyCardFlipAnimationTestIds.CONTAINER),
     ).toBeOnTheScreen();
   });
+
+  describe('shouldPlay', () => {
+    it('reserves the space without mounting Rive while held', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyCardFlipAnimation isMetalCard={false} shouldPlay={false} />,
+      );
+
+      expect(
+        getByTestId(MoneyCardFlipAnimationTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeNull();
+      expect(
+        queryByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
+      ).toBeNull();
+    });
+
+    it('mounts Rive once the hold is released', () => {
+      const { getByTestId, rerender } = render(
+        <MoneyCardFlipAnimation isMetalCard={false} shouldPlay={false} />,
+      );
+
+      rerender(<MoneyCardFlipAnimation isMetalCard={false} shouldPlay />);
+
+      expect(getByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeOnTheScreen();
+    });
+
+    it('plays without a hold by default', () => {
+      const { getByTestId } = render(
+        <MoneyCardFlipAnimation isMetalCard={false} />,
+      );
+
+      expect(getByTestId(MoneyCardFlipAnimationTestIds.RIVE)).toBeOnTheScreen();
+    });
+
+    it('shows the static image regardless of the hold when animations are off', () => {
+      mockUseReduceMotionState.mockReturnValue(true);
+
+      const { getByTestId } = render(
+        <MoneyCardFlipAnimation isMetalCard={false} shouldPlay={false} />,
+      );
+
+      expect(
+        getByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
+      ).toBeOnTheScreen();
+    });
+  });
 });

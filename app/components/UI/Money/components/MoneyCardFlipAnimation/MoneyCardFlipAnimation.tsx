@@ -48,11 +48,19 @@ interface MoneyCardFlipAnimationProps {
    * the one-shot flip plays only once, with the correct variant.
    */
   isMetalCard?: boolean;
+  /**
+   * Holds the flip back until the surface presenting it has settled. A sheet
+   * that mounts this while it is still opening would otherwise run both
+   * motions at once, and they compete. Space is reserved while held, so
+   * starting the flip shifts nothing.
+   */
+  shouldPlay?: boolean;
   testID?: string;
 }
 
 const MoneyCardFlipAnimation = ({
   isMetalCard,
+  shouldPlay = true,
   testID,
 }: MoneyCardFlipAnimationProps) => {
   const flagEnabled = useSelector(selectMoneyCardFlipAnimationEnabledFlag);
@@ -66,6 +74,9 @@ const MoneyCardFlipAnimation = ({
   // flashes the static image before swapping to the Rive flip.
   const reduceMotionPending =
     flagEnabled && !hasRiveError && reduceMotionState === null;
+  // Nothing to sequence when the static image is what renders, so the hold
+  // only applies while animating.
+  const isHeld = animate && !shouldPlay;
 
   const entranceOpacity = useSharedValue(ENTRANCE_INITIAL_OPACITY);
   const entranceTranslateY = useSharedValue(ENTRANCE_TRANSLATE_Y);
@@ -75,12 +86,12 @@ const MoneyCardFlipAnimation = ({
   }));
 
   useEffect(() => {
-    if (!animate || !variantKnown) return;
+    if (!animate || !variantKnown || isHeld) return;
     entranceOpacity.value = withTiming(1, { duration: ENTRANCE_DURATION_MS });
     entranceTranslateY.value = withTiming(0, {
       duration: ENTRANCE_DURATION_MS,
     });
-  }, [animate, variantKnown, entranceOpacity, entranceTranslateY]);
+  }, [animate, variantKnown, isHeld, entranceOpacity, entranceTranslateY]);
 
   const handleError = useCallback((riveError: RNRiveError) => {
     log(`Rive error: ${riveError.message}`);
@@ -88,7 +99,7 @@ const MoneyCardFlipAnimation = ({
   }, []);
 
   let content: React.ReactNode;
-  if (!variantKnown || reduceMotionPending) {
+  if (!variantKnown || reduceMotionPending || isHeld) {
     content = animate ? null : <Box style={styles.placeholder} />;
   } else if (animate) {
     content = (
