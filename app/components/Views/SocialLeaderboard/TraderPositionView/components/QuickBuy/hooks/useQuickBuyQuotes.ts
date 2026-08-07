@@ -7,6 +7,7 @@ import {
   isNonEvmChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
+  toQuoteResponseV2,
   type BridgeAppState,
   type GenericQuoteRequest,
   type L1GasFees,
@@ -49,8 +50,9 @@ import {
   isQuoteStreamingEnabled,
   streamQuickBuyQuotes,
 } from '../utils/streamQuickBuyQuotes';
+import { parseCaipAssetType } from '@metamask/utils';
 
-export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
+export type QuickBuyQuote = QuoteResponse;
 
 export interface QuickBuyQuotesAnalyticsContext {
   /** Wallet address of the trader being copied. */
@@ -65,9 +67,7 @@ export interface QuickBuyQuotesAnalyticsContext {
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
 }
 
-export type EnrichedQuickBuyQuote = ReturnType<
-  typeof selectBridgeQuotesBase
->['sortedQuotes'][number];
+export type EnrichedQuickBuyQuote = QuoteResponse;
 
 export const QUICK_BUY_QUOTE_DEBOUNCE_MS = 300;
 
@@ -425,7 +425,7 @@ export function useQuickBuyQuotes({
         }
 
         settledRequestParamsKeyRef.current = fetchedRequestParamsKey;
-        setRawQuotes(result);
+        setRawQuotes(result.map(toQuoteResponseV2));
         const settledAt = Date.now();
         setIsNoQuotesAvailable(result.length === 0);
         setIsQuoteLoading(false);
@@ -651,20 +651,24 @@ export function useQuickBuyQuotes({
       return false;
     }
 
-    const { srcAsset, destAsset, srcChainId, destChainId } = activeQuote.quote;
+    const {
+      src: { asset: srcAsset },
+      dest: { asset: destAsset },
+    } = activeQuote.quote;
 
     const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
-      ? (srcAsset.assetId ?? srcAsset.address)
-      : srcAsset.address;
+      ? srcAsset.assetId
+      : formatAddressToCaipReference(srcAsset.assetId);
     const quoteDestAddress = isNonEvmChainId(destToken.chainId)
-      ? (destAsset.assetId ?? destAsset.address)
-      : destAsset.address;
+      ? destAsset.assetId
+      : formatAddressToCaipReference(destAsset.assetId);
+
+    const srcChainId = activeQuote.chainId;
+    const destChainId = parseCaipAssetType(destAsset.assetId).chainId;
 
     return (
-      formatChainIdToCaip(srcChainId) ===
-        formatChainIdToCaip(sourceToken.chainId) &&
-      formatChainIdToCaip(destChainId) ===
-        formatChainIdToCaip(destToken.chainId) &&
+      srcChainId === formatChainIdToCaip(sourceToken.chainId) &&
+      destChainId === formatChainIdToCaip(destToken.chainId) &&
       areAddressesEqual(quoteSourceAddress, sourceToken.address) &&
       areAddressesEqual(quoteDestAddress, destToken.address)
     );
@@ -672,10 +676,7 @@ export function useQuickBuyQuotes({
 
   const destTokenAmount =
     activeQuote && destToken && isActiveQuoteForCurrentTokenPair
-      ? fromTokenMinimalUnit(
-          activeQuote.quote.destTokenAmount,
-          destToken.decimals,
-        )
+      ? fromTokenMinimalUnit(activeQuote.quote.dest.amount, destToken.decimals)
       : undefined;
 
   // The displayed quotes were fetched for a settled request; if the current

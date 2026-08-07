@@ -17,6 +17,7 @@ import { QuoteRow } from '../../../../../UI/Bridge/components/QuoteSelectorView/
 import { strings } from '../../../../../../../locales/i18n';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
+import { sumAmounts } from '@metamask/bridge-controller';
 
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
@@ -39,23 +40,21 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
     () =>
       sortedQuotes.map((quote) => ({
         formattedTotalCost: formatFiat(
-          new BigNumber(quote.sentAmount?.valueInCurrency ?? '0').plus(
+          new BigNumber(quote.quote.src.valueInCurrency ?? '0').plus(
             isGaslessQuote(quote.quote)
-              ? (quote.includedTxFees?.valueInCurrency ?? '0')
-              : (quote.totalNetworkFee?.valueInCurrency ??
-                  quote.gasFee?.total?.valueInCurrency ??
-                  '0'),
+              ? (sumAmounts(quote.quote.feeData.txFee)?.valueInCurrency ?? '0')
+              : (sumAmounts(
+                  quote.quote.feeData.network,
+                  quote.quote.feeData.relayer,
+                )?.valueInCurrency ?? '0'),
           ),
           currentCurrency,
         ),
         receiveAmount: destToken
-          ? fromTokenMinimalUnit(
-              quote.quote.destTokenAmount,
-              destToken.decimals,
-            )
+          ? fromTokenMinimalUnit(quote.quote.dest.amount, destToken.decimals)
           : undefined,
         provider: {
-          name: startCase(quote.quote.bridges[0]),
+          name: startCase(quote.quote.protocols[0]),
         },
         quoteRequestId: quote.quote.requestId,
         onPress: (requestId: string) => {

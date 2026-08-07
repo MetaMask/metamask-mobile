@@ -20,6 +20,7 @@ import {
   selectControllerFields,
   setSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
+import { merge } from 'lodash';
 
 const defaultSelectBridgeQuotesResults: ReturnType<
   typeof bridgeController.selectBridgeQuotes
@@ -133,7 +134,7 @@ describe('useBridgeQuoteData', () => {
     }));
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -203,7 +204,7 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          priceData: { priceImpact: '0.04' },
+          priceData: { priceImpact: { amount: '0.04' } },
           gasIncluded,
           gasIncluded7702,
         },
@@ -228,9 +229,9 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.activeQuote?.quote.priceData?.priceImpact).toEqual(
-        '0.04',
-      );
+      expect(
+        result.current.activeQuote?.quote.priceData?.priceImpact?.amount,
+      ).toEqual('0.04');
       // priceImpact 0.04 (4%) < warning threshold 0.05 (5%) → shouldShowPriceImpactWarning is false
       expect(result.current.shouldShowPriceImpactWarning).toEqual(
         shouldShowPriceImpactWarning,
@@ -405,7 +406,7 @@ describe('useBridgeQuoteData', () => {
     }));
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -447,7 +448,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides: {
-        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotes: mockQuotes,
         quotesLoadingStatus: RequestStatus.LOADING,
         quoteFetchError: null,
       },
@@ -477,7 +478,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides: {
-        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotes: mockQuotes,
         quotesLoadingStatus: null,
         quoteFetchError: null,
       },
@@ -521,7 +522,7 @@ describe('useBridgeQuoteData', () => {
     isQuoteExpired.mockReturnValueOnce(true);
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -658,10 +659,13 @@ describe('useBridgeQuoteData', () => {
   it('returns "-" when totalNetworkFee is missing', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: undefined,
-      },
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: null,
+          },
+        },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -678,8 +682,17 @@ describe('useBridgeQuoteData', () => {
       ...defaultSelectBridgeQuotesResults,
       recommendedQuote: {
         ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          valueInCurrency: '10',
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          feeData: {
+            ...mockQuoteWithMetadata.quote.feeData,
+            network: [
+              {
+                normalizedAmount: undefined,
+                valueInCurrency: '10',
+              },
+            ],
+          },
         },
       },
     }));
@@ -696,12 +709,17 @@ describe('useBridgeQuoteData', () => {
   it('returns "-" when totalNetworkFee valueInCurrency is missing', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.01',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -716,13 +734,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee with fiat formatter for normal values', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.01',
-          valueInCurrency: '10',
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.01',
+                valueInCurrency: '10',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -737,13 +760,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee as "<$0.01" when value is less than 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.0001',
-          valueInCurrency: '0.005',
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.0001',
+                valueInCurrency: '0.005',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -758,13 +786,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee normally when value is exactly 0.01', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0.0001',
-          valueInCurrency: '0.01',
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0.0001',
+                valueInCurrency: '0.01',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -779,13 +812,18 @@ describe('useBridgeQuoteData', () => {
   it('formats network fee normally when value is 0', () => {
     selectBridgeQuotes.mockImplementation(() => ({
       ...defaultSelectBridgeQuotesResults,
-      recommendedQuote: {
-        ...mockQuoteWithMetadata,
-        totalNetworkFee: {
-          amount: '0',
-          valueInCurrency: '0',
+      recommendedQuote: merge({}, mockQuoteWithMetadata, {
+        quote: {
+          feeData: {
+            network: [
+              {
+                normalizedAmount: '0',
+                valueInCurrency: '0',
+              },
+            ],
+          },
         },
-      },
+      }),
     }));
 
     const testState = createBridgeTestState({});
@@ -1210,12 +1248,14 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destAsset: {
-            ...mockQuoteWithMetadata.quote.destAsset,
-            address:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-            assetId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          dest: {
+            asset: {
+              ...mockQuoteWithMetadata.quote.dest.asset,
+              address:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+              assetId:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            },
           },
         },
       };
@@ -1224,12 +1264,14 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          destAsset: {
-            ...mockQuoteWithMetadata.quote.destAsset,
-            address: '0x0000000000000000000000000000000000000000',
-            assetId:
-              bridgeController.getNativeAssetForChainId(1151111081099710)
-                .assetId,
+          dest: {
+            asset: {
+              ...mockQuoteWithMetadata.quote.dest.asset,
+              address: '0x0000000000000000000000000000000000000000',
+              assetId:
+                bridgeController.getNativeAssetForChainId(1151111081099710)
+                  .assetId,
+            },
           },
         },
       };
@@ -1314,9 +1356,12 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          srcAsset: {
-            ...mockQuoteWithMetadata.quote.srcAsset,
-            address: '0x1111111111111111111111111111111111111111',
+          src: {
+            asset: {
+              ...mockQuoteWithMetadata.quote.src.asset,
+              assetId:
+                'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+            },
           },
         },
       };
@@ -1358,14 +1403,15 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          srcAsset: {
-            address: '11111111111111111111111111111112',
-            assetId:
-              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112' as const,
-            decimals: 9,
-            symbol: 'SOL',
-            chainId: bridgeController.ChainId.SOLANA,
-            name: 'SOL',
+          src: {
+            asset: {
+              assetId:
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112' as const,
+              decimals: 9,
+              symbol: 'SOL',
+              chainId: bridgeController.ChainId.SOLANA,
+              name: 'SOL',
+            },
           },
         },
       };
@@ -1932,6 +1978,7 @@ describe('useBridgeQuoteData', () => {
 
       rerender({ state: testState });
 
+      expect(result.current).toStrictEqual(firstResult);
       expect(result.current).toBe(firstResult);
     });
   });
