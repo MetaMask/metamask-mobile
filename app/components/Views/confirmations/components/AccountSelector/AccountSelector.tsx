@@ -10,16 +10,14 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { useSelector } from 'react-redux';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
@@ -30,6 +28,7 @@ import {
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
+import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
@@ -180,11 +179,10 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         <View style={styles.valueContainer}>
           {selectedAddress && accountName ? (
             <>
-              <Avatar
-                variant={AvatarVariant.Account}
-                type={accountAvatarType}
-                accountAddress={selectedAddress}
-                size={AvatarSize.Sm}
+              <AvatarAccount
+                address={selectedAddress}
+                variant={getAvatarAccountVariant(accountAvatarType)}
+                size={AvatarAccountSize.Sm}
               />
               <Text
                 variant={TextVariant.BodyMd}

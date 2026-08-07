@@ -23,8 +23,11 @@ import styleSheet from './info-section-origin-and-details.styles';
 import { isValidAddress } from 'ethereumjs-util';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
-import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
-import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+  type ImageOrSvgSrc,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
@@ -87,11 +90,13 @@ export const InfoSectionOriginAndDetails = () => {
       <InfoRow label={strings('transactions.network')}>
         <View style={styles.networkRowContainer}>
           {networkImage && (
-            <AvatarNetwork
-              size={AvatarSize.Xs}
-              imageSource={networkImage}
-              style={styles.avatarNetwork}
-            />
+            <View style={styles.avatarNetwork}>
+              <AvatarNetwork
+                size={AvatarNetworkSize.Xs}
+                src={networkImage as ImageOrSvgSrc}
+                name={networkConfiguration?.name}
+              />
+            </View>
           )}
           <Text variant={TextVariant.BodyMD}>{networkConfiguration?.name}</Text>
         </View>

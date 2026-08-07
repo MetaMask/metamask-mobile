@@ -21,15 +21,42 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Avatars/Avatar', () => {
-  const { View } = jest.requireActual('react-native');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactActual = require('react');
+  const { View: RNView } = jest.requireActual('react-native');
+
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        testID,
+      }: {
+        children: React.ReactNode;
+        onClose?: (hasPendingAction?: boolean) => void;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (cb?: () => void) => void;
+        onOpenBottomSheet: (cb?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          onClose?.(false);
+          cb?.();
+        },
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return <RNView testID={testID}>{children}</RNView>;
+    },
+  );
+
   return {
-    __esModule: true,
-    default: (props: { accountAddress?: string }) => (
-      <View testID={`avatar-${props.accountAddress}`} />
-    ),
-    AvatarVariant: { Account: 'Account' },
-    AvatarSize: { Sm: 'Sm' },
+    ...actual,
+    BottomSheet: MockBottomSheet,
   };
 });
 

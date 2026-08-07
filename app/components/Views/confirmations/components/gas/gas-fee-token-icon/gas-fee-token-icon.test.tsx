@@ -10,7 +10,6 @@ import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTr
 import { merge } from 'lodash';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { getAssetImageUrl } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/transactions/useTransactionBatchesMetadata');
@@ -24,10 +23,6 @@ jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: jest.fn(),
 }));
-jest.mock(
-  '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => jest.fn(() => null),
-);
 
 describe('GasFeeTokenIcon', () => {
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
@@ -39,7 +34,6 @@ describe('GasFeeTokenIcon', () => {
     useTransactionMetadataRequest,
   );
   const mockGetAssetImageUrl = jest.mocked(getAssetImageUrl);
-  const mockAvatarToken = jest.mocked(AvatarToken);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -72,6 +66,7 @@ describe('GasFeeTokenIcon', () => {
     );
 
     expect(getByTestId('token-icon')).toBeOnTheScreen();
+    expect(getByTestId('gas-fee-token-avatar')).toBeOnTheScreen();
   });
 
   it('falls back to CDN token image when TokensController image is missing', () => {
@@ -91,18 +86,18 @@ describe('GasFeeTokenIcon', () => {
     } as unknown as ReturnType<typeof useTokenWithBalance>);
     mockGetAssetImageUrl.mockReturnValue(cdnImageUrl);
 
-    renderWithProvider(<GasFeeTokenIcon tokenAddress={tokenAddress} />, {
-      state: transferTransactionStateMock,
-    });
+    const { getByTestId } = renderWithProvider(
+      <GasFeeTokenIcon tokenAddress={tokenAddress} />,
+      {
+        state: transferTransactionStateMock,
+      },
+    );
 
     expect(mockGetAssetImageUrl).toHaveBeenCalledWith(tokenAddress, chainId);
-    expect(mockAvatarToken).toHaveBeenCalledWith(
-      expect.objectContaining({
-        imageSource: { uri: cdnImageUrl },
-        name: 'mUSD',
-      }),
-      undefined,
-    );
+    expect(getByTestId('gas-fee-token-avatar')).toBeOnTheScreen();
+    expect(getByTestId('gas-fee-token-avatar-image').props.source).toEqual({
+      uri: cdnImageUrl,
+    });
   });
 
   it('renders the native token icon when tokenAddress is the native', () => {

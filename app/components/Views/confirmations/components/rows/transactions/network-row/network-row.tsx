@@ -1,13 +1,16 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Hex } from '@metamask/utils';
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+  type ImageOrSvgSrc,
+} from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import AvatarNetwork from '../../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
-import { AvatarSize } from '../../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -38,11 +41,13 @@ const NetworkRow = ({ chainId: chainIdProp, style }: NetworkRowProps) => {
     <InfoRow label={strings('transactions.network')} style={style}>
       <View style={styles.container}>
         {networkImage && (
-          <AvatarNetwork
-            size={AvatarSize.Xs}
-            imageSource={networkImage}
-            style={styles.avatar}
-          />
+          <View style={styles.avatar}>
+            <AvatarNetwork
+              size={AvatarNetworkSize.Xs}
+              src={networkImage as ImageOrSvgSrc}
+              name={networkName}
+            />
+          </View>
         )}
         <Text variant={TextVariant.BodyMD}>{networkName}</Text>
       </View>
