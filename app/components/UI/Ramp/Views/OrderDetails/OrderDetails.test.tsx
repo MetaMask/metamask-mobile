@@ -347,7 +347,9 @@ describe('OrderDetails', () => {
       expect(getByTestId('order-content')).toBeOnTheScreen();
     });
 
-    fireEvent.press(getByTestId('ramps-order-details-back-navbar-button'));
+    await act(async () => {
+      fireEvent.press(getByTestId('ramps-order-details-back-navbar-button'));
+    });
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalled();
