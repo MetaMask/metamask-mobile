@@ -204,25 +204,34 @@ describe('PerpsProOrderFormPanel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the book separator on the form when the order book is visible', () => {
+  it('uses top inset on the form panel without a book separator border', () => {
     renderPanel({ isOrderBookCollapsed: false });
 
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).toHaveStyle({
-      borderRightWidth: 1,
-      paddingRight: 16,
+      paddingTop: 16,
     });
-  });
-
-  it('omits the book separator when the order book is collapsed', () => {
-    renderPanel({ isOrderBookCollapsed: true });
-
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).not.toHaveStyle({
       borderRightWidth: 1,
     });
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the order book expand control when the order book is collapsed', () => {
+    renderPanel({ isOrderBookCollapsed: true });
+
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('wires direction changes to the hook', () => {
