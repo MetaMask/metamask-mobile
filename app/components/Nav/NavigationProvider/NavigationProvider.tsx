@@ -18,6 +18,7 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
+import { getClient as getSentryClient } from '@sentry/react-native';
 import { getNavIntegration } from '../../../util/sentry/utils';
 
 const NativeStack = createNativeStackNavigator();
@@ -63,7 +64,11 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       return;
     }
     NavigationService.navigation = ref;
-    getNavIntegration().registerNavigationContainer(ref);
+    // Only register when Sentry is fully initialized (skipped in E2E / test
+    // builds where Sentry.init is never called and the SDK client is absent).
+    if (getSentryClient()) {
+      getNavIntegration().registerNavigationContainer(ref);
+    }
   };
 
   return (

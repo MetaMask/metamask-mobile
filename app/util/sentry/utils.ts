@@ -630,14 +630,27 @@ export function isSentryEnabled(): boolean {
  *
  * enableTimeToInitialDisplay must be explicitly true — the SDK defaults to false
  * so TTID spans would never be emitted without it.
+ *
+ * In E2E / test builds (hasTestOverrides) Sentry.init is never called, so
+ * returning a real integration would cause registerNavigationContainer to
+ * interact with an uninitialised SDK client, which can silently break the
+ * NavigationContainer bootstrap and prevent the app from reaching the login
+ * or wallet-home screen. A no-op stub is returned instead.
  */
 let _navIntegration:
   | ReturnType<typeof Sentry.reactNavigationIntegration>
   | undefined;
 
+const _noOpNavIntegration = {
+  registerNavigationContainer: () => undefined,
+} as unknown as ReturnType<typeof Sentry.reactNavigationIntegration>;
+
 export function getNavIntegration(): ReturnType<
   typeof Sentry.reactNavigationIntegration
 > {
+  if (hasTestOverrides) {
+    return _noOpNavIntegration;
+  }
   if (!_navIntegration) {
     _navIntegration = Sentry.reactNavigationIntegration({
       enableTimeToInitialDisplay: true,
