@@ -1,16 +1,16 @@
-import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
+import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
 import { waitFor } from '@testing-library/react-native';
-import NavigationService from '../../../../NavigationService';
-import ReduxService from '../../../../redux';
-import { RootState } from '../../../../../reducers';
+import NavigationService from '../../NavigationService';
+import ReduxService from '../../redux';
+import { RootState } from '../../../reducers';
 
-jest.mock('../../../../NavigationService', () => ({
+jest.mock('../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
 }));
 
-jest.mock('../../../../redux', () => ({
+jest.mock('../../redux', () => ({
   __esModule: true,
   default: {
     store: {
@@ -25,7 +25,7 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
   callback(),
 );
 
-jest.mock('../../../../../components/UI/DeepLinkModal', () => ({
+jest.mock('../../../components/UI/DeepLinkModal', () => ({
   createDeepLinkModalNavDetails: jest.fn(() => ['DeepLinkModal', {}]),
 }));
 

@@ -1,17 +1,17 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
-import Routes from '../../../../constants/navigation/Routes';
-import Logger from '../../../../util/Logger';
-import AppConstants from '../../../AppConstants';
-import SDKConnect from '../../../SDKConnect/SDKConnect';
-import handleDeeplink from '../../../SDKConnect/handlers/handleDeeplink';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import WC2Manager from '../../../WalletConnect/WalletConnectV2';
-import parseOriginatorInfo from '../../utils/parseOriginatorInfo';
-import extractURLParams from '../../utils/extractURLParams';
-import handleRampUrl from './handleRampUrl';
-import { RampType } from '../../../../reducers/fiatOrders/types';
-import { INTERNAL_ORIGINS } from '../../../../constants/transaction';
+import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import Routes from '../../../constants/navigation/Routes';
+import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
+import SDKConnect from '../../SDKConnect/SDKConnect';
+import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import WC2Manager from '../../WalletConnect/WalletConnectV2';
+import parseOriginatorInfo from '../utils/parseOriginatorInfo';
+import extractURLParams from '../utils/extractURLParams';
+import handleRampUrl from './immediate/handleRampUrl';
+import { RampType } from '../../../reducers/fiatOrders/types';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
 export async function handleMetaMaskDeeplink({
   handled,

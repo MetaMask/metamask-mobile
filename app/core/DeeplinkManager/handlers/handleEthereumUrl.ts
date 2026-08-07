@@ -1,21 +1,21 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
-import { ETH_ACTIONS } from '../../../../constants/deeplinks';
-import formattedDeeplinkParsedValue from '../../../../util/formattedDeeplinkParsedValue';
-import { NetworkSwitchErrorType } from '../../../../constants/error';
-import { getDecimalChainId } from '../../../../util/networks';
-import { MAINNET } from '../../../../constants/network';
-import Engine from '../../../Engine';
-import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
+import { ETH_ACTIONS } from '../../../constants/deeplinks';
+import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
+import { NetworkSwitchErrorType } from '../../../constants/error';
+import { getDecimalChainId } from '../../../util/networks';
+import { MAINNET } from '../../../constants/network';
+import Engine from '../../Engine';
+import Routes from '../../../constants/navigation/Routes';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-} from '../../../../components/Views/confirmations/utils/deeplink';
-import NavigationService from '../../../NavigationService';
-import handleApproveUrl from './handleApproveUrl';
-import switchNetwork from '../../../../util/networks/switchNetwork';
+} from '../../../components/Views/confirmations/utils/deeplink';
+import NavigationService from '../../NavigationService';
+import handleApproveUrl from './immediate/handleApproveUrl';
+import switchNetwork from '../../../util/networks/switchNetwork';
 
 async function handleEthereumUrl({
   url,

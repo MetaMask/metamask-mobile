@@ -1,21 +1,21 @@
 import { Platform } from 'react-native';
-import { ACTIONS, PREFIXES } from '../../../../../constants/deeplinks';
-import Routes from '../../../../../constants/navigation/Routes';
-import Device from '../../../../../util/device';
-import AppConstants from '../../../../AppConstants';
-import handleDeeplink from '../../../../SDKConnect/handlers/handleDeeplink';
-import SDKConnect from '../../../../SDKConnect/SDKConnect';
-import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
-import extractURLParams from '../../../utils/extractURLParams';
+import { ACTIONS, PREFIXES } from '../../../../constants/deeplinks';
+import Routes from '../../../../constants/navigation/Routes';
+import Device from '../../../../util/device';
+import AppConstants from '../../../AppConstants';
+import handleDeeplink from '../../../SDKConnect/handlers/handleDeeplink';
+import SDKConnect from '../../../SDKConnect/SDKConnect';
+import WC2Manager from '../../../WalletConnect/WalletConnectV2';
+import extractURLParams from '../../utils/extractURLParams';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
-import handleRampUrl from '../handleRampUrl';
+import handleRampUrl from '../immediate/handleRampUrl';
 
-jest.mock('../../../../AppConstants');
-jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
-jest.mock('../../../../SDKConnect/SDKConnect');
-jest.mock('../../../../WalletConnect/WalletConnectV2');
-jest.mock('../handleRampUrl');
-jest.mock('../../../../NativeModules', () => ({
+jest.mock('../../../AppConstants');
+jest.mock('../../../SDKConnect/handlers/handleDeeplink');
+jest.mock('../../../SDKConnect/SDKConnect');
+jest.mock('../../../WalletConnect/WalletConnectV2');
+jest.mock('../immediate/handleRampUrl');
+jest.mock('../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },

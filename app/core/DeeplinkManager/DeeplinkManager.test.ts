@@ -14,10 +14,10 @@ import SharedDeeplinkManager, {
   rewriteBranchUri,
 } from './DeeplinkManager';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
-import { handleDeeplink } from './handlers/legacy/handleDeeplink';
+import { handleDeeplink } from './handlers/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
-import handleApproveUrl from './handlers/legacy/handleApproveUrl';
+import handleApproveUrl from './handlers/immediate/handleApproveUrl';
 import { store } from '../../store';
 import { RootState } from '../../reducers';
 import branch from 'react-native-branch';
@@ -28,18 +28,18 @@ import {
 } from '../Braze/BrazeDeeplinks';
 import { AppStateEventProcessor } from '../AppStateEventListener';
 
-jest.mock('./handlers/legacy/handleApproveUrl');
-jest.mock('./handlers/legacy/handleEthereumUrl');
-jest.mock('./handlers/legacy/handleBrowserUrl');
-jest.mock('./handlers/legacy/handleRampUrl');
+jest.mock('./handlers/immediate/handleApproveUrl');
+jest.mock('./handlers/handleEthereumUrl');
+jest.mock('./handlers/deferred/handleBrowserUrl');
+jest.mock('./handlers/immediate/handleRampUrl');
 jest.mock('./utils/parseDeeplink');
 jest.mock('../../util/networks/switchNetwork');
-jest.mock('./handlers/legacy/handleSwapUrl');
-jest.mock('./handlers/legacy/handleCreateAccountUrl');
-jest.mock('./handlers/legacy/handlePerpsUrl');
-jest.mock('./handlers/legacy/handleRewardsUrl');
-jest.mock('./handlers/legacy/handleDeeplink');
-jest.mock('./handlers/legacy/handleFastOnboarding');
+jest.mock('./handlers/deferred/handleSwapUrl');
+jest.mock('./handlers/immediate/handleCreateAccountUrl');
+jest.mock('./handlers/deferred/handlePerpsUrl');
+jest.mock('./handlers/deferred/handleRewardsUrl');
+jest.mock('./handlers/handleDeeplink');
+jest.mock('./handlers/immediate/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
 jest.mock('../../util/notifications/services/NotificationService');
 jest.mock('../Braze/BrazeDeeplinks');

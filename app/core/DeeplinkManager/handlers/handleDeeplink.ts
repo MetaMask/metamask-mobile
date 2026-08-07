@@ -1,18 +1,18 @@
-import { saveAttribution } from '../../../redux/slices/attribution';
-import { attributionPayloadFromDeeplink } from '../../../redux/slices/attributionFromSources';
-import { checkForDeeplink } from '../../../../actions/user';
-import Logger from '../../../../util/Logger';
-import { AppStateEventProcessor } from '../../../AppStateEventListener';
-import ReduxService from '../../../redux';
-import SDKConnectV2 from '../../../SDKConnectV2';
-import { analytics } from '../../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
+import { saveAttribution } from '../../redux/slices/attribution';
+import { attributionPayloadFromDeeplink } from '../../redux/slices/attributionFromSources';
+import { checkForDeeplink } from '../../../actions/user';
+import Logger from '../../../util/Logger';
+import { AppStateEventProcessor } from '../../AppStateEventListener';
+import ReduxService from '../../redux';
+import SDKConnectV2 from '../../SDKConnectV2';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 import {
   DeepLinkRoute,
   SignatureStatus,
-} from '../../types/deepLinkAnalytics.types';
-import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
+} from '../types/deepLinkAnalytics.types';
+import { detectAppInstallation } from '../util/deeplinks/deepLinkAnalytics';
 
 /**
  * Time window during which an identical deeplink is treated as a duplicate and

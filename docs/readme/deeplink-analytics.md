@@ -301,6 +301,6 @@ export const detectAppInstallation = async (
 
 ## Code References
 
-- [handleUniversalLink.ts](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts) - Main handler that creates analytics contexts
+- [handleUniversalLink.ts](../../app/core/DeeplinkManager/handlers/handleUniversalLink.ts) - Main handler that creates analytics contexts
 - [deepLinkAnalytics.ts](../../app/core/DeeplinkManager/util/deeplinks/deepLinkAnalytics.ts) - Analytics utility functions
 - [deepLinkAnalytics.types.ts](../../app/core/DeeplinkManager/types/deepLinkAnalytics.types.ts) - Type definitions

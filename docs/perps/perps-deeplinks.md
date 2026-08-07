@@ -197,6 +197,6 @@ Use the app's debug menu or paste the URL into a browser on a device with MetaMa
 
 ## Implementation Reference
 
-- **Handler:** `app/core/DeeplinkManager/handlers/legacy/handlePerpsUrl.ts`
-- **Tests:** `app/core/DeeplinkManager/handlers/legacy/__tests__/handlePerpsUrl.test.ts`
+- **Handler:** `app/core/DeeplinkManager/handlers/deferred/handlePerpsUrl.ts`
+- **Tests:** `app/core/DeeplinkManager/handlers/deferred/__tests__/handlePerpsUrl.test.ts`
 - **Routes:** `app/constants/navigation/Routes.ts` (PERPS section)

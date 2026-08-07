@@ -1,21 +1,21 @@
 import { parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
-import { ETH_ACTIONS } from '../../../../../constants/deeplinks';
-import { NetworkSwitchErrorType } from '../../../../../constants/error';
+import { ETH_ACTIONS } from '../../../../constants/deeplinks';
+import { NetworkSwitchErrorType } from '../../../../constants/error';
 
 import handleEthereumUrl from '../handleEthereumUrl';
-import { getDecimalChainId } from '../../../../../util/networks';
-import Engine from '../../../../Engine';
-import { MAINNET } from '../../../../../constants/network';
+import { getDecimalChainId } from '../../../../util/networks';
+import Engine from '../../../Engine';
+import { MAINNET } from '../../../../constants/network';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
-} from '../../../../../components/Views/confirmations/utils/deeplink';
-import NavigationService from '../../../../NavigationService';
-import handleApproveUrl from '../handleApproveUrl';
-import switchNetwork from '../../../../../util/networks/switchNetwork';
+} from '../../../../components/Views/confirmations/utils/deeplink';
+import NavigationService from '../../../NavigationService';
+import handleApproveUrl from '../immediate/handleApproveUrl';
+import switchNetwork from '../../../../util/networks/switchNetwork';
 
-jest.mock('../../../../NavigationService', () => ({
+jest.mock('../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
@@ -23,23 +23,23 @@ jest.mock('../../../../NavigationService', () => ({
 
 jest.mock('react-native');
 
-jest.mock('../handleApproveUrl');
+jest.mock('../immediate/handleApproveUrl');
 
 jest.mock('eth-url-parser', () => ({
   parse: jest.fn(),
 }));
 
-jest.mock('../../../../../util/networks', () => ({
+jest.mock('../../../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
 }));
 
-jest.mock('../../../../../util/networks/switchNetwork');
+jest.mock('../../../../util/networks/switchNetwork');
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../../../../Engine', () => ({
+jest.mock('../../../Engine', () => ({
   context: {
     MultichainNetworkController: {
       state: {
@@ -50,7 +50,7 @@ jest.mock('../../../../Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../components/Views/confirmations/utils/deeplink');
+jest.mock('../../../../components/Views/confirmations/utils/deeplink');
 
 describe('handleEthereumUrl', () => {
   const mockParse = parse as jest.Mock;
