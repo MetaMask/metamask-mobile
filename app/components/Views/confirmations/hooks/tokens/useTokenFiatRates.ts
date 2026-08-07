@@ -55,7 +55,11 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
           return undefined;
         }
 
-        return (token?.price ?? 1) * conversionRate;
+        if (!token?.price) {
+          return undefined;
+        }
+
+        return token.price * conversionRate;
       }),
     [
       currencyRates,

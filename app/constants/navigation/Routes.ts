@@ -182,6 +182,7 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -267,6 +268,9 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
+    ACTIVITY_TYPE_FILTER: 'ActivityTypeFilter',
+    ACTIVITY_PERPS_FILTER: 'ActivityPerpsFilter',
+    ACTIVITY_NETWORK_FILTER: 'ActivityNetworkFilter',
     MA_PICKER: 'MAPicker',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
@@ -316,6 +320,7 @@ const Routes = {
     RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
     CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
+    WATCHLIST_FULL_VIEW: 'WatchlistFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -550,6 +555,8 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
+      KYC_PROCESSING: 'CardOnboardingKYCProcessing',
+      FUNDING_APPROVAL: 'CardOnboardingFundingApproval',
     },
     MODALS: {
       ID: 'CardModals',
@@ -563,6 +570,7 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
+      IMMERSVE_KYC: 'CardImmersveKYCModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',

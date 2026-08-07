@@ -98,7 +98,7 @@ export function BatchSellReviewTokenRow({
     playImpact(ImpactMoment.SliderGrip);
   }, []);
 
-  const handleSliderTick = useCallback(() => {
+  const handleSliderMark = useCallback(() => {
     playImpact(ImpactMoment.SliderTick);
   }, []);
 
@@ -237,7 +237,7 @@ export function BatchSellReviewTokenRow({
         onDragEnd={handleSliderDragEnd}
         showRangeDots
         onGrip={handleSliderGrip}
-        onTick={handleSliderTick}
+        onMark={handleSliderMark}
         testID={`${BatchSellReviewSelectorsIDs.TOKEN_SLIDER}-${tokenKey}`}
       />
     </Box>

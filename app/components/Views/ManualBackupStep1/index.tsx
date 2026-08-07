@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -102,13 +96,16 @@ const ManualBackupStep1 = () => {
     [saveOnboardingEvent],
   );
 
-  const tryExportSeedPhrase = async (pwd: string): Promise<string[]> => {
-    const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase({
-      password: pwd,
-    });
-    return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
-  };
+  const tryExportSeedPhrase = useCallback(
+    async (pwd: string): Promise<string[]> => {
+      const { KeyringController } = Engine.context;
+      const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase({
+        password: pwd,
+      });
+      return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
+    },
+    [],
+  );
 
   const showWhatIsSeedphrase = useCallback(() => {
     showSeedphraseDefinition({
@@ -130,39 +127,48 @@ const ManualBackupStep1 = () => {
         return;
       }
 
-      const wordsFromParams = route.params?.words;
-      if (wordsFromParams && wordsFromParams.length > 0) {
-        if (!cancelled) {
-          setWords(wordsFromParams);
-          setReady(true);
+      let credentials: Awaited<ReturnType<typeof Authentication.getPassword>> =
+        null;
+      let exportError: unknown;
+      let exportedWords: string[] | undefined;
+
+      try {
+        credentials = await Authentication.getPassword();
+      } catch (e) {
+        exportError = e;
+      }
+
+      if (cancelled) return;
+
+      if (
+        !exportError &&
+        credentials &&
+        typeof credentials.password === 'string'
+      ) {
+        try {
+          exportedWords = await tryExportSeedPhrase(credentials.password);
+        } catch (e) {
+          exportError = e;
         }
+      }
+
+      if (cancelled) return;
+
+      if (exportedWords) {
+        setWords(exportedWords);
+        setReady(true);
         return;
       }
 
-      try {
-        const credentials = await Authentication.getPassword();
-        if (cancelled) return;
-
-        if (credentials && !cancelled) {
-          const exportedWords = await tryExportSeedPhrase(credentials.password);
-          if (!cancelled) {
-            setWords(exportedWords);
-            setReady(true);
-          }
-        } else if (!cancelled) {
-          setView(CONFIRM_PASSWORD);
-          setReady(true);
-        }
-      } catch (e) {
+      if (exportError) {
         const srpRecoveryError = new Error(
           'Error trying to recover SRP from keyring-controller',
         );
         Logger.error(srpRecoveryError);
-        if (!cancelled) {
-          setView(CONFIRM_PASSWORD);
-          setReady(true);
-        }
       }
+
+      setView(CONFIRM_PASSWORD);
+      setReady(true);
     };
 
     initializeSeedPhrase();
@@ -170,8 +176,7 @@ const ManualBackupStep1 = () => {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [seedPhrase, tryExportSeedPhrase]);
 
   useEffect(() => {
     // Check if user has funds
@@ -215,39 +220,41 @@ const ManualBackupStep1 = () => {
     track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED, {});
   };
 
-  const isMountedRef = useRef(true);
+  const tryUnlockWithPassword = useCallback(
+    async (pwd: string) => {
+      setReady(false);
+      let unlockError: unknown;
+      let exportedSeedPhrase: string[] | undefined;
 
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
+      try {
+        exportedSeedPhrase = await tryExportSeedPhrase(pwd);
+      } catch (e) {
+        unlockError = e;
+      }
+
+      if (exportedSeedPhrase) {
+        setWords(exportedSeedPhrase);
+        setView(SEED_PHRASE);
+      } else if (unlockError) {
+        let msg = strings('reveal_credential.warning_incorrect_password');
+        if (
+          String(unlockError).toLowerCase() !==
+          WRONG_PASSWORD_ERROR.toLowerCase()
+        ) {
+          msg = strings('reveal_credential.unknown_error');
+        }
+        setWarningIncorrectPassword(msg);
+      }
+      setReady(true);
     },
-    [],
+    [tryExportSeedPhrase],
   );
 
-  const tryUnlockWithPassword = async (pwd: string) => {
-    setReady(false);
-    try {
-      const exportedSeedPhrase = await tryExportSeedPhrase(pwd);
-      if (!isMountedRef.current) return;
-      setWords(exportedSeedPhrase);
-      setView(SEED_PHRASE);
-      setReady(true);
-    } catch (e) {
-      if (!isMountedRef.current) return;
-      let msg = strings('reveal_credential.warning_incorrect_password');
-      if (String(e).toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
-        msg = strings('reveal_credential.unknown_error');
-      }
-      setWarningIncorrectPassword(msg);
-      setReady(true);
-    }
-  };
-
-  const tryUnlock = () => {
+  const tryUnlock = useCallback(() => {
     if (password) {
       tryUnlockWithPassword(password);
     }
-  };
+  }, [password, tryUnlockWithPassword]);
 
   const renderSeedPhraseConcealer = () => (
     <SeedPhraseConcealer

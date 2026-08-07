@@ -15,6 +15,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -87,7 +88,7 @@ export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   // campaignId may be absent when arriving via a deeplink (no ID in the URL).

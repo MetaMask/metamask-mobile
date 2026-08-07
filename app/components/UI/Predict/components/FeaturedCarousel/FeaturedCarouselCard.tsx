@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -21,10 +22,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatPercentage } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -47,8 +45,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 

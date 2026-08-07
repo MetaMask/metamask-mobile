@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useSelector, useDispatch } from 'react-redux';
@@ -174,7 +175,7 @@ export const useSwapBridgeNavigation = ({
    */
   skipActionButtonClickTracking?: boolean;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const getIsBridgeEnabledSource = useSelector(

@@ -35,7 +35,7 @@ const smokeTags = {
   smokeStake: {
     tag: 'SmokeStake:',
     description:
-      'Tests wallet staking and lending flows. Covers stake entry from wallet actions, lending deposits, and lending withdrawals. Validates on-chain operations initiated from wallet surfaces. When selecting SmokeStake, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
+      'Tests wallet staking and lending flows. Covers stake entry from wallet actions, lending deposits, and lending withdrawals. Stake/lending smoke specs live in tests/smoke-appium/stake/ and run via Appium smoke CI (appium-smoke-tests-{android,ios}). Validates on-chain operations initiated from wallet surfaces. When selecting SmokeStake, also select SmokeConfirmations (transaction confirmations are part of the flow). Related to SmokeWalletPlatform for activity display.',
   },
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',

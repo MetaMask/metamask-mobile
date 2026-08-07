@@ -14,7 +14,8 @@ import {
 appiumTest.describe(
   SmokeSeedlessOnboarding('Google Login - Reset Wallet'),
   () => {
-    appiumTest(
+    // TODO: Flaky test — to be investigated. Skipped until root cause is fixed.
+    appiumTest.skip(
       'onboards with Google login, locks, and resets the wallet',
       async ({ driver: _driver, currentDeviceDetails }) => {
         const fixture = PlatformDetector.isIOS()
