@@ -72,6 +72,20 @@ describe('GasFeeTokenIcon', () => {
     );
 
     expect(getByTestId('token-icon')).toBeOnTheScreen();
+    expect(getByTestId('gas-fee-token-network-badge')).toBeOnTheScreen();
+  });
+
+  it('renders token icon without network badge when network image is missing', () => {
+    const tokenAddress = '0xTokenAddress' as Hex;
+    mockUseNetworkInfo.mockReturnValue({});
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <GasFeeTokenIcon tokenAddress={tokenAddress} />,
+      { state: transferTransactionStateMock },
+    );
+
+    expect(getByTestId('token-icon')).toBeOnTheScreen();
+    expect(queryByTestId('gas-fee-token-network-badge')).not.toBeOnTheScreen();
   });
 
   it('falls back to CDN token image when TokensController image is missing', () => {
