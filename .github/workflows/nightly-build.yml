@@ -15,6 +15,12 @@ on:
 permissions:
   contents: read
   id-token: write
+  # build-and-upload-to-testflight.yml contains a comment-on-pr job that declares
+  # pull-requests: write. GitHub validates a reusable workflow's nested-job
+  # permissions against the caller statically, before `if` is evaluated, so this
+  # must be granted here even though nightly never sets pr_number (the job is
+  # always skipped at runtime).
+  pull-requests: write
 
 jobs:
   ios-exp:
