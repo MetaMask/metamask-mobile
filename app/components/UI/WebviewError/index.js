@@ -10,7 +10,7 @@ import { WebviewErrorSelectorsIDs } from './WebviewError.testIds';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: colors.background.default,
       justifyContent: 'center',
       alignItems: 'center',
