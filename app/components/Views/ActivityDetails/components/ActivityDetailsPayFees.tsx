@@ -3,16 +3,15 @@ import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import type { Hex } from '@metamask/utils';
 import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
-import { selectTransactionMetadataByHash } from '../../../../selectors/transactionController';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { useActivityPayMetadata } from '../hooks/useActivityPayMetadata';
 import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import {
@@ -32,44 +31,27 @@ interface PayFeeToken {
 }
 
 /**
- * MetaMask Pay's pre-aggregated fiat fees, read off the row's local transaction.
- * Pay-routed rows carry no token-denominated `data.fees`, so this is their only
- * fee source — the same one the legacy details screen reads.
+ * Pay's pre-aggregated fiat is the only fee source for a Pay-routed row, which
+ * carries no token-denominated `data.fees`.
+ *
+ * @param pay - Metadata to inspect.
+ * @returns Whether any fiat value is recorded.
  */
-function getLocalPayMetadata(
-  item: ActivityListItem,
-): MetamaskPayMetadata | undefined {
-  return item.raw?.type === 'localTransaction'
-    ? item.raw.data.primaryTransaction?.metamaskPay
-    : undefined;
-}
-
 function hasPayFiat(pay: MetamaskPayMetadata | undefined): boolean {
   return Boolean(pay?.networkFeeFiat || pay?.bridgeFeeFiat || pay?.totalFiat);
 }
 
 /**
- * A row's Pay fiat metadata, or `undefined` when nothing would render — what
- * templates gate their divider on. Fiat rather than fees: a `totalFiat`-only
- * row still renders. Provider-backed rows (Perps) carry no `metamaskPay`, so
- * theirs comes from the local transaction behind the row's hash.
+ * Gated on fiat rather than fees, so a `totalFiat`-only row still renders.
+ *
+ * @param item - Row to resolve.
+ * @returns The row's Pay metadata, or `undefined` when no fee section would
+ * render — what templates gate their divider on.
  */
 export function useActivityPayFiat(
   item: ActivityListItem,
 ): MetamaskPayMetadata | undefined {
-  const localPay = getLocalPayMetadata(item);
-  const { hash, chainId } = item;
-  const payByHash = useSelector((state: RootState) => {
-    if (localPay) {
-      return undefined;
-    }
-    // Scoped to the row's chain, since the selector matches on hash alone.
-    const meta = selectTransactionMetadataByHash(state, hash);
-    return meta && toEvmCaipChainId(meta.chainId) === chainId
-      ? meta.metamaskPay
-      : undefined;
-  });
-  const pay = localPay ?? payByHash;
+  const pay = useActivityPayMetadata(item);
 
   return hasPayFiat(pay) ? pay : undefined;
 }
