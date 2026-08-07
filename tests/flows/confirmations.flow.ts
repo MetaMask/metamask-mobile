@@ -19,6 +19,7 @@ import SwitchAccountModal from '../page-objects/wallet/SwitchAccountModal';
 import ActivitiesView from '../page-objects/Transactions/ActivitiesView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
+import { TestDappSelectorsWebIDs } from '../selectors/Browser/TestDapp.selectors';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
@@ -31,8 +32,8 @@ const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
 const TEST_DAPP_READY_TIMEOUT_MS = 30_000;
 const TEST_DAPP_READY_POLL_MS = 500;
-const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 45_000;
-const ANDROID_CONFIRM_POLL_MS = 1_000;
+const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 60_000;
+const ANDROID_CONFIRM_POLL_MS = 3_000;
 
 export {
   LOCAL_CHAIN_CAIP,
@@ -54,18 +55,31 @@ const waitForTestDappReadyForTap = async (
       const readiness = await ChromeCdpHelpers.evaluateInWebView<{
         selectedAddress: string | null;
         buttonEnabled: boolean;
+        buttonHidden: boolean;
+        accountsText: string | null;
       }>(
         pageUrl,
         `(() => {
           const el = document.getElementById(${JSON.stringify(buttonId)});
+          const accountsEl = document.getElementById(${JSON.stringify(
+            TestDappSelectorsWebIDs.ACCOUNTS_TEXT,
+          )});
           const buttonEnabled = Boolean(
             el &&
               !('disabled' in el && Boolean(el.disabled)) &&
               el.getAttribute('aria-disabled') !== 'true',
           );
+          const buttonHidden = Boolean(
+            el &&
+              (Boolean(el.hidden) ||
+                el.getAttribute('hidden') !== null ||
+                window.getComputedStyle(el).display === 'none'),
+          );
           return {
             selectedAddress: window.ethereum?.selectedAddress ?? null,
             buttonEnabled,
+            buttonHidden,
+            accountsText: accountsEl ? accountsEl.textContent || null : null,
           };
         })()`,
       );
@@ -77,6 +91,25 @@ const waitForTestDappReadyForTap = async (
       if (!readiness.buttonEnabled) {
         throw new Error(
           `Test dapp #${buttonId} is not enabled before tap (${description})`,
+        );
+      }
+      if (
+        buttonId === TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID &&
+        readiness.buttonHidden
+      ) {
+        throw new Error(
+          `Test dapp #${buttonId} is still hidden before tap (${description})`,
+        );
+      }
+      const accountsConnected = Boolean(
+        readiness.accountsText?.replace(/^Accounts:\s*/i, '').trim(),
+      );
+      if (
+        buttonId === TestDappSelectorsWebIDs.SEND_CALLS_BUTTON &&
+        !accountsConnected
+      ) {
+        throw new Error(
+          `Test dapp has no connected accounts before tapping #${buttonId} (${description})`,
         );
       }
     },
@@ -101,28 +134,24 @@ const tapTestDappButtonAndWaitForConfirm = async (
   await waitForTestDappReadyForTap(pageUrl, buttonId, description);
 
   if (PlatformDetector.isAndroidAppium()) {
+    let dismissedPushSheet = false;
     await Utilities.executeWithRetry(
       async () => {
-        const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+        await WebView.tapById(buttonId, {
           pageUrl,
-          buttonId,
-        );
-        if (!clicked) {
-          throw new Error(`CDP could not click #${buttonId} (${description})`);
-        }
+          description,
+        });
         try {
           await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
         } catch (error) {
-          // Push onboarding sheet can sit above the confirmation UI.
-          await dismissPushNotificationExistingUserSheet();
+          if (!dismissedPushSheet) {
+            dismissedPushSheet = true;
+            await dismissPushNotificationExistingUserSheet();
+          }
           throw error;
         }
       },
-      {
-        timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS,
-        interval: 0,
-        description: `CDP click #${buttonId} and wait for confirm (${description})`,
-      },
+      { timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS },
     );
     return;
   }
