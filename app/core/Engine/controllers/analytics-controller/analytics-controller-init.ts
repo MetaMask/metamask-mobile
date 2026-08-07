@@ -63,6 +63,9 @@ export const analyticsControllerInit: MessengerClientInitFunction<
 
   const state: AnalyticsControllerState = {
     optedIn: persistedAnalyticsState?.optedIn ?? defaultState.optedIn,
+    consentDecisionMade:
+      persistedAnalyticsState?.consentDecisionMade ??
+      defaultState.consentDecisionMade,
     analyticsId,
   };
 

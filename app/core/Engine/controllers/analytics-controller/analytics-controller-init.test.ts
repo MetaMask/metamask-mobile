@@ -157,6 +157,32 @@ describe('analyticsControllerInit', () => {
       });
     });
 
+    it('uses persisted consentDecisionMade state when available', () => {
+      analyticsControllerInit(
+        getInitRequestMock({
+          persistedState: {
+            AnalyticsController: { consentDecisionMade: true },
+          },
+        }),
+      );
+
+      expect(AnalyticsController).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: expect.objectContaining({ consentDecisionMade: true }),
+        }),
+      );
+    });
+
+    it('defaults consentDecisionMade to false when nothing is persisted', () => {
+      analyticsControllerInit(getInitRequestMock());
+
+      expect(AnalyticsController).toHaveBeenCalledWith(
+        expect.objectContaining({
+          state: expect.objectContaining({ consentDecisionMade: false }),
+        }),
+      );
+    });
+
     it('uses persisted optedIn state when available', () => {
       analyticsControllerInit(
         getInitRequestMock({
