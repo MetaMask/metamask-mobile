@@ -25,9 +25,16 @@ on:
   push:
     branches:
       - 'release/*'
+  # stable because we want branched opening against stable aka release branches
+  pull_request:
+    types: [opened]
+    branches:
+      - 'stable'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Key on the release branch name (not github.ref) so push and pull_request runs for the same
+  # release coalesce into one group and cancel-in-progress works across both event types.
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -40,6 +47,10 @@ jobs:
   validate-and-find-pr:
     name: Validate branch and find PR
     runs-on: ubuntu-latest
+    # On `push` the branch filter already restricts to release/*. On `pull_request` (which fires for
+    # any PR to stable) only proceed when the PR head is a release branch, so unrelated stable PRs
+    # are skipped cleanly instead of failing the version-extraction step.
+    if: github.event_name == 'push' || startsWith(github.head_ref, 'release/')
     outputs:
       semver: ${{ steps.extract-version.outputs.semver }}
       has-pr: ${{ steps.find-pr.outputs.has-pr }}
@@ -57,7 +68,9 @@ jobs:
       - name: Extract semver from branch name
         id: extract-version
         run: |
-          BRANCH_NAME="${{ github.ref_name }}"
+          # github.head_ref is set for pull_request events (the PR's source branch); for push it is
+          # empty and we fall back to github.ref_name (release/X.Y.Z).
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
           echo "Checking branch: $BRANCH_NAME"
           echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
@@ -78,7 +91,7 @@ jobs:
       - name: Find associated PR
         id: find-pr
         run: |
-          BRANCH_NAME="${{ github.ref_name }}"
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
           echo "Looking for PR with head branch: $BRANCH_NAME"
 
           # Find PRs where the head branch matches our release branch
