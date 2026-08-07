@@ -45,6 +45,7 @@ on:
         description: >-
           @expo/fingerprint hash from native-build-fingerprint. When set, try to
           reuse prior BrowserStack performance APKs (repack JS unless test-only).
+          This is the reuse path for branches with app changes.
         default: ''
       main_branch_only:
         required: false
@@ -60,7 +61,7 @@ on:
         description: >-
           When true, use the newest matching APK artifacts from a main-branch
           run without requiring a fingerprint, then upload them to BrowserStack
-          as-is.
+          as-is. This mode is intended for test-only changes.
         default: false
     outputs:
       with-srp-browserstack-url:
