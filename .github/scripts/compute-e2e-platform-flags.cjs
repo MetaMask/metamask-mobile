@@ -34,17 +34,11 @@ function computeE2EPlatformFlags(input) {
     ignorableCount === allChangesCount &&
     e2eWorkflowsCount === 0;
 
-  const workflowOnlyChanges =
-    allChangesCount > 0 &&
-    ignorableCount === allChangesCount &&
-    e2eTestOrIgnorableCount >= allChangesCount &&
-    e2eWorkflowsCount > 0;
-
   const testOnlyChanges =
     allChangesCount > 0 &&
     e2eTestOrIgnorableCount >= allChangesCount &&
-    (e2eTestFilesCount > 0 || workflowOnlyChanges) &&
-    (e2eWorkflowsCount === 0 || workflowOnlyChanges);
+    e2eTestFilesCount > 0 &&
+    e2eWorkflowsCount === 0;
 
   if (githubEventName === 'schedule' || githubEventName === 'push') {
     message = 'E2E for both platforms (scheduled or push to main)';
@@ -60,7 +54,7 @@ function computeE2EPlatformFlags(input) {
     message = 'Skipping E2E (ignorable-only changes)';
   } else if (testOnlyChanges) {
     message =
-      'E2E for both platforms (test-only/no app changes — reuse main native builds)';
+      'E2E for both platforms (test-only changes — reuse main native builds)';
     android = true;
     ios = true;
     nativeBuildNeeded = false;

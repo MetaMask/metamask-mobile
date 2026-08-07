@@ -60,20 +60,12 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.runSmartE2ESelection).toBe(false);
   });
 
-  it('reuses main builds when only E2E workflow files change', () => {
+  it('requires native builds when E2E workflow files change', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
-      e2eTestFilesCount: 0,
-      ignorableCount: 1,
-      e2eTestOrIgnorableCount: 1,
       e2eWorkflowsCount: 1,
-      changedSpecFiles: '',
     });
 
-    expect(result).toMatchObject({
-      e2eNeeded: true,
-      nativeBuildNeeded: false,
-      message: expect.stringContaining('no app changes'),
-    });
+    expect(result.nativeBuildNeeded).toBe(true);
   });
 });
