@@ -12,7 +12,7 @@ import {
   pitchToParallaxValue,
   tiltToParallaxValue,
 } from '../../utils/parallax';
-import CardTiltAnimation from '../../../../../animations/card_tilt_v1.5.riv';
+import CardTiltAnimation from '../../../../../animations/card_tilt_v1.6.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styles from './MoneyCardTiltAnimation.styles';
@@ -21,7 +21,7 @@ import { MoneyCardTiltAnimationTestIds } from './MoneyCardTiltAnimation.testIds'
 const log = createProjectLogger('money-card-tilt');
 
 // -- Rive names ------------------------------------------------------------
-// These MUST match the names authored in card_tilt_v1.5.riv. If the Rive
+// These MUST match the names authored in card_tilt_v1.6.riv. If the Rive
 // designer renames any of these, update the constants here.
 //
 // The per-variant artboards are rendered directly so the component needs no
