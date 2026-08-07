@@ -42,9 +42,6 @@ const styles = StyleSheet.create({
   container: {
     height: PERPS_MARKET_HEADER_HEIGHT,
   },
-  nameText: {
-    maxWidth: 120,
-  },
   subtitleCrossfade: {
     height: SUBTITLE_CROSSFADE_HEIGHT,
     justifyContent: 'center',
@@ -284,7 +281,6 @@ const PerpsMarketHeader = ({
             maxLeverage={market.maxLeverage}
             size={32}
             gap={2}
-            nameStyle={styles.nameText}
             onPress={onIdentityPress}
             subtitleContent={displaySubtitleAndPrice}
             testIDs={{
