@@ -145,7 +145,7 @@ switch (urlObj.protocol.replace(':', '')) {
 ### 3. Signature Verification (for HTTPS links)
 
 ```typescript
-// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 if (hasSignature(validatedUrl)) {
   const result = await verifyDeeplinkSignature(validatedUrl);
 
@@ -179,7 +179,7 @@ Unless the action is whitelisted or bypassed, users see an interstitial:
 ### 5. Action Routing
 
 ```typescript
-// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 switch (action) {
   case SUPPORTED_ACTIONS.SWAP:
     handleSwapUrl({ swapPath });
@@ -258,7 +258,7 @@ export enum ACTIONS {
 ### Step 2: Add to Supported Actions
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 enum SUPPORTED_ACTIONS {
   // ... existing actions
   YOUR_NEW_ACTION = ACTIONS.YOUR_NEW_ACTION,
@@ -268,7 +268,7 @@ enum SUPPORTED_ACTIONS {
 ### Step 3: Create Handler Function
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/handleYourAction.ts
+// app/core/DeeplinkManager/handlers/immediate/handleYourAction.ts
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
@@ -304,7 +304,7 @@ export const handleYourAction = async ({
 ### Step 4: Import and Add Routing Logic
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 import { handleYourAction } from './handleYourAction';
 
 async function handleUniversalLink(/* ... */) {
@@ -325,7 +325,7 @@ async function handleUniversalLink(/* ... */) {
 ### Step 5: Add Tests
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/__tests__/handleYourAction.test.ts
+// app/core/DeeplinkManager/handlers/immediate/__tests__/handleYourAction.test.ts
 import { handleYourAction } from '../handleYourAction';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -572,9 +572,9 @@ const inAppLinkSources = [
 
 - [MetaMask Signer (Consensys employees only)](https://api.signer.link.metamask.consensys.io)
 - [Signature Verification Implementation](../../app/core/DeeplinkManager/utils/verifySignature.ts)
-- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts)
+- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/handleUniversalLink.ts)
 - [Deeplink Constants](../../app/constants/deeplinks.ts)
-- [Test Suite](../../app/core/DeeplinkManager/handlers/legacy/__tests__/handleUniversalLink.test.ts)
+- [Test Suite](../../app/core/DeeplinkManager/handlers/__tests__/handleUniversalLink.test.ts)
 - [Link Signer API](https://github.com/MetaMask/link-signer-api)
 
 ## Example: Complete Flow

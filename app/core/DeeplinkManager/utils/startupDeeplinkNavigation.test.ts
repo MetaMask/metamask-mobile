@@ -178,7 +178,7 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('navigates home and retries pending deeplinks that need the legacy flow', async () => {
+  it('navigates home and retries pending deeplinks that need the immediate flow', async () => {
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
     mockResolve.mockResolvedValueOnce(null);
 

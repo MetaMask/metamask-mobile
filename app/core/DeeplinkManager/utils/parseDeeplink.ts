@@ -8,13 +8,13 @@ import {
   handleDappUrl,
   createDappDeeplinkIntent,
   getDappUrl,
-} from '../handlers/legacy/handleDappUrl';
-import handleUniversalLink from '../handlers/legacy/handleUniversalLink';
-import connectWithWC from '../handlers/legacy/connectWithWC';
+} from '../handlers/deferred/handleDappUrl';
+import handleUniversalLink from '../handlers/handleUniversalLink';
+import connectWithWC from '../handlers/connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../AppConstants';
-import handleEthereumUrl from '../handlers/legacy/handleEthereumUrl';
+import handleEthereumUrl from '../handlers/handleEthereumUrl';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 export type DeeplinkParseMode = 'execute' | 'resolve';

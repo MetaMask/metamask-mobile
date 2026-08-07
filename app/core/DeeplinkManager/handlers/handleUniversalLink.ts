@@ -1,83 +1,89 @@
-import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../../constants/deeplinks';
-import AppConstants from '../../../AppConstants';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { DeeplinkManager } from '../../DeeplinkManager';
-import extractURLParams from '../../utils/extractURLParams';
+import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../constants/deeplinks';
+import AppConstants from '../../AppConstants';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { DeeplinkManager } from '../DeeplinkManager';
+import extractURLParams from '../utils/extractURLParams';
 import {
   hasSignature,
   verifyDeeplinkSignature,
   INVALID,
   MISSING,
   VALID,
-} from '../../utils/verifySignature';
+} from '../utils/verifySignature';
 import {
   DeepLinkModalLinkType,
   type DeepLinkModalParams,
-} from '../../../../components/UI/DeepLinkModal';
-import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
+} from '../../../components/UI/DeepLinkModal';
+import handleDeepLinkModalDisplay from '../utils/handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
-import { capitalize } from '../../../../util/general';
-import handleRampUrl from './handleRampUrl';
-import handleRampReturnUrl from './handleRampReturnUrl';
-import { navigateToHomeUrl } from './handleHomeUrl';
-import { handleSwapUrl, createSwapDeeplinkIntent } from './handleSwapUrl';
-import { handleBatchSellUrl } from './handleBatchSellUrl';
-import handleBrowserUrl from './handleBrowserUrl';
+import { capitalize } from '../../../util/general';
+import handleRampUrl from './immediate/handleRampUrl';
+import handleRampReturnUrl from './immediate/handleRampReturnUrl';
+import { navigateToHomeUrl } from './immediate/handleHomeUrl';
+import {
+  handleSwapUrl,
+  createSwapDeeplinkIntent,
+} from './deferred/handleSwapUrl';
+import { handleBatchSellUrl } from './immediate/handleBatchSellUrl';
+import handleBrowserUrl from './deferred/handleBrowserUrl';
 import {
   createDappDeeplinkIntent,
   getDappUrlFromUniversalLink,
-} from './handleDappUrl';
-import { handleCreateAccountUrl } from './handleCreateAccountUrl';
-import { handlePerpsUrl, createPerpsDeeplinkIntent } from './handlePerpsUrl';
+} from './deferred/handleDappUrl';
+import { handleCreateAccountUrl } from './immediate/handleCreateAccountUrl';
+import {
+  handlePerpsUrl,
+  createPerpsDeeplinkIntent,
+} from './deferred/handlePerpsUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
-} from './handleRewardsUrl';
+} from './deferred/handleRewardsUrl';
 import {
   handlePredictUrl,
   createPredictDeeplinkIntent,
-} from './handlePredictUrl';
-import handleFastOnboarding from './handleFastOnboarding';
-import { handleCardOnboarding } from './handleCardOnboarding';
-import { handleCardHome } from './handleCardHome';
-import { handleCardKycNotification } from './handleCardKycNotification';
+} from './deferred/handlePredictUrl';
+import handleFastOnboarding from './immediate/handleFastOnboarding';
+import { handleCardOnboarding } from './immediate/handleCardOnboarding';
+import { handleCardHome } from './immediate/handleCardHome';
+import { handleCardKycNotification } from './immediate/handleCardKycNotification';
 import {
   handleTrendingUrl,
   createTrendingDeeplinkIntent,
-} from './handleTrendingUrl';
-import { handleWhatsHappeningUrl } from './handleWhatsHappeningUrl';
-import { handleSocialLeaderboardUrl } from './handleSocialLeaderboardUrl';
-import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
-import { handleEarnMusd } from './handleEarnMusd';
-import { handleAssetUrl } from './handleAssetUrl';
-import { handleNftUrl } from './handleNftUrl';
-import { handleAgenticCliApproval } from './handleAgenticCliApproval';
-import { RampType } from '../../../../reducers/fiatOrders/types';
-import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
+} from './deferred/handleTrendingUrl';
+import { handleWhatsHappeningUrl } from './immediate/handleWhatsHappeningUrl';
+import { handleSocialLeaderboardUrl } from './immediate/handleSocialLeaderboardUrl';
+import { handleSocialTraderPositionUrl } from './immediate/handleSocialTraderPositionUrl';
+import { handleEarnMusd } from './immediate/handleEarnMusd';
+import { handleAssetUrl } from './immediate/handleAssetUrl';
+import { handleNftUrl } from './immediate/handleNftUrl';
+import { handleAgenticCliApproval } from './immediate/handleAgenticCliApproval';
+import { RampType } from '../../../reducers/fiatOrders/types';
+import { SHIELD_WEBSITE_URL } from '../../../constants/shield';
 import {
   createDeepLinkUsedEventBuilder,
   mapSupportedActionToRoute,
-} from '../../util/deeplinks/deepLinkAnalytics';
+} from '../util/deeplinks/deepLinkAnalytics';
 import {
   isMetaMaskSDKDeeplinkAction,
   isMetaMaskUniversalLink,
-} from '../../util/deeplinks';
+} from '../util/deeplinks';
 import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
   InterstitialState,
   BranchParams,
   DeepLinkRoute,
-} from '../../types/deepLinkAnalytics.types';
-import { isSupportedAction } from '../../types/deepLink.types';
-import { selectDeepLinkModalDisabled } from '../../../../selectors/settings';
-import ReduxService from '../../../redux';
-import { analytics } from '../../../../util/analytics/analytics';
+} from '../types/deepLinkAnalytics.types';
+import { isSupportedAction } from '../types/deepLink.types';
+import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
+import ReduxService from '../../redux';
+import { analytics } from '../../../util/analytics/analytics';
 import branch from 'react-native-branch';
-import Logger from '../../../../util/Logger';
-import type { DeeplinkParseMode } from '../../utils/parseDeeplink';
-import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
-import { handleMoney } from './handleMoney';
+import Logger from '../../../util/Logger';
+import type { DeeplinkParseMode } from '../utils/parseDeeplink';
+import type { DeeplinkIntent } from '../types/DeeplinkIntent';
+import { handleMoney } from './immediate/handleMoney';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 

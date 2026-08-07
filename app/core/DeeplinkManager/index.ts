@@ -4,15 +4,18 @@
  * This file provides the public API for the DeeplinkManager module.
  *
  * ## Structure:
- * - `utils/` - Shared utilities (URL parsing, signatures, transactions)
+ * - `handlers/` - Protocol/orchestration entry points
+ * - `handlers/deferred/` - Handlers that can describe a destination before navigating
+ * - `handlers/immediate/` - Handlers that navigate immediately
+ * - `utils/` - Shared utilities (URL parsing, signatures, interstitial)
  *
  * ## Main Entry Points:
- * - `handleDeeplink.ts` - Primary deeplink entry point
- * - `DeeplinkManager.ts` - Legacy manager class and SharedDeeplinkManager instance
+ * - `handlers/handleDeeplink.ts` - Primary deeplink intake
+ * - `DeeplinkManager.ts` - Manager class and SharedDeeplinkManager instance
  */
 
 // Main entry points
-export { handleDeeplink } from './handlers/legacy/handleDeeplink';
+export { handleDeeplink } from './handlers/handleDeeplink';
 
 // Legacy system (for backward compatibility - will be removed in future)
 export {
