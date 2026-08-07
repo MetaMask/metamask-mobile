@@ -1,6 +1,7 @@
 import AgenticService, {
   walkFiber,
   findFiberByTestId,
+  findMeasurableStateNode,
   walkFiberRoots,
   tryScroll,
   toAccountSummary,
@@ -337,6 +338,20 @@ describe('findFiberByTestId', () => {
   it('returns null when testID not found', () => {
     const root = makeFiber({ child: makeFiber({ testID: 'other' }) });
     expect(findFiberByTestId(root, 'missing')).toBeNull();
+  });
+});
+
+describe('findMeasurableStateNode', () => {
+  it('resolves a Fabric public instance from the canonical host state node', () => {
+    const measureInWindow = jest.fn();
+    const publicInstance = { measureInWindow };
+    const fiber = makeFiber({
+      stateNode: {
+        canonical: { publicInstance },
+      } as FiberNode['stateNode'],
+    });
+
+    expect(findMeasurableStateNode(fiber)).toBe(publicInstance);
   });
 });
 

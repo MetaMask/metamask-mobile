@@ -58,6 +58,23 @@ import { getStreamManagerInstance } from '../../components/UI/Perps/providers/Pe
  * Minimal React fiber node shape used to walk the component tree
  * via __REACT_DEVTOOLS_GLOBAL_HOOK__.
  */
+interface MeasurableStateNode {
+  measure?: (
+    callback: (
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      pageX: number,
+      pageY: number,
+    ) => void,
+  ) => void;
+  measureInWindow?: (
+    callback: (x: number, y: number, width: number, height: number) => void,
+  ) => void;
+  [key: string]: unknown;
+}
+
 interface FiberNode {
   child: FiberNode | null;
   sibling: FiberNode | null;
@@ -68,24 +85,15 @@ interface FiberNode {
     onChangeText?: (text: string) => void;
     [key: string]: unknown;
   } | null;
-  stateNode: {
-    scrollTo?: (opts: { y: number; animated: boolean }) => void;
-    scrollToOffset?: (opts: { offset: number; animated: boolean }) => void;
-    measure?: (
-      callback: (
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        pageX: number,
-        pageY: number,
-      ) => void,
-    ) => void;
-    measureInWindow?: (
-      callback: (x: number, y: number, width: number, height: number) => void,
-    ) => void;
-    [key: string]: unknown;
-  } | null;
+  stateNode:
+    | (MeasurableStateNode & {
+        scrollTo?: (opts: { y: number; animated: boolean }) => void;
+        scrollToOffset?: (opts: { offset: number; animated: boolean }) => void;
+        canonical?: {
+          publicInstance?: MeasurableStateNode | null;
+        };
+      })
+    | null;
 }
 
 interface FiberRoot {
@@ -826,18 +834,37 @@ function findUiTargetFiber(
   return result;
 }
 
+function measurablePublicInstance(
+  stateNode: FiberNode['stateNode'],
+): MeasurableStateNode | null {
+  if (!stateNode) {
+    return null;
+  }
+  if (
+    typeof stateNode.measureInWindow === 'function' ||
+    typeof stateNode.measure === 'function'
+  ) {
+    return stateNode;
+  }
+  const fabricPublicInstance = stateNode.canonical?.publicInstance;
+  if (
+    fabricPublicInstance &&
+    (typeof fabricPublicInstance.measureInWindow === 'function' ||
+      typeof fabricPublicInstance.measure === 'function')
+  ) {
+    return fabricPublicInstance;
+  }
+  return null;
+}
+
 function findMeasurableStateNode(
   fiber: FiberNode | null,
-): FiberNode['stateNode'] | null {
-  let result: FiberNode['stateNode'] | null = null;
+): MeasurableStateNode | null {
+  let result: MeasurableStateNode | null = null;
   walkFiber(fiber, (node) => {
-    const sn = node.stateNode;
-    if (
-      sn &&
-      (typeof sn.measureInWindow === 'function' ||
-        typeof sn.measure === 'function')
-    ) {
-      result = sn;
+    const measurable = measurablePublicInstance(node.stateNode);
+    if (measurable) {
+      result = measurable;
       return true;
     }
     return false;
@@ -846,7 +873,7 @@ function findMeasurableStateNode(
 }
 
 function measureStateNode(
-  stateNode: FiberNode['stateNode'],
+  stateNode: MeasurableStateNode | null,
 ): Promise<{ x: number; y: number; width: number; height: number } | null> {
   return new Promise((resolve) => {
     if (!stateNode) {
@@ -1655,6 +1682,7 @@ export default AgenticService;
 export {
   walkFiber,
   findFiberByTestId,
+  findMeasurableStateNode,
   walkFiberRoots,
   tryScroll,
   toAccountSummary,
