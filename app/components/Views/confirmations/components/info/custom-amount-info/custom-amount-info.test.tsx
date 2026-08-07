@@ -445,8 +445,6 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
-      isMaxDeposit: false,
-      setIsMaxDeposit: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({
@@ -1573,8 +1571,6 @@ describe('CustomAmountInfo', () => {
         setIsHeadlessBuyInProgress: noop,
         setIsTransactionDataUpdating: noop,
         setIsTransactionValueUpdating: noop,
-        isMaxDeposit: false,
-        setIsMaxDeposit: noop,
       } as ReturnType<typeof useConfirmationContext>);
 
       const { getByTestId, queryByText } = render();
@@ -1601,8 +1597,6 @@ describe('CustomAmountInfo', () => {
         setIsHeadlessBuyInProgress: noop,
         setIsTransactionDataUpdating: noop,
         setIsTransactionValueUpdating: noop,
-        isMaxDeposit: false,
-        setIsMaxDeposit: noop,
       } as ReturnType<typeof useConfirmationContext>);
       useTransactionPayQuotesMock.mockReturnValue([{} as never]);
 

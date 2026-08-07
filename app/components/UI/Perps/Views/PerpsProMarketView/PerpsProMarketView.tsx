@@ -26,12 +26,13 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import type { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, type ScrollView } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -221,6 +222,14 @@ const PerpsProMarketView = () => {
     setIsBalanceSheetVisible(true);
   }, []);
 
+  const appNavigation = useNavigation<AppNavigationProp>();
+
+  const handleHistoryPress = useCallback(() => {
+    appNavigation.navigate(Routes.PERPS.ACTIVITY, {
+      redirectToPerpsTransactions: true,
+    });
+  }, [appNavigation]);
+
   const handleBalanceSheetClose = useCallback(() => {
     setIsBalanceSheetVisible(false);
   }, []);
@@ -280,10 +289,7 @@ const PerpsProMarketView = () => {
 
   if (!market?.symbol) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['top', 'bottom', 'left', 'right']}
-      >
+      <View style={styles.container}>
         <Box
           twClassName="flex-1 items-center justify-center px-4"
           testID={PerpsProMarketViewSelectorsIDs.ERROR}
@@ -292,7 +298,7 @@ const PerpsProMarketView = () => {
             {strings('perps.market.details.error_message')}
           </Text>
         </Box>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -306,9 +312,8 @@ const PerpsProMarketView = () => {
   })();
 
   return (
-    <SafeAreaView
+    <View
       style={styles.container}
-      edges={['top', 'bottom', 'left', 'right']}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
       <PerpsMarketHeader
@@ -393,6 +398,7 @@ const PerpsProMarketView = () => {
           <PerpsProPositionsPanel
             symbol={market.symbol}
             onSelectMarket={handleSelectMarket}
+            onHistoryPress={handleHistoryPress}
           />
         </Animated.View>
       </Animated.ScrollView>
@@ -410,7 +416,7 @@ const PerpsProMarketView = () => {
         isVisible={isBalanceSheetVisible}
         onClose={handleBalanceSheetClose}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

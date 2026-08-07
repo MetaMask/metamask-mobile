@@ -21,10 +21,6 @@ export interface ConfirmationContextParams {
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
-  // Whether the user selected the maximum amount for a money account deposit.
-  // Shared so the insufficient-funds alert can skip a Max deposit that only
-  // marginally exceeds the balance due to fiat rounding.
-  isMaxDeposit: boolean;
   setNavHeaderConfig: (config: ConfirmationNavHeaderConfig | null) => void;
   setHeadlessBuyError: (error: string | undefined) => void;
   setIsConfirmationSubmitting: (isConfirmationSubmitting: boolean) => void;
@@ -32,7 +28,6 @@ export interface ConfirmationContextParams {
   setIsHeadlessBuyInProgress: (isHeadlessBuyInProgress: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
   setIsTransactionDataUpdating: (isTransactionDataUpdating: boolean) => void;
-  setIsMaxDeposit: (isMaxDeposit: boolean) => void;
 }
 
 // This context is used to share the valuable information between the components
@@ -47,7 +42,6 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
-  isMaxDeposit: false,
   setNavHeaderConfig: noop,
   setHeadlessBuyError: noop,
   setIsConfirmationSubmitting: noop,
@@ -55,7 +49,6 @@ const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   setIsHeadlessBuyInProgress: noop,
   setIsTransactionDataUpdating: noop,
   setIsTransactionValueUpdating: noop,
-  setIsMaxDeposit: noop,
 });
 
 interface ConfirmationContextProviderProps {
@@ -84,8 +77,6 @@ export const ConfirmationContextProvider: React.FC<
   const [isTransactionDataUpdating, setIsTransactionDataUpdating] =
     useState<boolean>(false);
 
-  const [isMaxDeposit, setIsMaxDeposit] = useState<boolean>(false);
-
   const isConfirmationSubmittingRef = useRef(false);
   const [isConfirmationSubmitting, setIsConfirmationSubmittingState] =
     useState<boolean>(false);
@@ -108,7 +99,6 @@ export const ConfirmationContextProvider: React.FC<
       isTransactionValueUpdating,
       isConfirmationSubmitting,
       isConfirmationSubmittingRef,
-      isMaxDeposit,
       setNavHeaderConfig,
       setHeadlessBuyError,
       setIsFooterVisible,
@@ -116,7 +106,6 @@ export const ConfirmationContextProvider: React.FC<
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
       setIsConfirmationSubmitting,
-      setIsMaxDeposit,
     }),
     [
       mmPayRequestInProgressNavHandler,
@@ -128,14 +117,12 @@ export const ConfirmationContextProvider: React.FC<
       isTransactionValueUpdating,
       isConfirmationSubmitting,
       isConfirmationSubmittingRef,
-      isMaxDeposit,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
       setIsConfirmationSubmitting,
-      setIsMaxDeposit,
     ],
   );
 
