@@ -528,11 +528,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Use --body-file so large comments (API call lists) do not exceed ARG_MAX.
           MARKER="<!-- perf-test-results -->"
-          COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
-          FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
-          gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
+          BODY_FILE="performance-pr-comment.md"
+          if [ ! -f "$BODY_FILE" ]; then
+            echo "⚠️ Performance test results are not available." > "$BODY_FILE"
+          fi
+          printf '\n%s\n' "$MARKER" >> "$BODY_FILE"
+          gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body-file "$BODY_FILE"
           echo "Performance results posted to PR #${{ inputs.pr_number }}"
+          echo "Comment body size: $(wc -c < "$BODY_FILE") bytes"
 
   slack-notification:
     name: Send Slack Notification

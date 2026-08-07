@@ -84,6 +84,8 @@ const newOverrides = [
       'tests/framework/fixtures/playwright/sessionReuse.ts',
       'tests/framework/fixtures/playwright/sessionReuse.test.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
+      'tests/framework/services/providers/browserstack/BrowserStackConfigBuilder.ts',
+      'tests/framework/services/providers/browserstack/BrowserStackConfigBuilder.test.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',
       '.yarn/plugins/plugin-usage-tracking.cjs',
