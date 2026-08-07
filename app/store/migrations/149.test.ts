@@ -64,9 +64,7 @@ describe(`Migration ${migrationVersion}: remove eth_signTransaction from money a
 
     const result = migrate(state) as ReturnType<typeof createState>;
 
-    expect(
-      result.engine.backgroundState.MoneyAccountController,
-    ).toStrictEqual({
+    expect(result.engine.backgroundState.MoneyAccountController).toStrictEqual({
       moneyAccounts: {
         'money-account-id': createMoneyAccount([
           'personal_sign',
@@ -92,9 +90,7 @@ describe(`Migration ${migrationVersion}: remove eth_signTransaction from money a
 
     const result = migrate(state) as ReturnType<typeof createState>;
 
-    expect(
-      result.engine.backgroundState.MoneyAccountController,
-    ).toStrictEqual({
+    expect(result.engine.backgroundState.MoneyAccountController).toStrictEqual({
       moneyAccounts: {
         'money-account-1': createMoneyAccount(['personal_sign']),
         'money-account-2': createMoneyAccount(['eth_signTypedData_v3']),
