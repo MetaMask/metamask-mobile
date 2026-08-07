@@ -32,6 +32,7 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
 let mockPredictEnabled = false;
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
+  selectPredictGtmOnboardingModalEnabledFlag: jest.fn(() => false),
 }));
 
 // Track which tabs are rendered - populated by mock

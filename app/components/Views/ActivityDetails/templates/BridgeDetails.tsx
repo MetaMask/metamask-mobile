@@ -19,6 +19,7 @@ import {
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
+  getBridgeExplorerSheetTx,
   getBridgeHistoryItem,
 } from './bridgeDetailsUtils';
 
@@ -33,6 +34,7 @@ export function BridgeDetails({
     item.data.destinationToken,
   );
   const destinationHash = getBridgeDestinationTxHash(bridgeHistoryItem);
+  const explorerSheetTx = getBridgeExplorerSheetTx(item);
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken: item.data.sourceToken,
     destinationToken: item.data.destinationToken,
@@ -64,6 +66,7 @@ export function BridgeDetails({
             sourceHash={item.hash}
             destChainId={destinationChainId}
             destHash={destinationHash}
+            {...explorerSheetTx}
           />
           {canDoItAgain ? (
             <ActivityDetailsDoItAgainButton

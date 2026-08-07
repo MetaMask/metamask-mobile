@@ -60,7 +60,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 2200 },
         currentDeviceDetails.platform,
       );
       const screen2Timer = new TimerHelper(

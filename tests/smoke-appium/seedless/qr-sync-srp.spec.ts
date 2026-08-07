@@ -5,9 +5,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
-import Assertions from '../../framework/Assertions.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   completeExistingUserQrSyncSrp,
   completeNewUserQrSyncSrp,
@@ -26,6 +24,10 @@ const enableAddDeviceSyncFlag = async (mockServer: Mockttp) => {
   });
 };
 
+/**
+ * Device smoke: mobile ↔ extension QR SRP sync.
+ * Asserts sync outcome (account count), not generic account-list UI.
+ */
 appiumTest.describe(
   SmokeSeedlessOnboarding('QR sync SRP — mobile ↔ extension'),
   () => {
@@ -50,12 +52,6 @@ appiumTest.describe(
             await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
 
             await WalletView.tapIdenticon();
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.accountList,
-              {
-                description: 'Account list visible after new-user QR sync',
-              },
-            );
             await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1, 15_000);
           },
         );
@@ -81,12 +77,6 @@ appiumTest.describe(
             await completeExistingUserQrSyncSrp({ commandQueueServer });
 
             await WalletView.tapIdenticon();
-            await Assertions.expectElementToBeVisible(
-              AccountListBottomSheet.accountList,
-              {
-                description: 'Account list visible after existing-user QR sync',
-              },
-            );
             await assertAccountCount(DEFAULT_ACCOUNT_NAME, 2, 15_000);
           },
         );

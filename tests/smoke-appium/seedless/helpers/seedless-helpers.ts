@@ -189,7 +189,9 @@ export async function setupAppleExistingUserOAuthMock(
 }
 
 /**
- * Social login new user onboarding flow (Appium smoke).
+ * Social login new-user smoke.
+ * Intermediate screen UI is covered by component-view / unit tests; this
+ * helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
   provider: 'google' | 'apple',

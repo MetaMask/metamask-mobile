@@ -12,6 +12,15 @@ import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import useRegions from '../../hooks/useRegions';
 import { useCardSDK } from '../../sdk';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardScreens } from '../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -31,13 +40,10 @@ jest.mock('../../sdk', () => ({
 
 // Mock useAnalytics
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(() => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(),
-    })),
-  })),
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -569,6 +575,24 @@ describe('PhysicalAddress Component', () => {
       }),
     );
     useDispatch.mockReturnValue(jest.fn());
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with RESIDENTIAL_ADDRESS screen on mount', () => {
+      render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.RESIDENTIAL_ADDRESS,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Initial Render', () => {

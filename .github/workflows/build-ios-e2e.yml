@@ -273,56 +273,6 @@ jobs:
           fi
         shell: bash
 
-      - name: Write iOS E2E reuse summary
-        if: ${{ always() }}
-        shell: bash
-        env:
-          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
-          BUILD_TYPE: ${{ inputs.build_type }}
-          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
-          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
-          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
-          APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
-          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          value() {
-            if [[ -n "${1:-}" ]]; then
-              printf '%s' "$1"
-            else
-              printf 'n/a'
-            fi
-          }
-
-          yes_no() {
-            case "${1:-}" in
-              true) printf 'yes' ;;
-              *) printf 'no' ;;
-            esac
-          }
-
-          github_candidate="$(yes_no "$REUSABLE_FOUND")"
-          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
-            github_candidate="yes ([https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID))"
-          fi
-
-          decision="Fresh native build"
-          if [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
-            decision="GitHub artifact reuse"
-          fi
-
-          {
-            echo "### iOS E2E build reuse"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| Decision | $decision |"
-            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
-            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
-            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
-            echo "| GitHub artifact candidate | $github_candidate |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
       # -------------------------------------------------------------------------
       # Heavy native setup — only runs on a full native-build path.
       # -------------------------------------------------------------------------
@@ -474,6 +424,117 @@ jobs:
           echo "/tmp/bin" >> "$GITHUB_PATH"
         shell: bash
 
+      # Roughly ten minutes elapse between the lookup near the top of this job and
+      # the build step below, spent installing the toolchain and dependencies. A
+      # donor can finish uploading inside that window: the native build publishes
+      # its app well before its run ends, so a run that had nothing to offer at
+      # lookup time may have a complete app by now. Re-check before committing to
+      # a ~25 minute compile. This costs one lookup on the path that was about to
+      # be the expensive one, and adds no waiting — it only harvests a donor that
+      # appeared while we were busy anyway.
+      - name: Re-check for a reusable build published since the first lookup
+        id: find-reusable-build-late
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.gate.outputs.needs-native-build == 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source-fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
+          github-token: ${{ github.token }}
+          main-branch-only: ${{ inputs.reuse-main-builds-only }}
+          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
+
+      - name: Download late reusable iOS build metadata
+        id: download-late-metadata
+        if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-reusable-metadata/ios-late
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      # Same acceptance criteria as the first lookup's validation. A late donor is
+      # held to an identical standard; the only difference is when it was found.
+      - name: Validate late reusable iOS build metadata
+        id: validate-late-metadata
+        if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
+        shell: bash
+        env:
+          EXPECTED_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          EXPECTED_BUILD_TYPE: ${{ inputs.build_type }}
+          EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          EXPECTED_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
+          EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          METADATA_FILE: .e2e-reusable-metadata/ios-late/ios.json
+        run: |
+          set -euo pipefail
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ steps.download-late-metadata.outcome }}" != "success" ]]; then
+            echo "Late reusable iOS metadata download failed; continuing with the fresh native build."
+            exit 0
+          fi
+          if [[ ! -f "$METADATA_FILE" ]]; then
+            echo "Late reusable iOS metadata file missing at $METADATA_FILE; continuing with the fresh native build."
+            exit 0
+          fi
+          if jq -e \
+            --arg fingerprint "$EXPECTED_FINGERPRINT" \
+            --arg buildType "$EXPECTED_BUILD_TYPE" \
+            --arg metamaskEnvironment "$EXPECTED_METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$EXPECTED_RUN_ID" \
+            --arg headSha "$EXPECTED_HEAD_SHA" \
+            --argjson artifactNames "$EXPECTED_ARTIFACTS" \
+            '.schemaVersion == 1
+              and .fingerprint == $fingerprint
+              and .platform == "ios"
+              and .buildType == $buildType
+              and .metamaskEnvironment == $metamaskEnvironment
+              and .workflowRunId == $workflowRunId
+              and .headSha == $headSha
+              and .artifactNames == $artifactNames' "$METADATA_FILE" >/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Late reusable iOS metadata is valid."
+          else
+            echo "Late reusable iOS metadata did not match current build request; continuing with the fresh native build."
+            cat "$METADATA_FILE"
+          fi
+
+      # The Xcode derived-data cache restored earlier in this job includes `ios/build`,
+      # so an app from a previous build can already sit at the download destination.
+      # `actions/download-artifact` merges into its target directory rather than
+      # replacing it, which would blend two builds into one bundle. The first lookup
+      # near the top of the job does not need this because it runs before that cache
+      # is restored.
+      - name: Clear any stale iOS app before the late download
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' }}
+        shell: bash
+        run: rm -rf ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+
+      - name: Download late reusable iOS build
+        id: download-late-app
+        if: ${{ steps.validate-late-metadata.outputs.valid == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build-late.outputs.run-id }}
+
+      - name: Log late-reused iOS build source
+        if: ${{ steps.download-late-app.outcome == 'success' }}
+        shell: bash
+        run: |
+          echo "A reusable iOS build appeared while this job was setting up; skipping the native compile."
+          echo "Reusing iOS build from run ${{ steps.find-reusable-build-late.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build-late.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build-late.outputs.source-branch }}"
+
       - name: Generate current fingerprint
         if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: generate-fingerprint
@@ -531,7 +592,7 @@ jobs:
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.download-late-app.outcome != 'success' }}
         run: |
           echo "🏗 Building iOS E2E App..."
           export NODE_OPTIONS="--max-old-space-size=8192"
@@ -561,7 +622,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true'))) }}
+        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || steps.download-late-app.outcome == 'success' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true'))) }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -593,6 +654,87 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      # Deliberately placed after the build and repack rather than next to the gate,
+      # where it used to sit. The gate is computed before the late re-check exists,
+      # so from up there a late reuse still reported "Fresh native build" — the row
+      # someone reads first when a run looks wrong. Here every input to the decision
+      # is final. `always()` runs on failure and on cancellation, so a failed or
+      # cancelled compile still gets its summary.
+      - name: Write iOS E2E reuse summary
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
+          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
+          LATE_LOOKUP_OUTCOME: ${{ steps.find-reusable-build-late.outcome }}
+          LATE_REUSABLE_FOUND: ${{ steps.find-reusable-build-late.outputs.found }}
+          LATE_REUSABLE_RUN_ID: ${{ steps.find-reusable-build-late.outputs.run-id }}
+          LATE_METADATA_VALID: ${{ steps.validate-late-metadata.outputs.valid }}
+          LATE_APP_DOWNLOAD_OUTCOME: ${{ steps.download-late-app.outcome }}
+          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          value() {
+            if [[ -n "${1:-}" ]]; then
+              printf '%s' "$1"
+            else
+              printf 'n/a'
+            fi
+          }
+
+          yes_no() {
+            case "${1:-}" in
+              true) printf 'yes' ;;
+              *) printf 'no' ;;
+            esac
+          }
+
+          run_link() {
+            printf '[https://github.com/%s/actions/runs/%s](https://github.com/%s/actions/runs/%s)' \
+              "$REPOSITORY" "$1" "$REPOSITORY" "$1"
+          }
+
+          github_candidate="$(yes_no "$REUSABLE_FOUND")"
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            github_candidate="yes ($(run_link "$REUSABLE_RUN_ID"))"
+          fi
+
+          # Three states, so "the re-check never ran" reads differently from "it ran
+          # and found nothing" — the two have very different causes.
+          late_candidate="n/a (not reached)"
+          if [[ -n "${LATE_LOOKUP_OUTCOME:-}" && "${LATE_LOOKUP_OUTCOME}" != "skipped" ]]; then
+            late_candidate="$(yes_no "$LATE_REUSABLE_FOUND")"
+            if [[ -n "${LATE_REUSABLE_RUN_ID:-}" ]]; then
+              late_candidate="yes ($(run_link "$LATE_REUSABLE_RUN_ID"))"
+            fi
+          fi
+
+          # The late branch is checked first: on a late reuse the gate still says
+          # `needs-native-build=true`, because it was computed before the re-check.
+          decision="Fresh native build"
+          if [[ "${LATE_APP_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
+            decision="GitHub artifact reuse (late — donor appeared during setup)"
+          elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            decision="GitHub artifact reuse"
+          fi
+
+          {
+            echo "### iOS E2E build reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | $decision |"
+            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
+            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| GitHub artifact candidate | $github_candidate |"
+            echo "| Late re-check candidate | $late_candidate |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Xcode on case-insensitive APFS can store the bundle executable with wrong case (e.g. "metamask"
       # vs CFBundleExecutable "MetaMask"), causing xcrun simctl install to fail with a case-sensitive
