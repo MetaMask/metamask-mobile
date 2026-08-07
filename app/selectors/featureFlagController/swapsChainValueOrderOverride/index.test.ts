@@ -22,6 +22,16 @@ function createState(flagValue?: Json): StateWithPartialEngine {
   };
 }
 
+const malformedConfigValues: Json[] = [
+  null,
+  false,
+  [],
+  {},
+  { positionOverrides: null },
+  { positionOverrides: {} },
+  { positionOverrides: [] },
+];
+
 describe('selectChainValueOrderOverride', () => {
   it('returns ordered promoted chains from the override flag', () => {
     const state = createState({
@@ -53,21 +63,16 @@ describe('selectChainValueOrderOverride', () => {
     expect(result).toEqual([]);
   });
 
-  it.each([
-    null,
-    false,
-    [],
-    {},
-    { positionOverrides: null },
-    { positionOverrides: {} },
-    { positionOverrides: [] },
-  ])('returns an empty array for malformed config value %p', (flagValue) => {
-    const state = createState(flagValue);
+  it.each(malformedConfigValues)(
+    'returns an empty array for malformed config value %p',
+    (flagValue) => {
+      const state = createState(flagValue);
 
-    const result = selectChainValueOrderOverride(state);
+      const result = selectChainValueOrderOverride(state);
 
-    expect(result).toEqual([]);
-  });
+      expect(result).toEqual([]);
+    },
+  );
 });
 
 describe('parsePositionOverrides', () => {
