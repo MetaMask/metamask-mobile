@@ -77,7 +77,11 @@ const mockStreamManagerInstance = {
   positions: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   orders: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  marketData: {
+    clearCache: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    getInFlightFetch: jest.fn(() => null),
+  },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
   oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
