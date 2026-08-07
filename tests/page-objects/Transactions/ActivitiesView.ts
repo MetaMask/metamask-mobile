@@ -2,6 +2,7 @@ import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
 } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { ActivityScreenSelectorsIDs } from '../../../app/components/Views/ActivityScreen/ActivityScreen.testIds';
 import {
   getOrderRowFiatAmountTestId,
   getOrderRowCryptoAmountTestId,
@@ -24,6 +25,43 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 class ActivitiesView {
   get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
+  }
+
+  get networkFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
+    );
+  }
+
+  get redesignedScreen(): EncapsulatedElementType {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
+  }
+
+  /**
+   * Selects redesigned Activity network filter by CAIP (needs tmcuActivityRedesignEnabled).
+   */
+  async filterByNetwork(caipChainId: string): Promise<void> {
+    await Assertions.expectElementToExist(this.redesignedScreen, {
+      description: 'Redesigned Activity screen',
+      timeout: 15_000,
+    });
+    await Assertions.expectElementToExist(this.networkFilterChip, {
+      description: 'Activity network filter chip (All networks)',
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(this.networkFilterChip, {
+      elemDescription: 'Activity network filter chip',
+      checkForDisplayed: false,
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(`network-select-${caipChainId}`),
+      {
+        elemDescription: `Activity network filter option ${caipChainId}`,
+        checkForDisplayed: false,
+        timeout: 15_000,
+      },
+    );
   }
   get predictionsTab(): EncapsulatedElementType {
     const label = ActivitiesViewSelectorsText.PREDICTIONS_TAB;

@@ -27,6 +27,7 @@ import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types
 interface StatItemProps {
   label: string;
   value: string;
+  valueColor?: TextColor;
   testID?: string;
   valueTestID?: string;
 }
@@ -41,6 +42,7 @@ interface StatItemProps {
 const StatItem: React.FC<StatItemProps> = ({
   label,
   value,
+  valueColor,
   testID,
   valueTestID,
 }) => (
@@ -61,7 +63,7 @@ const StatItem: React.FC<StatItemProps> = ({
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
+      color={valueColor ?? TextColor.TextDefault}
       numberOfLines={1}
       testID={valueTestID}
     >
@@ -143,6 +145,13 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
 
   const fundingValue = `${fundingRateDisplay} / ${fundingCountdown}`;
 
+  const fundingValueColor: TextColor = useMemo(() => {
+    const rate = liveFunding ?? parseFloat(marketStats.fundingRate ?? '');
+    if (isNaN(rate) || rate === 0) return TextColor.TextDefault;
+    if (rate > 0) return TextColor.SuccessDefault;
+    return TextColor.ErrorDefault;
+  }, [liveFunding, marketStats.fundingRate]);
+
   // PriceUpdate exposes a single markPrice field. Lite's statistics card uses
   // it as "Oracle price"; Pro Figma shows both Mark and Oracle, so both read
   // markPrice until a distinct oraclePx is streamed.
@@ -167,6 +176,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
           <StatItem
             label={strings('perps.market.funding')}
             value={fundingValue}
+            valueColor={fundingValueColor}
             testID={PerpsProMarketViewSelectorsIDs.STATS_BAR_FUNDING_RATE}
             valueTestID={
               PerpsProMarketViewSelectorsIDs.STATS_BAR_FUNDING_COUNTDOWN
