@@ -6,10 +6,10 @@ import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import AddAccountBottomSheet from '../../page-objects/wallet/AddAccountBottomSheet';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { PerformanceAccountList } from '../../tags.performance.js';
+import { Performance, PerformanceAccountList } from '../../tags.performance.js';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
-perfTest.describe(PerformanceAccountList, () => {
+perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
   perfTest.setTimeout(30 * 60 * 1000);
   perfTest(
     'Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3',

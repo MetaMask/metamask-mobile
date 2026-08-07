@@ -181,10 +181,11 @@ Ensure the emulator is running before starting tests.
 
 ## Yarn commands
 
-| Command                     | Description                     |
-| --------------------------- | ------------------------------- |
-| `yarn appium-smoke:ios`     | Full iOS Appium smoke suite     |
-| `yarn appium-smoke:android` | Full Android Appium smoke suite |
+| Command                               | Description                                     |
+| ------------------------------------- | ----------------------------------------------- |
+| `yarn appium-smoke:ios`               | Full iOS Appium smoke suite                     |
+| `yarn appium-smoke:android`           | Full Android Appium smoke suite                 |
+| `yarn appium-smoke:aggregate-timings` | Aggregate phase-timing JSON into a trend report |
 
 Both use `tests/playwright.smoke-appium.config.ts`. Pass standard Playwright flags: `--grep`, file paths, `--debug`, etc.
 
@@ -197,6 +198,7 @@ Local emulator/simulator Appium smoke **reuses one WebDriver session per Playwri
 | Session create                        | Once per worker (happy path). Logs `Reusing WebDriver session sessionId=...` on later tests. |
 | Between tests (`restartDevice: true`) | Soft reload — does **not** create a new Appium session.                                      |
 | Unhealthy session                     | Test-scoped `driver` fixture recreates once (`sessionRecreated=true` annotation).            |
+| Device-health failure                 | Shared session is marked for recreate so later tests do not cascade.                         |
 | BrowserStack                          | Session reuse stays **off** (legacy per-test sessions).                                      |
 | Rollback                              | `APPIUM_SESSION_REUSE=false` restores per-test session delete.                               |
 
@@ -206,6 +208,17 @@ Helpers:
 - `softReloadAppForFixtures` — `tests/framework/services/appium/softReloadApp.ts`
 - Worker fixtures — `deviceProvider` + `sharedSession` in `tests/framework/fixtures/playwright/`
 
+## Phase timing telemetry
+
+Appium smoke records phase ms via `PhaseTimer` (`servers_start`, soft-reload phases, `login`, `modal_dismissal`, `test_body`, `teardown`). Suites write `tests/test-reports/appium-timings/<suite>.json` (CI artifact `appium-timings-<suite>`). Aggregate with:
+
+```bash
+yarn appium-smoke:aggregate-timings
+yarn appium-smoke:aggregate-timings -- --input /path/to/timings --markdown /tmp/trend.md
+```
+
+Report: avg/p95 per phase, slowest shard, retry rate, session-reuse. Compare against timings downloaded from `main` once jobs upload them.
+
 ## Reports and artifacts
 
 | Output                        | Path                                  |
@@ -213,8 +226,9 @@ Helpers:
 | HTML report                   | `test-reports/appium-smoke-report/`   |
 | JUnit                         | `test-reports/appium-smoke-junit.xml` |
 | Failure videos (when enabled) | `test-reports/appium-smoke-videos/`   |
+| Phase timings                 | `test-reports/appium-timings/`        |
 
-CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smoke-videos-<suite>`.
+CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings-<suite>`, and `appium-smoke-videos-<suite>`.
 
 ## CI
 
@@ -247,4 +261,4 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>` and `appium-smok
 - [E2E testing guidelines](./e2e-testing.md) — POM, cross-framework patterns, Detox vs Appium specs
 - [E2E setup (Detox)](../readme/e2e-testing.md) — Metro, debug builds, smoke
 - [Playwright local emulator](../../tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
-- [Unified E2E architecture](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — `resolve()`, `encapsulated()`
+- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`, `encapsulated()`
