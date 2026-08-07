@@ -111,11 +111,6 @@ const applySideFilter = (side: 'all' | 'long' | 'short') => {
       `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-option-${side}`,
     ),
   );
-  fireEvent.press(
-    screen.getByTestId(
-      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-apply`,
-    ),
-  );
 };
 
 const applySortByFundingRate = () => {
