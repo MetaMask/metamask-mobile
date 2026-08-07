@@ -1,5 +1,4 @@
-/* eslint-disable import-x/no-nodejs-modules, import-x/no-extraneous-dependencies */
-import { execFileSync } from 'node:child_process';
+/* eslint-disable import-x/no-extraneous-dependencies, import-x/no-nodejs-modules */
 import { randomUUID } from 'node:crypto';
 
 import type { BrowserContext, Page } from '@playwright/test';
@@ -24,38 +23,31 @@ import {
   type WorkflowContext,
 } from '@metamask/client-mcp-core';
 
+import { AndroidPlatformAdapter } from './android/platform-adapter';
+import { IOSPlatformAdapter } from './ios/platform-adapter';
 import {
-  createIOSPlatformDriver,
-  type CreatedIOSDriver,
-} from './ios/platform-driver-factory';
-import { attachToMetroWatchMode } from './ios/metro-watch-attach';
-import { ensureAccessibilityBridgeEnabled } from './ios/accessibility-bridge';
-import { probeHermesHealthy } from './ios/hermes-health';
-import { validateIOSPrerequisites } from './ios/prerequisites';
-import {
+  AndroidLaunchError,
   IOSLaunchError,
-  type ResolvedIOSLaunchOptions,
+  MobileLaunchError,
 } from './launcher-types';
+import type {
+  MobilePlatform,
+  MobilePlatformAdapter,
+  ResolvedMobileLaunchOptions,
+} from './platform-adapter';
 import { appendLog } from './utils';
 
-const IOS_PAGE_UNAVAILABLE =
-  'Playwright Page/BrowserContext is not available on iOS sessions.';
-
-const PURE_ATTACH_PROBE_INTERVAL_MS = 500;
-const PURE_ATTACH_PROBE_CEILING_MS = 3_000;
-
-function isNewBinaryAction(
-  action: ResolvedIOSLaunchOptions['installAction'],
-): boolean {
-  return (
-    action === 'install-explicit' ||
-    action === 'install-new' ||
-    action === 'reinstall' ||
-    action === 'reset-and-install'
-  );
+interface MobileSessionManagerDependencies {
+  createIOSAdapter: () => MobilePlatformAdapter;
+  createAndroidAdapter: () => MobilePlatformAdapter;
 }
 
+const MOBILE_PAGE_UNAVAILABLE =
+  'Playwright Page/BrowserContext is not available on mobile sessions.';
+
 export class MetaMaskMobileSessionManager implements ISessionManager {
+  private readonly dependencies: MobileSessionManagerDependencies;
+
   private refMap: Map<string, string> = new Map();
 
   private workflowContext: WorkflowContext | undefined;
@@ -70,9 +62,19 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
   private platformDriver: IPlatformDriver | undefined;
 
-  private iosDriver: CreatedIOSDriver | undefined;
+  private adapter: MobilePlatformAdapter | undefined;
 
-  private resolved: ResolvedIOSLaunchOptions | undefined;
+  private resolved: ResolvedMobileLaunchOptions | undefined;
+
+  private activePlatform: MobilePlatform | undefined;
+
+  constructor(dependencies?: Partial<MobileSessionManagerDependencies>) {
+    this.dependencies = {
+      createIOSAdapter: () => new IOSPlatformAdapter(),
+      createAndroidAdapter: () => new AndroidPlatformAdapter(),
+      ...dependencies,
+    };
+  }
 
   hasActiveSession(): boolean {
     return this.sessionId !== undefined;
@@ -96,211 +98,32 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
   async launch(input: SessionLaunchInput): Promise<SessionLaunchResult> {
     appendLog('MetaMask Provider Launch Started');
-    if (this.launchInProgress) {
-      throw new IOSLaunchError({
-        code: 'MM_SESSION_ALREADY_RUNNING',
-        message:
-          'A launch is already in progress. Wait for it to complete or run `mm cleanup` first.',
-      });
-    }
-
-    const force =
-      (input as SessionLaunchInput & { force?: boolean }).force === true;
-    if (this.hasActiveSession()) {
-      if (force) {
-        appendLog(
-          'Force flag set — cleaning up existing session before launch',
-        );
-        await this.cleanup();
-      } else {
-        throw new IOSLaunchError({
-          code: 'MM_SESSION_ALREADY_RUNNING',
-          message:
-            'A session is already active. Run `mm cleanup` first or use --force.',
-        });
-      }
-    }
-
-    // The core launch schema defaults `platform` to "browser" before invoking
-    // the consumer session manager. For the mobile provider, treat any
-    // non-android platform as iOS so `yarn mm launch` works without extra flags.
-    if (input.platform === 'android') {
-      throw new IOSLaunchError({
-        code: 'MM_INVALID_CONFIG',
-        message:
-          'Android is not supported in this first-iteration mobile integration.',
-      });
-    }
-
-    // MetaMask Mobile is prod-only and operates on the already-installed
-    // wallet.  The generic core CLI/schema accepts E2E-oriented launch
-    // options (state/fixture/seeding/ports) that have no effect here.
-    // Reject them explicitly so an agent does not mistakenly believe it
-    // has a fresh or seeded test wallet.
-    const unsupported: string[] = [];
-    if (input.stateMode !== undefined && input.stateMode !== 'default') {
-      unsupported.push(`stateMode='${input.stateMode}'`);
-    }
-    if (input.fixturePreset !== undefined) {
-      unsupported.push('fixturePreset');
-    }
-    if (input.fixture !== undefined) {
-      unsupported.push('fixture');
-    }
-    if (input.seedContracts !== undefined && input.seedContracts.length > 0) {
-      unsupported.push('seedContracts');
-    }
-    if (input.ports !== undefined) {
-      unsupported.push('ports');
-    }
-    if (unsupported.length > 0) {
-      throw new IOSLaunchError({
-        code: 'MM_INVALID_CONFIG',
-        message:
-          'MetaMask Mobile is prod-only and operates on the already-installed wallet. ' +
-          `Unsupported E2E launch option(s): ${unsupported.join(', ')}. ` +
-          'State initialization, fixtures, contract seeding, and port configuration are not available in this workflow.',
-      });
-    }
-
+    const requestedPlatform = normalizePlatform(input.platform);
+    this.assertLaunchAvailable(requestedPlatform);
+    this.validateSharedLaunchPolicy(input, requestedPlatform);
+    this.activePlatform = requestedPlatform;
     this.launchInProgress = true;
 
     try {
       const metroPort = this.resolveMetroPort(input.metroPort);
+      const adapter = this.createAdapter(input.platform);
+      this.adapter = adapter;
 
-      if (input.reinstall || input.resetAppData) {
-        process.stderr.write(
-          '[mm-mobile] WARNING: Using destructive flags (--reinstall/--reset-app-data) in prod context. Wallet state will be lost.\n',
-        );
-      }
-
-      const resolved = await validateIOSPrerequisites({
-        simulatorDeviceId: input.deviceId,
-        appBundlePath: input.appBundlePath,
-        metroPort,
-        reinstall: input.reinstall,
-        resetAppData: input.resetAppData,
-        allowFoxCodeMismatch: input.allowFoxCodeMismatch,
-      });
-
-      this.logLaunchMetadata(resolved, { metroPort: input.metroPort });
-
-      // Store resolved early so the catch block can tear down the runner
-      // and app if a later step (capabilities, bind, getAppState) fails.
+      const resolved = await adapter.resolve(input, metroPort);
       this.resolved = resolved;
+      this.logLaunchMetadata(resolved, input.metroPort);
 
-      if (!this.isSimulatorBooted(resolved.simulatorDeviceId)) {
-        appendLog('Booting device');
-        this.bootSimulator(resolved.simulatorDeviceId);
-      }
+      const { driver: mobileDriver, state } = await adapter.launch(resolved);
+      this.platformDriver = mobileDriver;
 
-      const { wasAlreadyOn: bridgeWasAlreadyOn } =
-        ensureAccessibilityBridgeEnabled(resolved.simulatorDeviceId);
-      appendLog(`Accessibility bridge: wasAlreadyOn=${bridgeWasAlreadyOn}`);
-
-      this.executeInstallAction(resolved);
-
-      appendLog('Creating iOS platform driver');
-      const iosDriver = await createIOSPlatformDriver(resolved);
-
-      this.iosDriver = iosDriver;
-      this.platformDriver = iosDriver.driver;
-
-      const newBinaryInstalled = isNewBinaryAction(resolved.installAction);
-      let appIsRunning: boolean;
-
-      if (newBinaryInstalled) {
-        if (resolved.installAction === 'install-explicit') {
-          this.terminateSimulatorApp(resolved);
-        }
-        appIsRunning = false;
-      } else {
-        const rawState = await iosDriver.backend.getAppState(
-          resolved.appBundleId,
-        );
-        if (rawState.state === 'Not Installed') {
-          throw new IOSLaunchError({
-            code: 'MM_INVALID_CONFIG',
-            message: 'MetaMask app is not installed on the target simulator.',
-            remediation: 'Install the app first or pass --app-bundle <path>.',
-          });
-        }
-        appIsRunning = rawState.state === 'Running';
-      }
-
-      if (resolved.metroPort !== undefined) {
-        if (appIsRunning && bridgeWasAlreadyOn) {
-          appendLog(
-            'Metro branch: app running with bridge already on — pure attach candidate',
-          );
-          const healthResult = await probeHermesHealthy({
-            port: resolved.metroPort,
-            appId: resolved.appBundleId,
-            intervalMs: PURE_ATTACH_PROBE_INTERVAL_MS,
-            ceilingMs: PURE_ATTACH_PROBE_CEILING_MS,
-          });
-
-          if (healthResult.healthy) {
-            appendLog(
-              'Pure attach: app healthily attached to Metro, skipping relaunch',
-            );
-          } else {
-            appendLog(
-              `Pure attach failed (${healthResult.reason}) — terminating and deep-linking`,
-            );
-            this.terminateSimulatorApp(resolved);
-            await attachToMetroWatchMode({
-              simulatorUdid: resolved.simulatorDeviceId,
-              metroPort: resolved.metroPort,
-              appBundleId: resolved.appBundleId,
-            });
-          }
-        } else if (appIsRunning && !bridgeWasAlreadyOn) {
-          appendLog(
-            'Metro branch: app running but bridge just flipped — relaunching for a11y',
-          );
-          this.terminateSimulatorApp(resolved);
-          await attachToMetroWatchMode({
-            simulatorUdid: resolved.simulatorDeviceId,
-            metroPort: resolved.metroPort,
-            appBundleId: resolved.appBundleId,
-          });
-        } else {
-          appendLog('Metro branch: app not running — deep-linking to launch');
-          await attachToMetroWatchMode({
-            simulatorUdid: resolved.simulatorDeviceId,
-            metroPort: resolved.metroPort,
-            appBundleId: resolved.appBundleId,
-          });
-        }
-      } else if (appIsRunning && !bridgeWasAlreadyOn) {
-        appendLog(
-          'Prod branch: app running but bridge just flipped — relaunching for a11y',
-        );
-        this.terminateSimulatorApp(resolved);
-        await iosDriver.backend.openApp(resolved.appBundleId);
-      } else if (!appIsRunning) {
-        appendLog('Prod branch: app not running — launching');
-        await iosDriver.backend.openApp(resolved.appBundleId);
-      } else {
-        appendLog(
-          'Prod branch: app running with bridge already on — pure attach',
-        );
-      }
-
-      const state = await iosDriver.driver.getAppState();
       const sessionId = randomUUID();
       const startedAt = new Date().toISOString();
-
       this.sessionId = sessionId;
       this.sessionState = {
         sessionId,
-        extensionId: resolved.appBundleId,
+        extensionId: resolved.appId,
         startedAt,
-        ports: {
-          anvil: 0,
-          fixtureServer: 0,
-        },
+        ports: { anvil: 0, fixtureServer: 0 },
         stateMode: 'default',
       };
       this.sessionMetadata = {
@@ -313,21 +136,23 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
         launch: {
           stateMode: 'default',
           fixturePreset: null,
-          extensionPath: resolved.appBundlePath,
+          extensionPath: resolved.appPath,
           ports: undefined,
         },
       };
 
-      return {
-        sessionId,
-        extensionId: resolved.appBundleId,
-        state,
-      };
+      return { sessionId, extensionId: resolved.appId, state };
     } catch (error) {
-      await this.teardownPartialLaunch();
-      const launchError = this.toLaunchError(error);
+      const launchError = this.toLaunchError(error, requestedPlatform);
+      try {
+        await this.teardownPartialLaunch();
+      } catch (teardownError) {
+        process.stderr.write(
+          `[mm-mobile] Partial launch teardown failed: ${errorMessage(teardownError)}\n`,
+        );
+      }
       process.stderr.write(
-        `iOS launch failed: ${this.formatLaunchErrorMessage(launchError)}\n`,
+        `Mobile launch failed: ${this.formatLaunchErrorMessage(launchError)}\n`,
       );
       throw launchError;
     } finally {
@@ -337,28 +162,18 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
   async cleanup(): Promise<boolean> {
     if (this.launchInProgress) {
-      throw new IOSLaunchError({
+      throw this.createPlatformError(this.activePlatform ?? 'ios', {
         code: 'MM_SESSION_ALREADY_RUNNING',
         message:
           'A launch is in progress. Wait for it to complete before running `mm cleanup`.',
       });
     }
-
     if (!this.hasActiveSession()) {
       return false;
     }
 
-    const resolved = this.resolved;
-    const iosDriver = this.iosDriver;
-
-    try {
-      if (resolved) {
-        await this.closeAndTerminateApp(resolved, iosDriver);
-      }
-    } finally {
-      this.resetSessionState();
-    }
-
+    await this.adapter?.cleanup();
+    this.resetSessionState();
     return true;
   }
 
@@ -371,11 +186,11 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   getPage(): Page {
-    throw this.notAvailableOnIOS();
+    throw this.notAvailableOnMobile();
   }
 
   setActivePage(_page: Page): void {
-    // Browser-only: iOS sessions are driven by MobilePlatformDriver.
+    // Browser-only: mobile sessions use MobilePlatformDriver.
   }
 
   getTrackedPages(): TrackedPage[] {
@@ -387,14 +202,13 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   getContext(): BrowserContext {
-    throw this.notAvailableOnIOS();
+    throw this.notAvailableOnMobile();
   }
 
   async getExtensionState(): Promise<ExtensionState> {
     if (!this.platformDriver) {
-      throw this.noActiveIOSSession();
+      throw this.noActiveMobileSession();
     }
-
     return this.platformDriver.getAppState();
   }
 
@@ -416,54 +230,40 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
   async navigateToHome(): Promise<void> {
     this.assertActiveSession();
-    // TODO(Phase 2b follow-up): add native tab-bar navigation support.
-    throw new IOSLaunchError({
+    throw this.createPlatformError(this.activePlatform ?? 'ios', {
       code: 'MM_LAUNCH_FAILED',
       message:
-        'navigateToHome() not yet implemented for iOS — Phase 2b deferral. Use describe-screen + click instead.',
+        'navigateToHome() is not implemented for mobile sessions. Use describe-screen + click instead.',
     });
   }
 
   async navigateToSettings(): Promise<void> {
     this.assertActiveSession();
-    // TODO(Phase 2b follow-up): add native tab-bar navigation support.
-    throw new IOSLaunchError({
+    throw this.createPlatformError(this.activePlatform ?? 'ios', {
       code: 'MM_LAUNCH_FAILED',
       message:
-        'navigateToSettings() not yet implemented for iOS — Phase 2b deferral. Use describe-screen + click instead.',
+        'navigateToSettings() is not implemented for mobile sessions. Use describe-screen + click instead.',
     });
   }
 
   async navigateToUrl(_url: string): Promise<Page> {
-    throw new IOSLaunchError({
-      code: 'MM_LAUNCH_FAILED',
-      message: 'URL navigation is browser-only and is not available on iOS.',
-    });
+    throw this.browserOnlyError('URL navigation');
   }
 
   async navigateToNotification(): Promise<Page> {
-    throw new IOSLaunchError({
-      code: 'MM_LAUNCH_FAILED',
-      message:
-        'Notification pages are browser-only and are not available on iOS.',
-    });
+    throw this.browserOnlyError('Notification pages');
   }
 
   async waitForNotificationPage(_timeoutMs: number): Promise<Page> {
-    throw new IOSLaunchError({
-      code: 'MM_LAUNCH_FAILED',
-      message:
-        'Notification pages are browser-only and are not available on iOS.',
-    });
+    throw this.browserOnlyError('Notification pages');
   }
 
   async screenshot(
     options: SessionScreenshotOptions,
   ): Promise<ScreenshotResult> {
     if (!this.platformDriver) {
-      throw this.noActiveIOSSession();
+      throw this.noActiveMobileSession();
     }
-
     return this.platformDriver.screenshot({
       name: options.name,
       fullPage: options.fullPage,
@@ -504,7 +304,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     _options?: Record<string, unknown>,
   ): void {
     if (context === 'e2e') {
-      throw new IOSLaunchError({
+      throw this.createPlatformError(this.activePlatform ?? 'ios', {
         code: 'MM_LAUNCH_FAILED',
         message:
           'MetaMask Mobile supports only the prod context. E2E launch context is not available.',
@@ -528,106 +328,52 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
     };
   }
 
-  private installApp(resolved: ResolvedIOSLaunchOptions): void {
-    try {
-      execFileSync(
-        'xcrun',
-        [
-          'simctl',
-          'install',
-          resolved.simulatorDeviceId,
-          resolved.appBundlePath,
-        ],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
-      );
-    } catch (error) {
-      throw new IOSLaunchError({
-        code: 'MM_LAUNCH_FAILED',
-        message: `Failed to install ${resolved.appBundleId}: ${this.errorMessage(error)}`,
+  private createAdapter(
+    platform: SessionLaunchInput['platform'],
+  ): MobilePlatformAdapter {
+    return platform === 'android'
+      ? this.dependencies.createAndroidAdapter()
+      : this.dependencies.createIOSAdapter();
+  }
+
+  private assertLaunchAvailable(requestedPlatform: MobilePlatform): void {
+    if (this.launchInProgress || this.hasActiveSession()) {
+      throw this.createPlatformError(this.activePlatform ?? requestedPlatform, {
+        code: 'MM_SESSION_ALREADY_RUNNING',
+        message: this.launchInProgress
+          ? 'A launch is already in progress. Wait for it to complete or run `mm cleanup` first.'
+          : 'A session is already active. Run `mm cleanup` first.',
       });
     }
   }
 
-  private executeInstallAction(resolved: ResolvedIOSLaunchOptions): void {
-    switch (resolved.installAction) {
-      case 'reuse-installed':
-        appendLog(`Reusing installed app at ${resolved.appBundlePath}`);
-        break;
-      case 'reinstall':
-        appendLog('Reinstalling: uninstalling existing app');
-        this.uninstallApp(resolved);
-        this.installApp(resolved);
-        break;
-      case 'reset-and-install':
-        appendLog('Resetting app data: terminating and uninstalling');
-        this.terminateSimulatorApp(resolved);
-        this.uninstallApp(resolved);
-        this.installApp(resolved);
-        break;
-      case 'install-new':
-      case 'install-explicit':
-        appendLog('Installing App');
-        this.installApp(resolved);
-        break;
+  private validateSharedLaunchPolicy(
+    input: SessionLaunchInput,
+    platform: MobilePlatform,
+  ): void {
+    const unsupported: string[] = [];
+    if (input.stateMode !== undefined && input.stateMode !== 'default') {
+      unsupported.push(`stateMode='${input.stateMode}'`);
     }
-  }
+    if (input.fixturePreset !== undefined) unsupported.push('fixturePreset');
+    if (input.fixture !== undefined) unsupported.push('fixture');
+    if (input.seedContracts?.length) unsupported.push('seedContracts');
+    if (input.ports !== undefined) unsupported.push('ports');
 
-  private async closeAndTerminateApp(
-    resolved: ResolvedIOSLaunchOptions,
-    iosDriver: CreatedIOSDriver | undefined,
-  ): Promise<void> {
-    await iosDriver?.backend
-      .closeApp(resolved.appBundleId)
-      .catch(() => undefined);
-    this.terminateSimulatorApp(resolved);
-  }
-
-  private terminateSimulatorApp(resolved: ResolvedIOSLaunchOptions): void {
-    try {
-      execFileSync(
-        'xcrun',
-        [
-          'simctl',
-          'terminate',
-          resolved.simulatorDeviceId,
-          resolved.appBundleId,
-        ],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
-      );
-    } catch {
-      // best-effort: app might not be running
-    }
-  }
-
-  private uninstallApp(resolved: ResolvedIOSLaunchOptions): void {
-    try {
-      execFileSync(
-        'xcrun',
-        [
-          'simctl',
-          'uninstall',
-          resolved.simulatorDeviceId,
-          resolved.appBundleId,
-        ],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
-      );
-    } catch (error) {
-      throw new IOSLaunchError({
-        code: 'MM_LAUNCH_FAILED',
-        message: `Failed to uninstall ${resolved.appBundleId}: ${this.errorMessage(error)}`,
+    if (unsupported.length > 0) {
+      throw this.createPlatformError(platform, {
+        code: 'MM_INVALID_CONFIG',
+        message:
+          'MetaMask Mobile is prod-only and operates on the already-installed wallet. ' +
+          `Unsupported E2E launch option(s): ${unsupported.join(', ')}. ` +
+          'State initialization, fixtures, contract seeding, and port configuration are not available in this workflow.',
       });
     }
   }
 
   private resolveMetroPort(inputMetroPort?: number): number | undefined {
     if (inputMetroPort !== undefined) {
-      if (
-        Number.isInteger(inputMetroPort) &&
-        inputMetroPort >= 1 &&
-        inputMetroPort <= 65535
-      ) {
-        return inputMetroPort;
-      }
+      if (isValidPort(inputMetroPort)) return inputMetroPort;
       process.stderr.write(
         `[mm-mobile] Ignoring invalid metroPort=${inputMetroPort} (must be integer 1-65535).\n`,
       );
@@ -635,16 +381,12 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
 
     const raw = process.env.MM_METRO_PORT?.trim();
     if (!raw) return undefined;
-
     const port = Number(raw);
-    if (!Number.isInteger(port) || port < 1 || port > 65535) {
-      process.stderr.write(
-        `[mm-mobile] Ignoring invalid MM_METRO_PORT="${raw}" (must be integer 1-65535).\n`,
-      );
-      return undefined;
-    }
-
-    return port;
+    if (isValidPort(port)) return port;
+    process.stderr.write(
+      `[mm-mobile] Ignoring invalid MM_METRO_PORT="${raw}" (must be integer 1-65535).\n`,
+    );
+    return undefined;
   }
 
   private computeAvailableCapabilities(): string[] {
@@ -652,144 +394,107 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
   }
 
   private async teardownPartialLaunch(): Promise<void> {
-    const { iosDriver, resolved } = this;
-    if (resolved) {
-      await this.closeAndTerminateApp(resolved, iosDriver);
-    }
-
+    await this.adapter?.cleanup();
     this.resetSessionState();
   }
 
   private resetSessionState(): void {
     this.sessionId = undefined;
     this.platformDriver = undefined;
-    this.iosDriver = undefined;
+    this.adapter = undefined;
     this.resolved = undefined;
+    this.activePlatform = undefined;
     this.sessionState = undefined;
     this.sessionMetadata = undefined;
     this.refMap.clear();
   }
 
   private assertActiveSession(): void {
-    if (!this.hasActiveSession()) {
-      throw this.noActiveIOSSession();
-    }
+    if (!this.hasActiveSession()) throw this.noActiveMobileSession();
   }
 
-  private noActiveIOSSession(): IOSLaunchError {
-    return new IOSLaunchError({
+  private noActiveMobileSession(): MobileLaunchError {
+    return this.createPlatformError(this.activePlatform ?? 'ios', {
       code: 'MM_LAUNCH_FAILED',
-      message: 'No active iOS session. Run `mm launch` first.',
+      message: 'No active mobile session. Run `mm launch` first.',
     });
   }
 
-  private notAvailableOnIOS(): IOSLaunchError {
-    return new IOSLaunchError({
+  private notAvailableOnMobile(): MobileLaunchError {
+    return new MobileLaunchError({
       code: 'MM_LAUNCH_FAILED',
-      message: IOS_PAGE_UNAVAILABLE,
+      message: MOBILE_PAGE_UNAVAILABLE,
     });
   }
 
-  private toLaunchError(error: unknown): IOSLaunchError {
-    if (error instanceof IOSLaunchError) {
-      return error;
-    }
-
-    return new IOSLaunchError({
+  private browserOnlyError(feature: string): MobileLaunchError {
+    return new MobileLaunchError({
       code: 'MM_LAUNCH_FAILED',
-      message: this.errorMessage(error),
+      message: `${feature} are browser-only and are not available on mobile.`,
     });
   }
 
-  private formatLaunchErrorMessage(error: IOSLaunchError): string {
-    const message = `${error.code}: ${error.message}`;
-    return error.remediation
-      ? `${message}\nRemediation: ${error.remediation}`
-      : message;
+  private toLaunchError(
+    error: unknown,
+    platform: MobilePlatform,
+  ): MobileLaunchError {
+    return error instanceof MobileLaunchError
+      ? error
+      : this.createPlatformError(platform, {
+          code: 'MM_LAUNCH_FAILED',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
   }
 
-  private errorMessage(error: unknown): string {
-    if (error && typeof error === 'object' && 'stderr' in error) {
-      const { stderr } = error as { stderr?: Buffer | string };
-      const text =
-        typeof stderr === 'string'
-          ? stderr
-          : stderr instanceof Buffer
-            ? stderr.toString('utf8')
-            : '';
-      const trimmed = text.trim();
-      if (trimmed) {
-        return trimmed;
-      }
-    }
-    return error instanceof Error ? error.message : 'Unknown error';
+  private createPlatformError(
+    platform: MobilePlatform,
+    args: {
+      code:
+        | 'MM_LAUNCH_FAILED'
+        | 'MM_SESSION_ALREADY_RUNNING'
+        | 'MM_INVALID_CONFIG';
+      message: string;
+      remediation?: string;
+    },
+  ): IOSLaunchError | AndroidLaunchError {
+    return platform === 'android'
+      ? new AndroidLaunchError(args)
+      : new IOSLaunchError(args);
+  }
+
+  private formatLaunchErrorMessage(error: MobileLaunchError): string {
+    return `${error.code}: ${error.message}`;
   }
 
   private logLaunchMetadata(
-    resolved: ResolvedIOSLaunchOptions,
-    launchInput: { metroPort?: number },
+    resolved: ResolvedMobileLaunchOptions,
+    inputMetroPort?: number,
   ): void {
-    const metroSource = launchInput.metroPort
-      ? '--metro-port'
-      : process.env.MM_METRO_PORT
-        ? 'MM_METRO_PORT'
-        : 'none';
-    const lines = [
-      '[mm-mobile] context=prod',
-      `[mm-mobile] simulator=${resolved.simulatorDeviceId}`,
-      `[mm-mobile] selectedApp=${resolved.appBundlePath}`,
-      `[mm-mobile] bundleId=${resolved.appBundleId}`,
-      `[mm-mobile] version=${resolved.selectedAppMetadata.shortVersion ?? 'unknown'}`,
-      `[mm-mobile] build=${resolved.selectedAppMetadata.buildVersion ?? 'unknown'}`,
-      `[mm-mobile] fox_code=${resolved.selectedAppMetadata.foxCode ?? 'unknown'}`,
-      `[mm-mobile] appAlreadyInstalled=${resolved.appAlreadyInstalled}`,
-      `[mm-mobile] installAction=${resolved.installAction}`,
-      `[mm-mobile] metroPort=${resolved.metroPort ?? 'none'} source=${metroSource}`,
-    ];
+    let metroSource = 'none';
+    if (inputMetroPort !== undefined) metroSource = '--metro-port';
+    else if (process.env.MM_METRO_PORT) metroSource = 'MM_METRO_PORT';
 
-    if (resolved.installedAppMetadata) {
-      lines.push(
-        `[mm-mobile] installedApp=${resolved.installedAppMetadata.appBundlePath}`,
-        `[mm-mobile] installedFoxCode=${resolved.installedAppMetadata.foxCode ?? 'unknown'}`,
-      );
-    }
-
-    process.stderr.write(lines.join('\n') + '\n');
+    process.stderr.write(
+      [
+        '[mm-mobile] context=prod',
+        `[mm-mobile] platform=${resolved.platform}`,
+        ...resolved.metadataLines,
+        `[mm-mobile] metroPort=${resolved.metroPort ?? 'none'} source=${metroSource}`,
+      ].join('\n') + '\n',
+    );
   }
+}
 
-  private isSimulatorBooted(udid: string): boolean {
-    try {
-      const raw = execFileSync('xcrun', ['simctl', 'list', 'devices', '-j'], {
-        encoding: 'utf-8',
-      });
-      const parsed = JSON.parse(raw) as {
-        devices?: Record<string, { udid: string; state?: string }[]>;
-      };
-      for (const devices of Object.values(parsed.devices ?? {})) {
-        for (const entry of devices) {
-          if (entry.udid === udid && entry.state === 'Booted') {
-            return true;
-          }
-        }
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  }
+function isValidPort(port: number): boolean {
+  return Number.isInteger(port) && port >= 1 && port <= 65535;
+}
 
-  private bootSimulator(udid: string): void {
-    try {
-      execFileSync('xcrun', ['simctl', 'boot', udid], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-    } catch (error) {
-      throw new IOSLaunchError({
-        code: 'MM_DEVICE_NOT_AVAILABLE',
-        message: `Failed to boot simulator ${udid}: ${this.errorMessage(error)}`,
-        remediation:
-          'Run `xcrun simctl list devices` to verify the UDID and simulator state.',
-      });
-    }
-  }
+function normalizePlatform(
+  platform: SessionLaunchInput['platform'],
+): MobilePlatform {
+  return platform === 'android' ? 'android' : 'ios';
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Unknown error';
 }
