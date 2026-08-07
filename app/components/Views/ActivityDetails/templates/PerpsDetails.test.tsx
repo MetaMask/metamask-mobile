@@ -186,7 +186,7 @@ describe('PerpsDetails', () => {
     ).toHaveTextContent('Confirmed');
   });
 
-  it('renders the recorded fee for a partially filled canceled order', () => {
+  it('renders canceled order rows and try-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
       id: 'order-1',
@@ -200,7 +200,7 @@ describe('PerpsDetails', () => {
         type: 'limit',
         size: '10.23',
         limitPrice: '98023',
-        filled: '45%',
+        filled: '0%',
       },
     };
 
@@ -211,12 +211,39 @@ describe('PerpsDetails', () => {
     );
 
     expect(getByText('Limit price')).toBeOnTheScreen();
-    expect(getByText('45%')).toBeOnTheScreen();
-    expect(getByText('Total fee')).toBeOnTheScreen();
-    expect(getByText('$2.345')).toBeOnTheScreen();
+    expect(getByText('0%')).toBeOnTheScreen();
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the recorded fee for a partially filled canceled order', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-partially-filled',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Take profit close short',
+      order: {
+        orderId: 'order-partially-filled',
+        text: PerpsOrderTransactionStatus.Canceled,
+        statusType: PerpsOrderTransactionStatusType.Canceled,
+        type: 'limit',
+        size: '10.23',
+        limitPrice: '98023',
+        filled: '45%',
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <PerpsDetails
+        item={perpsItem('marketCloseShort', transaction, 'cancelled')}
+      />,
+    );
+
+    expect(getByText('45%')).toBeOnTheScreen();
+    expect(getByText('Total fee')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
   });
 
   it('renders funding rate and signed funding fee', () => {
