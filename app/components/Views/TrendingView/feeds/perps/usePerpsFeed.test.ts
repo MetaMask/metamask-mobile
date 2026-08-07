@@ -44,12 +44,14 @@ jest.mock('../../../../UI/Perps/selectors/perpsController', () => ({
   selectPerpsWatchlistMarkets: jest.fn(),
 }));
 
-const mockUseHomepageSparklines = jest.fn(() => ({ sparklines: {} }));
+const mockUseHomepageSparklines = jest.fn(
+  (_markets: PerpsMarketData[]) => ({ sparklines: {} }) as const,
+);
 jest.mock(
   '../../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
   () => ({
-    useHomepageSparklines: (...args: unknown[]) =>
-      mockUseHomepageSparklines(...args),
+    useHomepageSparklines: (markets: PerpsMarketData[]) =>
+      mockUseHomepageSparklines(markets),
   }),
 );
 
@@ -286,9 +288,7 @@ describe('usePerpsFeed', () => {
       expect(mockUseHomepageSparklines).toHaveBeenCalledTimes(1);
       const [passedMarkets] = mockUseHomepageSparklines.mock.calls[0];
       // Sorted by 24h price change descending (default 'all' variant sort).
-      expect((passedMarkets as PerpsMarketData[]).map((m) => m.symbol)).toEqual(
-        ['ETH', 'SOL', 'BTC'],
-      );
+      expect(passedMarkets.map((m) => m.symbol)).toEqual(['ETH', 'SOL', 'BTC']);
     });
 
     it('passes an empty array when withTileExtras is false', () => {
