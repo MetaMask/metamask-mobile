@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.5.1]
 
+### Fixed
+
+- Fixed Arc incorrectly appearing as an added/enabled network for some users after an earlier migration added it by default before release (#34445)
+
 ## [8.5.0]
 
 ### Added
