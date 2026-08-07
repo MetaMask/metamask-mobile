@@ -266,57 +266,20 @@ jobs:
           fi
           echo "Resolved fingerprint: $(grep fingerprint= "$GITHUB_OUTPUT" | tail -1)"
 
-  resolve-main-browserstack-urls:
-    name: Resolve main-branch BrowserStack Android apps
-    runs-on: ubuntu-latest
-    needs: [prepare]
-    if: >-
-      needs.prepare.outputs.run_tests == 'true' &&
-      !inputs.reuse_main_builds &&
-      inputs.build_variant == 'e2e' &&
-      !inputs.browserstack_app_url_android_onboarding &&
-      !inputs.browserstack_app_url_android_imported_wallet
-    outputs:
-      found: ${{ steps.resolve.outputs.found }}
-      with-srp-browserstack-url: ${{ steps.resolve.outputs.with-srp-browserstack-url }}
-      without-srp-browserstack-url: ${{ steps.resolve.outputs.without-srp-browserstack-url }}
-      with-srp-version: ${{ steps.resolve.outputs.with-srp-version }}
-      without-srp-version: ${{ steps.resolve.outputs.without-srp-version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          sparse-checkout: |
-            .github/scripts/resolve-main-browserstack-apps.cjs
-            .github/scripts/browserstack-app-validation.cjs
-          sparse-checkout-cone-mode: false
-
-      - name: Resolve latest main BrowserStack apps
-        id: resolve
-        run: node .github/scripts/resolve-main-browserstack-apps.cjs
-        env:
-          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [prepare, resolve-main-browserstack-urls]
-    # Build/upload when not reusing main, or when main reuse lookup found nothing.
-    # Fingerprint job must succeed (same as ci.yml native-build-fingerprint → E2E).
-    # Download-miss → fresh dual Gradle fallback is inside build-android-upload-to-browserstack.
+    needs: [prepare]
+    # All Android runs without explicit BrowserStack URLs go through this
+    # workflow. It selects fingerprint reuse for app changes and latest-main
+    # artifact reuse for test-only changes, with a fresh-build fallback.
     if: >-
       always() &&
       !cancelled() &&
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
-      (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
-      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
-      (
-        !inputs.reuse_main_builds ||
-        inputs.build_variant != 'e2e' ||
-        needs.resolve-main-browserstack-urls.outputs.found != 'true'
-      )
+      !inputs.browserstack_app_url_android_onboarding &&
+      !inputs.browserstack_app_url_android_imported_wallet
     with:
       branch_name: ${{ inputs.branch_name }}
       source_ref: ${{ inputs.source_ref }}
@@ -336,8 +299,7 @@ jobs:
   run-android-onboarding-tests:
     name: Performance Test Android (Onboarding)
     uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      [prepare, trigger-android-dual-versions, resolve-main-browserstack-urls]
+    needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !failure() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
@@ -346,13 +308,8 @@ jobs:
         needs.trigger-android-dual-versions.result == 'success'
       ) &&
       (
-        needs.resolve-main-browserstack-urls.result == 'skipped' ||
-        needs.resolve-main-browserstack-urls.result == 'success'
-      ) &&
-      (
         inputs.browserstack_app_url_android_onboarding != '' ||
-        needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '' ||
-        needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url != ''
+        needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != ''
       )
     with:
       platform: android
@@ -361,10 +318,9 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       branch_name: ${{ inputs.branch_name }}
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      # Prefer an explicitly supplied or freshly uploaded app. Reused main
-      # URLs are only a fallback so onboarding cannot receive a stale variant.
-      browserstack_app_url: ${{ inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || needs.resolve-main-browserstack-urls.outputs.without-srp-version || 'Manual-Input' }}
+      # Prefer an explicitly supplied app; otherwise require the upload job.
+      browserstack_app_url: ${{ inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
@@ -395,8 +351,7 @@ jobs:
   run-android-imported-wallet-tests:
     name: Performance Test Android (Imported Wallet)
     uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      [prepare, trigger-android-dual-versions, resolve-main-browserstack-urls]
+    needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
@@ -405,13 +360,8 @@ jobs:
         needs.trigger-android-dual-versions.result == 'success'
       ) &&
       (
-        needs.resolve-main-browserstack-urls.result == 'skipped' ||
-        needs.resolve-main-browserstack-urls.result == 'success'
-      ) &&
-      (
         inputs.browserstack_app_url_android_imported_wallet != '' ||
-        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '' ||
-        needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url != ''
+        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != ''
       )
     with:
       platform: android
@@ -420,8 +370,8 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       branch_name: ${{ inputs.branch_name }}
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      browserstack_app_url: ${{ inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || needs.resolve-main-browserstack-urls.outputs.with-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
