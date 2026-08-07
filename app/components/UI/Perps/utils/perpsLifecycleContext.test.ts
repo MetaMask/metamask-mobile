@@ -1,11 +1,15 @@
 import {
   getPerpsLifecycleContext,
+  getPerpsLifecycleDetail,
   handlePerpsAppStateChange,
   initPerpsLifecycleTracking,
   markPerpsForegroundSettled,
+  markPerpsNetworkRecovery,
+  markPerpsAccountSwitch,
   settlePerpsForegroundOnSpan,
   resetPerpsLifecycleContextForTests,
   PERPS_LIFECYCLE_CONTEXT,
+  PERPS_LIFECYCLE_DETAIL,
 } from './perpsLifecycleContext';
 import { TraceName } from '../../../../util/trace';
 import { AppState } from 'react-native';
@@ -19,12 +23,45 @@ describe('perpsLifecycleContext', () => {
     expect(getPerpsLifecycleContext()).toBe(
       PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
     );
+    expect(getPerpsLifecycleDetail()).toBe(PERPS_LIFECYCLE_DETAIL.COLD_PROCESS);
   });
 
   it('becomes warm once the first foreground flow settles', () => {
     markPerpsForegroundSettled();
 
     expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
+    expect(getPerpsLifecycleDetail()).toBe(
+      PERPS_LIFECYCLE_DETAIL.WARM_FOREGROUND,
+    );
+  });
+
+  it.each([
+    [5_000, PERPS_LIFECYCLE_DETAIL.BACKGROUND_SHORT],
+    [25_000, PERPS_LIFECYCLE_DETAIL.BACKGROUND_RECONNECT],
+  ] as const)(
+    'records detailed lifecycle for a %i ms background interval',
+    (foregroundAt, expectedDetail) => {
+      handlePerpsAppStateChange('active', 'unknown', 0);
+      handlePerpsAppStateChange('background', 'active', 1_000);
+      handlePerpsAppStateChange('active', 'background', 1_000 + foregroundAt);
+
+      expect(getPerpsLifecycleContext()).toBe(
+        PERPS_LIFECYCLE_CONTEXT.BACKGROUND_RESUME,
+      );
+      expect(getPerpsLifecycleDetail()).toBe(expectedDetail);
+    },
+  );
+
+  it('records network recovery and account switch detail', () => {
+    markPerpsNetworkRecovery();
+    expect(getPerpsLifecycleDetail()).toBe(
+      PERPS_LIFECYCLE_DETAIL.NETWORK_RECOVERY,
+    );
+
+    markPerpsAccountSwitch();
+    expect(getPerpsLifecycleDetail()).toBe(
+      PERPS_LIFECYCLE_DETAIL.ACCOUNT_SWITCH,
+    );
   });
 
   it('tags background_resume when returning to active from background', () => {
