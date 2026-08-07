@@ -64,6 +64,8 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
+// Skipped: Android CI flake — CDP dapp click can succeed without opening
+// confirm-button (ERC-721 especially). Un-skip after sheet-open is stable.
 appiumTest.describe.skip(
   SmokeConfirmations('Token Approve - approve method'),
   () => {
