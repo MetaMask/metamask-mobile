@@ -60,7 +60,7 @@ function computeE2EPlatformFlags(input) {
     message = 'Skipping E2E (ignorable-only changes)';
   } else if (testOnlyChanges) {
     message =
-      'E2E for both platforms (no app changes — reuse main native builds)';
+      'E2E for both platforms (test-only/no app changes — reuse main native builds)';
     android = true;
     ios = true;
     nativeBuildNeeded = false;
