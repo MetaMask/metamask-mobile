@@ -238,12 +238,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       !shouldShowPillsEmptyState &&
       hasResolvedInitialData &&
       !marketsLoading;
-    const carouselSymbols = useMemo(
-      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+    const sparklineMarkets = useMemo(
+      () => (showTrending ? allCarouselMarkets : []),
       [allCarouselMarkets, showTrending],
     );
-    const { sparklines, refresh: refreshSparklines } =
-      useHomepageSparklines(carouselSymbols);
+    const { sparklines } = useHomepageSparklines(sparklineMarkets);
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
@@ -274,7 +273,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             return;
           }
           await refreshMarkets();
-          refreshSparklines();
         },
       }),
       [
@@ -282,7 +280,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         refetchPerpsPills,
         reconnectWithNewContext,
         refreshMarkets,
-        refreshSparklines,
         shouldShowPillsEmptyState,
       ],
     );

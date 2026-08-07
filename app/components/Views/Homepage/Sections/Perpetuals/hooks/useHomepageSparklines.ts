@@ -1,17 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { usePerpsStream } from '../../../../../UI/Perps/providers/PerpsStreamManager';
-import {
-  CandlePeriod,
-  TimeDuration,
-  type CandleData,
-} from '@metamask/perps-controller';
+import { useMemo } from 'react';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 const SPARKLINE_TARGET_POINTS = 50;
-const SPARKLINE_CANDLE_COUNT = 96; // 24h of 15-min candles
 
 export interface UseHomepageSparklinesResult {
   sparklines: Record<string, number[]>;
-  refresh: () => void;
 }
 
 function downsample(data: number[], targetLength: number): number[] {
@@ -24,87 +17,39 @@ function downsample(data: number[], targetLength: number): number[] {
   return result;
 }
 
-function extractCloses(candleData: CandleData): number[] {
-  const candles = candleData.candles.slice(-SPARKLINE_CANDLE_COUNT);
-  return candles.map((c) => parseFloat(String(c.close)));
+function extractCloses(trend: PerpsMarketData['trend']): number[] {
+  if (!trend || trend.length === 0) return [];
+  return trend
+    .map(([, price]) => parseFloat(String(price)))
+    .filter((price) => !isNaN(price));
 }
 
 /**
- * Subscribe to candle data for the given symbols via the WebSocket stream
- * and return downsampled close prices suitable for sparkline rendering.
+ * Build downsampled close-price arrays for sparklines from each market's
+ * `trend` field, which already comes from the Terminal API response.
  *
- * Uses the existing CandleStreamChannel which handles caching, ref-counting,
- * and reconnection automatically.
+ * Previously this subscribed to a per-symbol candle stream, which fired a
+ * HyperLiquid `candleSnapshot` call per symbol on every reconnect. Reading
+ * `trend` instead avoids that, at the cost of hourly (not live) freshness —
+ * fine for the small homepage preview. See
+ * docs/decisions/0001-perps-homepage-hyperliquid-calls.md.
  *
- * Candle callbacks arrive independently per symbol. A microtask-based flush
- * coalesces rapid-fire arrivals into a single React state update so the
- * parent component re-renders once instead of N times (one per symbol).
- *
- * @param symbols - Market symbols to fetch sparklines for
+ * @param markets - Markets to build sparklines for.
  */
 export function useHomepageSparklines(
-  symbols: string[],
+  markets: PerpsMarketData[],
 ): UseHomepageSparklinesResult {
-  const safeSymbols = useMemo(() => symbols ?? [], [symbols]);
-  const stream = usePerpsStream();
-  const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
-  const dataRef = useRef<Record<string, number[]>>({});
-  const flushScheduledRef = useRef(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const safeMarkets = useMemo(() => markets ?? [], [markets]);
 
-  // Stable string key so the effect doesn't re-run on every render
-  const symbolsKey = useMemo(() => safeSymbols.join(','), [safeSymbols]);
-
-  useEffect(() => {
-    if (!symbolsKey) return undefined;
-
-    dataRef.current = {};
-    flushScheduledRef.current = false;
-    setSparklines({});
-
-    const scheduleFlush = () => {
-      if (flushScheduledRef.current) return;
-      flushScheduledRef.current = true;
-      queueMicrotask(() => {
-        flushScheduledRef.current = false;
-        setSparklines({ ...dataRef.current });
-      });
-    };
-
-    const unsubscribes: (() => void)[] = [];
-    const syms = symbolsKey.split(',').filter(Boolean);
-
-    for (const symbol of syms) {
-      const unsubscribe = stream.candles.subscribe({
-        symbol,
-        interval: CandlePeriod.FifteenMinutes,
-        duration: TimeDuration.OneDay,
-        callback: (candleData: CandleData) => {
-          if (dataRef.current[symbol]) return;
-          if (!candleData?.candles || candleData.candles.length < 2) return;
-
-          const closes = extractCloses(candleData);
-          if (closes.length < 2) return;
-
-          dataRef.current = {
-            ...dataRef.current,
-            [symbol]: downsample(closes, SPARKLINE_TARGET_POINTS),
-          };
-          scheduleFlush();
-        },
-      });
-      unsubscribes.push(unsubscribe);
+  const sparklines = useMemo(() => {
+    const result: Record<string, number[]> = {};
+    for (const market of safeMarkets) {
+      const closes = extractCloses(market.trend);
+      if (closes.length < 2) continue;
+      result[market.symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
     }
+    return result;
+  }, [safeMarkets]);
 
-    return () => {
-      unsubscribes.forEach((unsub) => unsub());
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- symbolsKey is the stable representation of symbols
-  }, [stream, symbolsKey, refreshKey]);
-
-  const refresh = useCallback(() => {
-    setRefreshKey((k) => k + 1);
-  }, []);
-
-  return useMemo(() => ({ sparklines, refresh }), [sparklines, refresh]);
+  return useMemo(() => ({ sparklines }), [sparklines]);
 }
