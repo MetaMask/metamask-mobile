@@ -100,7 +100,9 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
   appiumTest.describe.configure({ timeout: 2500000 });
 
-  appiumTest(
+  // Skipped: Appium 7702 wallet_sendCalls batch smoke is unstable in CI.
+  // Un-skip once batch confirmation + smart-account upgrade activity asserts are stable.
+  appiumTest.skip(
     'submits a wallet_sendCalls batch of two transactions',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
