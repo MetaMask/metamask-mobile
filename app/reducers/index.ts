@@ -38,9 +38,7 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
-///: END:ONLY_INCLUDE_IF
 import cardReducer from '../core/redux/slices/card';
 import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
 import rewardsReducer, { RewardsState } from './rewards';
@@ -131,9 +129,7 @@ export interface RootState {
   card: StateFromReducer<typeof cardReducer>;
   moneyBalance: StateFromReducer<typeof moneyBalanceReducer>;
   performance?: PerformanceState;
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   sampleCounter: StateFromReducer<typeof sampleCounterReducer>;
-  ///: END:ONLY_INCLUDE_IF
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   networkConnectionBanner: NetworkConnectionBannerState;
@@ -178,9 +174,7 @@ const baseReducers = {
   card: cardReducer,
   moneyBalance: moneyBalanceReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   sampleCounter: sampleCounterReducer,
-  ///: END:ONLY_INCLUDE_IF
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,

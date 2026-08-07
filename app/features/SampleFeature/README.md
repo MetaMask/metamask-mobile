@@ -259,7 +259,7 @@ The Sample Feature demonstrates MetaMask's dual performance monitoring approach 
 - Automatic span creation and management
 - Error tracking with performance context
 - Integration with Sentry's performance dashboard
-- Code-fenced trace names for sample feature isolation
+- Dedicated trace names for sample feature isolation
 - **Privacy-focused**: No tracking of addresses, names, or other sensitive user data
 - **Safe to track**: chainId (public network info), petNamesCount (aggregate count), feature context
 
@@ -285,7 +285,7 @@ The Sample Feature demonstrates MetaMask's dual performance monitoring approach 
 
 1. **Proper Error Handling**: Both tracing systems ensure traces are ended even when operations fail
 2. **Rich Context**: Captures relevant metadata for debugging and performance analysis
-3. **Code Fencing**: Sample feature specific trace names are only included when the feature is enabled
+3. **Runtime Gating**: Sample feature specific trace names are only reachable when the feature is enabled
 4. **Consistent Naming**: Uses descriptive names and structured metadata
 5. **Testing Integration**: Comprehensive unit tests verify tracing functionality without making actual API calls
 
@@ -300,9 +300,9 @@ The Sample Feature demonstrates MetaMask's dual performance monitoring approach 
 
 The Sample Feature uses multiple feature selection mechanisms to control its availability and behavior across different environments and use cases.
 
-### Build-Level Feature Selection (Code Fencing)
+### Build-Level Feature Selection (Runtime Gating)
 
-The Sample Feature uses code fencing to ensure it's completely excluded from production builds. It's only included when explicitly enabled via the `INCLUDE_SAMPLE_FEATURE` environment variable.
+The Sample Feature is excluded from production builds via runtime gating rather than build-time code fencing. It's only included when explicitly enabled via the `INCLUDE_SAMPLE_FEATURE` environment variable.
 
 #### Enabling the Feature
 
@@ -322,14 +322,15 @@ INCLUDE_SAMPLE_FEATURE=true yarn start:android
 
 #### How It Works
 
-1. **Code Fencing**: All Sample Feature code is wrapped with code fence comments:
+1. **Runtime Gating**: The handful of integration points that pull in real Sample Feature code (`MainNavigator.js`, `DeveloperOptions/index.tsx`, `Engine.ts`) check `process.env.INCLUDE_SAMPLE_FEATURE === 'true'` and `require(...)` the feature lazily inside that branch, e.g.:
    ```typescript
-   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-   // Sample feature code here
-   ///: END:ONLY_INCLUDE_IF
+   const SampleFeature =
+     process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+       ? require('../../../features/SampleFeature/components/views/SampleFeature').default
+       : null;
    ```
-2. **Metro Transform**: The Metro bundler removes fenced code during build time based on the environment variable
-3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, the code is completely removed from the bundle
+2. **Babel Env Inlining**: `transform-inline-environment-variables` (see `babel.config.js`) inlines `process.env.INCLUDE_SAMPLE_FEATURE` to a literal at bundle time, so terser can fold the comparison and drop the unreachable `require(...)` call.
+3. **Zero Production Impact**: When `INCLUDE_SAMPLE_FEATURE` is not set, `@metamask/sample-controllers` and the `app/features/SampleFeature/` component tree are dead-code-eliminated from the bundle. Lightweight, always-safe integration points (route names, analytics enum entries, TypeScript types, the Redux reducer) are registered unconditionally since they carry no meaningful bundle weight.
 
 #### Default Behavior
 

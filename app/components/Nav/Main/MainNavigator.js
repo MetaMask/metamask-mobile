@@ -164,9 +164,6 @@ import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsVie
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
-///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -960,16 +957,24 @@ const SetPasswordFlow = () => (
   </NativeStack.Navigator>
 );
 
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-const SampleFeatureFlow = () => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name={Routes.SAMPLE_FEATURE}
-      component={SampleFeature}
-    />
-  </NativeStack.Navigator>
-);
-///: END:ONLY_INCLUDE_IF
+// Only enabled in dev/test builds via `INCLUDE_SAMPLE_FEATURE=true`; otherwise
+// this is dead-code-eliminated out of production bundles.
+const SampleFeature =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../../../features/SampleFeature/components/views/SampleFeature')
+        .default
+    : null;
+
+const SampleFeatureFlow = () =>
+  SampleFeature && (
+    <NativeStack.Navigator>
+      <NativeStack.Screen
+        name={Routes.SAMPLE_FEATURE}
+        component={SampleFeature}
+      />
+    </NativeStack.Navigator>
+  );
 
 const MainNavigator = () => {
   const dispatch = useDispatch();
@@ -1478,16 +1483,12 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <NativeStack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeatureFlow}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {SampleFeature && (
+        <NativeStack.Screen
+          name={Routes.SAMPLE_FEATURE}
+          component={SampleFeatureFlow}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}

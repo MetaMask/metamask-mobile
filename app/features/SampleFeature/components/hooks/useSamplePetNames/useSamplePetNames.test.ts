@@ -50,7 +50,7 @@ const renderHook = (chainId: Hex) => {
         ...backgroundState,
         SamplePetnamesController: {
           namesByChainIdAndAddress:
-            Engine.context.SamplePetnamesController.state
+            Engine.context.SamplePetnamesController?.state
               .namesByChainIdAndAddress,
         },
       },
