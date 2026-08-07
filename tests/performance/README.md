@@ -740,6 +740,28 @@ This uses `.github/workflows/app-profiling-check.yml` (bot command /
 `workflow_dispatch`). The automatic PR path embeds profiling into the
 performance results comment from `run-performance-e2e.yml`.
 
+### Weekly app profiling report (Cursor Automation)
+
+For a weekly rollup of BrowserStack app-profiling averages across merged PRs
+that ran performance tests:
+
+```bash
+node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
+```
+
+Outputs:
+
+| File | Description |
+| ---- | ----------- |
+| `report.json` | Scenario averages, failing PRs, data-driven leads |
+| `slack.md` | Slack-ready markdown |
+| `ai-briefing.md` | Briefing for an AI pass (investigation insights) |
+
+Recommended automation: schedule the prompt in
+[`.cursor/automations/weekly-app-profiling-report.md`](../../.cursor/automations/weekly-app-profiling-report.md).
+That run collects metrics, adds a final **AI insights to investigate** section
+based on merged PR themes/hotspots, and DMs the report on Slack.
+
 ### HTML Dashboard Features
 
 The aggregated HTML report (`performance-report.html`) includes:
