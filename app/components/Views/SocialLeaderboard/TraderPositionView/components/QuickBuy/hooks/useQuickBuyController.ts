@@ -602,6 +602,37 @@ export function useQuickBuyController(
     liveSourceCurrencyExchangeRate && liveSourceCurrencyExchangeRate > 0,
   );
 
+  // Buy mode freezes the quote conversion rate via the pay-with `useState`
+  // snapshot (`selectedSourceToken`). Sell mode's `positionToken` is
+  // selector-driven, so without an explicit freeze every market-data tick
+  // retargets `sourceTokenAmount` for the same fiat input — quotes look
+  // stale/`isPendingQuoteRefresh` and Sell stays disabled with no error label
+  // (TSA-976). Keep display rates live above; freeze only the rate used to
+  // convert committed fiat into the quote request amount.
+  const sellQuoteExchangeRateRef = useRef<number | undefined>(undefined);
+  const sellQuoteSourceTokenKeyRef = useRef<string | undefined>(undefined);
+  const positionTokenKey =
+    positionToken?.address != null && positionToken.chainId != null
+      ? getTokenKey(positionToken)
+      : undefined;
+  if (positionTokenKey !== sellQuoteSourceTokenKeyRef.current) {
+    sellQuoteSourceTokenKeyRef.current = positionTokenKey;
+    sellQuoteExchangeRateRef.current = positionToken?.currencyExchangeRate;
+  } else if (
+    sellQuoteExchangeRateRef.current == null &&
+    positionToken?.currencyExchangeRate != null &&
+    positionToken.currencyExchangeRate > 0
+  ) {
+    // Price arrived after the token was already selected — adopt it once so
+    // the first committed amount can convert; later ticks stay frozen.
+    sellQuoteExchangeRateRef.current = positionToken.currencyExchangeRate;
+  }
+  const sellQuoteExchangeRate = sellQuoteExchangeRateRef.current;
+  const quoteSourceExchangeRate =
+    tradeMode === 'sell'
+      ? sellQuoteExchangeRate
+      : sourceToken?.currencyExchangeRate;
+
   // The live balance for whichever token is the *source* this mode: the
   // resynced pay-with token in buy mode, or the already-live position token in
   // sell mode.
@@ -633,14 +664,14 @@ export function useQuickBuyController(
       return latestSourceBalance.displayBalance;
     }
     if (hasSourcePrice) {
-      if (!quotedFiatAmount || !sourceToken?.currencyExchangeRate) {
+      if (!quotedFiatAmount || !quoteSourceExchangeRate) {
         return undefined;
       }
       // `currencyExchangeRate` is user-currency-per-token and `quotedFiatAmount`
       // is in the user's display currency, so fiat / rate yields token units.
       const fiat = parseFloat(quotedFiatAmount);
       if (isNaN(fiat) || fiat <= 0) return undefined;
-      return (fiat / sourceToken.currencyExchangeRate).toString();
+      return (fiat / quoteSourceExchangeRate).toString();
     }
     // Unpriced path: source amount is entered directly in token units.
     if (!sourceAmountTokens) return undefined;
@@ -651,9 +682,9 @@ export function useQuickBuyController(
     hasSourcePrice,
     isMaxSourceAmount,
     latestSourceBalance?.displayBalance,
+    quoteSourceExchangeRate,
     quotedFiatAmount,
     sourceAmountTokens,
-    sourceToken?.currencyExchangeRate,
   ]);
 
   useEffect(() => {
