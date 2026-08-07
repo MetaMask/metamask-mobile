@@ -7898,9 +7898,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@file:../core/packages/bridge-controller::locator=metamask%40workspace%3A.":
-  version: 79.0.1
-  resolution: "@metamask/bridge-controller@file:../core/packages/bridge-controller#../core/packages/bridge-controller::hash=074142&locator=metamask%40workspace%3A."
+"@metamask/bridge-controller@npm:@metamask-previews/bridge-controller@79.0.1-preview-4c8a5dfcb":
+  version: 79.0.1-preview-4c8a5dfcb
+  resolution: "@metamask-previews/bridge-controller@npm:79.0.1-preview-4c8a5dfcb"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -7927,13 +7927,46 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/60c4238486eb1173bc1649163aad2648d18b0a565c2e567a108b60e600e4b38ae377dfe0bb03bff3f9b67f0a11135503c5afccde34e2b1b99af730b866a98a92
+  checksum: 10/f8897dce818ec5099b8f9643b36fb96345f4916c90094f67d2fa24ce6e8cfc0df97e228100a7d6f7172c2f605273c28dadb836932144edee29e8b9035f7bf8dc
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller::locator=metamask%40workspace%3A.":
-  version: 75.0.0
-  resolution: "@metamask/bridge-status-controller@file:../core/packages/bridge-status-controller#../core/packages/bridge-status-controller::hash=2a3525&locator=metamask%40workspace%3A."
+"@metamask/bridge-controller@npm:^79.0.1":
+  version: 79.0.1
+  resolution: "@metamask/bridge-controller@npm:79.0.1"
+  dependencies:
+    "@ethersproject/address": "npm:^5.7.0"
+    "@ethersproject/bignumber": "npm:^5.7.0"
+    "@ethersproject/constants": "npm:^5.7.0"
+    "@ethersproject/contracts": "npm:^5.7.0"
+    "@ethersproject/providers": "npm:^5.7.0"
+    "@metamask/accounts-controller": "npm:^39.0.6"
+    "@metamask/assets-controller": "npm:^13.1.1"
+    "@metamask/assets-controllers": "npm:^111.0.0"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/gas-fee-controller": "npm:^26.3.1"
+    "@metamask/keyring-api": "npm:^24.0.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/metamask-eth-abis": "npm:^3.1.1"
+    "@metamask/multichain-network-controller": "npm:^3.2.2"
+    "@metamask/network-controller": "npm:^35.0.1"
+    "@metamask/polling-controller": "npm:^16.0.9"
+    "@metamask/profile-sync-controller": "npm:^29.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^5.0.0"
+    "@metamask/snaps-controllers": "npm:^19.0.0"
+    "@metamask/transaction-controller": "npm:^69.5.0"
+    "@metamask/utils": "npm:^11.11.0"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^8.3.2"
+  checksum: 10/811c3ceb7994cc6f701bad2432619b90476106f312e5eb07912b8cf434212e1088969bcc10048d6c6e84d5e9fde686d9e7fcbec713c6171d8329139a36677cd0
+  languageName: node
+  linkType: hard
+
+"@metamask/bridge-status-controller@npm:@metamask-previews/bridge-status-controller@75.0.0-preview-4c8a5dfcb":
+  version: 75.0.0-preview-4c8a5dfcb
+  resolution: "@metamask-previews/bridge-status-controller@npm:75.0.0-preview-4c8a5dfcb"
   dependencies:
     "@metamask/accounts-controller": "npm:^39.0.7"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -7951,7 +7984,7 @@ __metadata:
     "@metamask/utils": "npm:^11.11.0"
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^8.3.2"
-  checksum: 10/9a2800b21b8bf99ed3b52da1d4dbb6a7ee7f5d222d041669d1d0a76941e862a2883505a264650ced74cc4e80ca93102dd74507d8b5008eabd00e18eb07354180
+  checksum: 10/2281305f258261758e4c834a625180646af40777561595d1b39f357d3c8bdd47fa4980e7e2a37382d96b676b07794eead0bdf88ce5f93aeeb06d434e809ae0a8
   languageName: node
   linkType: hard
 
@@ -8070,24 +8103,6 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     reselect: "npm:^5.1.1"
   checksum: 10/b2a5d5f7e89e0adcd25503f9e6f5e58596df614a3a322a320536a82165e60fa34e54b2a1bf4402142a79ab2a85821319ecc7f188e82fc79a6f79e8ca57262152
-  languageName: node
-  linkType: hard
-
-"@metamask/config-registry-controller@npm:^0.3.1":
-  version: 0.3.2
-  resolution: "@metamask/config-registry-controller@npm:0.3.2"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.1.0"
-    "@metamask/keyring-controller": "npm:^26.0.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/polling-controller": "npm:^16.0.6"
-    "@metamask/profile-sync-controller": "npm:^28.1.1"
-    "@metamask/remote-feature-flag-controller": "npm:^4.2.1"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-    reselect: "npm:^5.1.1"
-  checksum: 10/67f0a2e4288bd16eb521cf13efcfb09693a394646f48c2ab6a785cf06f7a24d50caeae097c64825efc91d1fa042830b0118506c052b84e80180a056ab4257c34
   languageName: node
   linkType: hard
 
@@ -9306,7 +9321,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-network-controller@npm:^3.1.0, @metamask/multichain-network-controller@npm:^3.2.1, @metamask/multichain-network-controller@npm:^3.2.3":
+"@metamask/multichain-network-controller@npm:^3.1.0, @metamask/multichain-network-controller@npm:^3.2.1, @metamask/multichain-network-controller@npm:^3.2.2, @metamask/multichain-network-controller@npm:^3.2.3":
   version: 3.2.3
   resolution: "@metamask/multichain-network-controller@npm:3.2.3"
   dependencies:
@@ -9401,24 +9416,6 @@ __metadata:
     "@metamask/utils": "npm:^11.11.0"
     reselect: "npm:^5.1.1"
   checksum: 10/376bf51243e0976b1003690cc883112493650f44126f1be925ad4c31016929da8680d6b5b4b47e92db738c54513016bce3c5fe26db1993b32e53b0fd0f59c999
-  languageName: node
-  linkType: hard
-
-"@metamask/network-enablement-controller@npm:^5.6.0":
-  version: 5.6.0
-  resolution: "@metamask/network-enablement-controller@npm:5.6.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/keyring-api": "npm:^23.5.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/multichain-network-controller": "npm:^3.2.1"
-    "@metamask/network-controller": "npm:^34.0.0"
-    "@metamask/slip44": "npm:^4.3.0"
-    "@metamask/transaction-controller": "npm:^69.0.0"
-    "@metamask/utils": "npm:^11.11.0"
-    reselect: "npm:^5.1.1"
-  checksum: 10/c4fbedb43bc8331c24794c10a038809ec23b40a6042f589b3d72746a28846951c2e72c359ea6703b18840fc4fae6e5ffa7906979e58a1fb8f16f1fc735bd8514
   languageName: node
   linkType: hard
 

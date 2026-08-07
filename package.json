@@ -184,9 +184,17 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/bridge-controller": {
+      "type": "breaking",
+      "previewVersion": "79.0.1-preview-4c8a5dfcb"
+    },
+    "@metamask/bridge-status-controller": {
+      "type": "breaking",
+      "previewVersion": "75.0.0-preview-4c8a5dfcb"
+    }
+  },
   "resolutions": {
-    "@metamask/bridge-controller": "file:../core/packages/bridge-controller",
-    "@metamask/bridge-status-controller": "file:../core/packages/bridge-status-controller",
     "@metamask/network-controller": "34.0.0",
     "@metamask/seedless-onboarding-controller": "10.1.1",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
