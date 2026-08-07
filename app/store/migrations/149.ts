@@ -38,12 +38,14 @@ export const migrationVersion = 149;
  * mid-September instead). Migrations are append-only and run sequentially, so
  * 145 can't be removed or skipped for users who already applied it.
  *
- * This migration undoes 145's effect, but only for users whose Arc
- * configuration is *exactly* what 145 would have written unattended. If the
- * user edited it (renamed it, changed the RPC/failover URLs, added another
- * endpoint, etc.) or added Arc manually, that configuration is left alone -
- * we can only safely infer "this was the auto-add from 145" when the shape
- * matches byte for byte.
+ * This migration undoes 145's effect, but only when the Arc network still
+ * has the single, private, not-yet-public Infura RPC endpoint 145 would have
+ * written unattended - nobody else could produce that exact URL, since it's
+ * built from this build's own (undisclosed) Infura project ID. Cosmetic
+ * edits (rename, currency, block explorer) don't prevent reversion. But if
+ * the user replaced/removed that RPC endpoint, added a failover to it, added
+ * an additional endpoint, or added Arc manually with their own RPC, that's a
+ * real customization and the network is left alone entirely.
  *
  * @param versionedState - MetaMask state, exactly what we persist to disk.
  * @returns Updated MetaMask state.
@@ -127,10 +129,12 @@ export default function migrate(versionedState: unknown) {
 }
 
 /**
- * Checks whether the given Arc network configuration is exactly what
- * migration 145 would have written unattended: a single custom RPC endpoint
- * pointing at the private, not-yet-public `arc-mainnet.infura.io` endpoint
- * for this build, with no failover URLs and default display settings.
+ * Checks whether the given Arc network configuration still has the single,
+ * private, not-yet-public `arc-mainnet.infura.io` RPC endpoint migration 145
+ * would have written unattended, with no failover URLs. Only the RPC
+ * endpoint is checked - display fields (name, currency, block explorer,
+ * default indexes) are allowed to differ, since editing those isn't the kind
+ * of customization that should block reverting the premature auto-add.
  */
 function isDefaultArcConfiguration(
   value: unknown,
@@ -154,13 +158,6 @@ function isDefaultArcConfiguration(
 
   return (
     value.chainId === ARC_CHAIN_ID &&
-    value.name === 'Arc' &&
-    value.nativeCurrency === 'USDC' &&
-    Array.isArray(value.blockExplorerUrls) &&
-    value.blockExplorerUrls.length === 1 &&
-    value.blockExplorerUrls[0] === 'https://explorer.arc.io/' &&
-    value.defaultBlockExplorerUrlIndex === 0 &&
-    value.defaultRpcEndpointIndex === 0 &&
     Array.isArray(value.rpcEndpoints) &&
     value.rpcEndpoints.length === 1 &&
     isDefaultArcRpcEndpoint(value.rpcEndpoints[0], expectedUrl)

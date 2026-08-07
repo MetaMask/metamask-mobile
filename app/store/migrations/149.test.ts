@@ -237,8 +237,6 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
   });
 
   it.each([
-    ['renamed by the user', { name: 'My Arc' }],
-    ['currency changed by the user', { nativeCurrency: 'ARC' }],
     [
       'RPC URL replaced by the user',
       {
@@ -272,10 +270,6 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
         ],
       },
     ],
-    [
-      'block explorer changed by the user',
-      { blockExplorerUrls: ['https://custom-explorer.example.com'] },
-    ],
   ])(
     'leaves the Arc network configuration untouched when %s',
     (_description, overrides) => {
@@ -296,6 +290,34 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
         result.engine.backgroundState.NetworkEnablementController
           .enabledNetworkMap.eip155,
       ).toHaveProperty(ARC_CHAIN_ID);
+    },
+  );
+
+  it.each([
+    ['renamed by the user', { name: 'My Arc' }],
+    ['currency changed by the user', { nativeCurrency: 'ARC' }],
+    [
+      'block explorer changed by the user',
+      { blockExplorerUrls: ['https://custom-explorer.example.com'] },
+    ],
+    [
+      'block explorer index changed by the user',
+      { defaultBlockExplorerUrlIndex: undefined },
+    ],
+  ])(
+    'still reverts the Arc network when only a cosmetic field was %s (the private RPC endpoint is untouched)',
+    (_description, overrides) => {
+      const state = stateWithArc(overrides);
+
+      const result = migrate(state) as typeof baseState;
+
+      const configs = result.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId as Record<string, unknown>;
+      expect(configs[ARC_CHAIN_ID]).toBeUndefined();
+      expect(
+        result.engine.backgroundState.NetworkEnablementController
+          .enabledNetworkMap.eip155,
+      ).not.toHaveProperty(ARC_CHAIN_ID);
     },
   );
 
@@ -396,16 +418,41 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
       ).not.toHaveProperty(ARC_CHAIN_ID);
     });
 
-    it('keeps Arc for a user who had already customized it between the two migrations', () => {
+    it('keeps Arc for a user who had already replaced its RPC endpoint between the two migrations', () => {
       mockedEnsureValidState.mockReturnValue(true);
 
       const stateAfter145 = migrateArc(
         cloneDeep(baseState),
       ) as typeof baseState;
       const configs = stateAfter145.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId as Record<string, unknown>;
-      // Simulate the user renaming the network before 149 ever runs.
-      (configs[ARC_CHAIN_ID] as { name: string }).name = 'My Custom Arc';
+        .networkConfigurationsByChainId as Record<
+        string,
+        { rpcEndpoints: { url: string }[] }
+      >;
+      // Simulate the user replacing the private RPC endpoint before 149 ever runs.
+      configs[ARC_CHAIN_ID].rpcEndpoints[0].url = 'https://rpc.arc.network';
+
+      const stateAfter149 = migrate(stateAfter145) as typeof baseState;
+      const configsAfter149 = stateAfter149.engine.backgroundState
+        .NetworkController.networkConfigurationsByChainId as Record<
+        string,
+        { rpcEndpoints: { url: string }[] }
+      >;
+      expect(configsAfter149[ARC_CHAIN_ID]).toBeDefined();
+      expect(configsAfter149[ARC_CHAIN_ID].rpcEndpoints[0].url).toBe(
+        'https://rpc.arc.network',
+      );
+    });
+
+    it('still reverts Arc for a user who only renamed it (cosmetic-only edit) between the two migrations', () => {
+      mockedEnsureValidState.mockReturnValue(true);
+
+      const stateAfter145 = migrateArc(
+        cloneDeep(baseState),
+      ) as typeof baseState;
+      const configs = stateAfter145.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId as Record<string, { name: string }>;
+      configs[ARC_CHAIN_ID].name = 'My Custom Arc';
 
       const stateAfter149 = migrate(stateAfter145) as typeof baseState;
       const configsAfter149 = stateAfter149.engine.backgroundState
@@ -413,10 +460,7 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
         string,
         unknown
       >;
-      expect(configsAfter149[ARC_CHAIN_ID]).toBeDefined();
-      expect((configsAfter149[ARC_CHAIN_ID] as { name: string }).name).toBe(
-        'My Custom Arc',
-      );
+      expect(configsAfter149[ARC_CHAIN_ID]).toBeUndefined();
     });
   });
 });
