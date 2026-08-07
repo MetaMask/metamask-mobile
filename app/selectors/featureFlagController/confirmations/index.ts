@@ -15,6 +15,8 @@ export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
 export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
 export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
 export const PAY_HARDWARE_ENABLED_DEFAULT = false;
+export const PAY_HARDWARE_ENABLED_TRANSACTION_TYPES_DEFAULT: TransactionType[] =
+  [TransactionType.musdConversion];
 export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;
 export const PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT: Record<
   string,
@@ -105,6 +107,7 @@ export interface MetaMaskPayFiatFlags {
 
 export interface MetaMaskPayHardwareFlags {
   enabled: boolean;
+  enabledTransactionTypes: TransactionType[];
 }
 
 export const selectMetaMaskPayFlags = createSelector(
@@ -350,6 +353,9 @@ export const selectMetaMaskPayHardwareFlags = createSelector(
 
     return {
       enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
+      enabledTransactionTypes:
+        (raw?.enabledTransactionTypes as TransactionType[]) ??
+        PAY_HARDWARE_ENABLED_TRANSACTION_TYPES_DEFAULT,
     };
   },
 );

@@ -12,8 +12,9 @@ import { selectTransactions } from '../../../../../selectors/transactionControll
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { isHardwareAccount } from '../../../../../util/address';
-import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 export const PAY_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -29,10 +30,9 @@ const PENDING_STATUSES = [...INCOMPLETE_STATUSES, TransactionStatus.submitted];
 
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
-  const { enabled: isHardwarePayEnabled } = useSelector(
-    selectMetaMaskPayHardwareFlags,
-  );
+  const isHardwarePayEnabled = useIsMMPayHardwareEnabled();
   const transactionMetadata = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
   const { payToken } = useTransactionPayToken();
 
   const { chainId, id: transactionId, txParams } = transactionMetadata || {};
@@ -73,16 +73,10 @@ export const useSignedOrSubmittedAlert = () => {
     existingTransaction || hasExistingTransactionOnPayChain,
   );
 
-  const isHardwareWallet = isHardwareAccount(from ?? '');
-  const isMusdConversion = hasTransactionType(transactionMetadata, [
-    TransactionType.musdConversion,
-  ]);
+  const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
   return useMemo(() => {
-    if (
-      !showAlert ||
-      (isHardwarePayEnabled && isHardwareWallet && isMusdConversion)
-    ) {
+    if (!showAlert || (isHardwarePayEnabled && isHardwareWallet)) {
       return [];
     }
 
@@ -107,7 +101,6 @@ export const useSignedOrSubmittedAlert = () => {
     hasExistingTransactionOnPayChain,
     isHardwarePayEnabled,
     isHardwareWallet,
-    isMusdConversion,
     isTransactionPay,
     showAlert,
   ]);

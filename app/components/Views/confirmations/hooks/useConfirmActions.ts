@@ -15,6 +15,7 @@ import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
+import { useTransactionPayingAccount } from './transactions/useTransactionPayingAccount';
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
 import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
@@ -42,6 +43,7 @@ export const useConfirmActions = () => {
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
   const isQrAccount = useIsConfirmationFromQrAccount();
+  const payingAccount = useTransactionPayingAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -98,8 +100,7 @@ export const useConfirmActions = () => {
   const sharedConfirmOptions = useMemo(
     () => ({
       fromAddress:
-        (approvalRequest?.requestData?.from as string) ||
-        (transactionMetadata?.txParams?.from as string),
+        payingAccount || (approvalRequest?.requestData?.from as string),
       onReject,
       onTransactionConfirm,
       executeApproval,
@@ -107,7 +108,7 @@ export const useConfirmActions = () => {
     }),
     [
       approvalRequest?.requestData?.from,
-      transactionMetadata?.txParams?.from,
+      payingAccount,
       onReject,
       onTransactionConfirm,
       executeApproval,

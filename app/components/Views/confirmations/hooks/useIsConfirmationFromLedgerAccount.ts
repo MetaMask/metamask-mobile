@@ -3,24 +3,22 @@ import { useMemo } from 'react';
 import { isHardwareAccount } from '../../../../util/address';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import useApprovalRequest from './useApprovalRequest';
-import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
+import { useTransactionPayingAccount } from './transactions/useTransactionPayingAccount';
 
 /**
- * Determines whether the current confirmation originates from a Ledger account.
+ * Determines whether the current confirmation is signed by a Ledger account.
  *
- * Uses the `from` address on the approval request / transaction metadata
- * rather than the currently selected account so that edge cases where
- * they differ are handled correctly.
+ * Uses the paying account rather than the currently selected account so that
+ * edge cases where they differ are handled correctly.
  */
 export function useIsConfirmationFromLedgerAccount(): boolean {
   const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
 
   return useMemo(() => {
     const fromAddress =
-      (approvalRequest?.requestData?.from as string) ||
-      (transactionMetadata?.txParams?.from as string);
+      payingAccount || (approvalRequest?.requestData?.from as string);
     if (!fromAddress) return false;
     return !!isHardwareAccount(fromAddress, [ExtendedKeyringTypes.ledger]);
-  }, [approvalRequest?.requestData?.from, transactionMetadata?.txParams?.from]);
+  }, [approvalRequest?.requestData?.from, payingAccount]);
 }

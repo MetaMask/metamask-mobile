@@ -29,6 +29,7 @@ import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfi
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
+import { useTransactionPayingAccount } from './useTransactionPayingAccount';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -46,6 +47,7 @@ export function useTransactionConfirm() {
   const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } =
     useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
     transactionMetadata ?? {};
@@ -63,9 +65,7 @@ export function useTransactionConfirm() {
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
-  const isHardwareWallet = isHardwareAccount(
-    transactionMetadata?.txParams?.from ?? '',
-  );
+  const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
   const waitForResult =
     isHardwareWallet ||

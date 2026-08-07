@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectMetaMaskPayFlags,
   selectMetaMaskPayTokensFlags,
@@ -18,6 +19,7 @@ import {
   PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
   PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
+  PAY_HARDWARE_ENABLED_TRANSACTION_TYPES_DEFAULT,
   selectDepositLimits,
   PAY_DEPOSIT_LIMITS_DEFAULT,
   PAY_PREFILLED_AMOUNT_DEFAULT,
@@ -477,6 +479,7 @@ describe('selectMetaMaskPayHardwareFlags', () => {
   it('returns default when flag is absent', () => {
     expect(selectMetaMaskPayHardwareFlags(mockedEmptyFlagsState)).toEqual({
       enabled: PAY_HARDWARE_ENABLED_DEFAULT,
+      enabledTransactionTypes: PAY_HARDWARE_ENABLED_TRANSACTION_TYPES_DEFAULT,
     });
   });
 
@@ -487,7 +490,32 @@ describe('selectMetaMaskPayHardwareFlags', () => {
         confirmations_pay_hardware: { enabled: true },
       };
 
-    expect(selectMetaMaskPayHardwareFlags(state)).toEqual({ enabled: true });
+    expect(selectMetaMaskPayHardwareFlags(state)).toEqual({
+      enabled: true,
+      enabledTransactionTypes: PAY_HARDWARE_ENABLED_TRANSACTION_TYPES_DEFAULT,
+    });
+  });
+
+  it('returns enabled transaction types from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_hardware: {
+          enabled: true,
+          enabledTransactionTypes: [
+            TransactionType.musdConversion,
+            TransactionType.moneyAccountDeposit,
+          ],
+        },
+      };
+
+    expect(selectMetaMaskPayHardwareFlags(state)).toEqual({
+      enabled: true,
+      enabledTransactionTypes: [
+        TransactionType.musdConversion,
+        TransactionType.moneyAccountDeposit,
+      ],
+    });
   });
 });
 

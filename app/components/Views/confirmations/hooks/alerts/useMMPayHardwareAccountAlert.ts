@@ -1,50 +1,28 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
-import {
-  hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../utils/transaction';
+import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
+import { hasTransactionType } from '../../utils/transaction';
 import {
   isHardwareAccount,
   isQRHardwareAccount,
 } from '../../../../../util/address';
-import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
-  const accountOverride = useTransactionAccountOverride();
+  const payingAccount = useTransactionPayingAccount();
   const fiatPayment = useTransactionPayFiatPayment();
-  const { enabled: isHardwarePayEnabled } = useSelector(
-    selectMetaMaskPayHardwareFlags,
-  );
-
-  const {
-    txParams: { from },
-  } = transactionMeta ?? { txParams: {} };
+  const isHardwarePayEnabled = useIsMMPayHardwareEnabled();
 
   const isPayTransaction = hasTransactionType(
     transactionMeta,
     PAY_TRANSACTION_TYPES,
   );
-
-  const isMusdConversion = hasTransactionType(transactionMeta, [
-    TransactionType.musdConversion,
-  ]);
-
-  // When set, accountOverride is the account paying for the transaction,
-  // except in withdraw (post-quote) flows where it is only the recipient
-  // and never signs.
-  const payingAccount = isTransactionPayWithdraw(transactionMeta)
-    ? from
-    : (accountOverride ?? from);
 
   const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
   const isQRWallet = isQRHardwareAccount(payingAccount ?? '');
@@ -58,7 +36,9 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
       return [];
     }
 
-    if (isMusdConversion && isHardwarePayEnabled && !isQRWallet) {
+    // QR wallets stay blocked: relay funding transactions are submitted in the
+    // background and cannot drive the interactive scan loop.
+    if (isHardwarePayEnabled && !isQRWallet) {
       return [];
     }
 
@@ -75,7 +55,6 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
     isFiatPayment,
     isHardwareWallet,
     isHardwarePayEnabled,
-    isMusdConversion,
     isPayTransaction,
     isQRWallet,
   ]);
