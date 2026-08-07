@@ -4,14 +4,14 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
-import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
 import { useRampsUserRegion } from '../../../../UI/Ramp/hooks/useRampsUserRegion';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('./useMMPayFiatConfig');
 jest.mock('./useTransactionPayData');
-jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('./useFiatDepositPaymentMethods');
 jest.mock('../../../../UI/Ramp/hooks/useRampsUserRegion');
 
 // Capture selector-opened emits at the ramps analytics boundary.
@@ -49,7 +49,9 @@ describe('useFiatPaymentHighlightedActions', () => {
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
-  const useRampsPaymentMethodsMock = jest.mocked(useRampsPaymentMethods);
+  const useFiatDepositPaymentMethodsMock = jest.mocked(
+    useFiatDepositPaymentMethods,
+  );
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -70,11 +72,12 @@ describe('useFiatPaymentHighlightedActions', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TRANSACTION_TYPE_MOCK],
       maxDelayMinutesForPaymentMethods: 10,
+      assetPerTransactionType: {},
     });
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
-    useRampsPaymentMethodsMock.mockReturnValue({
+    useFiatDepositPaymentMethodsMock.mockReturnValue({
       paymentMethods: [PAYMENT_METHOD_MOCK],
-    } as ReturnType<typeof useRampsPaymentMethods>);
+    } as ReturnType<typeof useFiatDepositPaymentMethods>);
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
       type: TRANSACTION_TYPE_MOCK,
@@ -154,6 +157,7 @@ describe('useFiatPaymentHighlightedActions', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TransactionType.swap],
       maxDelayMinutesForPaymentMethods: 10,
+      assetPerTransactionType: {},
     });
 
     const { result } = renderHook(() => useFiatPaymentHighlightedActions());
@@ -165,6 +169,7 @@ describe('useFiatPaymentHighlightedActions', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
+      assetPerTransactionType: {},
     });
 
     const { result } = renderHook(() => useFiatPaymentHighlightedActions());
@@ -176,6 +181,7 @@ describe('useFiatPaymentHighlightedActions', () => {
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [TRANSACTION_TYPE_MOCK],
       maxDelayMinutesForPaymentMethods: 5,
+      assetPerTransactionType: {},
     });
 
     const { result } = renderHook(() => useFiatPaymentHighlightedActions());
@@ -184,13 +190,24 @@ describe('useFiatPaymentHighlightedActions', () => {
   });
 
   it('returns empty array when no payment methods available', () => {
-    useRampsPaymentMethodsMock.mockReturnValue({
+    useFiatDepositPaymentMethodsMock.mockReturnValue({
       paymentMethods: [],
-    } as unknown as ReturnType<typeof useRampsPaymentMethods>);
+    } as unknown as ReturnType<typeof useFiatDepositPaymentMethods>);
 
     const { result } = renderHook(() => useFiatPaymentHighlightedActions());
 
     expect(result.current).toEqual([]);
+  });
+
+  it('omits Revolut Pay when it is not in the deposit-context payment methods', () => {
+    useFiatDepositPaymentMethodsMock.mockReturnValue({
+      paymentMethods: [PAYMENT_METHOD_MOCK],
+    } as ReturnType<typeof useFiatDepositPaymentMethods>);
+
+    const { result } = renderHook(() => useFiatPaymentHighlightedActions());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].paymentType).toBe('debit-credit-card');
   });
 
   it('maps payment methods to highlighted items', () => {

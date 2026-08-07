@@ -19,6 +19,7 @@ describe('useMMPayFiatConfig', () => {
     expect(result.current).toEqual({
       enabledTransactionTypes: ['simpleSend', 'swap'],
       maxDelayMinutesForPaymentMethods: 15,
+      assetPerTransactionType: {},
     });
   });
 });

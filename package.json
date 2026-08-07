@@ -184,6 +184,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "breaking",
+      "previewVersion": "20.0.0-preview-6e2b5fe"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "34.0.0",
     "@metamask/seedless-onboarding-controller": "10.1.1",
