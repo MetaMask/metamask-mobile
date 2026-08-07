@@ -457,7 +457,7 @@ describe('useUpdateTransactionPayAmount', () => {
       );
     });
 
-    it('rounds fractional atomic amounts up before encoding', async () => {
+    it('rounds fractional atomic amounts down before encoding', async () => {
       const { result } = runHook({
         transactionMeta: moneyAccountDepositMetaWithRequiredAssets,
       });
@@ -466,7 +466,8 @@ describe('useUpdateTransactionPayAmount', () => {
 
       expect(updateTransactionMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          requiredAssets: [{ ...existingRequiredAsset, amount: '0xf4241' }],
+          // 1.0000005 floored to 6 decimals → 1000000 (0xf4240)
+          requiredAssets: [{ ...existingRequiredAsset, amount: '0xf4240' }],
         }),
         expect.any(String),
       );
