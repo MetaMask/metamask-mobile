@@ -1,0 +1,13 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 1e6e80973308d20672cfceda00c5175c06476eec..b1feb9ebc4e4c24c52ce3a1bc5199bd5f5b3fe7d 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -115,7 +115,7 @@ afterEvaluate { project ->
+         def javaCompileTask = variant.javaCompileProvider.get()
+ 
+         task "jar${name}"(type: Jar, dependsOn: javaCompileTask) {
+-            from javaCompileTask.destinationDir
++            from javaCompileTask.destinationDirectory
+         }
+     }
+ 
