@@ -246,12 +246,7 @@ export const PredictTradeStatus = {
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
   ATTEMPT_STARTED: 'attempt_started',
-  SWAP_STARTED: 'swap_started',
-  SWAP_SUCCEEDED: 'swap_succeeded',
-  ORDER_SUBMITTED: 'order_submitted',
   ORDER_FAILED: 'order_failed',
-  FAILED_SWAP: 'failed_swap',
-  FAILED_ORDER: 'failed_order',
 } as const;
 
 export const MAX_TRACKED_PREDICT_BUY_TERMINALS = 500;
@@ -261,8 +256,7 @@ export type PredictTradeStatusValue =
 
 export type PredictBuyTerminalStatus =
   | typeof PredictTradeStatus.SUCCEEDED
-  | typeof PredictTradeStatus.FAILED_SWAP
-  | typeof PredictTradeStatus.FAILED_ORDER
+  | typeof PredictTradeStatus.FAILED
   | typeof PredictTradeStatus.CANCELLED;
 
 export type PredictPaymentMethodValue =
