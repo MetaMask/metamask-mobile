@@ -87,9 +87,10 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
           await WalletView.tapActivityButton();
 
           await ActivitiesView.tapTypeFilterChip();
-          await ActivitiesView.selectTypeFilterOptionSafe('perps');
+          await ActivitiesView.tapTypeFilterOption('perps');
+
           await ActivitiesView.tapPerpsFilterChip();
-          await ActivitiesView.selectPerpsFilterOptionSafe('deposit');
+          await ActivitiesView.tapPerpsFilterOption('deposit');
 
           await ActivitiesView.verifyActivityItemLabelAndAmount(
             'Account funded',

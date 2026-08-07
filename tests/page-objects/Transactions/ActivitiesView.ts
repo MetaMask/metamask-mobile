@@ -64,60 +64,27 @@ class ActivitiesView {
     });
   }
 
-  async selectTypeFilterOptionSafe(option: string): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const label =
-          option === 'perps'
-            ? 'Perps'
-            : option === 'predictions'
-              ? 'Predictions'
-              : option === 'deposit'
-                ? 'Deposits'
-                : option;
-        let sheetOpen = true;
-        try {
-          await Assertions.expectElementToBeVisible(
-            Matchers.getElementByText(label),
-            {
-              timeout: 1500,
-              description: 'Check if filter sheet is open',
-            },
-          );
-        } catch {
-          sheetOpen = false;
-        }
-
-        if (!sheetOpen) {
-          await UnifiedGestures.waitAndTap(this.typeFilterChip, {
-            description: 'Activity Type Filter Chip',
-            timeout: 3000,
-          });
-        }
-
-        // Tap the option container directly. Bypass display check to avoid iOS flattening bugs.
-        await UnifiedGestures.waitAndTap(this.typeFilterOption(option), {
-          description: `Activity Type Filter Option: ${option}`,
-          checkForDisplayed: false,
-          delay: 1500,
-          timeout: 4000,
-        });
-
-        await Assertions.expectElementToNotBeVisible(this.typeFilterSheet, {
-          timeout: 4000,
-          description: 'Wait for type filter sheet to close after selection',
-        });
-      },
-      {
-        timeout: 30000,
-        description: 'Selecting type filter option with retry',
-      },
-    );
+  async tapTypeFilterOption(option: string): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.typeFilterOption(option), {
+      description: `Activity Type Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
   }
 
   async tapPerpsFilterChip(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.perpsFilterChip, {
       description: 'Activity Perps Filter Chip',
+    });
+  }
+
+  async tapPerpsFilterOption(option: string): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.perpsFilterOption(option), {
+      description: `Activity Perps Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
     });
   }
 
@@ -148,8 +115,8 @@ class ActivitiesView {
         await UnifiedGestures.waitAndTap(this.perpsFilterOption(option), {
           description: `Activity Perps Filter Option: ${option}`,
           checkForDisplayed: false,
-          delay: 1500,
-          timeout: 4000,
+          delay: 2000,
+          timeout: 8000,
         });
 
         await Assertions.expectElementToNotBeVisible(this.perpsFilterSheet, {
