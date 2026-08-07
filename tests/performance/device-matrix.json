@@ -5,6 +5,12 @@
       "os_version": "13.0",
       "category": "low",
       "description": "Google Pixel 7 Pro with Android 13 on BrowserStack and TestMu (Pixel 7 Pro / 15 is unsupported on TestMu for this org)."
+    },
+    {
+      "name": "Google Pixel 8 Pro",
+      "os_version": "14.0",
+      "category": "low",
+      "description": "Google Pixel 8 Pro with Android 14 on BrowserStack and TestMu."
     }
   ],
   "ios_devices": [
@@ -27,11 +33,11 @@
     "low": "Low-end devices for backward compatibility and emerging market testing"
   },
   "os_coverage": {
-    "android": ["13.0"],
+    "android": ["13.0", "14.0"],
     "ios": ["16", "17"]
   },
   "notes": {
     "ios_limitations": "iPhone 11 (iOS 13) and iPhone 8 (iOS 11) have OS versions not supported by MetaMask app",
-    "android_performance": "Android performance E2E runs on Google Pixel 8 Pro only (Samsung Galaxy removed from the matrix)."
+    "android_performance": "Android performance E2E runs on the Google Pixel 7 Pro / Android 13 and Google Pixel 8 Pro / Android 14 pool."
   }
 }

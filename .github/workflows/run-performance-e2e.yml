@@ -68,6 +68,11 @@ on:
         required: false
         type: boolean
         default: true
+      enable_testmu_standard:
+        description: 'Run the direct TestMu Standard lane alongside HyperExecute'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       description:
@@ -143,6 +148,11 @@ on:
         default: ''
       enable_testmu_benchmark:
         description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
+        required: false
+        type: boolean
+        default: false
+      enable_testmu_standard:
+        description: 'Run the direct TestMu Standard lane alongside HyperExecute'
         required: false
         type: boolean
         default: false
@@ -319,12 +329,11 @@ jobs:
         run: |
           FILE="tests/performance/device-matrix.json"
 
-          # TestMu PoC: one logical Pixel device only (no Galaxy, no duplicate Pixel aliases).
-          # Matrix keeps BrowserStack catalog name "Google Pixel 7 Pro" / 13; TestMu runner/resolver
-          # maps it to TestMu catalog name "Pixel 7 Pro" / 13 for session capabilities.
-          ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name == "Google Pixel 7 Pro")]' "$FILE")
+          # TestMu PoC: Pixel 7/8 pool only. BrowserStack receives explicit
+          # catalog entries; TestMu resolver maps each to its matching catalog.
+          ANDROID_MATRIX=$(jq '[.android_devices[] | select(.name == "Google Pixel 7 Pro" or .name == "Google Pixel 8 Pro")]' "$FILE")
           IOS_MATRIX='[]'
-          echo "PoC mode: Google Pixel 7 Pro only (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
+          echo "PoC mode: Google Pixel 7/8 pool (event: ${{ github.event_name }}, branch: $BRANCH_NAME, PR: ${PR_NUMBER:-none})"
 
           {
             echo "android_matrix<<EOF"
@@ -760,6 +769,7 @@ jobs:
     if: >-
       always() && !failure() && !cancelled() &&
       inputs.enable_testmu_benchmark != false &&
+      inputs.enable_testmu_standard == true &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
@@ -913,6 +923,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       inputs.enable_testmu_benchmark != false &&
+      inputs.enable_testmu_standard == true &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
@@ -953,6 +964,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       inputs.enable_testmu_benchmark != false &&
+      inputs.enable_testmu_standard == true &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') &&
