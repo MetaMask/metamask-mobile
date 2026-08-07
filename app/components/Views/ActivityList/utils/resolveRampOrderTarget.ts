@@ -15,6 +15,7 @@ import {
 import { createOrderDetailsNavDetails } from '../../../UI/Ramp/Aggregator/Views/OrderDetails/OrderDetails';
 import { createRampsOrderDetailsNavDetails } from '../../../UI/Ramp/Views/OrderDetails';
 import { createDepositOrderDetailsNavDetails } from '../../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../UI/Ramp/constants/rampsBuyCufTags';
 
 export type RampOrderTarget =
   | 'ramps-v2-details'
@@ -47,7 +48,8 @@ export interface NavigateToRampOrderTargetArgs {
   data: FiatOrder | RampsOrder;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors React Navigation's navigate spread of create*NavDetails
   navigation: { navigate: (...args: any[]) => void };
-  goToBuy: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- useRampNavigation().goToBuy
+  goToBuy: (...args: any[]) => any;
 }
 
 /**
@@ -64,7 +66,7 @@ export function navigateToRampOrderTarget({
   const target = resolveRampOrderTarget(data);
 
   if (target === 'deposit-resume-buy') {
-    goToBuy();
+    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
     return;
   }
 
