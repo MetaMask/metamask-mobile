@@ -350,6 +350,12 @@ const PerpsHomeView = () => {
 
   // Calculate positions subtitle with P&L
   const hasPositions = positions.length > 0;
+  // ADR58 POC (DO NOT MERGE): show debug banner only for an open ETH position.
+  // Matches domain equality used by useHasExistingPosition (position.symbol === asset).
+  const hasOpenEthPosition = useMemo(
+    () => positions.some((position) => position.symbol === 'ETH'),
+    [positions],
+  );
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
       const pnlNum = parseFloat(unrealizedPnl);
@@ -721,6 +727,25 @@ const PerpsHomeView = () => {
   const homeSections = useMemo(
     () => [
       {
+        // ADR58 POC (DO NOT MERGE) — debug banner above the open positions list.
+        key: 'adr58-eth-position-banner',
+        visible: hasOpenEthPosition,
+        content: (
+          <View
+            testID={PerpsHomeViewSelectorsIDs.ADR58_ETH_POSITION_BANNER}
+            // ADR58 POC: theme error tokens = red bg / white text (easy to delete).
+            style={styles.adr58EthPositionBanner}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              style={styles.adr58EthPositionBannerText}
+            >
+              ADR58 POC: ETH POSITION DETECTED
+            </Text>
+          </View>
+        ),
+      },
+      {
         key: 'positions',
         visible: isLoading.positions || positions.length > 0,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS),
@@ -947,6 +972,7 @@ const PerpsHomeView = () => {
     ],
     [
       isLoading,
+      hasOpenEthPosition,
       positions,
       orders,
       privacyMode,
@@ -977,6 +1003,8 @@ const PerpsHomeView = () => {
       recentActivity,
       handleSectionLayout,
       moreItems,
+      styles.adr58EthPositionBanner,
+      styles.adr58EthPositionBannerText,
     ],
   );
 

@@ -113,6 +113,17 @@ const styleSheet = (params: { theme: Theme }) => {
     sectionContent: {
       paddingHorizontal: 16,
     },
+    // ADR58 POC (DO NOT MERGE): red debug banner + white text (error tokens).
+    adr58EthPositionBanner: {
+      backgroundColor: colors.error.default,
+      marginHorizontal: 16,
+      marginBottom: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    adr58EthPositionBannerText: {
+      color: colors.error.inverse,
+    },
   });
 };
 

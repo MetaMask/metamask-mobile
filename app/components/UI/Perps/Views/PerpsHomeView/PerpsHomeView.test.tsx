@@ -887,6 +887,86 @@ describe('PerpsHomeView', () => {
     expect(queryByText('perps.home.positions')).toBeNull();
   });
 
+  // ADR58 POC (DO NOT MERGE) — debug banner for open ETH position.
+  it('shows the ADR58 ETH position banner with exact copy when an ETH position is open', () => {
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      positions: [
+        {
+          symbol: 'ETH',
+          size: '1.0',
+          entryPrice: '2000',
+          positionValue: '2000',
+          unrealizedPnl: '0',
+          marginUsed: '200',
+          leverage: { type: 'cross' as const, value: 10 },
+          liquidationPrice: '1500',
+          maxLeverage: 50,
+          returnOnEquity: '0',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+      ],
+    });
+
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.ADR58_ETH_POSITION_BANNER),
+    ).toHaveTextContent('ADR58 POC: ETH POSITION DETECTED');
+  });
+
+  it('hides the ADR58 ETH position banner when there is no open ETH position', () => {
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      positions: [],
+    });
+
+    const { queryByTestId } = render(<PerpsHomeView />);
+
+    expect(
+      queryByTestId(PerpsHomeViewSelectorsIDs.ADR58_ETH_POSITION_BANNER),
+    ).toBeNull();
+  });
+
+  it('hides the ADR58 banner for a non-ETH open position', () => {
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      positions: [
+        {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '50000',
+          positionValue: '25000',
+          unrealizedPnl: '100',
+          marginUsed: '1000',
+          leverage: { type: 'cross' as const, value: 25 },
+          liquidationPrice: '48000',
+          maxLeverage: 50,
+          returnOnEquity: '10',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+          takeProfitCount: 0,
+          stopLossCount: 0,
+        },
+      ],
+    });
+
+    const { queryByTestId } = render(<PerpsHomeView />);
+
+    expect(
+      queryByTestId(PerpsHomeViewSelectorsIDs.ADR58_ETH_POSITION_BANNER),
+    ).toBeNull();
+  });
+
   it('hides orders section when no orders', () => {
     // Arrange
     mockUsePerpsHomeData.mockReturnValue({
