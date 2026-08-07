@@ -7,6 +7,17 @@ export interface UseHomepageSparklinesResult {
   sparklines: Record<string, number[]>;
 }
 
+type MarketTrend = [number, string][] | undefined;
+
+/**
+ * `trend` is populated by the paired @metamask/perps-controller change (see
+ * docs/decisions/0001-perps-homepage-hyperliquid-calls.md) but isn't in the
+ * currently published package types yet, so it's read via this local type
+ * rather than `PerpsMarketData['trend']`. Drop this once the dependency is
+ * bumped to a release that declares the field.
+ */
+type MarketWithTrend = PerpsMarketData & { trend?: MarketTrend };
+
 function downsample(data: number[], targetLength: number): number[] {
   if (data.length <= targetLength) return data;
   const result: number[] = [];
@@ -17,7 +28,7 @@ function downsample(data: number[], targetLength: number): number[] {
   return result;
 }
 
-function extractCloses(trend: PerpsMarketData['trend']): number[] {
+function extractCloses(trend: MarketTrend): number[] {
   if (!trend || trend.length === 0) return [];
   return trend
     .map(([, price]) => parseFloat(String(price)))
@@ -44,7 +55,7 @@ export function useHomepageSparklines(
   const sparklines = useMemo(() => {
     const result: Record<string, number[]> = {};
     for (const market of safeMarkets) {
-      const closes = extractCloses(market.trend);
+      const closes = extractCloses((market as MarketWithTrend).trend);
       if (closes.length < 2) continue;
       result[market.symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
     }
