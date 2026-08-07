@@ -172,11 +172,7 @@ const AgentStepHudInner = () => {
   // FullWindowOverlay is an iOS-only UIWindow bridge. Rendering it on Android
   // warns on every step and can abort Fabric while the runtime is restarting.
   if (Platform.OS === 'ios') {
-    return (
-      <FullWindowOverlay testID="agent-step-hud-ios-overlay">
-        {content}
-      </FullWindowOverlay>
-    );
+    return <FullWindowOverlay>{content}</FullWindowOverlay>;
   }
   return content;
 };
