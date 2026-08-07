@@ -31,6 +31,8 @@ const SMART_ACCOUNT_UPGRADED_ACTIVITY = 'Smart account upgraded';
 const SMART_ACCOUNT_UPGRADING_ACTIVITY = 'Upgrading smart account';
 const TEST_DAPP_READY_TIMEOUT_MS = 30_000;
 const TEST_DAPP_READY_POLL_MS = 500;
+const ANDROID_CONFIRM_SHEET_TIMEOUT_MS = 45_000;
+const ANDROID_CONFIRM_POLL_MS = 1_000;
 
 export {
   LOCAL_CHAIN_CAIP,
@@ -39,28 +41,47 @@ export {
 };
 
 /**
- * Wait until the target control is DOM-enabled and the provider has a
- * selected account.
+ * Wait until the provider has a selected account and the target control is
+ * DOM-enabled.
  */
 const waitForTestDappReadyForTap = async (
   pageUrl: string,
   buttonId: string,
   description: string,
 ): Promise<void> => {
-  await ChromeCdpHelpers.waitForElementEnabledByIdInWebView(pageUrl, buttonId);
   await Utilities.executeWithRetry(
     async () => {
-      const selectedAddress = await ChromeCdpHelpers.evaluateInWebView<
-        string | null
-      >(pageUrl, `(() => window.ethereum?.selectedAddress ?? null)()`);
-      if (!selectedAddress) {
+      const readiness = await ChromeCdpHelpers.evaluateInWebView<{
+        selectedAddress: string | null;
+        buttonEnabled: boolean;
+      }>(
+        pageUrl,
+        `(() => {
+          const el = document.getElementById(${JSON.stringify(buttonId)});
+          const buttonEnabled = Boolean(
+            el &&
+              !('disabled' in el && Boolean(el.disabled)) &&
+              el.getAttribute('aria-disabled') !== 'true',
+          );
+          return {
+            selectedAddress: window.ethereum?.selectedAddress ?? null,
+            buttonEnabled,
+          };
+        })()`,
+      );
+      if (!readiness?.selectedAddress) {
         throw new Error(
           `Test dapp has no selectedAddress before tapping #${buttonId} (${description})`,
         );
       }
+      if (!readiness.buttonEnabled) {
+        throw new Error(
+          `Test dapp #${buttonId} is not enabled before tap (${description})`,
+        );
+      }
     },
     {
-      description: `Wait for selectedAddress before tapping #${buttonId} (${description})`,
+      description: `Wait for selectedAddress and #${buttonId} enabled (${description})`,
       timeout: TEST_DAPP_READY_TIMEOUT_MS,
       interval: TEST_DAPP_READY_POLL_MS,
     },
@@ -69,9 +90,6 @@ const waitForTestDappReadyForTap = async (
 
 /**
  * Tap a test-dapp WebView button and wait for the confirmation sheet.
- *
- * Android: CDP can report a successful DOM click without MetaMask opening
- * the confirmation sheet. Retry the click when confirm-button never appears.
  */
 const tapTestDappButtonAndWaitForConfirm = async (
   buttonId: string,
@@ -83,40 +101,30 @@ const tapTestDappButtonAndWaitForConfirm = async (
   await waitForTestDappReadyForTap(pageUrl, buttonId, description);
 
   if (PlatformDetector.isAndroidAppium()) {
-    ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    const maxAttempts = 3;
-    // Short per-attempt wait so we can re-click within a reasonable budget.
-    const perAttemptConfirmTimeoutMs = 12_000;
-    let lastError: unknown;
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      if (attempt > 1) {
-        ChromeCdpHelpers.resetMetaMaskWebViewCache();
-      }
-      const clicked = await ChromeCdpHelpers.clickByIdInWebView(
-        pageUrl,
-        buttonId,
-      );
-      if (!clicked) {
-        lastError = new Error(
-          `CDP could not click #${buttonId} (${description}) on attempt ${attempt}/${maxAttempts}`,
+    await Utilities.executeWithRetry(
+      async () => {
+        const clicked = await ChromeCdpHelpers.clickByIdInWebView(
+          pageUrl,
+          buttonId,
         );
-        continue;
-      }
-      try {
-        await FooterActions.waitForConfirmButton(perAttemptConfirmTimeoutMs);
-        return;
-      } catch (error) {
-        // Push onboarding sheet can sit above the confirmation UI; clear it
-        // before the next CDP re-click.
-        await dismissPushNotificationExistingUserSheet();
-        lastError = error;
-      }
-    }
-    throw lastError instanceof Error
-      ? lastError
-      : new Error(
-          `Confirmation sheet did not open after clicking #${buttonId} (${description}) in ${maxAttempts} attempts`,
-        );
+        if (!clicked) {
+          throw new Error(`CDP could not click #${buttonId} (${description})`);
+        }
+        try {
+          await FooterActions.waitForConfirmButton(ANDROID_CONFIRM_POLL_MS);
+        } catch (error) {
+          // Push onboarding sheet can sit above the confirmation UI.
+          await dismissPushNotificationExistingUserSheet();
+          throw error;
+        }
+      },
+      {
+        timeout: ANDROID_CONFIRM_SHEET_TIMEOUT_MS,
+        interval: 0,
+        description: `CDP click #${buttonId} and wait for confirm (${description})`,
+      },
+    );
+    return;
   }
 
   await WebView.tapById(buttonId, {
