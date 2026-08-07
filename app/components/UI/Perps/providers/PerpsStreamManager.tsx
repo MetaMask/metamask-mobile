@@ -305,8 +305,8 @@ abstract class StreamChannel<T> {
     const cached = this.getCachedData();
     if (cached != null) {
       params.callback(cached);
-      // Mark as having received first update since we provided cached data
-      subscription.hasReceivedFirstUpdate = true;
+      // Cached data renders immediately but must not consume the first fresh
+      // update exemption. The first live snapshot should also bypass throttling.
     }
 
     // Ensure WebSocket connected
@@ -439,6 +439,11 @@ abstract class StreamChannel<T> {
    */
   public reconnect() {
     this.disconnect();
+    // Subscribers survive reconnect(). Rearm their first-update exemption so
+    // the first fresh snapshot from the new socket is delivered immediately.
+    this.subscribers.forEach((subscriber) => {
+      subscriber.hasReceivedFirstUpdate = false;
+    });
     // Re-establish connection if there are active subscribers
     if (this.subscribers.size > 0) {
       this.connect();

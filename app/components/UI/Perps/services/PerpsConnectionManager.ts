@@ -279,6 +279,9 @@ class PerpsConnectionManagerClass {
             netState.isInternetReachable ?? netState.isConnected ?? false;
 
           if (isOnline && this.wasOffline) {
+            // Claim the transition synchronously. NetInfo may emit duplicate
+            // online notifications before asynchronous validation completes.
+            this.wasOffline = false;
             DevLogger.log(
               'PerpsConnectionManager: Network restored - validating connection',
             );
@@ -319,6 +322,7 @@ class PerpsConnectionManagerClass {
         DevLogger.log(
           `PerpsConnectionManager: ${context} - connection healthy`,
         );
+        this.resubscribeActiveStreamChannels();
         return;
       } catch {
         DevLogger.log(
@@ -337,7 +341,8 @@ class PerpsConnectionManagerClass {
   }
 
   /**
-   * Attempt reconnection after network restore with exponential backoff.
+   * Validate and restore stream subscriptions after network restore with
+   * exponential backoff.
    * WebSocket endpoints may not be reachable immediately even though
    * NetInfo reports isInternetReachable: true.
    */
@@ -348,7 +353,7 @@ class PerpsConnectionManagerClass {
   }
 
   private attemptNetworkRestoreReconnect(): void {
-    this.validateAndReconnect('PerpsConnectionManager.netInfoListener', true)
+    this.validateAndReconnect('PerpsConnectionManager.netInfoListener')
       .then(() => {
         this.wasOffline = false;
         this.networkRestoreRetryCount = 0;
@@ -370,6 +375,7 @@ class PerpsConnectionManagerClass {
             this.attemptNetworkRestoreReconnect();
           }, delay);
         } else {
+          this.wasOffline = true;
           Logger.error(
             ensureError(error, 'PerpsConnectionManager.netInfoListener'),
             {

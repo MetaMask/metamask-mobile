@@ -4499,6 +4499,30 @@ describe('PerpsStreamManager', () => {
       pricesDisconnect.mockRestore();
     });
 
+    it('delivers the first fresh positions update immediately after reconnect', () => {
+      const controllerCallbacks: ((positions: Position[]) => void)[] = [];
+      mockSubscribeToPositions.mockImplementation(
+        (params: { callback: (positions: Position[]) => void }) => {
+          controllerCallbacks.push(params.callback);
+          return jest.fn();
+        },
+      );
+      const callback = jest.fn();
+
+      testStreamManager.positions.subscribe({ callback, throttleMs: 100 });
+
+      act(() => controllerCallbacks[0]([]));
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      act(() => controllerCallbacks[0]([]));
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      testStreamManager.clearAllChannels();
+
+      act(() => controllerCallbacks[controllerCallbacks.length - 1]([]));
+      expect(callback).toHaveBeenCalledTimes(2);
+    });
+
     it('recreates prewarmed price subscription when no direct price subscribers are active', async () => {
       const firstUnsubscribe = jest.fn();
       const secondUnsubscribe = jest.fn();
@@ -4700,6 +4724,39 @@ describe('PerpsStreamManager', () => {
       // Should receive cached positions immediately via getCachedData()
       expect(callback).toHaveBeenCalledWith(mockPositions);
       expect(mockSubscribeToPositions).not.toHaveBeenCalled();
+    });
+
+    it('delivers the first fresh positions update immediately after cached data', () => {
+      let controllerCallback: ((positions: Position[]) => void) | null = null;
+      mockSubscribeToPositions.mockImplementation(
+        (params: { callback: (positions: Position[]) => void }) => {
+          controllerCallback = params.callback;
+          return jest.fn();
+        },
+      );
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: mockPositions,
+        orders: [],
+        accountState: null,
+      });
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      streamManager.positions.subscribe({ callback, throttleMs: 100 });
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenLastCalledWith(mockPositions);
+
+      act(() => controllerCallback?.([]));
+      expect(callback).toHaveBeenCalledTimes(2);
+
+      act(() => controllerCallback?.(mockPositions as Position[]));
+      expect(callback).toHaveBeenCalledTimes(2);
+
+      act(() => jest.advanceTimersByTime(100));
+      expect(callback).toHaveBeenCalledTimes(3);
+      expect(callback).toHaveBeenLastCalledWith(mockPositions);
     });
 
     it('serves cached account state instantly via getCachedData before isInitialized', () => {
