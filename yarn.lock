@@ -13166,7 +13166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-cookies/cookies@npm:^6.2.1":
+"@react-native-cookies/cookies@npm:6.2.1":
   version: 6.2.1
   resolution: "@react-native-cookies/cookies@npm:6.2.1"
   dependencies:
@@ -13174,6 +13174,17 @@ __metadata:
   peerDependencies:
     react-native: ">= 0.60.2"
   checksum: 10/cf479715f803f346dc46d4e73b08de76115370657bbc298ce0e6f2d87fafcd8c75a618b0a4943435ef312df142f2134deacf8a1aae7086f14f1265d1b46f8a56
+  languageName: node
+  linkType: hard
+
+"@react-native-cookies/cookies@patch:@react-native-cookies/cookies@npm%3A6.2.1#~/.yarn/patches/@react-native-cookies-cookies-npm-6.2.1-13b1e04ec5.patch":
+  version: 6.2.1
+  resolution: "@react-native-cookies/cookies@patch:@react-native-cookies/cookies@npm%3A6.2.1#~/.yarn/patches/@react-native-cookies-cookies-npm-6.2.1-13b1e04ec5.patch::version=6.2.1&hash=a9a1fe"
+  dependencies:
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    react-native: ">= 0.60.2"
+  checksum: 10/4ecb60f6b96a8a4f3e7520a6659d2023d10f4a1e7997d506376a5366eed70bfe946797070d7a3fb0ce02b043fb727e2e45e8b4fbcff0e13fddf54c6cb45fa97c
   languageName: node
   linkType: hard
 
@@ -36366,7 +36377,7 @@ __metadata:
     "@react-native-community/datetimepicker": "npm:^8.5.1"
     "@react-native-community/netinfo": "npm:11.5.2"
     "@react-native-community/slider": "npm:5.2.0"
-    "@react-native-cookies/cookies": "npm:^6.2.1"
+    "@react-native-cookies/cookies": "patch:@react-native-cookies/cookies@npm%3A6.2.1#~/.yarn/patches/@react-native-cookies-cookies-npm-6.2.1-13b1e04ec5.patch"
     "@react-native-firebase/app": "npm:^20.5.0"
     "@react-native-firebase/messaging": "npm:^20.5.0"
     "@react-native-masked-view/masked-view": "npm:^0.3.1"
@@ -36568,7 +36579,7 @@ __metadata:
     react-compiler-runtime: "npm:^19.1.0-rc.2"
     react-dom: "npm:19.2.0"
     react-native: "patch:react-native@npm%3A0.83.6#~/.yarn/patches/react-native-npm-0.83.6-106e10c49d.patch"
-    react-native-aes-crypto: "npm:3.0.3"
+    react-native-aes-crypto: "patch:react-native-aes-crypto@npm%3A3.0.3#~/.yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch"
     react-native-aes-crypto-forked: "patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch"
     react-native-animatable: "npm:^1.3.3"
     react-native-background-timer: "npm:2.1.1"
@@ -36596,7 +36607,7 @@ __metadata:
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
     react-native-keyboard-controller: "npm:1.20.7"
     react-native-keychain: "npm:^9.0.0"
-    react-native-launch-arguments: "npm:^4.0.1"
+    react-native-launch-arguments: "patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch"
     react-native-level-fs: "npm:3.0.1"
     react-native-linear-gradient: "npm:^2.8.3"
     react-native-material-textfield: "npm:0.16.1"
@@ -36608,7 +36619,7 @@ __metadata:
     react-native-nitro-websockets: "npm:^1.0.3"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:8.0.0"
-    react-native-performance: "npm:^6.0.0"
+    react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
     react-native-permissions: "npm:^5.6.0"
     react-native-progress: "npm:3.5.0"
     react-native-qrcode-svg: "npm:6.3.21"
@@ -40629,6 +40640,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-aes-crypto@patch:react-native-aes-crypto@npm%3A3.0.3#~/.yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch":
+  version: 3.0.3
+  resolution: "react-native-aes-crypto@patch:react-native-aes-crypto@npm%3A3.0.3#~/.yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch::version=3.0.3&hash=771f0f"
+  checksum: 10/1c08e586c01d1e54facac02ae0a3de630af37c1453e18fc9c9ee6dc5ad133e4a79f8b880c0b2ca439073adb9147fa1ea0998f6a83f7dac74b7293ebdf51db262
+  languageName: node
+  linkType: hard
+
 "react-native-animatable@npm:1.4.0, react-native-animatable@npm:^1.3.3":
   version: 1.4.0
   resolution: "react-native-animatable@npm:1.4.0"
@@ -40968,13 +40986,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-launch-arguments@npm:^4.0.1":
+"react-native-launch-arguments@npm:4.0.1":
   version: 4.0.1
   resolution: "react-native-launch-arguments@npm:4.0.1"
   peerDependencies:
     react: ">=16.8.1"
     react-native: ">=0.60.0-rc.0 <1.0.x"
   checksum: 10/e05eb17421d850e588e6852a1050e403588c5c93ec131a5424e895879c1693ff97b4a0fa94deef19a14e7fc4b1e3429d84c35d23668a535b8ae81741e4053255
+  languageName: node
+  linkType: hard
+
+"react-native-launch-arguments@patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch":
+  version: 4.0.1
+  resolution: "react-native-launch-arguments@patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch::version=4.0.1&hash=6171f1"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 10/1e4ce775e89bbd6bcf8c49789104a80a0092b3aa83ac9b8564124e487ea8bbbc6bb625116b78f130beeb63d39112c4d7d089dde9cad2fd03e58c6c4aae9089cb
   languageName: node
   linkType: hard
 
@@ -41152,12 +41180,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-performance@npm:^6.0.0":
+"react-native-performance@npm:6.0.0":
   version: 6.0.0
   resolution: "react-native-performance@npm:6.0.0"
   peerDependencies:
     react-native: "*"
   checksum: 10/0228eb759760308b84d1ee96a60634bea5a0e25b89c77817bbcd23fbc35cc3597d5f05079a85cd5003ec6ec007d9e22f70fc502e8e4b01a4747c67b42c215659
+  languageName: node
+  linkType: hard
+
+"react-native-performance@patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch":
+  version: 6.0.0
+  resolution: "react-native-performance@patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch::version=6.0.0&hash=942a8d"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10/e64e1446f6dd39081624e3006349ef20acce34a24d5ad510406cb1e7c0bc621d81f8255a281c1a6ccdbc4077802a8d5dbeafd624d665eeb27f237f1ca310c178
   languageName: node
   linkType: hard
 
