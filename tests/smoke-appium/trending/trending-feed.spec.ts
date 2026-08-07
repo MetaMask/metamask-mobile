@@ -83,7 +83,7 @@ appiumTest.describe(
         });
     };
 
-    appiumTest.skip(
+    appiumTest(
       'Navigate to all sections full views via View All and return to feed',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(

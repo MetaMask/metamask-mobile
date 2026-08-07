@@ -443,11 +443,12 @@ class TrendingView {
   }
 
   async verifyPerpDetailsVisible(): Promise<void> {
-    // Verify we are on Perps market details page by checking for the container
-    await Assertions.expectElementToBeVisible(
+    // expectElementToExist, not expectElementToBeVisible: isDisplayed() is flaky
+    // on iOS for this container right after the safe-area layout pass.
+    await Assertions.expectElementToExist(
       Matchers.getElementByID('perps-market-details-view'),
       {
-        description: 'Perps market details view should be visible',
+        description: 'Perps market details view should exist',
       },
     );
   }
