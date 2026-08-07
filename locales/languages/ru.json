@@ -311,7 +311,7 @@
     "warning_text_2": "удалены,",
     "warning_text_3": "если вы продолжите.",
     "warning_text_4": "Вы сможете восстановить их ТОЛЬКО с помощью секретной фразы для восстановления кошелька. MetaMask не сможет помочь вам восстановить их.",
-    "warning_proceed": "Удалить кошелек и продолжить",
+    "warning_proceed": "Remove wallet and proceed",
     "warning_cancel": "Отмена",
     "step1": "Создание кошелька",
     "step2": "Создать пароль",
@@ -349,7 +349,7 @@
   "onboarding_success": {
     "title": "Храните свою секретную фразу для восстановления в безопасности!",
     "description": "Эта секретная фраза для восстановления может помочь вам восстановить доступ, если вы когда-нибудь забудете свой пароль или потеряете доступ к своим данным для входа.",
-    "description_bold": "разделе «Настройки» > «Безопасность и конфиденциальность».",
+    "description_bold": "Настройки > Безопасность и конфиденциальность.",
     "description_continued": "вы можете сохранить эту фразу в надежном месте, чтобы никогда не потерять доступ к своим деньгам.",
     "learn_more": "Подробнее",
     "learn_how": "Узнайте как",
@@ -376,7 +376,7 @@
     "remind_later": "Мы напомним вам позже",
     "remind_later_description": "Если вы не сделаете резервную копию своей секретной фразы для восстановления, вы потеряете доступ к своим средствам, если не сможете войти в приложение или приобретете новое устройство.",
     "remind_later_description2": "Вы можете создать резервную копию своих кошельков или увидеть свою секретную фразу для восстановления в",
-    "setting_security_privacy": "разделе «Настройки» > «Безопасность и конфиденциальность»",
+    "setting_security_privacy": "Настройки > Безопасность и конфиденциальность",
     "wallet_ready": "Ваш кошелек готов!"
   },
   "social_login_ios_user": {
@@ -421,7 +421,7 @@
     "step4": {
       "title": "Главное меню",
       "content1": "Из этого меню вы можете получить доступ к истории транзакций, настройкам и поддержке.",
-      "content2": "Вы можете выполнять другие действия со счетами и получать доступ к настройкам MetaMask."
+      "content2": "You can take more actions with your accounts and access MetaMask settings."
     },
     "step5": {
       "title": "Обзор в браузере",
@@ -1104,9 +1104,22 @@
       }
     },
     "type_filter": {
+      "title": "Тип",
+      "placeholder": "Тип",
       "all": "Все типы",
       "tokens": "Токены",
       "perps": "Перпы"
+    },
+    "timeframe_filter": {
+      "title": "Период",
+      "7d": "7 Д",
+      "30d": "30Д"
+    },
+    "sort_filter": {
+      "title": "Сортировать по",
+      "pnl": "П/У",
+      "roi": "П/У %",
+      "win_rate": "Процент успешных сделок"
     },
     "feed": {
       "title": "Лучшие трейдеры",
@@ -1266,7 +1279,7 @@
       "get_new_quote": "Получить новую котировку",
       "available_balance": "Доступно: {{amount}}",
       "toggle_amount_display": "Переключение между суммой в токенах и долларах",
-      "includes_mm_fee": "Включает комиссию MM {{fee}}%",
+      "includes_mm_fee": "Включает {{fee}}% комиссии MetaMask",
       "pay_with_no_tokens": "Нет токенов для оплаты",
       "receive_with_no_tokens": "Нет доступных токенов для получения",
       "pay_with_filter_all": "Все",
@@ -1281,14 +1294,14 @@
       "toast_complete_sell": "Продано {{amount}} {{symbol}} за {{counter}}",
       "toast_failed_buy": "Не удалось купить {{symbol}}",
       "toast_failed_sell": "Не удалось продать {{symbol}}",
-      "edit_quick_amounts_title": "Edit quick amounts",
-      "edit_quick_amounts_set_buy": "Set Buy amounts",
-      "edit_quick_amounts_set_sell": "Set Sell amounts",
-      "edit_quick_amounts_confirm": "Подтвердить",
-      "edit_quick_amounts_buy_above_zero": "Buy amount should be above $0",
-      "edit_quick_amounts_buy_below_max": "Buy amount should be below ${{max}}",
-      "edit_quick_amounts_sell_above_zero": "Sell amount should be above 0%",
-      "edit_quick_amounts_sell_below_max": "Sell amount should be below 100%"
+      "edit_quick_amounts_title": "Изменить суммы по умолчанию",
+      "edit_quick_amounts_set_buy": "Купить",
+      "edit_quick_amounts_set_sell": "Продать",
+      "edit_quick_amounts_confirm": "Сохранить",
+      "edit_quick_amounts_buy_above_zero": "Сумма покупки должна быть выше {{min}}",
+      "edit_quick_amounts_buy_below_max": "Сумма покупки должна быть ниже {{max}}",
+      "edit_quick_amounts_sell_above_zero": "Сумма продажи должна быть больше 0%",
+      "edit_quick_amounts_sell_below_max": "Сумма продажи должна быть меньше 100%"
     }
   },
   "perps": {
@@ -1358,7 +1371,8 @@
       "add_margin_button": "Добавить",
       "protect_losses_title": "Защитите от дальнейших потерь",
       "set_stop_loss_subtitle": "Установите стоп-лосс на уровне {{price}} ({{percent}})",
-      "set_button": "Установить"
+      "set_button": "Установить",
+      "success_title": "Стоп-лосс установлен"
     },
     "confirm": "Подтвердить",
     "deposit": {
@@ -1510,9 +1524,10 @@
     "pro_order_form": {
       "isolated": "Изолированная",
       "choose_order_type": "Выберите тип ордера",
-      "size_usd": "Размер в USD",
+      "size_usd": "Size (USD)",
       "size_percentage": "Процент размера ордера",
       "toggle_size_unit": "Переключить номинал размера",
+      "available_balance": "Доступно: {{amount}}",
       "available_balance_unavailable": "-- доступно",
       "est_liquidation": "Ожид. ликвидация",
       "tpsl": "ТП/СЛ",
@@ -1521,13 +1536,27 @@
     },
     "pro_positions_panel": {
       "positions": "Позиции",
-      "positions_with_count": "Positions ({{count}})",
+      "positions_with_count": "Позиции ({{count}})",
       "orders": "Ордеры",
-      "orders_with_count": "Orders ({{count}})",
+      "orders_with_count": "Ордера ({{count}})",
       "ticker_only": "Только {{ticker}}",
-      "positions_empty": "Your open positions will appear here.",
-      "positions_empty_filtered": "No open {{ticker}} positions.",
-      "orders_empty": "Your open orders will appear here.",
+      "view_market_accessibility": "Switch to the {{symbol}} market",
+      "positions_empty": "Здесь будут отображаться ваши открытые позиции.",
+      "positions_empty_filtered": "Нет открытых позиций по {{ticker}}.",
+      "positions_empty_long": "Нет длинных позиций.",
+      "positions_empty_short": "Нет коротких позиций.",
+      "orders_empty": "Здесь будут отображаться ваши открытые ордера.",
+      "side_filter": {
+        "all_sides": "Все стороны",
+        "long": "Длинные",
+        "short": "Короткие"
+      },
+      "sort": {
+        "position_value": "Стоимость позиции",
+        "unrealized_pnl": "Нереализованные П/У",
+        "funding_rate": "Ставка финансирования",
+        "settings_accessibility": "Сортировать позиции"
+      },
       "card": {
         "entry_price": "Начальная цена",
         "margin": "Маржа",
@@ -1536,7 +1565,7 @@
         "liq_price": "Цена ликв.",
         "funding": "Финансирование",
         "isolated": "Изолированная",
-        "cross": "Cross",
+        "cross": "Кросс",
         "close": "Закрыть",
         "reverse": "Реверсировать",
         "share": "Поделиться"
@@ -1548,10 +1577,6 @@
         "reduce_only": "Только уменьшить",
         "tp_sl": "ТП/СЛ",
         "trigger_condition": "Условие срабатывания",
-        "take_profit": "Тейк-профит",
-        "stop": "Stop",
-        "open_limit": "Open limit",
-        "close_limit": "Close limit",
         "cancel": "Отмена"
       }
     },
@@ -1628,7 +1653,7 @@
         "short": "Короткий(-ая/ое) {{asset}}"
       },
       "tpsl_modal": {
-        "title": "Тейк-профит/стоп-лосс",
+        "title": "Тейк-профит и стоп-лосс",
         "save": "Сохранить",
         "current_price": "Текущая цена: {{price}}",
         "on": "ВКЛ.",
@@ -1835,7 +1860,8 @@
       "margin_available_to_remove": "Доступная маржа для удаления",
       "perps_balance": "Баланс перпов",
       "liquidation_price": "Цена ликвидации",
-      "liquidation_distance": "Расстояние ликвидации"
+      "liquidation_distance": "Расстояние ликвидации",
+      "exceeds_available": "Amount exceeds available margin"
     },
     "tpsl": {
       "title": "Автозакрытие",
@@ -2041,11 +2067,18 @@
       },
       "statistics": "Обзор",
       "stats": "Статистика",
+      "about": "О MetaMask",
+      "about_asset": "О {{assetName}}",
+      "read_more": "Подробнее",
+      "read_more_about": "Подробнее об активах {{assetName}}",
       "24h_high": "Максимум за 24 ч",
       "24h_low": "Минимум за 24 часа",
       "24h_volume": "Объем за 24 ч",
+      "24h_vol": "Объем за 24 ч",
       "open_interest": "Открытый процент",
+      "funding": "Финансирование",
       "funding_rate": "Ставка финансирования",
+      "mark_price": "Рыночная цена",
       "oracle_price": "Цена Oracle",
       "order_book": "Реестр ордеров",
       "countdown": "Обратный отсчет",
@@ -2156,7 +2189,7 @@
         "content": "Фиксированная комиссия, взимаемая поставщиком за каждый вывод средств."
       },
       "tp_sl": {
-        "title": "Тейк-профит/стоп-лосс",
+        "title": "Тейк-профит и стоп-лосс",
         "content": "Тейк-профит (ТП) автоматически закрывает вашу позицию при достижении целевой прибыли. Стоп-лосс (СЛ) ограничивает ваши убытки, закрывая позицию, если цена движется против вас."
       },
       "close_position_you_receive": {
@@ -2547,8 +2580,19 @@
     },
     "market_details": {
       "fullscreen_chart": "Полноэкранный график",
+      "collapse_chart": "Свернуть график",
+      "expand_chart": "Развернуть график",
       "market_list": "Обзор рынков",
-      "perp_pair": "Бессрочный контракт {{ticker}}-{{collateral}}"
+      "perp_pair": "Бессрочный контракт {{ticker}}-{{collateral}}",
+      "back": "Назад",
+      "wallet": "Баланс перпов",
+      "add_to_watchlist": "Добавить в избранное",
+      "remove_from_watchlist": "Удалить из избранного"
+    },
+    "balance_bottom_sheet": {
+      "close_button": "Закрыть",
+      "history_button": "Смотреть активность",
+      "available": "Доступно"
     }
   },
   "market_insights": {
@@ -2602,47 +2646,9 @@
       "events_in_total": "Всего событий: {{count}}",
       "events_in_total_overflow": "Всего более {{count}} рынков",
       "props_pill": "Проп-ставки",
-      "championship_unavailable": "Пока нет рынков чемпионата для отображения.",
-      "mens_world_cup_title": "Чемпионат мира среди мужчин",
-      "mens_world_cup_events": "{{count}} событий мужского чемпионата мира",
-      "mens_world_cup_events_overflow": "Более {{count}} событий мужского чемпионата мира",
-      "winner_unavailable": "Пока нет рынков чемпионата мира для отображения."
+      "championship_unavailable": "Пока нет рынков чемпионата для отображения."
     },
     "world_cup": {
-      "title": "Чемпионат мира",
-      "predictions_title": "Прогнозы на Чемпионат мира",
-      "banner_title": "Чемпионат мира 2026 г.",
-      "banner_description": "Торгуйте каждым матчем, каждым моментом.",
-      "hub_banner_title": "На кону 75 тыс. $",
-      "hub_banner_description": "Прогнозируйте матчи плей-офф чемпионата мира, чтобы выиграть — присоединяйтесь сейчас",
-      "tabs": {
-        "all": "Все",
-        "props": "Проп-ставки",
-        "live": "Идет сейчас",
-        "games": "Матчи"
-      },
-      "who_will_win": "Кто выиграет чемпионат мира?",
-      "stages": {
-        "group_stage": "Групповой этап",
-        "round_of_32": "1/16 финала",
-        "round_of_16": "1/8 финала",
-        "quarterfinals": "Четвертьфиналы",
-        "semifinals": "Полуфиналы",
-        "third_place": "Третье место",
-        "final": "Финал",
-        "group_a": "Группа A",
-        "group_b": "Группа B",
-        "group_c": "Группа C",
-        "group_d": "Группа D",
-        "group_e": "Группа E",
-        "group_f": "Группа F",
-        "group_g": "Группа G",
-        "group_h": "Группа H",
-        "group_i": "Группа I",
-        "group_j": "Группа J",
-        "group_k": "Группа K",
-        "group_l": "Группа L"
-      },
       "market_info": {
         "regulation_time_winner": {
           "title": "Победитель в основном времени"
@@ -2714,6 +2720,16 @@
     },
     "outcome_groups": {
       "game_lines": "Линии игры",
+      "map_1": "Карта 1",
+      "map_2": "Карта 2",
+      "map_3": "Карта 3",
+      "map_4": "Карта 4",
+      "map_5": "Карта 5",
+      "game_1": "Игра 1",
+      "game_2": "Игра 2",
+      "game_3": "Игра 3",
+      "game_4": "Игра 4",
+      "game_5": "Игра 5",
       "halves": "Таймы",
       "first_half": "1-я половина",
       "first_set": "1-й сет",
@@ -2778,7 +2794,27 @@
       "tennis_match_totals": "Всего геймов",
       "tennis_first_set_totals": "Всего геймов в 1-м сете",
       "tennis_first_set_winner": "Победитель 1-го сета",
-      "tennis_completed_match": "Завершенный матч"
+      "tennis_completed_match": "Завершенный матч",
+      "child_moneyline": "Победитель",
+      "map_handicap": "Фора",
+      "round_handicap_game": "Фора по раундам",
+      "round_over_under_game": "Итого раундов",
+      "first_blood_game": "Первая кровь",
+      "kill_over_under_game": "Итого убийств",
+      "map_participant_win_total": "Выигранные карты",
+      "cs2_odd_even_total_kills": "Чет/нечет общего числа убийств",
+      "cs2_odd_even_total_rounds": "Чет/нечет общего числа раундов",
+      "lol_both_teams_baron": "Обе команды убивают Барона Нашора",
+      "lol_both_teams_dragon": "Обе команды убивают дракона",
+      "lol_both_teams_inhibitors": "Обе команды уничтожают ингибиторы",
+      "lol_odd_even_total_kills": "Чет/нечет общего числа убийств",
+      "lol_penta_kill": "Пента-килл от любого игрока",
+      "lol_quadra_kill": "Квадра-килл от любого игрока",
+      "dota2_both_teams_barracks": "Обе команды уничтожают бараки",
+      "dota2_both_teams_roshan": "Обе команды убивают Рошана",
+      "dota2_game_ends_daytime": "Завершится в дневное время",
+      "dota2_rampage": "Ремпейдж от любого игрока",
+      "dota2_ultra_kill": "Ультра-килл от любого игрока"
     },
     "sell_position": "Позиция на продажу",
     "odds": "Коэффициенты",
@@ -2824,15 +2860,63 @@
       "live": "Идет сейчас",
       "popular_today": "Популярно сегодня",
       "tabs": {
+        "all": "Все",
         "basketball": "Баскетбол",
         "tennis": "Теннис",
         "soccer": "Футбол",
         "baseball": "Бейсбол",
-        "football": "Американский футбол"
+        "football": "Американский футбол",
+        "esports": "Киберспорт",
+        "cricket": "Крикет",
+        "golf": "Гольф",
+        "combat": "Единоборства",
+        "hockey": "Хоккей"
       },
       "filters": {
         "all": "Все",
-        "live": "Идет сейчас"
+        "live": "Идет сейчас",
+        "games": "Матчи",
+        "tournaments": "Турниры",
+        "fights": "Бои",
+        "props": "Проп-ставки",
+        "mls": "МЛС",
+        "champions-league": "ЛЧ",
+        "EPL": "EPL",
+        "uel": "Лига Европы",
+        "la-liga": "Ла Лига",
+        "serie-a": "Серия А",
+        "bundesliga": "Бундеслига",
+        "ligue-1": "Лига 1",
+        "lib": "Кубок Либертадорес",
+        "mlb": "MLB",
+        "kbo": "KBO",
+        "npb": "NPB",
+        "cpbl": "CPBL",
+        "awards": "Награды MLB",
+        "nfl": "НФЛ",
+        "nfl-team-futures": "Долгосрочные ставки НФЛ",
+        "nfl-free-agency": "Межсезонье НФЛ",
+        "cfb": "Колледжи",
+        "cfl": "CFL",
+        "nba": "НБА",
+        "nba-free-agency": "Межсезонье НБА",
+        "wnba": "WNBA",
+        "ncaa": "NCAA",
+        "league-of-legends": "LoL",
+        "counter-strike-2": "CS2",
+        "valorant": "Valorant",
+        "dota-2": "Dota 2",
+        "rainbow-six-siege": "R6 Siege",
+        "atp": "ATP",
+        "wta": "WTA",
+        "itf": "ITF",
+        "international-cricket": "Международный",
+        "t20-blast": "T20 Blast",
+        "pga-tour": "PGA Tour",
+        "liv-golf": "LIV",
+        "ufc": "UFC",
+        "boxing": "Бокс",
+        "nhl": "НХЛ"
       }
     },
     "search_placeholder": "Поиск рынков прогнозов",
@@ -3299,7 +3383,8 @@
       "view_on_portfolio": "Посмотреть в Portfolio",
       "view_on_block": "Смотреть в обозревателе блоков",
       "token_details": "Описание токена",
-      "remove_token": "Удалить токен"
+      "remove_token": "Удалить токен",
+      "deactivate_asset": "Деактивировать актив"
     }
   },
   "nft_details": {
@@ -3463,7 +3548,7 @@
     "description_content_1_legacy": "MetaMask хотел бы собрать основные данные об использовании, чтобы лучше понять, как наши пользователи взаимодействуют с мобильным приложением. Эти данные будут использоваться для постоянного улучшения удобства использования и взаимодействия с пользователем нашего продукта.",
     "description_content_2_legacy": "MetaMask...",
     "action_description_1_legacy": "всегда позволяет вам запретить сбор данных в Настройках;",
-    "action_description_2_legacy": "отправляет анонимные клики и просмотры страниц;",
+    "action_description_2_legacy": "Send anonymized click and pageview events",
     "action_description_3_legacy": "собирать информацию, которая нам не нужна для предоставления услуги (например, ключи, адреса, хэши транзакций или балансы)",
     "action_description_4_legacy": "никогда не записывает ключи, адреса, транзакции, балансы, хэши или любую личную информацию;",
     "action_description_5_legacy": "никогда не записывает ваш IP-адрес;",
@@ -3802,9 +3887,9 @@
     "privacy_mode": "Режим конфиденциальности",
     "privacy_mode_desc": "Сайтам необходимо запрашивать доступ для просмотра информации о вашем счете.",
     "nft_opensea_mode": "Включить API OpenSea",
-    "nft_opensea_desc": "Отображение мультимедиа и данных NFT может раскрыть ваш IP-адрес централизованным серверам. Используйте API OpenSea для получения данных NFT. Автоматическое обнаружение NFT использует API OpenSea и будет недоступно, если отключено. Включение автоматического обнаружения NFT может подвергнуть вас риску отправки поддельных NFT в ваш кошелек кем угодно и позволить злоумышленнику узнать ваш IP-адрес по вашему адресу Ethereum",
+    "nft_opensea_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
     "nft_autodetect_mode": "Автоопределение NFT",
-    "nft_autodetect_desc": "Отображение медиа и данных NFT может раскрыть ваш IP-адрес централизованным серверам. Сторонние API (например, OpenSea) используются для обнаружения NFT в вашем кошельке. При таком обнаружении адрес вашего счета становится известен этим службами. Оставьте этот параметр отключенным, если не хотите, чтобы приложение получало данные от этих служб.",
+    "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Показывать обмен в тестовых сетях",
     "show_fiat_on_testnets_desc": "Выберите это, чтобы показывать обмен на фиатную валюту в тестовых сетях.",
     "show_fiat_on_testnets_modal_title": "Будьте осторожны",
@@ -4020,8 +4105,8 @@
     "manage_sdk_connections_title": "Управление подключениями",
     "manage_sdk_connections_text": "Удалите подключения к сайтам и/или MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Покупка и продажа криптовалюты",
-      "description": "Регион и прочее...",
+      "title": "Покупать и продавать криптовалюту",
+      "description": "Region and more...",
       "current_region": "Текущий регион",
       "reset_region": "Сбросить регион",
       "change_region": "Изменить регион",
@@ -4095,7 +4180,7 @@
         "quote_tag_most_reliable": "Самый надежный",
         "quote_unknown_provider": "Неизвестный поставщик",
         "start_headless_buy": "Начать headless-покупку",
-        "replace_and_start_headless_buy": "Заменить и начать фоновую покупку",
+        "replace_and_start_headless_buy": "Replace and start headless buy",
         "start_headless_buy_disabled_hint": "Введите действительную сумму для включения",
         "start_headless_buy_pending": "Headless-сессия активна — откройте BuildQuote",
         "cancel_headless_buy": "Отменить headless-сессию",
@@ -5509,6 +5594,11 @@
     "enable_biometrics": "Разблокировать с помощью биометрии?",
     "enable_device_passcode_ios": "Разблокировать с помощью пароля устройства?",
     "enable_device_passcode_android": "Разблокировать с помощью PIN-кода устройства?"
+  },
+  "balance_breakdown": {
+    "allocation": "Распределение",
+    "hide_balance": "Скрыть общий баланс",
+    "show_balance": "Показать общий баланс"
   },
   "authentication": {
     "auth_prompt_desc": "Авторизуйтесь, чтобы использовать MetaMask",
@@ -7067,11 +7157,11 @@
     "bluetooth_off": "Bluetooth выключен",
     "bluetooth_off_message": "Включите Bluetooth на своем устройстве",
     "bluetooth_access_blocked": "Леджеру требуется доступ к Bluetooth для сопряжения с вашим мобильным устройством.",
-    "bluetooth_access_blocked_message": "Если вы хотите подключить устройство Ledger с помощью Bluetooth, включите Bluetooth в Настройках и повторите попытку.",
+    "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "MetaMask требуется разрешение на доступ к местоположению для сопряжения с вашим ledger.",
-    "location_access_blocked_message": "Если вы хотите подключить свое устройство Ledger с помощью Bluetooth, вам нужно предоставить доступ к местоположению в Настройках и повторить попытку.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings and try again.",
     "nearbyDevices_access_blocked": "MetaMask требуется разрешение на доступ к устройствам поблизости для сопряжения с вашим ledger.",
-    "nearbyDevices_access_blocked_message": "Если вы хотите подключить свое устройство Ledger с помощью Bluetooth, вам нужно предоставить доступ к устройствам поблизости в Настройках и повторить попытку.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Ошибка при сканировании устройства",
     "bluetooth_scanning_error_message": "Убедитесь, что ваше устройство разблокировано и запущено приложение Ethereum",
     "bluetooth_connection_failed": "Не удалось подключиться через Bluetooth",
@@ -7265,13 +7355,6 @@
     "your_bonus_tooltip_lifetime_bonus": "Всего получено бонусов: ",
     "your_bonus_tooltip_lifetime_bonus_desc": "Общая сумма бонусов, которую вы получили с момента, когда начали.",
     "learn_more": "Узнайте подробнее",
-    "empty_state_cta": {
-      "heading": "Давайте взаймы {{tokenSymbol}} и зарабатывайте",
-      "body": "Одолжите свой {{tokenSymbol}} с помощью {{protocol}} и зарабатывайте",
-      "annually": "каждый год.",
-      "learn_more": "Узнайте подробнее.",
-      "earn": "Заработать"
-    },
     "service_interruption_banner": {
       "maintenance_message": "Мы закрыты на техобслуживание. Скоро вернемся в сеть!"
     },
@@ -7317,8 +7400,10 @@
       }
     },
     "withdraw": "Вывести средства",
+    "withdraw_from_aave": "Вывести из Aave",
     "deposit_more": "Внесите больше",
     "earning": "Заработок",
+    "lending_earnings": "Доход от кредитования",
     "withdrawal_time": "Время вывода средств",
     "withdrawing_to": "Вывод на",
     "network": "Сеть",
@@ -7489,14 +7574,27 @@
       "card": "Карта"
     },
     "token_list_cta": {
-      "get_apy": "Получить {{apy}}% годовых"
+      "get_apy": "Get {{apy}}% APY"
+    },
+    "asset_overview": {
+      "cta": {
+        "earn_apy": "{{apy}}% годовых",
+        "start_earning": "Начать зарабатывать",
+        "current_apy_disclaimer": "Текущая годовая доходность (APY) является плавающей и не гарантируется."
+      },
+      "balance_cta": {
+        "description_prefix": "Добавьте {{symbol}} в свой счет Money Account и зарабатывайте до ",
+        "description_suffix": " за один год.",
+        "earn_apy": "Зарабатывайте {{apy}}% годовых",
+        "earnings_tooltip_accessibility_label": "Узнать о прогнозируемом доходе"
+      }
     },
     "earnings": {
       "title": "Заработок",
       "estimated_monthly": "Месячный",
-      "estimated_lifetime": "Lifetime",
-      "monthly_info_label": "Monthly earnings info",
-      "lifetime_info_label": "Lifetime earnings info"
+      "estimated_lifetime": "За всё время",
+      "monthly_info_label": "Информация о ежемесячном доходе",
+      "lifetime_info_label": "Информация о доходе за всё время"
     },
     "how_it_works": {
       "title": "Как это работает",
@@ -7533,7 +7631,7 @@
       "virtual_card": "Виртуальная карта",
       "metal_card": "Металлическая карта",
       "cashback": "{{percentage}}% кэшбэка в mUSD",
-      "get_now": "Get",
+      "get_now": "Получить",
       "link_title": "Привязать карту",
       "link_subtitle": "Тратьте баланс и зарабатывайте на покупках.",
       "link_subtitle_no_apy": "Тратьте баланс и зарабатывайте на покупках.",
@@ -7643,18 +7741,19 @@
     },
     "earnings_tooltip": {
       "monthly": {
-        "title": "Monthly earnings",
-        "body": "The total you've earned on your Money account balance in the last 30 days."
+        "title": "Доход за месяц",
+        "body": "Общая сумма, заработанная на балансе вашего счета Money Account за последние 30 дней."
       },
       "lifetime": {
         "title": "Заработок за все время",
-        "body": "The total you've earned on your Money account balance over time."
+        "body": "Общая сумма, заработанная на балансе вашего счета Money Account за всё время."
       }
     },
     "earn_crypto_info_sheet": {
       "title": "Зарабатывайте на своей криптовалюте",
       "deposit_title": "Прогнозируемый баланс через 1 лет",
-      "body": "Прогноз предполагает, что годовая процентная доходность (APY) в размере {{percentage}}% останется неизменной в течение года. APY может меняться и не гарантируется."
+      "body": "Прогноз предполагает, что годовая процентная доходность (APY) в размере {{percentage}}% останется неизменной в течение одного года. APY является плавающей и не гарантируется. Доходность не гарантируется.",
+      "go_to_money_account": "Перейти к счету Money Account"
     },
     "activity": {
       "title": "Деятельность",
@@ -7670,8 +7769,8 @@
       "filter_purchases": "Покупки"
     },
     "condensed_cards": {
-      "how_it_works_title": "How your money grows",
-      "musd_title": "Meet mUSD",
+      "how_it_works_title": "Как растут ваши деньги",
+      "musd_title": "Познакомьтесь с mUSD",
       "what_you_get_title": "Изучите свои преимущества"
     },
     "transaction": {
@@ -8300,6 +8399,8 @@
     "sort_balance": "Баланс",
     "next": "Далее",
     "explore_tokens": "Искать токены",
+    "robinhood_banner_title": "Сеть Robinhood Chain уже здесь",
+    "robinhood_banner_subtitle": "Изучайте популярные токены",
     "no_tokens_found": "Токены не найдены",
     "no_tokens_found_description": "Не удалось найти токены с этим именем. Попробуйте другой поисковый запрос.",
     "select_network": "Выбрать сеть",
@@ -8896,8 +8997,7 @@
         "country_not_available": "Регистрация карты пока недоступна в вашей стране.",
         "account_label": "Счет",
         "account_description": "Ваша карта MetaMask будет связана с этим счетом.",
-        "account_exists_toast": "У вас уже есть счет карты.",
-        "card_program_label": "Карточная программа (тестирование)"
+        "account_exists_toast": "У вас уже есть счет карты."
       },
       "confirm_email": {
         "title": "Подтвердите ваш адрес электронной почты",
@@ -9070,8 +9170,8 @@
         "title": "Присоединиться к списку ожидания",
         "load_error": "При загрузке формы возникла ошибка. Попробуйте еще раз.",
         "try_again": "Повторить попытку",
-        "success_toast": "You're on the waitlist!",
-        "success_toast_description": "We'll let you know when the card is available in your country."
+        "success_toast": "Вы в списке ожидания!",
+        "success_toast_description": "Мы сообщим вам, когда карта станет доступна в вашей стране."
       },
       "region_selector": {
         "title": "Выберите свой регион"
@@ -9562,6 +9662,8 @@
       "retry_button": "Повтор",
       "tiers_title": "Уровни",
       "tier_thresholds": "{{points}} балла(-ов)",
+      "maintain_threshold_label": "Поддерживать порог",
+      "maintain_this_tier": "До поддержания этого уровня осталось очков: {{points}}",
       "bps_value": "{{bps}} базисных пункта(-ов)",
       "referee_splash_continue": "Продолжить",
       "referee_referred_by": "По рекомендации {{code}}",
@@ -10070,7 +10172,7 @@
     "earn_rewards": {
       "title": "Заработать вознаграждения",
       "musd_money_title": "Получайте до {{percentage}}% годовых",
-      "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
+      "musd_disclaimer_accessibility_label": "Отказ от ответственности по APY mUSD",
       "musd_subtitle": "Уже появились счета Money Account",
       "card_title": "Кешбэк до 3% за покупки",
       "card_subtitle": "Получите свою карту MetaMask прямо сейчас",
@@ -10327,7 +10429,7 @@
     "low_to_high": "От низкого к высокому",
     "apply": "Применить",
     "search_placeholder": "Поиск токенов, рынков и URL-адресов",
-    "quick_trade": "Быстрая покупка и продажа",
+    "quick_trade": "Quick Buy and Sell",
     "cancel": "Отмена",
     "perps": "Перпы",
     "rwa_perps_section": "Перпы",
@@ -10524,7 +10626,7 @@
       "related_assets": "Связанные активы",
       "perpetuals": "Бессрочные контракты",
       "predictions": "Прогнозы",
-      "top_traders": "Лучшие трейдеры недели",
+      "top_traders": "Лучшие трейдеры",
       "defi": "DeFi",
       "nfts": "NFT",
       "watchlist": "Список наблюдения",
@@ -10552,6 +10654,7 @@
   "whats_happening": {
     "title": "Что происходит",
     "ai": "ИИ",
+    "ai_generated": "Создано ИИ",
     "outdated": "Устарело",
     "impact": {
       "bullish": "Бычий",
@@ -10582,5 +10685,19 @@
     "empty_add_tokens_cta": "Добавить {{count}} токен",
     "empty_add_tokens_cta_plural": "Добавить {{count}} токенов",
     "search_placeholder": "Найти любой актив для добавления"
+  },
+  "asset_spendable_balance": {
+    "spendable": "Доступно для трат",
+    "base_reserved": "Зарезервировано (заблокировано)",
+    "fiat_value": "Значение",
+    "total_balance": "Общий баланс"
+  },
+  "asset_activation": {
+    "activate": "Активировать",
+    "activate_description": "Активируйте {{symbol}} в сети {{chainName}}, чтобы начать.",
+    "inactive": "Неактивен",
+    "activate_error": "Что-то пошло не так при добавлении этой линии доверия (trustline). Попробуйте снова.",
+    "deactivate_error": "Что-то пошло не так при удалении этой линии доверия (trustline). Попробуйте снова.",
+    "deactivate_error_non_zero_balance_stellar": "В вашем кошельке все еще осталось {{balance}} {{symbol}}. Вы должны отправить или обменять их все перед деактивацией этого актива в сети Stellar."
   }
 }

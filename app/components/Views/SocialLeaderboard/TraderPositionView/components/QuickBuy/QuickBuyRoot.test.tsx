@@ -43,16 +43,6 @@ jest.mock('../../../analytics', () => {
   };
 });
 
-// Keyboard A/B test — default to treatment so the amount screen stays dynamic.
-const mockUseKeyboard = true;
-jest.mock('../../../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variant: { useKeyboard: mockUseKeyboard },
-    variantName: mockUseKeyboard ? 'treatment' : 'control',
-    isActive: mockUseKeyboard,
-  }),
-}));
-
 let storedOnOpenCallback: (() => void) | undefined;
 const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
 
