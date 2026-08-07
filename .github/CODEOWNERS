@@ -161,6 +161,7 @@ app/core/NotificationsManager.test.ts @MetaMask/engagement
 **/Engagement/** @MetaMask/engagement
 **/engagement/** @MetaMask/engagement
 app/constants/engagement.ts @MetaMask/engagement
+app/core/DeeplinkManager/handlers/ @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
