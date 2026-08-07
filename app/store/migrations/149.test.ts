@@ -162,6 +162,48 @@ describe(`Migration ${migrationVersion}: Revert unreleased Arc default-add`, () 
     ).not.toHaveProperty(ARC_CHAIN_ID);
   });
 
+  it('force-enables mainnet if Arc was the only enabled EVM network', () => {
+    const state = stateWithArc();
+    state.engine.backgroundState.NetworkEnablementController.enabledNetworkMap.eip155 =
+      {
+        '0x1': false,
+        '0xe708': false,
+        '0x2105': false,
+        [ARC_CHAIN_ID]: true,
+      };
+
+    const result = migrate(state) as typeof baseState;
+
+    const eip155Map =
+      result.engine.backgroundState.NetworkEnablementController
+        .enabledNetworkMap.eip155;
+    expect(eip155Map).not.toHaveProperty(ARC_CHAIN_ID);
+    expect(eip155Map['0x1']).toBe(true);
+    expect(
+      result.engine.backgroundState.NetworkController.selectedNetworkClientId,
+    ).toBe('mainnet');
+  });
+
+  it('does not force-enable mainnet if another network was already enabled alongside Arc', () => {
+    const state = stateWithArc();
+    state.engine.backgroundState.NetworkEnablementController.enabledNetworkMap.eip155 =
+      {
+        '0x1': false,
+        '0xe708': true,
+        '0x2105': false,
+        [ARC_CHAIN_ID]: true,
+      };
+
+    const result = migrate(state) as typeof baseState;
+
+    const eip155Map =
+      result.engine.backgroundState.NetworkEnablementController
+        .enabledNetworkMap.eip155;
+    expect(eip155Map).not.toHaveProperty(ARC_CHAIN_ID);
+    expect(eip155Map['0x1']).toBe(false);
+    expect(eip155Map['0xe708']).toBe(true);
+  });
+
   it('does not touch unrelated networks', () => {
     const state = stateWithArc();
     const result = migrate(state) as typeof baseState;

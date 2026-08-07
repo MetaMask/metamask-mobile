@@ -96,7 +96,22 @@ export default function migrate(versionedState: unknown) {
         networkEnablementState.enabledNetworkMap[KnownCaipNamespace.Eip155];
 
       if (hasProperty(eip155NetworkMap, ARC_CHAIN_ID)) {
+        // If Arc was the only enabled EVM network, removing it would leave
+        // the user with none enabled. Mirror migration 111's precedent for
+        // removing an exclusively-enabled network: fall back to mainnet.
+        const wasArcTheOnlyEnabledNetwork =
+          eip155NetworkMap[ARC_CHAIN_ID] === true &&
+          Object.entries(eip155NetworkMap).every(
+            ([chainId, isEnabled]) =>
+              chainId === ARC_CHAIN_ID || isEnabled !== true,
+          );
+
         delete eip155NetworkMap[ARC_CHAIN_ID];
+
+        if (wasArcTheOnlyEnabledNetwork) {
+          eip155NetworkMap['0x1'] = true;
+          networkState.selectedNetworkClientId = 'mainnet';
+        }
       }
     }
 
