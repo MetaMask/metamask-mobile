@@ -213,6 +213,24 @@ if (typeof global.MessageEvent === 'undefined') {
     require('react-native/src/private/webapis/html/events/MessageEvent').default;
 }
 
+// @metamask/post-message-stream captures the browser-standard `source` getter
+// when its window transport module is evaluated. React Native's MessageEvent
+// implements data/origin/lastEventId but not source, which otherwise prevents
+// Engine initialization before the window transport is even instantiated.
+if (
+  typeof Object.getOwnPropertyDescriptor(
+    global.MessageEvent.prototype,
+    'source',
+  )?.get !== 'function'
+) {
+  Object.defineProperty(global.MessageEvent.prototype, 'source', {
+    configurable: true,
+    get() {
+      return global.window ?? null;
+    },
+  });
+}
+
 class AbortError extends Error {
   constructor(message) {
     super(message);
