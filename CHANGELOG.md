@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.4.2]
 
-### Uncategorized
+### Fixed
 
-- Bump version to 8.4.1 (#33973)
+- Fixed Arc incorrectly appearing as an added/enabled network for some users after an earlier migration added it by default before release (#34445)
+
+## [8.4.1]
+
+### Fixed
+
+- Perps: orders funded with a custom pay token no longer fail when placing the order — placement is now blocked until the pay amount reaches the controller (#33822)
+- WalletConnect: dapp connections are more reliable, with the relay now routed through the built-in WebSocket (#33871)
 
 ## [8.4.0]
 
@@ -12965,7 +12972,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.4.2...HEAD
-[8.4.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.4.0...v8.4.2
+[8.4.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.4.1...v8.4.2
+[8.4.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.4.0...v8.4.1
 [8.4.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.3.0...v8.4.0
 [8.3.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.2.1...v8.3.0
 [8.2.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.2.0...v8.2.1
