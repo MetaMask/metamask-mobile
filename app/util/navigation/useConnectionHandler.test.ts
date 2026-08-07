@@ -10,7 +10,7 @@ jest.mock('../../components/hooks/useAnalytics/useAnalytics');
 const mockTrackEvent = jest.fn();
 
 describe('useConnectionHandler', () => {
-  const mockNavigation = { navigate: jest.fn() };
+  const mockNavigation = { navigate: jest.fn(), goBack: jest.fn() };
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -81,6 +81,7 @@ describe('useConnectionHandler', () => {
     jest.advanceTimersByTime(2000);
 
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     expect(mockTrackEvent).toHaveBeenNthCalledWith(
       2,
@@ -146,5 +147,23 @@ describe('useConnectionHandler', () => {
 
     expect(mockNavigation.navigate).not.toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+  });
+
+  it('dismisses OfflineModeView when connectivity returns after it was shown', () => {
+    const { result } = renderHook(() => useConnectionHandler(mockNavigation));
+
+    act(() => {
+      result.current.connectionChangeHandler({ isConnected: false });
+    });
+    jest.advanceTimersByTime(3000);
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('OfflineModeView');
+
+    act(() => {
+      result.current.connectionChangeHandler({ isConnected: true });
+    });
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
   });
 });
