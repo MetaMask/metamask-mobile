@@ -56,6 +56,7 @@ import {
 import {
   CardStatus,
   FundingAssetStatus,
+  CardProviderIds,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -95,6 +96,7 @@ import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
 import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
@@ -135,7 +137,23 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
-  const isImmersve = useSelector(selectCardActiveProviderId) === 'immersve';
+  const isImmersve =
+    useSelector(selectCardActiveProviderId) === CardProviderIds.Immersve;
+  const cardRegionCode = data?.card?.regionCode;
+  const {
+    permanentDocuments: immersveLegalDocuments,
+    isLoading: isImmersveLegalDocsLoading,
+    error: immersveLegalDocsError,
+    refetch: refetchImmersveLegalDocs,
+  } = useImmersveSupportedRegions(cardRegionCode, {
+    enabled: isImmersve && Boolean(cardRegionCode),
+  });
+  const immersveLegalDocsUnavailable = Boolean(
+    isImmersve &&
+      Boolean(cardRegionCode) &&
+      !isImmersveLegalDocsLoading &&
+      (immersveLegalDocsError || immersveLegalDocuments.length === 0),
+  );
   const cardTermsAndConditionsUrl = useMemo(
     () =>
       isImmersve
@@ -725,6 +743,22 @@ const CardHome = () => {
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
           supportEmail={supportEmail}
+          legalDocuments={
+            isImmersve && immersveLegalDocuments.length > 0
+              ? immersveLegalDocuments
+              : undefined
+          }
+          hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+          showLegalDocumentsError={immersveLegalDocsUnavailable}
+          onRetryLegalDocuments={
+            immersveLegalDocsUnavailable
+              ? () => {
+                  refetchImmersveLegalDocs().catch(() => {
+                    // Error surfaces via hook state / footer retry UI.
+                  });
+                }
+              : undefined
+          }
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />

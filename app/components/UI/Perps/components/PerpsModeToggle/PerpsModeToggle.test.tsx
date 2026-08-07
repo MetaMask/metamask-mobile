@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -8,6 +8,7 @@ import {
 import PerpsModeToggle from './PerpsModeToggle';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { GLOW_TOTAL_MS } from './PerpsModeSwitchPill';
 
 const mockTrack = jest.fn();
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -36,23 +37,38 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
       testID,
       onPress,
+      disabled,
       accessibilityLabel,
       accessibilityHint,
     }: {
       children: React.ReactNode;
       testID?: string;
       onPress?: () => void;
+      disabled?: boolean;
       accessibilityLabel?: string;
       accessibilityHint?: string;
     }) => (
       <TouchableOpacity
         testID={testID}
         onPress={onPress}
+        disabled={disabled}
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
       >
         <Text>{children}</Text>
       </TouchableOpacity>
+    ),
+    Box: ({
+      children,
+      onLayout,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      onLayout?: () => void;
+    }) => (
+      <View onLayout={onLayout} {...props}>
+        {children}
+      </View>
     ),
     SegmentedControl: ({
       value,
@@ -97,9 +113,42 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: (...args: unknown[]) => args,
+  }),
+}));
+
+jest.mock('@react-native-masked-view/masked-view', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({
+    children,
+    maskElement,
+  }: {
+    children?: React.ReactNode;
+    maskElement?: React.ReactNode;
+  }) => (
+    <View>
+      {maskElement}
+      {children}
+    </View>
+  );
+});
+
+jest.mock('react-native-linear-gradient', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ children }: { children?: React.ReactNode }) => (
+    <View>{children}</View>
+  );
+});
+
 describe('PerpsModeToggle', () => {
   beforeEach(() => {
     mockTrack.mockClear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders both Lite and Pro segments in the default toggle variant', () => {
@@ -199,11 +248,11 @@ describe('PerpsModeToggle', () => {
       getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
     ).toBeOnTheScreen();
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
-    // Gradient label renders the string twice (mask + sizing text).
     expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
-  it('flips to the opposite mode and tracks the change when the active pill is pressed', () => {
+  it('finishes the active-pill animation before changing mode', () => {
+    jest.useFakeTimers();
     const onChange = jest.fn();
     const { getByTestId } = render(
       <PerpsModeToggle
@@ -215,6 +264,12 @@ describe('PerpsModeToggle', () => {
     );
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT)).toBeDisabled();
+    act(() => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(PerpsMode.Lite);
