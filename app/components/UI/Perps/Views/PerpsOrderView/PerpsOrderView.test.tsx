@@ -486,6 +486,7 @@ jest.mock(
 let mockIsPayQuoteLoading = false;
 let mockPayTotals: unknown;
 let mockPayRequiredTokens: { amountRaw: string; skipIfBalance: boolean }[] = [];
+let mockIsPaySubmitReady = true;
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
@@ -495,6 +496,7 @@ jest.mock(
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
     useTransactionPayTotals: () => mockPayTotals,
     useTransactionPayRequiredTokens: () => mockPayRequiredTokens,
+    useIsTransactionPaySubmitReady: () => mockIsPaySubmitReady,
   }),
 );
 
@@ -2112,6 +2114,7 @@ describe('PerpsOrderView', () => {
     beforeEach(() => {
       mockIsPayQuoteLoading = false;
       mockPayRequiredTokens = [];
+      mockIsPaySubmitReady = true;
       // A custom pay token, not the Perps balance: the gate only applies here.
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
@@ -2127,6 +2130,7 @@ describe('PerpsOrderView', () => {
 
     afterEach(() => {
       mockPayRequiredTokens = [];
+      mockIsPaySubmitReady = true;
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     });
 
@@ -2170,6 +2174,37 @@ describe('PerpsOrderView', () => {
       // amount must not block them.
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
       mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('disables place order while the pay state would fail the publish guard', async () => {
+      // The amount landed and nothing reports as loading, but there is no
+      // executable quote and no validated direct route (e.g. the quote fetch
+      // failed or never started, or the payment token was never set). A tap
+      // here would be rejected at publish with "Cannot submit without quote".
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+      mockIsPaySubmitReady = false;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
+    it('leaves place order enabled when paying from the Perps balance while pay state is not submit ready', async () => {
+      // Orders funded from the Perps balance never deposit, so pay submit
+      // readiness must not block them.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+      mockIsPaySubmitReady = false;
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
