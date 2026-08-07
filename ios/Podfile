@@ -9,6 +9,15 @@ podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties
 
 ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
 
+# @sentry/react-native 8.x consumes sentry-cocoa as a prebuilt xcframework by
+# default, which bakes machine-specific absolute cache paths
+# (~/Library/Caches/sentry-react-native/...) into the generated
+# RNSentry.podspec.json. The Podfile.lock SPEC CHECKSUM hashes that JSON, so
+# every machine (dev vs CI) would rewrite the lockfile and break the
+# "Require clean working directory" CI check. Force the deterministic
+# source-built `Sentry` CocoaPod instead (same consumption model as 7.x).
+ENV['SENTRY_USE_XCFRAMEWORK'] ||= '0'
+
 platform :ios, '15.1'
 prepare_react_native_project!
 

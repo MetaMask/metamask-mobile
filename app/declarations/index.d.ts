@@ -398,7 +398,6 @@ declare module '@sentry/react-native' {
     nativeCrash,
     flush,
     close,
-    captureUserFeedback,
     withScope,
     crashedLastRun,
   } from '@sentry/react-native/dist/js/sdk';
