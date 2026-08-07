@@ -8,6 +8,7 @@ import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/feature
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import {
+  shapeCardTilt,
   pitchToParallaxValue,
   tiltToParallaxValue,
 } from '../../utils/parallax';
@@ -62,8 +63,8 @@ const MoneyCardTiltAnimation = ({
     // viewTag() is null while the native Rive view is detached; dispatching
     // then throws "found null reactTag".
     if (!rive || rive.viewTag() === null) return;
-    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(x));
-    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(y));
+    rive.setNumber(RIVE_PROPERTY_X, tiltToParallaxValue(shapeCardTilt(x)));
+    rive.setNumber(RIVE_PROPERTY_Y, pitchToParallaxValue(shapeCardTilt(y)));
   }, []);
 
   useDeviceOrientation(applyTilt, { enabled: animate });
