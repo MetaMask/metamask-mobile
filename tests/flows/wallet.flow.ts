@@ -49,7 +49,6 @@ import PlaywrightUtilities, {
   getDriver,
 } from '../framework/PlaywrightUtilities';
 import UnifiedGestures from '../framework/UnifiedGestures';
-import { resolveTestMuCatalogDeviceName } from '../framework/services/providers/testmu/TestMuDeviceResolver';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
@@ -964,19 +963,10 @@ export const selectAccountByDevice = async (
   deviceName: string,
 ): Promise<void> => {
   const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
-  const normalizedDeviceName = deviceName.replace(/\.\*$/, '');
-  const accountName =
-    deviceAccountMapping[deviceName] ??
-    deviceAccountMapping[normalizedDeviceName] ??
-    deviceAccountMapping[resolveTestMuCatalogDeviceName(normalizedDeviceName)];
+  const accountName = deviceAccountMapping[deviceName];
 
-  if (accountName === undefined) {
-    throw new Error(
-      `Account name not found for device: ${deviceName}` +
-        (normalizedDeviceName !== deviceName
-          ? ` (normalized: ${normalizedDeviceName})`
-          : ''),
-    );
+  if (!(deviceName in deviceAccountMapping)) {
+    throw new Error(`Account name not found for device: ${deviceName}`);
   }
 
   if (!accountName) {
