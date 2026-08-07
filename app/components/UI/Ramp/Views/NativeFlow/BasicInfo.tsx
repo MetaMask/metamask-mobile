@@ -179,10 +179,17 @@ const V2BasicInfo = (): React.JSX.Element => {
     navigation.goBack();
   }, [navigation]);
 
+  // Clear SSN once on mount. The ref guard keeps that run-once behavior while
+  // listing real dependencies so React Compiler does not bail out.
+  const hasClearedSsnOnMountRef = useRef(false);
+
   useEffect(() => {
+    if (hasClearedSsnOnMountRef.current) {
+      return;
+    }
+    hasClearedSsnOnMountRef.current = true;
     handleFormDataChange('ssn')('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleFormDataChange]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;

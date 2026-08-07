@@ -263,12 +263,21 @@ const OrderDetails = () => {
     }
   }, [order, refreshOrder]);
 
+  // Refresh pending orders (without callback params) at most once per mount.
+  // The ref guard keeps that run-once behavior while listing real dependencies
+  // for React Compiler.
+  const hasRefreshedPendingOnMountRef = useRef(false);
+
   useEffect(() => {
+    if (hasRefreshedPendingOnMountRef.current) {
+      return;
+    }
+    hasRefreshedPendingOnMountRef.current = true;
+
     if (isPending && !hasCallbackParams) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleOnRefresh, hasCallbackParams, isPending]);
 
   useEffect(() => {
     if (

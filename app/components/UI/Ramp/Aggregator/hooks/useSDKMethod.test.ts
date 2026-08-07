@@ -81,30 +81,31 @@ describe('useSDKMethod', () => {
     });
   });
 
-  describe('JSON.stringify memoization', () => {
-    it('does not call JSON.stringify on every render when params do not change', () => {
-      const jsonStringifySpy = jest.spyOn(JSON, 'stringify');
+  describe('param content stability', () => {
+    it('keeps the same query reference when param values are unchanged', () => {
+      const mockGetDefaultFiatCurrency = jest
+        .fn()
+        .mockResolvedValue({ id: 'usd' });
+      mockUseRampSDKValues = {
+        sdk: {
+          getDefaultFiatCurrency: mockGetDefaultFiatCurrency,
+        } as unknown as RampSDK['sdk'],
+      };
 
-      const { rerender } = renderHookWithProvider(() =>
-        useSDKMethod('getCountries'),
+      const regionId = 'region-1';
+      const { result, rerender } = renderHookWithProvider(() =>
+        useSDKMethod('getDefaultFiatCurrency', regionId as '/regions/cl'),
       );
 
-      const callsAfterMount = jsonStringifySpy.mock.calls.length;
+      const queryFirstRender = result.current[1];
+      rerender(() =>
+        useSDKMethod('getDefaultFiatCurrency', regionId as '/regions/cl'),
+      );
 
-      rerender(() => useSDKMethod('getCountries'));
-      rerender(() => useSDKMethod('getCountries'));
-      rerender(() => useSDKMethod('getCountries'));
-      rerender(() => useSDKMethod('getCountries'));
-
-      // JSON.stringify should not be called again after re-renders with unchanged params
-      expect(jsonStringifySpy.mock.calls.length).toBe(callsAfterMount);
-
-      jsonStringifySpy.mockRestore();
+      expect(result.current[1]).toBe(queryFirstRender);
     });
 
-    it('calls JSON.stringify when params change', () => {
-      const jsonStringifySpy = jest.spyOn(JSON, 'stringify');
-
+    it('returns a new query reference when param values change', () => {
       const mockGetDefaultFiatCurrency = jest
         .fn()
         .mockResolvedValue({ id: 'usd' });
@@ -115,28 +116,18 @@ describe('useSDKMethod', () => {
       };
 
       let regionId = 'region-1';
-      const { rerender } = renderHookWithProvider(() =>
+      const { result, rerender } = renderHookWithProvider(() =>
         useSDKMethod('getDefaultFiatCurrency', regionId as '/regions/cl'),
       );
 
-      const callsAfterMount = jsonStringifySpy.mock.calls.length;
+      const queryFirstRender = result.current[1];
 
-      // Re-render with same params - no new stringify call
-      rerender(() =>
-        useSDKMethod('getDefaultFiatCurrency', regionId as '/regions/cl'),
-      );
-      expect(jsonStringifySpy.mock.calls.length).toBe(callsAfterMount);
-
-      // Re-render with different params - stringify should be called again
       regionId = 'region-2';
       rerender(() =>
         useSDKMethod('getDefaultFiatCurrency', regionId as '/regions/cl'),
       );
-      expect(jsonStringifySpy.mock.calls.length).toBeGreaterThan(
-        callsAfterMount,
-      );
 
-      jsonStringifySpy.mockRestore();
+      expect(result.current[1]).not.toBe(queryFirstRender);
     });
   });
 

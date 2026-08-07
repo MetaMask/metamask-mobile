@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   HeaderStandard,
   Text,
@@ -135,12 +141,20 @@ const V2BankDetails = () => {
     }
   }, [order, getDepositOrder, refreshOrder, handleLogoutError]);
 
+  // Refresh CREATED orders at most once per mount. The ref guard keeps that
+  // run-once behavior while listing real dependencies for React Compiler.
+  const hasRefreshedOnMountRef = useRef(false);
+
   useEffect(() => {
+    if (hasRefreshedOnMountRef.current) {
+      return;
+    }
+    hasRefreshedOnMountRef.current = true;
+
     if (order?.status === RampsOrderStatus.Created && shouldUpdate) {
       handleOnRefresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleOnRefresh, order?.status, shouldUpdate]);
 
   useEffect(() => {
     if (!order?.status) return;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
 import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../../util/Logger';
@@ -9,6 +9,16 @@ type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
 type PartialParameters<T> = T extends (...args: infer P) => any
   ? NullifyOrPartial<P>
   : never;
+
+/**
+ * Rest params are a new array every render. Stringify once so `query`'s
+ * dependency list can key on content rather than array identity — and so we
+ * don't need an `exhaustive-deps` suppression (any suppressed React rule makes
+ * React Compiler skip the hook).
+ */
+const stringifyMethodParams = <T extends keyof RegionsService>(
+  params: PartialParameters<RegionsService[T]>,
+): string => JSON.stringify(params);
 
 /**
  * Determines if the provided method and parameters are valid for the RegionsService interface.
@@ -98,17 +108,21 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(onMount);
-  const stringifiedParams = useMemo(
-    () => JSON.stringify(params),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [...params],
-  );
+  // Content-stable key for rest params (new array identity every render).
+  const stringifiedParams = stringifyMethodParams(params);
   const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   const query = useCallback(
     async (...customParams: PartialParameters<RegionsService[T]> | []) => {
       const hasCustomParams = customParams.length > 0;
-      const queryParams = hasCustomParams ? customParams : params;
+      // Read defaults from the stringified key so this callback does not close
+      // over the per-render `params` array (which would force an
+      // exhaustive-deps suppression and a React Compiler bailout).
+      const queryParams = hasCustomParams
+        ? customParams
+        : (JSON.parse(
+            stringifiedParams,
+          ) as PartialParameters<RegionsService[T]>);
 
       if (!validMethodParams(method, queryParams)) {
         return;
@@ -152,7 +166,6 @@ export default function useSDKMethod<T extends keyof RegionsService>(
         setIsFetching(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [method, stringifiedParams, sdk],
   );
 

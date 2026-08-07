@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../../../../util/theme';
@@ -119,10 +119,21 @@ function ErrorView({
     ctaOnPress?.();
   }, [ctaOnPress]);
 
+  // Track once per description/location. Extra SDK fields can mutate after the
+  // error is shown; the ref guard keeps that one-shot behavior while listing
+  // real dependencies so React Compiler does not bail out on an
+  // exhaustive-deps suppression.
+  const trackedErrorKeyRef = useRef<string | null>(null);
+  const errorTrackingKey = `${location}|${description}`;
+
   useEffect(() => {
     if (!sdk || isBuy === undefined) {
       return;
     }
+    if (trackedErrorKeyRef.current === errorTrackingKey) {
+      return;
+    }
+    trackedErrorKeyRef.current = errorTrackingKey;
     trackEvent(isBuy ? 'ONRAMP_ERROR' : 'OFFRAMP_ERROR', {
       location,
       message: description,
@@ -135,11 +146,18 @@ function ErrorView({
         ? selectedAsset?.symbol
         : (selectedFiatCurrencyId as string),
     });
-    // Dependency array does not include extra data since it can mutate after the error
-    // is displayed. This is a safe guard to prevent the error from being tracked multiple
-    // times.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [description, location, trackEvent]);
+  }, [
+    description,
+    errorTrackingKey,
+    isBuy,
+    location,
+    sdk,
+    selectedAsset?.symbol,
+    selectedFiatCurrencyId,
+    selectedPaymentMethodId,
+    selectedRegion?.id,
+    trackEvent,
+  ]);
 
   return (
     <View style={styles.screen}>

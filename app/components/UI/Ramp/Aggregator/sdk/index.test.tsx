@@ -7,6 +7,22 @@ import { RampType } from '../types';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+/**
+ * Renders ramp SDK context fields into the tree so tests can assert via
+ * `screen` queries instead of assigning outer-scope variables during render
+ * (a React Compiler purity violation).
+ */
+function RampSDKContextProbe() {
+  const { rampType, isBuy, isSell } = useRampSDK();
+  return (
+    <>
+      <Text>{`Ramp Type: ${rampType}`}</Text>
+      <Text>{`Is Buy: ${String(isBuy)}`}</Text>
+      <Text>{`Is Sell: ${String(isSell)}`}</Text>
+    </>
+  );
+}
+
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -53,45 +69,33 @@ describe('RampSDKProvider', () => {
   });
 
   it('provides default ramp type as BUY', () => {
-    let contextValue: ReturnType<typeof useRampSDK> | undefined;
-    const TestComponent = () => {
-      contextValue = useRampSDK();
-      return <Text>Test Component</Text>;
-    };
-
     renderWithProvider(
       <RampSDKProvider>
-        <TestComponent />
+        <RampSDKContextProbe />
       </RampSDKProvider>,
       {
         state: mockedState,
       },
     );
 
-    expect(contextValue?.rampType).toBe(RampType.BUY);
-    expect(contextValue?.isBuy).toBe(true);
-    expect(contextValue?.isSell).toBe(false);
+    expect(screen.getByText(`Ramp Type: ${RampType.BUY}`)).toBeOnTheScreen();
+    expect(screen.getByText('Is Buy: true')).toBeOnTheScreen();
+    expect(screen.getByText('Is Sell: false')).toBeOnTheScreen();
   });
 
   it('accepts custom ramp type', () => {
-    let contextValue: ReturnType<typeof useRampSDK> | undefined;
-    const TestComponent = () => {
-      contextValue = useRampSDK();
-      return <Text>Test Component</Text>;
-    };
-
     renderWithProvider(
       <RampSDKProvider rampType={RampType.SELL}>
-        <TestComponent />
+        <RampSDKContextProbe />
       </RampSDKProvider>,
       {
         state: mockedState,
       },
     );
 
-    expect(contextValue?.rampType).toBe(RampType.SELL);
-    expect(contextValue?.isBuy).toBe(false);
-    expect(contextValue?.isSell).toBe(true);
+    expect(screen.getByText(`Ramp Type: ${RampType.SELL}`)).toBeOnTheScreen();
+    expect(screen.getByText('Is Buy: false')).toBeOnTheScreen();
+    expect(screen.getByText('Is Sell: true')).toBeOnTheScreen();
   });
 
   it('syncs SDK locale on mount', () => {

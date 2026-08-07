@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
 } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
@@ -96,44 +97,52 @@ const OrderDetails = () => {
     order?.sellTxHash,
   ]);
 
+  // Fire purchase-details analytics once per mount when an order is present.
+  // The ref guard preserves that one-shot behavior while listing real
+  // dependencies so React Compiler does not bail out on an exhaustive-deps
+  // suppression.
+  const hasTrackedPurchaseDetailsRef = useRef(false);
+
   useEffect(() => {
-    if (order) {
-      const { data, state, cryptocurrency, orderType, currency, network } =
-        order;
-
-      const providerName = (data as Order).provider?.name;
-
-      const payload = {
-        status: state,
-        payment_method_id: (data as Order).paymentMethod?.id,
-        order_type: orderType,
-      };
-      if (order.orderType === OrderOrderTypeEnum.Buy) {
-        trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
-          ...payload,
-          currency_destination: cryptocurrency,
-          currency_destination_symbol: cryptocurrency,
-          currency_destination_network: getAggregatorOrderNetworkName(
-            data as Order,
-          ),
-          currency_source: currency,
-          provider_onramp: providerName,
-          chain_id_destination: network,
-        });
-      } else {
-        trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
-          ...payload,
-          currency_source: cryptocurrency,
-          currency_source_symbol: cryptocurrency,
-          currency_source_network: getAggregatorOrderNetworkName(data as Order),
-          currency_destination: currency,
-          provider_offramp: providerName,
-          chain_id_source: network,
-        });
-      }
+    if (hasTrackedPurchaseDetailsRef.current || !order) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackEvent]);
+    hasTrackedPurchaseDetailsRef.current = true;
+
+    const { data, state, cryptocurrency, orderType, currency, network } =
+      order;
+
+    const providerName = (data as Order).provider?.name;
+
+    const payload = {
+      status: state,
+      payment_method_id: (data as Order).paymentMethod?.id,
+      order_type: orderType,
+    };
+    if (order.orderType === OrderOrderTypeEnum.Buy) {
+      trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
+        ...payload,
+        currency_destination: cryptocurrency,
+        currency_destination_symbol: cryptocurrency,
+        currency_destination_network: getAggregatorOrderNetworkName(
+          data as Order,
+        ),
+        currency_source: currency,
+        provider_onramp: providerName,
+        chain_id_destination: network,
+      });
+    } else {
+      trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
+        ...payload,
+        currency_source: cryptocurrency,
+        currency_source_symbol: cryptocurrency,
+        currency_source_network: getAggregatorOrderNetworkName(data as Order),
+        currency_destination: currency,
+        provider_offramp: providerName,
+        chain_id_source: network,
+      });
+    }
+  }, [getAggregatorOrderNetworkName, order, trackEvent]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => {
@@ -173,13 +182,20 @@ const OrderDetails = () => {
     [dispatchThunk, dispatchUpdateFiatOrder, order],
   );
 
+  // Refresh CREATED orders at most once per mount. The ref guard keeps that
+  // run-once behavior while listing real dependencies for React Compiler.
+  const hasRefreshedCreatedOrderOnMountRef = useRef(false);
+
   useEffect(() => {
+    if (hasRefreshedCreatedOrderOnMountRef.current) {
+      return;
+    }
+    hasRefreshedCreatedOrderOnMountRef.current = true;
+
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
       handleOnRefresh();
     }
-    // only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleOnRefresh, order?.state]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
