@@ -7,6 +7,7 @@ import { useAnalytics } from '../../components/hooks/useAnalytics/useAnalytics';
 export const useConnectionHandler = (navigation: any) => {
   const connectedRef = useRef(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const offlineModeShownRef = useRef(false);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -27,11 +28,16 @@ export const useConnectionHandler = (navigation: any) => {
           );
           timeoutRef.current = setTimeout(() => {
             navigation.navigate('OfflineModeView');
+            offlineModeShownRef.current = true;
           }, 3000);
         } else {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.CONNECTION_RESTORED).build(),
           );
+          if (offlineModeShownRef.current) {
+            navigation.goBack();
+            offlineModeShownRef.current = false;
+          }
         }
         connectedRef.current = isConnected;
       }
