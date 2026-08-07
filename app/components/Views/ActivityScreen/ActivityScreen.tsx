@@ -55,6 +55,7 @@ import {
 } from '../../../util/navigation/navUtils';
 import { useTrackFilterClicked } from '../../hooks/useTrackFilterClicked';
 import {
+  ALL_NETWORKS_FILTER_VALUE,
   FilterLocation,
   FilterType,
 } from '../../../core/Analytics/events/filters';
@@ -172,19 +173,13 @@ const ActivityScreen = () => {
     PERPS_ACTIVITY_FILTER_LABEL_KEY[perpsFilter],
   );
 
-  // Fires only from an explicit selection in the network filter sheet, never on
-  // load. `networkFilter` is the selection the sheet was opened with, so it is
-  // the `from_network` for this change.
   const handleSelectNetwork = useCallback(
     (chainIds: CaipChainId[] | null) => {
-      const fromNetwork = networkFilter?.[0];
-      const toNetwork = chainIds?.[0];
-
       trackFilterClicked({
         location: FilterLocation.Activity,
         filter_type: FilterType.Network,
-        ...(fromNetwork ? { from_network: fromNetwork } : {}),
-        ...(toNetwork ? { to_network: toNetwork } : {}),
+        from_network: networkFilter?.[0] ?? ALL_NETWORKS_FILTER_VALUE,
+        to_network: chainIds?.[0] ?? ALL_NETWORKS_FILTER_VALUE,
       });
 
       setNetworkFilter(chainIds);

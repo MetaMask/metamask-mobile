@@ -19,3 +19,10 @@ export enum FilterLocation {
 export enum FilterType {
   Network = 'network',
 }
+
+/**
+ * Sent for `from_network` / `to_network` when no network filter is applied,
+ * so "all networks" is an explicit, groupable value rather than a missing
+ * property that cannot be told apart from unset or malformed data.
+ */
+export const ALL_NETWORKS_FILTER_VALUE = 'all';

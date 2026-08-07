@@ -120,7 +120,7 @@ describe('ActivityScreen analytics', () => {
       expect(mockTrackFilterClicked).not.toHaveBeenCalled();
     });
 
-    it('fires with to_network when a network is selected from all networks', () => {
+    it('reports from_network as all when a network is selected from all networks', () => {
       // Arrange
       const { getByTestId } = render(<ActivityScreen />);
       const onNetworkSelect = openNetworkSheet(getByTestId);
@@ -133,6 +133,7 @@ describe('ActivityScreen analytics', () => {
       expect(mockTrackFilterClicked).toHaveBeenCalledWith({
         location: 'activity',
         filter_type: 'network',
+        from_network: 'all',
         to_network: 'eip155:1',
       });
     });
@@ -154,7 +155,7 @@ describe('ActivityScreen analytics', () => {
       });
     });
 
-    it('omits to_network when the filter is cleared back to all networks', () => {
+    it('reports to_network as all when the filter is cleared back to all networks', () => {
       // Arrange
       const { getByTestId } = render(<ActivityScreen />);
       openNetworkSheet(getByTestId)(['eip155:1'] as CaipChainId[]);
@@ -167,7 +168,23 @@ describe('ActivityScreen analytics', () => {
         location: 'activity',
         filter_type: 'network',
         from_network: 'eip155:1',
+        to_network: 'all',
       });
+    });
+
+    it('always sends both network properties, never omitting either', () => {
+      // Arrange
+      const { getByTestId } = render(<ActivityScreen />);
+
+      // Act
+      openNetworkSheet(getByTestId)(['eip155:1'] as CaipChainId[]);
+      openNetworkSheet(getByTestId)(null);
+
+      // Assert
+      for (const [properties] of mockTrackFilterClicked.mock.calls) {
+        expect(properties).toHaveProperty('from_network');
+        expect(properties).toHaveProperty('to_network');
+      }
     });
   });
 
